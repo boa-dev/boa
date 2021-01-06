@@ -12,7 +12,7 @@
 use crate::{
     builtins::BuiltIn,
     gc::{empty_trace, Finalize, Trace},
-    object::{ConstructorBuilder, ObjectData},
+    object::{ConstructorBuilder, ObjectData, PROTOTYPE},
     property::{Attribute, DataDescriptor},
     value::{RcString, Value},
     BoaProfiler, Context, Result,
@@ -98,7 +98,23 @@ impl RegExp {
     pub(crate) const LENGTH: usize = 2;
 
     /// Create a new `RegExp`
-    pub(crate) fn constructor(this: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn constructor(
+        new_target: &Value,
+        args: &[Value],
+        ctx: &mut Context,
+    ) -> Result<Value> {
+        let prototype = match new_target {
+            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), ctx)? {
+                Value::Object(ref o) => o.clone(),
+                _ => ctx.standard_objects().regexp_object().prototype(),
+            },
+            _ => ctx.standard_objects().regexp_object().prototype(),
+        };
+        let this = Value::new_object(ctx);
+
+        this.as_object()
+            .expect("this should be an object")
+            .set_prototype_instance(prototype.into());
         let arg = args.get(0).ok_or_else(Value::undefined)?;
 
         let (regex_body, mut regex_flags) = match arg {
@@ -186,7 +202,7 @@ impl RegExp {
 
         this.set_data(ObjectData::RegExp(Box::new(regexp)));
 
-        Ok(this.clone())
+        Ok(this)
     }
 
     // /// `RegExp.prototype.dotAll`

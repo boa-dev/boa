@@ -11,6 +11,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-evalerror
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError
 
+use crate::object::PROTOTYPE;
 use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, ObjectData},
@@ -57,10 +58,20 @@ impl EvalError {
 
     /// Create a new error object.
     pub(crate) fn constructor(
-        this: &Value,
+        new_target: &Value,
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
+        let prototype = match new_target {
+            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), context)? {
+                Value::Object(ref o) => o.clone(),
+                _ => context.standard_objects().error_object().prototype(),
+            },
+            _ => context.standard_objects().error_object().prototype(),
+        };
+        let mut obj = context.construct_object();
+        obj.set_prototype_instance(prototype.into());
+        let this = Value::from(obj);
         if let Some(message) = args.get(0) {
             this.set_field("message", message.to_string(context)?, context)?;
         }
@@ -68,6 +79,6 @@ impl EvalError {
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
         this.set_data(ObjectData::Error);
-        Ok(this.clone())
+        Ok(this)
     }
 }

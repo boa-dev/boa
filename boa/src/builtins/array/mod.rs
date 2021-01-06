@@ -17,7 +17,7 @@ use crate::{
     builtins::array::array_iterator::{ArrayIterationKind, ArrayIterator},
     builtins::BuiltIn,
     gc::GcObject,
-    object::{ConstructorBuilder, FunctionBuilder, ObjectData},
+    object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
     property::{Attribute, DataDescriptor},
     value::{same_value_zero, IntegerOrInfinity, Value},
     BoaProfiler, Context, Result,
@@ -108,12 +108,19 @@ impl BuiltIn for Array {
 impl Array {
     const LENGTH: usize = 1;
 
-    fn constructor(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    fn constructor(new_target: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let prototype = match new_target {
+            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), context)? {
+                Value::Object(ref o) => o.clone(),
+                _ => context.standard_objects().array_object().prototype(),
+            },
+            _ => context.standard_objects().array_object().prototype(),
+        };
         // Delegate to the appropriate constructor based on the number of arguments
         match args.len() {
-            0 => Array::construct_array_empty(this, context),
-            1 => Array::construct_array_length(this, &args[0], context),
-            _ => Array::construct_array_values(this, args, context),
+            0 => Array::construct_array_empty(prototype, context),
+            1 => Array::construct_array_length(prototype, &args[0], context),
+            _ => Array::construct_array_values(prototype, args, context),
         }
     }
 
@@ -123,10 +130,8 @@ impl Array {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array-constructor-array
-    fn construct_array_empty(this: &Value, context: &mut Context) -> Result<Value> {
-        let prototype = context.standard_objects().array_object().prototype();
-
-        Array::array_create(this, 0, Some(prototype), context)
+    fn construct_array_empty(proto: GcObject, context: &mut Context) -> Result<Value> {
+        Array::array_create(0, Some(proto), context)
     }
 
     /// By length constructor for `Array`.
@@ -136,12 +141,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array-len
     fn construct_array_length(
-        this: &Value,
+        prototype: GcObject,
         length: &Value,
         context: &mut Context,
     ) -> Result<Value> {
-        let prototype = context.standard_objects().array_object().prototype();
-        let array = Array::array_create(this, 0, Some(prototype), context)?;
+        let array = Array::array_create(0, Some(prototype), context)?;
 
         if !length.is_number() {
             array.set_field(0, Value::from(length), context)?;
@@ -167,13 +171,12 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array-items
     fn construct_array_values(
-        this: &Value,
+        prototype: GcObject,
         items: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        let prototype = context.standard_objects().array_object().prototype();
         let items_len = items.len().try_into().map_err(interror_to_value)?;
-        let array = Array::array_create(this, items_len, Some(prototype), context)?;
+        let array = Array::array_create(items_len, Some(prototype), context)?;
 
         for (k, item) in items.iter().enumerate() {
             array.set_field(k, item.clone(), context)?;
@@ -189,7 +192,6 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-arraycreate
     fn array_create(
-        this: &Value,
         length: u32,
         prototype: Option<GcObject>,
         context: &mut Context,
@@ -198,21 +200,23 @@ impl Array {
             Some(prototype) => prototype,
             None => context.standard_objects().array_object().prototype(),
         };
+        let array = Value::new_object(context);
 
-        this.as_object()
+        array
+            .as_object()
             .expect("this should be an array object")
             .set_prototype_instance(prototype.into());
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
-        this.set_data(ObjectData::Array);
+        array.set_data(ObjectData::Array);
 
         let length = DataDescriptor::new(
             length,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
         );
-        this.set_property("length", length);
+        array.set_property("length", length);
 
-        Ok(this.clone())
+        Ok(array)
     }
 
     /// Creates a new `Array` instance.

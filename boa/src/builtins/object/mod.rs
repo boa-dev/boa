@@ -15,7 +15,9 @@
 
 use crate::{
     builtins::BuiltIn,
-    object::{ConstructorBuilder, Object as BuiltinObject, ObjectData, ObjectInitializer},
+    object::{
+        ConstructorBuilder, Object as BuiltinObject, ObjectData, ObjectInitializer, PROTOTYPE,
+    },
     property::Attribute,
     property::DataDescriptor,
     property::PropertyDescriptor,
@@ -78,7 +80,23 @@ impl BuiltIn for Object {
 impl Object {
     const LENGTH: usize = 1;
 
-    fn constructor(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    fn constructor(new_target: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        if !new_target.is_undefined() {
+            let prototype = match new_target {
+                Value::Object(obj) => match obj.get(&PROTOTYPE.into(), context)? {
+                    Value::Object(ref o) => o.clone(),
+                    _ => context.standard_objects().object_object().prototype(),
+                },
+                _ => context.standard_objects().object_object().prototype(),
+            };
+            let object = Value::new_object(context);
+
+            object
+                .as_object()
+                .expect("this should be an object")
+                .set_prototype_instance(prototype.into());
+            return Ok(object);
+        }
         if let Some(arg) = args.get(0) {
             if !arg.is_null_or_undefined() {
                 return Ok(arg.to_object(context)?.into());

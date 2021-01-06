@@ -70,20 +70,31 @@ impl Map {
 
     /// Create a new map
     pub(crate) fn constructor(
-        this: &Value,
+        new_target: &Value,
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        // Set Prototype
-        let prototype = context
+        if new_target.is_undefined() {
+            return context.throw_type_error("Map requires new");
+        }
+        let map_prototype = context
             .global_object()
             .clone()
             .get_field("Map", context)?
-            .get_field(PROTOTYPE, context)?;
+            .get_field(PROTOTYPE, context)?
+            .as_object()
+            .unwrap();
+        let prototype = match new_target {
+            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), context)? {
+                Value::Object(ref o) => o.clone(),
+                _ => map_prototype,
+            },
+            _ => map_prototype,
+        };
+        let mut obj = context.construct_object();
+        obj.set_prototype_instance(prototype.into());
+        let this = Value::from(obj);
 
-        this.as_object()
-            .expect("this is map object")
-            .set_prototype_instance(prototype);
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
 
@@ -122,12 +133,12 @@ impl Map {
             },
         };
 
-        // finally create length property
-        Self::set_size(this, data.len());
+        // finally create size property
+        Self::set_size(&this, data.len());
 
         this.set_data(ObjectData::Map(data));
 
-        Ok(this.clone())
+        Ok(this)
     }
 
     /// `Map.prototype.entries()`
