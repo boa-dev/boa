@@ -213,11 +213,11 @@ impl GcObject {
         context: &mut Context,
     ) -> Result<Value> {
         let this_function_object = self.clone();
-        if let Some(function) = self.borrow().as_function() {
+        let body = if let Some(function) = self.borrow().as_function() {
             if function.is_constructable() {
                 match function {
                     Function::BuiltIn(BuiltInFunction(function), _) => {
-                        function(&new_target, args, context)
+                        FunctionBody::BuiltInConstructor(*function)
                     }
                     Function::Ordinary {
                         body,
@@ -256,7 +256,7 @@ impl GcObject {
                             } else {
                                 BindingStatus::Uninitialized
                             },
-                            new_target,
+                            new_target.clone(),
                         );
 
                         // Add argument bindings to the function environment
@@ -284,19 +284,27 @@ impl GcObject {
 
                         context.realm_mut().environment.push(local_env);
 
-                        let _ = body.run(context);
-
-                        // local_env gets dropped here, its no longer needed
-                        let binding = context.realm_mut().environment.get_this_binding();
-                        binding.map_err(|e| e.to_error(context))
+                        FunctionBody::Ordinary(body.clone())
                     }
                 }
             } else {
                 let name = self.get(&"name".into(), context)?.display().to_string();
-                context.throw_type_error(format!("{} is not a constructor", name))
+                return context.throw_type_error(format!("{} is not a constructor", name));
             }
         } else {
-            context.throw_type_error("not a function")
+            return context.throw_type_error("not a function");
+        };
+
+        match body {
+            FunctionBody::BuiltInConstructor(function) => function(&new_target, args, context),
+            FunctionBody::Ordinary(body) => {
+                let _ = body.run(context);
+
+                // local_env gets dropped here, its no longer needed
+                let binding = context.realm_mut().environment.get_this_binding();
+                binding.map_err(|e| e.to_error(context))
+            }
+            _ => unreachable!(),
         }
     }
 
