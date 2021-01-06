@@ -564,6 +564,129 @@ fn trim_end() {
 }
 
 #[test]
+fn split() {
+    let mut context = Context::new();
+    assert_eq!(
+        forward(&mut context, "'Hello'.split()"),
+        forward(&mut context, "['Hello']")
+    );
+    assert_eq!(
+        forward(&mut context, "'Hello'.split(null)"),
+        forward(&mut context, "['Hello']")
+    );
+    assert_eq!(
+        forward(&mut context, "'Hello'.split(undefined)"),
+        forward(&mut context, "['Hello']")
+    );
+    assert_eq!(
+        forward(&mut context, "'Hello'.split('')"),
+        forward(&mut context, "['H','e','l','l','o']")
+    );
+
+    assert_eq!(
+        forward(&mut context, "'x1x2'.split('x')"),
+        forward(&mut context, "['','1','2']")
+    );
+    assert_eq!(
+        forward(&mut context, "'x1x2x'.split('x')"),
+        forward(&mut context, "['','1','2','']")
+    );
+
+    assert_eq!(
+        forward(&mut context, "'x1x2x'.split('x', 0)"),
+        forward(&mut context, "[]")
+    );
+    assert_eq!(
+        forward(&mut context, "'x1x2x'.split('x', 2)"),
+        forward(&mut context, "['','1']")
+    );
+    assert_eq!(
+        forward(&mut context, "'x1x2x'.split('x', 10)"),
+        forward(&mut context, "['','1','2','']")
+    );
+
+    assert_eq!(
+        forward(&mut context, "'x1x2x'.split(1)"),
+        forward(&mut context, "['x','x2x']")
+    );
+
+    assert_eq!(
+        forward(&mut context, "'Hello'.split(null, 0)"),
+        forward(&mut context, "[]")
+    );
+    assert_eq!(
+        forward(&mut context, "'Hello'.split(undefined, 0)"),
+        forward(&mut context, "[]")
+    );
+
+    assert_eq!(
+        forward(&mut context, "''.split()"),
+        forward(&mut context, "['']")
+    );
+    assert_eq!(
+        forward(&mut context, "''.split(undefined)"),
+        forward(&mut context, "['']")
+    );
+    assert_eq!(
+        forward(&mut context, "''.split('')"),
+        forward(&mut context, "[]")
+    );
+    assert_eq!(
+        forward(&mut context, "''.split('1')"),
+        forward(&mut context, "['']")
+    );
+
+    // TODO: Support keeping invalid code point in string
+    assert_eq!(
+        forward(&mut context, "'𝟘𝟙𝟚𝟛'.split('')"),
+        forward(&mut context, "['�','�','�','�','�','�','�','�']")
+    );
+}
+
+#[test]
+fn split_with_symbol_split_method() {
+    assert_eq!(
+        forward(
+            &mut Context::new(),
+            r#"
+            let sep = {};
+            sep[Symbol.split] = function(s, limit) { return s + limit.toString(); };
+            'hello'.split(sep, 10)
+        "#
+        ),
+        "\"hello10\""
+    );
+
+    assert_eq!(
+        forward(
+            &mut Context::new(),
+            r#"
+            let sep = {};
+            sep[Symbol.split] = undefined;
+            'hello'.split(sep)
+        "#
+        ),
+        "[ \"hello\" ]"
+    );
+
+    assert_eq!(
+        forward(
+            &mut Context::new(),
+            r#"
+            try {
+                let sep = {};
+                sep[Symbol.split] = 10;
+                'hello'.split(sep, 10);
+            } catch(e) {
+                e.toString()
+            }
+        "#
+        ),
+        "\"TypeError: separator[Symbol.split] is not a function\""
+    );
+}
+
+#[test]
 fn index_of_with_no_arguments() {
     let mut context = Context::new();
     assert_eq!(forward(&mut context, "''.indexOf()"), "-1");
