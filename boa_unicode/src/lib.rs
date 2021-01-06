@@ -9,6 +9,17 @@
 mod tables;
 
 use unicode_general_category::{get_general_category, GeneralCategory};
+
+/// Extend a type of code point to query if a value belongs to a particular Unicode property.
+///
+/// This trait defines methods for querying properties and classes mentioned or defined in Unicode® Standard Annex #31.
+/// These properties are used to determine if a code point (char) is valid for being the start/part of an identifier and assist in
+/// the standard treatment of Unicode identifiers in parsers and lexers.
+///
+/// More information:
+///  - [Unicode® Standard Annex #31][uax31]
+///
+/// [uax31]: http://unicode.org/reports/tr31
 pub trait UnicodeProperties: Sized + Copy {
     /// Returns `true` if this value is a member of "ID_Start".
     fn is_id_start(self) -> bool;
