@@ -454,7 +454,7 @@ impl Value {
     {
         let _timer = BoaProfiler::global().start_event("Value::get_field", "value");
         if let Self::Object(ref obj) = *self {
-            obj.clone().get(&key.into(), context)
+            obj.clone().get(&key.into(), obj.clone().into(), context)
         } else {
             Ok(Value::undefined())
         }
@@ -483,15 +483,8 @@ impl Value {
         let value = value.into();
         let _timer = BoaProfiler::global().start_event("Value::set_field", "value");
         if let Self::Object(ref obj) = *self {
-            if let PropertyKey::Index(index) = key {
-                if obj.is_array() {
-                    let len = self.get_field("length", context)?.as_number().unwrap() as u32;
-                    if len < index + 1 {
-                        self.set_field("length", index + 1, context)?;
-                    }
-                }
-            }
-            obj.clone().set(key, value.clone(), context)?;
+            obj.clone()
+                .set(key, value.clone(), obj.clone().into(), context)?;
         }
         Ok(value)
     }
