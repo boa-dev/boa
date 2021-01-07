@@ -536,7 +536,7 @@
         <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">PERMANENT</span>,
     );
     <span class="comment">// Define length as a property</span>
-    <span class="ident">obj</span>.<span class="ident">define_own_property</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length</span>.<span class="ident">into</span>());
+    <span class="ident">obj</span>.<span class="ident">ordinary_define_own_property</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length</span>.<span class="ident">into</span>());
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">while</span> <span class="ident">index</span> <span class="op">&lt;</span> <span class="ident">len</span> {
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">arguments_list</span>.<span class="ident">get</span>(<span class="ident">index</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>);

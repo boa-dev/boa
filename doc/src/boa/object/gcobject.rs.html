@@ -933,6 +933,18 @@
 <span id="932">932</span>
 <span id="933">933</span>
 <span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `GcObject` structure.</span>
 <span class="doccomment">//!</span>
@@ -1140,7 +1152,7 @@
         <span class="comment">// prototype as prototype for the new object</span>
         <span class="comment">// see &lt;https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor&gt;</span>
         <span class="comment">// see &lt;https://tc39.es/ecma262/#sec-getprototypefromconstructor&gt;</span>
-        <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">PROTOTYPE</span>.<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">PROTOTYPE</span>.<span class="ident">into</span>(), <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">proto</span>.<span class="ident">is_object</span>() {
             <span class="ident">proto</span>
         } <span class="kw">else</span> {
@@ -1344,13 +1356,19 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">Attribute</span>::<span class="ident">empty</span>();
 
         <span class="kw">let</span> <span class="ident">enumerable_key</span> <span class="op">=</span> <span class="ident">PropertyKey</span>::<span class="ident">from</span>(<span class="string">&quot;enumerable&quot;</span>);
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">enumerable_key</span>) <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">enumerable_key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">enumerable_key</span>)
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>
+                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">enumerable_key</span>, <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
+                .<span class="ident">to_boolean</span>()
+        {
             <span class="ident">attribute</span> <span class="op">|</span><span class="op">=</span> <span class="ident">Attribute</span>::<span class="ident">ENUMERABLE</span>;
         }
 
         <span class="kw">let</span> <span class="ident">configurable_key</span> <span class="op">=</span> <span class="ident">PropertyKey</span>::<span class="ident">from</span>(<span class="string">&quot;configurable&quot;</span>);
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">configurable_key</span>)
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">configurable_key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>()
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>
+                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">configurable_key</span>, <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
+                .<span class="ident">to_boolean</span>()
         {
             <span class="ident">attribute</span> <span class="op">|</span><span class="op">=</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>;
         }
@@ -1358,14 +1376,17 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="kw">let</span> <span class="ident">value_key</span> <span class="op">=</span> <span class="ident">PropertyKey</span>::<span class="ident">from</span>(<span class="string">&quot;value&quot;</span>);
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">value_key</span>) {
-            <span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">value_key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>);
+            <span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">value_key</span>, <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>);
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_writable</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">let</span> <span class="ident">writable_key</span> <span class="op">=</span> <span class="ident">PropertyKey</span>::<span class="ident">from</span>(<span class="string">&quot;writable&quot;</span>);
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">writable_key</span>) {
             <span class="ident">has_writable</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">writable_key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
+            <span class="kw">if</span> <span class="self">self</span>
+                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">writable_key</span>, <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
+                .<span class="ident">to_boolean</span>()
+            {
                 <span class="ident">attribute</span> <span class="op">|</span><span class="op">=</span> <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span>;
             }
         }
@@ -1373,7 +1394,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">get</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="kw">let</span> <span class="ident">get_key</span> <span class="op">=</span> <span class="ident">PropertyKey</span>::<span class="ident">from</span>(<span class="string">&quot;get&quot;</span>);
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">get_key</span>) {
-            <span class="kw">let</span> <span class="ident">getter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">get_key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">getter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">get_key</span>, <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="kw">match</span> <span class="ident">getter</span> {
                 <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">get</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>.<span class="ident">clone</span>());
@@ -1389,7 +1410,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="kw">let</span> <span class="ident">set_key</span> <span class="op">=</span> <span class="ident">PropertyKey</span>::<span class="ident">from</span>(<span class="string">&quot;set&quot;</span>);
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">set_key</span>) {
-            <span class="kw">let</span> <span class="ident">setter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">set_key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">setter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">set_key</span>, <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="kw">match</span> <span class="ident">setter</span> {
                 <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">set</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>.<span class="ident">clone</span>());
@@ -1645,7 +1666,7 @@
         <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_null_or_undefined</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
@@ -1679,7 +1700,10 @@
         <span class="comment">//           Return ? InstanceofOperator(O, BC).</span>
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">value</span>.<span class="ident">as_object</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">prototype</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="string">&quot;prototype&quot;</span>.<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_object</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">prototype</span>) <span class="op">=</span> <span class="self">self</span>
+                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="string">&quot;prototype&quot;</span>.<span class="ident">into</span>(), <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
+                .<span class="ident">as_object</span>()
+            {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">get_prototype_of</span>();
                 <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object_prototype</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_object</span>() {
                     <span class="kw">if</span> <span class="ident">GcObject</span>::<span class="ident">equals</span>(<span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="kw-2">&amp;</span><span class="ident">object_prototype</span>) {
@@ -1727,7 +1751,7 @@
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">into</span>();
 
-        <span class="kw">let</span> <span class="ident">success</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">define_own_property</span>(<span class="ident">key</span>.<span class="ident">clone</span>(), <span class="ident">desc</span>);
+        <span class="kw">let</span> <span class="ident">success</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">define_own_property</span>(<span class="ident">key</span>.<span class="ident">clone</span>(), <span class="ident">desc</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="op">!</span><span class="ident">success</span> {
             <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Cannot redefine property: {}&quot;</span>, <span class="ident">key</span>)))
         } <span class="kw">else</span> {

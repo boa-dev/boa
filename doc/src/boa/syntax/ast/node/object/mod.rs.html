@@ -151,13 +151,25 @@
 <span id="150">150</span>
 <span id="151">151</span>
 <span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Object node.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">exec</span>::<span class="ident">Executable</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
-    <span class="ident">property</span>::{<span class="ident">AccessorDescriptor</span>, <span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>},
+    <span class="ident">property</span>::{<span class="ident">AccessorDescriptor</span>, <span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>, <span class="ident">PropertyDescriptor</span>},
     <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::{<span class="ident">MethodDefinitionKind</span>, <span class="ident">Node</span>, <span class="ident">PropertyDefinition</span>},
     <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
@@ -233,11 +245,23 @@
         <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">properties</span>().<span class="ident">iter</span>() {
             <span class="kw">match</span> <span class="ident">property</span> {
                 <span class="ident">PropertyDefinition</span>::<span class="ident">Property</span>(<span class="ident">key</span>, <span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">obj</span>.<span class="ident">set_field</span>(<span class="ident">key</span>.<span class="ident">clone</span>(), <span class="ident">value</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="ident">obj</span>.<span class="ident">set_property</span>(
+                        <span class="ident">key</span>.<span class="ident">clone</span>(),
+                        <span class="ident">PropertyDescriptor</span>::<span class="ident">Data</span>(<span class="ident">DataDescriptor</span>::<span class="ident">new</span>(
+                            <span class="ident">value</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
+                            <span class="ident">Attribute</span>::<span class="ident">all</span>(),
+                        )),
+                    );
                 }
                 <span class="ident">PropertyDefinition</span>::<span class="ident">MethodDefinition</span>(<span class="ident">kind</span>, <span class="ident">name</span>, <span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">kind</span> {
                     <span class="ident">MethodDefinitionKind</span>::<span class="ident">Ordinary</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="ident">obj</span>.<span class="ident">set_field</span>(<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">func</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                        <span class="ident">obj</span>.<span class="ident">set_property</span>(
+                            <span class="ident">name</span>.<span class="ident">clone</span>(),
+                            <span class="ident">PropertyDescriptor</span>::<span class="ident">Data</span>(<span class="ident">DataDescriptor</span>::<span class="ident">new</span>(
+                                <span class="ident">func</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
+                                <span class="ident">Attribute</span>::<span class="ident">all</span>(),
+                            )),
+                        );
                     }
                     <span class="ident">MethodDefinitionKind</span>::<span class="ident">Get</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">let</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">obj</span>
