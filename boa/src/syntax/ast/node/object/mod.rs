@@ -3,7 +3,7 @@
 use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
-    property::{AccessorDescriptor, Attribute, PropertyDescriptor},
+    property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor},
     syntax::ast::node::{MethodDefinitionKind, Node, PropertyDefinition},
     Context, Result, Value,
 };
@@ -79,11 +79,23 @@ impl Executable for Object {
         for property in self.properties().iter() {
             match property {
                 PropertyDefinition::Property(key, value) => {
-                    obj.set_field(key.clone(), value.run(context)?, context)?;
+                    obj.set_property(
+                        key.clone(),
+                        PropertyDescriptor::Data(DataDescriptor::new(
+                            value.run(context)?,
+                            Attribute::all(),
+                        )),
+                    );
                 }
                 PropertyDefinition::MethodDefinition(kind, name, func) => match kind {
                     MethodDefinitionKind::Ordinary => {
-                        obj.set_field(name.clone(), func.run(context)?, context)?;
+                        obj.set_property(
+                            name.clone(),
+                            PropertyDescriptor::Data(DataDescriptor::new(
+                                func.run(context)?,
+                                Attribute::all(),
+                            )),
+                        );
                     }
                     MethodDefinitionKind::Get => {
                         let set = obj
