@@ -1,12 +1,36 @@
 #!/usr/bin/env node
+/**
+ * This file is used to generate the Rust source code with tables for Unicode properties and classes.
+ *
+ * This script downloads the content of `PropList.txt` from the remote server, parses the file, extracts
+ * the target properties, prepares the char tables, and then writes to the output Rust file. It also
+ * formats the output file with the command `rustfmt`. Please make sure `rustfmt` is available in the environment.
+ *
+ * Unicode Version: 13.0.0
+ */
+
 const fs = require("fs");
 const path = require("path");
 const https = require("https");
 const child_process = require("child_process");
 
+/**
+ * The URL to download the content of `PropList.txt` through HTTP Get.
+ *
+ * Please make sure the content follows the UCD file format defined in
+ * {@link http://unicode.org/reports/tr44/#UCD_Files|UAX#44}.
+ *
+ * @constant {string}
+ */
 const PROPLIST_TXT_URL =
   "https://www.unicode.org/Public/13.0.0/ucd/PropList.txt";
 
+/**
+ * The target properties to process given in tuples. The first element is the property to search for.
+ * The second element is the table variable name in the output Rust file.
+ *
+ * @constant {[string, string][]}
+ */
 const TARGET_PROPERTIES = [
   ["Pattern_Syntax", "PATTERN_SYNTAX"],
   ["Other_ID_Continue", "OTHER_ID_CONTINUE"],
@@ -14,7 +38,18 @@ const TARGET_PROPERTIES = [
   ["Pattern_White_Space", "PATTERN_WHITE_SPACE"],
 ];
 
+/**
+ * The path of output Rust file.
+ *
+ * @constant {string}
+ */
 const OUTPUT_FILE = path.join(__dirname, "./src/tables.rs");
+
+/**
+ * The doc comment to add to the beginning of output Rust file.
+ *
+ * @constant {string}
+ */
 const OUTPUT_FILE_DOC_COMMENT = `
 //! This module implements the unicode lookup tables for identifier and pattern syntax.
 //! Unicode version: 13.0.0
