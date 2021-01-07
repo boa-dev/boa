@@ -765,7 +765,7 @@ impl Context {
         statement_list.compile(&mut compiler);
         dbg!(&compiler);
 
-        let mut vm = VM::new(compiler, self);
+        let mut vm = VM::new(compiler, self, true);
         // Generate Bytecode and place it into instruction_stack
         // Interpret the Bytecode
         let result = vm.run();

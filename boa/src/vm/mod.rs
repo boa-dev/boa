@@ -5,25 +5,44 @@ pub(crate) mod instructions;
 
 pub use compilation::Compiler;
 pub use instructions::Instruction;
+use std::time::{Duration, Instant};
 
 // Virtual Machine.
 #[derive(Debug)]
 pub struct VM<'a> {
     ctx: &'a mut Context,
+    idx: usize,
     instructions: Vec<Instruction>,
     pool: Vec<Value>,
     stack: Vec<Value>,
     stack_pointer: usize,
+    profile: Profiler,
+    is_trace: bool,
+}
+#[derive(Debug)]
+pub struct Profiler {
+    instant: Instant,
+    prev_time: Duration,
+    trace_string: String,
+    start_flag: bool,
 }
 
 impl<'a> VM<'a> {
-    pub fn new(compiler: Compiler, ctx: &'a mut Context) -> Self {
+    pub fn new(compiler: Compiler, ctx: &'a mut Context, _trace: bool) -> Self {
         Self {
             ctx,
+            idx: 0,
             instructions: compiler.instructions,
             pool: compiler.pool,
             stack: vec![],
             stack_pointer: 0,
+            is_trace: true,
+            profile: Profiler {
+                instant: Instant::now(),
+                prev_time: Duration::from_secs(0),
+                trace_string: String::new(), // Won't allocate if we don't use trace
+                start_flag: false,
+            },
         }
     }
 
@@ -45,12 +64,16 @@ impl<'a> VM<'a> {
 
     pub fn run(&mut self) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("runVM", "vm");
-        let mut idx = 0;
+        self.idx = 0;
 
-        while idx < self.instructions.len() {
+        while self.idx < self.instructions.len() {
+            if self.is_trace {
+                self.trace_print(false);
+            };
+
             let _timer =
-                BoaProfiler::global().start_event(&self.instructions[idx].to_string(), "vm");
-            match self.instructions[idx] {
+                BoaProfiler::global().start_event(&self.instructions[self.idx].to_string(), "vm");
+            match self.instructions[self.idx] {
                 Instruction::Undefined => self.push(Value::undefined()),
                 Instruction::Null => self.push(Value::null()),
                 Instruction::True => self.push(Value::boolean(true)),
@@ -307,10 +330,68 @@ impl<'a> VM<'a> {
                 }
             }
 
-            idx += 1;
+            self.idx += 1;
         }
 
+        if self.is_trace {
+            self.trace_print(true);
+        };
         let res = self.pop();
         Ok(res)
+    }
+
+    pub fn trace_print(&mut self, end: bool) {
+        if self.profile.start_flag {
+            let duration = self.profile.instant.elapsed() - self.profile.prev_time;
+
+            if self.is_trace {
+                println!(
+                    "{0: <10} {1}",
+                    format!("{}μs", duration.as_micros()),
+                    self.profile.trace_string
+                );
+            }
+        } else {
+            let duration = self.profile.instant.elapsed() - self.profile.prev_time;
+            println!("VM start up time: {}μs", duration.as_micros());
+            println!(
+                "{0: <10} {1: <20} {2: <10}",
+                "Time", "Instr", "Top Of Stack"
+            );
+            println!();
+        }
+
+        self.profile.start_flag = true;
+
+        if self.is_trace {
+            self.profile.trace_string = format!(
+                "{0:<20}  {1}",
+                format!(
+                    "{:<20}",
+                    self.instructions[if end { self.idx - 1 } else { self.idx }]
+                ),
+                match self.stack.last() {
+                    None => "<empty>".to_string(),
+                    Some(val) => format!("{}\t{:p}", val.display(), val),
+                }
+            );
+        }
+
+        if end {
+            println!();
+            println!("Pool");
+            for (i, val) in self.pool.iter().enumerate() {
+                println!("{:<10} {:<10} {:p}", i, val.display(), val);
+            }
+
+            println!();
+            println!("Stack");
+            for (i, val) in self.stack.iter().enumerate() {
+                println!("{:<10} {:<10} {:p}", i, val.display(), val);
+            }
+            println!();
+        }
+
+        self.profile.prev_time = self.profile.instant.elapsed();
     }
 }
