@@ -112,7 +112,7 @@ impl std::fmt::Display for Instruction {
             Self::DefVar(name) => write!(f, "DefVar({})", name),
             Self::DefLet(name) => write!(f, "DefLet({})", name),
             Self::DefConst(name) => write!(f, "DefConst({})", name),
-            Self::InitLexical(usize) => write!(f, "InitLexical({})", usize),
+            Self::InitLexical(value) => write!(f, "InitLexical({})", value),
         }
     }
 }
