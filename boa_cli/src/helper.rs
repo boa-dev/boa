@@ -23,6 +23,16 @@ const UNDEFINED_COLOR: Color = Color::TrueColor {
     g: 100,
     b: 100,
 };
+const NUMBER_COLOR: Color = Color::TrueColor {
+    r: 26,
+    g: 214,
+    b: 175,
+};
+const IDENTIFIER_COLOR: Color = Color::TrueColor {
+    r: 26,
+    g: 160,
+    b: 214,
+};
 
 #[derive(Completer, Helper, Hinter)]
 pub(crate) struct RLHelper {
@@ -124,10 +134,12 @@ impl Highlighter for LineHighlighter {
 
         let reg = Regex::new(
             r#"(?x)
-            (?P<identifier>[$A-z_]+[$A-z_0-9]*) |
+            (?P<identifier>\b[$A-z_]+[$A-z_0-9]*\b) |
             (?P<string_double_quote>"([^"\\]|\\.)*") |
             (?P<string_single_quote>'([^'\\]|\\.)*') |
-            (?P<op>[+\-/*%~^!&|=<>;:])"#,
+            (?P<template_literal>`([^`\\]|\\.)*`) |
+            (?P<op>[+\-/*%~^!&|=<>;:]) |
+            (?P<number>\b0[bB][01]+|0[xX][0-9a-fA-F]+|[0-9]+\.[0-9]*|[0-9]*\.[0-9]+|[0-9]+\b)"#,
         )
         .unwrap();
 
@@ -142,14 +154,18 @@ impl Highlighter for LineHighlighter {
                         identifier if KEYWORDS.contains(identifier) => {
                             cap.as_str().color(KEYWORD_COLOR).bold().to_string()
                         }
-                        _ => cap.as_str().to_string(),
+                        _ => cap.as_str().color(IDENTIFIER_COLOR).to_string(),
                     }
                 } else if let Some(cap) = caps.name("string_double_quote") {
                     cap.as_str().color(STRING_COLOR).to_string()
                 } else if let Some(cap) = caps.name("string_single_quote") {
                     cap.as_str().color(STRING_COLOR).to_string()
+                } else if let Some(cap) = caps.name("template_literal") {
+                    cap.as_str().color(STRING_COLOR).to_string()
                 } else if let Some(cap) = caps.name("op") {
                     cap.as_str().color(OPERATOR_COLOR).to_string()
+                } else if let Some(cap) = caps.name("number") {
+                    cap.as_str().color(NUMBER_COLOR).to_string()
                 } else {
                     caps[0].to_string()
                 }
