@@ -660,14 +660,16 @@ impl Number {
             let mut var_s = input_string.trim();
 
             // 3. Let sign be 1.
-            // 4. If S is not empty and the first code unit of S is the code unit 0x002D (HYPHEN-MINUS), set sign to -1.
+            // 4. If S is not empty and the first code unit of S is the code unit 0x002D (HYPHEN-MINUS),
+            //    set sign to -1.
             let sign = if !var_s.is_empty() && var_s.starts_with('\u{002D}') {
                 -1
             } else {
                 1
             };
 
-            // 5. If S is not empty and the first code unit of S is the code unit 0x002B (PLUS SIGN) or the code unit 0x002D (HYPHEN-MINUS), remove the first code unit from S.
+            // 5. If S is not empty and the first code unit of S is the code unit 0x002B (PLUS SIGN) or
+            //    the code unit 0x002D (HYPHEN-MINUS), remove the first code unit from S.
             if !var_s.is_empty() {
                 var_s = var_s
                     .strip_prefix(&['\u{002B}', '\u{002D}'][..])
@@ -710,7 +712,8 @@ impl Number {
                 var_r = 16;
             }
 
-            // 11. If S contains a code unit that is not a radix-R digit, let end be the index within S of the first such code unit; otherwise, let end be the length of S.
+            // 11. If S contains a code unit that is not a radix-R digit, let end be the index within S of the
+            //     first such code unit; otherwise, let end be the length of S.
             let end = if let Some(index) = var_s.find(|c: char| !c.is_digit(var_r as u32)) {
                 index
             } else {
@@ -725,7 +728,12 @@ impl Number {
                 return Ok(Value::nan());
             }
 
-            // 14. Let mathInt be the integer value that is represented by Z in radix-R notation, using the letters A-Z and a-z for digits with values 10 through 35. (However, if R is 10 and Z contains more than 20 significant digits, every significant digit after the 20th may be replaced by a 0 digit, at the option of the implementation; and if R is not 2, 4, 8, 10, 16, or 32, then mathInt may be an implementation-approximated value representing the integer value that is represented by Z in radix-R notation.)
+            // 14. Let mathInt be the integer value that is represented by Z in radix-R notation, using the
+            //     letters A-Z and a-z for digits with values 10 through 35. (However, if R is 10 and Z contains
+            //     more than 20 significant digits, every significant digit after the 20th may be replaced by a
+            //     0 digit, at the option of the implementation; and if R is not 2, 4, 8, 10, 16, or 32, then
+            //     mathInt may be an implementation-approximated value representing the integer value that is
+            //     represented by Z in radix-R notation.)
             let math_int = u64::from_str_radix(var_z, var_r as u32).map_or_else(
                 |_| f64::from_str_radix(var_z, var_r as u32).expect("invalid_float_conversion"),
                 |i| i as f64,
