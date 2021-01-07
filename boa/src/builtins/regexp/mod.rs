@@ -104,7 +104,7 @@ impl RegExp {
         ctx: &mut Context,
     ) -> Result<Value> {
         let prototype = match new_target {
-            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), ctx)? {
+            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), obj.clone().into(), ctx)? {
                 Value::Object(ref o) => o.clone(),
                 _ => ctx.standard_objects().regexp_object().prototype(),
             },

@@ -67,7 +67,7 @@ impl Boolean {
             return Ok(Value::from(data));
         }
         let prototype = match new_target {
-            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), context)? {
+            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), obj.clone().into(), context)? {
                 Value::Object(ref o) => o.clone(),
                 _ => context.standard_objects().object_object().prototype(),
             },

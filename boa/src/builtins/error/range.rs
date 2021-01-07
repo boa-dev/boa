@@ -60,7 +60,7 @@ impl RangeError {
         context: &mut Context,
     ) -> Result<Value> {
         let prototype = match new_target {
-            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), context)? {
+            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), obj.clone().into(), context)? {
                 Value::Object(ref o) => o.clone(),
                 _ => context.standard_objects().error_object().prototype(),
             },

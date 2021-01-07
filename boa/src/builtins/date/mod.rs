@@ -332,10 +332,12 @@ impl Date {
             Self::make_date_string()
         } else {
             let prototype = match new_target {
-                Value::Object(obj) => match obj.get(&PROTOTYPE.into(), context)? {
-                    Value::Object(ref o) => o.clone(),
-                    _ => context.standard_objects().object_object().prototype(),
-                },
+                Value::Object(obj) => {
+                    match obj.get(&PROTOTYPE.into(), obj.clone().into(), context)? {
+                        Value::Object(ref o) => o.clone(),
+                        _ => context.standard_objects().object_object().prototype(),
+                    }
+                }
                 _ => context.standard_objects().object_object().prototype(),
             };
             let mut obj = context.construct_object();

@@ -83,10 +83,12 @@ impl Object {
     fn constructor(new_target: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         if !new_target.is_undefined() {
             let prototype = match new_target {
-                Value::Object(obj) => match obj.get(&PROTOTYPE.into(), context)? {
-                    Value::Object(ref o) => o.clone(),
-                    _ => context.standard_objects().object_object().prototype(),
-                },
+                Value::Object(obj) => {
+                    match obj.get(&PROTOTYPE.into(), obj.clone().into(), context)? {
+                        Value::Object(ref o) => o.clone(),
+                        _ => context.standard_objects().object_object().prototype(),
+                    }
+                }
                 _ => context.standard_objects().object_object().prototype(),
             };
             let object = Value::new_object(context);
@@ -314,7 +316,7 @@ impl Object {
         let status = obj
             .as_object()
             .expect("obj was not an object")
-            .set_prototype_instance(proto);
+            .set_prototype_of(proto);
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
@@ -431,6 +433,7 @@ impl Object {
 
             let tag = o.get(
                 &context.well_known_symbols().to_string_tag_symbol().into(),
+                o.clone().into(),
                 context,
             )?;
 

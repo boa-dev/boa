@@ -110,7 +110,7 @@ impl Array {
 
     fn constructor(new_target: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let prototype = match new_target {
-            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), context)? {
+            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), obj.clone().into(), context)? {
                 Value::Object(ref o) => o.clone(),
                 _ => context.standard_objects().array_object().prototype(),
             },
@@ -148,17 +148,13 @@ impl Array {
         let array = Array::array_create(0, Some(prototype), context)?;
 
         if !length.is_number() {
-            array.set_field(0, Value::from(length), context)?;
-            array.set_field("length", Value::from(1), context)?;
+            array.set_property(0, DataDescriptor::new(length, Attribute::all()));
+            array.set_field("length", 1, context)?;
         } else {
             if length.is_double() {
                 return context.throw_range_error("Invalid array length");
             }
-            array.set_field(
-                "length",
-                Value::from(length.to_u32(context).unwrap()),
-                context,
-            )?;
+            array.set_field("length", length.to_u32(context).unwrap(), context)?;
         }
 
         Ok(array)
@@ -179,7 +175,7 @@ impl Array {
         let array = Array::array_create(items_len, Some(prototype), context)?;
 
         for (k, item) in items.iter().enumerate() {
-            array.set_field(k, item.clone(), context)?;
+            array.set_property(k, DataDescriptor::new(item.clone(), Attribute::all()));
         }
 
         Ok(array)
@@ -260,7 +256,7 @@ impl Array {
         array_obj_ptr.set_property("length".to_string(), length);
 
         for (n, value) in array_contents.iter().enumerate() {
-            array_obj_ptr.set_field(n, value, context)?;
+            array_obj_ptr.set_property(n, DataDescriptor::new(value, Attribute::all()));
         }
         Ok(array_obj_ptr)
     }
@@ -276,7 +272,7 @@ impl Array {
 
         for (n, value) in add_values.iter().enumerate() {
             let new_index = orig_length.wrapping_add(n);
-            array_ptr.set_field(new_index, value, context)?;
+            array_ptr.set_property(new_index, DataDescriptor::new(value, Attribute::all()));
         }
 
         array_ptr.set_field(
@@ -515,13 +511,13 @@ impl Array {
             let lower_value = this.get_field(lower, context)?;
 
             if upper_exists && lower_exists {
-                this.set_field(upper, lower_value, context)?;
-                this.set_field(lower, upper_value, context)?;
+                this.set_property(upper, DataDescriptor::new(lower_value, Attribute::all()));
+                this.set_property(lower, DataDescriptor::new(upper_value, Attribute::all()));
             } else if upper_exists {
-                this.set_field(lower, upper_value, context)?;
+                this.set_property(lower, DataDescriptor::new(upper_value, Attribute::all()));
                 this.remove_property(upper);
             } else if lower_exists {
-                this.set_field(upper, lower_value, context)?;
+                this.set_property(upper, DataDescriptor::new(lower_value, Attribute::all()));
                 this.remove_property(lower);
             }
         }
@@ -557,7 +553,7 @@ impl Array {
             if from_value.is_undefined() {
                 this.remove_property(to);
             } else {
-                this.set_field(to, from_value, context)?;
+                this.set_property(to, DataDescriptor::new(from_value, Attribute::all()));
             }
         }
 
@@ -594,15 +590,17 @@ impl Array {
                 if from_value.is_undefined() {
                     this.remove_property(to);
                 } else {
-                    this.set_field(to, from_value, context)?;
+                    this.set_property(to, DataDescriptor::new(from_value, Attribute::all()));
                 }
             }
             for j in 0..arg_c {
-                this.set_field(
+                this.set_property(
                     j,
-                    args.get(j).expect("Could not get argument").clone(),
-                    context,
-                )?;
+                    DataDescriptor::new(
+                        args.get(j).expect("Could not get argument").clone(),
+                        Attribute::all(),
+                    ),
+                );
             }
         }
 
@@ -909,7 +907,7 @@ impl Array {
         let fin = Self::get_relative_end(context, args.get(2), len)?;
 
         for i in start..fin {
-            this.set_field(i, value.clone(), context)?;
+            this.set_property(i, DataDescriptor::new(value.clone(), Attribute::all()));
         }
 
         Ok(this.clone())
@@ -972,7 +970,10 @@ impl Array {
         }
         let mut new_array_len: i32 = 0;
         for i in from..from.saturating_add(span) {
-            new_array.set_field(new_array_len, this.get_field(i, context)?, context)?;
+            new_array.set_property(
+                new_array_len,
+                DataDescriptor::new(this.get_field(i, context)?, Attribute::all()),
+            );
             new_array_len = new_array_len.saturating_add(1);
         }
         new_array.set_field("length", Value::from(new_array_len), context)?;

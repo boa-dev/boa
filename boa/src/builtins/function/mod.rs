@@ -185,7 +185,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
     );
     // Define length as a property
-    obj.define_own_property("length", length.into());
+    obj.ordinary_define_own_property("length", length.into());
     let mut index: usize = 0;
     while index < len {
         let val = arguments_list.get(index).expect("Could not get argument");
@@ -258,7 +258,7 @@ impl BuiltInFunctionObject {
 
     fn constructor(new_target: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         let prototype = match new_target {
-            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), context)? {
+            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), obj.clone().into(), context)? {
                 Value::Object(ref o) => o.clone(),
                 _ => context.standard_objects().object_object().prototype(),
             },

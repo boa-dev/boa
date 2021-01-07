@@ -85,7 +85,7 @@ impl Map {
             .as_object()
             .unwrap();
         let prototype = match new_target {
-            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), context)? {
+            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), obj.clone().into(), context)? {
                 Value::Object(ref o) => o.clone(),
                 _ => map_prototype,
             },
