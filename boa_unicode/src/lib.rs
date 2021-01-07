@@ -1,5 +1,5 @@
 //! This crate implements the extension to query if a char belongs to a particular unicode identifier property.
-//! Unicode version: 13.0.0
+//! Version: Unicode 13.0.0
 //!
 //! More information:
 //!  - [Unicode® Standard Annex #31][uax31]
