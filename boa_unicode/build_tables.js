@@ -6,6 +6,8 @@
  * the target properties, prepares the char tables, and then writes to the output Rust file. It also
  * formats the output file with the command `rustfmt`. Please make sure `rustfmt` is available in the environment.
  *
+ * Run this script with command `node ./build_tables.js` or `npm run build-tables`.
+ *
  * Unicode Version: 13.0.0
  */
 
