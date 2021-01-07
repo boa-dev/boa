@@ -58,9 +58,13 @@ pub enum Instruction {
     BitNot,
     Not,
 
+    /// The usize is the index of the variable name in the pool
     DefVar(usize),
+    /// The usize is the index of the variable name in the pool
     DefLet(usize),
+    /// The usize is the index of the variable name in the pool
     DefConst(usize),
+    /// The usize is the index of the value to initiate the variable with in the pool
     InitLexical(usize),
 }
 
