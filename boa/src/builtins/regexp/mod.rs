@@ -103,13 +103,15 @@ impl RegExp {
         args: &[Value],
         ctx: &mut Context,
     ) -> Result<Value> {
-        let prototype = match new_target {
-            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), obj.clone().into(), ctx)? {
-                Value::Object(ref o) => o.clone(),
-                _ => ctx.standard_objects().regexp_object().prototype(),
-            },
-            _ => ctx.standard_objects().regexp_object().prototype(),
-        };
+        let prototype = new_target
+            .as_object()
+            .and_then(|obj| {
+                obj.get(&PROTOTYPE.into(), obj.clone().into(), ctx)
+                    .map(|o| o.as_object())
+                    .transpose()
+            })
+            .transpose()?
+            .unwrap_or_else(|| ctx.standard_objects().regexp_object().prototype());
         let this = Value::new_object(ctx);
 
         this.as_object()

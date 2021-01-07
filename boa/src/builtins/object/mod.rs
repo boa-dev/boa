@@ -82,15 +82,15 @@ impl Object {
 
     fn constructor(new_target: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         if !new_target.is_undefined() {
-            let prototype = match new_target {
-                Value::Object(obj) => {
-                    match obj.get(&PROTOTYPE.into(), obj.clone().into(), context)? {
-                        Value::Object(ref o) => o.clone(),
-                        _ => context.standard_objects().object_object().prototype(),
-                    }
-                }
-                _ => context.standard_objects().object_object().prototype(),
-            };
+            let prototype = new_target
+                .as_object()
+                .and_then(|obj| {
+                    obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                        .map(|o| o.as_object())
+                        .transpose()
+                })
+                .transpose()?
+                .unwrap_or_else(|| context.standard_objects().object_object().prototype());
             let object = Value::new_object(context);
 
             object

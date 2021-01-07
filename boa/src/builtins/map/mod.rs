@@ -83,20 +83,20 @@ impl Map {
             .get_field("Map", context)?
             .get_field(PROTOTYPE, context)?
             .as_object()
-            .unwrap();
-        let prototype = match new_target {
-            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), obj.clone().into(), context)? {
-                Value::Object(ref o) => o.clone(),
-                _ => map_prototype,
-            },
-            _ => map_prototype,
-        };
+            .expect("'Map' global property should be an object");
+        let prototype = new_target
+            .as_object()
+            .and_then(|obj| {
+                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                    .map(|o| o.as_object())
+                    .transpose()
+            })
+            .transpose()?
+            .unwrap_or(map_prototype);
+
         let mut obj = context.construct_object();
         obj.set_prototype_instance(prototype.into());
         let this = Value::from(obj);
-
-        // This value is used by console.log and other routines to match Object type
-        // to its Javascript Identifier (global constructor method name)
 
         // add our arguments in
         let data = match args.len() {
@@ -136,6 +136,8 @@ impl Map {
         // finally create size property
         Self::set_size(&this, data.len());
 
+        // This value is used by console.log and other routines to match Object type
+        // to its Javascript Identifier (global constructor method name)
         this.set_data(ObjectData::Map(data));
 
         Ok(this)

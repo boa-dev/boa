@@ -243,7 +243,7 @@ impl GcObject {
                                 .prototype()
                                 .into()
                         };
-                        let this: Value = Object::create(proto).into();
+                        let this = Value::from(Object::create(proto));
 
                         // Create a new Function environment who's parent is set to the scope of the function declaration (self.environment)
                         // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
@@ -308,7 +308,7 @@ impl GcObject {
                 let binding = context.realm_mut().environment.get_this_binding();
                 binding.map_err(|e| e.to_error(context))
             }
-            _ => unreachable!(),
+            FunctionBody::BuiltInFunction(_) => unreachable!("Cannot have a function in construct"),
         }
     }
 

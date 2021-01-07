@@ -109,13 +109,15 @@ impl Array {
     const LENGTH: usize = 1;
 
     fn constructor(new_target: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let prototype = match new_target {
-            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), obj.clone().into(), context)? {
-                Value::Object(ref o) => o.clone(),
-                _ => context.standard_objects().array_object().prototype(),
-            },
-            _ => context.standard_objects().array_object().prototype(),
-        };
+        let prototype = new_target
+            .as_object()
+            .and_then(|obj| {
+                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                    .map(|o| o.as_object())
+                    .transpose()
+            })
+            .transpose()?
+            .unwrap_or_else(|| context.standard_objects().array_object().prototype());
         // Delegate to the appropriate constructor based on the number of arguments
         match args.len() {
             0 => Array::construct_array_empty(prototype, context),
@@ -200,7 +202,7 @@ impl Array {
 
         array
             .as_object()
-            .expect("this should be an array object")
+            .expect("'array' should be an object")
             .set_prototype_instance(prototype.into());
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
@@ -221,7 +223,7 @@ impl Array {
         array.set_data(ObjectData::Array);
         array
             .as_object()
-            .expect("array object")
+            .expect("'array' should be an object")
             .set_prototype_instance(context.standard_objects().array_object().prototype().into());
         let length = DataDescriptor::new(
             Value::from(0),

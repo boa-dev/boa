@@ -143,7 +143,7 @@ impl String {
             Some(value) if value.is_symbol() && new_target.is_undefined() => {
                 Symbol::to_string(value, &[], context)?
                     .as_string()
-                    .unwrap()
+                    .expect("'Symbol::to_string' returns 'Value::String'")
                     .clone()
             }
             Some(ref value) => value.to_string(context)?,
@@ -153,13 +153,15 @@ impl String {
         if new_target.is_undefined() {
             return Ok(string.into());
         }
-        let prototype = match new_target {
-            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), obj.clone().into(), context)? {
-                Value::Object(ref o) => o.clone(),
-                _ => context.standard_objects().object_object().prototype(),
-            },
-            _ => context.standard_objects().object_object().prototype(),
-        };
+        let prototype = new_target
+            .as_object()
+            .and_then(|obj| {
+                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                    .map(|o| o.as_object())
+                    .transpose()
+            })
+            .transpose()?
+            .unwrap_or_else(|| context.standard_objects().object_object().prototype());
         let this = Value::new_object(context);
 
         this.as_object()

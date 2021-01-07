@@ -257,13 +257,15 @@ impl BuiltInFunctionObject {
     pub const LENGTH: usize = 1;
 
     fn constructor(new_target: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        let prototype = match new_target {
-            Value::Object(obj) => match obj.get(&PROTOTYPE.into(), obj.clone().into(), context)? {
-                Value::Object(ref o) => o.clone(),
-                _ => context.standard_objects().object_object().prototype(),
-            },
-            _ => context.standard_objects().object_object().prototype(),
-        };
+        let prototype = new_target
+            .as_object()
+            .and_then(|obj| {
+                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                    .map(|o| o.as_object())
+                    .transpose()
+            })
+            .transpose()?
+            .unwrap_or_else(|| context.standard_objects().object_object().prototype());
         let this = Value::new_object(context);
 
         this.as_object()
