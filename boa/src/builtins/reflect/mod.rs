@@ -13,7 +13,7 @@
 use crate::{
     builtins::{self, BuiltIn},
     object::{Object, ObjectData, ObjectInitializer},
-    property::Attribute,
+    property::{Attribute, DataDescriptor},
     BoaProfiler, Context, Result, Value,
 };
 
@@ -148,7 +148,9 @@ impl Reflect {
             .ok_or_else(|| context.construct_type_error("property descriptor must be an object"))?
             .to_property_descriptor(context)?;
 
-        Ok(target.define_own_property(key, prop_desc).into())
+        target
+            .define_own_property(key, prop_desc, context)
+            .map(|b| b.into())
     }
 
     /// Defines a property on an object.
@@ -184,17 +186,17 @@ impl Reflect {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/get
     pub(crate) fn get(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let undefined = Value::undefined();
-        let mut target = args
+        let target = args
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
         let key = args.get(1).unwrap_or(&undefined).to_property_key(context)?;
-        if let Some(receiver) = args.get(2) {
-            target = receiver
-                .as_object()
-                .ok_or_else(|| context.construct_type_error("receiver must be an object"))?;
-        }
-        target.get(&key, context)
+        let receiver = if let Some(receiver) = args.get(2).cloned() {
+            receiver
+        } else {
+            target.clone().into()
+        };
+        target.get(&key, receiver, context)
     }
 
     /// Gets a property of an object.
@@ -291,7 +293,13 @@ impl Reflect {
         let array_prototype = context.standard_objects().array_object().prototype();
         let result: Value =
             Object::with_prototype(array_prototype.into(), ObjectData::Array).into();
-        result.set_field("length", 0, context)?;
+        result.set_property(
+            "length",
+            DataDescriptor::new(
+                0,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+            ),
+        );
 
         let keys = target.own_property_keys();
         for (i, k) in keys.iter().enumerate() {
@@ -338,12 +346,12 @@ impl Reflect {
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
         let key = args.get(1).unwrap_or(&undefined).to_property_key(context)?;
         let value = args.get(2).unwrap_or(&undefined);
-        if let Some(receiver) = args.get(3) {
-            target = receiver
-                .as_object()
-                .ok_or_else(|| context.construct_type_error("receiver must be an object"))?;
-        }
-        Ok(target.set(key, value.clone(), context)?.into())
+        let receiver = if let Some(receiver) = args.get(3).cloned() {
+            receiver
+        } else {
+            target.clone().into()
+        };
+        Ok(target.set(key, value.clone(), receiver, context)?.into())
     }
 
     /// Sets the prototype of an object.
@@ -368,6 +376,6 @@ impl Reflect {
         if !proto.is_null() && !proto.is_object() {
             return context.throw_type_error("proto must be an object or null");
         }
-        Ok(target.set_prototype_instance(proto.clone()).into())
+        Ok(target.set_prototype_of(proto.clone()).into())
     }
 }

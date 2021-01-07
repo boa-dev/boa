@@ -582,10 +582,12 @@ impl GcObject {
         } else {
             element_types
         };
-        let len = self.get(&"length".into(), context)?.to_length(context)?;
+        let len = self
+            .get(&"length".into(), self.clone().into(), context)?
+            .to_length(context)?;
         let mut list = Vec::with_capacity(len);
         for index in 0..len {
-            let next = self.get(&index.into(), context)?;
+            let next = self.get(&index.into(), self.clone().into(), context)?;
             if !types.contains(&next.get_type()) {
                 return Err(context.construct_type_error("bad type"));
             }
