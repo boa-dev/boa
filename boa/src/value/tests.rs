@@ -144,17 +144,17 @@ fn hash_undefined() {
 }
 
 #[test]
+#[allow(clippy::eq_op)]
 fn hash_rational() {
     let value1 = Value::rational(1.0);
     let value2 = Value::rational(1.0);
     assert_eq!(value1, value2);
     assert_eq!(hash_value(&value1), hash_value(&value2));
 
-    let nan1 = Value::nan();
-    let nan2 = Value::nan();
-    assert_eq!(nan1, nan2);
-    assert_eq!(hash_value(&nan1), hash_value(&nan2));
-    assert_ne!(hash_value(&nan1), hash_value(&Value::rational(1.0)));
+    let nan = Value::nan();
+    assert_eq!(nan, nan);
+    assert_eq!(hash_value(&nan), hash_value(&nan));
+    assert_ne!(hash_value(&nan), hash_value(&Value::rational(1.0)));
 }
 
 #[test]
