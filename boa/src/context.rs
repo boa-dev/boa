@@ -530,9 +530,14 @@ impl Context {
             Function::BuiltIn(body.into(), FunctionFlags::CALLABLE),
             function_prototype,
         ));
-        function.set(PROTOTYPE.into(), proto, self)?;
-        function.set("length".into(), length.into(), self)?;
-        function.set("name".into(), name.into(), self)?;
+        function.set(PROTOTYPE.into(), proto, function.clone().into(), self)?;
+        function.set(
+            "length".into(),
+            length.into(),
+            function.clone().into(),
+            self,
+        )?;
+        function.set("name".into(), name.into(), function.clone().into(), self)?;
 
         Ok(function)
     }

@@ -15,7 +15,7 @@ mod tests;
 
 use crate::property::DataDescriptor;
 use crate::{
-    builtins::{string::string_iterator::StringIterator, BuiltIn, RegExp},
+    builtins::{string::string_iterator::StringIterator, Array, BuiltIn, RegExp},
     object::{ConstructorBuilder, Object, ObjectData},
     property::Attribute,
     value::{RcString, Value},
@@ -105,6 +105,7 @@ impl BuiltIn for String {
         .method(Self::to_uppercase, "toUpperCase", 0)
         .method(Self::substring, "substring", 2)
         .method(Self::substr, "substr", 2)
+        .method(Self::split, "split", 2)
         .method(Self::value_of, "valueOf", 0)
         .method(Self::match_all, "matchAll", 1)
         .method(Self::replace, "replace", 2)
@@ -1163,6 +1164,78 @@ impl String {
 
             Ok(Value::from(extracted_string))
         }
+    }
+
+    /// String.prototype.split()
+    ///
+    /// The `split()` method divides a String into an ordered list of substrings, puts these substrings into an array, and returns the array.
+    ///
+    /// The division is done by searching for a pattern; where the pattern is provided as the first parameter in the method's call.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.split
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/split
+    pub(crate) fn split(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let this = this.require_object_coercible(context)?;
+        let string = this.to_string(context)?;
+
+        let separator = args.get(0).filter(|value| !value.is_null_or_undefined());
+
+        if let Some(result) = separator
+            .and_then(|separator| separator.as_object())
+            .and_then(|separator| {
+                let key = context.well_known_symbols().split_symbol();
+
+                match separator.get_method(context, key) {
+                    Ok(splitter) => splitter.map(|splitter| {
+                        let arguments = &[
+                            Value::from(string.clone()),
+                            args.get(1)
+                                .map(|x| x.to_owned())
+                                .unwrap_or(Value::Undefined),
+                        ];
+                        splitter.call(this, arguments, context)
+                    }),
+                    Err(_) => Some(Err(
+                        context.construct_type_error("separator[Symbol.split] is not a function")
+                    )),
+                }
+            })
+        {
+            return result;
+        }
+
+        let separator = separator
+            .map(|separator| separator.to_string(context))
+            .transpose()?;
+
+        let limit = args
+            .get(1)
+            .map(|arg| arg.to_integer(context).map(|limit| limit as usize))
+            .transpose()?
+            .unwrap_or(std::u32::MAX as usize);
+
+        let values: Vec<Value> = match separator {
+            None if limit == 0 => vec![],
+            None => vec![Value::from(string)],
+            Some(separator) if separator.is_empty() => string
+                .encode_utf16()
+                // TODO: Support keeping invalid code point in string
+                .map(|cp| Value::from(std::string::String::from_utf16_lossy(&[cp])))
+                .take(limit)
+                .collect(),
+            Some(separator) => string
+                .split(separator.as_str())
+                .map(&Value::from)
+                .take(limit)
+                .collect(),
+        };
+
+        let new = Array::new_array(context)?;
+        Array::construct_array(&new, &values, context)
     }
 
     /// String.prototype.valueOf()
