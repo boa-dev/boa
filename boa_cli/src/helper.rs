@@ -134,7 +134,7 @@ impl Highlighter for LineHighlighter {
 
         let reg = Regex::new(
             r#"(?x)
-            (?P<identifier>\b[$A-z_]+[$A-z_0-9]*\b) |
+            (?P<identifier>\b[$_\p{ID_Start}][$_\p{ID_Continue}\u{200C}\u{200D}]*\b) |
             (?P<string_double_quote>"([^"\\]|\\.)*") |
             (?P<string_single_quote>'([^'\\]|\\.)*') |
             (?P<template_literal>`([^`\\]|\\.)*`) |
