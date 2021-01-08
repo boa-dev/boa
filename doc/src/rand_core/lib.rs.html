@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand_core-0.6.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../rand_core/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand_core-0.6.1/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../rand_core/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -486,6 +486,16 @@
 <span id="485">485</span>
 <span id="486">486</span>
 <span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2018 Developers of the Rand project.</span>
 <span class="comment">// Copyright 2017-2018 The Rust Project Developers.</span>
@@ -789,20 +799,30 @@
     <span class="doccomment">/// considered a value-breaking change.</span>
     <span class="kw">fn</span> <span class="ident">seed_from_u64</span>(<span class="kw-2">mut</span> <span class="ident">state</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="comment">// We use PCG32 to generate a u32 sequence, and copy to the seed</span>
-        <span class="kw">const</span> <span class="ident">MUL</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">6364136223846793005</span>;
-        <span class="kw">const</span> <span class="ident">INC</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">11634580027462260723</span>;
+        <span class="kw">fn</span> <span class="ident">pcg32</span>(<span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u8</span>; <span class="number">4</span>] {
+            <span class="kw">const</span> <span class="ident">MUL</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">6364136223846793005</span>;
+            <span class="kw">const</span> <span class="ident">INC</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">11634580027462260723</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seed</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">Seed</span>::<span class="ident">default</span>();
-        <span class="kw">for</span> <span class="ident">chunk</span> <span class="kw">in</span> <span class="ident">seed</span>.<span class="ident">as_mut</span>().<span class="ident">chunks_mut</span>(<span class="number">4</span>) {
             <span class="comment">// We advance the state first (to get away from the input value,</span>
             <span class="comment">// in case it has low Hamming Weight).</span>
-            <span class="ident">state</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">wrapping_mul</span>(<span class="ident">MUL</span>).<span class="ident">wrapping_add</span>(<span class="ident">INC</span>);
+            <span class="kw-2">*</span><span class="ident">state</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">wrapping_mul</span>(<span class="ident">MUL</span>).<span class="ident">wrapping_add</span>(<span class="ident">INC</span>);
+            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">state</span>;
 
             <span class="comment">// Use PCG output function with to_le to generate x:</span>
             <span class="kw">let</span> <span class="ident">xorshifted</span> <span class="op">=</span> (((<span class="ident">state</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">18</span>) <span class="op">^</span> <span class="ident">state</span>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">27</span>) <span class="kw">as</span> <span class="ident">u32</span>;
             <span class="kw">let</span> <span class="ident">rot</span> <span class="op">=</span> (<span class="ident">state</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">59</span>) <span class="kw">as</span> <span class="ident">u32</span>;
             <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">xorshifted</span>.<span class="ident">rotate_right</span>(<span class="ident">rot</span>);
-            <span class="ident">chunk</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">to_le_bytes</span>());
+            <span class="ident">x</span>.<span class="ident">to_le_bytes</span>()
+        }
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seed</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">Seed</span>::<span class="ident">default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">seed</span>.<span class="ident">as_mut</span>().<span class="ident">chunks_exact_mut</span>(<span class="number">4</span>);
+        <span class="kw">for</span> <span class="ident">chunk</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">iter</span> {
+            <span class="ident">chunk</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">pcg32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">state</span>));
+        }
+        <span class="kw">let</span> <span class="ident">rem</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">into_remainder</span>();
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">rem</span>.<span class="ident">is_empty</span>() {
+            <span class="ident">rem</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">pcg32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">state</span>)[..<span class="ident">rem</span>.<span class="ident">len</span>()]);
         }
 
         <span class="self">Self</span>::<span class="ident">from_seed</span>(<span class="ident">seed</span>)
