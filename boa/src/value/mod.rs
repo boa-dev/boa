@@ -227,9 +227,16 @@ impl Value {
             Self::Boolean(b) => Ok(JSONValue::Bool(b)),
             Self::Object(ref obj) => obj.to_json(context),
             Self::String(ref str) => Ok(JSONValue::String(str.to_string())),
-            Self::Rational(num) => Ok(JSONValue::Number(
-                JSONNumber::from_str(&Number::to_native_string(num)).unwrap(),
-            )),
+            Self::Rational(num) => {
+                if num.is_finite() {
+                    Ok(JSONValue::Number(
+                        JSONNumber::from_str(&Number::to_native_string(num))
+                            .expect("invalid number found"),
+                    ))
+                } else {
+                    Ok(JSONValue::Null)
+                }
+            }
             Self::Integer(val) => Ok(JSONValue::Number(JSONNumber::from(val))),
             Self::BigInt(_) => {
                 Err(context.construct_type_error("BigInt value can't be serialized in JSON"))
@@ -716,7 +723,7 @@ impl Value {
     ///
     /// This function is equivalent to `value | 0` in JavaScript
     ///
-    /// See: <https://tc39.es/ecma262/#sec-toint32>
+    /// See: <https://tc39.es/ecma262/#sec-touint32>
     pub fn to_u32(&self, context: &mut Context) -> Result<u32> {
         // This is the fast path, if the value is Integer we can just return it.
         if let Value::Integer(number) = *self {
