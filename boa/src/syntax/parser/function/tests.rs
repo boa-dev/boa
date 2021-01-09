@@ -221,7 +221,7 @@ fn check_arrow_assignment_nobrackets() {
 
 /// Checks an arrow function assignment with parenthesis.
 #[test]
-fn check_arrow_assignment_parenthesis() {
+fn check_arrow_assignment_parenthesis_brackets() {
     check_parser(
         "let foo = (a) => { return a };",
         vec![LetDeclList::from(
