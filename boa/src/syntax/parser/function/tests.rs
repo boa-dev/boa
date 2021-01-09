@@ -1,6 +1,6 @@
 use crate::syntax::{
     ast::node::{
-        ArrowFunctionDecl, BinOp, FormalParameter, FunctionDecl, Identifier, Node, Return,
+        ArrowFunctionDecl, BinOp, FormalParameter, FunctionDecl, Identifier, Node, Return, LetDecl, LetDeclList
     },
     ast::op::NumOp,
     parser::tests::check_parser,
@@ -174,5 +174,133 @@ fn check_arrow_empty_return_semicolon_insertion() {
             vec![Return::new::<Node, Option<_>, Option<_>>(None, None).into()],
         )
         .into()],
+    );
+}
+
+/// Checks an arrow function assignment.
+#[test]
+fn check_arrow_assignment() {
+    check_parser(
+        "let foo = a => { return a };",
+        vec![LetDeclList::from(
+            vec![
+                LetDecl::new::<_, Option<Node>>(
+                     Identifier::from("foo"),
+                     Some(ArrowFunctionDecl::new(
+                        vec![
+                            FormalParameter::new("a", None, false),
+                        ],
+                        vec![Return::new::<Node, Option<_>, Option<_>>(Some(Identifier::from("a").into()), None).into()],
+                    ).into())
+                )
+            ]
+        ).into()]
+    );
+}
+
+/// Checks an arrow function assignment without {}.
+#[test]
+fn check_arrow_assignment_nobrackets() {
+    check_parser(
+        "let foo = a => return a;",
+        vec![LetDeclList::from(
+            vec![
+                LetDecl::new::<_, Option<Node>>(
+                     Identifier::from("foo"),
+                     Some(ArrowFunctionDecl::new(
+                        vec![
+                            FormalParameter::new("a", None, false),
+                        ],
+                        vec![Return::new::<Node, Option<_>, Option<_>>(Some(Identifier::from("a").into()), None).into()],
+                    ).into())
+                )
+            ]
+        ).into()]
+    );
+}
+
+/// Checks an arrow function assignment with parenthesis.
+#[test]
+fn check_arrow_assignment_parenthesis() {
+    check_parser(
+        "let foo = (a) => { return a };",
+        vec![LetDeclList::from(
+            vec![
+                LetDecl::new::<_, Option<Node>>(
+                     Identifier::from("foo"),
+                     Some(ArrowFunctionDecl::new(
+                        vec![
+                            FormalParameter::new("a", None, false),
+                        ],
+                        vec![Return::new::<Node, Option<_>, Option<_>>(Some(Identifier::from("a").into()), None).into()],
+                    ).into())
+                )
+            ]
+        ).into()]
+    );
+}
+
+/// Checks an arrow function assignment with parenthesis without {}.
+#[test]
+fn check_arrow_assignment_parenthesis_nobrackets() {
+    check_parser(
+        "let foo = (a) => return a;",
+        vec![LetDeclList::from(
+            vec![
+                LetDecl::new::<_, Option<Node>>(
+                     Identifier::from("foo"),
+                     Some(ArrowFunctionDecl::new(
+                        vec![
+                            FormalParameter::new("a", None, false),
+                        ],
+                        vec![Return::new::<Node, Option<_>, Option<_>>(Some(Identifier::from("a").into()), None).into()],
+                    ).into())
+                )
+            ]
+        ).into()]
+    );
+}
+
+/// Checks an arrow function assignment with 2 arguments with parenthesis.
+#[test]
+fn check_arrow_assignment_2arg_parenthesis() {
+    check_parser(
+        "let foo = (a, b) => { return a };",
+        vec![LetDeclList::from(
+            vec![
+                LetDecl::new::<_, Option<Node>>(
+                     Identifier::from("foo"),
+                     Some(ArrowFunctionDecl::new(
+                        vec![
+                            FormalParameter::new("a", None, false),
+                            FormalParameter::new("b", None, false)
+                        ],
+                        vec![Return::new::<Node, Option<_>, Option<_>>(Some(Identifier::from("a").into()), None).into()],
+                    ).into())
+                )
+            ]
+        ).into()]
+    );
+}
+
+/// Checks an arrow function assignment with 2 arguments with parenthesis.
+#[test]
+fn check_arrow_assignment_2arg_parenthesis_nobrackets() {
+    check_parser(
+        "let foo = (a, b) => return a;",
+        vec![LetDeclList::from(
+            vec![
+                LetDecl::new::<_, Option<Node>>(
+                     Identifier::from("foo"),
+                     Some(ArrowFunctionDecl::new(
+                        vec![
+                            FormalParameter::new("a", None, false),
+                            FormalParameter::new("b", None, false)
+                        ],
+                        vec![Return::new::<Node, Option<_>, Option<_>>(Some(Identifier::from("a").into()), None).into()],
+                    ).into())
+                )
+            ]
+        ).into()]
     );
 }
