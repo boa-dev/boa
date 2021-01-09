@@ -146,7 +146,7 @@ Bug Fixes:
 
 - [INTERNAL #735](https://github.com/boa-dev/boa/pull/735):
   Move exec implementations together with AST node structs (@georgeroman)
-- [INTERNAL #724](https://github.com/boa-dev/boa/pull/724)
+- [INTERNAL #724](https://github.com/boa-dev/boa/pull/724):
   Improve code coverage count (@HalidOdat)
 - [INTERNAL #768](https://github.com/boa-dev/boa/commit/3cb8c94538cb405a00044e8479e6701d8853f719)
   Update the benchmark Github action (@Razican)
@@ -176,7 +176,7 @@ Bug Fixes:
   fix(profiler): update profiler to match current measureme api (@neeldug)
 - [INTERNAL #838](https://github.com/boa-dev/boa/pull/838):
   style(boa): minor cleanup (@neeldug)
-- [INTERNAL #869](https://github.com/boa-dev/boa/pull/869)
+- [INTERNAL #869](https://github.com/boa-dev/boa/pull/869):
   Updated cache in workflows
 - [INTERNAL #873](https://github.com/boa-dev/boa/pull/873)
   Removed cache from MacOS builds (@Razican)
