@@ -185,9 +185,8 @@ impl Map {
             _ => (args[0].clone(), args[1].clone()),
         };
 
-        let size = if let Value::Object(ref object) = this {
-            let mut object = object.borrow_mut();
-            if let Some(map) = object.as_map_mut() {
+        let size = if let Some(object) = this.as_object() {
+            if let Some(map) = object.borrow_mut().as_map_mut() {
                 map.insert(key, value);
                 map.len()
             } else {
@@ -218,9 +217,8 @@ impl Map {
             _ => &args[0],
         };
 
-        let (deleted, size) = if let Value::Object(ref object) = this {
-            let mut object = object.borrow_mut();
-            if let Some(map) = object.as_map_mut() {
+        let (deleted, size) = if let Some(object) = this.as_object() {
+            if let Some(map) = object.borrow_mut().as_map_mut() {
                 let deleted = map.remove(key).is_some();
                 (deleted, map.len())
             } else {
