@@ -21,7 +21,7 @@ use crate::{
     value::{AbstractRelation, IntegerOrInfinity, Value},
     BoaProfiler, Context, Result,
 };
-use num_traits::float::FloatCore;
+use num_traits::{float::FloatCore, Num};
 
 mod conversions;
 
@@ -651,54 +651,110 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt
-    pub(crate) fn parse_int(_: &Value, args: &[Value], _ctx: &mut Context) -> Result<Value> {
-        if let (Some(val), r) = (args.get(0), args.get(1)) {
-            let mut radix = if let Some(rx) = r {
-                if let Value::Integer(i) = rx {
-                    *i as u32
-                } else {
-                    // Handling a second argument that isn't an integer but was provided so cannot be defaulted.
-                    return Ok(Value::from(f64::NAN));
-                }
+    pub(crate) fn parse_int(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        if let (Some(val), radix) = (args.get(0), args.get(1)) {
+            // 1. Let inputString be ? ToString(string).
+            let input_string = val.to_string(context)?;
+
+            // 2. Let S be ! TrimString(inputString, start).
+            let mut var_s = input_string.trim();
+
+            // 3. Let sign be 1.
+            // 4. If S is not empty and the first code unit of S is the code unit 0x002D (HYPHEN-MINUS),
+            //    set sign to -1.
+            let sign = if !var_s.is_empty() && var_s.starts_with('\u{002D}') {
+                -1
             } else {
-                // No second argument provided therefore radix is unknown
-                0
+                1
             };
 
-            match val {
-                Value::String(s) => {
-                    // Attempt to infer radix from given string.
+            // 5. If S is not empty and the first code unit of S is the code unit 0x002B (PLUS SIGN) or
+            //    the code unit 0x002D (HYPHEN-MINUS), remove the first code unit from S.
+            if !var_s.is_empty() {
+                var_s = var_s
+                    .strip_prefix(&['\u{002B}', '\u{002D}'][..])
+                    .unwrap_or(var_s);
+            }
 
-                    if radix == 0 {
-                        if s.starts_with("0x") || s.starts_with("0X") {
-                            return if let Ok(i) = i32::from_str_radix(&s[2..], 16) {
-                                Ok(Value::integer(i))
-                            } else {
-                                // String can't be parsed.
-                                Ok(Value::from(f64::NAN))
-                            };
-                        } else {
-                            radix = 10
-                        };
-                    }
+            // 6. Let R be ℝ(? ToInt32(radix)).
+            let mut var_r = radix.cloned().unwrap_or_default().to_i32(context)?;
 
-                    if let Ok(i) = i32::from_str_radix(s, radix) {
-                        Ok(Value::integer(i))
-                    } else {
-                        // String can't be parsed.
-                        Ok(Value::from(f64::NAN))
-                    }
+            // 7. Let stripPrefix be true.
+            let mut strip_prefix = true;
+
+            // 8. If R ≠ 0, then
+            if var_r != 0 {
+                //     a. If R < 2 or R > 36, return NaN.
+                if !(2..=36).contains(&var_r) {
+                    return Ok(Value::nan());
                 }
-                Value::Integer(i) => Ok(Value::integer(*i)),
-                Value::Rational(f) => Ok(Value::integer(*f as i32)),
-                _ => {
-                    // Wrong argument type to parseInt.
-                    Ok(Value::from(f64::NAN))
+
+                //     b. If R ≠ 16, set stripPrefix to false.
+                if var_r != 16 {
+                    strip_prefix = false
+                }
+            } else {
+                // 9. Else,
+                //     a. Set R to 10.
+                var_r = 10;
+            }
+
+            // 10. If stripPrefix is true, then
+            //     a. If the length of S is at least 2 and the first two code units of S are either "0x" or "0X", then
+            //         i. Remove the first two code units from S.
+            //         ii. Set R to 16.
+            if strip_prefix
+                && var_s.len() >= 2
+                && (var_s.starts_with("0x") || var_s.starts_with("0X"))
+            {
+                var_s = var_s.split_at(2).1;
+
+                var_r = 16;
+            }
+
+            // 11. If S contains a code unit that is not a radix-R digit, let end be the index within S of the
+            //     first such code unit; otherwise, let end be the length of S.
+            let end = if let Some(index) = var_s.find(|c: char| !c.is_digit(var_r as u32)) {
+                index
+            } else {
+                var_s.len()
+            };
+
+            // 12. Let Z be the substring of S from 0 to end.
+            let var_z = var_s.split_at(end).0;
+
+            // 13. If Z is empty, return NaN.
+            if var_z.is_empty() {
+                return Ok(Value::nan());
+            }
+
+            // 14. Let mathInt be the integer value that is represented by Z in radix-R notation, using the
+            //     letters A-Z and a-z for digits with values 10 through 35. (However, if R is 10 and Z contains
+            //     more than 20 significant digits, every significant digit after the 20th may be replaced by a
+            //     0 digit, at the option of the implementation; and if R is not 2, 4, 8, 10, 16, or 32, then
+            //     mathInt may be an implementation-approximated value representing the integer value that is
+            //     represented by Z in radix-R notation.)
+            let math_int = u64::from_str_radix(var_z, var_r as u32).map_or_else(
+                |_| f64::from_str_radix(var_z, var_r as u32).expect("invalid_float_conversion"),
+                |i| i as f64,
+            );
+
+            // 15. If mathInt = 0, then
+            //     a. If sign = -1, return -0𝔽.
+            //     b. Return +0𝔽.
+            if math_int == 0_f64 {
+                if sign == -1 {
+                    return Ok(Value::rational(-0_f64));
+                } else {
+                    return Ok(Value::rational(0_f64));
                 }
             }
+
+            // 16. Return 𝔽(sign × mathInt).
+            Ok(Value::rational(f64::from(sign) * math_int))
         } else {
             // Not enough arguments to parseInt.
-            Ok(Value::from(f64::NAN))
+            Ok(Value::nan())
         }
     }
 

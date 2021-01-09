@@ -551,7 +551,7 @@ fn parse_int_float() {
 fn parse_int_float_str() {
     let mut context = Context::new();
 
-    assert_eq!(&forward(&mut context, "parseInt(\"100.5\")"), "NaN");
+    assert_eq!(&forward(&mut context, "parseInt(\"100.5\")"), "100");
 }
 
 #[test]
