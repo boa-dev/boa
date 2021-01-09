@@ -1,5 +1,216 @@
 # CHANGELOG
 
+# 0.11.0 (2021-01-11)
+
+Feature Enhancements:
+
+- [FEATURE #836](https://github.com/boa-dev/boa/pull/836):
+  Async/Await parse (@Lan2u)
+- [FEATURE #704](https://github.com/boa-dev/boa/pull/704):
+  Implement for...of loops (@joshwd36)
+- [FEATURE #770](https://github.com/boa-dev/boa/pull/770):
+  Support for symbols as property keys for `Object.defineProperty` (@georgeroman)
+- [FEATURE #717](https://github.com/boa-dev/boa/pull/717):
+  Strict Mode Lex/Parse (@Lan2u)
+- [FEATURE #800](https://github.com/boa-dev/boa/pull/800):
+  Implement `console` crate feature - Put `console` object behind a feature flag (@HalidOdat)
+- [FEATURE #804](https://github.com/boa-dev/boa/pull/804):
+  Implement `EvalError` (@HalidOdat)
+- [FEATURE #805](https://github.com/boa-dev/boa/pull/805):
+  Implement `Function.prototype.call` (@RageKnify)
+- [FEATURE #806](https://github.com/boa-dev/boa/pull/806):
+  Implement `URIError` (@HalidOdat)
+- [FEATURE #811](https://github.com/boa-dev/boa/pull/811):
+  Implement spread operator using iterator (@croraf)
+- [FEATURE #844](https://github.com/boa-dev/boa/pull/844):
+  Allow UnaryExpression with prefix increment/decrement (@croraf)
+- [FEATURE #798](https://github.com/boa-dev/boa/pull/798):
+  Implement Object.getOwnPropertyDescriptor() and Object.getOwnPropertyDescriptors() (@JohnDoneth)
+- [FEATURE #847](https://github.com/boa-dev/boa/pull/847):
+  Implement Map.prototype.entries() (@croraf)
+- [FEATURE #859](https://github.com/boa-dev/boa/pull/859):
+  Implement spec compliant Array constructor (@georgeroman)
+- [FEATURE #874](https://github.com/boa-dev/boa/pull/874):
+  Implement Map.prototype.values and Map.prototype.keys (@croraf)
+- [FEATURE #877](https://github.com/boa-dev/boa/pull/877):
+  Implement Function.prototype.apply (@georgeroman)
+- [FEATURE #908](https://github.com/boa-dev/boa/pull/908):
+  Implementation of `instanceof` operator (@morrien)
+- [FEATURE #935](https://github.com/boa-dev/boa/pull/935):
+  Implement String.prototype.codePointAt (@devinus)
+- [FEATURE #961](https://github.com/boa-dev/boa/pull/961):
+  Implement the optional `space` parameter in `JSON.stringify` (@tofpie)
+- [FEATURE #962](https://github.com/boa-dev/boa/pull/962):
+  Implement Number.prototype.toPrecision (@NathanRoyer)
+- [FEATURE #983](https://github.com/boa-dev/boa/pull/983):
+  Implement Object.prototype.isPrototypeOf (@tofpie)
+- [FEATURE #659](https://github.com/boa-dev/boa/pull/659):
+  Error handling in environment (@54k1)
+- [FEATURE #995](https://github.com/boa-dev/boa/pull/995):
+  Support Numeric separators (@tofpie)
+- [FEATURE #1013](https://github.com/boa-dev/boa/pull/1013):
+  Implement nullish coalescing (?? and ??=) (@tofpie)
+- [FEATURE #987](https://github.com/boa-dev/boa/pull/987):
+  Implement property accessors (@tofpie)
+- [FEATURE #1018](https://github.com/boa-dev/boa/pull/1018):
+  Implement logical assignment operators (&&= and ||=) (@tofpie)
+- [FEATURE #1019](https://github.com/boa-dev/boa/pull/1019):
+  Implement early errors for non-assignable nodes in assignment (@tofpie)
+- [FEATURE #1020](https://github.com/boa-dev/boa/pull/1020):
+  Implement Symbol.toPrimitive (@tofpie)
+- [FEATURE #976](https://github.com/boa-dev/boa/pull/976):
+  Implement for..in (@tofpie)
+- [FEATURE #1026](https://github.com/boa-dev/boa/pull/1026):
+  Implement String.prototype.split (@jevancc)
+- [FEATURE #1047](https://github.com/boa-dev/boa/pull/1047):
+  Added syntax highlighting for numbers, identifiers and template literals (@Razican)
+
+Bug Fixes:
+
+- [BUG #782](https://github.com/boa-dev/boa/pull/782):
+  Throw TypeError if regexp is passed to startsWith, endsWith, includes (@pt2121)
+- [BUG #788](https://github.com/boa-dev/boa/pull/788):
+  Fixing a duplicated attribute in test262 results (@Razican)
+- [BUG #790](https://github.com/boa-dev/boa/pull/790):
+  Throw RangeError when BigInt division by zero occurs (@JohnDoneth)
+- [BUG #785](https://github.com/boa-dev/boa/pull/785):
+  Fix zero argument panic in JSON.parse() (@JohnDoneth)
+- [BUG #749](https://github.com/boa-dev/boa/pull/749):
+  Fix Error constructors to return rather than throw (@RageKnify)
+- [BUG #777](https://github.com/boa-dev/boa/pull/777):
+  Fix cyclic JSON.stringify / primitive conversion stack overflows (@vgel)
+- [BUG #799](https://github.com/boa-dev/boa/pull/799):
+  Fix lexer span panic with carriage return (@vgel)
+- [BUG #812](https://github.com/boa-dev/boa/pull/812):
+  Fix Test262 bugs (@RageKnify)
+- [BUG #826](https://github.com/boa-dev/boa/pull/826):
+  Fix tokenizing Unicode escape sequence in string literal (@HalidOdat)
+- [BUG #825](https://github.com/boa-dev/boa/pull/825):
+  calling "new" on a primitive value throw a type error (@dlemel8)
+- [BUG #853](https://github.com/boa-dev/boa/pull/853)
+  Handle invalid Unicode code point in the string literals(@jevancc)
+- [BUG #870](https://github.com/boa-dev/boa/pull/870)
+  Fix JSON stringification for fractional numbers (@georgeroman)
+- [BUG #807](https://github.com/boa-dev/boa/pull/807):
+  Make boa::parse emit error on invalid input, not panic (@georgeroman)
+- [BUG #880](https://github.com/boa-dev/boa/pull/880):
+  Support more number literals in BigInt's from string constructor (@georgeroman)
+- [BUG #885](https://github.com/boa-dev/boa/pull/885):
+  Fix `BigInt.prototype.toString()` radix checks (@georgeroman)
+- [BUG #882](https://github.com/boa-dev/boa/pull/882):
+  Fix (panic) remainder by zero (@georgeroman)
+- [BUG #884](https://github.com/boa-dev/boa/pull/884):
+  Fix some panics related to BigInt operations (@georgeroman)
+- [BUG #888](https://github.com/boa-dev/boa/pull/888):
+  Fix some panics in String.prototype properties (@georgeroman)
+- [BUG #902](https://github.com/boa-dev/boa/pull/902):
+  Fix Accessors panics (@HalidOdat)
+- [BUG #959](https://github.com/boa-dev/boa/pull/959):
+  Fix Unicode character escape sequence parsing (@tofpie)
+- [BUG #964](https://github.com/boa-dev/boa/pull/964):
+  Fix single line comment lexing with CRLF line ending (@tofpie)
+- [BUG #919](https://github.com/boa-dev/boa/pull/919):
+  Reduce the number of `Array`-related panics (@jakubfijalkowski)
+- [BUG #968](https://github.com/boa-dev/boa/pull/968):
+  Fix unit tests that can be failed due to daylight saving time (@tofpie)
+- [BUG #972](https://github.com/boa-dev/boa/pull/972):
+  Fix enumerable attribute on array length property (@tofpie)
+- [BUG #974](https://github.com/boa-dev/boa/pull/974):
+  Fix enumerable attribute on string length property (@tofpie)
+- [BUG #981](https://github.com/boa-dev/boa/pull/981):
+  Fix prototypes for Number, String and Boolean (@tofpie)
+- [BUG #999](https://github.com/boa-dev/boa/pull/999):
+  Fix logical expressions evaluation (@tofpie)
+- [BUG #1001](https://github.com/boa-dev/boa/pull/1001):
+  Fix comparison with infinity (@tofpie)
+- [BUG #1004](https://github.com/boa-dev/boa/pull/1004):
+  Fix panics surrounding `Object.prototype.hasOwnProperty()` (@HalidOdat)
+- [BUG #1005](https://github.com/boa-dev/boa/pull/1005):
+  Fix panics surrounding `Object.defineProperty()` (@HalidOdat)
+- [BUG #1021](https://github.com/boa-dev/boa/pull/1021):
+  Fix spread in new and call expressions (@tofpie)
+- [BUG #1023](https://github.com/boa-dev/boa/pull/1023):
+  Fix attributes on properties of functions and constructors (@tofpie)
+- [BUG #1017](https://github.com/boa-dev/boa/pull/1017):
+  Don't panic when function parameters share names (@AnnikaCodes)
+- [BUG #1024](https://github.com/boa-dev/boa/pull/1024):
+  Fix delete when the property is not configurable (@tofpie)
+- [BUG #1027](https://github.com/boa-dev/boa/pull/1027):
+  Supress regress errors on invalid escapes for regex (@jasonwilliams
+- [BUG #1031](https://github.com/boa-dev/boa/pull/1031):
+  Fixed some extra regex panics (@Razican)
+- [BUG 1049](https://github.com/boa-dev/boa/pull/1049):
+  Support overriding the `arguments` variable (@AnnikaCodes)
+
+  Internal Improvements:
+
+- [INTERNAL #735](https://github.com/boa-dev/boa/pull/735):
+  Move exec implementations together with AST node structs (@georgeroman)
+- [INTERNAL #724](https://github.com/boa-dev/boa/pull/724)
+  Improve code coverage count (@HalidOdat)
+- [INTERNAL #768](https://github.com/boa-dev/boa/commit/3cb8c94538cb405a00044e8479e6701d8853f719)
+  Update the benchmark Github action (@Razican)
+- [INTERNAL #722](https://github.com/boa-dev/boa/pull/722):
+  `ConstructorBuilder`, `ObjectInitializer`, cache standard objects and fix global object attributes (@HalidOdat)
+- [INTERNAL #783](https://github.com/boa-dev/boa/pull/783):
+  New test262 results format (This also reduces the payload size for the website) (@Razican)
+- [INTERNAL #787](https://github.com/boa-dev/boa/pull/787):
+  Refactor ast/node/expression into ast/node/call and ast/node/new (@croraf)
+- [INTERNAL #802](https://github.com/boa-dev/boa/pull/802):
+  Make `Function.prototype` a function (@HalidOdat)
+- [INTERNAL #746](https://github.com/boa-dev/boa/pull/746):
+  Add Object.defineProperties and handle props argument in Object.create (@dvtkrlbs)
+- [INTERNAL #774](https://github.com/boa-dev/boa/pull/774):
+  Switch from `regex` to `regress` for ECMA spec-compliant regex implementation (@neeldug)
+- [INTERNAL #794](https://github.com/boa-dev/boa/pull/794):
+  Refactor `PropertyDescriptor` (Improved performance) (@HalidOdat)
+- [INTERNAL #824](https://github.com/boa-dev/boa/pull/824):
+  [parser Expression] minor expression macro simplification (@croraf)
+- [INTERNAL #833](https://github.com/boa-dev/boa/pull/833):
+  Using unstable sort for sorting keys on `to_json()` for GC objects (@Razican)
+- [INTERNAL #837](https://github.com/boa-dev/boa/pull/837):
+  Set default-run to `boa` removing need for `--bin` (@RageKnify)
+- [INTERNAL #841](https://github.com/boa-dev/boa/pull/841):
+  Minor refactor and rename in eval() method (@croraf)
+- [INTERNAL #840](https://github.com/boa-dev/boa/pull/840):
+  fix(profiler): update profiler to match current measureme api (@neeldug)
+- [INTERNAL #838](https://github.com/boa-dev/boa/pull/838):
+  style(boa): minor cleanup (@neeldug)
+- [INTERNAL #869](https://github.com/boa-dev/boa/pull/869)
+  Updated cache in workflows
+- [INTERNAL #873](https://github.com/boa-dev/boa/pull/873)
+  Removed cache from MacOS builds (@Razican)
+- [INTERNAL #835](https://github.com/boa-dev/boa/pull/835):
+  Move `Object` internal object methods to `GcObject` (@HalidOdat)
+- [INTERNAL #886](https://github.com/boa-dev/boa/pull/886):
+  Support running a specific test/suite in boa_tester (@georgeroman)
+- [INTERNAL #901](https://github.com/boa-dev/boa/pull/901):
+  Added "unimplemented" syntax errors (@Razican)
+- [INTERNAL #911](https://github.com/boa-dev/boa/pull/911):
+  Change Symbol hash to `u64` (@HalidOdat)
+- [INTERNAL #912](https://github.com/boa-dev/boa/pull/912):
+  Feature `Context::register_global_property()` (@HalidOdat)
+- [INTERNAL #913](https://github.com/boa-dev/boa/pull/913):
+  Added check to ignore semicolon in parser (@AngelOnFira)
+- [INTERNAL #915](https://github.com/boa-dev/boa/pull/915):
+  Improve lexer by make cursor iterate over bytes (@jevancc)
+- [INTERNAL #952](https://github.com/boa-dev/boa/pull/952):
+  Upgraded rustyline and test262 (@Razican)
+- [INTERNAL #960](https://github.com/boa-dev/boa/pull/960):
+  Fix unresolved links in documentation (@tofpie)
+- [INTERNAL #979](https://github.com/boa-dev/boa/pull/979):
+  Read file input in bytes instead of string (@tofpie)
+- [INTERNAL #1014](https://github.com/boa-dev/boa/pull/1014):
+  StatementList: Rename `statements` to `items` (@AnnikaCodes)
+- [INTERNAL #860](https://github.com/boa-dev/boa/pull/860):
+  Investigation into ByteCode Interpreter (@jasonwilliams)
+- [INTERNAL #1042](https://github.com/boa-dev/boa/pull/1042):
+  Add receiver parameter to object internal methods (@tofpie)
+- [INTERNAL #1030](https://github.com/boa-dev/boa/pull/1030):
+  VM: Implement variable declaration (var, const, and let) (@AnnikaCodes)
+- [INTERNAL #1010](https://github.com/boa-dev/boa/pull/1010):
+  Modify environment binding behaviour of function (@54k1)
+
 # 0.10.0 (2020-09-29) - New Lexer & Test 262 Harness
 
 Feature Enhancements:
