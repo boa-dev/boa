@@ -168,7 +168,7 @@ impl GcObject {
                         let arguments_obj = create_unmapped_arguments_object(args);
                         local_env
                             .borrow_mut()
-                            .create_mutable_binding("arguments".to_string(), false, false)
+                            .create_mutable_binding("arguments".to_string(), false, true)
                             .map_err(|e| e.to_error(context))?;
                         local_env
                             .borrow_mut()
@@ -276,7 +276,7 @@ impl GcObject {
                         let arguments_obj = create_unmapped_arguments_object(args);
                         local_env
                             .borrow_mut()
-                            .create_mutable_binding("arguments".to_string(), false, false)
+                            .create_mutable_binding("arguments".to_string(), false, true)
                             .map_err(|e| e.to_error(context))?;
                         local_env
                             .borrow_mut()

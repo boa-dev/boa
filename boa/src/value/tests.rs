@@ -144,6 +144,7 @@ fn hash_undefined() {
 }
 
 #[test]
+#[allow(clippy::eq_op)]
 fn hash_rational() {
     let value1 = Value::rational(1.0);
     let value2 = Value::rational(1.0);
@@ -157,6 +158,7 @@ fn hash_rational() {
 }
 
 #[test]
+#[allow(clippy::eq_op)]
 fn hash_object() {
     let object1 = Value::object(Object::default());
     assert_eq!(object1, object1);
