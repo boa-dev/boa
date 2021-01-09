@@ -1110,7 +1110,7 @@
                         <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span> <span class="ident">create_unmapped_arguments_object</span>(<span class="ident">args</span>);
                         <span class="ident">local_env</span>
                             .<span class="ident">borrow_mut</span>()
-                            .<span class="ident">create_mutable_binding</span>(<span class="string">&quot;arguments&quot;</span>.<span class="ident">to_string</span>(), <span class="bool-val">false</span>, <span class="bool-val">false</span>)
+                            .<span class="ident">create_mutable_binding</span>(<span class="string">&quot;arguments&quot;</span>.<span class="ident">to_string</span>(), <span class="bool-val">false</span>, <span class="bool-val">true</span>)
                             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
                         <span class="ident">local_env</span>
                             .<span class="ident">borrow_mut</span>()
@@ -1207,7 +1207,7 @@
                         <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span> <span class="ident">create_unmapped_arguments_object</span>(<span class="ident">args</span>);
                         <span class="ident">local_env</span>
                             .<span class="ident">borrow_mut</span>()
-                            .<span class="ident">create_mutable_binding</span>(<span class="string">&quot;arguments&quot;</span>.<span class="ident">to_string</span>(), <span class="bool-val">false</span>, <span class="bool-val">false</span>)
+                            .<span class="ident">create_mutable_binding</span>(<span class="string">&quot;arguments&quot;</span>.<span class="ident">to_string</span>(), <span class="bool-val">false</span>, <span class="bool-val">true</span>)
                             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
                         <span class="ident">local_env</span>
                             .<span class="ident">borrow_mut</span>()
