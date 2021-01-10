@@ -199,12 +199,6 @@ impl<R> Lexer<R> {
                 )),
                 '"' | '\'' => StringLiteral::new(c).lex(&mut self.cursor, start),
                 '`' => TemplateLiteral.lex(&mut self.cursor, start),
-                _ if c.is_digit(10) => {
-                    NumberLiteral::new(next_ch as u8).lex(&mut self.cursor, start)
-                }
-                _ if c.is_alphabetic() || c == '$' || c == '_' => {
-                    Identifier::new(c).lex(&mut self.cursor, start)
-                }
                 ';' => Ok(Token::new(
                     Punctuator::Semicolon.into(),
                     Span::new(start, self.cursor.pos()),
@@ -251,6 +245,12 @@ impl<R> Lexer<R> {
                 '/' => self.lex_slash_token(start),
                 '=' | '*' | '+' | '-' | '%' | '|' | '&' | '^' | '<' | '>' | '!' | '~' | '?' => {
                     Operator::new(next_ch as u8).lex(&mut self.cursor, start)
+                }
+                _ if c.is_digit(10) => {
+                    NumberLiteral::new(next_ch as u8).lex(&mut self.cursor, start)
+                }
+                _ if Identifier::is_identifier_start(c as u32) => {
+                    Identifier::new(c).lex(&mut self.cursor, start)
                 }
                 _ => {
                     let details = format!(

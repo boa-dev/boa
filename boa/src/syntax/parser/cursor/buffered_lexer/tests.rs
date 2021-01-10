@@ -208,7 +208,7 @@ fn peek_skip_next_till_end() {
     let mut cur = BufferedLexer::from(&b"a b c d e f g h i"[..]);
 
     let mut peeked: [Option<Token>; super::MAX_PEEK_SKIP + 1] =
-        [None::<Token>, None::<Token>, None::<Token>];
+        [None::<Token>, None::<Token>, None::<Token>, None::<Token>];
 
     loop {
         for (i, peek) in peeked.iter_mut().enumerate() {

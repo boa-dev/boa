@@ -11,7 +11,7 @@ use std::io::Read;
 mod tests;
 
 /// The maximum number of tokens which can be peeked ahead.
-const MAX_PEEK_SKIP: usize = 2;
+const MAX_PEEK_SKIP: usize = 3;
 
 /// The fixed size of the buffer used for storing values that are peeked ahead.
 ///
@@ -40,6 +40,8 @@ where
         Self {
             lexer,
             peeked: [
+                None::<Token>,
+                None::<Token>,
                 None::<Token>,
                 None::<Token>,
                 None::<Token>,

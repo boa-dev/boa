@@ -145,7 +145,7 @@ where
                                     TokenKind::Punctuator(Punctuator::CloseParen) => {
                                         // Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction
                                         // otherwise it is an expression of the form (b).
-                                        if let Some(t) = cursor.peek(2)? {
+                                        if let Some(t) = cursor.peek(3)? {
                                             if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow)
                                             {
                                                 return ArrowFunction::new(
