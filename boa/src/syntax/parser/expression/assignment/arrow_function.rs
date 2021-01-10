@@ -70,8 +70,8 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ArrowFunction", "Parsing");
-
         let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+
         let params = if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token.kind() {
             // CoverParenthesizedExpressionAndArrowParameterList
             cursor.expect(Punctuator::OpenParen, "arrow function")?;

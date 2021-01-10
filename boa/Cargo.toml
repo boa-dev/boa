@@ -21,6 +21,7 @@ vm = []
 console = []
 
 [dependencies]
+boa_unicode = { path = "../boa_unicode" }
 gc = { version = "0.3.6", features = ["derive"] }
 serde = { version = "1.0.118", features = ["derive"] }
 serde_json = "1.0.61"

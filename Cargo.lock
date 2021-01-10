@@ -5,6 +5,7 @@ name = "Boa"
 version = "0.10.0"
 dependencies = [
  "bitflags",
+ "boa_unicode",
  "chrono",
  "criterion",
  "float-cmp",
@@ -106,6 +107,13 @@ dependencies = [
  "serde_json",
  "serde_yaml",
  "structopt",
+]
+
+[[package]]
+name = "boa_unicode"
+version = "0.10.0"
+dependencies = [
+ "unicode-general-category",
 ]
 
 [[package]]
@@ -1262,6 +1270,12 @@ checksum = "49f2bd0c6468a8230e1db229cff8029217cf623c767ea5d60bfbd42729ea54d5"
 dependencies = [
  "matches",
 ]
+
+[[package]]
+name = "unicode-general-category"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eab1e2c61f9441613aca1a1c88803bb36df292990aada6abb5133b9b532e07ec"
 
 [[package]]
 name = "unicode-normalization"
