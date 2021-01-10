@@ -147,7 +147,7 @@ Bug Fixes:
 - [INTERNAL #735](https://github.com/boa-dev/boa/pull/735):
   Move exec implementations together with AST node structs (@georgeroman)
 - [INTERNAL #724](https://github.com/boa-dev/boa/pull/724):
-  Improve code coverage count (@HalidOdat)
+  Ignore tests for code coverage count (@HalidOdat)
 - [INTERNAL #768](https://github.com/boa-dev/boa/pull/768)
   Update the benchmark Github action (@Razican)
 - [INTERNAL #722](https://github.com/boa-dev/boa/pull/722):
