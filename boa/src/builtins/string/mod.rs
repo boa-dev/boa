@@ -718,7 +718,8 @@ impl String {
                                 }
                                 (Some('<'), _) => {
                                     // $<
-                                    todo!("named capture groups")
+                                    // TODO: named capture groups
+                                    result.push_str("$<");
                                 }
                                 _ => {
                                     // $?, ? is none of the above
@@ -871,7 +872,11 @@ impl String {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match
     /// [regex]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
     pub(crate) fn r#match(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let re = RegExp::constructor(&Value::from(Object::default()), &[args[0].clone()], context)?;
+        let re = RegExp::constructor(
+            &Value::from(Object::default()),
+            &[args.get(0).cloned().unwrap_or_default()],
+            context,
+        )?;
         RegExp::r#match(&re, this.to_string(context)?, context)
     }
 
