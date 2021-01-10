@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "build-tables": "node ./build_tables.js"
+  }
+}

@@ -8,6 +8,7 @@ use crate::{
         lexer::{Token, TokenKind},
     },
 };
+use boa_unicode::UnicodeProperties;
 use core::convert::TryFrom;
 use std::io::Read;
 use std::str;
@@ -44,6 +45,38 @@ impl Identifier {
     pub(super) fn new(init: char) -> Self {
         Self { init }
     }
+
+    /// Checks if a character is IdentifierStart as per ECMAScript standards.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-names-and-keywords
+    pub(super) fn is_identifier_start(ch: u32) -> bool {
+        matches!(ch, 0x0024 /* $ */ | 0x005F /* _ */)
+            || if let Ok(ch) = char::try_from(ch) {
+                ch.is_id_start()
+            } else {
+                false
+            }
+    }
+
+    /// Checks if a character is IdentifierPart as per ECMAScript standards.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-names-and-keywords
+    fn is_identifier_part(ch: u32) -> bool {
+        matches!(
+            ch,
+            0x0024 /* $ */ | 0x005F /* _ */ | 0x200C /* <ZWNJ> */ | 0x200D /* <ZWJ> */
+        ) || if let Ok(ch) = char::try_from(ch) {
+            ch.is_id_continue()
+        } else {
+            false
+        }
+    }
 }
 
 impl<R> Tokenizer<R> for Identifier {
@@ -58,13 +91,7 @@ impl<R> Tokenizer<R> for Identifier {
         self.init.encode_utf8(&mut init_buf);
         buf.extend(init_buf.iter().take(self.init.len_utf8()));
 
-        cursor.take_while_char_pred(&mut buf, &|c: u32| {
-            if let Ok(c) = char::try_from(c) {
-                c.is_alphabetic() || c.is_digit(10) || c == '_'
-            } else {
-                false
-            }
-        })?;
+        cursor.take_while_char_pred(&mut buf, &Self::is_identifier_part)?;
 
         let token_str = unsafe { str::from_utf8_unchecked(buf.as_slice()) };
         let tk = match token_str {
