@@ -82,7 +82,7 @@ Bug Fixes:
 - [BUG #799](https://github.com/boa-dev/boa/pull/799):
   Fix lexer span panic with carriage return (@vgel)
 - [BUG #812](https://github.com/boa-dev/boa/pull/812):
-  Fix Test262 bugs (@RageKnify)
+  Fix 2 bugs that caused Test262 to fail (@RageKnify)
 - [BUG #826](https://github.com/boa-dev/boa/pull/826):
   Fix tokenizing Unicode escape sequence in string literal (@HalidOdat)
 - [BUG #825](https://github.com/boa-dev/boa/pull/825):
