@@ -46,6 +46,7 @@ If you want to develop on the web assembly side you can run `yarn serve` and the
 to <http://localhost:8080>.
 
 ### boa-unicode
+
 Boa uses the library `boa-unicode` to query Unicode character properties and classes in lexer and parser. See [boa_unicode/README.md](./boa_unicode/README.md) for development and more information.
 
 ### Setup
