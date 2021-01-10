@@ -369,7 +369,7 @@
                                     <span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">CloseParen</span>) <span class="op">=</span><span class="op">&gt;</span> {
                                         <span class="comment">// Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction</span>
                                         <span class="comment">// otherwise it is an expression of the form (b).</span>
-                                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">2</span>)<span class="question-mark">?</span> {
+                                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">3</span>)<span class="question-mark">?</span> {
                                             <span class="kw">if</span> <span class="ident">t</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">Arrow</span>)
                                             {
                                                 <span class="kw">return</span> <span class="ident">ArrowFunction</span>::<span class="ident">new</span>(

@@ -239,6 +239,8 @@
 <span id="238">238</span>
 <span id="239">239</span>
 <span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">profiler</span>::<span class="ident">BoaProfiler</span>,
@@ -253,7 +255,7 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="doccomment">/// The maximum number of tokens which can be peeked ahead.</span>
-<span class="kw">const</span> <span class="ident">MAX_PEEK_SKIP</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">const</span> <span class="ident">MAX_PEEK_SKIP</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">3</span>;
 
 <span class="doccomment">/// The fixed size of the buffer used for storing values that are peeked ahead.</span>
 <span class="doccomment">///</span>
@@ -282,6 +284,8 @@
         <span class="self">Self</span> {
             <span class="ident">lexer</span>,
             <span class="ident">peeked</span>: [
+                <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
+                <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
                 <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
                 <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
                 <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">Token</span><span class="op">&gt;</span>,
