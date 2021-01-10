@@ -58,6 +58,46 @@ impl CodeGen for Node {
             }
             Node::BinOp(ref op) => op.compile(compiler),
             Node::UnaryOp(ref op) => op.compile(compiler),
+            Node::VarDeclList(ref list) => {
+                for var_decl in list.as_ref() {
+                    let name = var_decl.name();
+                    let index = compiler.pool.len();
+                    compiler.add_instruction(Instruction::DefVar(index));
+                    compiler.pool.push(name.into());
+
+                    if let Some(v) = var_decl.init() {
+                        v.compile(compiler);
+                        compiler.add_instruction(Instruction::InitLexical(index))
+                    };
+                }
+            }
+            Node::LetDeclList(ref list) => {
+                for let_decl in list.as_ref() {
+                    let name = let_decl.name();
+                    let index = compiler.pool.len();
+                    compiler.add_instruction(Instruction::DefLet(index));
+                    compiler.pool.push(name.into());
+
+                    // If name has a value we can init here too
+                    if let Some(v) = let_decl.init() {
+                        v.compile(compiler);
+                        compiler.add_instruction(Instruction::InitLexical(index))
+                    };
+                }
+            }
+            Node::ConstDeclList(ref list) => {
+                for const_decl in list.as_ref() {
+                    let name = const_decl.name();
+                    let index = compiler.pool.len();
+                    compiler.add_instruction(Instruction::DefConst(index));
+                    compiler.pool.push(name.into());
+
+                    if let Some(v) = const_decl.init() {
+                        v.compile(compiler);
+                        compiler.add_instruction(Instruction::InitLexical(index))
+                    };
+                }
+            }
             _ => unimplemented!(),
         }
     }

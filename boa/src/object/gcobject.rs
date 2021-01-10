@@ -162,7 +162,7 @@ impl GcObject {
                         let arguments_obj = create_unmapped_arguments_object(args);
                         local_env
                             .borrow_mut()
-                            .create_mutable_binding("arguments".to_string(), false, false)
+                            .create_mutable_binding("arguments".to_string(), false, true)
                             .map_err(|e| e.to_error(context))?;
                         local_env
                             .borrow_mut()
@@ -204,7 +204,7 @@ impl GcObject {
         // prototype as prototype for the new object
         // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
         // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
-        let proto = self.get(&PROTOTYPE.into(), context)?;
+        let proto = self.get(&PROTOTYPE.into(), self.clone().into(), context)?;
         let proto = if proto.is_object() {
             proto
         } else {
@@ -259,7 +259,7 @@ impl GcObject {
                         let arguments_obj = create_unmapped_arguments_object(args);
                         local_env
                             .borrow_mut()
-                            .create_mutable_binding("arguments".to_string(), false, false)
+                            .create_mutable_binding("arguments".to_string(), false, true)
                             .map_err(|e| e.to_error(context))?;
                         local_env
                             .borrow_mut()
@@ -408,13 +408,19 @@ impl GcObject {
         let mut attribute = Attribute::empty();
 
         let enumerable_key = PropertyKey::from("enumerable");
-        if self.has_property(&enumerable_key) && self.get(&enumerable_key, context)?.to_boolean() {
+        if self.has_property(&enumerable_key)
+            && self
+                .get(&enumerable_key, self.clone().into(), context)?
+                .to_boolean()
+        {
             attribute |= Attribute::ENUMERABLE;
         }
 
         let configurable_key = PropertyKey::from("configurable");
         if self.has_property(&configurable_key)
-            && self.get(&configurable_key, context)?.to_boolean()
+            && self
+                .get(&configurable_key, self.clone().into(), context)?
+                .to_boolean()
         {
             attribute |= Attribute::CONFIGURABLE;
         }
@@ -422,14 +428,17 @@ impl GcObject {
         let mut value = None;
         let value_key = PropertyKey::from("value");
         if self.has_property(&value_key) {
-            value = Some(self.get(&value_key, context)?);
+            value = Some(self.get(&value_key, self.clone().into(), context)?);
         }
 
         let mut has_writable = false;
         let writable_key = PropertyKey::from("writable");
         if self.has_property(&writable_key) {
             has_writable = true;
-            if self.get(&writable_key, context)?.to_boolean() {
+            if self
+                .get(&writable_key, self.clone().into(), context)?
+                .to_boolean()
+            {
                 attribute |= Attribute::WRITABLE;
             }
         }
@@ -437,7 +446,7 @@ impl GcObject {
         let mut get = None;
         let get_key = PropertyKey::from("get");
         if self.has_property(&get_key) {
-            let getter = self.get(&get_key, context)?;
+            let getter = self.get(&get_key, self.clone().into(), context)?;
             match getter {
                 Value::Object(ref object) if object.is_callable() => {
                     get = Some(object.clone());
@@ -453,7 +462,7 @@ impl GcObject {
         let mut set = None;
         let set_key = PropertyKey::from("set");
         if self.has_property(&set_key) {
-            let setter = self.get(&set_key, context)?;
+            let setter = self.get(&set_key, self.clone().into(), context)?;
             match setter {
                 Value::Object(ref object) if object.is_callable() => {
                     set = Some(object.clone());
@@ -709,7 +718,7 @@ impl GcObject {
         K: Into<PropertyKey>,
     {
         let key = key.into();
-        let value = self.get(&key, context)?;
+        let value = self.get(&key, self.clone().into(), context)?;
 
         if value.is_null_or_undefined() {
             return Ok(None);
@@ -743,7 +752,10 @@ impl GcObject {
         //           Return ? InstanceofOperator(O, BC).
 
         if let Some(object) = value.as_object() {
-            if let Some(prototype) = self.get(&"prototype".into(), context)?.as_object() {
+            if let Some(prototype) = self
+                .get(&"prototype".into(), self.clone().into(), context)?
+                .as_object()
+            {
                 let mut object = object.get_prototype_of();
                 while let Some(object_prototype) = object.as_object() {
                     if GcObject::equals(&prototype, &object_prototype) {
@@ -791,7 +803,7 @@ impl GcObject {
         let key = key.into();
         let desc = desc.into();
 
-        let success = self.define_own_property(key.clone(), desc);
+        let success = self.define_own_property(key.clone(), desc, context)?;
         if !success {
             Err(context.construct_type_error(format!("Cannot redefine property: {}", key)))
         } else {

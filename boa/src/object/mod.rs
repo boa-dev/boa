@@ -738,7 +738,7 @@ impl<'context> FunctionBuilder<'context> {
                 .prototype()
                 .into(),
         );
-        let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
+        let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         if let Some(name) = self.name.take() {
             object.insert_property("name", name, attribute);
         } else {

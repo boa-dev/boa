@@ -1,9 +1,8 @@
-use crate::{Context, Result, Value};
+use crate::{environment::lexical_environment::VariableScope, BoaProfiler, Context, Result, Value};
 
 pub(crate) mod compilation;
 pub(crate) mod instructions;
 
-use crate::BoaProfiler;
 pub use compilation::Compiler;
 pub use instructions::Instruction;
 
@@ -267,6 +266,44 @@ impl<'a> VM<'a> {
                         !(num as i32)
                     };
                     self.push(value.into());
+                }
+                Instruction::DefVar(name_index) => {
+                    let name: String = self.pool[name_index].to_string(self.ctx)?.to_string();
+
+                    self.ctx
+                        .realm_mut()
+                        .environment
+                        .create_mutable_binding(name.to_string(), false, VariableScope::Function)
+                        .map_err(|e| e.to_error(self.ctx))?;
+                }
+                Instruction::DefLet(name_index) => {
+                    let name = self.pool[name_index].to_string(self.ctx)?;
+
+                    self.ctx
+                        .realm_mut()
+                        .environment
+                        .create_mutable_binding(name.to_string(), false, VariableScope::Block)
+                        .map_err(|e| e.to_error(self.ctx))?;
+                }
+                Instruction::DefConst(name_index) => {
+                    let name = self.pool[name_index].to_string(self.ctx)?;
+
+                    self.ctx
+                        .realm_mut()
+                        .environment
+                        .create_immutable_binding(name.to_string(), false, VariableScope::Block)
+                        .map_err(|e| e.to_error(self.ctx))?;
+                }
+                Instruction::InitLexical(name_index) => {
+                    let name = self.pool[name_index].to_string(self.ctx)?;
+                    let value = self.pop();
+                    self.ctx
+                        .realm_mut()
+                        .environment
+                        .initialize_binding(&name, value.clone())
+                        .map_err(|e| e.to_error(self.ctx))?;
+
+                    self.push(value);
                 }
             }
 

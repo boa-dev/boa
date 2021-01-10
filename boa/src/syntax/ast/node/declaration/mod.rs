@@ -19,3 +19,6 @@ pub use self::{
     let_decl_list::{LetDecl, LetDeclList},
     var_decl_list::{VarDecl, VarDeclList},
 };
+
+#[cfg(test)]
+mod tests;

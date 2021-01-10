@@ -480,7 +480,12 @@ impl RegExp {
     pub(crate) fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         let (body, flags) = if let Some(object) = this.as_object() {
             let object = object.borrow();
-            let regex = object.as_regexp().unwrap();
+            let regex = object.as_regexp().ok_or_else(|| {
+                context.construct_type_error(format!(
+                    "Method RegExp.prototype.toString called on incompatible receiver {}",
+                    this.display()
+                ))
+            })?;
             (regex.original_source.clone(), regex.flags.clone())
         } else {
             return context.throw_type_error(format!(

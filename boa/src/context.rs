@@ -531,9 +531,14 @@ impl Context {
             Function::BuiltIn(body.into(), FunctionFlags::CALLABLE),
             function_prototype,
         ));
-        function.set(PROTOTYPE.into(), proto, self)?;
-        function.set("length".into(), length.into(), self)?;
-        function.set("name".into(), name.into(), self)?;
+        function.set(PROTOTYPE.into(), proto, function.clone().into(), self)?;
+        function.set(
+            "length".into(),
+            length.into(),
+            function.clone().into(),
+            self,
+        )?;
+        function.set("name".into(), name.into(), function.clone().into(), self)?;
 
         Ok(function)
     }
@@ -631,7 +636,7 @@ impl Context {
                 let key = field.to_property_key(self)?;
                 Ok(get_field.obj().run(self)?.set_field(key, value, self)?)
             }
-            _ => panic!("TypeError: invalid assignment to {}", node),
+            _ => self.throw_type_error(format!("invalid assignment to {}", node)),
         }
     }
 

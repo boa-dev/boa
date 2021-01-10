@@ -116,7 +116,7 @@ impl Executable for UnaryOp {
                 | Node::New(_)
                 | Node::Object(_)
                 | Node::UnaryOp(_) => Value::boolean(true),
-                _ => panic!("SyntaxError: wrong delete argument {}", self),
+                _ => return context.throw_syntax_error(format!("wrong delete argument {}", self)),
             },
             op::UnaryOp::TypeOf => Value::from(x.get_type().as_str()),
         })

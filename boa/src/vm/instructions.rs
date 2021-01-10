@@ -57,6 +57,15 @@ pub enum Instruction {
     Neg,
     BitNot,
     Not,
+
+    /// The usize is the index of the variable name in the pool
+    DefVar(usize),
+    /// The usize is the index of the variable name in the pool
+    DefLet(usize),
+    /// The usize is the index of the variable name in the pool
+    DefConst(usize),
+    /// The usize is the index of the value to initiate the variable with in the pool
+    InitLexical(usize),
 }
 
 impl std::fmt::Display for Instruction {
@@ -100,6 +109,10 @@ impl std::fmt::Display for Instruction {
             Self::Neg => write!(f, "Neg"),
             Self::BitNot => write!(f, "BitNot"),
             Self::Not => write!(f, "Not"),
+            Self::DefVar(name) => write!(f, "DefVar({})", name),
+            Self::DefLet(name) => write!(f, "DefLet({})", name),
+            Self::DefConst(name) => write!(f, "DefConst({})", name),
+            Self::InitLexical(value) => write!(f, "InitLexical({})", value),
         }
     }
 }
