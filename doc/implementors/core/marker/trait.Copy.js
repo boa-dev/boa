@@ -42,6 +42,7 @@ implementors["synstructure"] = [{"text":"impl Copy for AddBounds","synthetic":fa
 implementors["time"] = [{"text":"impl Copy for Duration","synthetic":false,"types":[]},{"text":"impl Copy for OutOfRangeError","synthetic":false,"types":[]},{"text":"impl Copy for Timespec","synthetic":false,"types":[]},{"text":"impl Copy for PreciseTime","synthetic":false,"types":[]},{"text":"impl Copy for SteadyTime","synthetic":false,"types":[]},{"text":"impl Copy for Tm","synthetic":false,"types":[]},{"text":"impl Copy for ParseError","synthetic":false,"types":[]}];
 implementors["tinyvec"] = [{"text":"impl&lt;A:&nbsp;Copy + Array&gt; Copy for ArrayVec&lt;A&gt;","synthetic":false,"types":[]}];
 implementors["unicode_bidi"] = [{"text":"impl Copy for Level","synthetic":false,"types":[]},{"text":"impl Copy for BidiClass","synthetic":false,"types":[]}];
+implementors["unicode_general_category"] = [{"text":"impl Copy for GeneralCategory","synthetic":false,"types":[]}];
 implementors["url"] = [{"text":"impl Copy for ParseError","synthetic":false,"types":[]},{"text":"impl Copy for SyntaxViolation","synthetic":false,"types":[]},{"text":"impl Copy for Position","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; Copy for ParseOptions&lt;'a&gt;","synthetic":false,"types":[]}];
 implementors["wasm_bindgen"] = [{"text":"impl&lt;T:&nbsp;Copy&gt; Copy for Clamped&lt;T&gt;","synthetic":false,"types":[]}];
 implementors["wasm_bindgen_backend"] = [{"text":"impl Copy for TypeKind","synthetic":false,"types":[]},{"text":"impl Copy for TypeLocation","synthetic":false,"types":[]}];
