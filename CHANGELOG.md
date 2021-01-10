@@ -148,7 +148,7 @@ Bug Fixes:
   Move exec implementations together with AST node structs (@georgeroman)
 - [INTERNAL #724](https://github.com/boa-dev/boa/pull/724):
   Improve code coverage count (@HalidOdat)
-- [INTERNAL #768](https://github.com/boa-dev/boa/commit/3cb8c94538cb405a00044e8479e6701d8853f719)
+- [INTERNAL #768](https://github.com/boa-dev/boa/pull/768)
   Update the benchmark Github action (@Razican)
 - [INTERNAL #722](https://github.com/boa-dev/boa/pull/722):
   `ConstructorBuilder`, `ObjectInitializer`, cache standard objects and fix global object attributes (@HalidOdat)
