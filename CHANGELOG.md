@@ -144,7 +144,7 @@ Bug Fixes:
 - [BUG #1050](https://github.com/boa-dev/boa/pull/1050):
   Remove panic on named capture groups (@Razican)
 
-  Internal Improvements:
+Internal Improvements:
 
 - [INTERNAL #735](https://github.com/boa-dev/boa/pull/735):
   Move exec implementations together with AST node structs (@georgeroman)
