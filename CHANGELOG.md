@@ -139,8 +139,10 @@ Bug Fixes:
   Supress regress errors on invalid escapes for regex (@jasonwilliams
 - [BUG #1031](https://github.com/boa-dev/boa/pull/1031):
   Fixed some extra regex panics (@Razican)
-- [BUG 1049](https://github.com/boa-dev/boa/pull/1049):
+- [BUG #1049](https://github.com/boa-dev/boa/pull/1049):
   Support overriding the `arguments` variable (@AnnikaCodes)
+- [BUG #1050](https://github.com/boa-dev/boa/pull/1050):
+  Remove panic on named capture groups (@Razican)
 
   Internal Improvements:
 
