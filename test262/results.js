@@ -1,6 +1,7 @@
 "use strict";
 (function () {
   let latest = {};
+  let masterData = [];
   let formatter = new Intl.NumberFormat("en-GB");
 
   // Load latest complete data from master:
@@ -17,6 +18,7 @@
   fetch("./refs/heads/master/results.json")
     .then((response) => response.json())
     .then((data) => {
+      masterData = data;
       let innerContainer = $("<div></div>")
         .addClass("card-body")
         .append($("<h2><code>master</code> branch results:</h2>"))
@@ -29,8 +31,6 @@
       $("#master-latest")
         .append($("<div></div>").addClass("card").append(innerContainer))
         .show();
-
-      // TODO: paint the graph with historical data.
     });
 
   // Tags/releases information.
@@ -49,7 +49,7 @@
             .append(createGeneralInfo(data));
 
           if (typeof latest[latestTag] !== "undefined") {
-            innerContainer.append(infoLink(latestTag));
+            innerContainer.append(infoLink(latestTag, data));
           }
 
           $("#version-latest")
@@ -81,19 +81,25 @@
     });
 
   // Creates a link to show the information about a particular tag / branch
-  function infoLink(tag) {
-    return $("<div></div>")
-      .addClass("info-link")
-      .append(
-        $("<a></a>") // Bootstrap info-square icon:https://icons.getbootstrap.com/icons/info-square/
-          .append($("<span></span>").addClass("info-link"))
-          .addClass("card-link")
-          .attr("href", "#")
-          .click(() => {
-            let data = latest[tag];
-            showData(data);
-          })
-      );
+  function infoLink(tag, data) {
+    let container = $("<div></div>").addClass("info-link");
+
+    if (tag === "master") {
+      container.append(createHistoricalGraph());
+    }
+
+    container.append(
+      $("<a></a>") // Bootstrap info-square icon:https://icons.getbootstrap.com/icons/info-square/
+        .append($("<i></i>").addClass("bi").addClass("bi-info-square"))
+        .addClass("card-link")
+        .attr("href", "#")
+        .click(() => {
+          let data = latest[tag];
+          showData(data);
+        })
+    );
+
+    return container;
   }
 
   // Shows the full test data.
@@ -195,7 +201,13 @@
       )}</span>`;
       dataHTML += ` / <span class="failed-tests">${formatter.format(
         suite.c - suite.o - suite.i
-      )}${suite.p !== 0 ? ` (${formatter.format(suite.p)} ⚠)` : ""}</span>`;
+      )}${
+        suite.p !== 0
+          ? ` (${formatter.format(
+              suite.p
+            )} <i class="bi bi-exclamation-triangle"></i>)`
+          : ""
+      }</span>`;
       dataHTML += ` / <span class="total-tests">${formatter.format(
         suite.c
       )}</span>`;
@@ -247,7 +259,7 @@
 
           if (innerTest.r === "P") {
             testCard.append(
-              $("<span></span>").addClass("exclamation-triangle")
+              $("<i></i>").addClass("bi").addClass("bi-exclamation-triangle")
             );
           } else {
             testCard.addClass("embed-responsive-1by1");
@@ -326,7 +338,11 @@
             `Failed tests: <span class="failed-tests">${formatter.format(
               latest.t - latest.o - latest.i
             )}${
-              latest.p !== 0 ? ` (${formatter.format(latest.p)} ⚠)` : ""
+              latest.p !== 0
+                ? ` (${formatter.format(
+                    latest.p
+                  )} <i class="bi bi-exclamation-triangle"></i>)`
+                : ""
             }</span>`
           )
       )
@@ -339,6 +355,97 @@
             }%</b>`
           )
       );
+  }
+
+  function createHistoricalGraph() {
+    let options = {
+      content: graph,
+      html: true,
+      placement: "bottom",
+      container: "body",
+    };
+
+    return $("<a></a>")
+      .append(
+        $("<i></i>")
+          .addClass("bi")
+          .addClass("bi-graph-up")
+          .on('shown.bs.modal', () => {
+            let graph = $("#master-graph");
+
+            new Chart(graph, {
+              type: "line",
+              data: {
+                labels: masterData.map((data) => data.c),
+                datasets: [
+                  {
+                    label: "Passed",
+                    data: masterData.map((data) => data.o),
+                    backgroundColor: "#1fcb4a",
+                    borderColor: "#0f6524",
+                    borderWidth: 1,
+                  },
+                  {
+                    label: "Ignored",
+                    data: masterData.map((data) => data.i + data.o),
+                    backgroundColor: "#dfa800",
+                    borderColor: "#6f5400",
+                    borderWidth: 1,
+                  },
+                  {
+                    label: "Panics",
+                    data: masterData.map((data) => data.i + data.o + data.p),
+                    backgroundColor: "#a30000",
+                    borderColor: "#510000",
+                    borderWidth: 1,
+                  },
+                  {
+                    label: "Failed",
+                    data: masterData.map((data) => data.t),
+                    backgroundColor: "#ff4848",
+                    borderColor: "#a30000",
+                    borderWidth: 1,
+                  },
+                ],
+              },
+              options: {
+                elements: {
+                  point: {
+                    radius: 0,
+                  },
+                },
+                legend: {
+                  display: false,
+                },
+                responsive: false,
+                tooltips: {
+                  mode: "index",
+                },
+                hover: {
+                  mode: "nearest",
+                },
+                scales: {
+                  xAxes: [
+                    {
+                      display: false,
+                    },
+                  ],
+                  yAxes: [
+                    {
+                      display: true,
+                    },
+                  ],
+                },
+              },
+            });
+          })
+          .modal(options)
+      )
+      .addClass("card-link")
+      .attr("href", "#")
+      .click(() => {
+        $("#graph-modal").modal('show');
+      });
   }
 
   function getRefTag(tag) {
