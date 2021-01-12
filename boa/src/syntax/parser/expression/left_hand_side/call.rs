@@ -19,8 +19,8 @@ use crate::{
         },
         lexer::TokenKind,
         parser::{
-            expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
-            TokenParser,
+            expression::{left_hand_side::template::TaggedTemplateLiteral, Expression},
+            AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
         },
     },
     BoaProfiler,
@@ -111,6 +111,15 @@ where
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
                     cursor.expect(Punctuator::CloseBracket, "call expression")?;
                     lhs = GetField::new(lhs, idx).into();
+                }
+                TokenKind::TemplateNoSubstitution { .. } | TokenKind::TemplateMiddle { .. } => {
+                    lhs = TaggedTemplateLiteral::new(
+                        self.allow_yield,
+                        self.allow_await,
+                        tok.span().start(),
+                        lhs,
+                    )
+                    .parse(cursor)?;
                 }
                 _ => break,
             }

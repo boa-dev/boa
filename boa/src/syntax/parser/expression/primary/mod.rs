@@ -11,6 +11,7 @@ mod array_initializer;
 mod async_function_expression;
 mod function_expression;
 mod object_initializer;
+mod template;
 #[cfg(test)]
 mod tests;
 
@@ -27,7 +28,10 @@ use crate::{
             Const, Keyword, Punctuator,
         },
         lexer::{token::Numeric, InputElement, TokenKind},
-        parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
+        parser::{
+            expression::primary::template::TemplateLiteral, AllowAwait, AllowYield, Cursor,
+            ParseError, ParseResult, TokenParser,
+        },
     },
 };
 pub(in crate::syntax::parser) use object_initializer::Initializer;
@@ -103,7 +107,9 @@ where
             TokenKind::BooleanLiteral(boolean) => Ok(Const::from(*boolean).into()),
             TokenKind::NullLiteral => Ok(Const::Null.into()),
             TokenKind::Identifier(ident) => Ok(Identifier::from(ident.as_ref()).into()), // TODO: IdentifierReference
-            TokenKind::StringLiteral(s) => Ok(Const::from(s.as_ref()).into()),
+            TokenKind::StringLiteral(s) | TokenKind::TemplateNoSubstitution { cooked: s, .. } => {
+                Ok(Const::from(s.as_ref()).into())
+            }
             TokenKind::NumericLiteral(Numeric::Integer(num)) => Ok(Const::from(*num).into()),
             TokenKind::NumericLiteral(Numeric::Rational(num)) => Ok(Const::from(*num).into()),
             TokenKind::NumericLiteral(Numeric::BigInt(num)) => Ok(Const::from(num.clone()).into()),
@@ -132,6 +138,14 @@ where
                     Err(ParseError::unexpected(tok, "regular expression literal"))
                 }
             }
+            TokenKind::TemplateMiddle { cooked, .. } => TemplateLiteral::new(
+                self.allow_yield,
+                self.allow_await,
+                tok.span().start(),
+                cooked.as_ref(),
+            )
+            .parse(cursor)
+            .map(Node::TemplateLit),
             _ => Err(ParseError::unexpected(tok.clone(), "primary expression")),
         }
     }

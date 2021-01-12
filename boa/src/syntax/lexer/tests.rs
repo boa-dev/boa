@@ -6,6 +6,7 @@ use super::token::Numeric;
 use super::*;
 use super::{Error, Position};
 use crate::syntax::ast::Keyword;
+use crate::syntax::lexer::string::{unescape_string, StringTerminator};
 use std::str;
 
 fn span(start: (u32, u32), end: (u32, u32)) -> Span {
@@ -136,7 +137,7 @@ fn check_template_literal_simple() {
 
     assert_eq!(
         lexer.next().unwrap().unwrap().kind(),
-        &TokenKind::template_literal("I'm a template literal")
+        &TokenKind::template_no_substitution("I'm a template literal", "I'm a template literal")
     );
 }
 
@@ -855,6 +856,38 @@ fn unicode_escape_with_braces() {
     } else {
         panic!("invalid error type");
     }
+}
+
+#[test]
+fn unicode_escape_with_braces_() {
+    let s = r#"\u{20ac}\u{a0}\u{a0}"#.to_string();
+
+    let mut cursor = Cursor::new(s.as_bytes());
+
+    if let Ok((s, _)) = unescape_string(
+        &mut cursor,
+        Position::new(1, 1),
+        StringTerminator::End,
+        false,
+    ) {
+        assert_eq!(s, "\u{20ac}\u{a0}\u{a0}")
+    } else {
+        panic!();
+    }
+}
+
+#[test]
+fn unescape_string_with_single_escape() {
+    let s = r#"\Б"#.to_string();
+    let mut cursor = Cursor::new(s.as_bytes());
+    let (s, _) = unescape_string(
+        &mut cursor,
+        Position::new(1, 1),
+        StringTerminator::End,
+        false,
+    )
+    .unwrap();
+    assert_eq!(s, "Б");
 }
 
 mod carriage_return {

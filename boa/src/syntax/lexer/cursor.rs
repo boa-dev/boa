@@ -56,6 +56,16 @@ where
         }
     }
 
+    /// Creates a new Lexer cursor with an initial position.
+    #[inline]
+    pub(super) fn with_position(inner: R, pos: Position) -> Self {
+        Self {
+            iter: InnerIter::new(inner.bytes()),
+            pos,
+            strict_mode: false,
+        }
+    }
+
     /// Peeks the next byte.
     #[inline]
     pub(super) fn peek(&mut self) -> Result<Option<u8>, Error> {

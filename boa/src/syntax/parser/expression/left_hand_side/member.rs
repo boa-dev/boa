@@ -17,7 +17,10 @@ use crate::{
         },
         lexer::TokenKind,
         parser::{
-            expression::{primary::PrimaryExpression, Expression},
+            expression::{
+                left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression,
+                Expression,
+            },
             AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
         },
     },
@@ -104,6 +107,15 @@ where
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
                     cursor.expect(Punctuator::CloseBracket, "member expression")?;
                     lhs = GetField::new(lhs, idx).into();
+                }
+                TokenKind::TemplateNoSubstitution { .. } | TokenKind::TemplateMiddle { .. } => {
+                    lhs = TaggedTemplateLiteral::new(
+                        self.allow_yield,
+                        self.allow_await,
+                        tok.span().start(),
+                        lhs,
+                    )
+                    .parse(cursor)?;
                 }
                 _ => break,
             }

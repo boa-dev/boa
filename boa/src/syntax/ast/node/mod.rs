@@ -17,6 +17,7 @@ pub mod return_smt;
 pub mod spread;
 pub mod statement_list;
 pub mod switch;
+pub mod template;
 pub mod throw;
 pub mod try_node;
 
@@ -41,6 +42,7 @@ pub use self::{
     spread::Spread,
     statement_list::{RcStatementList, StatementList},
     switch::{Case, Switch},
+    template::{TaggedTemplate, TemplateLit},
     throw::Throw,
     try_node::{Catch, Finally, Try},
 };
@@ -160,6 +162,12 @@ pub enum Node {
     /// A spread (...x) statement. [More information](./spread/struct.Spread.html).
     Spread(Spread),
 
+    /// A tagged template. [More information](./template/struct.TaggedTemplate.html).
+    TaggedTemplate(TaggedTemplate),
+
+    /// A template literal. [More information](./template/struct.TemplateLit.html).
+    TemplateLit(TemplateLit),
+
     /// A throw statement. [More information](./throw/struct.Throw.html).
     Throw(Throw),
 
@@ -257,6 +265,8 @@ impl Node {
             Self::BinOp(ref op) => Display::fmt(op, f),
             Self::UnaryOp(ref op) => Display::fmt(op, f),
             Self::Return(ref ret) => Display::fmt(ret, f),
+            Self::TaggedTemplate(ref template) => Display::fmt(template, f),
+            Self::TemplateLit(ref template) => Display::fmt(template, f),
             Self::Throw(ref throw) => Display::fmt(throw, f),
             Self::Assign(ref op) => Display::fmt(op, f),
             Self::LetDeclList(ref decl) => Display::fmt(decl, f),
@@ -309,6 +319,8 @@ impl Executable for Node {
             Node::UnaryOp(ref op) => op.run(context),
             Node::New(ref call) => call.run(context),
             Node::Return(ref ret) => ret.run(context),
+            Node::TaggedTemplate(ref template) => template.run(context),
+            Node::TemplateLit(ref template) => template.run(context),
             Node::Throw(ref throw) => throw.run(context),
             Node::Assign(ref op) => op.run(context),
             Node::VarDeclList(ref decl) => decl.run(context),
