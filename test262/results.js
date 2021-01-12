@@ -89,7 +89,7 @@
     }
 
     container.append(
-      $("<a></a>") // Bootstrap info-square icon:https://icons.getbootstrap.com/icons/info-square/
+      $("<a></a>")
         .append($("<i></i>").addClass("bi").addClass("bi-info-square"))
         .addClass("card-link")
         .attr("href", "#")
