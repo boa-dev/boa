@@ -222,7 +222,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
 pub fn make_builtin_fn<N>(
     function: NativeFunction,
     name: N,
-    parent: &Value,
+    parent: &GcObject,
     length: usize,
     interpreter: &Context,
 ) where
@@ -243,7 +243,7 @@ pub fn make_builtin_fn<N>(
     function.insert_property("length", length, attribute);
     function.insert_property("name", name.as_str(), attribute);
 
-    parent.as_object().unwrap().insert_property(
+    parent.clone().insert_property(
         name,
         function,
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
