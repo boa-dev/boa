@@ -1,6 +1,7 @@
 //! Declaration nodes
 
 pub mod arrow_function_decl;
+pub mod async_arrow_function_decl;
 pub mod async_function_decl;
 pub mod async_function_expr;
 pub mod const_decl_list;
@@ -11,6 +12,7 @@ pub mod var_decl_list;
 
 pub use self::{
     arrow_function_decl::ArrowFunctionDecl,
+    async_arrow_function_decl::AsyncArrowFunctionDecl,
     async_function_decl::AsyncFunctionDecl,
     async_function_expr::AsyncFunctionExpr,
     const_decl_list::{ConstDecl, ConstDeclList},
