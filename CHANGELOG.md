@@ -88,7 +88,7 @@ Bug Fixes:
 - [BUG #825](https://github.com/boa-dev/boa/pull/825):
   calling "new" on a primitive value throw a type error (@dlemel8)
 - [BUG #853](https://github.com/boa-dev/boa/pull/853)
-  Handle invalid Unicode code point in the string literals(@jevancc)
+  Handle invalid Unicode code point in the string literals (@jevancc)
 - [BUG #870](https://github.com/boa-dev/boa/pull/870)
   Fix JSON stringification for fractional numbers (@georgeroman)
 - [BUG #807](https://github.com/boa-dev/boa/pull/807):
