@@ -11,7 +11,7 @@
 
 use crate::{
     builtins::BuiltIn,
-    object::{ConstructorBuilder, ObjectData},
+    object::{ConstructorBuilder, ObjectData, PROTOTYPE},
     profiler::BoaProfiler,
     property::Attribute,
     Context, Result, Value,
@@ -54,17 +54,31 @@ impl ReferenceError {
 
     /// Create a new error object.
     pub(crate) fn constructor(
-        this: &Value,
+        new_target: &Value,
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
+        let prototype = new_target
+            .as_object()
+            .and_then(|obj| {
+                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                    .map(|o| o.as_object())
+                    .transpose()
+            })
+            .transpose()?
+            .unwrap_or_else(|| context.standard_objects().error_object().prototype());
+        let mut obj = context.construct_object();
+        obj.set_prototype_instance(prototype.into());
+        let this = Value::from(obj);
         if let Some(message) = args.get(0) {
-            this.set_field("message", message.to_string(context)?, context)?;
+            if !message.is_undefined() {
+                this.set_field("message", message.to_string(context)?, context)?;
+            }
         }
 
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
         this.set_data(ObjectData::Error);
-        Ok(this.clone())
+        Ok(this)
     }
 }

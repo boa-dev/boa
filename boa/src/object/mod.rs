@@ -828,7 +828,7 @@ impl<'context> ObjectInitializer<'context> {
 /// Builder for creating constructors objects, like `Array`.
 pub struct ConstructorBuilder<'context> {
     context: &'context mut Context,
-    constrcutor_function: NativeFunction,
+    constructor_function: NativeFunction,
     constructor_object: GcObject,
     prototype: GcObject,
     name: Option<String>,
@@ -858,7 +858,7 @@ impl<'context> ConstructorBuilder<'context> {
     pub fn new(context: &'context mut Context, constructor: NativeFunction) -> Self {
         Self {
             context,
-            constrcutor_function: constructor,
+            constructor_function: constructor,
             constructor_object: GcObject::new(Object::default()),
             prototype: GcObject::new(Object::default()),
             length: 0,
@@ -877,7 +877,7 @@ impl<'context> ConstructorBuilder<'context> {
     ) -> Self {
         Self {
             context,
-            constrcutor_function: constructor,
+            constructor_function: constructor,
             constructor_object: object.constructor,
             prototype: object.prototype,
             length: 0,
@@ -1020,7 +1020,7 @@ impl<'context> ConstructorBuilder<'context> {
     pub fn build(&mut self) -> GcObject {
         // Create the native function
         let function = Function::BuiltIn(
-            self.constrcutor_function.into(),
+            self.constructor_function.into(),
             FunctionFlags::from_parameters(self.callable, self.constructable),
         );
 

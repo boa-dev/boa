@@ -11,6 +11,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-function-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
+use crate::object::PROTOTYPE;
 use crate::{
     builtins::{Array, BuiltIn},
     environment::lexical_environment::Environment,
@@ -255,12 +256,27 @@ pub struct BuiltInFunctionObject;
 impl BuiltInFunctionObject {
     pub const LENGTH: usize = 1;
 
-    fn constructor(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    fn constructor(new_target: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        let prototype = new_target
+            .as_object()
+            .and_then(|obj| {
+                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                    .map(|o| o.as_object())
+                    .transpose()
+            })
+            .transpose()?
+            .unwrap_or_else(|| context.standard_objects().object_object().prototype());
+        let this = Value::new_object(context);
+
+        this.as_object()
+            .expect("this should be an object")
+            .set_prototype_instance(prototype.into());
+
         this.set_data(ObjectData::Function(Function::BuiltIn(
             BuiltInFunction(|_, _, _| Ok(Value::undefined())),
             FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
         )));
-        Ok(this.clone())
+        Ok(this)
     }
 
     fn prototype(_: &Value, _: &[Value], _: &mut Context) -> Result<Value> {

@@ -14,7 +14,7 @@ mod tests;
 
 use crate::{
     builtins::BuiltIn,
-    object::{ConstructorBuilder, ObjectData},
+    object::{ConstructorBuilder, ObjectData, PROTOTYPE},
     property::Attribute,
     BoaProfiler, Context, Result, Value,
 };
@@ -56,12 +56,34 @@ impl Boolean {
     /// `[[Construct]]` Create a new boolean object
     ///
     /// `[[Call]]` Creates a new boolean primitive
-    pub(crate) fn constructor(this: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
+    pub(crate) fn constructor(
+        new_target: &Value,
+        args: &[Value],
+        context: &mut Context,
+    ) -> Result<Value> {
         // Get the argument, if any
         let data = args.get(0).map(|x| x.to_boolean()).unwrap_or(false);
-        this.set_data(ObjectData::Boolean(data));
+        if new_target.is_undefined() {
+            return Ok(Value::from(data));
+        }
+        let prototype = new_target
+            .as_object()
+            .and_then(|obj| {
+                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                    .map(|o| o.as_object())
+                    .transpose()
+            })
+            .transpose()?
+            .unwrap_or_else(|| context.standard_objects().object_object().prototype());
+        let boolean = Value::new_object(context);
 
-        Ok(Value::from(data))
+        boolean
+            .as_object()
+            .expect("this should be an object")
+            .set_prototype_instance(prototype.into());
+        boolean.set_data(ObjectData::Boolean(data));
+
+        Ok(boolean)
     }
 
     /// An Utility function used to get the internal `[[BooleanData]]`.

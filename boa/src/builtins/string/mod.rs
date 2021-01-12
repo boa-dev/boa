@@ -13,6 +13,8 @@ pub mod string_iterator;
 #[cfg(test)]
 mod tests;
 
+use crate::builtins::Symbol;
+use crate::object::PROTOTYPE;
 use crate::property::DataDescriptor;
 use crate::{
     builtins::{string::string_iterator::StringIterator, Array, BuiltIn, RegExp},
@@ -131,16 +133,40 @@ impl String {
     ///
     /// <https://tc39.es/ecma262/#sec-string-constructor-string-value>
     pub(crate) fn constructor(
-        this: &Value,
+        new_target: &Value,
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        // This value is used by console.log and other routines to match Obexpecty"failed to parse argument for String method"pe
+        // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
         let string = match args.get(0) {
+            Some(value) if value.is_symbol() && new_target.is_undefined() => {
+                Symbol::to_string(value, &[], context)?
+                    .as_string()
+                    .expect("'Symbol::to_string' returns 'Value::String'")
+                    .clone()
+            }
             Some(ref value) => value.to_string(context)?,
             None => RcString::default(),
         };
+
+        if new_target.is_undefined() {
+            return Ok(string.into());
+        }
+        let prototype = new_target
+            .as_object()
+            .and_then(|obj| {
+                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                    .map(|o| o.as_object())
+                    .transpose()
+            })
+            .transpose()?
+            .unwrap_or_else(|| context.standard_objects().object_object().prototype());
+        let this = Value::new_object(context);
+
+        this.as_object()
+            .expect("this should be an object")
+            .set_prototype_instance(prototype.into());
 
         let length = DataDescriptor::new(
             Value::from(string.encode_utf16().count()),
@@ -148,9 +174,9 @@ impl String {
         );
         this.set_property("length", length);
 
-        this.set_data(ObjectData::String(string.clone()));
+        this.set_data(ObjectData::String(string));
 
-        Ok(Value::from(string))
+        Ok(this)
     }
 
     fn this_string_value(this: &Value, context: &mut Context) -> Result<RcString> {

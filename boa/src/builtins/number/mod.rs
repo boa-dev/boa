@@ -16,7 +16,7 @@
 use super::function::make_builtin_fn;
 use crate::{
     builtins::BuiltIn,
-    object::{ConstructorBuilder, ObjectData},
+    object::{ConstructorBuilder, ObjectData, PROTOTYPE},
     property::Attribute,
     value::{AbstractRelation, IntegerOrInfinity, Value},
     BoaProfiler, Context, Result,
@@ -154,7 +154,7 @@ impl Number {
 
     /// `Number( value )`
     pub(crate) fn constructor(
-        this: &Value,
+        new_target: &Value,
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
@@ -162,9 +162,25 @@ impl Number {
             Some(ref value) => value.to_numeric_number(context)?,
             None => 0.0,
         };
+        if new_target.is_undefined() {
+            return Ok(Value::from(data));
+        }
+        let prototype = new_target
+            .as_object()
+            .and_then(|obj| {
+                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                    .map(|o| o.as_object())
+                    .transpose()
+            })
+            .transpose()?
+            .unwrap_or_else(|| context.standard_objects().object_object().prototype());
+        let this = Value::new_object(context);
+        this.as_object()
+            .expect("this should be an object")
+            .set_prototype_instance(prototype.into());
         this.set_data(ObjectData::Number(data));
 
-        Ok(Value::from(data))
+        Ok(this)
     }
 
     /// This function returns a `Result` of the number `Value`.

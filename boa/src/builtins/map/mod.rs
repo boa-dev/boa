@@ -70,22 +70,33 @@ impl Map {
 
     /// Create a new map
     pub(crate) fn constructor(
-        this: &Value,
+        new_target: &Value,
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        // Set Prototype
-        let prototype = context
+        if new_target.is_undefined() {
+            return context.throw_type_error("Map requires new");
+        }
+        let map_prototype = context
             .global_object()
             .clone()
             .get_field("Map", context)?
-            .get_field(PROTOTYPE, context)?;
+            .get_field(PROTOTYPE, context)?
+            .as_object()
+            .expect("'Map' global property should be an object");
+        let prototype = new_target
+            .as_object()
+            .and_then(|obj| {
+                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                    .map(|o| o.as_object())
+                    .transpose()
+            })
+            .transpose()?
+            .unwrap_or(map_prototype);
 
-        this.as_object()
-            .expect("this is map object")
-            .set_prototype_instance(prototype);
-        // This value is used by console.log and other routines to match Object type
-        // to its Javascript Identifier (global constructor method name)
+        let mut obj = context.construct_object();
+        obj.set_prototype_instance(prototype.into());
+        let this = Value::from(obj);
 
         // add our arguments in
         let data = match args.len() {
@@ -122,12 +133,14 @@ impl Map {
             },
         };
 
-        // finally create length property
-        Self::set_size(this, data.len());
+        // finally create size property
+        Self::set_size(&this, data.len());
 
+        // This value is used by console.log and other routines to match Object type
+        // to its Javascript Identifier (global constructor method name)
         this.set_data(ObjectData::Map(data));
 
-        Ok(this.clone())
+        Ok(this)
     }
 
     /// `Map.prototype.entries()`

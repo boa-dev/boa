@@ -315,7 +315,14 @@ impl Symbol {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symbol-description
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/Symbol
-    pub(crate) fn constructor(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn constructor(
+        new_target: &Value,
+        args: &[Value],
+        context: &mut Context,
+    ) -> Result<Value> {
+        if new_target.is_undefined() {
+            return context.throw_type_error("Symbol is not a constructor");
+        }
         let description = match args.get(0) {
             Some(ref value) if !value.is_undefined() => Some(value.to_string(context)?),
             _ => None,

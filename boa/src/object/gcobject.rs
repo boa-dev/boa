@@ -40,7 +40,8 @@ pub struct GcObject(Gc<GcCell<Object>>);
 /// This is needed for the call method since we cannot mutate the function itself since we
 /// already borrow it so we get the function body clone it then drop the borrow and run the body
 enum FunctionBody {
-    BuiltIn(NativeFunction),
+    BuiltInFunction(NativeFunction),
+    BuiltInConstructor(NativeFunction),
     Ordinary(RcStatementList),
 }
 
@@ -119,8 +120,12 @@ impl GcObject {
         let f_body = if let Some(function) = self.borrow().as_function() {
             if function.is_callable() {
                 match function {
-                    Function::BuiltIn(BuiltInFunction(function), _) => {
-                        FunctionBody::BuiltIn(*function)
+                    Function::BuiltIn(BuiltInFunction(function), flags) => {
+                        if flags.is_constructable() {
+                            FunctionBody::BuiltInConstructor(*function)
+                        } else {
+                            FunctionBody::BuiltInFunction(*function)
+                        }
                     }
                     Function::Ordinary {
                         body,
@@ -144,6 +149,7 @@ impl GcObject {
                             } else {
                                 BindingStatus::Uninitialized
                             },
+                            Value::undefined(),
                         );
 
                         // Add argument bindings to the function environment
@@ -182,7 +188,8 @@ impl GcObject {
         };
 
         match f_body {
-            FunctionBody::BuiltIn(func) => func(this, args, context),
+            FunctionBody::BuiltInFunction(func) => func(this, args, context),
+            FunctionBody::BuiltInConstructor(func) => func(&Value::undefined(), args, context),
             FunctionBody::Ordinary(body) => {
                 let result = body.run(context);
                 context.realm_mut().environment.pop();
@@ -199,29 +206,18 @@ impl GcObject {
     /// Panics if the object is currently mutably borrowed.
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
     #[track_caller]
-    pub fn construct(&self, args: &[Value], context: &mut Context) -> Result<Value> {
-        // If the prototype of the constructor is not an object, then use the default object
-        // prototype as prototype for the new object
-        // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
-        // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
-        let proto = self.get(&PROTOTYPE.into(), self.clone().into(), context)?;
-        let proto = if proto.is_object() {
-            proto
-        } else {
-            context
-                .standard_objects()
-                .object_object()
-                .prototype()
-                .into()
-        };
-        let this: Value = Object::create(proto).into();
-
+    pub fn construct(
+        &self,
+        args: &[Value],
+        new_target: Value,
+        context: &mut Context,
+    ) -> Result<Value> {
         let this_function_object = self.clone();
         let body = if let Some(function) = self.borrow().as_function() {
             if function.is_constructable() {
                 match function {
                     Function::BuiltIn(BuiltInFunction(function), _) => {
-                        FunctionBody::BuiltIn(*function)
+                        FunctionBody::BuiltInConstructor(*function)
                     }
                     Function::Ordinary {
                         body,
@@ -229,11 +225,31 @@ impl GcObject {
                         environment,
                         flags,
                     } => {
+                        // If the prototype of the constructor is not an object, then use the default object
+                        // prototype as prototype for the new object
+                        // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
+                        // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
+                        let proto = new_target.as_object().unwrap().get(
+                            &PROTOTYPE.into(),
+                            new_target.clone(),
+                            context,
+                        )?;
+                        let proto = if proto.is_object() {
+                            proto
+                        } else {
+                            context
+                                .standard_objects()
+                                .object_object()
+                                .prototype()
+                                .into()
+                        };
+                        let this = Value::from(Object::create(proto));
+
                         // Create a new Function environment who's parent is set to the scope of the function declaration (self.environment)
                         // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
                         let local_env = new_function_environment(
                             this_function_object,
-                            Some(this.clone()),
+                            Some(this),
                             Some(environment.clone()),
                             // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
                             if flags.is_lexical_this_mode() {
@@ -241,6 +257,7 @@ impl GcObject {
                             } else {
                                 BindingStatus::Uninitialized
                             },
+                            new_target.clone(),
                         );
 
                         // Add argument bindings to the function environment
@@ -272,7 +289,10 @@ impl GcObject {
                     }
                 }
             } else {
-                let name = this.get_field("name", context)?.display().to_string();
+                let name = self
+                    .get(&"name".into(), self.clone().into(), context)?
+                    .display()
+                    .to_string();
                 return context.throw_type_error(format!("{} is not a constructor", name));
             }
         } else {
@@ -280,10 +300,7 @@ impl GcObject {
         };
 
         match body {
-            FunctionBody::BuiltIn(function) => {
-                function(&this, args, context)?;
-                Ok(this)
-            }
+            FunctionBody::BuiltInConstructor(function) => function(&new_target, args, context),
             FunctionBody::Ordinary(body) => {
                 let _ = body.run(context);
 
@@ -291,6 +308,7 @@ impl GcObject {
                 let binding = context.realm_mut().environment.get_this_binding();
                 binding.map_err(|e| e.to_error(context))
             }
+            FunctionBody::BuiltInFunction(_) => unreachable!("Cannot have a function in construct"),
         }
     }
 

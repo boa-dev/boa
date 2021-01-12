@@ -4,7 +4,7 @@ mod tests;
 use crate::{
     builtins::BuiltIn,
     gc::{empty_trace, Finalize, Trace},
-    object::{ConstructorBuilder, ObjectData},
+    object::{ConstructorBuilder, ObjectData, PROTOTYPE},
     property::Attribute,
     value::{PreferredType, Value},
     BoaProfiler, Context, Result,
@@ -324,18 +324,32 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
     pub(crate) fn constructor(
-        this: &Value,
+        new_target: &Value,
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        if this.is_global() {
+        if new_target.is_undefined() {
             Self::make_date_string()
-        } else if args.is_empty() {
-            Self::make_date_now(this)
-        } else if args.len() == 1 {
-            Self::make_date_single(this, args, context)
         } else {
-            Self::make_date_multiple(this, args, context)
+            let prototype = new_target
+                .as_object()
+                .and_then(|obj| {
+                    obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                        .map(|o| o.as_object())
+                        .transpose()
+                })
+                .transpose()?
+                .unwrap_or_else(|| context.standard_objects().object_object().prototype());
+            let mut obj = context.construct_object();
+            obj.set_prototype_instance(prototype.into());
+            let this = obj.into();
+            if args.is_empty() {
+                Self::make_date_now(&this)
+            } else if args.len() == 1 {
+                Self::make_date_single(&this, args, context)
+            } else {
+                Self::make_date_multiple(&this, args, context)
+            }
         }
     }
 
