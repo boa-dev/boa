@@ -88,6 +88,7 @@ where
         let _timer = BoaProfiler::global().start_event("AssignmentExpression", "Parsing");
         cursor.set_goal(InputElement::Div);
 
+        println!("Assignment expression");
         // Arrow function
         match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
             // Async a => {} or Async function or Async (a) => {}
@@ -104,9 +105,12 @@ where
                             .map(Node::AsyncArrowFunctionDecl);
                         }
                         TokenKind::Punctuator(Punctuator::OpenParen) => {
+                            println!("OpenParen");
                             todo!("Async arrow func with () params");
                         }
-                        _ => {}
+                        _ => {
+                            println!("Async not open Paren / Identifier");
+                        }
                     }
                 }
             }

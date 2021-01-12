@@ -6,6 +6,8 @@
 //!
 //! [mdn]:
 //! [spec]: https://tc39.es/ecma262/#prod-AsyncArrowFunction
+#[cfg(test)]
+mod tests;
 
 use super::ConciseBody;
 use crate::{

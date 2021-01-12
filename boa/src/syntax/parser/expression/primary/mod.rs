@@ -82,9 +82,17 @@ where
             TokenKind::Keyword(Keyword::Function) => {
                 FunctionExpression.parse(cursor).map(Node::from)
             }
-            TokenKind::Keyword(Keyword::Async) => AsyncFunctionExpression::new(self.allow_yield)
-                .parse(cursor)
-                .map(Node::from),
+            TokenKind::Keyword(Keyword::Async) => {
+                println!("Keyword async");
+                match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
+                    TokenKind::Keyword(Keyword::Function) => {
+                        AsyncFunctionExpression::new(self.allow_yield)
+                            .parse(cursor)
+                            .map(Node::from)
+                    }
+                    _ => Err(ParseError::unexpected(tok.clone(), "primary expression")),
+                }
+            }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 cursor.set_goal(InputElement::RegExp);
                 let expr =
