@@ -9,7 +9,7 @@ use crate::syntax::{
 
 /// Checks an arrow function with expression return.
 #[test]
-fn check_async_arrow() {
+fn check_async_arrow_bare() {
     check_parser(
         "async (a, b) => { return a + b; }",
         vec![AsyncArrowFunctionDecl::new(

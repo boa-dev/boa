@@ -16,7 +16,7 @@ use function_decl::FunctionDeclaration;
 
 use crate::{
     syntax::{
-        ast::{Keyword, Node},
+        ast::{Keyword, Node, Punctuator},
         lexer::TokenKind,
         parser::{
             AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
@@ -72,9 +72,19 @@ where
                     .map(Node::from)
             }
             TokenKind::Keyword(Keyword::Async) => {
-                AsyncFunctionDeclaration::new(self.allow_yield, self.allow_await, false)
-                    .parse(cursor)
-                    .map(Node::from)
+                println!("Hoistable declaration async");
+                let tok1 = cursor.peek(1)?.ok_or(ParseError::AbruptEnd)?;
+                match tok1.kind() {
+                    TokenKind::Keyword(Keyword::Function) => {
+                        AsyncFunctionDeclaration::new(self.allow_yield, self.allow_await, false)
+                            .parse(cursor)
+                            .map(Node::from)
+                    }
+                    TokenKind::Punctuator(Punctuator::OpenParen) => {
+                        todo!("Async arrow decl");
+                    }
+                    _ => Err(ParseError::unexpected(tok1.clone(), "primary expression")),
+                }
             }
             _ => unreachable!("unknown token found: {:?}", tok),
         }
