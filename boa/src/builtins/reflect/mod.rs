@@ -101,7 +101,7 @@ impl Reflect {
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.construct
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/construct
     pub(crate) fn construct(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let mut target = args
+        let target = args
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be a function"))?;
@@ -110,17 +110,21 @@ impl Reflect {
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("args list must be an object"))?;
 
-        if let Some(new_target) = args.get(2) {
-            target = new_target
-                .as_object()
-                .ok_or_else(|| context.construct_type_error("newTarget must be an object"))?;
-        }
-
         if !target.is_constructable() {
             return context.throw_type_error("target must be a constructor");
         }
+
+        let new_target = if let Some(new_target) = args.get(2) {
+            if new_target.as_object().map(|o| o.is_constructable()) != Some(true) {
+                return context.throw_type_error("newTarget must be constructor");
+            }
+            new_target.clone()
+        } else {
+            target.clone().into()
+        };
+
         let args = args_list.create_list_from_array_like(&[], context)?;
-        target.construct(&args, context)
+        target.construct(&args, new_target, context)
     }
 
     /// Defines a property on an object.
