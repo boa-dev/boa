@@ -179,7 +179,7 @@ Internal Improvements:
 - [INTERNAL #838](https://github.com/boa-dev/boa/pull/838):
   style(boa): minor cleanup (@neeldug)
 - [INTERNAL #869](https://github.com/boa-dev/boa/pull/869):
-  Updated cache in workflows
+  Updated cache in workflows (@Razican)
 - [INTERNAL #873](https://github.com/boa-dev/boa/pull/873)
   Removed cache from MacOS builds (@Razican)
 - [INTERNAL #835](https://github.com/boa-dev/boa/pull/835):
