@@ -358,93 +358,95 @@
   }
 
   function createHistoricalGraph() {
-    let options = {
-      content: graph,
-      html: true,
-      placement: "bottom",
-      container: "body",
-    };
+    $("#graph-modal .modal-body").append(
+      $('<canvas id="master-graph"><canvas>')
+    );
+
+    $("#graph-modal").on("hidden.bs.modal", () => {
+      $("#master-graph").remove();
+      $("#graph-modal .modal-body").append(
+        $('<canvas id="master-graph"><canvas>')
+      );
+    });
+
+    $("#graph-modal").on("shown.bs.modal", () => {
+      new Chart($("#master-graph"), {
+        type: "line",
+        data: {
+          labels: masterData.map((data) => data.c),
+          datasets: [
+            {
+              label: "Passed",
+              data: masterData.map((data) => data.o),
+              backgroundColor: "#1fcb4a",
+              borderColor: "#0f6524",
+              borderWidth: 1,
+            },
+            {
+              label: "Ignored",
+              data: masterData.map((data) => data.i),
+              backgroundColor: "#dfa800",
+              borderColor: "#6f5400",
+              borderWidth: 1,
+            },
+            {
+              label: "Panics",
+              data: masterData.map((data) => data.p),
+              backgroundColor: "#a30000",
+              borderColor: "#510000",
+              borderWidth: 1,
+            },
+            {
+              label: "Failed",
+              data: masterData.map((data) => data.t - data.i - data.o - data.p),
+              backgroundColor: "#ff4848",
+              borderColor: "#a30000",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          elements: {
+            point: {
+              radius: 0,
+            },
+          },
+          legend: {
+            display: true,
+          },
+          responsive: true,
+          tooltips: {
+            mode: "index",
+          },
+          hover: {
+            mode: "nearest",
+          },
+          scales: {
+            xAxes: [
+              {
+                display: false,
+              },
+            ],
+            yAxes: [
+              {
+                stacked: true,
+                scaleLabel: {
+                  display: true,
+                  labelString: "Tests",
+                },
+              },
+            ],
+          },
+        },
+      });
+    });
 
     return $("<a></a>")
-      .append(
-        $("<i></i>")
-          .addClass("bi")
-          .addClass("bi-graph-up")
-          .on('shown.bs.modal', () => {
-            let graph = $("#master-graph");
-
-            new Chart(graph, {
-              type: "line",
-              data: {
-                labels: masterData.map((data) => data.c),
-                datasets: [
-                  {
-                    label: "Passed",
-                    data: masterData.map((data) => data.o),
-                    backgroundColor: "#1fcb4a",
-                    borderColor: "#0f6524",
-                    borderWidth: 1,
-                  },
-                  {
-                    label: "Ignored",
-                    data: masterData.map((data) => data.i + data.o),
-                    backgroundColor: "#dfa800",
-                    borderColor: "#6f5400",
-                    borderWidth: 1,
-                  },
-                  {
-                    label: "Panics",
-                    data: masterData.map((data) => data.i + data.o + data.p),
-                    backgroundColor: "#a30000",
-                    borderColor: "#510000",
-                    borderWidth: 1,
-                  },
-                  {
-                    label: "Failed",
-                    data: masterData.map((data) => data.t),
-                    backgroundColor: "#ff4848",
-                    borderColor: "#a30000",
-                    borderWidth: 1,
-                  },
-                ],
-              },
-              options: {
-                elements: {
-                  point: {
-                    radius: 0,
-                  },
-                },
-                legend: {
-                  display: false,
-                },
-                responsive: false,
-                tooltips: {
-                  mode: "index",
-                },
-                hover: {
-                  mode: "nearest",
-                },
-                scales: {
-                  xAxes: [
-                    {
-                      display: false,
-                    },
-                  ],
-                  yAxes: [
-                    {
-                      display: true,
-                    },
-                  ],
-                },
-              },
-            });
-          })
-          .modal(options)
-      )
+      .append($("<i></i>").addClass("bi").addClass("bi-graph-up"))
       .addClass("card-link")
       .attr("href", "#")
       .click(() => {
-        $("#graph-modal").modal('show');
+        $("#graph-modal").modal("show");
       });
   }
 
