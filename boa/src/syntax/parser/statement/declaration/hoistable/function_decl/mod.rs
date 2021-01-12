@@ -56,7 +56,7 @@ where
 
         cursor.expect(Punctuator::OpenParen, "function declaration")?;
 
-        let params = FormalParameters::new(false, false).parse(cursor)?;
+        let params = FormalParameters::new(false, false, false).parse(cursor)?;
 
         cursor.expect(Punctuator::CloseParen, "function declaration")?;
         cursor.expect(Punctuator::OpenBlock, "function declaration")?;

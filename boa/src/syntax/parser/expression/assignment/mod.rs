@@ -84,6 +84,13 @@ where
 
         // Arrow function
         match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
+            // Async a => {}
+            TokenKind::Keyword(Keyword::Async) => {
+                return AsyncArrowFunction::new(self.allow_in, self.allow_yield, self.allow_await)
+                    .parse(cursor)
+                    .map(Node::AsyncArrowFunctionDecl);
+            }
+
             // a=>{}
             TokenKind::Identifier(_)
             | TokenKind::Keyword(Keyword::Yield)

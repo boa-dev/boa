@@ -27,23 +27,27 @@ use crate::{
 };
 use std::io::Read;
 
-/// Formal parameters parsing.
+/// UniqueFormalParameters / FormalParameters parsing.
+///
+/// Due to the similarity between these productions we use a unique flag rather than
+/// duplicating the code.
 ///
 /// More information:
 ///  - [MDN documentation][mdn]
 ///  - [ECMAScript specification][spec]
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Parameter
-/// [spec]: https://tc39.es/ecma262/#prod-FormalParameters
+/// [spec]: https://tc39.es/ecma262/#sec-function-definitions
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser) struct FormalParameters {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
+    unique: bool,
 }
 
 impl FormalParameters {
     /// Creates a new `FormalParameters` parser.
-    pub(in crate::syntax::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    pub(in crate::syntax::parser) fn new<Y, A>(allow_yield: Y, allow_await: A, unique: bool) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -51,6 +55,7 @@ impl FormalParameters {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
+            unique,
         }
     }
 }
@@ -62,6 +67,7 @@ where
     type Output = Box<[node::FormalParameter]>;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        // TODO UniqueFormalParameters
         let _timer = BoaProfiler::global().start_event("FormalParameters", "Parsing");
         cursor.set_goal(InputElement::RegExp);
 

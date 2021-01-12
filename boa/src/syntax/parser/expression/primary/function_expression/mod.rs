@@ -60,7 +60,7 @@ where
 
         cursor.expect(Punctuator::OpenParen, "function expression")?;
 
-        let params = FormalParameters::new(false, false).parse(cursor)?;
+        let params = FormalParameters::new(false, false, false).parse(cursor)?;
 
         cursor.expect(Punctuator::CloseParen, "function expression")?;
         cursor.expect(Punctuator::OpenBlock, "function expression")?;

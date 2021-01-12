@@ -29,8 +29,8 @@ pub use self::{
     call::Call,
     conditional::{ConditionalOp, If},
     declaration::{
-        ArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, ConstDecl, ConstDeclList,
-        FunctionDecl, FunctionExpr, LetDecl, LetDeclList, VarDecl, VarDeclList,
+        ArrowFunctionDecl, AsyncArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, ConstDecl,
+        ConstDeclList, FunctionDecl, FunctionExpr, LetDecl, LetDeclList, VarDecl, VarDeclList,
     },
     field::{GetConstField, GetField},
     identifier::Identifier,
@@ -71,6 +71,9 @@ pub enum Node {
 
     /// An assignment operator node. [More information](./operator/struct.Assign.html).
     Assign(Assign),
+
+    /// An async arrow function declaration node. [More information](./declaration/struct.AsyncArrowFunctionDecl.html).
+    AsyncArrowFunctionDecl(AsyncArrowFunctionDecl),
 
     /// An async function declaration node. [More information](./declaration/struct.AsyncFunctionDecl.html).
     AsyncFunctionDecl(AsyncFunctionDecl),
@@ -271,6 +274,7 @@ impl Node {
             Self::Assign(ref op) => Display::fmt(op, f),
             Self::LetDeclList(ref decl) => Display::fmt(decl, f),
             Self::ConstDeclList(ref decl) => Display::fmt(decl, f),
+            Self::AsyncArrowFunctionDecl(ref decl) => decl.display(f, indentation),
             Self::AsyncFunctionDecl(ref decl) => decl.display(f, indentation),
             Self::AsyncFunctionExpr(ref expr) => expr.display(f, indentation),
             Self::AwaitExpr(ref expr) => expr.display(f, indentation),
@@ -282,6 +286,7 @@ impl Executable for Node {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Executable", "exec");
         match *self {
+            Node::AsyncArrowFunctionDecl(ref decl) => decl.run(context),
             Node::AsyncFunctionDecl(ref decl) => decl.run(context),
             Node::AsyncFunctionExpr(ref function_expr) => function_expr.run(context),
             Node::AwaitExpr(ref expr) => expr.run(context),
