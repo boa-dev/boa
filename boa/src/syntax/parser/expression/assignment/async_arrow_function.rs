@@ -1,4 +1,4 @@
-/! Async Arrow function parsing.
+//! Async Arrow function parsing.
 //!
 //! More information:
 //!  - [MDN documentation][mdn]

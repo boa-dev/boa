@@ -8,10 +8,16 @@
 //! [spec]: https://tc39.es/ecma262/#sec-assignment-operators
 
 mod arrow_function;
+mod async_arrow_function;
+mod concise_body;
 mod conditional;
 mod exponentiation;
+mod expression_body;
 
-use self::{arrow_function::ArrowFunction, conditional::ConditionalExpression};
+use self::{
+    arrow_function::ArrowFunction, async_arrow_function::AsyncArrowFunction,
+    concise_body::ConciseBody, conditional::ConditionalExpression, expression_body::ExpressionBody,
+};
 use crate::syntax::lexer::{Error as LexError, InputElement, TokenKind};
 use crate::{
     syntax::{

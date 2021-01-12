@@ -71,7 +71,7 @@ impl Executable for AsyncArrowFunctionDecl {
             FunctionFlags::CALLABLE
                 | FunctionFlags::CONSTRUCTABLE
                 | FunctionFlags::LEXICAL_THIS_MODE,
-        ))
+        )?)
     }
 }
 
