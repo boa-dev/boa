@@ -293,6 +293,7 @@
 <span id="292">292</span>
 <span id="293">293</span>
 <span id="294">294</span>
+<span id="295">295</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Function definition parsing.</span>
 <span class="doccomment">//!</span>
@@ -565,7 +566,8 @@
                 <span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">CloseBlock</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Vec</span>::<span class="ident">new</span>().<span class="ident">into</span>());
                 }
-                <span class="ident">TokenKind</span>::<span class="ident">StringLiteral</span>(<span class="ident">string</span>) <span class="op">|</span> <span class="ident">TokenKind</span>::<span class="ident">TemplateLiteral</span>(<span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">TokenKind</span>::<span class="ident">StringLiteral</span>(<span class="ident">string</span>)
+                <span class="op">|</span> <span class="ident">TokenKind</span>::<span class="ident">TemplateNoSubstitution</span> { <span class="ident">cooked</span>: <span class="ident">string</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="ident">string</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="string">&quot;use strict&quot;</span>.<span class="ident">into</span>() {
                         <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="bool-val">true</span>);
                     }

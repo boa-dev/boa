@@ -159,6 +159,7 @@
 <span id="158">158</span>
 <span id="159">159</span>
 <span id="160">160</span>
+<span id="161">161</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Boa parser implementation.</span>
 
@@ -287,7 +288,8 @@
         <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span> {
             <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">match</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
-                    <span class="ident">TokenKind</span>::<span class="ident">StringLiteral</span>(<span class="ident">string</span>) <span class="op">|</span> <span class="ident">TokenKind</span>::<span class="ident">TemplateLiteral</span>(<span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">TokenKind</span>::<span class="ident">StringLiteral</span>(<span class="ident">string</span>)
+                    <span class="op">|</span> <span class="ident">TokenKind</span>::<span class="ident">TemplateNoSubstitution</span> { <span class="ident">cooked</span>: <span class="ident">string</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">if</span> <span class="ident">string</span>.<span class="ident">as_ref</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&quot;use strict&quot;</span> {
                             <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="bool-val">true</span>);
                         }

@@ -113,6 +113,18 @@
 <span id="112">112</span>
 <span id="113">113</span>
 <span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Member expression parsing.</span>
 <span class="doccomment">//!</span>
@@ -133,7 +145,10 @@
         },
         <span class="ident">lexer</span>::<span class="ident">TokenKind</span>,
         <span class="ident">parser</span>::{
-            <span class="ident">expression</span>::{<span class="ident">primary</span>::<span class="ident">PrimaryExpression</span>, <span class="ident">Expression</span>},
+            <span class="ident">expression</span>::{
+                <span class="ident">left_hand_side</span>::<span class="ident">template</span>::<span class="ident">TaggedTemplateLiteral</span>, <span class="ident">primary</span>::<span class="ident">PrimaryExpression</span>,
+                <span class="ident">Expression</span>,
+            },
             <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
         },
     },
@@ -220,6 +235,15 @@
                         <span class="ident">Expression</span>::<span class="ident">new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
                     <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator</span>::<span class="ident">CloseBracket</span>, <span class="string">&quot;member expression&quot;</span>)<span class="question-mark">?</span>;
                     <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">GetField</span>::<span class="ident">new</span>(<span class="ident">lhs</span>, <span class="ident">idx</span>).<span class="ident">into</span>();
+                }
+                <span class="ident">TokenKind</span>::<span class="ident">TemplateNoSubstitution</span> { .. } <span class="op">|</span> <span class="ident">TokenKind</span>::<span class="ident">TemplateMiddle</span> { .. } <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">TaggedTemplateLiteral</span>::<span class="ident">new</span>(
+                        <span class="self">self</span>.<span class="ident">allow_yield</span>,
+                        <span class="self">self</span>.<span class="ident">allow_await</span>,
+                        <span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                        <span class="ident">lhs</span>,
+                    )
+                    .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
             }

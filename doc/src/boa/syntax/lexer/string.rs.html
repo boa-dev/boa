@@ -189,6 +189,44 @@
 <span id="188">188</span>
 <span id="189">189</span>
 <span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements lexing for string literals used in the JavaScript programing language.</span>
 
@@ -236,9 +274,10 @@
 
 <span class="doccomment">/// Terminator for the string.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">enum</span> <span class="ident">StringTerminator</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">StringTerminator</span> {
     <span class="ident">SingleQuote</span>,
     <span class="ident">DoubleQuote</span>,
+    <span class="ident">End</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Tokenizer</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">StringLiteral</span> {
@@ -248,137 +287,174 @@
     {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;StringLiteral&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">next_chr_start</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">pos</span>();
-            <span class="kw">let</span> <span class="ident">next_chr</span> <span class="op">=</span> <span class="ident">char</span>::<span class="ident">try_from</span>(<span class="ident">cursor</span>.<span class="ident">next_char</span>()<span class="question-mark">?</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">Error</span>::<span class="ident">from</span>(<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">new</span>(
-                    <span class="ident">ErrorKind</span>::<span class="ident">UnexpectedEof</span>,
-                    <span class="string">&quot;unterminated string literal&quot;</span>,
-                ))
-            })<span class="question-mark">?</span>)
-            .<span class="ident">unwrap</span>();
+        <span class="kw">let</span> (<span class="ident">lit</span>, <span class="ident">span</span>) <span class="op">=</span>
+            <span class="ident">unescape_string</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>, <span class="self">self</span>.<span class="ident">terminator</span>, <span class="ident">cursor</span>.<span class="ident">strict_mode</span>())<span class="question-mark">?</span>;
 
-            <span class="kw">match</span> <span class="ident">next_chr</span> {
-                <span class="string">&#39;\&#39;&#39;</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">terminator</span> <span class="op">=</span><span class="op">=</span> <span class="ident">StringTerminator</span>::<span class="ident">SingleQuote</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">break</span>;
-                }
-                <span class="string">&#39;&quot;&#39;</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">terminator</span> <span class="op">=</span><span class="op">=</span> <span class="ident">StringTerminator</span>::<span class="ident">DoubleQuote</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">break</span>;
-                }
-                <span class="string">&#39;\\&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>()
-                        .<span class="ident">start_event</span>(<span class="string">&quot;StringLiteral - escape sequence&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+        <span class="prelude-val">Ok</span>(<span class="ident">Token</span>::<span class="ident">new</span>(<span class="ident">TokenKind</span>::<span class="ident">string_literal</span>(<span class="ident">lit</span>), <span class="ident">span</span>))
+    }
+}
 
-                    <span class="kw">let</span> <span class="ident">escape</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                        <span class="ident">Error</span>::<span class="ident">from</span>(<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">new</span>(
-                            <span class="ident">ErrorKind</span>::<span class="ident">UnexpectedEof</span>,
-                            <span class="string">&quot;unterminated escape sequence in string literal&quot;</span>,
-                        ))
-                    })<span class="question-mark">?</span>;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">unescape_string</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(
+    <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
+    <span class="ident">start_pos</span>: <span class="ident">Position</span>,
+    <span class="ident">terminator</span>: <span class="ident">StringTerminator</span>,
+    <span class="ident">strict_mode</span>: <span class="ident">bool</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">Span</span>), <span class="ident">Error</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">R</span>: <span class="ident">Read</span>,
+{
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+    <span class="kw">loop</span> {
+        <span class="kw">let</span> <span class="ident">next_chr</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_char</span>()<span class="question-mark">?</span>.<span class="ident">map</span>(<span class="ident">char</span>::<span class="ident">try_from</span>).<span class="ident">transpose</span>().<span class="ident">unwrap</span>();
 
-                    <span class="kw">if</span> <span class="ident">escape</span> <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;\n&#39;</span> {
-                        <span class="kw">match</span> <span class="ident">escape</span> {
-                            <span class="string">b&#39;n&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>),
-                            <span class="string">b&#39;r&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;\r&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>),
-                            <span class="string">b&#39;t&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;\t&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>),
-                            <span class="string">b&#39;b&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;\x08&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>),
-                            <span class="string">b&#39;f&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;\x0c&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>),
-                            <span class="string">b&#39;0&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;\0&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>),
-                            <span class="string">b&#39;x&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
-                                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code_point_utf8_bytes</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">2</span>];
-                                <span class="ident">cursor</span>.<span class="ident">fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">code_point_utf8_bytes</span>)<span class="question-mark">?</span>;
-                                <span class="kw">let</span> <span class="ident">code_point_str</span> <span class="op">=</span> <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">code_point_utf8_bytes</span>)
-                                    .<span class="ident">expect</span>(<span class="string">&quot;malformed Hexadecimal character escape sequence&quot;</span>);
+        <span class="kw">match</span> <span class="ident">next_chr</span> {
+            <span class="prelude-val">Some</span>(<span class="string">&#39;\&#39;&#39;</span>) <span class="kw">if</span> <span class="ident">terminator</span> <span class="op">=</span><span class="op">=</span> <span class="ident">StringTerminator</span>::<span class="ident">SingleQuote</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">break</span>;
+            }
+            <span class="prelude-val">Some</span>(<span class="string">&#39;&quot;&#39;</span>) <span class="kw">if</span> <span class="ident">terminator</span> <span class="op">=</span><span class="op">=</span> <span class="ident">StringTerminator</span>::<span class="ident">DoubleQuote</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">break</span>;
+            }
+            <span class="prelude-val">Some</span>(<span class="string">&#39;\\&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span>
+                    <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;StringLiteral - escape sequence&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
+
+                <span class="kw">let</span> <span class="ident">escape</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                    <span class="ident">Error</span>::<span class="ident">from</span>(<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">new</span>(
+                        <span class="ident">ErrorKind</span>::<span class="ident">UnexpectedEof</span>,
+                        <span class="string">&quot;unterminated escape sequence in literal&quot;</span>,
+                    ))
+                })<span class="question-mark">?</span>;
+
+                <span class="kw">if</span> <span class="ident">escape</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7f</span> {
+                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>;
+                    <span class="kw">match</span> <span class="ident">escape</span> {
+                        <span class="string">b&#39;\n&#39;</span> <span class="op">=</span><span class="op">&gt;</span> (),
+                        <span class="string">b&#39;n&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;\n&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>),
+                        <span class="string">b&#39;r&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;\r&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>),
+                        <span class="string">b&#39;t&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;\t&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>),
+                        <span class="string">b&#39;b&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;\x08&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>),
+                        <span class="string">b&#39;f&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;\x0c&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>),
+                        <span class="string">b&#39;0&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;\0&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>),
+                        <span class="string">b&#39;x&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code_point_utf8_bytes</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">2</span>];
+                            <span class="ident">cursor</span>.<span class="ident">fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">code_point_utf8_bytes</span>)<span class="question-mark">?</span>;
+                            <span class="kw">let</span> <span class="ident">code_point_str</span> <span class="op">=</span> <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">code_point_utf8_bytes</span>)
+                                .<span class="ident">expect</span>(<span class="string">&quot;malformed Hexadecimal character escape sequence&quot;</span>);
+                            <span class="kw">let</span> <span class="ident">code_point</span> <span class="op">=</span>
+                                <span class="ident">u16</span>::<span class="ident">from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">code_point_str</span>, <span class="number">16</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                                    <span class="ident">Error</span>::<span class="ident">syntax</span>(
+                                        <span class="string">&quot;invalid Hexadecimal escape sequence&quot;</span>,
+                                        <span class="ident">cursor</span>.<span class="ident">pos</span>(),
+                                    )
+                                })<span class="question-mark">?</span>;
+
+                            <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">code_point</span>);
+                        }
+                        <span class="string">b&#39;u&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="comment">// Support \u{X..X} (Unicode Codepoint)</span>
+                            <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_is</span>(<span class="string">b&#39;{&#39;</span>)<span class="question-mark">?</span> {
+                                <span class="comment">// TODO: use bytes for a bit better performance (using stack)</span>
+                                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code_point_buf</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="number">6</span>);
+                                <span class="ident">cursor</span>.<span class="ident">take_until</span>(<span class="string">b&#39;}&#39;</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">code_point_buf</span>)<span class="question-mark">?</span>;
+
+                                <span class="kw">let</span> <span class="ident">code_point_str</span> <span class="op">=</span>
+                                    <span class="kw">unsafe</span> { <span class="ident">str</span>::<span class="ident">from_utf8_unchecked</span>(<span class="ident">code_point_buf</span>.<span class="ident">as_slice</span>()) };
+                                <span class="comment">// We know this is a single unicode codepoint, convert to u32</span>
                                 <span class="kw">let</span> <span class="ident">code_point</span> <span class="op">=</span>
-                                    <span class="ident">u16</span>::<span class="ident">from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">code_point_str</span>, <span class="number">16</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                                    <span class="ident">u32</span>::<span class="ident">from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">code_point_str</span>, <span class="number">16</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
                                         <span class="ident">Error</span>::<span class="ident">syntax</span>(
-                                            <span class="string">&quot;invalid Hexadecimal escape sequence&quot;</span>,
+                                            <span class="string">&quot;malformed Unicode character escape sequence&quot;</span>,
+                                            <span class="ident">cursor</span>.<span class="ident">pos</span>(),
+                                        )
+                                    })<span class="question-mark">?</span>;
+
+                                <span class="comment">// UTF16Encoding of a numeric code point value</span>
+                                <span class="kw">if</span> <span class="ident">code_point</span> <span class="op">&gt;</span> <span class="number">0x10_FFFF</span> {
+                                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">syntax</span>(<span class="string">&quot;Unicode codepoint must not be greater than 0x10FFFF in escape sequence&quot;</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>()));
+                                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">code_point</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">65535</span> {
+                                    <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">code_point</span> <span class="kw">as</span> <span class="ident">u16</span>);
+                                } <span class="kw">else</span> {
+                                    <span class="kw">let</span> <span class="ident">cu1</span> <span class="op">=</span> ((<span class="ident">code_point</span> <span class="op">-</span> <span class="number">65536</span>) <span class="op">/</span> <span class="number">1024</span> <span class="op">+</span> <span class="number">0xD800</span>) <span class="kw">as</span> <span class="ident">u16</span>;
+                                    <span class="kw">let</span> <span class="ident">cu2</span> <span class="op">=</span> ((<span class="ident">code_point</span> <span class="op">-</span> <span class="number">65536</span>) <span class="op">%</span> <span class="number">1024</span> <span class="op">+</span> <span class="number">0xDC00</span>) <span class="kw">as</span> <span class="ident">u16</span>;
+                                    <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">cu1</span>);
+                                    <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">cu2</span>);
+                                }
+                            } <span class="kw">else</span> {
+                                <span class="comment">// Collect each character after \u e.g \uD83D will give &quot;D83D&quot;</span>
+                                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code_point_utf8_bytes</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">4</span>];
+                                <span class="ident">cursor</span>.<span class="ident">fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">code_point_utf8_bytes</span>)<span class="question-mark">?</span>;
+
+                                <span class="comment">// Convert to u16</span>
+                                <span class="kw">let</span> <span class="ident">code_point_str</span> <span class="op">=</span> <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">code_point_utf8_bytes</span>)
+                                    .<span class="ident">expect</span>(<span class="string">&quot;malformed Unicode character escape sequence&quot;</span>);
+                                <span class="kw">let</span> <span class="ident">code_point</span> <span class="op">=</span>
+                                    <span class="ident">u16</span>::<span class="ident">from_str_radix</span>(<span class="ident">code_point_str</span>, <span class="number">16</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+                                        <span class="ident">Error</span>::<span class="ident">syntax</span>(
+                                            <span class="string">&quot;invalid Unicode escape sequence&quot;</span>,
                                             <span class="ident">cursor</span>.<span class="ident">pos</span>(),
                                         )
                                     })<span class="question-mark">?</span>;
 
                                 <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">code_point</span>);
                             }
-                            <span class="string">b&#39;u&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
-                                <span class="comment">// Support \u{X..X} (Unicode Codepoint)</span>
-                                <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_is</span>(<span class="string">b&#39;{&#39;</span>)<span class="question-mark">?</span> {
-                                    <span class="comment">// TODO: use bytes for a bit better performance (using stack)</span>
-                                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code_point_buf</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="number">6</span>);
-                                    <span class="ident">cursor</span>.<span class="ident">take_until</span>(<span class="string">b&#39;}&#39;</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">code_point_buf</span>)<span class="question-mark">?</span>;
+                        }
+                        <span class="ident">n</span> <span class="kw">if</span> <span class="ident">char</span>::<span class="ident">is_digit</span>(<span class="ident">char</span>::<span class="ident">from</span>(<span class="ident">n</span>), <span class="number">8</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="kw">if</span> <span class="ident">strict_mode</span> {
+                                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">syntax</span>(
+                                    <span class="string">&quot;octal escape sequences are deprecated&quot;</span>,
+                                    <span class="ident">cursor</span>.<span class="ident">pos</span>(),
+                                ));
+                            }
+                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">char</span>::<span class="ident">from</span>(<span class="ident">n</span>).<span class="ident">to_digit</span>(<span class="number">8</span>).<span class="ident">unwrap</span>();
 
-                                    <span class="kw">let</span> <span class="ident">code_point_str</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-                                        <span class="ident">str</span>::<span class="ident">from_utf8_unchecked</span>(<span class="ident">code_point_buf</span>.<span class="ident">as_slice</span>())
-                                    };
-                                    <span class="comment">// We know this is a single unicode codepoint, convert to u32</span>
-                                    <span class="kw">let</span> <span class="ident">code_point</span> <span class="op">=</span> <span class="ident">u32</span>::<span class="ident">from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">code_point_str</span>, <span class="number">16</span>)
-                                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                                            <span class="ident">Error</span>::<span class="ident">syntax</span>(
-                                                <span class="string">&quot;malformed Unicode character escape sequence&quot;</span>,
-                                                <span class="ident">cursor</span>.<span class="ident">pos</span>(),
-                                            )
-                                        })<span class="question-mark">?</span>;
-
-                                    <span class="comment">// UTF16Encoding of a numeric code point value</span>
-                                    <span class="kw">if</span> <span class="ident">code_point</span> <span class="op">&gt;</span> <span class="number">0x10_FFFF</span> {
-                                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">syntax</span>(<span class="string">&quot;Unicode codepoint must not be greater than 0x10FFFF in escape sequence&quot;</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>()));
-                                    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">code_point</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">65535</span> {
-                                        <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">code_point</span> <span class="kw">as</span> <span class="ident">u16</span>);
-                                    } <span class="kw">else</span> {
-                                        <span class="kw">let</span> <span class="ident">cu1</span> <span class="op">=</span> ((<span class="ident">code_point</span> <span class="op">-</span> <span class="number">65536</span>) <span class="op">/</span> <span class="number">1024</span> <span class="op">+</span> <span class="number">0xD800</span>) <span class="kw">as</span> <span class="ident">u16</span>;
-                                        <span class="kw">let</span> <span class="ident">cu2</span> <span class="op">=</span> ((<span class="ident">code_point</span> <span class="op">-</span> <span class="number">65536</span>) <span class="op">%</span> <span class="number">1024</span> <span class="op">+</span> <span class="number">0xDC00</span>) <span class="kw">as</span> <span class="ident">u16</span>;
-                                        <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">cu1</span>);
-                                        <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">cu2</span>);
+                            <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> {
+                                <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="kw">if</span> <span class="ident">char</span>::<span class="ident">is_digit</span>(<span class="ident">char</span>::<span class="ident">from</span>(<span class="ident">c</span>), <span class="number">8</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>;
+                                    <span class="ident">o</span> <span class="op">=</span> <span class="ident">o</span> <span class="op">*</span> <span class="number">8</span> <span class="op">+</span> <span class="ident">char</span>::<span class="ident">from</span>(<span class="ident">n</span>).<span class="ident">to_digit</span>(<span class="number">8</span>).<span class="ident">unwrap</span>();
+                                    <span class="kw">if</span> <span class="ident">n</span> <span class="op">&lt;</span><span class="op">=</span> <span class="string">b&#39;3&#39;</span> {
+                                        <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> {
+                                            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="kw">if</span> <span class="ident">char</span>::<span class="ident">is_digit</span>(<span class="ident">char</span>::<span class="ident">from</span>(<span class="ident">c</span>), <span class="number">8</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                                                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>();
+                                                <span class="ident">o</span> <span class="op">=</span> <span class="ident">o</span> <span class="op">*</span> <span class="number">8</span> <span class="op">+</span> <span class="ident">char</span>::<span class="ident">from</span>(<span class="ident">n</span>).<span class="ident">to_digit</span>(<span class="number">8</span>).<span class="ident">unwrap</span>();
+                                            }
+                                            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
+                                        }
                                     }
-                                } <span class="kw">else</span> {
-                                    <span class="comment">// Collect each character after \u e.g \uD83D will give &quot;D83D&quot;</span>
-                                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code_point_utf8_bytes</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">4</span>];
-                                    <span class="ident">cursor</span>.<span class="ident">fill_bytes</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">code_point_utf8_bytes</span>)<span class="question-mark">?</span>;
-
-                                    <span class="comment">// Convert to u16</span>
-                                    <span class="kw">let</span> <span class="ident">code_point_str</span> <span class="op">=</span> <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">code_point_utf8_bytes</span>)
-                                        .<span class="ident">expect</span>(<span class="string">&quot;malformed Unicode character escape sequence&quot;</span>);
-                                    <span class="kw">let</span> <span class="ident">code_point</span> <span class="op">=</span> <span class="ident">u16</span>::<span class="ident">from_str_radix</span>(<span class="ident">code_point_str</span>, <span class="number">16</span>)
-                                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                                            <span class="ident">Error</span>::<span class="ident">syntax</span>(
-                                                <span class="string">&quot;invalid Unicode escape sequence&quot;</span>,
-                                                <span class="ident">cursor</span>.<span class="ident">pos</span>(),
-                                            )
-                                        })<span class="question-mark">?</span>;
-
-                                    <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">code_point</span>);
                                 }
+                                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
                             }
-                            <span class="string">b&#39;\&#39;&#39;</span> <span class="op">|</span> <span class="string">b&#39;&quot;&#39;</span> <span class="op">|</span> <span class="string">b&#39;\\&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">escape</span> <span class="kw">as</span> <span class="ident">u16</span>),
-                            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                                <span class="kw">let</span> <span class="ident">details</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(
-                                    <span class="string">&quot;invalid escape sequence at line {}, column {}&quot;</span>,
-                                    <span class="ident">next_chr_start</span>.<span class="ident">line_number</span>(),
-                                    <span class="ident">next_chr_start</span>.<span class="ident">column_number</span>(),
-                                );
-                                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">syntax</span>(<span class="ident">details</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>()));
-                            }
-                        };
-                    }
-                }
-                <span class="ident">next_ch</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">if</span> <span class="ident">next_ch</span>.<span class="ident">len_utf16</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
-                        <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">next_ch</span> <span class="kw">as</span> <span class="ident">u16</span>);
-                    } <span class="kw">else</span> {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code_point_bytes_buf</span> <span class="op">=</span> [<span class="number">0u16</span>; <span class="number">2</span>];
-                        <span class="kw">let</span> <span class="ident">code_point_bytes</span> <span class="op">=</span> <span class="ident">next_ch</span>.<span class="ident">encode_utf16</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">code_point_bytes_buf</span>);
-
-                        <span class="ident">buf</span>.<span class="ident">extend</span>(<span class="ident">code_point_bytes</span>.<span class="ident">iter</span>());
-                    }
+                            <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">o</span> <span class="kw">as</span> <span class="ident">u16</span>);
+                        }
+                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">escape</span> <span class="kw">as</span> <span class="ident">u16</span>),
+                    };
                 }
             }
-        }
+            <span class="prelude-val">Some</span>(<span class="ident">next_ch</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="ident">next_ch</span>.<span class="ident">len_utf16</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
+                    <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">next_ch</span> <span class="kw">as</span> <span class="ident">u16</span>);
+                } <span class="kw">else</span> {
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code_point_bytes_buf</span> <span class="op">=</span> [<span class="number">0u16</span>; <span class="number">2</span>];
+                    <span class="kw">let</span> <span class="ident">code_point_bytes</span> <span class="op">=</span> <span class="ident">next_ch</span>.<span class="ident">encode_utf16</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">code_point_bytes_buf</span>);
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Token</span>::<span class="ident">new</span>(
-            <span class="ident">TokenKind</span>::<span class="ident">string_literal</span>(<span class="ident">String</span>::<span class="ident">from_utf16_lossy</span>(<span class="ident">buf</span>.<span class="ident">as_slice</span>())),
-            <span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">start_pos</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>()),
-        ))
+                    <span class="ident">buf</span>.<span class="ident">extend</span>(<span class="ident">code_point_bytes</span>.<span class="ident">iter</span>());
+                }
+            }
+            <span class="prelude-val">None</span> <span class="kw">if</span> <span class="ident">terminator</span> <span class="op">!</span><span class="op">=</span> <span class="ident">StringTerminator</span>::<span class="ident">End</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">from</span>(<span class="ident">io</span>::<span class="ident">Error</span>::<span class="ident">new</span>(
+                    <span class="ident">ErrorKind</span>::<span class="ident">UnexpectedEof</span>,
+                    <span class="string">&quot;unterminated string literal&quot;</span>,
+                )));
+            }
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">break</span>;
+            }
+        }
     }
+
+    <span class="prelude-val">Ok</span>((
+        <span class="ident">String</span>::<span class="ident">from_utf16_lossy</span>(<span class="ident">buf</span>.<span class="ident">as_slice</span>()),
+        <span class="ident">Span</span>::<span class="ident">new</span>(<span class="ident">start_pos</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>()),
+    ))
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../";window.currentCrate = "boa";</script><script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script><script defer src="../../../../search-index.js"></script></body></html>

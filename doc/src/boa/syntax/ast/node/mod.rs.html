@@ -567,6 +567,18 @@
 <span id="566">566</span>
 <span id="567">567</span>
 <span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `Node` structure, which composes the AST.</span>
 
@@ -587,6 +599,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">spread</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">statement_list</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">switch</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">template</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">throw</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">try_node</span>;
 
@@ -611,6 +624,7 @@
     <span class="ident">spread</span>::<span class="ident">Spread</span>,
     <span class="ident">statement_list</span>::{<span class="ident">RcStatementList</span>, <span class="ident">StatementList</span>},
     <span class="ident">switch</span>::{<span class="ident">Case</span>, <span class="ident">Switch</span>},
+    <span class="ident">template</span>::{<span class="ident">TaggedTemplate</span>, <span class="ident">TemplateLit</span>},
     <span class="ident">throw</span>::<span class="ident">Throw</span>,
     <span class="ident">try_node</span>::{<span class="ident">Catch</span>, <span class="ident">Finally</span>, <span class="ident">Try</span>},
 };
@@ -730,6 +744,12 @@
     <span class="doccomment">/// A spread (...x) statement. [More information](./spread/struct.Spread.html).</span>
     <span class="ident">Spread</span>(<span class="ident">Spread</span>),
 
+    <span class="doccomment">/// A tagged template. [More information](./template/struct.TaggedTemplate.html).</span>
+    <span class="ident">TaggedTemplate</span>(<span class="ident">TaggedTemplate</span>),
+
+    <span class="doccomment">/// A template literal. [More information](./template/struct.TemplateLit.html).</span>
+    <span class="ident">TemplateLit</span>(<span class="ident">TemplateLit</span>),
+
     <span class="doccomment">/// A throw statement. [More information](./throw/struct.Throw.html).</span>
     <span class="ident">Throw</span>(<span class="ident">Throw</span>),
 
@@ -827,6 +847,8 @@
             <span class="self">Self</span>::<span class="ident">BinOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">op</span>, <span class="ident">f</span>),
             <span class="self">Self</span>::<span class="ident">UnaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">op</span>, <span class="ident">f</span>),
             <span class="self">Self</span>::<span class="ident">Return</span>(<span class="kw-2">ref</span> <span class="ident">ret</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">ret</span>, <span class="ident">f</span>),
+            <span class="self">Self</span>::<span class="ident">TaggedTemplate</span>(<span class="kw-2">ref</span> <span class="ident">template</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">template</span>, <span class="ident">f</span>),
+            <span class="self">Self</span>::<span class="ident">TemplateLit</span>(<span class="kw-2">ref</span> <span class="ident">template</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">template</span>, <span class="ident">f</span>),
             <span class="self">Self</span>::<span class="ident">Throw</span>(<span class="kw-2">ref</span> <span class="ident">throw</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">throw</span>, <span class="ident">f</span>),
             <span class="self">Self</span>::<span class="ident">Assign</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">op</span>, <span class="ident">f</span>),
             <span class="self">Self</span>::<span class="ident">LetDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">decl</span>, <span class="ident">f</span>),
@@ -879,6 +901,8 @@
             <span class="ident">Node</span>::<span class="ident">UnaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node</span>::<span class="ident">New</span>(<span class="kw-2">ref</span> <span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">call</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node</span>::<span class="ident">Return</span>(<span class="kw-2">ref</span> <span class="ident">ret</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ret</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node</span>::<span class="ident">TaggedTemplate</span>(<span class="kw-2">ref</span> <span class="ident">template</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">template</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node</span>::<span class="ident">TemplateLit</span>(<span class="kw-2">ref</span> <span class="ident">template</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">template</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node</span>::<span class="ident">Throw</span>(<span class="kw-2">ref</span> <span class="ident">throw</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">throw</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node</span>::<span class="ident">Assign</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node</span>::<span class="ident">VarDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">context</span>),

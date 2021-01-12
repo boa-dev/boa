@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["StringTerminator","Terminator for the string."]],"struct":[["StringLiteral","String literal lexing."]]});
+initSidebarItems({"enum":[["StringTerminator","Terminator for the string."]],"fn":[["unescape_string",""]],"struct":[["StringLiteral","String literal lexing."]]});
