@@ -16,8 +16,8 @@ use crate::{
             Punctuator,
         },
         parser::{
-            error::{ErrorContext, ParseError, ParseResult},
-            function::{FormalParameters, FunctionBody},
+            error::{ErrorContext, ParseError},
+            function::FormalParameters,
             statement::BindingIdentifier,
             AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
         },

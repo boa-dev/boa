@@ -90,11 +90,25 @@ where
 
         // Arrow function
         match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
-            // Async a => {}
+            // Async a => {} or Async function or Async (a) => {}
             TokenKind::Keyword(Keyword::Async) => {
-                return AsyncArrowFunction::new(self.allow_in, self.allow_yield, self.allow_await)
-                    .parse(cursor)
-                    .map(Node::AsyncArrowFunctionDecl);
+                if let Some(next_token) = cursor.peek(1)? {
+                    match *next_token.kind() {
+                        TokenKind::Identifier(_) => {
+                            return AsyncArrowFunction::new(
+                                self.allow_in,
+                                self.allow_yield,
+                                self.allow_await,
+                            )
+                            .parse(cursor)
+                            .map(Node::AsyncArrowFunctionDecl);
+                        }
+                        TokenKind::Punctuator(Punctuator::OpenParen) => {
+                            todo!("Async arrow func with () params");
+                        }
+                        _ => {}
+                    }
+                }
             }
 
             // a=>{}
