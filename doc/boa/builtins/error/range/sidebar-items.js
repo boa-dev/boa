@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["RangeError","JavaScript `RangeError` impleentation."]]});
+initSidebarItems({"struct":[["RangeError","JavaScript `RangeError` implementation."]]});

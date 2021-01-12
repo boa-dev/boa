@@ -945,6 +945,24 @@
 <span id="944">944</span>
 <span id="945">945</span>
 <span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
+<span id="952">952</span>
+<span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
+<span id="956">956</span>
+<span id="957">957</span>
+<span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `GcObject` structure.</span>
 <span class="doccomment">//!</span>
@@ -988,7 +1006,8 @@
 <span class="doccomment">/// This is needed for the call method since we cannot mutate the function itself since we</span>
 <span class="doccomment">/// already borrow it so we get the function body clone it then drop the borrow and run the body</span>
 <span class="kw">enum</span> <span class="ident">FunctionBody</span> {
-    <span class="ident">BuiltIn</span>(<span class="ident">NativeFunction</span>),
+    <span class="ident">BuiltInFunction</span>(<span class="ident">NativeFunction</span>),
+    <span class="ident">BuiltInConstructor</span>(<span class="ident">NativeFunction</span>),
     <span class="ident">Ordinary</span>(<span class="ident">RcStatementList</span>),
 }
 
@@ -1067,8 +1086,12 @@
         <span class="kw">let</span> <span class="ident">f_body</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">as_function</span>() {
             <span class="kw">if</span> <span class="ident">function</span>.<span class="ident">is_callable</span>() {
                 <span class="kw">match</span> <span class="ident">function</span> {
-                    <span class="ident">Function</span>::<span class="ident">BuiltIn</span>(<span class="ident">BuiltInFunction</span>(<span class="ident">function</span>), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="kw-2">*</span><span class="ident">function</span>)
+                    <span class="ident">Function</span>::<span class="ident">BuiltIn</span>(<span class="ident">BuiltInFunction</span>(<span class="ident">function</span>), <span class="ident">flags</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">is_constructable</span>() {
+                            <span class="ident">FunctionBody</span>::<span class="ident">BuiltInConstructor</span>(<span class="kw-2">*</span><span class="ident">function</span>)
+                        } <span class="kw">else</span> {
+                            <span class="ident">FunctionBody</span>::<span class="ident">BuiltInFunction</span>(<span class="kw-2">*</span><span class="ident">function</span>)
+                        }
                     }
                     <span class="ident">Function</span>::<span class="ident">Ordinary</span> {
                         <span class="ident">body</span>,
@@ -1092,6 +1115,7 @@
                             } <span class="kw">else</span> {
                                 <span class="ident">BindingStatus</span>::<span class="ident">Uninitialized</span>
                             },
+                            <span class="ident">Value</span>::<span class="ident">undefined</span>(),
                         );
 
                         <span class="comment">// Add argument bindings to the function environment</span>
@@ -1130,7 +1154,8 @@
         };
 
         <span class="kw">match</span> <span class="ident">f_body</span> {
-            <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">func</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>),
+            <span class="ident">FunctionBody</span>::<span class="ident">BuiltInFunction</span>(<span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">func</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>),
+            <span class="ident">FunctionBody</span>::<span class="ident">BuiltInConstructor</span>(<span class="ident">func</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">func</span>(<span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">undefined</span>(), <span class="ident">args</span>, <span class="ident">context</span>),
             <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="ident">body</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">run</span>(<span class="ident">context</span>);
                 <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">pop</span>();
@@ -1147,29 +1172,18 @@
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="comment">// &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget&gt;</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="comment">// If the prototype of the constructor is not an object, then use the default object</span>
-        <span class="comment">// prototype as prototype for the new object</span>
-        <span class="comment">// see &lt;https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor&gt;</span>
-        <span class="comment">// see &lt;https://tc39.es/ecma262/#sec-getprototypefromconstructor&gt;</span>
-        <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">PROTOTYPE</span>.<span class="ident">into</span>(), <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">proto</span>.<span class="ident">is_object</span>() {
-            <span class="ident">proto</span>
-        } <span class="kw">else</span> {
-            <span class="ident">context</span>
-                .<span class="ident">standard_objects</span>()
-                .<span class="ident">object_object</span>()
-                .<span class="ident">prototype</span>()
-                .<span class="ident">into</span>()
-        };
-        <span class="kw">let</span> <span class="ident">this</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">create</span>(<span class="ident">proto</span>).<span class="ident">into</span>();
-
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">new_target</span>: <span class="ident">Value</span>,
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this_function_object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">as_function</span>() {
             <span class="kw">if</span> <span class="ident">function</span>.<span class="ident">is_constructable</span>() {
                 <span class="kw">match</span> <span class="ident">function</span> {
                     <span class="ident">Function</span>::<span class="ident">BuiltIn</span>(<span class="ident">BuiltInFunction</span>(<span class="ident">function</span>), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="kw-2">*</span><span class="ident">function</span>)
+                        <span class="ident">FunctionBody</span>::<span class="ident">BuiltInConstructor</span>(<span class="kw-2">*</span><span class="ident">function</span>)
                     }
                     <span class="ident">Function</span>::<span class="ident">Ordinary</span> {
                         <span class="ident">body</span>,
@@ -1177,11 +1191,31 @@
                         <span class="ident">environment</span>,
                         <span class="ident">flags</span>,
                     } <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="comment">// If the prototype of the constructor is not an object, then use the default object</span>
+                        <span class="comment">// prototype as prototype for the new object</span>
+                        <span class="comment">// see &lt;https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor&gt;</span>
+                        <span class="comment">// see &lt;https://tc39.es/ecma262/#sec-getprototypefromconstructor&gt;</span>
+                        <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">new_target</span>.<span class="ident">as_object</span>().<span class="ident">unwrap</span>().<span class="ident">get</span>(
+                            <span class="kw-2">&amp;</span><span class="ident">PROTOTYPE</span>.<span class="ident">into</span>(),
+                            <span class="ident">new_target</span>.<span class="ident">clone</span>(),
+                            <span class="ident">context</span>,
+                        )<span class="question-mark">?</span>;
+                        <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">proto</span>.<span class="ident">is_object</span>() {
+                            <span class="ident">proto</span>
+                        } <span class="kw">else</span> {
+                            <span class="ident">context</span>
+                                .<span class="ident">standard_objects</span>()
+                                .<span class="ident">object_object</span>()
+                                .<span class="ident">prototype</span>()
+                                .<span class="ident">into</span>()
+                        };
+                        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">Object</span>::<span class="ident">create</span>(<span class="ident">proto</span>));
+
                         <span class="comment">// Create a new Function environment who&#39;s parent is set to the scope of the function declaration (self.environment)</span>
                         <span class="comment">// &lt;https://tc39.es/ecma262/#sec-prepareforordinarycall&gt;</span>
                         <span class="kw">let</span> <span class="ident">local_env</span> <span class="op">=</span> <span class="ident">new_function_environment</span>(
                             <span class="ident">this_function_object</span>,
-                            <span class="prelude-val">Some</span>(<span class="ident">this</span>.<span class="ident">clone</span>()),
+                            <span class="prelude-val">Some</span>(<span class="ident">this</span>),
                             <span class="prelude-val">Some</span>(<span class="ident">environment</span>.<span class="ident">clone</span>()),
                             <span class="comment">// Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records</span>
                             <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">is_lexical_this_mode</span>() {
@@ -1189,6 +1223,7 @@
                             } <span class="kw">else</span> {
                                 <span class="ident">BindingStatus</span>::<span class="ident">Uninitialized</span>
                             },
+                            <span class="ident">new_target</span>.<span class="ident">clone</span>(),
                         );
 
                         <span class="comment">// Add argument bindings to the function environment</span>
@@ -1220,7 +1255,10 @@
                     }
                 }
             } <span class="kw">else</span> {
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">display</span>().<span class="ident">to_string</span>();
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="string">&quot;name&quot;</span>.<span class="ident">into</span>(), <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
+                    .<span class="ident">display</span>()
+                    .<span class="ident">to_string</span>();
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} is not a constructor&quot;</span>, <span class="ident">name</span>));
             }
         } <span class="kw">else</span> {
@@ -1228,10 +1266,7 @@
         };
 
         <span class="kw">match</span> <span class="ident">body</span> {
-            <span class="ident">FunctionBody</span>::<span class="ident">BuiltIn</span>(<span class="ident">function</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="ident">this</span>)
-            }
+            <span class="ident">FunctionBody</span>::<span class="ident">BuiltInConstructor</span>(<span class="ident">function</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">new_target</span>, <span class="ident">args</span>, <span class="ident">context</span>),
             <span class="ident">FunctionBody</span>::<span class="ident">Ordinary</span>(<span class="ident">body</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">run</span>(<span class="ident">context</span>);
 
@@ -1239,6 +1274,7 @@
                 <span class="kw">let</span> <span class="ident">binding</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">get_this_binding</span>();
                 <span class="ident">binding</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))
             }
+            <span class="ident">FunctionBody</span>::<span class="ident">BuiltInFunction</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Cannot have a function in construct&quot;</span>),
         }
     }
 

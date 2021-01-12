@@ -398,6 +398,7 @@
 <span id="397">397</span>
 <span id="398">398</span>
 <span id="399">399</span>
+<span id="400">400</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Lexical Environment</span>
 <span class="doccomment">//!</span>
@@ -667,13 +668,14 @@
     <span class="ident">this</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>,
     <span class="ident">outer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span>,
     <span class="ident">binding_status</span>: <span class="ident">BindingStatus</span>,
+    <span class="ident">new_target</span>: <span class="ident">Value</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Environment</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">func_env</span> <span class="op">=</span> <span class="ident">FunctionEnvironmentRecord</span> {
         <span class="ident">env_rec</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
         <span class="ident">function</span>: <span class="ident">f</span>,
         <span class="ident">this_binding_status</span>: <span class="ident">binding_status</span>,
         <span class="ident">home_object</span>: <span class="ident">Value</span>::<span class="ident">undefined</span>(),
-        <span class="ident">new_target</span>: <span class="ident">Value</span>::<span class="ident">undefined</span>(),
+        <span class="ident">new_target</span>,
         <span class="ident">outer_env</span>: <span class="ident">outer</span>, <span class="comment">// this will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects</span>
         <span class="ident">this_value</span>: <span class="ident">Value</span>::<span class="ident">undefined</span>(),
     };
