@@ -104,12 +104,7 @@ where
                             .parse(cursor)
                             .map(Node::AsyncArrowFunctionDecl);
                         }
-                        _ => {
-                            return Err(ParseError::unexpected(
-                                next_token.clone(),
-                                "async assignment expression",
-                            ));
-                        }
+                        _ => {}
                     }
                 }
             }

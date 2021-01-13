@@ -16,7 +16,7 @@ use function_decl::FunctionDeclaration;
 
 use crate::{
     syntax::{
-        ast::{Keyword, Node, Punctuator},
+        ast::{Keyword, Node},
         lexer::TokenKind,
         parser::{
             AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
