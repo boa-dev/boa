@@ -10,6 +10,10 @@
       integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z"
       crossorigin="anonymous"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       body {
@@ -45,31 +49,18 @@
         font-size: 2em;
       }
 
-      .info-link span {
-        display: inline-block;
-        background-image: url("../assets/info-square.svg");
-        background-repeat: no-repeat;
-        background-size: 2rem 2rem;
-        width: 0.5em;
-        height: 0.5em;
-      }
-
-      span.exclamation-triangle {
-        display: inline-block;
-        background-image: url("../assets/exclamation-triangle.svg");
-        background-repeat: no-repeat;
-        background-size: 1.6rem 1.6rem;
-        width: 1.6em;
-        height: 1.6em;
-      }
-
       .card.test {
         width: 2em;
         height: 2em;
         padding: 0.2em;
         margin: 0.5em;
+        line-height: 1.5em;
         cursor: pointer;
         display: inline-block;
+      }
+
+      .card.test i {
+        font-size: 1.5em;
       }
     </style>
   </head>
@@ -102,6 +93,33 @@
         ></section>
       </div>
       <div class="row accordion col-md-12 collapse" id="info"></div>
+      <div
+        id="graph-modal"
+        class="modal fade"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="modalTitle"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-xl">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="modalTitle">
+                Master branch progress
+              </h5>
+              <button
+                type="button"
+                class="close"
+                data-dismiss="modal"
+                aria-label="Close"
+              >
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body"></div>
+          </div>
+        </div>
+      </div>
     </div>
     <script
       src="https://code.jquery.com/jquery-3.5.1.min.js"
@@ -111,6 +129,11 @@
     <script
       src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"
       integrity="sha384-LtrjvnR4Twt/qOuYxE721u19sVFLVSA4hf/rRt6PrZTmiPltdZcI7q7PXQBYTKyf"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"
+      integrity="sha256-t9UJPrESBeG2ojKTIcFLPGF7nHi2vEc7f5A2KpH/UBU="
       crossorigin="anonymous"
     ></script>
     <script src="./results.js"></script>
