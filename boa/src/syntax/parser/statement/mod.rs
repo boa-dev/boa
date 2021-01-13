@@ -337,7 +337,18 @@ where
         let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
         match *tok.kind() {
-            TokenKind::Keyword(Keyword::Function) | TokenKind::Keyword(Keyword::Async) => {
+            TokenKind::Keyword(Keyword::Async) => {
+                // async () => {}
+                // https://tc39.es/ecma262/#prod-AssignmentExpression
+                match cursor.peek(1)?.ok_or(ParseError::AbruptEnd)?.kind() {
+                    TokenKind::Punctuator(Punctuator::OpenParen) | TokenKind::Identifier(_) => {
+                        Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+                            .parse(cursor)
+                    }
+                    _ => Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor),
+                }
+            }
+            TokenKind::Keyword(Keyword::Function) => {
                 if strict_mode && self.in_block {
                     return Err(ParseError::lex(LexError::Syntax(
                         "Function declaration in blocks not allowed in strict mode".into(),

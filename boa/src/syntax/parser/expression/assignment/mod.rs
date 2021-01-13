@@ -91,11 +91,11 @@ where
         println!("Assignment expression");
         // Arrow function
         match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
-            // Async a => {} or Async function or Async (a) => {}
+            // Async a => {} or Async (a) => {}
             TokenKind::Keyword(Keyword::Async) => {
                 if let Some(next_token) = cursor.peek(1)? {
                     match *next_token.kind() {
-                        TokenKind::Identifier(_) => {
+                        TokenKind::Identifier(_) | TokenKind::Punctuator(Punctuator::OpenParen) => {
                             return AsyncArrowFunction::new(
                                 self.allow_in,
                                 self.allow_yield,
@@ -104,12 +104,11 @@ where
                             .parse(cursor)
                             .map(Node::AsyncArrowFunctionDecl);
                         }
-                        TokenKind::Punctuator(Punctuator::OpenParen) => {
-                            println!("OpenParen");
-                            todo!("Async arrow func with () params");
-                        }
                         _ => {
-                            println!("Async not open Paren / Identifier");
+                            return Err(ParseError::unexpected(
+                                next_token.clone(),
+                                "async assignment expression",
+                            ));
                         }
                     }
                 }

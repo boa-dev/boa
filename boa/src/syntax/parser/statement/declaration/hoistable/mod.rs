@@ -72,19 +72,9 @@ where
                     .map(Node::from)
             }
             TokenKind::Keyword(Keyword::Async) => {
-                println!("Hoistable declaration async");
-                let tok1 = cursor.peek(1)?.ok_or(ParseError::AbruptEnd)?;
-                match tok1.kind() {
-                    TokenKind::Keyword(Keyword::Function) => {
-                        AsyncFunctionDeclaration::new(self.allow_yield, self.allow_await, false)
-                            .parse(cursor)
-                            .map(Node::from)
-                    }
-                    TokenKind::Punctuator(Punctuator::OpenParen) => {
-                        todo!("Async arrow decl");
-                    }
-                    _ => Err(ParseError::unexpected(tok1.clone(), "primary expression")),
-                }
+                AsyncFunctionDeclaration::new(self.allow_yield, self.allow_await, false)
+                    .parse(cursor)
+                    .map(Node::from)
             }
             _ => unreachable!("unknown token found: {:?}", tok),
         }
