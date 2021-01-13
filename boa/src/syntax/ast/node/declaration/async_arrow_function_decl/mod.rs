@@ -39,12 +39,12 @@ impl AsyncArrowFunctionDecl {
     }
 
     /// Gets the list of parameters of the arrow function.
-    pub(crate) fn params(&self) -> &[FormalParameter] {
+    pub fn params(&self) -> &[FormalParameter] {
         &self.params
     }
 
     /// Gets the body of the arrow function.
-    pub(crate) fn body(&self) -> &[Node] {
+    pub fn body(&self) -> &[Node] {
         &self.body.items()
     }
 
@@ -62,14 +62,9 @@ impl AsyncArrowFunctionDecl {
 }
 
 impl Executable for AsyncArrowFunctionDecl {
-    fn run(&self, context: &mut Context) -> Result<Value> {
-        Ok(context.create_function(
-            self.params().to_vec(),
-            self.body().to_vec(),
-            FunctionFlags::CALLABLE
-                | FunctionFlags::CONSTRUCTABLE
-                | FunctionFlags::LEXICAL_THIS_MODE,
-        )?)
+    fn run(&self, _: &mut Context) -> Result<Value> {
+        // TODO: Implement AsyncFunctionExpr
+        Ok(Value::Undefined)
     }
 }
 
