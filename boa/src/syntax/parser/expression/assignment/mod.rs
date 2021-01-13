@@ -87,8 +87,6 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("AssignmentExpression", "Parsing");
         cursor.set_goal(InputElement::Div);
-
-        println!("Assignment expression");
         // Arrow function
         match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
             // Async a => {} or Async (a) => {}

@@ -342,7 +342,6 @@ where
                 // https://tc39.es/ecma262/#prod-AssignmentExpression
                 match cursor.peek(1)?.ok_or(ParseError::AbruptEnd)?.kind() {
                     TokenKind::Punctuator(Punctuator::OpenParen) | TokenKind::Identifier(_) => {
-                        println!("Statement after Async");
                         Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                             .parse(cursor)
                     }

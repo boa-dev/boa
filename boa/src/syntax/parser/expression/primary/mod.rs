@@ -83,7 +83,6 @@ where
                 FunctionExpression.parse(cursor).map(Node::from)
             }
             TokenKind::Keyword(Keyword::Async) => {
-                println!("Keyword async");
                 match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
                     TokenKind::Keyword(Keyword::Function) => {
                         AsyncFunctionExpression::new(self.allow_yield)
