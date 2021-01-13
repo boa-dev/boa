@@ -10,15 +10,13 @@ use std::fmt;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
-///
-///
-///
+/// An async arrow function expression is a syntactically compact alternative to an async function.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
-/// [spec]:
+/// [spec]: https://tc39.es/ecma262/#prod-AsyncArrowFunction
 /// [mdn]:
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]

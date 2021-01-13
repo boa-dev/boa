@@ -338,8 +338,7 @@ where
 
         match *tok.kind() {
             TokenKind::Keyword(Keyword::Async) => {
-                // async () => {}
-                // https://tc39.es/ecma262/#prod-AssignmentExpression
+                // async () => {} or async a => {}
                 match cursor.peek(1)?.ok_or(ParseError::AbruptEnd)?.kind() {
                     TokenKind::Punctuator(Punctuator::OpenParen) | TokenKind::Identifier(_) => {
                         Statement::new(self.allow_yield, self.allow_await, self.allow_return)
