@@ -6,6 +6,8 @@
 //!
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
 //! [spec]: https://tc39.es/ecma262/#sec-arrow-function-definitions
+#[cfg(test)]
+mod tests;
 
 use super::ConciseBody;
 use crate::syntax::lexer::TokenKind;
