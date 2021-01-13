@@ -28,6 +28,7 @@ pub struct Realm {
 }
 
 impl Realm {
+    #[allow(clippy::field_reassign_with_default)]
     pub fn create() -> Self {
         let _timer = BoaProfiler::global().start_event("Realm::create", "realm");
         // Create brand new global object
