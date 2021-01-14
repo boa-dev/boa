@@ -71,6 +71,11 @@ where
         self.buffered_lexer.set_strict_mode(strict_mode)
     }
 
+    #[inline]
+    pub(super) fn pos(&self) -> Position {
+        self.buffered_lexer.pos()
+    }
+
     /// Returns an error if the next token is not of kind `kind`.
     #[inline]
     pub(super) fn expect<K>(&mut self, kind: K, context: &'static str) -> Result<Token, ParseError>

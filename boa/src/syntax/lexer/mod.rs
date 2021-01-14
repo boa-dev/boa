@@ -288,6 +288,11 @@ impl<R> Lexer<R> {
     {
         TemplateLiteral.lex(&mut self.cursor, start)
     }
+
+    #[inline]
+    pub(super) fn pos(&self) -> Position {
+        self.cursor.pos()
+    }
 }
 
 /// ECMAScript goal symbols.

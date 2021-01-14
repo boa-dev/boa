@@ -245,4 +245,9 @@ where
 
         Ok(res_token)
     }
+
+    #[inline]
+    pub(super) fn pos(&self) -> Position {
+        self.lexer.pos()
+    }
 }

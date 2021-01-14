@@ -4,7 +4,7 @@ use crate::syntax::{
         Return,
     },
     ast::op::NumOp,
-    parser::tests::check_parser,
+    parser::tests::{check_invalid, check_parser},
 };
 
 /// Checks an arrow function with expression return.
@@ -292,4 +292,9 @@ fn check_async_arrow_assignment_3arg_nobrackets() {
         )])
         .into()],
     );
+}
+
+#[test]
+fn check_async_arrow_unique_formal_param() {
+    check_invalid("async (a, a) => a;");
 }

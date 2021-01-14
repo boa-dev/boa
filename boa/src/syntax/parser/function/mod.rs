@@ -16,7 +16,7 @@ use crate::{
             node::{self},
             Punctuator,
         },
-        lexer::{InputElement, TokenKind},
+        lexer::{Error as LexError, InputElement, TokenKind},
         parser::{
             expression::Initializer,
             statement::{BindingIdentifier, StatementList},
@@ -67,7 +67,6 @@ where
     type Output = Box<[node::FormalParameter]>;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        // TODO UniqueFormalParameters
         let _timer = BoaProfiler::global().start_event("FormalParameters", "Parsing");
         cursor.set_goal(InputElement::RegExp);
 
@@ -82,6 +81,8 @@ where
         loop {
             let mut rest_param = false;
 
+            let pos = cursor.pos();
+
             let next_param = match cursor.peek(0)? {
                 Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Spread) => {
                     rest_param = true;
@@ -89,6 +90,14 @@ where
                 }
                 _ => FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?,
             };
+
+            if self.unique && params.iter().any(|v| v.name() == next_param.name()) {
+                // https://tc39.es/ecma262/#prod-UniqueFormalParameters
+                return Err(ParseError::lex(LexError::Syntax(
+                    "Invalid duplicate formal parameter name".into(),
+                    pos,
+                )));
+            }
 
             params.push(next_param);
 
