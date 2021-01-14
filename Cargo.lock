@@ -2,7 +2,7 @@
 # It is not intended for manual editing.
 [[package]]
 name = "Boa"
-version = "0.10.0"
+version = "0.11.0"
 dependencies = [
  "bitflags",
  "boa_unicode",
@@ -77,7 +77,7 @@ checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 
 [[package]]
 name = "boa_cli"
-version = "0.10.0"
+version = "0.11.0"
 dependencies = [
  "Boa",
  "colored",
@@ -92,7 +92,7 @@ dependencies = [
 
 [[package]]
 name = "boa_tester"
-version = "0.10.0"
+version = "0.11.0"
 dependencies = [
  "Boa",
  "bitflags",
@@ -111,14 +111,14 @@ dependencies = [
 
 [[package]]
 name = "boa_unicode"
-version = "0.10.0"
+version = "0.11.0"
 dependencies = [
  "unicode-general-category",
 ]
 
 [[package]]
 name = "boa_wasm"
-version = "0.10.0"
+version = "0.11.0"
 dependencies = [
  "Boa",
  "getrandom 0.2.1",
