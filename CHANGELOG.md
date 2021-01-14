@@ -221,7 +221,7 @@ Internal Improvements:
 - [INTERNAL #1010](https://github.com/boa-dev/boa/pull/1010):
   Modify environment binding behaviour of function (@54k1)
 
-# 0.10.0 (2020-09-29) - New Lexer & Test 262 Harness
+# [0.10.0 (2020-09-29) - New Lexer & Test 262 Harness](https://github.com/boa-dev/boa/compare/v0.10.0...v0.11.0)
 
 Feature Enhancements:
 
