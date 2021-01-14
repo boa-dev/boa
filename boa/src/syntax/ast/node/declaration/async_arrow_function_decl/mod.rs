@@ -1,5 +1,4 @@
 use crate::{
-    builtins::function::FunctionFlags,
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
