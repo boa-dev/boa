@@ -516,6 +516,19 @@ impl Context {
         Ok(val)
     }
 
+    pub(crate) fn create_async_function<P, B>(
+        &mut self,
+        params: P,
+        body: B,
+        flags: FunctionFlags,
+    ) -> Result<Value>
+    where
+        P: Into<Box<[FormalParameter]>>,
+        B: Into<StatementList>,
+    {
+        todo!('Implement create_async_function');
+    }
+
     /// Create a new builin function.
     pub fn create_builtin_function(
         &mut self,

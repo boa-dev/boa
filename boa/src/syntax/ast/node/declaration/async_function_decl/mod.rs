@@ -81,9 +81,20 @@ impl AsyncFunctionDecl {
 }
 
 impl Executable for AsyncFunctionDecl {
-    fn run(&self, _: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("AsyncFunctionDecl", "exec");
         // TODO: Implement AsyncFunctionDecl
+        let val = context.create_async_function(
+            self.parameters().to_vec(),
+            self.body().to_vec(),
+            FunctionFlags::CALLABLE,
+        )?;
+
+        // https://tc39.es/ecma262/#sec-async-function-definitions-InstantiateFunctionObject
+
+        context.create_async_function()
+
+        // Return Completion { [[Type]]: normal, [[Value]]: argument, [[Target]]: empty }.
         Ok(Value::undefined())
     }
 }
