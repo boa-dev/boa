@@ -62,6 +62,7 @@ impl AsyncArrowFunctionDecl {
 
 impl Executable for AsyncArrowFunctionDecl {
     fn run(&self, _: &mut Context) -> Result<Value> {
+        // https://tc39.es/ecma262/#sec-async-arrow-function-definitions-runtime-semantics-namedevaluation
         // TODO: Implement AsyncFunctionExpr
         Ok(Value::Undefined)
     }
