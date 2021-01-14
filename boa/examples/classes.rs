@@ -10,7 +10,7 @@ use boa::{
 // We derive `Debug`, `Trace` and `Finalize`, It automatically implements `NativeObject`
 // so we can pass it an object in JavaScript.
 //
-// The fields of the sturct are not accesable by JavaScript unless accessors are created for them.
+// The fields of the sturct are not accessible by JavaScript unless accessors are created for them.
 /// This  Represents a Person.
 #[derive(Debug, Trace, Finalize)]
 struct Person {
@@ -58,7 +58,7 @@ impl Class for Person {
 
     // This is what is called when we do `new Person()`
     fn constructor(_this: &Value, args: &[Value], context: &mut Context) -> Result<Self> {
-        // we get the first arguemnt of undefined if the first one is unavalable and call `to_string`.
+        // we get the first argument of undefined if the first one is unavailable and call `to_string`.
         //
         // This is equivalent to `String(arg)`.
         let name = args
@@ -66,12 +66,12 @@ impl Class for Person {
             .cloned()
             .unwrap_or_default()
             .to_string(context)?;
-        // we get the second arguemnt of undefined if the first one is unavalable and call `to_u32`.
+        // we get the second argument of undefined if the first one is unavailable and call `to_u32`.
         //
         // This is equivalent to `arg | 0`.
         let age = args.get(1).cloned().unwrap_or_default().to_u32(context)?;
 
-        // we construct the the native struct `Person`
+        // we construct the native struct `Person`
         let person = Person {
             name: name.to_string(),
             age,
@@ -86,7 +86,7 @@ impl Class for Person {
         //
         // This function is added to `Person.prototype.sayHello()`
         class.method("sayHello", 0, Self::say_hello);
-        // we add a static mathod `is`, and here we use a closure, but it must be converible
+        // we add a static mathod `is`, and here we use a closure, but it must be convertible
         // to a NativeFunction. it must not contain state, if it does it will give a compilation error.
         //
         // This function is added to `Person.is()`
@@ -102,11 +102,11 @@ impl Class for Person {
             Ok(false.into()) // otherwise `false`.
         });
 
-        // Add a inherited property with the value `10`, with deafault attribute.
+        // Add a inherited property with the value `10`, with default attribute.
         // (`READONLY, NON_ENUMERABLE, PERMANENT).
         class.property("inheritedProperty", 10, Attribute::default());
 
-        // Add a static property with the value `"Im a static property"`, with deafault attribute.
+        // Add a static property with the value `"Im a static property"`, with default attribute.
         // (`WRITABLE, ENUMERABLE, PERMANENT`).
         class.static_property(
             "staticProperty",
