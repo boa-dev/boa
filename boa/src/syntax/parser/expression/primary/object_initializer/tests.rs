@@ -6,7 +6,7 @@ use crate::syntax::{
         },
         Const,
     },
-    parser::tests::check_parser,
+    parser::tests::{check_invalid, check_parser},
 };
 
 /// Checks object literal parsing.
@@ -139,4 +139,14 @@ fn check_object_setter() {
         )])
         .into()],
     );
+}
+
+#[test]
+fn check_non_unique_method_definition_params() {
+    check_invalid(
+        "const x = {
+            a(x, x) {},
+        };
+        ",
+    )
 }
