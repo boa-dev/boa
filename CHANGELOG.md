@@ -44,8 +44,6 @@ Feature Enhancements:
   Implement Number.prototype.toPrecision (@NathanRoyer)
 - [FEATURE #983](https://github.com/boa-dev/boa/pull/983):
   Implement Object.prototype.isPrototypeOf (@tofpie)
-- [FEATURE #659](https://github.com/boa-dev/boa/pull/659):
-  Error handling in environment (@54k1)
 - [FEATURE #995](https://github.com/boa-dev/boa/pull/995):
   Support Numeric separators (@tofpie)
 - [FEATURE #1013](https://github.com/boa-dev/boa/pull/1013):
@@ -66,7 +64,7 @@ Feature Enhancements:
   Added syntax highlighting for numbers, identifiers and template literals (@Razican)
 - [FEATURE #1003](https://github.com/boa-dev/boa/pull/1003):
   Improve Unicode support for identifier names (@jevancc)
-  
+
 Bug Fixes:
 
 - [BUG #782](https://github.com/boa-dev/boa/pull/782):
@@ -151,7 +149,9 @@ Bug Fixes:
   Fix parsing of arrow functions with 1 argument (@Lan2u)
 - [BUG #1045](https://github.com/boa-dev/boa/pull/1045):
   Add newTarget to construct (@tofpie)
-  
+- [BUG #659](https://github.com/boa-dev/boa/pull/659):
+  Error handling in environment (@54k1)
+
 Internal Improvements:
 
 - [INTERNAL #735](https://github.com/boa-dev/boa/pull/735):
