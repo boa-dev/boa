@@ -1,6 +1,6 @@
 # CHANGELOG
 
-# 0.11.0 (2021-01-11)
+# 0.11.0 (2021-01-14)
 
 Feature Enhancements:
 
