@@ -64,7 +64,9 @@ Feature Enhancements:
   Implement String.prototype.split (@jevancc)
 - [FEATURE #1047](https://github.com/boa-dev/boa/pull/1047):
   Added syntax highlighting for numbers, identifiers and template literals (@Razican)
-
+- [FEATURE #1003](https://github.com/boa-dev/boa/pull/1003):
+  Improve Unicode support for identifier names (@jevancc)
+  
 Bug Fixes:
 
 - [BUG #782](https://github.com/boa-dev/boa/pull/782):
