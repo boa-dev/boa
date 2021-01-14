@@ -143,7 +143,13 @@ Bug Fixes:
   Support overriding the `arguments` variable (@AnnikaCodes)
 - [BUG #1050](https://github.com/boa-dev/boa/pull/1050):
   Remove panic on named capture groups (@Razican)
-
+- [BUG #1046](https://github.com/boa-dev/boa/pull/1046):
+  Remove a few different panics (@Razican)
+- [BUG #1051](https://github.com/boa-dev/boa/pull/1051):
+  Fix parsing of arrow functions with 1 argument (@Lan2u)
+- [BUG #1045](https://github.com/boa-dev/boa/pull/1045):
+  Add newTarget to construct (@tofpie)
+  
 Internal Improvements:
 
 - [INTERNAL #735](https://github.com/boa-dev/boa/pull/735):
