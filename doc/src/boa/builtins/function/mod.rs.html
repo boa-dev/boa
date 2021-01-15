@@ -550,7 +550,7 @@
     <span class="comment">// Set length</span>
     <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">DataDescriptor</span>::<span class="ident">new</span>(
         <span class="ident">len</span>,
-        <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">PERMANENT</span>,
+        <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
     );
     <span class="comment">// Define length as a property</span>
     <span class="ident">obj</span>.<span class="ident">ordinary_define_own_property</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length</span>.<span class="ident">into</span>());
