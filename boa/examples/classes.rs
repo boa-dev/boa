@@ -58,7 +58,7 @@ impl Class for Person {
 
     // This is what is called when we do `new Person()`
     fn constructor(_this: &Value, args: &[Value], context: &mut Context) -> Result<Self> {
-        // we get the first argument of undefined if the first one is unavailable and call `to_string`.
+        // we get the first argument or undefined if the first one is unavailable and call `to_string`.
         //
         // This is equivalent to `String(arg)`.
         let name = args
