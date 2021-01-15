@@ -19,8 +19,7 @@
     .then((response) => response.json())
     .then((data) => {
       masterData = data;
-      let innerContainer = $("<div></div>")
-        .addClass("card-body")
+      let innerContainer = $('<div class="card-body"></div>')
         .append($("<h2><code>master</code> branch results:</h2>"))
         .append(createGeneralInfo(data));
 
@@ -29,7 +28,7 @@
       }
 
       $("#master-latest")
-        .append($("<div></div>").addClass("card").append(innerContainer))
+        .append($('<div class="card"></div>').append(innerContainer))
         .show();
     });
 
@@ -43,8 +42,7 @@
       fetch(`./refs/tags/${getRefTag(latestTag)[1]}/results.json`)
         .then((response) => response.json())
         .then((data) => {
-          let innerContainer = $("<div></div>")
-            .addClass("card-body")
+          let innerContainer = $('<div class="card-body"></div>')
             .append($(`<h2>Latest version (${latestTag}) results:</h2>`))
             .append(createGeneralInfo(data));
 
@@ -53,7 +51,7 @@
           }
 
           $("#version-latest")
-            .append($("<div></div>").addClass("card").append(innerContainer))
+            .append($('<div class="card"></div>').append(innerContainer))
             .show();
         });
 
@@ -82,17 +80,15 @@
 
   // Creates a link to show the information about a particular tag / branch
   function infoLink(tag, data) {
-    let container = $("<div></div>").addClass("info-link");
+    let container = $('<div class="info-link"></div>');
 
     if (tag === "master") {
       container.append(createHistoricalGraph());
     }
 
     container.append(
-      $("<a></a>")
-        .append($("<i></i>").addClass("bi").addClass("bi-info-square"))
-        .addClass("card-link")
-        .attr("href", "#")
+      $('<a class="card-link" href="#"></a>')
+        .append($('<i class="bi bi-info-square"></i>'))
         .click(() => {
           let data = latest[tag];
           showData(data);
@@ -107,58 +103,46 @@
     let infoContainer = $("#info");
     setTimeout(
       function () {
-        infoContainer.html("");
+        infoContainer.empty();
         let totalTests = data.r.c;
         let passedTests = data.r.o;
         let ignoredTests = data.r.i;
         let failedTests = totalTests - passedTests - ignoredTests;
 
         infoContainer.append(
-          $("<div></div>")
-            .addClass("card")
-            .append(
-              $("<div></div>")
-                .addClass("progress")
-                .addClass("progress-bar-striped")
-                .append(
-                  $("<div></div>")
-                    .addClass("progress-bar")
-                    .addClass("bg-success")
-                    .attr("aria-valuenow", passedTests)
-                    .attr("aria-valuemax", totalTests)
-                    .attr("aria-valuemin", 0)
-                    .css(
-                      "width",
-                      `${Math.round((passedTests / totalTests) * 10000) / 100}%`
-                    )
-                )
-                .append(
-                  $("<div></div>")
-                    .addClass("progress-bar")
-                    .addClass("bg-warning")
-                    .attr("aria-valuenow", ignoredTests)
-                    .attr("aria-valuemax", totalTests)
-                    .attr("aria-valuemin", 0)
-                    .css(
-                      "width",
-                      `${
-                        Math.round((ignoredTests / totalTests) * 10000) / 100
-                      }%`
-                    )
-                )
-                .append(
-                  $("<div></div>")
-                    .addClass("progress-bar")
-                    .addClass("bg-danger")
-                    .attr("aria-valuenow", failedTests)
-                    .attr("aria-valuemax", totalTests)
-                    .attr("aria-valuemin", 0)
-                    .css(
-                      "width",
-                      `${Math.round((failedTests / totalTests) * 10000) / 100}%`
-                    )
-                )
-            )
+          $('<div class="card"></div>').append(
+            $('<div class="progress progress-bar-stripped"></div>')
+              .append(
+                $('<div class="progress-bar bg-success"></div>')
+                  .attr("aria-valuenow", passedTests)
+                  .attr("aria-valuemax", totalTests)
+                  .attr("aria-valuemin", 0)
+                  .css(
+                    "width",
+                    `${Math.round((passedTests / totalTests) * 10000) / 100}%`
+                  )
+              )
+              .append(
+                $('<div class="progress-bar bg-warning"></div>')
+                  .attr("aria-valuenow", ignoredTests)
+                  .attr("aria-valuemax", totalTests)
+                  .attr("aria-valuemin", 0)
+                  .css(
+                    "width",
+                    `${Math.round((ignoredTests / totalTests) * 10000) / 100}%`
+                  )
+              )
+              .append(
+                $('<div class="progress-bar bg-danger"></div>')
+                  .attr("aria-valuenow", failedTests)
+                  .attr("aria-valuemax", totalTests)
+                  .attr("aria-valuemin", 0)
+                  .css(
+                    "width",
+                    `${Math.round((failedTests / totalTests) * 10000) / 100}%`
+                  )
+              )
+          )
         );
 
         for (let suite of data.r.s) {
@@ -172,26 +156,21 @@
 
     // Adds a suite representation to an element.
     function addSuite(elm, suite, parentID, namespace, upstream) {
-      let li = $("<div></div>").addClass("card");
+      let li = $('<div class="card"></div>');
 
       let newID = parentID + suite.n;
       let headerID = newID + "header";
-      let header = $("<div></div>")
-        .attr("id", headerID)
-        .addClass("card-header")
-        .addClass("col-md-12");
+      let header = $(
+        `<div id="${headerID}" class="card-header col-md-12"></div>`
+      );
 
       // Add overal information:
-      let info = $("<button></button>")
-        .addClass("btn")
-        .addClass("btn-light")
-        .addClass("btn-block")
-        .addClass("text-left")
-        .attr("type", "button")
-        .attr("data-toggle", "collapse");
+      let info = $(
+        '<button type="button" aria-expanded="false" data-toggle="collapse" class="btn btn-light btn-block text-left"></button>'
+      );
 
-      let name = $("<span></span>").addClass("name").text(suite.n);
-      info.append(name).attr("aria-expanded", false);
+      let name = $('<span class="name"></span>').text(suite.n);
+      info.append(name);
 
       let dataHTML = ` <span class="passed-tests">${formatter.format(
         suite.o
@@ -211,26 +190,22 @@
       dataHTML += ` / <span class="total-tests">${formatter.format(
         suite.c
       )}</span>`;
-      info.append($("<span></span>").addClass("data-overview").html(dataHTML));
+      info.append($('<span class="data-overview"></span>').html(dataHTML));
 
       header.append(info);
       li.append(header);
 
       // Add sub-suites
-      let inner = $("<div></div>")
-        .attr("id", newID)
-        .attr("data-parent", "#" + parentID)
-        .addClass("collapse")
-        .attr("aria-labelledby", headerID);
+      let inner = $(
+        `<div id="${newID}" data-parent="#${parentID}" class="collapse" aria-labelledby="${headerID}"></div>`
+      );
 
-      let innerInner = $("<div></div>")
-        .addClass("card-body")
-        .addClass("accordion");
+      let innerInner = $('<div class="card-body accordion"></div>');
 
       if (typeof suite.t !== "undefined" && suite.t.length !== 0) {
-        let grid = $("<div></div>")
-          .addClass("card-body")
-          .append($("<h3>Direct tests:</h3>"));
+        let grid = $('<div class="card-body"></div>').append(
+          $("<h3>Direct tests:</h3>")
+        );
         for (let innerTest of suite.t) {
           let name = namespace + "/" + innerTest.n + ".js";
           let style;
@@ -245,17 +220,13 @@
               style = "bg-danger";
           }
 
-          let testCard = $("<div></div>")
-            .attr("title", innerTest.n)
-            .addClass("card")
-            .addClass("test")
-            .addClass("embed-responsive")
-            .addClass(style)
-            .click(() => {
-              window.open(
-                `https://github.com/tc39/test262/blob/${upstream}/${name}`
-              );
-            });
+          let testCard = $(
+            `<div title="${innerTest.n}" class="card test embed-responsive ${style}"></div>`
+          ).click(() => {
+            window.open(
+              `https://github.com/tc39/test262/blob/${upstream}/${name}`
+            );
+          });
 
           if (innerTest.r === "P") {
             testCard.append(
@@ -268,7 +239,7 @@
           grid.append(testCard);
         }
 
-        innerInner.append($("<div></div>").addClass("card").append(grid));
+        innerInner.append($('<div class="card"></div>').append(grid));
       }
 
       if (typeof suite.s !== "undefined" && suite.s.length !== 0) {
@@ -294,78 +265,64 @@
   /// Creates the general information structure.
   function createGeneralInfo(data) {
     let latest = data[data.length - 1];
-    return $("<ul></ul>")
-      .addClass("list-group")
-      .addClass("list-group-flush")
+    return $('<ul class="list-group list-group-flush"></ul>')
       .append(
-        $("<li></li>")
-          .addClass("list-group-item")
-          .html(
-            `Latest commit: <a href="https://github.com/boa-dev/boa/commit/${latest.c}" title="Check commit">${latest.c}</a>`
-          )
+        $('<li class="list-group-item"></li>').html(
+          `Latest commit: <a href="https://github.com/boa-dev/boa/commit/${latest.c}" title="Check commit">${latest.c}</a>`
+        )
       )
       .append(
-        $("<li></li>")
-          .addClass("list-group-item")
-          .html(
-            `Total tests: <span class="total-tests">${formatter.format(
-              latest.t
-            )}</span>`
-          )
+        $('<li class="list-group-item"></li>').html(
+          `Total tests: <span class="total-tests">${formatter.format(
+            latest.t
+          )}</span>`
+        )
       )
       .append(
-        $("<li></li>")
-          .addClass("list-group-item")
-          .html(
-            `Passed tests: <span class="passed-tests">${formatter.format(
-              latest.o
-            )}</span>`
-          )
+        $('<li class="list-group-item"></li>').html(
+          `Passed tests: <span class="passed-tests">${formatter.format(
+            latest.o
+          )}</span>`
+        )
       )
       .append(
-        $("<li></li>")
-          .addClass("list-group-item")
-          .html(
-            `Ignored tests: <span class="ignored-tests">${formatter.format(
-              latest.i
-            )}</span>`
-          )
+        $('<li class="list-group-item"></li>').html(
+          `Ignored tests: <span class="ignored-tests">${formatter.format(
+            latest.i
+          )}</span>`
+        )
       )
       .append(
-        $("<li></li>")
-          .addClass("list-group-item")
-          .html(
-            `Failed tests: <span class="failed-tests">${formatter.format(
-              latest.t - latest.o - latest.i
-            )}${
-              latest.p !== 0
-                ? ` (${formatter.format(
-                    latest.p
-                  )} <i class="bi bi-exclamation-triangle"></i>)`
-                : ""
-            }</span>`
-          )
+        $('<li class="list-group-item"></li>').html(
+          `Failed tests: <span class="failed-tests">${formatter.format(
+            latest.t - latest.o - latest.i
+          )}${
+            latest.p !== 0
+              ? ` (${formatter.format(
+                  latest.p
+                )} <i class="bi bi-exclamation-triangle"></i>)`
+              : ""
+          }</span>`
+        )
       )
       .append(
-        $("<li></li>")
-          .addClass("list-group-item")
-          .html(
-            `Conformance: <b>${
-              Math.round((10000 * latest.o) / latest.t) / 100
-            }%</b>`
-          )
+        $('<li class="list-group-item"></li>').html(
+          `Conformance: <b>${
+            Math.round((10000 * latest.o) / latest.t) / 100
+          }%</b>`
+        )
       );
   }
 
   function createHistoricalGraph() {
     $("#graph-modal .modal-body").append(
-      $('<canvas id="master-graph"><canvas>')
+      $('<canvas id="master-graph"></canvas>')
     );
 
     $("#graph-modal").on("hidden.bs.modal", () => {
-      $("#master-graph").remove();
+      $("#graph-modal .modal-body").empty();
       $("#graph-modal .modal-body").append(
-        $('<canvas id="master-graph"><canvas>')
+        $('<canvas id="master-graph"></canvas>')
       );
     });
 
@@ -441,10 +398,8 @@
       });
     });
 
-    return $("<a></a>")
-      .append($("<i></i>").addClass("bi").addClass("bi-graph-up"))
-      .addClass("card-link")
-      .attr("href", "#")
+    return $('<a class="card-link" href="#""></a>')
+      .append($('<i class="bi bi-graph-up"></i>'))
       .click(() => {
         $("#graph-modal").modal("show");
       });
@@ -452,11 +407,6 @@
 
   function getRefTag(tag) {
     let version = tag.split(".");
-
-    // Seems that refs are stored with an ending 0:
-    if (version.length == 2) {
-      tag += ".0";
-    }
 
     return [version, tag];
   }
