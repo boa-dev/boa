@@ -58,7 +58,7 @@ impl Class for Person {
 
     // This is what is called when we do `new Person()`
     fn constructor(_this: &Value, args: &[Value], context: &mut Context) -> Result<Self> {
-        // we get the first argument or undefined if the first one is unavailable and call `to_string`.
+        // We get the first argument. If it is unavailable we get `undefined`. And, then call `to_string()`.
         //
         // This is equivalent to `String(arg)`.
         let name = args
@@ -66,7 +66,7 @@ impl Class for Person {
             .cloned()
             .unwrap_or_default()
             .to_string(context)?;
-        // we get the second argument of undefined if the first one is unavailable and call `to_u32`.
+        // We get the second argument. If it is unavailable we get `undefined`. And, then call `to_u32`.
         //
         // This is equivalent to `arg | 0`.
         let age = args.get(1).cloned().unwrap_or_default().to_u32(context)?;
