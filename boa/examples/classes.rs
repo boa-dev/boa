@@ -10,7 +10,7 @@ use boa::{
 // We derive `Debug`, `Trace` and `Finalize`, It automatically implements `NativeObject`
 // so we can pass it an object in JavaScript.
 //
-// The fields of the sturct are not accessible by JavaScript unless accessors are created for them.
+// The fields of the struct are not accessible by JavaScript unless accessors are created for them.
 /// This  Represents a Person.
 #[derive(Debug, Trace, Finalize)]
 struct Person {
