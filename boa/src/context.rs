@@ -233,6 +233,9 @@ pub struct Context {
 
     /// Cached standard objects and their prototypes.
     standard_objects: StandardObjects,
+
+    /// Whether or not to show trace of instructions being ran
+    pub trace: bool,
 }
 
 impl Default for Context {
@@ -249,6 +252,7 @@ impl Default for Context {
             well_known_symbols,
             iterator_prototypes: IteratorPrototypes::default(),
             standard_objects: Default::default(),
+            trace: false,
         };
 
         // Add new builtIns to Context Realm
@@ -764,7 +768,7 @@ impl Context {
         let mut compiler = Compiler::default();
         statement_list.compile(&mut compiler);
 
-        let mut vm = VM::new(compiler, self, true);
+        let mut vm = VM::new(compiler, self);
         // Generate Bytecode and place it into instruction_stack
         // Interpret the Bytecode
         let result = vm.run();
@@ -801,5 +805,10 @@ impl Context {
     #[inline]
     pub fn standard_objects(&self) -> &StandardObjects {
         &self.standard_objects
+    }
+
+    /// Set the value of trace on the context
+    pub fn set_trace(&mut self, trace: bool) {
+        self.trace = trace;
     }
 }

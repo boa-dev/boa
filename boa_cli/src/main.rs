@@ -66,6 +66,11 @@ struct Opt {
     )]
     dump_ast: Option<Option<DumpFormat>>,
 
+    /// Dump the AST to stdout with the given format.
+    #[cfg(feature = "vm")]
+    #[structopt(long = "trace", short = "t")]
+    trace: bool,
+
     /// Use vi mode in the REPL
     #[structopt(long = "vi")]
     vi_mode: bool,
@@ -142,6 +147,10 @@ pub fn main() -> Result<(), std::io::Error> {
     let args = Opt::from_args();
 
     let mut context = Context::new();
+
+    // Trace Output
+    #[cfg(feature = "vm")]
+    context.set_trace(args.trace);
 
     for file in &args.files {
         let buffer = read(file)?;

@@ -1,3 +1,6 @@
+//! The Virtual Machine (VM) handles generating instructions, then executing them.
+//! This module will provide an instruction set for the AST to use, various traits, plus an interpreter to execute those instructions
+
 use crate::{environment::lexical_environment::VariableScope, BoaProfiler, Context, Result, Value};
 
 pub(crate) mod compilation;
@@ -7,7 +10,7 @@ pub use compilation::Compiler;
 pub use instructions::Instruction;
 use std::time::{Duration, Instant};
 
-// Virtual Machine.
+/// Virtual Machine.
 #[derive(Debug)]
 pub struct VM<'a> {
     ctx: &'a mut Context,
@@ -19,8 +22,9 @@ pub struct VM<'a> {
     profile: Profiler,
     is_trace: bool,
 }
+/// This profiler is used to output trace information when `--trace` is provided by the CLI or trace is set to `true` on the [`VM`] object
 #[derive(Debug)]
-pub struct Profiler {
+struct Profiler {
     instant: Instant,
     prev_time: Duration,
     trace_string: String,
@@ -28,7 +32,8 @@ pub struct Profiler {
 }
 
 impl<'a> VM<'a> {
-    pub fn new(compiler: Compiler, ctx: &'a mut Context, _trace: bool) -> Self {
+    pub fn new(compiler: Compiler, ctx: &'a mut Context) -> Self {
+        let trace = ctx.trace;
         Self {
             ctx,
             idx: 0,
@@ -36,7 +41,7 @@ impl<'a> VM<'a> {
             pool: compiler.pool,
             stack: vec![],
             stack_pointer: 0,
-            is_trace: true,
+            is_trace: trace,
             profile: Profiler {
                 instant: Instant::now(),
                 prev_time: Duration::from_secs(0),
