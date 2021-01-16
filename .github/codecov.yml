@@ -7,6 +7,4 @@ coverage:
       default:
         threshold: 5% # allow 5% coverage variance
 
-    patch:
-      default:
-        threshold: 5% # allow 5% coverage variance
+    patch: off
