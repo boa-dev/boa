@@ -80,7 +80,7 @@ impl BuiltIn for Number {
         .static_method(Self::number_is_integer, "isInteger", 1)
         .build();
 
-        let global = context.global_object().clone();
+        let global = context.global_object();
         make_builtin_fn(
             Self::parse_int,
             "parseInt",

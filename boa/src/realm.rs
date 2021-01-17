@@ -4,7 +4,7 @@
 //!
 //! A realm is represented in this implementation as a Realm struct with the fields specified from the spec.
 
-use crate::object::Object;
+use crate::object::{GcObject, Object, ObjectData};
 use crate::{
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
@@ -22,36 +22,42 @@ use rustc_hash::{FxHashMap, FxHashSet};
 /// In the specification these are called Realm Records.
 #[derive(Debug)]
 pub struct Realm {
-    pub global_object: Value,
+    pub global_object: GcObject,
     pub global_env: Gc<GcCell<GlobalEnvironmentRecord>>,
     pub environment: LexicalEnvironment,
 }
 
 impl Realm {
+    #[allow(clippy::field_reassign_with_default)]
     pub fn create() -> Self {
         let _timer = BoaProfiler::global().start_event("Realm::create", "realm");
         // Create brand new global object
         // Global has no prototype to pass None to new_obj
-        let global = Value::from(Object::default());
+        let mut global = Object::default();
 
         // Allow identification of the global object easily
-        global.set_data(crate::object::ObjectData::Global);
+        global.data = ObjectData::Global;
+
+        let gc_global = GcObject::new(global);
 
         // We need to clone the global here because its referenced from separate places (only pointer is cloned)
-        let global_env = new_global_environment(global.clone(), global.clone());
+        let global_env = new_global_environment(gc_global.clone(), gc_global.clone().into());
 
         Self {
-            global_object: global.clone(),
+            global_object: gc_global.clone(),
             global_env,
-            environment: LexicalEnvironment::new(global),
+            environment: LexicalEnvironment::new(gc_global.into()),
         }
     }
 }
 
 // Similar to new_global_environment in lexical_environment, except we need to return a GlobalEnvirionment
-fn new_global_environment(global: Value, this_value: Value) -> Gc<GcCell<GlobalEnvironmentRecord>> {
+fn new_global_environment(
+    global: GcObject,
+    this_value: Value,
+) -> Gc<GcCell<GlobalEnvironmentRecord>> {
     let obj_rec = ObjectEnvironmentRecord {
-        bindings: global,
+        bindings: Value::Object(global),
         outer_env: None,
         /// Object Environment Records created for with statements (13.11)
         /// can provide their binding object as an implicit this value for use in function calls.
