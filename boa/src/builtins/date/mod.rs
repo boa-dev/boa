@@ -224,53 +224,63 @@ impl Date {
         millisecond: Option<f64>,
     ) {
         #[inline]
-        fn num_days_in(year: i32, month: u32) -> i32 {
-            let month = month + 1; // zero-based for calculations
-            NaiveDate::from_ymd(
-                match month {
-                    12 => year + 1,
-                    _ => year,
-                },
-                match month {
-                    12 => 1,
-                    _ => month + 1,
-                },
-                1,
+        fn num_days_in(year: i32, month: u32) -> Option<u32> {
+            let month = month.checked_add(1)?; // zero-based for calculations
+            Some(
+                NaiveDate::from_ymd(
+                    match month {
+                        12 => year.checked_add(1)?,
+                        _ => year,
+                    },
+                    match month {
+                        12 => 1,
+                        _ => month.checked_add(1)?,
+                    },
+                    1,
+                )
+                .signed_duration_since(NaiveDate::from_ymd(year, month, 1))
+                .num_days() as u32,
             )
-            .signed_duration_since(NaiveDate::from_ymd(year, month, 1))
-            .num_days() as i32
         }
 
         #[inline]
-        fn fix_month(year: &mut i32, month: &mut i32) {
-            *year += *month / 12;
-            *month = if *month < 0 {
-                *year -= 1;
-                11 + (*month + 1) % 12
+        fn fix_month(year: i32, month: i32) -> Option<(i32, u32)> {
+            let year = year.checked_add(month / 12)?;
+
+            if month < 0 {
+                let year = year.checked_sub(1)?;
+                let month = (11 + (month + 1) % 12) as u32;
+                Some((year, month))
             } else {
-                *month % 12
+                let month = (month % 12) as u32;
+                Some((year, month))
             }
         }
 
         #[inline]
-        fn fix_day(year: &mut i32, month: &mut i32, day: &mut i32) {
-            fix_month(year, month);
+        fn fix_day(mut year: i32, mut month: i32, mut day: i32) -> Option<(i32, u32, u32)> {
             loop {
-                if *day < 0 {
-                    *month -= 1;
-                    fix_month(year, month);
-                    *day += num_days_in(*year, *month as u32);
+                if day < 0 {
+                    let (fixed_year, fixed_month) = fix_month(year, month.checked_sub(1)?)?;
+
+                    year = fixed_year;
+                    month = fixed_month as i32;
+                    day += num_days_in(fixed_year, fixed_month)? as i32;
                 } else {
-                    let num_days = num_days_in(*year, *month as u32);
-                    if *day >= num_days {
-                        *day -= num_days_in(*year, *month as u32);
-                        *month += 1;
-                        fix_month(year, month);
+                    let (fixed_year, fixed_month) = fix_month(year, month)?;
+                    let num_days = num_days_in(fixed_year, fixed_month)? as i32;
+
+                    if day >= num_days {
+                        day -= num_days;
+                        month = month.checked_add(1)?;
                     } else {
                         break;
                     }
                 }
             }
+
+            let (fixed_year, fixed_month) = fix_month(year, month)?;
+            Some((fixed_year, fixed_month, day as u32))
         }
 
         // If any of the args are infinity or NaN, return an invalid date.
@@ -286,22 +296,22 @@ impl Date {
         };
 
         self.0 = naive.and_then(|naive| {
-            let mut year = year.unwrap_or_else(|| naive.year() as f64) as i32;
-            let mut month = month.unwrap_or_else(|| naive.month0() as f64) as i32;
-            let mut day = day.unwrap_or_else(|| naive.day() as f64) as i32 - 1;
+            let year = year.unwrap_or_else(|| naive.year() as f64) as i32;
+            let month = month.unwrap_or_else(|| naive.month0() as f64) as i32;
+            let day = day.unwrap_or_else(|| naive.day() as f64) as i32 - 1;
             let hour = hour.unwrap_or_else(|| naive.hour() as f64) as i64;
             let minute = minute.unwrap_or_else(|| naive.minute() as f64) as i64;
             let second = second.unwrap_or_else(|| naive.second() as f64) as i64;
             let millisecond =
                 millisecond.unwrap_or_else(|| naive.nanosecond() as f64 / NANOS_IN_MS) as i64;
 
-            fix_day(&mut year, &mut month, &mut day);
+            let (year, month, day) = fix_day(year, month, day)?;
 
             let duration = Duration::hours(hour)
                 + Duration::minutes(minute)
                 + Duration::seconds(second)
                 + Duration::milliseconds(millisecond);
-            NaiveDate::from_ymd_opt(year, month as u32 + 1, day as u32 + 1)
+            NaiveDate::from_ymd_opt(year, month + 1, day + 1)
                 .and_then(|dt| dt.and_hms(0, 0, 0).checked_add_signed(duration))
                 .and_then(|dt| {
                     if utc {
