@@ -248,7 +248,8 @@ impl Date {
     ) {
         #[inline]
         fn num_days_in(year: i32, month: u32) -> Option<u32> {
-            let month = month.checked_add(1)?; // zero-based for calculations
+            let month = month + 1; // zero-based for calculations
+
             Some(
                 NaiveDate::from_ymd_opt(
                     match month {
@@ -257,7 +258,7 @@ impl Date {
                     },
                     match month {
                         12 => 1,
-                        _ => month.checked_add(1)?,
+                        _ => month + 1,
                     },
                     1,
                 )?
