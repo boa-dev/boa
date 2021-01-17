@@ -3,7 +3,7 @@ use crate::{
         function::make_builtin_fn, iterable::create_iter_result_object, string::code_point_at,
     },
     gc::{Finalize, Trace},
-    object::ObjectData,
+    object::{GcObject, ObjectData},
     property::{Attribute, DataDescriptor},
     BoaProfiler, Context, Result, Value,
 };
@@ -69,21 +69,18 @@ impl StringIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
-    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: Value) -> Value {
+    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: Value) -> GcObject {
         let _timer = BoaProfiler::global().start_event("String Iterator", "init");
 
         // Create prototype
-        let array_iterator = Value::new_object(context);
+        let mut array_iterator = context.construct_object();
         make_builtin_fn(Self::next, "next", &array_iterator, 0, context);
-        array_iterator
-            .as_object()
-            .expect("array iterator prototype object")
-            .set_prototype_instance(iterator_prototype);
+        array_iterator.set_prototype_instance(iterator_prototype);
 
         let to_string_tag = context.well_known_symbols().to_string_tag_symbol();
         let to_string_tag_property =
             DataDescriptor::new("String Iterator", Attribute::CONFIGURABLE);
-        array_iterator.set_property(to_string_tag, to_string_tag_property);
+        array_iterator.insert(to_string_tag, to_string_tag_property);
         array_iterator
     }
 }
