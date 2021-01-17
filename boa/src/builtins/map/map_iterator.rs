@@ -1,6 +1,6 @@
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, Value},
-    object::ObjectData,
+    object::{GcObject, ObjectData},
     property::{Attribute, DataDescriptor},
     BoaProfiler, Context, Result,
 };
@@ -138,20 +138,17 @@ impl MapIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%-object
-    pub(crate) fn create_prototype(context: &Context, iterator_prototype: Value) -> Value {
+    pub(crate) fn create_prototype(context: &Context, iterator_prototype: Value) -> GcObject {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let map_iterator = Value::new_object(context);
+        let mut map_iterator = context.construct_object();
         make_builtin_fn(Self::next, "next", &map_iterator, 0, context);
-        map_iterator
-            .as_object()
-            .expect("map iterator prototype object")
-            .set_prototype_instance(iterator_prototype);
+        map_iterator.set_prototype_instance(iterator_prototype);
 
         let to_string_tag = context.well_known_symbols().to_string_tag_symbol();
         let to_string_tag_property = DataDescriptor::new("Map Iterator", Attribute::CONFIGURABLE);
-        map_iterator.set_property(to_string_tag, to_string_tag_property);
+        map_iterator.insert(to_string_tag, to_string_tag_property);
         map_iterator
     }
 }

@@ -3,7 +3,7 @@ use crate::value::RcString;
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object},
     gc::{Finalize, Trace},
-    object::ObjectData,
+    object::{GcObject, ObjectData},
     property::{Attribute, DataDescriptor},
     BoaProfiler, Context, Result, Value,
 };
@@ -125,21 +125,18 @@ impl ForInIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%-object
-    pub(crate) fn create_prototype(context: &Context, iterator_prototype: Value) -> Value {
+    pub(crate) fn create_prototype(context: &Context, iterator_prototype: Value) -> GcObject {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let for_in_iterator = Value::new_object(context);
+        let mut for_in_iterator = context.construct_object();
         make_builtin_fn(Self::next, "next", &for_in_iterator, 0, context);
-        for_in_iterator
-            .as_object()
-            .expect("for in iterator prototype object")
-            .set_prototype_instance(iterator_prototype);
+        for_in_iterator.set_prototype_instance(iterator_prototype);
 
         let to_string_tag = context.well_known_symbols().to_string_tag_symbol();
         let to_string_tag_property =
             DataDescriptor::new("For In Iterator", Attribute::CONFIGURABLE);
-        for_in_iterator.set_property(to_string_tag, to_string_tag_property);
+        for_in_iterator.insert(to_string_tag, to_string_tag_property);
         for_in_iterator
     }
 }

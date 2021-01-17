@@ -21,21 +21,20 @@ impl IteratorPrototypes {
     pub(crate) fn init(context: &Context) -> Self {
         let iterator_prototype = create_iterator_prototype(context);
         Self {
-            iterator_prototype: iterator_prototype
-                .as_object()
-                .expect("Iterator prototype is not an object"),
-            array_iterator: ArrayIterator::create_prototype(context, iterator_prototype.clone())
-                .as_object()
-                .expect("Array Iterator Prototype is not an object"),
-            string_iterator: StringIterator::create_prototype(context, iterator_prototype.clone())
-                .as_object()
-                .expect("String Iterator Prototype is not an object"),
-            map_iterator: MapIterator::create_prototype(context, iterator_prototype.clone())
-                .as_object()
-                .expect("Map Iterator Prototype is not an object"),
-            for_in_iterator: ForInIterator::create_prototype(context, iterator_prototype)
-                .as_object()
-                .expect("For In Iterator Prototype is not an object"),
+            array_iterator: ArrayIterator::create_prototype(
+                context,
+                iterator_prototype.clone().into(),
+            ),
+            string_iterator: StringIterator::create_prototype(
+                context,
+                iterator_prototype.clone().into(),
+            ),
+            map_iterator: MapIterator::create_prototype(context, iterator_prototype.clone().into()),
+            for_in_iterator: ForInIterator::create_prototype(
+                context,
+                iterator_prototype.clone().into(),
+            ),
+            iterator_prototype,
         }
     }
 
@@ -99,7 +98,7 @@ pub fn get_iterator(context: &Context, iterable: Value) -> Result<IteratorRecord
 ///  - [ECMA reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object
-fn create_iterator_prototype(context: &Context) -> Value {
+fn create_iterator_prototype(context: &Context) -> GcObject {
     let _timer = BoaProfiler::global().start_event("Iterator Prototype", "init");
 
     let symbol_iterator = context.well_known_symbols().iterator_symbol();
@@ -110,8 +109,7 @@ fn create_iterator_prototype(context: &Context) -> Value {
             0,
         )
         .build();
-    // TODO: return GcObject
-    iterator_prototype.into()
+    iterator_prototype
 }
 
 #[derive(Debug)]

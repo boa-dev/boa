@@ -80,7 +80,11 @@ impl Map {
         let map_prototype = context
             .global_object()
             .clone()
-            .get_field("Map", context)?
+            .get(
+                &"Map".into(),
+                context.global_object().clone().into(),
+                context,
+            )?
             .get_field(PROTOTYPE, context)?
             .as_object()
             .expect("'Map' global property should be an object");

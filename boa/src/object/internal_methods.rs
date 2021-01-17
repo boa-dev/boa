@@ -779,6 +779,11 @@ impl GcObject {
     pub fn is_constructable(&self) -> bool {
         self.borrow().is_constructable()
     }
+
+    /// Returns true if the GcObject is the global for a Realm
+    pub fn is_global(&self) -> bool {
+        matches!(self.borrow().data, ObjectData::Global)
+    }
 }
 
 impl Object {

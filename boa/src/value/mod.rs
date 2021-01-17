@@ -263,14 +263,6 @@ impl Value {
         }
     }
 
-    /// Returns true if the value the global for a Realm
-    pub fn is_global(&self) -> bool {
-        match self {
-            Value::Object(object) => matches!(object.borrow().data, ObjectData::Global),
-            _ => false,
-        }
-    }
-
     /// Returns true if the value is an object
     #[inline]
     pub fn is_object(&self) -> bool {
