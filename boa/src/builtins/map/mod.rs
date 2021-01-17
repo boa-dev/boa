@@ -342,18 +342,46 @@ impl Map {
         let callback_arg = &args[0];
         let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        if let Value::Object(ref object) = this {
-            let object = object.borrow();
-            if let Some(map) = object.as_map_ref().cloned() {
-                for (key, value) in map {
-                    let arguments = [value, key, this.clone()];
+        let mut index = 0;
 
-                    context.call(callback_arg, &this_arg, &arguments)?;
+        while index < Map::get_size(this, context)? {
+            let arguments = if let Value::Object(ref object) = this {
+                let object = object.borrow();
+                if let Some(map) = object.as_map_ref() {
+                    if let Some((key, value)) = map.get_index(index) {
+                        Some([value.clone(), key.clone(), this.clone()])
+                    } else {
+                        None
+                    }
+                } else {
+                    return context.throw_type_error("'this' is not a Map");
                 }
+            } else {
+                return context.throw_type_error("'this' is not a Map");
+            };
+
+            if let Some(arguments) = arguments {
+                context.call(callback_arg, &this_arg, &arguments)?;
             }
+
+            index += 1;
         }
 
         Ok(Value::Undefined)
+    }
+
+    /// Helper function to get the size of the map.
+    fn get_size(map: &Value, context: &mut Context) -> Result<usize> {
+        if let Value::Object(ref object) = map {
+            let object = object.borrow();
+            if let Some(map) = object.as_map_ref() {
+                Ok(map.len())
+            } else {
+                Err(context.construct_type_error("'this' is not a Map"))
+            }
+        } else {
+            Err(context.construct_type_error("'this' is not a Map"))
+        }
     }
 
     /// `Map.prototype.values()`
