@@ -191,6 +191,22 @@ impl Date {
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 7;
 
+    /// Check if the time (number of miliseconds) is in the expected range.
+    /// Returns None if the time is not in the range, otherwise returns the time itself.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-timeclip
+    #[inline]
+    pub fn time_clip(time: f64) -> Option<f64> {
+        if time.abs() > 8.64e15 {
+            None
+        } else {
+            Some(time)
+        }
+    }
+
     /// Converts the `Date` to a local `DateTime`.
     ///
     /// If the `Date` is invalid (i.e. NAN), this function will return `None`.
@@ -313,6 +329,7 @@ impl Date {
                 + Duration::milliseconds(millisecond);
             NaiveDate::from_ymd_opt(year, month + 1, day + 1)
                 .and_then(|dt| dt.and_hms(0, 0, 0).checked_add_signed(duration))
+                .filter(|dt| Self::time_clip((dt.timestamp() as f64) * 1000.0).is_some())
                 .and_then(|dt| {
                     if utc {
                         Some(Utc.from_utc_datetime(&dt).naive_utc())
