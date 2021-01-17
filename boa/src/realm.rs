@@ -47,7 +47,7 @@ impl Realm {
         Self {
             global_object: gc_global.clone(),
             global_env,
-            environment: RefCell::LexicalEnvironment::new(gc_global.into()),
+            environment: RefCell::new(LexicalEnvironment::new(gc_global.into())),
         }
     }
 }
