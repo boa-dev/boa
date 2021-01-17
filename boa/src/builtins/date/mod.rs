@@ -192,7 +192,7 @@ impl Date {
     pub(crate) const LENGTH: usize = 7;
 
     /// Check if the time (number of miliseconds) is in the expected range.
-    /// Returns None if the time is not in the range, otherwise returns the time itself.
+    /// Returns None if the time is not in the range, otherwise returns the time itself in option.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
