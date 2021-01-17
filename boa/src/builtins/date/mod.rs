@@ -12,7 +12,14 @@ use crate::{
 use chrono::{prelude::*, Duration, LocalResult};
 use std::fmt::Display;
 
-const NANOS_IN_MS: f64 = 1_000_000f64;
+/// The number of nanoseconds in a millisecond.
+const NANOS_PER_MS: i64 = 1_000_000;
+/// The number of milliseconds in an hour.
+const MILLIS_PER_HOUR: i64 = 3600_000;
+/// The number of milliseconds in a minute.
+const MILLIS_PER_MINUTE: i64 = 60_000;
+/// The number of milliseconds in a second.
+const MILLIS_PER_SECOND: i64 = 1000;
 
 #[inline]
 fn is_zero_or_normal_opt(value: Option<f64>) -> bool {
@@ -243,7 +250,7 @@ impl Date {
         fn num_days_in(year: i32, month: u32) -> Option<u32> {
             let month = month.checked_add(1)?; // zero-based for calculations
             Some(
-                NaiveDate::from_ymd(
+                NaiveDate::from_ymd_opt(
                     match month {
                         12 => year.checked_add(1)?,
                         _ => year,
@@ -253,8 +260,8 @@ impl Date {
                         _ => month.checked_add(1)?,
                     },
                     1,
-                )
-                .signed_duration_since(NaiveDate::from_ymd(year, month, 1))
+                )?
+                .signed_duration_since(NaiveDate::from_ymd_opt(year, month, 1)?)
                 .num_days() as u32,
             )
         }
@@ -314,19 +321,26 @@ impl Date {
         self.0 = naive.and_then(|naive| {
             let year = year.unwrap_or_else(|| naive.year() as f64) as i32;
             let month = month.unwrap_or_else(|| naive.month0() as f64) as i32;
-            let day = day.unwrap_or_else(|| naive.day() as f64) as i32 - 1;
+            let day = (day.unwrap_or_else(|| naive.day() as f64) as i32).checked_sub(1)?;
             let hour = hour.unwrap_or_else(|| naive.hour() as f64) as i64;
             let minute = minute.unwrap_or_else(|| naive.minute() as f64) as i64;
             let second = second.unwrap_or_else(|| naive.second() as f64) as i64;
-            let millisecond =
-                millisecond.unwrap_or_else(|| naive.nanosecond() as f64 / NANOS_IN_MS) as i64;
+            let millisecond = millisecond
+                .unwrap_or_else(|| naive.nanosecond() as f64 / NANOS_PER_MS as f64)
+                as i64;
 
             let (year, month, day) = fix_day(year, month, day)?;
 
-            let duration = Duration::hours(hour)
-                + Duration::minutes(minute)
-                + Duration::seconds(second)
-                + Duration::milliseconds(millisecond);
+            let duration_hour = Duration::milliseconds(hour.checked_mul(MILLIS_PER_HOUR)?);
+            let duration_minute = Duration::milliseconds(minute.checked_mul(MILLIS_PER_MINUTE)?);
+            let duration_second = Duration::milliseconds(second.checked_mul(MILLIS_PER_SECOND)?);
+            let duration_milisecond = Duration::milliseconds(millisecond);
+
+            let duration = duration_hour
+                .checked_add(&duration_minute)?
+                .checked_add(&duration_second)?
+                .checked_add(&duration_milisecond)?;
+
             NaiveDate::from_ymd_opt(year, month + 1, day + 1)
                 .and_then(|dt| dt.and_hms(0, 0, 0).checked_add_signed(duration))
                 .filter(|dt| Self::time_clip(dt.timestamp_millis() as f64).is_some())
@@ -584,7 +598,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getMilliseconds
     pub fn get_milliseconds(&self) -> f64 {
         self.to_local()
-            .map_or(f64::NAN, |dt| dt.nanosecond() as f64 / NANOS_IN_MS)
+            .map_or(f64::NAN, |dt| dt.nanosecond() as f64 / NANOS_PER_MS as f64)
     }
 
     /// `Date.prototype.getMinutes()`
@@ -751,7 +765,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCMilliseconds
     pub fn get_utc_milliseconds(&self) -> f64 {
         self.to_utc()
-            .map_or(f64::NAN, |dt| dt.nanosecond() as f64 / NANOS_IN_MS)
+            .map_or(f64::NAN, |dt| dt.nanosecond() as f64 / NANOS_PER_MS as f64)
     }
 
     /// `Date.prototype.getUTCMinutes()`
