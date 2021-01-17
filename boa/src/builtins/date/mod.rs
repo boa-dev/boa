@@ -15,7 +15,7 @@ use std::fmt::Display;
 /// The number of nanoseconds in a millisecond.
 const NANOS_PER_MS: i64 = 1_000_000;
 /// The number of milliseconds in an hour.
-const MILLIS_PER_HOUR: i64 = 3600_000;
+const MILLIS_PER_HOUR: i64 = 3_600_000;
 /// The number of milliseconds in a minute.
 const MILLIS_PER_MINUTE: i64 = 60_000;
 /// The number of milliseconds in a second.
