@@ -343,7 +343,6 @@ impl Date {
 
             NaiveDate::from_ymd_opt(year, month + 1, day + 1)
                 .and_then(|dt| dt.and_hms(0, 0, 0).checked_add_signed(duration))
-                .filter(|dt| Self::time_clip(dt.timestamp_millis() as f64).is_some())
                 .and_then(|dt| {
                     if utc {
                         Some(Utc.from_utc_datetime(&dt).naive_utc())
@@ -351,6 +350,7 @@ impl Date {
                         ignore_ambiguity(Local.from_local_datetime(&dt)).map(|dt| dt.naive_utc())
                     }
                 })
+                .filter(|dt| Self::time_clip(dt.timestamp_millis() as f64).is_some())
         });
     }
 
@@ -456,6 +456,7 @@ impl Date {
             },
         };
 
+        let tv = tv.filter(|time| Self::time_clip(time.timestamp_millis() as f64).is_some());
         let date = Date(tv);
         this.set_data(ObjectData::Date(date));
         Ok(this.clone())
@@ -518,7 +519,8 @@ impl Date {
         let final_date = NaiveDate::from_ymd_opt(year, month + 1, day)
             .and_then(|naive_date| naive_date.and_hms_milli_opt(hour, min, sec, milli))
             .and_then(|local| ignore_ambiguity(Local.from_local_datetime(&local)))
-            .map(|local| local.naive_utc());
+            .map(|local| local.naive_utc())
+            .filter(|time| Self::time_clip(time.timestamp_millis() as f64).is_some());
 
         let date = Date(final_date);
         this.set_data(ObjectData::Date(date));
