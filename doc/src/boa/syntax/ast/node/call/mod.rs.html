@@ -126,6 +126,10 @@
 <span id="125">125</span>
 <span id="126">126</span>
 <span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::<span class="ident">iterable</span>,
@@ -208,7 +212,11 @@
                     <span class="ident">obj</span>.<span class="ident">get_field</span>(<span class="ident">field</span>.<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
                 )
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>(), <span class="self">self</span>.<span class="ident">expr</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>), <span class="comment">// &#39;this&#39; binding should come from the function&#39;s self-contained environment</span>
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (
+                <span class="comment">// &#39;this&#39; binding should come from the function&#39;s self-contained environment</span>
+                <span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>().<span class="ident">into</span>(),
+                <span class="self">self</span>.<span class="ident">expr</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
+            ),
         };
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v_args</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="self">self</span>.<span class="ident">args</span>().<span class="ident">len</span>());
         <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">args</span>() {

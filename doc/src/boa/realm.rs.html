@@ -74,6 +74,12 @@
 <span id="73">73</span>
 <span id="74">74</span>
 <span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Conceptually, a realm consists of a set of intrinsic objects, an ECMAScript global environment,</span>
 <span class="doccomment">//! all of the ECMAScript code that is loaded within the scope of that global environment,</span>
@@ -81,7 +87,7 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! A realm is represented in this implementation as a Realm struct with the fields specified from the spec.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">object</span>::<span class="ident">Object</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">environment</span>::{
         <span class="ident">declarative_environment_record</span>::<span class="ident">DeclarativeEnvironmentRecord</span>,
@@ -99,36 +105,42 @@
 <span class="doccomment">/// In the specification these are called Realm Records.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Realm</span> {
-    <span class="kw">pub</span> <span class="ident">global_object</span>: <span class="ident">Value</span>,
+    <span class="kw">pub</span> <span class="ident">global_object</span>: <span class="ident">GcObject</span>,
     <span class="kw">pub</span> <span class="ident">global_env</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">GlobalEnvironmentRecord</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">environment</span>: <span class="ident">LexicalEnvironment</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Realm</span> {
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">field_reassign_with_default</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Realm::create&quot;</span>, <span class="string">&quot;realm&quot;</span>);
         <span class="comment">// Create brand new global object</span>
         <span class="comment">// Global has no prototype to pass None to new_obj</span>
-        <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">Object</span>::<span class="ident">default</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">Object</span>::<span class="ident">default</span>();
 
         <span class="comment">// Allow identification of the global object easily</span>
-        <span class="ident">global</span>.<span class="ident">set_data</span>(<span class="kw">crate</span>::<span class="ident">object</span>::<span class="ident">ObjectData</span>::<span class="ident">Global</span>);
+        <span class="ident">global</span>.<span class="ident">data</span> <span class="op">=</span> <span class="ident">ObjectData</span>::<span class="ident">Global</span>;
+
+        <span class="kw">let</span> <span class="ident">gc_global</span> <span class="op">=</span> <span class="ident">GcObject</span>::<span class="ident">new</span>(<span class="ident">global</span>);
 
         <span class="comment">// We need to clone the global here because its referenced from separate places (only pointer is cloned)</span>
-        <span class="kw">let</span> <span class="ident">global_env</span> <span class="op">=</span> <span class="ident">new_global_environment</span>(<span class="ident">global</span>.<span class="ident">clone</span>(), <span class="ident">global</span>.<span class="ident">clone</span>());
+        <span class="kw">let</span> <span class="ident">global_env</span> <span class="op">=</span> <span class="ident">new_global_environment</span>(<span class="ident">gc_global</span>.<span class="ident">clone</span>(), <span class="ident">gc_global</span>.<span class="ident">clone</span>().<span class="ident">into</span>());
 
         <span class="self">Self</span> {
-            <span class="ident">global_object</span>: <span class="ident">global</span>.<span class="ident">clone</span>(),
+            <span class="ident">global_object</span>: <span class="ident">gc_global</span>.<span class="ident">clone</span>(),
             <span class="ident">global_env</span>,
-            <span class="ident">environment</span>: <span class="ident">LexicalEnvironment</span>::<span class="ident">new</span>(<span class="ident">global</span>),
+            <span class="ident">environment</span>: <span class="ident">LexicalEnvironment</span>::<span class="ident">new</span>(<span class="ident">gc_global</span>.<span class="ident">into</span>()),
         }
     }
 }
 
 <span class="comment">// Similar to new_global_environment in lexical_environment, except we need to return a GlobalEnvirionment</span>
-<span class="kw">fn</span> <span class="ident">new_global_environment</span>(<span class="ident">global</span>: <span class="ident">Value</span>, <span class="ident">this_value</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">GlobalEnvironmentRecord</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">new_global_environment</span>(
+    <span class="ident">global</span>: <span class="ident">GcObject</span>,
+    <span class="ident">this_value</span>: <span class="ident">Value</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">GlobalEnvironmentRecord</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">obj_rec</span> <span class="op">=</span> <span class="ident">ObjectEnvironmentRecord</span> {
-        <span class="ident">bindings</span>: <span class="ident">global</span>,
+        <span class="ident">bindings</span>: <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="ident">global</span>),
         <span class="ident">outer_env</span>: <span class="prelude-val">None</span>,
         <span class="doccomment">/// Object Environment Records created for with statements (13.11)</span>
         <span class="doccomment">/// can provide their binding object as an implicit this value for use in function calls.</span>

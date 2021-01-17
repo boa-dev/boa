@@ -161,8 +161,6 @@
 <span id="160">160</span>
 <span id="161">161</span>
 <span id="162">162</span>
-<span id="163">163</span>
-<span id="164">164</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::<span class="ident">string</span>::<span class="ident">string_iterator</span>::<span class="ident">StringIterator</span>,
@@ -187,21 +185,20 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">iterator_prototype</span> <span class="op">=</span> <span class="ident">create_iterator_prototype</span>(<span class="ident">context</span>);
         <span class="self">Self</span> {
-            <span class="ident">iterator_prototype</span>: <span class="ident">iterator_prototype</span>
-                .<span class="ident">as_object</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;Iterator prototype is not an object&quot;</span>),
-            <span class="ident">array_iterator</span>: <span class="ident">ArrayIterator</span>::<span class="ident">create_prototype</span>(<span class="ident">context</span>, <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>())
-                .<span class="ident">as_object</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;Array Iterator Prototype is not an object&quot;</span>),
-            <span class="ident">string_iterator</span>: <span class="ident">StringIterator</span>::<span class="ident">create_prototype</span>(<span class="ident">context</span>, <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>())
-                .<span class="ident">as_object</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;String Iterator Prototype is not an object&quot;</span>),
-            <span class="ident">map_iterator</span>: <span class="ident">MapIterator</span>::<span class="ident">create_prototype</span>(<span class="ident">context</span>, <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>())
-                .<span class="ident">as_object</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;Map Iterator Prototype is not an object&quot;</span>),
-            <span class="ident">for_in_iterator</span>: <span class="ident">ForInIterator</span>::<span class="ident">create_prototype</span>(<span class="ident">context</span>, <span class="ident">iterator_prototype</span>)
-                .<span class="ident">as_object</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;For In Iterator Prototype is not an object&quot;</span>),
+            <span class="ident">array_iterator</span>: <span class="ident">ArrayIterator</span>::<span class="ident">create_prototype</span>(
+                <span class="ident">context</span>,
+                <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+            ),
+            <span class="ident">string_iterator</span>: <span class="ident">StringIterator</span>::<span class="ident">create_prototype</span>(
+                <span class="ident">context</span>,
+                <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+            ),
+            <span class="ident">map_iterator</span>: <span class="ident">MapIterator</span>::<span class="ident">create_prototype</span>(<span class="ident">context</span>, <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>()),
+            <span class="ident">for_in_iterator</span>: <span class="ident">ForInIterator</span>::<span class="ident">create_prototype</span>(
+                <span class="ident">context</span>,
+                <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+            ),
+            <span class="ident">iterator_prototype</span>,
         }
     }
 
@@ -265,7 +262,7 @@
 <span class="doccomment">///  - [ECMA reference][spec]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object</span>
-<span class="kw">fn</span> <span class="ident">create_iterator_prototype</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+<span class="kw">fn</span> <span class="ident">create_iterator_prototype</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
     <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Iterator Prototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
     <span class="kw">let</span> <span class="ident">symbol_iterator</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">well_known_symbols</span>().<span class="ident">iterator_symbol</span>();
@@ -276,8 +273,7 @@
             <span class="number">0</span>,
         )
         .<span class="ident">build</span>();
-    <span class="comment">// TODO: return GcObject</span>
-    <span class="ident">iterator_prototype</span>.<span class="ident">into</span>()
+    <span class="ident">iterator_prototype</span>
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>

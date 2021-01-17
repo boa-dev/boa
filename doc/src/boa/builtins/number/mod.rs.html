@@ -1137,7 +1137,7 @@
         .<span class="ident">static_method</span>(<span class="self">Self</span>::<span class="ident">number_is_integer</span>, <span class="string">&quot;isInteger&quot;</span>, <span class="number">1</span>)
         .<span class="ident">build</span>();
 
-        <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">global_object</span>();
         <span class="ident">make_builtin_fn</span>(
             <span class="self">Self</span>::<span class="ident">parse_int</span>,
             <span class="string">&quot;parseInt&quot;</span>,
