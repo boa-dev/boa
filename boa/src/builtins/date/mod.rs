@@ -1379,9 +1379,8 @@ impl Date {
 
         NaiveDate::from_ymd_opt(year, month + 1, day)
             .and_then(|f| f.and_hms_milli_opt(hour, min, sec, milli))
-            .map_or(Ok(Value::number(f64::NAN)), |f| {
-                Ok(Value::number(f.timestamp_millis() as f64))
-            })
+            .and_then(|f| Self::time_clip(f.timestamp_millis() as f64))
+            .map_or(Ok(Value::number(f64::NAN)), |time| Ok(Value::number(time)))
     }
 }
 
