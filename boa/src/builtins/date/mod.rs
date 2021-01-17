@@ -329,7 +329,7 @@ impl Date {
                 + Duration::milliseconds(millisecond);
             NaiveDate::from_ymd_opt(year, month + 1, day + 1)
                 .and_then(|dt| dt.and_hms(0, 0, 0).checked_add_signed(duration))
-                .filter(|dt| Self::time_clip((dt.timestamp() as f64) * 1000.0).is_some())
+                .filter(|dt| Self::time_clip(dt.timestamp_millis() as f64).is_some())
                 .and_then(|dt| {
                     if utc {
                         Some(Utc.from_utc_datetime(&dt).naive_utc())
