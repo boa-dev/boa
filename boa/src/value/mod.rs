@@ -604,11 +604,12 @@ impl Value {
     /// # Examples
     ///
     /// ```
-    /// use boa::Value;
+    /// use boa::{Context, Value};
+    ///
     /// let context = Context::new();
     /// let value = Value::number(3);
     ///
-    /// println!("{}", value.display(context));
+    /// println!("{}", value.display(&context));
     /// ```
     #[inline]
     pub fn display<'a>(&'a self, context: &'a Context) -> ValueDisplay<'a> {
