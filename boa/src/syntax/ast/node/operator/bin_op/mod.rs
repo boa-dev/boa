@@ -63,7 +63,7 @@ impl BinOp {
     }
 
     /// Runs the assignment operators.
-    fn run_assign(op: AssignOp, x: Value, y: &Node, context: &mut Context) -> Result<Value> {
+    fn run_assign(op: AssignOp, x: Value, y: &Node, context: &Context) -> Result<Value> {
         match op {
             AssignOp::Add => x.add(&y.run(context)?, context),
             AssignOp::Sub => x.sub(&y.run(context)?, context),
@@ -103,7 +103,7 @@ impl BinOp {
 }
 
 impl Executable for BinOp {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         match self.op() {
             op::BinOp::Num(op) => {
                 let x = self.lhs().run(context)?;
@@ -149,7 +149,7 @@ impl Executable for BinOp {
                             ));
                         }
                         let key = x.to_property_key(context)?;
-                        context.has_property(&y, &key)
+                        context.has_property(&y, &key)?
                     }
                     CompOp::InstanceOf => {
                         if let Some(object) = y.as_object() {
@@ -208,15 +208,15 @@ impl Executable for BinOp {
                     let v_a = context
                         .realm()
                         .environment
-                        .get_binding_value(name.as_ref())
-                        .map_err(|e| e.to_error(context))?;
-
+                        .borrow()
+                        .get_binding_value(name.as_ref(), context)?;
                     let value = Self::run_assign(op, v_a, self.rhs(), context)?;
-                    context
-                        .realm_mut()
-                        .environment
-                        .set_mutable_binding(name.as_ref(), value.clone(), true)
-                        .map_err(|e| e.to_error(context))?;
+                    context.realm().environment.borrow().set_mutable_binding(
+                        name.as_ref(),
+                        value.clone(),
+                        true,
+                        context,
+                    )?;
                     Ok(value)
                 }
                 Node::GetConstField(ref get_const_field) => {

@@ -52,7 +52,7 @@ impl Spread {
 }
 
 impl Executable for Spread {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         // TODO: for now we can do nothing but return the value as-is
         self.val().run(context)
     }

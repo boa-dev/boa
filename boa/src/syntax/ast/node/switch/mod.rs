@@ -122,25 +122,27 @@ impl Switch {
 }
 
 impl Executable for Switch {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         let val = self.val().run(context)?;
         let mut result = Value::null();
         let mut matched = false;
-        context
-            .executor()
-            .set_current_state(InterpreterState::Executing);
-
+        {
+            context
+                .executor()
+                .borrow_mut()
+                .set_current_state(InterpreterState::Executing);
+        }
         // If a case block does not end with a break statement then subsequent cases will be run without
         // checking their conditions until a break is encountered.
         let mut fall_through: bool = false;
-
         for case in self.cases().iter() {
             let cond = case.condition();
             let block = case.body();
             if fall_through || val.strict_equals(&cond.run(context)?) {
                 matched = true;
                 let result = block.run(context)?;
-                match context.executor().get_current_state() {
+                let executor = &mut context.executor().borrow_mut();
+                match executor.get_current_state() {
                     InterpreterState::Return => {
                         // Early return.
                         return Ok(result);
@@ -148,9 +150,7 @@ impl Executable for Switch {
                     InterpreterState::Break(_label) => {
                         // TODO, break to a label.
                         // Break statement encountered so therefore end switch statement.
-                        context
-                            .executor()
-                            .set_current_state(InterpreterState::Executing);
+                        executor.set_current_state(InterpreterState::Executing);
                         break;
                     }
                     InterpreterState::Continue(_label) => {
@@ -169,10 +169,11 @@ impl Executable for Switch {
             if let Some(default) = self.default() {
                 context
                     .executor()
+                    .borrow_mut()
                     .set_current_state(InterpreterState::Executing);
                 for (i, item) in default.iter().enumerate() {
                     let val = item.run(context)?;
-                    match context.executor().get_current_state() {
+                    match context.executor().borrow().get_current_state() {
                         InterpreterState::Return => {
                             // Early return.
                             result = val;

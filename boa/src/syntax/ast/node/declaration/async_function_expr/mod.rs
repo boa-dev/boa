@@ -79,7 +79,7 @@ impl AsyncFunctionExpr {
 }
 
 impl Executable for AsyncFunctionExpr {
-    fn run(&self, _: &mut Context) -> Result<Value> {
+    fn run(&self, _: &Context) -> Result<Value> {
         // TODO: Implement AsyncFunctionExpr
         Ok(Value::Undefined)
     }

@@ -132,8 +132,8 @@ impl Test {
 
                             let passed = res.is_ok();
                             let text = match res {
-                                Ok(val) => format!("{}", val.display()),
-                                Err(e) => format!("Uncaught {}", e.display()),
+                                Ok(val) => format!("{}", val.display(&context)),
+                                Err(e) => format!("Uncaught {}", e.display(&context)),
                             };
 
                             (passed, text)
@@ -174,12 +174,14 @@ impl Test {
                     } else {
                         match self.set_up_env(&harness, strict) {
                             Ok(mut context) => match context.eval(&self.content.as_ref()) {
-                                Ok(res) => (false, format!("{}", res.display())),
+                                Ok(res) => (false, format!("{}", res.display(&context))),
                                 Err(e) => {
-                                    let passed =
-                                        e.display().to_string().contains(error_type.as_ref());
+                                    let passed = e
+                                        .display(&context)
+                                        .to_string()
+                                        .contains(error_type.as_ref());
 
-                                    (passed, format!("Uncaught {}", e.display()))
+                                    (passed, format!("Uncaught {}", e.display(&context)))
                                 }
                             },
                             Err(e) => (false, e),
@@ -259,7 +261,7 @@ impl Test {
             .map_err(|e| {
                 format!(
                     "could not register the global print() function:\n{}",
-                    e.display()
+                    e.display(&context)
                 )
             })?;
         // TODO: add the $262 object.
@@ -267,15 +269,15 @@ impl Test {
         if strict {
             context
                 .eval(r#""use strict";"#)
-                .map_err(|e| format!("could not set strict mode:\n{}", e.display()))?;
+                .map_err(|e| format!("could not set strict mode:\n{}", e.display(&context)))?;
         }
 
         context
             .eval(&harness.assert.as_ref())
-            .map_err(|e| format!("could not run assert.js:\n{}", e.display()))?;
+            .map_err(|e| format!("could not run assert.js:\n{}", e.display(&context)))?;
         context
             .eval(&harness.sta.as_ref())
-            .map_err(|e| format!("could not run sta.js:\n{}", e.display()))?;
+            .map_err(|e| format!("could not run sta.js:\n{}", e.display(&context)))?;
 
         for include in self.includes.iter() {
             context
@@ -290,7 +292,7 @@ impl Test {
                     format!(
                         "could not run the {} include file:\nUncaught {}",
                         include,
-                        e.display()
+                        e.display(&context)
                     )
                 })?;
         }
@@ -300,6 +302,6 @@ impl Test {
 }
 
 /// `print()` function required by the test262 suite.
-fn test262_print(_this: &Value, _: &[Value], _context: &mut Context) -> boa::Result<Value> {
+fn test262_print(_this: &Value, _: &[Value], _context: &Context) -> boa::Result<Value> {
     todo!("print() function");
 }

@@ -240,7 +240,7 @@ impl BuiltIn for Symbol {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &Context) -> (&'static str, Value, Attribute) {
         // https://tc39.es/ecma262/#sec-well-known-symbols
         let well_known_symbols = context.well_known_symbols();
 
@@ -318,7 +318,7 @@ impl Symbol {
     pub(crate) fn constructor(
         new_target: &Value,
         args: &[Value],
-        context: &mut Context,
+        context: &Context,
     ) -> Result<Value> {
         if new_target.is_undefined() {
             return context.throw_type_error("Symbol is not a constructor");
@@ -331,7 +331,7 @@ impl Symbol {
         Ok(context.construct_symbol(description).into())
     }
 
-    fn this_symbol_value(value: &Value, context: &mut Context) -> Result<RcSymbol> {
+    fn this_symbol_value(value: &Value, context: &Context) -> Result<RcSymbol> {
         match value {
             Value::Symbol(ref symbol) => return Ok(symbol.clone()),
             Value::Object(ref object) => {
@@ -357,7 +357,7 @@ impl Symbol {
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn to_string(this: &Value, _: &[Value], context: &Context) -> Result<Value> {
         let symbol = Self::this_symbol_value(this, context)?;
         let description = symbol.description().unwrap_or("");
         Ok(Value::from(format!("Symbol({})", description)))

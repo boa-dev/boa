@@ -72,7 +72,7 @@ impl Object {
 }
 
 impl Executable for Object {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         let obj = Value::new_object(context);
 
         // TODO: Implement the rest of the property types.
@@ -99,7 +99,7 @@ impl Executable for Object {
                     }
                     MethodDefinitionKind::Get => {
                         let set = obj
-                            .get_property(name.clone())
+                            .get_property(name.clone(), context)?
                             .as_ref()
                             .and_then(|p| p.as_accessor_descriptor())
                             .and_then(|a| a.setter().cloned());
@@ -116,7 +116,7 @@ impl Executable for Object {
                     }
                     MethodDefinitionKind::Set => {
                         let get = obj
-                            .get_property(name.clone())
+                            .get_property(name.clone(), context)?
                             .as_ref()
                             .and_then(|p| p.as_accessor_descriptor())
                             .and_then(|a| a.getter().cloned());

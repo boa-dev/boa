@@ -54,7 +54,7 @@ impl UnaryOp {
 }
 
 impl Executable for UnaryOp {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         let x = self.target().run(context)?;
 
         Ok(match self.op() {
@@ -97,14 +97,14 @@ impl Executable for UnaryOp {
                         .obj()
                         .run(context)?
                         .to_object(context)?
-                        .delete(&get_const_field.field().into()),
+                        .delete(&get_const_field.field().into(), context)?,
                 ),
                 Node::GetField(ref get_field) => {
                     let obj = get_field.obj().run(context)?;
                     let field = &get_field.field().run(context)?;
                     let res = obj
                         .to_object(context)?
-                        .delete(&field.to_property_key(context)?);
+                        .delete(&field.to_property_key(context)?, context)?;
                     return Ok(Value::boolean(res));
                 }
                 Node::Identifier(_) => Value::boolean(false),

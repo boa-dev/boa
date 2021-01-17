@@ -49,7 +49,7 @@ impl BuiltIn for Number {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
@@ -156,7 +156,7 @@ impl Number {
     pub(crate) fn constructor(
         new_target: &Value,
         args: &[Value],
-        context: &mut Context,
+        context: &Context,
     ) -> Result<Value> {
         let data = match args.get(0) {
             Some(ref value) => value.to_numeric_number(context)?,
@@ -192,7 +192,7 @@ impl Number {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisnumbervalue
-    fn this_number_value(value: &Value, context: &mut Context) -> Result<f64> {
+    fn this_number_value(value: &Value, context: &Context) -> Result<f64> {
         match *value {
             Value::Integer(integer) => return Ok(f64::from(integer)),
             Value::Rational(rational) => return Ok(rational),
@@ -227,11 +227,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toexponential
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toExponential
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_exponential(
-        this: &Value,
-        _: &[Value],
-        context: &mut Context,
-    ) -> Result<Value> {
+    pub(crate) fn to_exponential(this: &Value, _: &[Value], context: &Context) -> Result<Value> {
         let this_num = Self::this_number_value(this, context)?;
         let this_str_num = Self::num_to_exponential(this_num);
         Ok(Value::from(this_str_num))
@@ -248,7 +244,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tofixed
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_fixed(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn to_fixed(this: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let this_num = Self::this_number_value(this, context)?;
         let precision = match args.get(0) {
             Some(n) => match n.to_integer(context)? as i32 {
@@ -275,11 +271,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tolocalestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_locale_string(
-        this: &Value,
-        _: &[Value],
-        context: &mut Context,
-    ) -> Result<Value> {
+    pub(crate) fn to_locale_string(this: &Value, _: &[Value], context: &Context) -> Result<Value> {
         let this_num = Self::this_number_value(this, context)?;
         let this_str_num = format!("{}", this_num);
         Ok(Value::from(this_str_num))
@@ -353,11 +345,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toprecision
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toPrecision
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_precision(
-        this: &Value,
-        args: &[Value],
-        context: &mut Context,
-    ) -> Result<Value> {
+    pub(crate) fn to_precision(this: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let precision_var = args.get(0).cloned().unwrap_or_default();
 
         // 1 & 6
@@ -594,7 +582,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn to_string(this: &Value, args: &[Value], context: &Context) -> Result<Value> {
         // 1. Let x be ? thisNumberValue(this value).
         let x = Self::this_number_value(this, context)?;
 
@@ -649,7 +637,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/valueOf
-    pub(crate) fn value_of(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn value_of(this: &Value, _: &[Value], context: &Context) -> Result<Value> {
         Ok(Value::from(Self::this_number_value(this, context)?))
     }
 
@@ -667,7 +655,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt
-    pub(crate) fn parse_int(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn parse_int(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         if let (Some(val), radix) = (args.get(0), args.get(1)) {
             // 1. Let inputString be ? ToString(string).
             let input_string = val.to_string(context)?;
@@ -789,7 +777,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parsefloat-string
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
-    pub(crate) fn parse_float(_: &Value, args: &[Value], _ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn parse_float(_: &Value, args: &[Value], _ctx: &Context) -> Result<Value> {
         if let Some(val) = args.get(0) {
             match val {
                 Value::String(s) => {
@@ -831,11 +819,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isfinite-number
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/isFinite
-    pub(crate) fn global_is_finite(
-        _: &Value,
-        args: &[Value],
-        context: &mut Context,
-    ) -> Result<Value> {
+    pub(crate) fn global_is_finite(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         if let Some(value) = args.get(0) {
             let number = value.to_number(context)?;
             Ok(number.is_finite().into())
@@ -858,7 +842,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/isNaN
-    pub(crate) fn global_is_nan(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn global_is_nan(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         if let Some(value) = args.get(0) {
             let number = value.to_number(context)?;
             Ok(number.is_nan().into())
@@ -881,7 +865,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number.isfinite
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isFinite
-    pub(crate) fn number_is_finite(_: &Value, args: &[Value], _ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn number_is_finite(_: &Value, args: &[Value], _ctx: &Context) -> Result<Value> {
         Ok(Value::from(if let Some(val) = args.get(0) {
             match val {
                 Value::Integer(_) => true,
@@ -903,11 +887,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number.isinteger
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isInteger
-    pub(crate) fn number_is_integer(
-        _: &Value,
-        args: &[Value],
-        _ctx: &mut Context,
-    ) -> Result<Value> {
+    pub(crate) fn number_is_integer(_: &Value, args: &[Value], _ctx: &Context) -> Result<Value> {
         Ok(args.get(0).map_or(false, Self::is_integer).into())
     }
 
@@ -925,7 +905,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isNaN
-    pub(crate) fn number_is_nan(_: &Value, args: &[Value], _ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn number_is_nan(_: &Value, args: &[Value], _ctx: &Context) -> Result<Value> {
         Ok(Value::from(if let Some(val) = args.get(0) {
             match val {
                 Value::Integer(_) => false,
@@ -951,7 +931,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isNaN
-    pub(crate) fn is_safe_integer(_: &Value, args: &[Value], _ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn is_safe_integer(_: &Value, args: &[Value], _ctx: &Context) -> Result<Value> {
         Ok(Value::from(match args.get(0) {
             Some(Value::Integer(_)) => true,
             Some(Value::Rational(number)) if Self::is_float_integer(*number) => {

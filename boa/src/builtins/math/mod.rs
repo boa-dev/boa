@@ -31,7 +31,7 @@ impl BuiltIn for Math {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
@@ -94,7 +94,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.abs
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/abs
-    pub(crate) fn abs(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn abs(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -111,7 +111,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.acos
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acos
-    pub(crate) fn acos(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn acos(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -128,7 +128,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.acosh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/acosh
-    pub(crate) fn acosh(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn acosh(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -145,7 +145,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.asin
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asin
-    pub(crate) fn asin(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn asin(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -162,7 +162,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.asinh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/asinh
-    pub(crate) fn asinh(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn asinh(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -179,7 +179,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.atan
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan
-    pub(crate) fn atan(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn atan(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -196,7 +196,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.atanh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atanh
-    pub(crate) fn atanh(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn atanh(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -213,7 +213,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.atan2
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/atan2
-    pub(crate) fn atan2(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn atan2(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(match (
             args.get(0).map(|x| x.to_number(context)).transpose()?,
             args.get(1).map(|x| x.to_number(context)).transpose()?,
@@ -232,7 +232,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.cbrt
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cbrt
-    pub(crate) fn cbrt(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn cbrt(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -249,7 +249,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.ceil
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/ceil
-    pub(crate) fn ceil(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn ceil(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -266,7 +266,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.clz32
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/clz32
-    pub(crate) fn clz32(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn clz32(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_u32(context))
@@ -284,7 +284,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.cos
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cos
-    pub(crate) fn cos(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn cos(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -301,7 +301,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.cosh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/cosh
-    pub(crate) fn cosh(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn cosh(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -318,7 +318,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.exp
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/exp
-    pub(crate) fn exp(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn exp(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -337,7 +337,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.expm1
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/expm1
-    pub(crate) fn expm1(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn expm1(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -354,7 +354,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.floor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/floor
-    pub(crate) fn floor(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn floor(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -371,7 +371,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.fround
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/fround
-    pub(crate) fn fround(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn fround(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -388,7 +388,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.hypot
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/hypot
-    pub(crate) fn hypot(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn hypot(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let mut result = 0f64;
         for arg in args {
             let x = arg.to_number(context)?;
@@ -405,7 +405,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.imul
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/imul
-    pub(crate) fn imul(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn imul(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(match (
             args.get(0).map(|x| x.to_u32(context)).transpose()?,
             args.get(1).map(|x| x.to_u32(context)).transpose()?,
@@ -424,7 +424,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.log
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log
-    pub(crate) fn log(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn log(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -441,7 +441,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.log1p
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log1p
-    pub(crate) fn log1p(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn log1p(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -458,7 +458,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.log10
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log10
-    pub(crate) fn log10(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn log10(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -475,7 +475,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.log2
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/log2
-    pub(crate) fn log2(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn log2(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -492,7 +492,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.max
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/max
-    pub(crate) fn max(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn max(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let mut max = f64::NEG_INFINITY;
         for arg in args {
             let num = arg.to_number(context)?;
@@ -509,7 +509,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.min
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/min
-    pub(crate) fn min(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn min(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let mut min = f64::INFINITY;
         for arg in args {
             let num = arg.to_number(context)?;
@@ -526,7 +526,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.pow
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/pow
-    pub(crate) fn pow(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn pow(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(match (
             args.get(0).map(|x| x.to_number(context)).transpose()?,
             args.get(1).map(|x| x.to_number(context)).transpose()?,
@@ -545,7 +545,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.random
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
-    pub(crate) fn random(_: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    pub(crate) fn random(_: &Value, _: &[Value], _: &Context) -> Result<Value> {
         Ok(rand::random::<f64>().into())
     }
 
@@ -557,7 +557,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.round
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/round
-    pub(crate) fn round(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn round(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -574,7 +574,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.sign
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sign
-    pub(crate) fn sign(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn sign(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -600,7 +600,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.sin
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sin
-    pub(crate) fn sin(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn sin(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -617,7 +617,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.sinh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sinh
-    pub(crate) fn sinh(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn sinh(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -634,7 +634,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.sqrt
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/sqrt
-    pub(crate) fn sqrt(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn sqrt(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -651,7 +651,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.tan
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/tan
-    pub(crate) fn tan(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn tan(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -668,7 +668,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.tanh
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/tanh
-    pub(crate) fn tanh(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn tanh(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))
@@ -685,7 +685,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.trunc
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/trunc
-    pub(crate) fn trunc(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn trunc(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         Ok(args
             .get(0)
             .map(|x| x.to_number(context))

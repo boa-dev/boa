@@ -47,7 +47,7 @@ impl BuiltIn for BigInt {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let bigint_object = ConstructorBuilder::with_standard_object(
@@ -83,7 +83,7 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint-objects
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
-    fn constructor(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    fn constructor(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let data = match args.get(0) {
             Some(ref value) => value.to_bigint(context)?,
             None => RcBigInt::from(Self::from(0)),
@@ -102,7 +102,7 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisbigintvalue
     #[inline]
-    fn this_bigint_value(value: &Value, context: &mut Context) -> Result<RcBigInt> {
+    fn this_bigint_value(value: &Value, context: &Context) -> Result<RcBigInt> {
         match value {
             // 1. If Type(value) is BigInt, return value.
             Value::BigInt(ref bigint) => return Ok(bigint.clone()),
@@ -133,7 +133,7 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn to_string(this: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let radix = if !args.is_empty() {
             args[0].to_integer(context)? as i32
         } else {
@@ -158,7 +158,7 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/valueOf
-    pub(crate) fn value_of(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn value_of(this: &Value, _: &[Value], context: &Context) -> Result<Value> {
         Ok(Value::from(Self::this_bigint_value(this, context)?))
     }
 
@@ -169,7 +169,7 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.asintn
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asIntN
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn as_int_n(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn as_int_n(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let (modulo, bits) = Self::calculate_as_uint_n(args, context)?;
 
         if bits > 0
@@ -196,7 +196,7 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.asuintn
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asUintN
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn as_uint_n(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn as_uint_n(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let (modulo, _) = Self::calculate_as_uint_n(args, context)?;
 
         Ok(Value::from(modulo))
@@ -207,7 +207,7 @@ impl BigInt {
     /// This function expects the same arguments as `as_uint_n` and wraps the value of a `BigInt`.
     /// Additionally to the wrapped unsigned value it returns the converted `bits` argument, so it
     /// can be reused from the `as_int_n` method.
-    fn calculate_as_uint_n(args: &[Value], context: &mut Context) -> Result<(BigInt, u32)> {
+    fn calculate_as_uint_n(args: &[Value], context: &Context) -> Result<(BigInt, u32)> {
         use std::convert::TryFrom;
 
         let undefined_value = Value::undefined();

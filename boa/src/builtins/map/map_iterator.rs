@@ -67,7 +67,7 @@ impl MapIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%.next
-    pub(crate) fn next(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn next(this: &Value, _: &[Value], context: &Context) -> Result<Value> {
         if let Value::Object(ref object) = this {
             let mut object = object.borrow_mut();
             if let Some(map_iterator) = object.as_map_iterator_mut() {
@@ -138,7 +138,7 @@ impl MapIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%-object
-    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: Value) -> Value {
+    pub(crate) fn create_prototype(context: &Context, iterator_prototype: Value) -> Value {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype

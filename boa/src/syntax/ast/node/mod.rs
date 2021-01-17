@@ -279,7 +279,7 @@ impl Node {
 }
 
 impl Executable for Node {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Executable", "exec");
         match *self {
             Node::AsyncFunctionDecl(ref decl) => decl.run(context),
@@ -332,8 +332,8 @@ impl Executable for Node {
                 context
                     .realm()
                     .environment
-                    .get_this_binding()
-                    .map_err(|e| e.to_error(context))
+                    .borrow()
+                    .get_this_binding(context)
             }
             Node::Try(ref try_node) => try_node.run(context),
             Node::Break(ref break_node) => break_node.run(context),

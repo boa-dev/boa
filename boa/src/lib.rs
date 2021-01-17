@@ -88,7 +88,7 @@ pub fn parse<T: AsRef<[u8]>>(src: T, strict_mode: bool) -> StdResult<StatementLi
 /// Execute the code using an existing Context
 /// The str is consumed and the state of the Context is changed
 #[cfg(test)]
-pub(crate) fn forward<T: AsRef<[u8]>>(context: &mut Context, src: T) -> String {
+pub(crate) fn forward<T: AsRef<[u8]>>(context: &Context, src: T) -> String {
     let src_bytes: &[u8] = src.as_ref();
 
     // Setup executor
@@ -100,13 +100,13 @@ pub(crate) fn forward<T: AsRef<[u8]>>(context: &mut Context, src: T) -> String {
                 context
                     .throw_syntax_error(e.to_string())
                     .expect_err("interpreter.throw_syntax_error() did not return an error")
-                    .display()
+                    .display(context)
             );
         }
     };
     expr.run(context).map_or_else(
-        |e| format!("Uncaught {}", e.display()),
-        |v| v.display().to_string(),
+        |e| format!("Uncaught {}", e.display(context)),
+        |v| v.display(context).to_string(),
     )
 }
 
@@ -116,7 +116,7 @@ pub(crate) fn forward<T: AsRef<[u8]>>(context: &mut Context, src: T) -> String {
 /// If the interpreter fails parsing an error value is returned instead (error object)
 #[allow(clippy::unit_arg, clippy::drop_copy)]
 #[cfg(test)]
-pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &mut Context, src: T) -> Result<Value> {
+pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &Context, src: T) -> Result<Value> {
     let main_timer = BoaProfiler::global().start_event("Main", "Main");
 
     let src_bytes: &[u8] = src.as_ref();
@@ -140,9 +140,9 @@ pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &mut Context, src: T) -> Resu
 #[cfg(test)]
 pub(crate) fn exec<T: AsRef<[u8]>>(src: T) -> String {
     let src_bytes: &[u8] = src.as_ref();
-
-    match Context::new().eval(src_bytes) {
-        Ok(value) => value.display().to_string(),
-        Err(error) => error.display().to_string(),
+    let mut context = Context::new();
+    match context.eval(src_bytes) {
+        Ok(value) => value.display(&context).to_string(),
+        Err(error) => error.display(&context).to_string(),
     }
 }

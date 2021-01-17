@@ -25,7 +25,7 @@ impl BuiltIn for Map {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let iterator_symbol = context.well_known_symbols().iterator_symbol();
@@ -72,7 +72,7 @@ impl Map {
     pub(crate) fn constructor(
         new_target: &Value,
         args: &[Value],
-        context: &mut Context,
+        context: &Context,
     ) -> Result<Value> {
         if new_target.is_undefined() {
             return context.throw_type_error("Map requires new");
@@ -153,7 +153,7 @@ impl Map {
     ///
     /// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-map.prototype.entries
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries
-    pub(crate) fn entries(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn entries(this: &Value, _: &[Value], context: &Context) -> Result<Value> {
         MapIterator::create_map_iterator(context, this.clone(), MapIterationKind::KeyAndValue)
     }
 
@@ -167,7 +167,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.keys
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
-    pub(crate) fn keys(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn keys(this: &Value, _: &[Value], context: &Context) -> Result<Value> {
         MapIterator::create_map_iterator(context, this.clone(), MapIterationKind::Key)
     }
 
@@ -191,7 +191,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.set
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/set
-    pub(crate) fn set(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn set(this: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let (key, value) = match args.len() {
             0 => (Value::Undefined, Value::Undefined),
             1 => (args[0].clone(), Value::Undefined),
@@ -223,7 +223,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.delete
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/delete
-    pub(crate) fn delete(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn delete(this: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let undefined = Value::Undefined;
         let key = match args.len() {
             0 => &undefined,
@@ -254,7 +254,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.get
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get
-    pub(crate) fn get(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn get(this: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let undefined = Value::Undefined;
         let key = match args.len() {
             0 => &undefined,
@@ -285,7 +285,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/clear
-    pub(crate) fn clear(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    pub(crate) fn clear(this: &Value, _: &[Value], _: &Context) -> Result<Value> {
         this.set_data(ObjectData::Map(OrderedMap::new()));
 
         Self::set_size(this, 0);
@@ -303,7 +303,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
-    pub(crate) fn has(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn has(this: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let undefined = Value::Undefined;
         let key = match args.len() {
             0 => &undefined,
@@ -330,7 +330,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.foreach
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/forEach
-    pub(crate) fn for_each(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn for_each(this: &Value, args: &[Value], context: &Context) -> Result<Value> {
         if args.is_empty() {
             return Err(Value::from("Missing argument for Map.prototype.forEach"));
         }
@@ -362,12 +362,12 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/values
-    pub(crate) fn values(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn values(this: &Value, _: &[Value], context: &Context) -> Result<Value> {
         MapIterator::create_map_iterator(context, this.clone(), MapIterationKind::Value)
     }
 
     /// Helper function to get a key-value pair from an array.
-    fn get_key_value(value: &Value, context: &mut Context) -> Result<Option<(Value, Value)>> {
+    fn get_key_value(value: &Value, context: &Context) -> Result<Option<(Value, Value)>> {
         if let Value::Object(object) = value {
             if object.is_array() {
                 let (key, value) =

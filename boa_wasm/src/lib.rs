@@ -4,7 +4,7 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 pub fn evaluate(src: &str) -> Result<String, JsValue> {
     // Setup executor
-    let mut context = Context::new();
+    let context = Context::new();
 
     let expr = match parse(src, false) {
         Ok(res) => res,
@@ -14,12 +14,12 @@ pub fn evaluate(src: &str) -> Result<String, JsValue> {
                 context
                     .throw_syntax_error(e.to_string())
                     .expect_err("interpreter.throw_syntax_error() did not return an error")
-                    .display()
+                    .display(&context)
             )
             .into());
         }
     };
-    expr.run(&mut context)
-        .map_err(|e| JsValue::from(format!("Uncaught {}", e.display())))
-        .map(|v| v.display().to_string())
+    expr.run(&context)
+        .map_err(|e| JsValue::from(format!("Uncaught {}", e.display(&context))))
+        .map(|v| v.display(&context).to_string())
 }

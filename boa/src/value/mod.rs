@@ -164,7 +164,7 @@ impl Value {
     }
 
     /// Convert from a JSON value to a JS value
-    pub fn from_json(json: JSONValue, context: &mut Context) -> Self {
+    pub fn from_json(json: JSONValue, context: &Context) -> Self {
         match json {
             JSONValue::Number(v) => {
                 if let Some(Ok(integer_32)) = v.as_i64().map(i32::try_from) {
@@ -215,7 +215,7 @@ impl Value {
     }
 
     /// Converts the `Value` to `JSON`.
-    pub fn to_json(&self, context: &mut Context) -> Result<JSONValue> {
+    pub fn to_json(&self, context: &Context) -> Result<JSONValue> {
         let to_json = self.get_field("toJSON", context)?;
         if to_json.is_function() {
             let json_value = context.call(&to_json, self, &[])?;
@@ -256,8 +256,11 @@ impl Value {
     ///
     /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal> would turn `extensible` to `false`
     /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze> would also turn `extensible` to `false`
-    pub fn is_extensible(&self) -> bool {
-        true
+    pub fn is_extensible(&self, context: &Context) -> Result<bool> {
+        match self {
+            Value::Object(object) => object.is_extensible(context),
+            _ => Ok(false),
+        }
     }
 
     /// Returns true if the value the global for a Realm
@@ -433,7 +436,11 @@ impl Value {
     /// Resolve the property in the object.
     ///
     /// A copy of the Property is returned.
-    pub fn get_property<Key>(&self, key: Key) -> Option<PropertyDescriptor>
+    pub fn get_property<Key>(
+        &self,
+        key: Key,
+        context: &Context,
+    ) -> Result<Option<PropertyDescriptor>>
     where
         Key: Into<PropertyKey>,
     {
@@ -441,21 +448,24 @@ impl Value {
         let _timer = BoaProfiler::global().start_event("Value::get_property", "value");
         match self {
             Self::Object(ref object) => {
-                let property = object.get_own_property(&key);
+                let property = object.get_own_property(&key, context)?;
                 if property.is_some() {
-                    return property;
+                    return Ok(property);
                 }
 
-                object.borrow().prototype_instance().get_property(key)
+                object
+                    .borrow()
+                    .prototype_instance()
+                    .get_property(key, context)
             }
-            _ => None,
+            _ => Ok(None),
         }
     }
 
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     /// get_field receives a Property from get_prop(). It should then return the `[[Get]]` result value if that's set, otherwise fall back to `[[Value]]`
     /// TODO: this function should use the get Value if its set
-    pub fn get_field<K>(&self, key: K, context: &mut Context) -> Result<Self>
+    pub fn get_field<K>(&self, key: K, context: &Context) -> Result<Self>
     where
         K: Into<PropertyKey>,
     {
@@ -469,19 +479,21 @@ impl Value {
 
     /// Check to see if the Value has the field, mainly used by environment records.
     #[inline]
-    pub fn has_field<K>(&self, key: K) -> bool
+    pub fn has_field<K>(&self, key: K, context: &Context) -> Result<bool>
     where
         K: Into<PropertyKey>,
     {
         let _timer = BoaProfiler::global().start_event("Value::has_field", "value");
-        self.as_object()
-            .map(|object| object.has_property(&key.into()))
-            .unwrap_or(false)
+        Ok(self
+            .as_object()
+            .map(|object| object.has_property(&key.into(), context))
+            .transpose()?
+            .unwrap_or(false))
     }
 
     /// Set the field in the value
     #[inline]
-    pub fn set_field<K, V>(&self, key: K, value: V, context: &mut Context) -> Result<Value>
+    pub fn set_field<K, V>(&self, key: K, value: V, context: &Context) -> Result<Value>
     where
         K: Into<PropertyKey>,
         V: Into<Value>,
@@ -519,11 +531,7 @@ impl Value {
     /// The abstract operation ToPrimitive takes an input argument and an optional argument PreferredType.
     ///
     /// <https://tc39.es/ecma262/#sec-toprimitive>
-    pub fn to_primitive(
-        &self,
-        context: &mut Context,
-        preferred_type: PreferredType,
-    ) -> Result<Value> {
+    pub fn to_primitive(&self, context: &Context, preferred_type: PreferredType) -> Result<Value> {
         // 1. Assert: input is an ECMAScript language value. (always a value not need to check)
         // 2. If Type(input) is Object, then
         if let Value::Object(obj) = self {
@@ -561,7 +569,7 @@ impl Value {
     /// Converts the value to a `BigInt`.
     ///
     /// This function is equivelent to `BigInt(value)` in JavaScript.
-    pub fn to_bigint(&self, context: &mut Context) -> Result<RcBigInt> {
+    pub fn to_bigint(&self, context: &Context) -> Result<RcBigInt> {
         match self {
             Value::Null => Err(context.construct_type_error("cannot convert null to a BigInt")),
             Value::Undefined => {
@@ -597,20 +605,23 @@ impl Value {
     ///
     /// ```
     /// use boa::Value;
-    ///
+    /// let context = Context::new();
     /// let value = Value::number(3);
     ///
-    /// println!("{}", value.display());
+    /// println!("{}", value.display(context));
     /// ```
     #[inline]
-    pub fn display(&self) -> ValueDisplay<'_> {
-        ValueDisplay { value: self }
+    pub fn display<'a>(&'a self, context: &'a Context) -> ValueDisplay<'a> {
+        ValueDisplay {
+            value: self,
+            context,
+        }
     }
 
     /// Converts the value to a string.
     ///
     /// This function is equivalent to `String(value)` in JavaScript.
-    pub fn to_string(&self, context: &mut Context) -> Result<RcString> {
+    pub fn to_string(&self, context: &Context) -> Result<RcString> {
         match self {
             Value::Null => Ok("null".into()),
             Value::Undefined => Ok("undefined".into()),
@@ -632,7 +643,7 @@ impl Value {
     /// This function is equivalent to `Object(value)` in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-toobject>
-    pub fn to_object(&self, context: &mut Context) -> Result<GcObject> {
+    pub fn to_object(&self, context: &Context) -> Result<GcObject> {
         match self {
             Value::Undefined | Value::Null => {
                 Err(context.construct_type_error("cannot convert 'null' or 'undefined' to object"))
@@ -694,7 +705,7 @@ impl Value {
     /// Converts the value to a `PropertyKey`, that can be used as a key for properties.
     ///
     /// See <https://tc39.es/ecma262/#sec-topropertykey>
-    pub fn to_property_key(&self, context: &mut Context) -> Result<PropertyKey> {
+    pub fn to_property_key(&self, context: &Context) -> Result<PropertyKey> {
         Ok(match self {
             // Fast path:
             Value::String(string) => string.clone().into(),
@@ -711,7 +722,7 @@ impl Value {
     /// It returns value converted to a numeric value of type `Number` or `BigInt`.
     ///
     /// See: <https://tc39.es/ecma262/#sec-tonumeric>
-    pub fn to_numeric(&self, context: &mut Context) -> Result<Numeric> {
+    pub fn to_numeric(&self, context: &Context) -> Result<Numeric> {
         let primitive = self.to_primitive(context, PreferredType::Number)?;
         if let Some(bigint) = primitive.as_bigint() {
             return Ok(bigint.clone().into());
@@ -724,7 +735,7 @@ impl Value {
     /// This function is equivalent to `value | 0` in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-touint32>
-    pub fn to_u32(&self, context: &mut Context) -> Result<u32> {
+    pub fn to_u32(&self, context: &Context) -> Result<u32> {
         // This is the fast path, if the value is Integer we can just return it.
         if let Value::Integer(number) = *self {
             return Ok(number as u32);
@@ -737,7 +748,7 @@ impl Value {
     /// Converts a value to an integral 32 bit signed integer.
     ///
     /// See: <https://tc39.es/ecma262/#sec-toint32>
-    pub fn to_i32(&self, context: &mut Context) -> Result<i32> {
+    pub fn to_i32(&self, context: &Context) -> Result<i32> {
         // This is the fast path, if the value is Integer we can just return it.
         if let Value::Integer(number) = *self {
             return Ok(number);
@@ -750,7 +761,7 @@ impl Value {
     /// Converts a value to a non-negative integer if it is a valid integer index value.
     ///
     /// See: <https://tc39.es/ecma262/#sec-toindex>
-    pub fn to_index(&self, context: &mut Context) -> Result<usize> {
+    pub fn to_index(&self, context: &Context) -> Result<usize> {
         if self.is_undefined() {
             return Ok(0);
         }
@@ -773,7 +784,7 @@ impl Value {
     /// Converts argument to an integer suitable for use as the length of an array-like object.
     ///
     /// See: <https://tc39.es/ecma262/#sec-tolength>
-    pub fn to_length(&self, context: &mut Context) -> Result<usize> {
+    pub fn to_length(&self, context: &Context) -> Result<usize> {
         // 1. Let len be ? ToInteger(argument).
         let len = self.to_integer(context)?;
 
@@ -789,7 +800,7 @@ impl Value {
     /// Converts a value to an integral Number value.
     ///
     /// See: <https://tc39.es/ecma262/#sec-tointeger>
-    pub fn to_integer(&self, context: &mut Context) -> Result<f64> {
+    pub fn to_integer(&self, context: &Context) -> Result<f64> {
         // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(context)?;
 
@@ -813,7 +824,7 @@ impl Value {
     /// This function is equivalent to the unary `+` operator (`+value`) in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-tonumber>
-    pub fn to_number(&self, context: &mut Context) -> Result<f64> {
+    pub fn to_number(&self, context: &Context) -> Result<f64> {
         match *self {
             Value::Null => Ok(0.0),
             Value::Undefined => Ok(f64::NAN),
@@ -841,7 +852,7 @@ impl Value {
     /// This function is equivalent to `Number(value)` in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-tonumeric>
-    pub fn to_numeric_number(&self, context: &mut Context) -> Result<f64> {
+    pub fn to_numeric_number(&self, context: &Context) -> Result<f64> {
         let primitive = self.to_primitive(context, PreferredType::Number)?;
         if let Some(ref bigint) = primitive.as_bigint() {
             return Ok(bigint.to_f64());
@@ -861,7 +872,7 @@ impl Value {
     /// [table]: https://tc39.es/ecma262/#table-14
     /// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible
     #[inline]
-    pub fn require_object_coercible(&self, context: &mut Context) -> Result<&Value> {
+    pub fn require_object_coercible(&self, context: &Context) -> Result<&Value> {
         if self.is_null_or_undefined() {
             Err(context.construct_type_error("cannot convert null or undefined to Object"))
         } else {
@@ -870,7 +881,7 @@ impl Value {
     }
 
     #[inline]
-    pub fn to_property_descriptor(&self, context: &mut Context) -> Result<PropertyDescriptor> {
+    pub fn to_property_descriptor(&self, context: &Context) -> Result<PropertyDescriptor> {
         if let Self::Object(ref object) = self {
             object.to_property_descriptor(context)
         } else {
@@ -881,7 +892,7 @@ impl Value {
     /// Converts argument to an integer, +∞, or -∞.
     ///
     /// See: <https://tc39.es/ecma262/#sec-tointegerorinfinity>
-    pub fn to_integer_or_infinity(&self, context: &mut Context) -> Result<IntegerOrInfinity> {
+    pub fn to_integer_or_infinity(&self, context: &Context) -> Result<IntegerOrInfinity> {
         // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(context)?;
 

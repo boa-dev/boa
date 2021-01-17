@@ -81,7 +81,7 @@ impl AsyncFunctionDecl {
 }
 
 impl Executable for AsyncFunctionDecl {
-    fn run(&self, _: &mut Context) -> Result<Value> {
+    fn run(&self, _: &Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("AsyncFunctionDecl", "exec");
         // TODO: Implement AsyncFunctionDecl
         Ok(Value::undefined())

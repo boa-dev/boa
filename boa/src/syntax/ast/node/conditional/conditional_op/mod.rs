@@ -60,7 +60,7 @@ impl ConditionalOp {
 }
 
 impl Executable for ConditionalOp {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         Ok(if self.cond().run(context)?.to_boolean() {
             self.if_true().run(context)?
         } else {

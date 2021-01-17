@@ -68,7 +68,7 @@ impl BuiltIn for RegExp {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let regexp_object = ConstructorBuilder::with_standard_object(
@@ -98,11 +98,7 @@ impl RegExp {
     pub(crate) const LENGTH: usize = 2;
 
     /// Create a new `RegExp`
-    pub(crate) fn constructor(
-        new_target: &Value,
-        args: &[Value],
-        ctx: &mut Context,
-    ) -> Result<Value> {
+    pub(crate) fn constructor(new_target: &Value, args: &[Value], ctx: &Context) -> Result<Value> {
         let prototype = new_target
             .as_object()
             .and_then(|obj| {
@@ -217,7 +213,7 @@ impl RegExp {
     // ///
     // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.dotAll
     // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/dotAll
-    // fn get_dot_all(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    // fn get_dot_all(this: &Value, _: &[Value], _: &Context) -> Result<Value> {
     //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.dot_all)))
     // }
 
@@ -232,7 +228,7 @@ impl RegExp {
     // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.flags
     // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/flags
     // /// [flags]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Advanced_searching_with_flags_2
-    // fn get_flags(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    // fn get_flags(this: &Value, _: &[Value], _: &Context) -> Result<Value> {
     //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.flags.clone())))
     // }
 
@@ -246,7 +242,7 @@ impl RegExp {
     // ///
     // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.global
     // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/global
-    // fn get_global(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    // fn get_global(this: &Value, _: &[Value], _: &Context) -> Result<Value> {
     //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.global)))
     // }
 
@@ -260,7 +256,7 @@ impl RegExp {
     // ///
     // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.ignorecase
     // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/ignoreCase
-    // fn get_ignore_case(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    // fn get_ignore_case(this: &Value, _: &[Value], _: &Context) -> Result<Value> {
     //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.ignore_case)))
     // }
 
@@ -274,7 +270,7 @@ impl RegExp {
     // ///
     // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.multiline
     // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/multiline
-    // fn get_multiline(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    // fn get_multiline(this: &Value, _: &[Value], _: &Context) -> Result<Value> {
     //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.multiline)))
     // }
 
@@ -289,7 +285,7 @@ impl RegExp {
     // ///
     // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.source
     // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/source
-    // fn get_source(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    // fn get_source(this: &Value, _: &[Value], _: &Context) -> Result<Value> {
     //     Ok(this.get_internal_slot("OriginalSource"))
     // }
 
@@ -303,7 +299,7 @@ impl RegExp {
     // ///
     // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.sticky
     // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/sticky
-    // fn get_sticky(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    // fn get_sticky(this: &Value, _: &[Value], _: &Context) -> Result<Value> {
     //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.sticky)))
     // }
 
@@ -318,7 +314,7 @@ impl RegExp {
     // ///
     // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.unicode
     // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/unicode
-    // fn get_unicode(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    // fn get_unicode(this: &Value, _: &[Value], _: &Context) -> Result<Value> {
     //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.unicode)))
     // }
 
@@ -334,7 +330,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.test
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test
-    pub(crate) fn test(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn test(this: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let mut last_index = this.get_field("lastIndex", context)?.to_index(context)?;
         let result = if let Some(object) = this.as_object() {
             // 3. Let string be ? ToString(S).
@@ -387,7 +383,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.exec
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec
-    pub(crate) fn exec(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn exec(this: &Value, args: &[Value], context: &Context) -> Result<Value> {
         // 4. Return ? RegExpBuiltinExec(R, S).
         let mut last_index = this.get_field("lastIndex", context)?.to_index(context)?;
         let result = if let Some(object) = this.as_object() {
@@ -457,7 +453,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype-@@match
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@match
-    pub(crate) fn r#match(this: &Value, arg: RcString, context: &mut Context) -> Result<Value> {
+    pub(crate) fn r#match(this: &Value, arg: RcString, context: &Context) -> Result<Value> {
         let (matcher, flags) = if let Some(object) = this.as_object() {
             let object = object.borrow();
             if let Some(regex) = object.as_regexp() {
@@ -495,20 +491,20 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn to_string(this: &Value, _: &[Value], context: &Context) -> Result<Value> {
         let (body, flags) = if let Some(object) = this.as_object() {
             let object = object.borrow();
             let regex = object.as_regexp().ok_or_else(|| {
                 context.construct_type_error(format!(
                     "Method RegExp.prototype.toString called on incompatible receiver {}",
-                    this.display()
+                    this.display(context)
                 ))
             })?;
             (regex.original_source.clone(), regex.flags.clone())
         } else {
             return context.throw_type_error(format!(
                 "Method RegExp.prototype.toString called on incompatible receiver {}",
-                this.display()
+                this.display(context)
             ));
         };
         Ok(Value::from(format!("/{}/{}", body, flags)))
@@ -525,7 +521,7 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexp-prototype-matchall
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@matchAll
     // TODO: it's returning an array, it should return an iterator
-    pub(crate) fn match_all(this: &Value, arg_str: String, context: &mut Context) -> Result<Value> {
+    pub(crate) fn match_all(this: &Value, arg_str: String, context: &Context) -> Result<Value> {
         let matches = if let Some(object) = this.as_object() {
             let object = object.borrow();
             if let Some(regex) = object.as_regexp() {

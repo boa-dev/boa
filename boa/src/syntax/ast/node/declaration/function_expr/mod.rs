@@ -85,7 +85,7 @@ impl FunctionExpr {
 }
 
 impl Executable for FunctionExpr {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         let val = context.create_function(
             self.parameters().to_vec(),
             self.body().to_vec(),

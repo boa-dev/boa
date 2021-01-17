@@ -23,9 +23,10 @@ fn string_to_value() {
 
 #[test]
 fn undefined() {
+    let context = Context::new();
     let u = Value::Undefined;
     assert_eq!(u.get_type(), Type::Undefined);
-    assert_eq!(u.display().to_string(), "undefined");
+    assert_eq!(u.display(&context).to_string(), "undefined");
 }
 
 #[test]
@@ -38,7 +39,7 @@ fn get_set_field() {
     assert_eq!(
         obj.get_field("foo", &mut context)
             .unwrap()
-            .display()
+            .display(&context)
             .to_string(),
         "\"bar\""
     );
@@ -229,7 +230,8 @@ fn get_types() {
 
 #[test]
 fn to_string() {
-    let f64_to_str = |f| Value::Rational(f).display().to_string();
+    let context = Context::new();
+    let f64_to_str = |f| Value::Rational(f).display(&context).to_string();
 
     assert_eq!(f64_to_str(f64::NAN), "NaN");
     assert_eq!(f64_to_str(0.0), "0");
@@ -267,7 +269,8 @@ fn string_length_is_not_enumerable() {
 
     let object = Value::from("foo").to_object(&mut context).unwrap();
     let length_desc = object
-        .get_own_property(&PropertyKey::from("length"))
+        .get_own_property(&PropertyKey::from("length"), &context)
+        .unwrap()
         .unwrap();
     assert!(!length_desc.enumerable());
 }
@@ -279,7 +282,8 @@ fn string_length_is_in_utf16_codeunits() {
     // 😀 is one Unicode code point, but 2 UTF-16 code units
     let object = Value::from("😀").to_object(&mut context).unwrap();
     let length_desc = object
-        .get_own_property(&PropertyKey::from("length"))
+        .get_own_property(&PropertyKey::from("length"), &context)
+        .unwrap()
         .unwrap();
     assert_eq!(
         length_desc
@@ -447,9 +451,10 @@ fn assign_pow_number_and_string() {
 
 #[test]
 fn display_string() {
+    let context = Context::new();
     let s = String::from("Hello");
     let v = Value::from(s);
-    assert_eq!(v.display().to_string(), "\"Hello\"");
+    assert_eq!(v.display(&context).to_string(), "\"Hello\"");
 }
 
 #[test]
@@ -457,7 +462,7 @@ fn display_array_string() {
     let mut context = Context::new();
 
     let value = forward_val(&mut context, "[\"Hello\"]").unwrap();
-    assert_eq!(value.display().to_string(), "[ \"Hello\" ]");
+    assert_eq!(value.display(&context).to_string(), "[ \"Hello\" ]");
 }
 
 #[test]
@@ -468,7 +473,7 @@ fn display_boolean_object() {
         bool
     "#;
     let value = forward_val(&mut context, d_obj).unwrap();
-    assert_eq!(value.display().to_string(), "Boolean { false }")
+    assert_eq!(value.display(&context).to_string(), "Boolean { false }")
 }
 
 #[test]
@@ -479,7 +484,7 @@ fn display_number_object() {
         num
     "#;
     let value = forward_val(&mut context, d_obj).unwrap();
-    assert_eq!(value.display().to_string(), "Number { 3.14 }")
+    assert_eq!(value.display(&context).to_string(), "Number { 3.14 }")
 }
 
 #[test]
@@ -490,7 +495,7 @@ fn display_negative_zero_object() {
         num
     "#;
     let value = forward_val(&mut context, d_obj).unwrap();
-    assert_eq!(value.display().to_string(), "Number { -0 }")
+    assert_eq!(value.display(&context).to_string(), "Number { -0 }")
 }
 
 #[test]
@@ -516,7 +521,7 @@ fn display_object() {
     "#;
     let value = forward_val(&mut context, d_obj).unwrap();
     assert_eq!(
-        value.display().to_string(),
+        value.display(&context).to_string(),
         r#"{
    a: "a",
 __proto__: {

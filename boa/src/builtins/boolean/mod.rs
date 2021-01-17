@@ -31,7 +31,7 @@ impl BuiltIn for Boolean {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let boolean_object = ConstructorBuilder::with_standard_object(
@@ -59,7 +59,7 @@ impl Boolean {
     pub(crate) fn constructor(
         new_target: &Value,
         args: &[Value],
-        context: &mut Context,
+        context: &Context,
     ) -> Result<Value> {
         // Get the argument, if any
         let data = args.get(0).map(|x| x.to_boolean()).unwrap_or(false);
@@ -92,7 +92,7 @@ impl Boolean {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisbooleanvalue
-    fn this_boolean_value(value: &Value, context: &mut Context) -> Result<bool> {
+    fn this_boolean_value(value: &Value, context: &Context) -> Result<bool> {
         match value {
             Value::Boolean(boolean) => return Ok(*boolean),
             Value::Object(ref object) => {
@@ -116,7 +116,7 @@ impl Boolean {
     /// [spec]: https://tc39.es/ecma262/#sec-boolean-object
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn to_string(this: &Value, _: &[Value], context: &Context) -> Result<Value> {
         let boolean = Self::this_boolean_value(this, context)?;
         Ok(Value::from(boolean.to_string()))
     }
@@ -130,7 +130,7 @@ impl Boolean {
     /// [spec]: https://tc39.es/ecma262/#sec-boolean.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/valueOf
     #[inline]
-    pub(crate) fn value_of(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn value_of(this: &Value, _: &[Value], context: &Context) -> Result<Value> {
         Ok(Value::from(Self::this_boolean_value(this, context)?))
     }
 }

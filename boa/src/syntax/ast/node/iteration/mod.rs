@@ -24,9 +24,7 @@ macro_rules! handle_state_with_labels {
             }
         }
 
-        $interpreter
-            .executor()
-            .set_current_state(InterpreterState::Executing);
+        $interpreter.set_current_state(InterpreterState::Executing);
     }};
 }
 

@@ -38,13 +38,13 @@ fn ignore_ambiguity<T>(result: LocalResult<T>) -> Option<T> {
 
 macro_rules! getter_method {
     ($name:ident) => {{
-        fn get_value(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        fn get_value(this: &Value, _: &[Value], context: &Context) -> Result<Value> {
             Ok(Value::from(this_time_value(this, context)?.$name()))
         }
         get_value
     }};
     (Self::$name:ident) => {{
-        fn get_value(_: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+        fn get_value(_: &Value, _: &[Value], _: &Context) -> Result<Value> {
             Ok(Value::from(Date::$name()))
         }
         get_value
@@ -53,7 +53,7 @@ macro_rules! getter_method {
 
 macro_rules! setter_method {
     ($name:ident($($e:expr),* $(,)?)) => {{
-        fn set_value(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        fn set_value(this: &Value, args: &[Value], context: &Context) -> Result<Value> {
             let mut result = this_time_value(this, context)?;
             result.$name(
                 $(
@@ -112,7 +112,7 @@ impl BuiltIn for Date {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let date_object = ConstructorBuilder::new(context, Self::constructor)
@@ -326,7 +326,7 @@ impl Date {
     pub(crate) fn constructor(
         new_target: &Value,
         args: &[Value],
-        context: &mut Context,
+        context: &Context,
     ) -> Result<Value> {
         if new_target.is_undefined() {
             Self::make_date_string()
@@ -396,7 +396,7 @@ impl Date {
     pub(crate) fn make_date_single(
         this: &Value,
         args: &[Value],
-        context: &mut Context,
+        context: &Context,
     ) -> Result<Value> {
         let value = &args[0];
         let tv = match this_time_value(value, context) {
@@ -433,7 +433,7 @@ impl Date {
     pub(crate) fn make_date_multiple(
         this: &Value,
         args: &[Value],
-        context: &mut Context,
+        context: &Context,
     ) -> Result<Value> {
         let year = args[0].to_number(context)?;
         let month = args[1].to_number(context)?;
@@ -1269,7 +1269,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.now
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
-    pub(crate) fn now(_: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    pub(crate) fn now(_: &Value, _: &[Value], _: &Context) -> Result<Value> {
         Ok(Value::from(Utc::now().timestamp_millis() as f64))
     }
 
@@ -1285,7 +1285,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse
-    pub(crate) fn parse(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn parse(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         // This method is implementation-defined and discouraged, so we just require the same format as the string
         // constructor.
 
@@ -1309,7 +1309,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.utc
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/UTC
-    pub(crate) fn utc(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn utc(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let year = args
             .get(0)
             .map_or(Ok(f64::NAN), |value| value.to_number(context))?;
@@ -1371,7 +1371,7 @@ impl Date {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-thistimevalue
 #[inline]
-pub fn this_time_value(value: &Value, context: &mut Context) -> Result<Date> {
+pub fn this_time_value(value: &Value, context: &Context) -> Result<Date> {
     if let Value::Object(ref object) = value {
         if let ObjectData::Date(ref date) = object.borrow().data {
             return Ok(*date);

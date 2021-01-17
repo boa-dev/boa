@@ -32,7 +32,7 @@ impl TemplateLit {
 }
 
 impl Executable for TemplateLit {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("TemplateLiteral", "exec");
         let mut result = String::new();
 
@@ -85,7 +85,7 @@ impl TaggedTemplate {
 }
 
 impl Executable for TaggedTemplate {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("TaggedTemplate", "exec");
 
         let template_object = Array::new_array(context)?;

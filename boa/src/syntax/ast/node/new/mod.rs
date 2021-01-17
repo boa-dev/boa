@@ -45,7 +45,7 @@ impl New {
 }
 
 impl Executable for New {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("New", "exec");
 
         let func_object = self.expr().run(context)?;

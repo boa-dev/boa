@@ -2,8 +2,9 @@ use super::*;
 
 /// This object is used for displaying a `Value`.
 #[derive(Debug, Clone, Copy)]
-pub struct ValueDisplay<'value> {
-    pub(super) value: &'value Value,
+pub struct ValueDisplay<'a> {
+    pub(super) value: &'a Value,
+    pub(super) context: &'a Context,
 }
 
 /// A helper macro for printing objects
@@ -15,10 +16,10 @@ pub struct ValueDisplay<'value> {
 /// - A HashSet with the addresses of the already printed objects for the current branch
 ///      (used to avoid infinite loops when there are cyclic deps)
 macro_rules! print_obj_value {
-    (all of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr) => {
+    (all of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr, $context:ident) => {
         {
-            let mut internals = print_obj_value!(internals of $obj, $display_fn, $indent, $encounters);
-            let mut props = print_obj_value!(props of $obj, $display_fn, $indent, $encounters, true);
+            let mut internals = print_obj_value!(internals of $obj, $display_fn, $indent, $encounters, $context);
+            let mut props = print_obj_value!(props of $obj, $display_fn, $indent, $encounters, true, $context);
 
             props.reserve(internals.len());
             props.append(&mut internals);
@@ -26,27 +27,27 @@ macro_rules! print_obj_value {
             props
         }
     };
-    (internals of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr) => {
+    (internals of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr, $context:ident) => {
         {
             let object = $obj.borrow();
             if object.prototype_instance().is_object() {
                 vec![format!(
                     "{:>width$}: {}",
                     "__proto__",
-                    $display_fn(object.prototype_instance(), $encounters, $indent.wrapping_add(4), true),
+                    $display_fn(object.prototype_instance(), $encounters, $indent.wrapping_add(4), true, $context),
                     width = $indent,
                 )]
             } else {
                 vec![format!(
                     "{:>width$}: {}",
                     "__proto__",
-                    object.prototype_instance().display(),
+                    object.prototype_instance().display($context),
                     width = $indent,
                 )]
             }
         }
     };
-    (props of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr, $print_internals:expr) => {
+    (props of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr, $print_internals:expr, $context:ident) => {
         print_obj_value!(impl $obj, |(key, val)| {
             if val.is_data_descriptor() {
                 let v = &val
@@ -56,7 +57,7 @@ macro_rules! print_obj_value {
                 format!(
                     "{:>width$}: {}",
                     key,
-                    $display_fn(v, $encounters, $indent.wrapping_add(4), $print_internals),
+                    $display_fn(v, $encounters, $indent.wrapping_add(4), $print_internals, $context),
                     width = $indent,
                 )
             } else {
@@ -83,7 +84,12 @@ macro_rules! print_obj_value {
     };
 }
 
-pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: bool) -> String {
+pub(crate) fn log_string_from(
+    x: &Value,
+    print_internals: bool,
+    print_children: bool,
+    context: &Context,
+) -> String {
     match x {
         // We don't want to print private (compiler) or prototype properties
         Value::Object(ref v) => {
@@ -102,7 +108,8 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                 }
                 ObjectData::Array => {
                     let len = v
-                        .get_own_property(&PropertyKey::from("length"))
+                        .get_own_property(&PropertyKey::from("length"), context)
+                        .unwrap()
                         // TODO: do this in a better way `unwrap`
                         .unwrap()
                         // FIXME: handle accessor descriptors
@@ -123,12 +130,14 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                                 // Introduce recursive call to stringify any objects
                                 // which are part of the Array
                                 log_string_from(
-                                    &v.get_own_property(&i.into())
+                                    &v.get_own_property(&i.into(), context)
+                                        .unwrap()
                                         // FIXME: handle accessor descriptors
                                         .and_then(|p| p.as_data_descriptor().map(|d| d.value()))
                                         .unwrap_or_default(),
                                     print_internals,
                                     false,
+                                    context,
                                 )
                             })
                             .collect::<Vec<String>>()
@@ -141,7 +150,8 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                 }
                 ObjectData::Map(ref map) => {
                     let size = v
-                        .get_own_property(&PropertyKey::from("size"))
+                        .get_own_property(&PropertyKey::from("size"), context)
+                        .unwrap()
                         // TODO: do this in a better way "unwrap"
                         .unwrap()
                         // FIXME: handle accessor descriptors
@@ -158,8 +168,8 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                         let mappings = map
                             .iter()
                             .map(|(key, value)| {
-                                let key = log_string_from(key, print_internals, false);
-                                let value = log_string_from(value, print_internals, false);
+                                let key = log_string_from(key, print_internals, false, context);
+                                let value = log_string_from(value, print_internals, false, context);
                                 format!("{} → {}", key, value)
                             })
                             .collect::<Vec<String>>()
@@ -169,16 +179,16 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                         format!("Map({})", size)
                     }
                 }
-                _ => display_obj(&x, print_internals),
+                _ => display_obj(&x, print_internals, context),
             }
         }
         Value::Symbol(ref symbol) => symbol.to_string(),
-        _ => format!("{}", x.display()),
+        _ => format!("{}", x.display(&context)),
     }
 }
 
 /// A helper function for specifically printing object values
-pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
+pub(crate) fn display_obj(v: &Value, print_internals: bool, context: &Context) -> String {
     // A simple helper for getting the address of a value
     // TODO: Find a more general place for this, as it can be used in other situations as well
     fn address_of<T>(t: &T) -> usize {
@@ -193,18 +203,20 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
     if let Value::Object(object) = v {
         if object.borrow().is_error() {
             let name = v
-                .get_property("name")
+                .get_property("name", context)
+                .unwrap()
                 .as_ref()
                 .and_then(|p| p.as_data_descriptor())
                 .map(|d| d.value())
                 .unwrap_or_else(Value::undefined);
             let message = v
-                .get_property("message")
+                .get_property("message", context)
+                .unwrap()
                 .as_ref()
                 .and_then(|p| p.as_data_descriptor())
                 .map(|d| d.value())
                 .unwrap_or_else(Value::undefined);
-            return format!("{}: {}", name.display(), message.display());
+            return format!("{}: {}", name.display(context), message.display(context));
         }
     }
 
@@ -213,6 +225,7 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
         encounters: &mut HashSet<usize>,
         indent: usize,
         print_internals: bool,
+        context: &Context,
     ) -> String {
         if let Value::Object(ref v) = *data {
             // The in-memory address of the current object
@@ -228,9 +241,10 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
             encounters.insert(addr);
 
             let result = if print_internals {
-                print_obj_value!(all of v, display_obj_internal, indent, encounters).join(",\n")
+                print_obj_value!(all of v, display_obj_internal, indent, encounters, context)
+                    .join(",\n")
             } else {
-                print_obj_value!(props of v, display_obj_internal, indent, encounters, print_internals)
+                print_obj_value!(props of v, display_obj_internal, indent, encounters, print_internals, context)
                         .join(",\n")
             };
 
@@ -244,11 +258,11 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
             format!("{{\n{}\n{}}}", result, closing_indent)
         } else {
             // Every other type of data is printed with the display method
-            format!("{}", data.display())
+            format!("{}", data.display(context))
         }
     }
 
-    display_obj_internal(v, &mut encounters, 4, print_internals)
+    display_obj_internal(v, &mut encounters, 4, print_internals, context)
 }
 
 impl Display for ValueDisplay<'_> {
@@ -263,7 +277,11 @@ impl Display for ValueDisplay<'_> {
             },
             Value::String(ref v) => write!(f, "\"{}\"", v),
             Value::Rational(v) => format_rational(*v, f),
-            Value::Object(_) => write!(f, "{}", log_string_from(self.value, true, true)),
+            Value::Object(_) => write!(
+                f,
+                "{}",
+                log_string_from(self.value, true, true, self.context)
+            ),
             Value::Integer(v) => write!(f, "{}", v),
             Value::BigInt(ref num) => write!(f, "{}n", num),
         }

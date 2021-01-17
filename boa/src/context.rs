@@ -6,6 +6,7 @@ use crate::{
         function::{Function, FunctionFlags, NativeFunction},
         iterable::IteratorPrototypes,
         symbol::{Symbol, WellKnownSymbols},
+        EvalError, RangeError, ReferenceError, SyntaxError, TypeError, UriError,
     },
     class::{Class, ClassBuilder},
     exec::Interpreter,
@@ -14,11 +15,8 @@ use crate::{
     realm::Realm,
     syntax::{
         ast::{
-            node::{
-                statement_list::RcStatementList, Call, FormalParameter, Identifier, New,
-                StatementList,
-            },
-            Const, Node,
+            node::{statement_list::RcStatementList, FormalParameter, StatementList},
+            Node,
         },
         Parser,
     },
@@ -35,6 +33,7 @@ use crate::vm::{
     compilation::{CodeGen, Compiler},
     VM,
 };
+use std::cell::{Cell, RefCell};
 
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
 #[derive(Debug, Clone)]
@@ -214,16 +213,16 @@ pub struct Context {
     realm: Realm,
 
     /// The current executor.
-    executor: Interpreter,
+    executor: RefCell<Interpreter>,
 
     /// Symbol hash.
     ///
     /// For now this is an incremented u64 number.
-    symbol_count: u64,
+    symbol_count: Cell<u64>,
 
     /// console object state.
     #[cfg(feature = "console")]
-    console: Console,
+    console: RefCell<Console>,
 
     /// Cached well known symbols
     well_known_symbols: WellKnownSymbols,
@@ -242,10 +241,10 @@ impl Default for Context {
         let (well_known_symbols, symbol_count) = WellKnownSymbols::new();
         let mut context = Self {
             realm,
-            executor,
-            symbol_count,
+            executor: RefCell::new(executor),
+            symbol_count: Cell::new(symbol_count),
             #[cfg(feature = "console")]
-            console: Console::default(),
+            console: RefCell::new(Console::default()),
             well_known_symbols,
             iterator_prototypes: IteratorPrototypes::default(),
             standard_objects: Default::default(),
@@ -255,7 +254,7 @@ impl Default for Context {
         // At a later date this can be removed from here and called explicitly,
         // but for now we almost always want these default builtins
         context.create_intrinsics();
-        context.iterator_prototypes = IteratorPrototypes::init(&mut context);
+        context.iterator_prototypes = IteratorPrototypes::init(&context);
         context
     }
 }
@@ -278,21 +277,14 @@ impl Context {
     }
 
     #[inline]
-    pub fn executor(&mut self) -> &mut Interpreter {
-        &mut self.executor
+    pub fn executor(&self) -> &RefCell<Interpreter> {
+        &self.executor
     }
 
     /// A helper function for getting an immutable reference to the `console` object.
     #[cfg(feature = "console")]
-    pub(crate) fn console(&self) -> &Console {
+    pub(crate) fn console(&self) -> &RefCell<Console> {
         &self.console
-    }
-
-    /// A helper function for getting a mutable reference to the `console` object.
-    #[cfg(feature = "console")]
-    #[inline]
-    pub(crate) fn console_mut(&mut self) -> &mut Console {
-        &mut self.console
     }
 
     /// Sets up the default global objects within Global
@@ -307,15 +299,15 @@ impl Context {
     ///
     /// This currently is an incremented value.
     #[inline]
-    fn generate_hash(&mut self) -> u64 {
-        let hash = self.symbol_count;
-        self.symbol_count += 1;
+    fn generate_hash(&self) -> u64 {
+        let hash = self.symbol_count.get();
+        self.symbol_count.replace(hash + 1);
         hash
     }
 
     /// Construct a new `Symbol` with an optional description.
     #[inline]
-    pub fn construct_symbol(&mut self, description: Option<RcString>) -> RcSymbol {
+    pub fn construct_symbol(&self, description: Option<RcString>) -> RcSymbol {
         RcSymbol::from(Symbol::new(self.generate_hash(), description))
     }
 
@@ -328,7 +320,7 @@ impl Context {
 
     /// <https://tc39.es/ecma262/#sec-call>
     #[inline]
-    pub(crate) fn call(&mut self, f: &Value, this: &Value, args: &[Value]) -> Result<Value> {
+    pub(crate) fn call(&self, f: &Value, this: &Value, args: &[Value]) -> Result<Value> {
         match *f {
             Value::Object(ref object) => object.call(this, args, self),
             _ => self.throw_type_error("not a function"),
@@ -343,22 +335,18 @@ impl Context {
 
     /// Constructs a `RangeError` with the specified message.
     #[inline]
-    pub fn construct_range_error<M>(&mut self, message: M) -> Value
+    pub fn construct_range_error<M>(&self, message: M) -> Value
     where
         M: Into<Box<str>>,
     {
-        // Runs a `new RangeError(message)`.
-        New::from(Call::new(
-            Identifier::from("RangeError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
-        .expect("Into<String> used as message")
+        let message = message.into();
+        RangeError::constructor(&Value::undefined(), &[Value::from(message)], self)
+            .expect("Into<String> used as message")
     }
 
     /// Throws a `RangeError` with the specified message.
     #[inline]
-    pub fn throw_range_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn throw_range_error<M>(&self, message: M) -> Result<Value>
     where
         M: Into<Box<str>>,
     {
@@ -367,22 +355,18 @@ impl Context {
 
     /// Constructs a `TypeError` with the specified message.
     #[inline]
-    pub fn construct_type_error<M>(&mut self, message: M) -> Value
+    pub fn construct_type_error<M>(&self, message: M) -> Value
     where
         M: Into<Box<str>>,
     {
-        // Runs a `new TypeError(message)`.
-        New::from(Call::new(
-            Identifier::from("TypeError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
-        .expect("Into<String> used as message")
+        let message = message.into();
+        TypeError::constructor(&Value::undefined(), &[Value::from(message)], self)
+            .expect("Into<String> used as message")
     }
 
     /// Throws a `TypeError` with the specified message.
     #[inline]
-    pub fn throw_type_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn throw_type_error<M>(&self, message: M) -> Result<Value>
     where
         M: Into<Box<str>>,
     {
@@ -391,21 +375,18 @@ impl Context {
 
     /// Constructs a `ReferenceError` with the specified message.
     #[inline]
-    pub fn construct_reference_error<M>(&mut self, message: M) -> Value
+    pub fn construct_reference_error<M>(&self, message: M) -> Value
     where
         M: Into<Box<str>>,
     {
-        New::from(Call::new(
-            Identifier::from("ReferenceError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
-        .expect("Into<String> used as message")
+        let message = message.into();
+        ReferenceError::constructor(&Value::undefined(), &[Value::from(message)], self)
+            .expect("Into<String> used as message")
     }
 
     /// Throws a `ReferenceError` with the specified message.
     #[inline]
-    pub fn throw_reference_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn throw_reference_error<M>(&self, message: M) -> Result<Value>
     where
         M: Into<Box<str>>,
     {
@@ -414,21 +395,18 @@ impl Context {
 
     /// Constructs a `SyntaxError` with the specified message.
     #[inline]
-    pub fn construct_syntax_error<M>(&mut self, message: M) -> Value
+    pub fn construct_syntax_error<M>(&self, message: M) -> Value
     where
         M: Into<Box<str>>,
     {
-        New::from(Call::new(
-            Identifier::from("SyntaxError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
-        .expect("Into<String> used as message")
+        let message = message.into();
+        SyntaxError::constructor(&Value::undefined(), &[Value::from(message)], self)
+            .expect("Into<String> used as message")
     }
 
     /// Throws a `SyntaxError` with the specified message.
     #[inline]
-    pub fn throw_syntax_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn throw_syntax_error<M>(&self, message: M) -> Result<Value>
     where
         M: Into<Box<str>>,
     {
@@ -436,33 +414,27 @@ impl Context {
     }
 
     /// Constructs a `EvalError` with the specified message.
-    pub fn construct_eval_error<M>(&mut self, message: M) -> Value
+    pub fn construct_eval_error<M>(&self, message: M) -> Value
     where
         M: Into<Box<str>>,
     {
-        New::from(Call::new(
-            Identifier::from("EvalError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
-        .expect("Into<String> used as message")
+        let message = message.into();
+        EvalError::constructor(&Value::undefined(), &[Value::from(message)], self)
+            .expect("Into<String> used as message")
     }
 
     /// Constructs a `URIError` with the specified message.
-    pub fn construct_uri_error<M>(&mut self, message: M) -> Value
+    pub fn construct_uri_error<M>(&self, message: M) -> Value
     where
         M: Into<Box<str>>,
     {
-        New::from(Call::new(
-            Identifier::from("URIError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
-        .expect("Into<String> used as message")
+        let message = message.into();
+        UriError::constructor(&Value::undefined(), &[Value::from(message)], self)
+            .expect("Into<String> used as message")
     }
 
     /// Throws a `EvalError` with the specified message.
-    pub fn throw_eval_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn throw_eval_error<M>(&self, message: M) -> Result<Value>
     where
         M: Into<Box<str>>,
     {
@@ -470,7 +442,7 @@ impl Context {
     }
 
     /// Throws a `URIError` with the specified message.
-    pub fn throw_uri_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn throw_uri_error<M>(&self, message: M) -> Result<Value>
     where
         M: Into<Box<str>>,
     {
@@ -479,7 +451,7 @@ impl Context {
 
     /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
     pub(crate) fn create_function<P, B>(
-        &mut self,
+        &self,
         params: P,
         body: B,
         flags: FunctionFlags,
@@ -500,7 +472,7 @@ impl Context {
             flags,
             body: RcStatementList::from(body.into()),
             params,
-            environment: self.realm.environment.get_current_environment().clone(),
+            environment: self.realm.environment.borrow().get_current_environment(),
         };
 
         let new_func = Object::function(func, function_prototype);
@@ -518,7 +490,7 @@ impl Context {
 
     /// Create a new builin function.
     pub fn create_builtin_function(
-        &mut self,
+        &self,
         name: &str,
         length: usize,
         body: NativeFunction,
@@ -546,7 +518,7 @@ impl Context {
     /// Register a global function.
     #[inline]
     pub fn register_global_function(
-        &mut self,
+        &self,
         name: &str,
         length: usize,
         body: NativeFunction,
@@ -565,7 +537,7 @@ impl Context {
     /// This is useful for the spread operator, for any other object an `Err` is returned
     /// TODO: Not needed for spread of arrays. Check in the future for Map and remove if necessary
     pub(crate) fn extract_array_properties(
-        &mut self,
+        &self,
         value: &Value,
     ) -> Result<StdResult<Vec<Value>, ()>> {
         if let Value::Object(ref x) = value {
@@ -588,8 +560,8 @@ impl Context {
                         array.as_object().expect("object").set_prototype_instance(
                             self.realm()
                                 .environment
-                                .get_binding_value("Array")
-                                .expect("Array was not initialized")
+                                .borrow()
+                                .get_binding_value("Array", self)?
                                 .get_field(PROTOTYPE, self)?,
                         );
                         array.set_field(0, key, self)?;
@@ -609,22 +581,24 @@ impl Context {
 
     /// <https://tc39.es/ecma262/#sec-hasproperty>
     #[inline]
-    pub(crate) fn has_property(&self, obj: &Value, key: &PropertyKey) -> bool {
+    pub(crate) fn has_property(&self, obj: &Value, key: &PropertyKey) -> Result<bool> {
         if let Some(obj) = obj.as_object() {
-            obj.has_property(key)
+            obj.has_property(key, self)
         } else {
-            false
+            Ok(false)
         }
     }
 
     #[inline]
-    pub(crate) fn set_value(&mut self, node: &Node, value: Value) -> Result<Value> {
+    pub(crate) fn set_value(&self, node: &Node, value: Value) -> Result<Value> {
         match node {
             Node::Identifier(ref name) => {
-                self.realm
-                    .environment
-                    .set_mutable_binding(name.as_ref(), value.clone(), true)
-                    .map_err(|e| e.to_error(self))?;
+                self.realm.environment.borrow().set_mutable_binding(
+                    name.as_ref(),
+                    value.clone(),
+                    true,
+                    self,
+                )?;
                 Ok(value)
             }
             Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node
@@ -654,7 +628,7 @@ impl Context {
     /// context.register_global_class::<MyClass>();
     /// ```
     #[inline]
-    pub fn register_global_class<T>(&mut self) -> Result<()>
+    pub fn register_global_class<T>(&self) -> Result<()>
     where
         T: Class,
     {
@@ -687,7 +661,7 @@ impl Context {
     /// context.register_global_property("myObjectProperty", object, Attribute::all());
     /// ```
     #[inline]
-    pub fn register_global_property<K, V>(&mut self, key: K, value: V, attribute: Attribute)
+    pub fn register_global_property<K, V>(&self, key: K, value: V, attribute: Attribute)
     where
         K: Into<PropertyKey>,
         V: Into<Value>,

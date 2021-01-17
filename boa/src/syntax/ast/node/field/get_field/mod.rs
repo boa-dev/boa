@@ -62,7 +62,7 @@ impl GetField {
 }
 
 impl Executable for GetField {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         let mut obj = self.obj().run(context)?;
         if obj.get_type() != Type::Object {
             obj = Value::Object(obj.to_object(context)?);

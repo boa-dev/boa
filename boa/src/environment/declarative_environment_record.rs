@@ -5,14 +5,13 @@
 //! A declarative Environment Record binds the set of identifiers defined by the declarations contained within its scope.
 //! More info:  [ECMA-262 sec-declarative-environment-records](https://tc39.es/ecma262/#sec-declarative-environment-records)
 
-use super::ErrorKind;
 use crate::{
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
     },
     gc::{Finalize, Trace},
-    Value,
+    Context, Result, Value,
 };
 use rustc_hash::FxHashMap;
 
@@ -38,8 +37,8 @@ pub struct DeclarativeEnvironmentRecord {
 }
 
 impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
-    fn has_binding(&self, name: &str) -> bool {
-        self.env_rec.contains_key(name)
+    fn has_binding(&self, name: &str, _context: &Context) -> Result<bool> {
+        Ok(self.env_rec.contains_key(name))
     }
 
     fn create_mutable_binding(
@@ -47,7 +46,8 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         name: String,
         deletion: bool,
         allow_name_reuse: bool,
-    ) -> Result<(), ErrorKind> {
+        _context: &Context,
+    ) -> Result<()> {
         if !allow_name_reuse {
             assert!(
                 !self.env_rec.contains_key(&name),
@@ -68,7 +68,12 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         Ok(())
     }
 
-    fn create_immutable_binding(&mut self, name: String, strict: bool) -> Result<(), ErrorKind> {
+    fn create_immutable_binding(
+        &mut self,
+        name: String,
+        strict: bool,
+        _context: &Context,
+    ) -> Result<()> {
         assert!(
             !self.env_rec.contains_key(&name),
             "Identifier {} has already been declared",
@@ -87,7 +92,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         Ok(())
     }
 
-    fn initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind> {
+    fn initialize_binding(&mut self, name: &str, value: Value, _context: &Context) -> Result<()> {
         if let Some(ref mut record) = self.env_rec.get_mut(name) {
             if record.value.is_none() {
                 record.value = Some(value);
@@ -103,65 +108,67 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         name: &str,
         value: Value,
         mut strict: bool,
-    ) -> Result<(), ErrorKind> {
+        context: &Context,
+    ) -> Result<()> {
         if self.env_rec.get(name).is_none() {
             if strict {
-                return Err(ErrorKind::new_reference_error(format!(
-                    "{} not found",
-                    name
-                )));
+                return Err(context.construct_reference_error(format!("{} not found", name)));
             }
 
-            self.create_mutable_binding(name.to_owned(), true, false)?;
-            self.initialize_binding(name, value)?;
+            self.create_mutable_binding(name.to_owned(), true, false, context)?;
+            self.initialize_binding(name, value, context)?;
             return Ok(());
         }
 
-        let record: &mut DeclarativeEnvironmentRecordBinding = self.env_rec.get_mut(name).unwrap();
-        if record.strict {
-            strict = true
+        let mut no_reference = false;
+        let mut cannot_mutate = false;
+        {
+            let record: &mut DeclarativeEnvironmentRecordBinding =
+                self.env_rec.get_mut(name).unwrap();
+            if record.strict {
+                strict = true
+            }
+            if record.value.is_none() {
+                no_reference = true;
+            } else if record.mutable {
+                record.value = Some(value);
+            } else if strict {
+                cannot_mutate = true;
+            }
         }
-        if record.value.is_none() {
-            return Err(ErrorKind::new_reference_error(format!(
-                "{} has not been initialized",
-                name
-            )));
+        if no_reference {
+            return Err(
+                context.construct_reference_error(format!("{} has not been initialized", name))
+            );
         }
-        if record.mutable {
-            record.value = Some(value);
-        } else if strict {
-            return Err(ErrorKind::new_type_error(format!(
-                "Cannot mutate an immutable binding {}",
-                name
-            )));
+        if cannot_mutate {
+            return Err(context
+                .construct_type_error(format!("Cannot mutate an immutable binding {}", name)));
         }
 
         Ok(())
     }
 
-    fn get_binding_value(&self, name: &str, _strict: bool) -> Result<Value, ErrorKind> {
+    fn get_binding_value(&self, name: &str, _strict: bool, context: &Context) -> Result<Value> {
         if let Some(binding) = self.env_rec.get(name) {
             if let Some(ref val) = binding.value {
                 Ok(val.clone())
             } else {
-                Err(ErrorKind::new_reference_error(format!(
-                    "{} is an uninitialized binding",
-                    name
-                )))
+                context.throw_reference_error(format!("{} is an uninitialized binding", name))
             }
         } else {
             panic!("Cannot get binding value for {}", name);
         }
     }
 
-    fn delete_binding(&mut self, name: &str) -> bool {
+    fn delete_binding(&mut self, name: &str, _context: &Context) -> Result<bool> {
         match self.env_rec.get(name) {
             Some(binding) => {
                 if binding.can_delete {
                     self.env_rec.remove(name);
-                    true
+                    Ok(true)
                 } else {
-                    false
+                    Ok(false)
                 }
             }
             None => panic!("env_rec has no binding for {}", name),
@@ -172,7 +179,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         false
     }
 
-    fn get_this_binding(&self) -> Result<Value, ErrorKind> {
+    fn get_this_binding(&self, _context: &Context) -> Result<Value> {
         Ok(Value::undefined())
     }
 
@@ -180,8 +187,8 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         false
     }
 
-    fn with_base_object(&self) -> Value {
-        Value::undefined()
+    fn with_base_object(&self, _context: &Context) -> Result<Value> {
+        Ok(Value::undefined())
     }
 
     fn get_outer_environment(&self) -> Option<Environment> {

@@ -115,7 +115,7 @@ impl GcObject {
     // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
     #[track_caller]
-    pub fn call(&self, this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub fn call(&self, this: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let this_function_object = self.clone();
         let f_body = if let Some(function) = self.borrow().as_function() {
             if function.is_callable() {
@@ -150,32 +150,37 @@ impl GcObject {
                                 BindingStatus::Uninitialized
                             },
                             Value::undefined(),
+                            context,
                         );
 
                         // Add argument bindings to the function environment
                         for (i, param) in params.iter().enumerate() {
                             // Rest Parameters
                             if param.is_rest_param() {
-                                function.add_rest_param(param, i, args, context, &local_env);
+                                function.add_rest_param(param, i, args, context, &local_env)?;
                                 break;
                             }
 
                             let value = args.get(i).cloned().unwrap_or_else(Value::undefined);
-                            function.add_arguments_to_environment(param, value, &local_env);
+                            function
+                                .add_arguments_to_environment(param, value, &local_env, context)?;
                         }
 
                         // Add arguments object
-                        let arguments_obj = create_unmapped_arguments_object(args);
-                        local_env
-                            .borrow_mut()
-                            .create_mutable_binding("arguments".to_string(), false, true)
-                            .map_err(|e| e.to_error(context))?;
-                        local_env
-                            .borrow_mut()
-                            .initialize_binding("arguments", arguments_obj)
-                            .map_err(|e| e.to_error(context))?;
+                        let arguments_obj = create_unmapped_arguments_object(args, context)?;
+                        local_env.borrow_mut().create_mutable_binding(
+                            "arguments".to_string(),
+                            false,
+                            true,
+                            context,
+                        )?;
+                        local_env.borrow_mut().initialize_binding(
+                            "arguments",
+                            arguments_obj,
+                            context,
+                        )?;
 
-                        context.realm_mut().environment.push(local_env);
+                        context.realm().environment.borrow().push(local_env);
 
                         FunctionBody::Ordinary(body.clone())
                     }
@@ -192,7 +197,7 @@ impl GcObject {
             FunctionBody::BuiltInConstructor(func) => func(&Value::undefined(), args, context),
             FunctionBody::Ordinary(body) => {
                 let result = body.run(context);
-                context.realm_mut().environment.pop();
+                context.realm().environment.borrow().pop();
 
                 result
             }
@@ -206,12 +211,7 @@ impl GcObject {
     /// Panics if the object is currently mutably borrowed.
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
     #[track_caller]
-    pub fn construct(
-        &self,
-        args: &[Value],
-        new_target: Value,
-        context: &mut Context,
-    ) -> Result<Value> {
+    pub fn construct(&self, args: &[Value], new_target: Value, context: &Context) -> Result<Value> {
         let this_function_object = self.clone();
         let body = if let Some(function) = self.borrow().as_function() {
             if function.is_constructable() {
@@ -258,32 +258,37 @@ impl GcObject {
                                 BindingStatus::Uninitialized
                             },
                             new_target.clone(),
+                            context,
                         );
 
                         // Add argument bindings to the function environment
                         for (i, param) in params.iter().enumerate() {
                             // Rest Parameters
                             if param.is_rest_param() {
-                                function.add_rest_param(param, i, args, context, &local_env);
+                                function.add_rest_param(param, i, args, context, &local_env)?;
                                 break;
                             }
 
                             let value = args.get(i).cloned().unwrap_or_else(Value::undefined);
-                            function.add_arguments_to_environment(param, value, &local_env);
+                            function
+                                .add_arguments_to_environment(param, value, &local_env, context)?;
                         }
 
                         // Add arguments object
-                        let arguments_obj = create_unmapped_arguments_object(args);
-                        local_env
-                            .borrow_mut()
-                            .create_mutable_binding("arguments".to_string(), false, true)
-                            .map_err(|e| e.to_error(context))?;
-                        local_env
-                            .borrow_mut()
-                            .initialize_binding("arguments", arguments_obj)
-                            .map_err(|e| e.to_error(context))?;
+                        let arguments_obj = create_unmapped_arguments_object(args, context)?;
+                        local_env.borrow_mut().create_mutable_binding(
+                            "arguments".to_string(),
+                            false,
+                            true,
+                            context,
+                        )?;
+                        local_env.borrow_mut().initialize_binding(
+                            "arguments",
+                            arguments_obj,
+                            context,
+                        )?;
 
-                        context.realm_mut().environment.push(local_env);
+                        context.realm().environment.borrow().push(local_env);
 
                         FunctionBody::Ordinary(body.clone())
                     }
@@ -291,7 +296,7 @@ impl GcObject {
             } else {
                 let name = self
                     .get(&"name".into(), self.clone().into(), context)?
-                    .display()
+                    .display(context)
                     .to_string();
                 return context.throw_type_error(format!("{} is not a constructor", name));
             }
@@ -305,8 +310,8 @@ impl GcObject {
                 let _ = body.run(context);
 
                 // local_env gets dropped here, its no longer needed
-                let binding = context.realm_mut().environment.get_this_binding();
-                binding.map_err(|e| e.to_error(context))
+                let env = &context.realm().environment.borrow();
+                env.get_this_binding(context)
             }
             FunctionBody::BuiltInFunction(_) => unreachable!("Cannot have a function in construct"),
         }
@@ -332,7 +337,7 @@ impl GcObject {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinarytoprimitive
     pub(crate) fn ordinary_to_primitive(
         &self,
-        context: &mut Context,
+        context: &Context,
         hint: PreferredType,
     ) -> Result<Value> {
         // 1. Assert: Type(O) is Object.
@@ -385,7 +390,7 @@ impl GcObject {
     }
 
     /// Converts an object to JSON, checking for reference cycles and throwing a TypeError if one is found
-    pub(crate) fn to_json(&self, context: &mut Context) -> Result<JSONValue> {
+    pub(crate) fn to_json(&self, context: &Context) -> Result<JSONValue> {
         let rec_limiter = RecursionLimiter::new(self);
         if rec_limiter.live {
             Err(context.construct_type_error("cyclic object value"))
@@ -417,16 +422,16 @@ impl GcObject {
         }
     }
 
-    /// Convert the object to a `PropertyDescritptor`
+    /// Convert the object to a `PropertyDescriptor`
     ///
     /// # Panics
     ///
     /// Panics if the object is currently mutably borrowed.
-    pub fn to_property_descriptor(&self, context: &mut Context) -> Result<PropertyDescriptor> {
+    pub fn to_property_descriptor(&self, context: &Context) -> Result<PropertyDescriptor> {
         let mut attribute = Attribute::empty();
 
         let enumerable_key = PropertyKey::from("enumerable");
-        if self.has_property(&enumerable_key)
+        if self.has_property(&enumerable_key, context)?
             && self
                 .get(&enumerable_key, self.clone().into(), context)?
                 .to_boolean()
@@ -435,7 +440,7 @@ impl GcObject {
         }
 
         let configurable_key = PropertyKey::from("configurable");
-        if self.has_property(&configurable_key)
+        if self.has_property(&configurable_key, context)?
             && self
                 .get(&configurable_key, self.clone().into(), context)?
                 .to_boolean()
@@ -445,13 +450,13 @@ impl GcObject {
 
         let mut value = None;
         let value_key = PropertyKey::from("value");
-        if self.has_property(&value_key) {
+        if self.has_property(&value_key, context)? {
             value = Some(self.get(&value_key, self.clone().into(), context)?);
         }
 
         let mut has_writable = false;
         let writable_key = PropertyKey::from("writable");
-        if self.has_property(&writable_key) {
+        if self.has_property(&writable_key, context)? {
             has_writable = true;
             if self
                 .get(&writable_key, self.clone().into(), context)?
@@ -463,7 +468,7 @@ impl GcObject {
 
         let mut get = None;
         let get_key = PropertyKey::from("get");
-        if self.has_property(&get_key) {
+        if self.has_property(&get_key, context)? {
             let getter = self.get(&get_key, self.clone().into(), context)?;
             match getter {
                 Value::Object(ref object) if object.is_callable() => {
@@ -479,7 +484,7 @@ impl GcObject {
 
         let mut set = None;
         let set_key = PropertyKey::from("set");
-        if self.has_property(&set_key) {
+        if self.has_property(&set_key, context)? {
             let setter = self.get(&set_key, self.clone().into(), context)?;
             match setter {
                 Value::Object(ref object) if object.is_callable() => {
@@ -504,7 +509,7 @@ impl GcObject {
         }
     }
 
-    /// Reeturn `true` if it is a native object and the native type is `T`.
+    /// Return `true` if it is a native object and the native type is `T`.
     ///
     /// # Panics
     ///
@@ -731,7 +736,7 @@ impl GcObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmethod
     #[inline]
-    pub fn get_method<K>(&self, context: &mut Context, key: K) -> Result<Option<GcObject>>
+    pub fn get_method<K>(&self, context: &Context, key: K) -> Result<Option<GcObject>>
     where
         K: Into<PropertyKey>,
     {
@@ -756,11 +761,7 @@ impl GcObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinaryhasinstance
     #[inline]
-    pub(crate) fn ordinary_has_instance(
-        &self,
-        context: &mut Context,
-        value: &Value,
-    ) -> Result<bool> {
+    pub(crate) fn ordinary_has_instance(&self, context: &Context, value: &Value) -> Result<bool> {
         if !self.is_callable() {
             return Ok(false);
         }
@@ -774,12 +775,12 @@ impl GcObject {
                 .get(&"prototype".into(), self.clone().into(), context)?
                 .as_object()
             {
-                let mut object = object.get_prototype_of();
+                let mut object = object.get_prototype_of(context)?;
                 while let Some(object_prototype) = object.as_object() {
                     if GcObject::equals(&prototype, &object_prototype) {
                         return Ok(true);
                     }
-                    object = object_prototype.get_prototype_of();
+                    object = object_prototype.get_prototype_of(context)?;
                 }
 
                 Ok(false)
@@ -798,7 +799,7 @@ impl GcObject {
         K: Into<PropertyKey>,
     {
         let key = key.into();
-        self.get_own_property(&key).is_some()
+        self.ordinary_get_own_property(&key).is_some()
     }
 
     /// Defines the property or throws a `TypeError` if the operation fails.
@@ -812,7 +813,7 @@ impl GcObject {
         &mut self,
         key: K,
         desc: P,
-        context: &mut Context,
+        context: &Context,
     ) -> Result<()>
     where
         K: Into<PropertyKey>,
@@ -950,7 +951,7 @@ impl Debug for GcObject {
         let limiter = RecursionLimiter::new(&self);
 
         // Typically, using `!limiter.live` would be good enough here.
-        // However, the JS object hierarchy involves quite a bit of repitition, and the sheer amount of data makes
+        // However, the JS object hierarchy involves quite a bit of repetition, and the sheer amount of data makes
         // understanding the Debug output impossible; limiting the usefulness of it.
         //
         // Instead, we check if the object has appeared before in the entire graph. This means that objects will appear

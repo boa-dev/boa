@@ -1367,6 +1367,6 @@ fn array_length_is_not_enumerable() {
     let context = Context::new();
 
     let array = Array::new_array(&context).unwrap();
-    let desc = array.get_property("length").unwrap();
+    let desc = array.get_property("length", &context).unwrap().unwrap();
     assert!(!desc.enumerable());
 }

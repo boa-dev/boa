@@ -98,14 +98,13 @@ impl ForLoop {
 }
 
 impl Executable for ForLoop {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         // Create the block environment.
         let _timer = BoaProfiler::global().start_event("ForLoop", "exec");
         {
-            let env = &mut context.realm_mut().environment;
-            env.push(new_declarative_environment(Some(
-                env.get_current_environment_ref().clone(),
-            )));
+            let env = &mut context.realm().environment.borrow();
+            let current_env = env.get_current_environment();
+            env.push(new_declarative_environment(Some(current_env)));
         }
 
         if let Some(init) = self.init() {
@@ -119,31 +118,32 @@ impl Executable for ForLoop {
             .unwrap_or(true)
         {
             let result = self.body().run(context)?;
+            {
+                let executor = &mut context.executor().borrow_mut();
+                match executor.get_current_state() {
+                    InterpreterState::Break(label) => {
+                        handle_state_with_labels!(self, label, executor, break);
+                        break;
+                    }
+                    InterpreterState::Continue(label) => {
+                        handle_state_with_labels!(self, label, executor, continue);
+                    }
 
-            match context.executor().get_current_state() {
-                InterpreterState::Break(label) => {
-                    handle_state_with_labels!(self, label, context, break);
-                    break;
-                }
-                InterpreterState::Continue(label) => {
-                    handle_state_with_labels!(self, label, context, continue);
-                }
-
-                InterpreterState::Return => {
-                    return Ok(result);
-                }
-                InterpreterState::Executing => {
-                    // Continue execution.
+                    InterpreterState::Return => {
+                        return Ok(result);
+                    }
+                    InterpreterState::Executing => {
+                        // Continue execution.
+                    }
                 }
             }
-
             if let Some(final_expr) = self.final_expr() {
                 final_expr.run(context)?;
             }
         }
 
         // pop the block env
-        let _ = context.realm_mut().environment.pop();
+        let _ = context.realm().environment.borrow().pop();
 
         Ok(Value::undefined())
     }

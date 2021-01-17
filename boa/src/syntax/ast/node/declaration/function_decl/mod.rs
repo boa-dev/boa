@@ -84,7 +84,7 @@ impl FunctionDecl {
 }
 
 impl Executable for FunctionDecl {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("FunctionDecl", "exec");
         let val = context.create_function(
             self.parameters().to_vec(),
@@ -95,21 +95,17 @@ impl Executable for FunctionDecl {
         // Set the name and assign it in the current environment
         val.set_field("name", self.name(), context)?;
 
-        let environment = &mut context.realm_mut().environment;
-        if environment.has_binding(self.name()) {
-            environment
-                .set_mutable_binding(self.name(), val, true)
-                .map_err(|e| e.to_error(context))?;
+        let environment = &mut context.realm().environment.borrow();
+        if environment.has_binding(self.name(), context)? {
+            environment.set_mutable_binding(self.name(), val, true, context)?;
         } else {
-            environment
-                .create_mutable_binding(self.name().to_owned(), false, VariableScope::Function)
-                .map_err(|e| e.to_error(context))?;
-
-            context
-                .realm_mut()
-                .environment
-                .initialize_binding(self.name(), val)
-                .map_err(|e| e.to_error(context))?;
+            environment.create_mutable_binding(
+                self.name().to_owned(),
+                false,
+                VariableScope::Function,
+                context,
+            )?;
+            environment.initialize_binding(self.name(), val, context)?;
         }
         Ok(Value::undefined())
     }

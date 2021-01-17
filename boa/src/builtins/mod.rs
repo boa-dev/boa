@@ -54,12 +54,12 @@ pub(crate) trait BuiltIn {
     const NAME: &'static str;
 
     fn attribute() -> Attribute;
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute);
+    fn init(context: &Context) -> (&'static str, Value, Attribute);
 }
 
 /// Initializes builtin objects and functions
 #[inline]
-pub fn init(context: &mut Context) {
+pub fn init(context: &Context) {
     let globals = [
         // Global properties.
         Undefined::init,

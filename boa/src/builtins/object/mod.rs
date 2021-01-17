@@ -40,7 +40,7 @@ impl BuiltIn for Object {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let object = ConstructorBuilder::with_standard_object(
@@ -80,7 +80,7 @@ impl BuiltIn for Object {
 impl Object {
     const LENGTH: usize = 1;
 
-    fn constructor(new_target: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    fn constructor(new_target: &Value, args: &[Value], context: &Context) -> Result<Value> {
         if !new_target.is_undefined() {
             let prototype = new_target
                 .as_object()
@@ -117,7 +117,7 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.create
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
-    pub fn create(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub fn create(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let prototype = args.get(0).cloned().unwrap_or_else(Value::undefined);
         let properties = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
@@ -129,7 +129,7 @@ impl Object {
             _ => {
                 return context.throw_type_error(format!(
                     "Object prototype may only be an Object or null: {}",
-                    prototype.display()
+                    prototype.display(context)
                 ))
             }
         };
@@ -154,7 +154,7 @@ impl Object {
     pub fn get_own_property_descriptor(
         _: &Value,
         args: &[Value],
-        context: &mut Context,
+        context: &Context,
     ) -> Result<Value> {
         let object = args
             .get(0)
@@ -163,7 +163,7 @@ impl Object {
         if let Some(key) = args.get(1) {
             let key = key.to_property_key(context)?;
 
-            if let Some(desc) = object.get_own_property(&key) {
+            if let Some(desc) = object.get_own_property(&key, context)? {
                 return Ok(Self::from_property_descriptor(desc, context)?);
             }
         }
@@ -184,7 +184,7 @@ impl Object {
     pub fn get_own_property_descriptors(
         _: &Value,
         args: &[Value],
-        context: &mut Context,
+        context: &Context,
     ) -> Result<Value> {
         let object = args
             .get(0)
@@ -195,7 +195,7 @@ impl Object {
         for key in object.borrow().keys() {
             let descriptor = {
                 let desc = object
-                    .get_own_property(&key)
+                    .get_own_property(&key, context)?
                     .expect("Expected property to be on object.");
                 Self::from_property_descriptor(desc, context)?
             };
@@ -216,7 +216,7 @@ impl Object {
     /// [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-frompropertydescriptor
-    fn from_property_descriptor(desc: PropertyDescriptor, context: &mut Context) -> Result<Value> {
+    fn from_property_descriptor(desc: PropertyDescriptor, context: &Context) -> Result<Value> {
         let mut descriptor = ObjectInitializer::new(context);
 
         if let PropertyDescriptor::Data(data_desc) = &desc {
@@ -255,7 +255,7 @@ impl Object {
     }
 
     /// Uses the SameValue algorithm to check equality of objects
-    pub fn is(_: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
+    pub fn is(_: &Value, args: &[Value], _: &Context) -> Result<Value> {
         let x = args.get(0).cloned().unwrap_or_else(Value::undefined);
         let y = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
@@ -263,7 +263,7 @@ impl Object {
     }
 
     /// Get the `prototype` of an object.
-    pub fn get_prototype_of(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub fn get_prototype_of(_: &Value, args: &[Value], ctx: &Context) -> Result<Value> {
         if args.is_empty() {
             return ctx.throw_type_error(
                 "Object.getPrototypeOf: At least 1 argument required, but only 0 passed",
@@ -282,7 +282,7 @@ impl Object {
     /// [More information][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.setprototypeof
-    pub fn set_prototype_of(_: &Value, args: &[Value], ctx: &mut Context) -> Result<Value> {
+    pub fn set_prototype_of(_: &Value, args: &[Value], ctx: &Context) -> Result<Value> {
         if args.len() < 2 {
             return ctx.throw_type_error(format!(
                 "Object.setPrototypeOf: At least 2 arguments required, but only {} passed",
@@ -316,7 +316,7 @@ impl Object {
         let status = obj
             .as_object()
             .expect("obj was not an object")
-            .set_prototype_of(proto);
+            .set_prototype_of(proto, ctx)?;
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
@@ -337,7 +337,7 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.isprototypeof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/isPrototypeOf
-    pub fn is_prototype_of(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub fn is_prototype_of(this: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let undefined = Value::undefined();
         let mut v = args.get(0).unwrap_or(&undefined).clone();
         if !v.is_object() {
@@ -356,7 +356,7 @@ impl Object {
     }
 
     /// Define a property in an object
-    pub fn define_property(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub fn define_property(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let object = args.get(0).cloned().unwrap_or_else(Value::undefined);
         if let Some(mut object) = object.as_object() {
             let key = args
@@ -386,7 +386,7 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.defineproperties
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperties
-    pub fn define_properties(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub fn define_properties(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let arg = args.get(0).cloned().unwrap_or_default();
         let arg_obj = arg.as_object();
         if let Some(mut obj) = arg_obj {
@@ -408,7 +408,7 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub fn to_string(this: &Value, _: &[Value], context: &Context) -> Result<Value> {
         if this.is_undefined() {
             Ok("[object Undefined]".into())
         } else if this.is_null() {
@@ -454,7 +454,7 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.hasownproperty
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwnProperty
-    pub fn has_own_property(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub fn has_own_property(this: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let key = args
             .get(0)
             .unwrap_or(&Value::undefined())
@@ -467,7 +467,7 @@ impl Object {
     pub fn property_is_enumerable(
         this: &Value,
         args: &[Value],
-        context: &mut Context,
+        context: &Context,
     ) -> Result<Value> {
         let key = match args.get(0) {
             None => return Ok(Value::from(false)),
@@ -475,7 +475,7 @@ impl Object {
         };
 
         let key = key.to_property_key(context)?;
-        let own_property = this.to_object(context)?.get_own_property(&key);
+        let own_property = this.to_object(context)?.get_own_property(&key, context)?;
 
         Ok(own_property.map_or(Value::from(false), |own_prop| {
             Value::from(own_prop.enumerable())

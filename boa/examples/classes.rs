@@ -26,7 +26,7 @@ struct Person {
 // or any function that matches that signature.
 impl Person {
     /// This function says hello
-    fn say_hello(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    fn say_hello(this: &Value, _: &[Value], context: &Context) -> Result<Value> {
         // We check if this is an object.
         if let Some(object) = this.as_object() {
             // If it is we downcast the type to type `Person`.
@@ -57,7 +57,8 @@ impl Class for Person {
     const LENGTH: usize = 2;
 
     // This is what is called when we do `new Person()`
-    fn constructor(_this: &Value, args: &[Value], context: &mut Context) -> Result<Self> {
+
+    fn constructor(_this: &Value, args: &[Value], context: &Context) -> Result<Self> {
         // We get the first argument. If it is unavailable we get `undefined`. And, then call `to_string()`.
         //
         // This is equivalent to `String(arg)`.

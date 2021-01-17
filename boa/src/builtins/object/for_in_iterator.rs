@@ -63,14 +63,14 @@ impl ForInIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%.next
-    pub(crate) fn next(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn next(this: &Value, _: &[Value], context: &Context) -> Result<Value> {
         if let Value::Object(ref o) = this {
             let mut for_in_iterator = o.borrow_mut();
             if let Some(iterator) = for_in_iterator.as_for_in_iterator_mut() {
                 let mut object = iterator.object.to_object(context)?;
                 loop {
                     if !iterator.object_was_visited {
-                        let keys = object.own_property_keys();
+                        let keys = object.own_property_keys(context)?;
                         for k in keys {
                             match k {
                                 PropertyKey::String(ref k) => {
@@ -87,7 +87,7 @@ impl ForInIterator {
                     while let Some(r) = iterator.remaining_keys.pop_front() {
                         if !iterator.visited_keys.contains(&r) {
                             if let Some(desc) =
-                                object.get_own_property(&PropertyKey::from(r.clone()))
+                                object.get_own_property(&PropertyKey::from(r.clone()), context)?
                             {
                                 iterator.visited_keys.insert(r.clone());
                                 if desc.enumerable() {
@@ -125,7 +125,7 @@ impl ForInIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%-object
-    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: Value) -> Value {
+    pub(crate) fn create_prototype(context: &Context, iterator_prototype: Value) -> Value {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype

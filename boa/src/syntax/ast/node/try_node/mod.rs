@@ -92,34 +92,31 @@ impl Try {
 }
 
 impl Executable for Try {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Try", "exec");
         let res = self.block().run(context).map_or_else(
             |err| {
                 if let Some(catch) = self.catch() {
                     {
-                        let env = &mut context.realm_mut().environment;
-                        env.push(new_declarative_environment(Some(
-                            env.get_current_environment_ref().clone(),
-                        )));
+                        let env = &mut context.realm().environment.borrow();
+                        let current_env = env.get_current_environment();
+                        env.push(new_declarative_environment(Some(current_env)));
 
                         if let Some(param) = catch.parameter() {
                             env.create_mutable_binding(
                                 param.to_owned(),
                                 false,
                                 VariableScope::Block,
-                            )
-                            .map_err(|e| e.to_error(context))?;
-                            let env = &mut context.realm_mut().environment;
-                            env.initialize_binding(param, err)
-                                .map_err(|e| e.to_error(context))?;
+                                context,
+                            )?;
+                            env.initialize_binding(param, err, context)?;
                         }
                     }
 
                     let res = catch.block().run(context);
 
                     // pop the block env
-                    let _ = context.realm_mut().environment.pop();
+                    let _ = context.realm().environment.borrow().pop();
 
                     res
                 } else {

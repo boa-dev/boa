@@ -18,7 +18,7 @@ pub struct IteratorPrototypes {
 }
 
 impl IteratorPrototypes {
-    pub(crate) fn init(context: &mut Context) -> Self {
+    pub(crate) fn init(context: &Context) -> Self {
         let iterator_prototype = create_iterator_prototype(context);
         Self {
             iterator_prototype: iterator_prototype
@@ -68,7 +68,7 @@ impl IteratorPrototypes {
 /// CreateIterResultObject( value, done )
 ///
 /// Generates an object supporting the IteratorResult interface.
-pub fn create_iter_result_object(context: &mut Context, value: Value, done: bool) -> Value {
+pub fn create_iter_result_object(context: &Context, value: Value, done: bool) -> Value {
     let object = Value::new_object(context);
     // TODO: Fix attributes of value and done
     let value_property = DataDescriptor::new(value, Attribute::all());
@@ -79,7 +79,7 @@ pub fn create_iter_result_object(context: &mut Context, value: Value, done: bool
 }
 
 /// Get an iterator record
-pub fn get_iterator(context: &mut Context, iterable: Value) -> Result<IteratorRecord> {
+pub fn get_iterator(context: &Context, iterable: Value) -> Result<IteratorRecord> {
     let iterator_function =
         iterable.get_field(context.well_known_symbols().iterator_symbol(), context)?;
     if iterator_function.is_null_or_undefined() {
@@ -99,7 +99,7 @@ pub fn get_iterator(context: &mut Context, iterable: Value) -> Result<IteratorRe
 ///  - [ECMA reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object
-fn create_iterator_prototype(context: &mut Context) -> Value {
+fn create_iterator_prototype(context: &Context) -> Value {
     let _timer = BoaProfiler::global().start_event("Iterator Prototype", "init");
 
     let symbol_iterator = context.well_known_symbols().iterator_symbol();
@@ -134,7 +134,7 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratornext
-    pub(crate) fn next(&self, context: &mut Context) -> Result<IteratorResult> {
+    pub(crate) fn next(&self, context: &Context) -> Result<IteratorResult> {
         let next = context.call(&self.next_function, &self.iterator_object, &[])?;
         let done = next.get_field("done", context)?.to_boolean();
 

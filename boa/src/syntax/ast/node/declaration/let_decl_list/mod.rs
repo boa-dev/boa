@@ -35,22 +35,27 @@ pub struct LetDeclList {
 }
 
 impl Executable for LetDeclList {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         for var in self.as_ref() {
             let val = match var.init() {
                 Some(v) => v.run(context)?,
                 None => Value::undefined(),
             };
             context
-                .realm_mut()
+                .realm()
                 .environment
-                .create_mutable_binding(var.name().to_owned(), false, VariableScope::Block)
-                .map_err(|e| e.to_error(context))?;
+                .borrow()
+                .create_mutable_binding(
+                    var.name().to_owned(),
+                    false,
+                    VariableScope::Block,
+                    context,
+                )?;
             context
-                .realm_mut()
+                .realm()
                 .environment
-                .initialize_binding(var.name(), val)
-                .map_err(|e| e.to_error(context))?;
+                .borrow()
+                .initialize_binding(var.name(), val, context)?;
         }
         Ok(Value::undefined())
     }

@@ -6,7 +6,7 @@ use chrono::prelude::*;
 // NOTE: Javascript Uses 0-based months, where chrono uses 1-based months. Many of the assertions look wrong because of
 // this.
 
-fn forward_dt_utc(context: &mut Context, src: &str) -> Option<NaiveDateTime> {
+fn forward_dt_utc(context: &Context, src: &str) -> Option<NaiveDateTime> {
     let date_time = if let Ok(v) = forward_val(context, src) {
         v
     } else {
@@ -24,7 +24,7 @@ fn forward_dt_utc(context: &mut Context, src: &str) -> Option<NaiveDateTime> {
     }
 }
 
-fn forward_dt_local(context: &mut Context, src: &str) -> Option<NaiveDateTime> {
+fn forward_dt_local(context: &Context, src: &str) -> Option<NaiveDateTime> {
     let date_time = forward_dt_utc(context, src);
 
     // The timestamp is converted to UTC for internal representation
@@ -61,7 +61,8 @@ fn date_this_time_value() {
     )
     .expect_err("Expected error");
     let message_property = &error
-        .get_property("message")
+        .get_property("message", &context)
+        .unwrap()
         .expect("Expected 'message' property")
         .as_data_descriptor()
         .unwrap()

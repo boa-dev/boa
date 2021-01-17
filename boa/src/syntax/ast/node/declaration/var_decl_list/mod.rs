@@ -36,28 +36,26 @@ pub struct VarDeclList {
 }
 
 impl Executable for VarDeclList {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         for var in self.as_ref() {
             let val = match var.init() {
                 Some(v) => v.run(context)?,
                 None => Value::undefined(),
             };
-            let environment = &mut context.realm_mut().environment;
+            let environment = &mut context.realm().environment.borrow();
 
-            if environment.has_binding(var.name()) {
+            if environment.has_binding(var.name(), context)? {
                 if var.init().is_some() {
-                    environment
-                        .set_mutable_binding(var.name(), val, true)
-                        .map_err(|e| e.to_error(context))?;
+                    environment.set_mutable_binding(var.name(), val, true, context)?;
                 }
             } else {
-                environment
-                    .create_mutable_binding(var.name().to_owned(), false, VariableScope::Function)
-                    .map_err(|e| e.to_error(context))?;
-                let environment = &mut context.realm_mut().environment;
-                environment
-                    .initialize_binding(var.name(), val)
-                    .map_err(|e| e.to_error(context))?;
+                environment.create_mutable_binding(
+                    var.name().to_owned(),
+                    false,
+                    VariableScope::Function,
+                    context,
+                )?;
+                environment.initialize_binding(var.name(), val, context)?;
             }
         }
         Ok(Value::undefined())

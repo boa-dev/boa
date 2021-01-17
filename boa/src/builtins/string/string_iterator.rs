@@ -22,7 +22,7 @@ impl StringIterator {
         }
     }
 
-    pub fn create_string_iterator(context: &mut Context, string: Value) -> Result<Value> {
+    pub fn create_string_iterator(context: &Context, string: Value) -> Result<Value> {
         let string_iterator = Value::new_object(context);
         string_iterator.set_data(ObjectData::StringIterator(Self::new(string)));
         string_iterator
@@ -32,7 +32,7 @@ impl StringIterator {
         Ok(string_iterator)
     }
 
-    pub fn next(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub fn next(this: &Value, _: &[Value], context: &Context) -> Result<Value> {
         if let Value::Object(ref object) = this {
             let mut object = object.borrow_mut();
             if let Some(string_iterator) = object.as_string_iterator_mut() {
@@ -69,7 +69,7 @@ impl StringIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
-    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: Value) -> Value {
+    pub(crate) fn create_prototype(context: &Context, iterator_prototype: Value) -> Value {
         let _timer = BoaProfiler::global().start_event("String Iterator", "init");
 
         // Create prototype

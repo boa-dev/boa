@@ -6,7 +6,6 @@
 //! Property keys that are not strings in the form of an `IdentifierName` are not included in the set of bound identifiers.
 //! More info:  [Object Records](https://tc39.es/ecma262/#sec-object-environment-records)
 
-use super::*;
 use crate::property::PropertyDescriptor;
 use crate::{
     environment::{
@@ -15,7 +14,7 @@ use crate::{
     },
     gc::{Finalize, Trace},
     property::{Attribute, DataDescriptor},
-    Value,
+    Context, Result, Value,
 };
 
 #[derive(Debug, Trace, Finalize, Clone)]
@@ -26,14 +25,14 @@ pub struct ObjectEnvironmentRecord {
 }
 
 impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
-    fn has_binding(&self, name: &str) -> bool {
-        if self.bindings.has_field(name) {
+    fn has_binding(&self, name: &str, context: &Context) -> Result<bool> {
+        if self.bindings.has_field(name, context)? {
             if self.with_environment {
                 // TODO: implement unscopables
             }
-            true
+            Ok(true)
         } else {
-            false
+            Ok(false)
         }
     }
 
@@ -42,7 +41,8 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         name: String,
         deletion: bool,
         _allow_name_reuse: bool,
-    ) -> Result<(), ErrorKind> {
+        _context: &Context,
+    ) -> Result<()> {
         // TODO: could save time here and not bother generating a new undefined object,
         // only for it to be replace with the real value later. We could just add the name to a Vector instead
         let bindings = &mut self.bindings;
@@ -56,16 +56,21 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         Ok(())
     }
 
-    fn create_immutable_binding(&mut self, _name: String, _strict: bool) -> Result<(), ErrorKind> {
+    fn create_immutable_binding(
+        &mut self,
+        _name: String,
+        _strict: bool,
+        _context: &Context,
+    ) -> Result<()> {
         Ok(())
     }
 
-    fn initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind> {
+    fn initialize_binding(&mut self, name: &str, value: Value, context: &Context) -> Result<()> {
         // We should never need to check if a binding has been created,
         // As all calls to create_mutable_binding are followed by initialized binding
         // The below is just a check.
-        debug_assert!(self.has_binding(&name));
-        self.set_mutable_binding(name, value, false)
+        debug_assert!(self.has_binding(&name, context)?);
+        self.set_mutable_binding(name, value, false, context)
     }
 
     fn set_mutable_binding(
@@ -73,8 +78,10 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         name: &str,
         value: Value,
         strict: bool,
-    ) -> Result<(), ErrorKind> {
+        _context: &Context,
+    ) -> Result<()> {
         debug_assert!(value.is_object() || value.is_function());
+
         let mut property = DataDescriptor::new(value, Attribute::ENUMERABLE);
         property.set_configurable(strict);
         self.bindings
@@ -84,32 +91,29 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         Ok(())
     }
 
-    fn get_binding_value(&self, name: &str, strict: bool) -> Result<Value, ErrorKind> {
-        if self.bindings.has_field(name) {
-            match self.bindings.get_property(name) {
+    fn get_binding_value(&self, name: &str, strict: bool, context: &Context) -> Result<Value> {
+        if self.bindings.has_field(name, context)? {
+            match self.bindings.get_property(name, context)? {
                 Some(PropertyDescriptor::Data(ref d)) => Ok(d.value()),
                 _ => Ok(Value::undefined()),
             }
         } else if strict {
-            Err(ErrorKind::new_reference_error(format!(
-                "{} has no binding",
-                name
-            )))
+            context.throw_reference_error(format!("{} has no binding", name))
         } else {
             Ok(Value::undefined())
         }
     }
 
-    fn delete_binding(&mut self, name: &str) -> bool {
+    fn delete_binding(&mut self, name: &str, _context: &Context) -> Result<bool> {
         self.bindings.remove_property(name);
-        true
+        Ok(true)
     }
 
     fn has_this_binding(&self) -> bool {
         false
     }
 
-    fn get_this_binding(&self) -> Result<Value, ErrorKind> {
+    fn get_this_binding(&self, _context: &Context) -> Result<Value> {
         Ok(Value::undefined())
     }
 
@@ -117,14 +121,14 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         false
     }
 
-    fn with_base_object(&self) -> Value {
+    fn with_base_object(&self, _context: &Context) -> Result<Value> {
         // Object Environment Records return undefined as their
         // WithBaseObject unless their withEnvironment flag is true.
         if self.with_environment {
-            return self.bindings.clone();
+            return Ok(self.bindings.clone());
         }
 
-        Value::undefined()
+        Ok(Value::undefined())
     }
 
     fn get_outer_environment(&self) -> Option<Environment> {

@@ -25,7 +25,7 @@
 //!     const LENGTH: usize = 1;
 //!
 //!     // This is what is called when we do `new Animal()`
-//!     fn constructor(_this: &Value, args: &[Value], context: &mut Context) -> Result<Self> {
+//!     fn constructor(_this: &Value, args: &[Value], context: &Context) -> Result<Self> {
 //!         // This is equivalent to `String(arg)`.
 //!         let kind = args.get(0).cloned().unwrap_or_default().to_string(context)?;
 //!
@@ -77,7 +77,7 @@ pub trait Class: NativeObject + Sized {
     const ATTRIBUTE: Attribute = Attribute::all();
 
     /// The constructor of the class.
-    fn constructor(this: &Value, args: &[Value], context: &mut Context) -> Result<Self>;
+    fn constructor(this: &Value, args: &[Value], context: &Context) -> Result<Self>;
 
     /// Initializes the internals and the methods of the class.
     fn init(class: &mut ClassBuilder<'_>) -> Result<()>;
@@ -88,13 +88,13 @@ pub trait Class: NativeObject + Sized {
 /// This is automatically implemented, when a type implements `Class`.
 pub trait ClassConstructor: Class {
     /// The raw constructor that mathces the `NativeFunction` signature.
-    fn raw_constructor(this: &Value, args: &[Value], context: &mut Context) -> Result<Value>
+    fn raw_constructor(this: &Value, args: &[Value], context: &Context) -> Result<Value>
     where
         Self: Sized;
 }
 
 impl<T: Class> ClassConstructor for T {
-    fn raw_constructor(this: &Value, args: &[Value], context: &mut Context) -> Result<Value>
+    fn raw_constructor(this: &Value, args: &[Value], context: &Context) -> Result<Value>
     where
         Self: Sized,
     {
@@ -112,7 +112,7 @@ pub struct ClassBuilder<'context> {
 
 impl<'context> ClassBuilder<'context> {
     #[inline]
-    pub(crate) fn new<T>(context: &'context mut Context) -> Self
+    pub(crate) fn new<T>(context: &'context Context) -> Self
     where
         T: ClassConstructor,
     {
@@ -184,7 +184,7 @@ impl<'context> ClassBuilder<'context> {
 
     /// Return the current context.
     #[inline]
-    pub fn context(&mut self) -> &'_ mut Context {
+    pub fn context(&mut self) -> &'_ Context {
         self.builder.context()
     }
 }

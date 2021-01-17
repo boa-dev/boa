@@ -636,7 +636,7 @@ where
 /// Builder for creating native function objects
 #[derive(Debug)]
 pub struct FunctionBuilder<'context> {
-    context: &'context mut Context,
+    context: &'context Context,
     function: BuiltInFunction,
     name: Option<String>,
     length: usize,
@@ -647,7 +647,7 @@ pub struct FunctionBuilder<'context> {
 impl<'context> FunctionBuilder<'context> {
     /// Create a new `FunctionBuilder`
     #[inline]
-    pub fn new(context: &'context mut Context, function: NativeFunction) -> Self {
+    pub fn new(context: &'context Context, function: NativeFunction) -> Self {
         Self {
             context,
             function: function.into(),
@@ -772,14 +772,14 @@ impl<'context> FunctionBuilder<'context> {
 /// ```
 #[derive(Debug)]
 pub struct ObjectInitializer<'context> {
-    context: &'context mut Context,
+    context: &'context Context,
     object: GcObject,
 }
 
 impl<'context> ObjectInitializer<'context> {
     /// Create a new `ObjectBuilder`.
     #[inline]
-    pub fn new(context: &'context mut Context) -> Self {
+    pub fn new(context: &'context Context) -> Self {
         let object = context.construct_object();
         Self { context, object }
     }
@@ -827,7 +827,7 @@ impl<'context> ObjectInitializer<'context> {
 
 /// Builder for creating constructors objects, like `Array`.
 pub struct ConstructorBuilder<'context> {
-    context: &'context mut Context,
+    context: &'context Context,
     constructor_function: NativeFunction,
     constructor_object: GcObject,
     prototype: GcObject,
@@ -855,7 +855,7 @@ impl Debug for ConstructorBuilder<'_> {
 impl<'context> ConstructorBuilder<'context> {
     /// Create a new `ConstructorBuilder`.
     #[inline]
-    pub fn new(context: &'context mut Context, constructor: NativeFunction) -> Self {
+    pub fn new(context: &'context Context, constructor: NativeFunction) -> Self {
         Self {
             context,
             constructor_function: constructor,
@@ -871,7 +871,7 @@ impl<'context> ConstructorBuilder<'context> {
 
     #[inline]
     pub(crate) fn with_standard_object(
-        context: &'context mut Context,
+        context: &'context Context,
         constructor: NativeFunction,
         object: StandardConstructor,
     ) -> Self {
@@ -1012,7 +1012,7 @@ impl<'context> ConstructorBuilder<'context> {
 
     /// Return the current context.
     #[inline]
-    pub fn context(&mut self) -> &'_ mut Context {
+    pub fn context(&mut self) -> &'_ Context {
         self.context
     }
 

@@ -28,7 +28,7 @@ use std::fmt::{self, Debug};
 mod tests;
 
 /// _fn(this, arguments, context) -> ResultValue_ - The signature of a built-in function
-pub type NativeFunction = fn(&Value, &[Value], &mut Context) -> Result<Value>;
+pub type NativeFunction = fn(&Value, &[Value], &Context) -> Result<Value>;
 
 #[derive(Clone, Copy, Finalize)]
 pub struct BuiltInFunction(pub(crate) NativeFunction);
@@ -115,9 +115,9 @@ impl Function {
         param: &FormalParameter,
         index: usize,
         args_list: &[Value],
-        context: &mut Context,
+        context: &Context,
         local_env: &Environment,
-    ) {
+    ) -> Result<()> {
         // Create array of values
         let array = Array::new_array(context).unwrap();
         Array::add_to_array_object(&array, &args_list[index..], context).unwrap();
@@ -126,14 +126,12 @@ impl Function {
         local_env
             .borrow_mut()
             // Function parameters can share names in JavaScript...
-            .create_mutable_binding(param.name().to_owned(), false, true)
-            .expect("Failed to create binding for rest param");
+            .create_mutable_binding(param.name().to_owned(), false, true, context)?;
 
         // Set Binding to value
         local_env
             .borrow_mut()
-            .initialize_binding(param.name(), array)
-            .expect("Failed to initialize rest param");
+            .initialize_binding(param.name(), array, context)
     }
 
     // Adds an argument to the environment
@@ -142,18 +140,20 @@ impl Function {
         param: &FormalParameter,
         value: Value,
         local_env: &Environment,
-    ) {
+        context: &Context,
+    ) -> Result<()> {
         // Create binding
-        local_env
-            .borrow_mut()
-            .create_mutable_binding(param.name().to_owned(), false, true)
-            .expect("Failed to create binding");
+        local_env.borrow_mut().create_mutable_binding(
+            param.name().to_owned(),
+            false,
+            true,
+            context,
+        )?;
 
         // Set Binding to value
         local_env
             .borrow_mut()
-            .initialize_binding(param.name(), value)
-            .expect("Failed to intialize binding");
+            .initialize_binding(param.name(), value, context)
     }
 
     /// Returns true if the function object is callable.
@@ -176,7 +176,10 @@ impl Function {
 /// Arguments.
 ///
 /// <https://tc39.es/ecma262/#sec-createunmappedargumentsobject>
-pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
+pub fn create_unmapped_arguments_object(
+    arguments_list: &[Value],
+    context: &Context,
+) -> Result<Value> {
     let len = arguments_list.len();
     let mut obj = GcObject::new(Object::default());
     // Set length
@@ -185,7 +188,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
     );
     // Define length as a property
-    obj.ordinary_define_own_property("length", length.into());
+    obj.ordinary_define_own_property("length", length.into(), context)?;
     let mut index: usize = 0;
     while index < len {
         let val = arguments_list.get(index).expect("Could not get argument");
@@ -198,7 +201,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
         index += 1;
     }
 
-    Value::from(obj)
+    Ok(Value::from(obj))
 }
 
 /// Creates a new member function of a `Object` or `prototype`.
@@ -256,7 +259,7 @@ pub struct BuiltInFunctionObject;
 impl BuiltInFunctionObject {
     pub const LENGTH: usize = 1;
 
-    fn constructor(new_target: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    fn constructor(new_target: &Value, _: &[Value], context: &Context) -> Result<Value> {
         let prototype = new_target
             .as_object()
             .and_then(|obj| {
@@ -279,7 +282,7 @@ impl BuiltInFunctionObject {
         Ok(this)
     }
 
-    fn prototype(_: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    fn prototype(_: &Value, _: &[Value], _: &Context) -> Result<Value> {
         Ok(Value::undefined())
     }
 
@@ -293,9 +296,10 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.call
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
-    fn call(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    fn call(this: &Value, args: &[Value], context: &Context) -> Result<Value> {
         if !this.is_function() {
-            return context.throw_type_error(format!("{} is not a function", this.display()));
+            return context
+                .throw_type_error(format!("{} is not a function", this.display(context)));
         }
         let this_arg: Value = args.get(0).cloned().unwrap_or_default();
         // TODO?: 3. Perform PrepareForTailCall
@@ -314,9 +318,10 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.apply
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply
-    fn apply(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    fn apply(this: &Value, args: &[Value], context: &Context) -> Result<Value> {
         if !this.is_function() {
-            return context.throw_type_error(format!("{} is not a function", this.display()));
+            return context
+                .throw_type_error(format!("{} is not a function", this.display(context)));
         }
         let this_arg = args.get(0).cloned().unwrap_or_default();
         let arg_array = args.get(1).cloned().unwrap_or_default();
@@ -339,7 +344,7 @@ impl BuiltIn for BuiltInFunctionObject {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event("function", "init");
 
         let function_prototype = context.standard_objects().function_object().prototype();

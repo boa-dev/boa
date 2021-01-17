@@ -24,7 +24,7 @@ pub struct AwaitExpr {
 }
 
 impl Executable for AwaitExpr {
-    fn run(&self, _: &mut Context) -> Result<Value> {
+    fn run(&self, _: &Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("AwaitExpression", "exec");
         // TODO: Implement AwaitExpr
         Ok(Value::Undefined)

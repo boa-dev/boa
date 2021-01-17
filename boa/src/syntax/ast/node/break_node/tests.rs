@@ -13,7 +13,7 @@ fn check_post_state() {
     brk.run(&mut context).unwrap();
 
     assert_eq!(
-        context.executor().get_current_state(),
+        context.executor().borrow().get_current_state(),
         &InterpreterState::Break(Some("label".into()))
     );
 }

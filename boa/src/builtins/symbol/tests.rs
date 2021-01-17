@@ -19,7 +19,7 @@ fn print_symbol_expect_description() {
         "#;
     eprintln!("{}", forward(&mut context, init));
     let sym = forward_val(&mut context, "sym.toString()").unwrap();
-    assert_eq!(sym.display().to_string(), "\"Symbol(Hello)\"");
+    assert_eq!(sym.display(&context).to_string(), "\"Symbol(Hello)\"");
 }
 
 #[test]

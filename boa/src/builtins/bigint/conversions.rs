@@ -14,7 +14,7 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-stringtobigint
     #[inline]
-    pub(crate) fn from_string(string: &str, context: &mut Context) -> Result<Self, Value> {
+    pub(crate) fn from_string(string: &str, context: &Context) -> Result<Self, Value> {
         if string.trim().is_empty() {
             return Ok(BigInt::from(0));
         }

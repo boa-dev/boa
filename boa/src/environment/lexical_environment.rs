@@ -5,7 +5,6 @@
 //! The following operations are used to operate upon lexical environments
 //! This is the entrypoint to lexical environments.
 
-use super::ErrorKind;
 use crate::{
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
@@ -15,10 +14,11 @@ use crate::{
         object_environment_record::ObjectEnvironmentRecord,
     },
     object::GcObject,
-    BoaProfiler, Value,
+    BoaProfiler, Context, Result, Value,
 };
 use gc::{Gc, GcCell};
 use rustc_hash::{FxHashMap, FxHashSet};
+use std::cell::RefCell;
 use std::{collections::VecDeque, error, fmt};
 
 /// Environments are wrapped in a Box and then in a GC wrapper
@@ -45,7 +45,7 @@ pub enum VariableScope {
 
 #[derive(Debug, Clone)]
 pub struct LexicalEnvironment {
-    environment_stack: VecDeque<Environment>,
+    environment_stack: RefCell<VecDeque<Environment>>,
 }
 
 /// An error that occurred during lexing or compiling of the source input.
@@ -83,59 +83,67 @@ impl LexicalEnvironment {
     pub fn new(global: Value) -> Self {
         let _timer = BoaProfiler::global().start_event("LexicalEnvironment::new", "env");
         let global_env = new_global_environment(global.clone(), global);
-        let mut lexical_env = Self {
-            environment_stack: VecDeque::new(),
+        let lexical_env = Self {
+            environment_stack: RefCell::new(VecDeque::new()),
         };
 
         // lexical_env.push(global_env);
-        lexical_env.environment_stack.push_back(global_env);
+        lexical_env
+            .environment_stack
+            .borrow_mut()
+            .push_back(global_env);
         lexical_env
     }
 
-    pub fn push(&mut self, env: Environment) {
-        let current_env: Environment = self.get_current_environment().clone();
+    pub fn push(&self, env: Environment) {
+        let current_env: Environment = self.get_current_environment();
         env.borrow_mut().set_outer_environment(current_env);
-        self.environment_stack.push_back(env);
+        self.environment_stack.borrow_mut().push_back(env);
     }
 
-    pub fn pop(&mut self) -> Option<Environment> {
-        self.environment_stack.pop_back()
-    }
-
-    pub fn environments(&self) -> impl Iterator<Item = &Environment> {
-        self.environment_stack.iter().rev()
+    pub fn pop(&self) -> Option<Environment> {
+        self.environment_stack.borrow_mut().pop_back()
     }
 
     pub fn get_global_object(&self) -> Option<Value> {
         self.environment_stack
+            .borrow()
             .get(0)
             .expect("")
             .borrow()
             .get_global_object()
     }
 
-    pub fn get_this_binding(&self) -> Result<Value, ErrorKind> {
-        self.environments()
+    pub fn get_this_binding(&self, context: &Context) -> Result<Value> {
+        Ok(self
+            .environment_stack
+            .borrow()
+            .iter()
+            .rev()
             .find(|env| env.borrow().has_this_binding())
-            .map(|env| env.borrow().get_this_binding())
-            .unwrap_or_else(|| Ok(Value::Undefined))
+            .map(|env| env.borrow().get_this_binding(context))
+            .transpose()?
+            .unwrap_or_else(Value::undefined))
     }
 
     pub fn create_mutable_binding(
-        &mut self,
+        &self,
         name: String,
         deletion: bool,
         scope: VariableScope,
-    ) -> Result<(), ErrorKind> {
+        context: &Context,
+    ) -> Result<()> {
         match scope {
             VariableScope::Block => self
                 .get_current_environment()
                 .borrow_mut()
-                .create_mutable_binding(name, deletion, false),
+                .create_mutable_binding(name, deletion, false, context),
             VariableScope::Function => {
                 // Find the first function or global environment (from the top of the stack)
-                let env = self
-                    .environments()
+                let stack = &self.environment_stack.borrow();
+                let env = stack
+                    .iter()
+                    .rev()
                     .find(|env| {
                         matches!(
                             env.borrow().get_environment_type(),
@@ -144,27 +152,30 @@ impl LexicalEnvironment {
                     })
                     .expect("No function or global environment");
 
-                env.borrow_mut()
-                    .create_mutable_binding(name, deletion, false)
+                let mut env = env.borrow_mut();
+                env.create_mutable_binding(name, deletion, false, context)
             }
         }
     }
 
     pub fn create_immutable_binding(
-        &mut self,
+        &self,
         name: String,
         deletion: bool,
         scope: VariableScope,
-    ) -> Result<(), ErrorKind> {
+        context: &Context,
+    ) -> Result<()> {
         match scope {
             VariableScope::Block => self
                 .get_current_environment()
                 .borrow_mut()
-                .create_immutable_binding(name, deletion),
+                .create_immutable_binding(name, deletion, context),
             VariableScope::Function => {
                 // Find the first function or global environment (from the top of the stack)
-                let env = self
-                    .environments()
+                let stack = self.environment_stack.borrow();
+                let env = stack
+                    .iter()
+                    .rev()
                     .find(|env| {
                         matches!(
                             env.borrow().get_environment_type(),
@@ -173,81 +184,102 @@ impl LexicalEnvironment {
                     })
                     .expect("No function or global environment");
 
-                env.borrow_mut().create_immutable_binding(name, deletion)
+                let res = env
+                    .borrow_mut()
+                    .create_immutable_binding(name, deletion, context);
+                res
             }
         }
     }
 
     pub fn set_mutable_binding(
-        &mut self,
+        &self,
         name: &str,
         value: Value,
         strict: bool,
-    ) -> Result<(), ErrorKind> {
+        context: &Context,
+    ) -> Result<()> {
         // Find the first environment which has the given binding
-        let env = self
-            .environments()
-            .find(|env| env.borrow().has_binding(name));
+        let stack = &self.environment_stack.borrow();
+        let find_environment_with_binding = || -> Result<Option<&Environment>> {
+            for env in stack.iter().rev() {
+                if env.borrow().has_binding(name, context)? {
+                    return Ok(Some(env));
+                }
+            }
+            Ok(None)
+        };
+        let env = find_environment_with_binding()?;
 
         let env = if let Some(env) = env {
             env
         } else {
             // global_env doesn't need has_binding to be satisfied in non strict mode
-            self.environment_stack
-                .get(0)
-                .expect("Environment stack underflow")
+            stack.get(0).expect("Environment stack underflow")
         };
-        env.borrow_mut().set_mutable_binding(name, value, strict)
+        let res = env
+            .borrow_mut()
+            .set_mutable_binding(name, value, strict, context);
+        res
     }
 
-    pub fn initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind> {
+    pub fn initialize_binding(&self, name: &str, value: Value, context: &Context) -> Result<()> {
         // Find the first environment which has the given binding
-        let env = self
-            .environments()
-            .find(|env| env.borrow().has_binding(name));
-
+        let stack = &self.environment_stack.borrow();
+        let find_environment_with_binding = || -> Result<Option<&Environment>> {
+            for env in stack.iter().rev() {
+                if env.borrow().has_binding(name, context)? {
+                    return Ok(Some(env));
+                }
+            }
+            Ok(None)
+        };
+        let env = find_environment_with_binding()?;
         let env = if let Some(env) = env {
             env
         } else {
             // global_env doesn't need has_binding to be satisfied in non strict mode
-            self.environment_stack
-                .get(0)
-                .expect("Environment stack underflow")
+            stack.get(0).expect("Environment stack underflow")
         };
-        env.borrow_mut().initialize_binding(name, value)
+        let res = env.borrow_mut().initialize_binding(name, value, context);
+        res
     }
 
-    /// get_current_environment_ref is used when you only need to borrow the environment
-    /// (you only need to add a new variable binding, or you want to fetch a value)
-    pub fn get_current_environment_ref(&self) -> &Environment {
-        self.environment_stack
-            .back()
-            .expect("Could not get current environment")
-    }
-
-    /// When neededing to clone an environment (linking it with another environnment)
+    /// When need to clone an environment (linking it with another environment)
     /// cloning is more suited. The GC will remove the env once nothing is linking to it anymore
-    pub fn get_current_environment(&mut self) -> &mut Environment {
+    pub fn get_current_environment(&self) -> Environment {
         self.environment_stack
-            .back_mut()
+            .borrow()
+            .back()
+            .cloned()
             .expect("Could not get mutable reference to back object")
     }
 
-    pub fn has_binding(&self, name: &str) -> bool {
-        self.environments()
-            .any(|env| env.borrow().has_binding(name))
+    pub fn has_binding(&self, name: &str, context: &Context) -> Result<bool> {
+        for e in self.environment_stack.borrow().iter().rev() {
+            if e.borrow().has_binding(name, context)? {
+                return Ok(true);
+            }
+        }
+        Ok(false)
     }
 
-    pub fn get_binding_value(&self, name: &str) -> Result<Value, ErrorKind> {
-        self.environments()
-            .find(|env| env.borrow().has_binding(name))
-            .map(|env| env.borrow().get_binding_value(name, false))
-            .unwrap_or_else(|| {
-                Err(ErrorKind::new_reference_error(format!(
-                    "{} is not defined",
-                    name
-                )))
-            })
+    pub fn get_binding_value(&self, name: &str, context: &Context) -> Result<Value> {
+        let stack = &self.environment_stack.borrow();
+        let find_environment_with_binding = || -> Result<Option<&Environment>> {
+            for env in stack.iter().rev() {
+                if env.borrow().has_binding(name, context)? {
+                    return Ok(Some(env));
+                }
+            }
+            Ok(None)
+        };
+        let env = find_environment_with_binding()?;
+        if let Some(env) = env {
+            env.borrow().get_binding_value(name, false, context)
+        } else {
+            context.throw_reference_error(format!("{} is not defined", name))
+        }
     }
 }
 
@@ -267,6 +299,7 @@ pub fn new_function_environment(
     outer: Option<Environment>,
     binding_status: BindingStatus,
     new_target: Value,
+    context: &Context,
 ) -> Environment {
     let mut func_env = FunctionEnvironmentRecord {
         env_rec: FxHashMap::default(),
@@ -279,7 +312,7 @@ pub fn new_function_environment(
     };
     // If a `this` value has been passed, bind it to the environment
     if let Some(v) = this {
-        func_env.bind_this_value(v).unwrap();
+        func_env.bind_this_value(v, context).unwrap();
     }
     Gc::new(GcCell::new(Box::new(func_env)))
 }

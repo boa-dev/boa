@@ -16,6 +16,7 @@ use crate::{
 };
 use gc::{Gc, GcCell};
 use rustc_hash::{FxHashMap, FxHashSet};
+use std::cell::RefCell;
 
 /// Representation of a Realm.
 ///
@@ -24,7 +25,7 @@ use rustc_hash::{FxHashMap, FxHashSet};
 pub struct Realm {
     pub global_object: Value,
     pub global_env: Gc<GcCell<GlobalEnvironmentRecord>>,
-    pub environment: LexicalEnvironment,
+    pub environment: RefCell<LexicalEnvironment>,
 }
 
 impl Realm {
@@ -43,7 +44,7 @@ impl Realm {
         Self {
             global_object: global.clone(),
             global_env,
-            environment: LexicalEnvironment::new(global),
+            environment: RefCell::new(LexicalEnvironment::new(global)),
         }
     }
 }

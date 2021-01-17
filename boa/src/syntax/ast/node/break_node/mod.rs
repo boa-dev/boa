@@ -52,9 +52,10 @@ impl Break {
 }
 
 impl Executable for Break {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         context
             .executor()
+            .borrow_mut()
             .set_current_state(InterpreterState::Break(self.label().map(Box::from)));
 
         Ok(Value::undefined())

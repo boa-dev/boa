@@ -38,7 +38,7 @@ impl BuiltIn for Json {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let json_object = ObjectInitializer::new(context)
@@ -63,7 +63,7 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
-    pub(crate) fn parse(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn parse(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let arg = args
             .get(0)
             .cloned()
@@ -94,7 +94,7 @@ impl Json {
     /// [polyfill]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
     fn walk(
         reviver: &Value,
-        context: &mut Context,
+        context: &Context,
         holder: &mut Value,
         key: &PropertyKey,
     ) -> Result<Value> {
@@ -135,7 +135,7 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json.stringify
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
-    pub(crate) fn stringify(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn stringify(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let object = match args.get(0) {
             Some(obj) if obj.is_symbol() || obj.is_function() || obj.is_undefined() => {
                 return Ok(Value::undefined())
@@ -223,7 +223,8 @@ impl Json {
                 } else {
                     Some(
                         replacer
-                            .get_property(key)
+                            .get_property(key, context)
+                            .unwrap()
                             .as_ref()
                             .and_then(|p| p.as_data_descriptor())
                             .map(|d| d.value())

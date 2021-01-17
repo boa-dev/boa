@@ -152,8 +152,8 @@ pub fn main() -> Result<(), std::io::Error> {
             }
         } else {
             match context.eval(&buffer) {
-                Ok(v) => println!("{}", v.display()),
-                Err(v) => eprintln!("Uncaught {}", v.display()),
+                Ok(v) => println!("{}", v.display(&context)),
+                Err(v) => eprintln!("Uncaught {}", v.display(&context)),
             }
         }
     }
@@ -188,9 +188,13 @@ pub fn main() -> Result<(), std::io::Error> {
                         }
                     } else {
                         match context.eval(line.trim_end()) {
-                            Ok(v) => println!("{}", v.display()),
+                            Ok(v) => println!("{}", v.display(&context)),
                             Err(v) => {
-                                eprintln!("{}: {}", "Uncaught".red(), v.display().to_string().red())
+                                eprintln!(
+                                    "{}: {}",
+                                    "Uncaught".red(),
+                                    v.display(&context).to_string().red()
+                                )
                             }
                         }
                     }

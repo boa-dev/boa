@@ -67,7 +67,7 @@ impl ArrowFunctionDecl {
 }
 
 impl Executable for ArrowFunctionDecl {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         Ok(context.create_function(
             self.params().to_vec(),
             self.body().to_vec(),

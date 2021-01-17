@@ -218,7 +218,7 @@ impl<'a> VM<'a> {
                         ));
                     }
                     let key = l.to_property_key(self.ctx)?;
-                    let val = self.ctx.has_property(&r, &key);
+                    let val = self.ctx.has_property(&r, &key)?;
 
                     self.push(val.into());
                 }

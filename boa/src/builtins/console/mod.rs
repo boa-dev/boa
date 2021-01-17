@@ -58,7 +58,7 @@ pub(crate) fn logger(msg: LogMessage, console_state: &Console) {
 }
 
 /// This represents the `console` formatter.
-pub fn formatter(data: &[Value], context: &mut Context) -> Result<String> {
+pub fn formatter(data: &[Value], context: &Context) -> Result<String> {
     let target = data
         .get(0)
         .cloned()
@@ -99,7 +99,7 @@ pub fn formatter(data: &[Value], context: &mut Context) -> Result<String> {
                         /* object, FIXME: how to render this properly? */
                         'o' | 'O' => {
                             let arg = data.get(arg_index).cloned().unwrap_or_default();
-                            formatted.push_str(&format!("{}", arg.display()));
+                            formatted.push_str(&format!("{}", arg.display(context)));
                             arg_index += 1
                         }
                         /* string */
@@ -149,7 +149,7 @@ impl BuiltIn for Console {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
         let console = ObjectInitializer::new(context)
             .function(Self::assert, "assert", 0)
@@ -192,7 +192,7 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#assert
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/assert
-    pub(crate) fn assert(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn assert(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let assertion = get_arg_at_index::<bool>(args, 0).unwrap_or_default();
 
         if !assertion {
@@ -203,13 +203,13 @@ impl Console {
             } else if !args[0].is_string() {
                 args.insert(0, Value::from(message));
             } else {
-                let concat = format!("{}: {}", message, args[0].display());
+                let concat = format!("{}: {}", message, args[0].display(context));
                 args[0] = Value::from(concat);
             }
 
             logger(
                 LogMessage::Error(formatter(&args, context)?),
-                context.console(),
+                &context.console().borrow(),
             );
         }
 
@@ -226,8 +226,8 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/clear
-    pub(crate) fn clear(_: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        context.console_mut().groups.clear();
+    pub(crate) fn clear(_: &Value, _: &[Value], context: &Context) -> Result<Value> {
+        context.console().borrow_mut().groups.clear();
         Ok(Value::undefined())
     }
 
@@ -241,10 +241,10 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#debug
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/debug
-    pub(crate) fn debug(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn debug(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         logger(
             LogMessage::Log(formatter(args, context)?),
-            context.console(),
+            &context.console().borrow(),
         );
         Ok(Value::undefined())
     }
@@ -259,10 +259,10 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#error
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/error
-    pub(crate) fn error(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn error(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         logger(
             LogMessage::Error(formatter(args, context)?),
-            context.console(),
+            &context.console().borrow(),
         );
         Ok(Value::undefined())
     }
@@ -277,10 +277,10 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#info
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/info
-    pub(crate) fn info(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn info(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         logger(
             LogMessage::Info(formatter(args, context)?),
-            context.console(),
+            &context.console().borrow(),
         );
         Ok(Value::undefined())
     }
@@ -295,10 +295,10 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#log
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/log
-    pub(crate) fn log(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn log(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         logger(
             LogMessage::Log(formatter(args, context)?),
-            context.console(),
+            &context.console().borrow(),
         );
         Ok(Value::undefined())
     }
@@ -313,17 +313,17 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#trace
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/trace
-    pub(crate) fn trace(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn trace(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         if !args.is_empty() {
             logger(
                 LogMessage::Log(formatter(args, context)?),
-                context.console(),
+                &context.console().borrow(),
             );
 
             /* TODO: get and print stack trace */
             logger(
                 LogMessage::Log("Not implemented: <stack trace>".to_string()),
-                context.console(),
+                &context.console().borrow(),
             )
         }
 
@@ -340,10 +340,10 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#warn
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/warn
-    pub(crate) fn warn(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn warn(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         logger(
             LogMessage::Warn(formatter(args, context)?),
-            context.console(),
+            &context.console().borrow(),
         );
         Ok(Value::undefined())
     }
@@ -358,20 +358,18 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#count
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/count
-    pub(crate) fn count(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn count(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
             None => "default".into(),
         };
 
         let msg = format!("count {}:", &label);
-        let c = context.console_mut().count_map.entry(label).or_insert(0);
+        let console = &mut context.console().borrow_mut();
+        let c = console.count_map.entry(label).or_insert(0);
         *c += 1;
 
-        logger(
-            LogMessage::Info(format!("{} {}", msg, c)),
-            context.console(),
-        );
+        logger(LogMessage::Info(format!("{} {}", msg, c)), &console);
         Ok(Value::undefined())
     }
 
@@ -385,18 +383,16 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#countreset
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/countReset
-    pub(crate) fn count_reset(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn count_reset(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
             None => "default".into(),
         };
 
-        context.console_mut().count_map.remove(&label);
+        let console = &mut context.console().borrow_mut();
+        console.count_map.remove(&label);
 
-        logger(
-            LogMessage::Warn(format!("countReset {}", label)),
-            context.console(),
-        );
+        logger(LogMessage::Warn(format!("countReset {}", label)), &console);
 
         Ok(Value::undefined())
     }
@@ -419,20 +415,20 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#time
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/time
-    pub(crate) fn time(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn time(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
             None => "default".into(),
         };
-
-        if context.console().timer_map.get(&label).is_some() {
+        let console = &mut context.console().borrow_mut();
+        if console.timer_map.get(&label).is_some() {
             logger(
                 LogMessage::Warn(format!("Timer '{}' already exist", label)),
-                context.console(),
+                &console,
             );
         } else {
             let time = Self::system_time_in_ms();
-            context.console_mut().timer_map.insert(label, time);
+            console.timer_map.insert(label, time);
         }
 
         Ok(Value::undefined())
@@ -448,23 +444,23 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#timelog
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeLog
-    pub(crate) fn time_log(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn time_log(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
             None => "default".into(),
         };
-
-        if let Some(t) = context.console().timer_map.get(&label) {
+        let console = context.console().borrow_mut();
+        if let Some(t) = console.timer_map.get(&label) {
             let time = Self::system_time_in_ms();
             let mut concat = format!("{}: {} ms", label, time - t);
             for msg in args.iter().skip(1) {
-                concat = concat + " " + &msg.display().to_string();
+                concat = concat + " " + &msg.display(context).to_string();
             }
-            logger(LogMessage::Log(concat), context.console());
+            logger(LogMessage::Log(concat), &console);
         } else {
             logger(
                 LogMessage::Warn(format!("Timer '{}' doesn't exist", label)),
-                context.console(),
+                &console,
             );
         }
 
@@ -481,22 +477,23 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#timeend
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/timeEnd
-    pub(crate) fn time_end(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn time_end(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let label = match args.get(0) {
             Some(value) => value.to_string(context)?,
             None => "default".into(),
         };
 
-        if let Some(t) = context.console_mut().timer_map.remove(label.as_str()) {
+        let console = &mut context.console().borrow_mut();
+        if let Some(t) = console.timer_map.remove(label.as_str()) {
             let time = Self::system_time_in_ms();
             logger(
                 LogMessage::Info(format!("{}: {} ms - timer removed", label, time - t)),
-                context.console(),
+                &console,
             );
         } else {
             logger(
                 LogMessage::Warn(format!("Timer '{}' doesn't exist", label)),
-                context.console(),
+                &console,
             );
         }
 
@@ -513,14 +510,14 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#group
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/group
-    pub(crate) fn group(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn group(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let group_label = formatter(args, context)?;
-
+        let console = &mut context.console().borrow_mut();
         logger(
             LogMessage::Info(format!("group: {}", &group_label)),
-            context.console(),
+            &console,
         );
-        context.console_mut().groups.push(group_label);
+        console.groups.push(group_label);
 
         Ok(Value::undefined())
     }
@@ -535,8 +532,8 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#groupend
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/groupEnd
-    pub(crate) fn group_end(_: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        context.console_mut().groups.pop();
+    pub(crate) fn group_end(_: &Value, _: &[Value], context: &Context) -> Result<Value> {
+        context.console().borrow_mut().groups.pop();
 
         Ok(Value::undefined())
     }
@@ -551,11 +548,15 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#dir
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/dir
-    pub(crate) fn dir(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn dir(_: &Value, args: &[Value], context: &Context) -> Result<Value> {
         let undefined = Value::undefined();
         logger(
-            LogMessage::Info(display_obj(args.get(0).unwrap_or(&undefined), true)),
-            context.console(),
+            LogMessage::Info(display_obj(
+                args.get(0).unwrap_or(&undefined),
+                true,
+                context,
+            )),
+            &context.console().borrow(),
         );
 
         Ok(Value::undefined())

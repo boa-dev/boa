@@ -58,18 +58,21 @@ impl StatementList {
 }
 
 impl Executable for StatementList {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("StatementList", "exec");
 
         // https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation
         // The return value is uninitialized, which means it defaults to Value::Undefined
         let mut obj = Value::default();
-        context
-            .executor()
-            .set_current_state(InterpreterState::Executing);
+        {
+            context
+                .executor()
+                .borrow_mut()
+                .set_current_state(InterpreterState::Executing);
+        }
         for (i, item) in self.items().iter().enumerate() {
             let val = item.run(context)?;
-            match context.executor().get_current_state() {
+            match context.executor().borrow().get_current_state() {
                 InterpreterState::Return => {
                     // Early return.
                     obj = val;

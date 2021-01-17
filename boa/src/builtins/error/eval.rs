@@ -31,7 +31,7 @@ impl BuiltIn for EvalError {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let error_prototype = context.standard_objects().error_object().prototype();
@@ -60,7 +60,7 @@ impl EvalError {
     pub(crate) fn constructor(
         new_target: &Value,
         args: &[Value],
-        context: &mut Context,
+        context: &Context,
     ) -> Result<Value> {
         let prototype = new_target
             .as_object()
@@ -70,7 +70,7 @@ impl EvalError {
                     .transpose()
             })
             .transpose()?
-            .unwrap_or_else(|| context.standard_objects().error_object().prototype());
+            .unwrap_or_else(|| context.standard_objects().eval_error_object().prototype());
         let mut obj = context.construct_object();
         obj.set_prototype_instance(prototype.into());
         let this = Value::from(obj);

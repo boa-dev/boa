@@ -51,13 +51,12 @@ impl Block {
 }
 
 impl Executable for Block {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Block", "exec");
         {
-            let env = &mut context.realm_mut().environment;
-            env.push(new_declarative_environment(Some(
-                env.get_current_environment_ref().clone(),
-            )));
+            let env = &mut context.realm().environment.borrow();
+            let current_env = env.get_current_environment();
+            env.push(new_declarative_environment(Some(current_env)));
         }
 
         // https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation
@@ -66,7 +65,7 @@ impl Executable for Block {
         for statement in self.items() {
             obj = statement.run(context)?;
 
-            match context.executor().get_current_state() {
+            match context.executor().borrow().get_current_state() {
                 InterpreterState::Return => {
                     // Early return.
                     break;
@@ -88,7 +87,7 @@ impl Executable for Block {
         }
 
         // pop the block env
-        let _ = context.realm_mut().environment.pop();
+        let _ = context.realm().environment.borrow().pop();
 
         Ok(obj)
     }
