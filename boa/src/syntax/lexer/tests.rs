@@ -6,7 +6,7 @@ use super::token::Numeric;
 use super::*;
 use super::{Error, Position};
 use crate::syntax::ast::Keyword;
-use crate::syntax::lexer::string::{unescape_string, StringTerminator};
+use crate::syntax::lexer::string::{StringLiteral, StringTerminator};
 use std::str;
 
 fn span(start: (u32, u32), end: (u32, u32)) -> Span {
@@ -864,7 +864,7 @@ fn unicode_escape_with_braces_() {
 
     let mut cursor = Cursor::new(s.as_bytes());
 
-    if let Ok((s, _)) = unescape_string(
+    if let Ok((s, _)) = StringLiteral::unescape_string(
         &mut cursor,
         Position::new(1, 1),
         StringTerminator::End,
@@ -880,7 +880,7 @@ fn unicode_escape_with_braces_() {
 fn unescape_string_with_single_escape() {
     let s = r#"\Б"#.to_string();
     let mut cursor = Cursor::new(s.as_bytes());
-    let (s, _) = unescape_string(
+    let (s, _) = StringLiteral::unescape_string(
         &mut cursor,
         Position::new(1, 1),
         StringTerminator::End,
