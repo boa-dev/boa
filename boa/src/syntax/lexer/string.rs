@@ -107,7 +107,8 @@ impl StringLiteral {
                             b'f' => buf.push('\x0c' as u16),
                             b'0' if cursor
                                 .peek()?
-                                .filter(|next_byte| (*next_byte as char).is_digit(10))
+                                .and_then(|next_byte| char::try_from(next_byte).ok())
+                                .filter(|next_ch| next_ch.is_digit(10))
                                 .is_none() =>
                             {
                                 buf.push('\0' as u16)
@@ -197,7 +198,7 @@ impl StringLiteral {
 
             Ok(code_point)
         } else {
-            // Hex4Digits
+            // Grammar: Hex4Digits
             // Collect each character after \u e.g \uD83D will give "D83D"
             let mut code_point_utf8_bytes = [0u8; 4];
             cursor.fill_bytes(&mut code_point_utf8_bytes)?;
