@@ -76,9 +76,9 @@ impl StringLiteral {
     {
         let mut buf = Vec::new();
         loop {
-            let next_chr = cursor.next_char()?.map(char::try_from).transpose().unwrap();
+            let next_ch = cursor.next_char()?.map(char::try_from).transpose().unwrap();
 
-            match next_chr {
+            match next_ch {
                 Some('\'') if terminator == StringTerminator::SingleQuote => {
                     break;
                 }
@@ -135,10 +135,10 @@ impl StringLiteral {
                     if next_ch.len_utf16() == 1 {
                         buf.push(next_ch as u16);
                     } else {
-                        let mut code_point_bytes_buf = [0u16; 2];
-                        let code_point_bytes = next_ch.encode_utf16(&mut code_point_bytes_buf);
+                        let mut code_units_buf = [0u16; 2];
+                        let code_units_buf = next_ch.encode_utf16(&mut code_units_buf);
 
-                        buf.extend(code_point_bytes.iter());
+                        buf.extend(code_units_buf.iter());
                     }
                 }
                 None if terminator != StringTerminator::End => {
