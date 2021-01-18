@@ -105,7 +105,13 @@ impl StringLiteral {
                             b't' => buf.push('\t' as u16),
                             b'b' => buf.push('\x08' as u16),
                             b'f' => buf.push('\x0c' as u16),
-                            b'0' => buf.push('\0' as u16),
+                            b'0' if cursor
+                                .peek()?
+                                .filter(|next_byte| (*next_byte as char).is_digit(10))
+                                .is_none() =>
+                            {
+                                buf.push('\0' as u16)
+                            }
                             b'x' => {
                                 Self::hex_escape_sequence(cursor, Some(&mut buf))?;
                             }
