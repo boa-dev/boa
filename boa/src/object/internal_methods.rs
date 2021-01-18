@@ -88,6 +88,7 @@ impl GcObject {
         self.borrow_mut().extensible = false;
         Ok(true)
     }
+
     /// Delete a property.
     ///
     /// More information:
@@ -588,12 +589,12 @@ impl GcObject {
         self.borrow().keys().collect()
     }
 
-    /// OwnPropertyKeys for ordinary objects
+    /// OwnPropertyKeys for string exotic objects
     ///
     /// More information:
     ///   - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-ordinaryownpropertykeys
+    /// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-ownpropertykeys
     pub fn string_own_property_keys(&self) -> Vec<PropertyKey> {
         let string = self.borrow().as_string().unwrap();
         let mut property_keys = Vec::new();

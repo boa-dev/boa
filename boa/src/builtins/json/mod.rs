@@ -224,7 +224,7 @@ impl Json {
                     Some(
                         replacer
                             .get_property(key, context)
-                            .unwrap()
+                            .expect("'key' is one of the keys of 'replacer'")
                             .as_ref()
                             .and_then(|p| p.as_data_descriptor())
                             .map(|d| d.value())

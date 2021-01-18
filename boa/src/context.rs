@@ -555,11 +555,7 @@ impl Context {
                         let array = Value::new_object(self);
                         array.set_data(ObjectData::Array);
                         array.as_object().expect("object").set_prototype_instance(
-                            self.realm()
-                                .environment
-                                .borrow()
-                                .get_binding_value("Array", self)?
-                                .get_field(PROTOTYPE, self)?,
+                            self.standard_objects().array_object().prototype().into(),
                         );
                         array.set_field(0, key, self)?;
                         array.set_field(1, value, self)?;
