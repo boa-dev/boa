@@ -890,6 +890,50 @@ fn unescape_string_with_single_escape() {
     assert_eq!(s, "Б");
 }
 
+#[test]
+fn legacy_octal_escape() {
+    let test_cases = [
+        (r#"\3"#, "\u{3}"),
+        (r#"\03"#, "\u{3}"),
+        (r#"\003"#, "\u{3}"),
+        (r#"\0003"#, "\u{0}3"),
+        (r#"\43"#, "#"),
+        (r#"\043"#, "#"),
+        (r#"\101"#, "A"),
+    ];
+
+    for (s, expected) in test_cases.iter() {
+        let mut cursor = Cursor::new(s.as_bytes());
+        let (s, _) = StringLiteral::unescape_string(
+            &mut cursor,
+            Position::new(1, 1),
+            StringTerminator::End,
+            false,
+        )
+        .unwrap();
+
+        assert_eq!(s, *expected);
+    }
+}
+
+#[test]
+fn zero_escape() {
+    let test_cases = [(r#"\0"#, "\u{0}"), (r#"\0A"#, "\u{0}A")];
+
+    for (s, expected) in test_cases.iter() {
+        let mut cursor = Cursor::new(s.as_bytes());
+        let (s, _) = StringLiteral::unescape_string(
+            &mut cursor,
+            Position::new(1, 1),
+            StringTerminator::End,
+            false,
+        )
+        .unwrap();
+
+        assert_eq!(s, *expected);
+    }
+}
+
 mod carriage_return {
     use super::*;
 
