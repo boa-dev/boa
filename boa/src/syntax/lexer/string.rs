@@ -85,6 +85,9 @@ impl StringLiteral {
                 Some('"') if terminator == StringTerminator::DoubleQuote => {
                     break;
                 }
+                None if terminator == StringTerminator::End => {
+                    break;
+                }
                 Some('\\') => {
                     let _timer = BoaProfiler::global()
                         .start_event("StringLiteral - escape sequence", "Lexing");
@@ -141,14 +144,11 @@ impl StringLiteral {
                         buf.extend(code_units_buf.iter());
                     }
                 }
-                None if terminator != StringTerminator::End => {
+                None => {
                     return Err(Error::from(io::Error::new(
                         ErrorKind::UnexpectedEof,
                         "unterminated string literal",
                     )));
-                }
-                None => {
-                    break;
                 }
             }
         }
