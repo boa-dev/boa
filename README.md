@@ -15,6 +15,7 @@ Currently, it has support for some of the language.
 [![codecov](https://codecov.io/gh/boa-dev/boa/branch/master/graph/badge.svg)](https://codecov.io/gh/boa-dev/boa)
 [![](http://meritbadge.herokuapp.com/boa)](https://crates.io/crates/boa)
 [![](https://docs.rs/Boa/badge.svg)](https://docs.rs/Boa/)
+![Discord](https://img.shields.io/discord/595323158140158003?logo=discord)
 
 [build_badge]: https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fboa-dev%2Fboa%2Fbadge&style=flat
 [build_link]: https://actions-badge.atrox.dev/boa-dev/boa/goto

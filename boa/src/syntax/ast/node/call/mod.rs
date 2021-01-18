@@ -79,7 +79,11 @@ impl Executable for Call {
                     obj.get_field(field.to_property_key(context)?, context)?,
                 )
             }
-            _ => (context.global_object().clone(), self.expr().run(context)?), // 'this' binding should come from the function's self-contained environment
+            _ => (
+                // 'this' binding should come from the function's self-contained environment
+                context.global_object().clone().into(),
+                self.expr().run(context)?,
+            ),
         };
         let mut v_args = Vec::with_capacity(self.args().len());
         for arg in self.args() {

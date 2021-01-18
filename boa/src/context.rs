@@ -336,7 +336,7 @@ impl Context {
 
     /// Return the global object.
     #[inline]
-    pub fn global_object(&self) -> &Value {
+    pub fn global_object(&self) -> &GcObject {
         &self.realm().global_object
     }
 
@@ -551,11 +551,8 @@ impl Context {
         body: NativeFunction,
     ) -> Result<()> {
         let function = self.create_builtin_function(name, length, body)?;
-        let global = self.global_object();
-        global
-            .as_object()
-            .unwrap()
-            .insert_property(name, function, Attribute::all());
+        let mut global = self.global_object().clone();
+        global.insert_property(name, function, Attribute::all());
         Ok(())
     }
 
@@ -615,10 +612,7 @@ impl Context {
 
         let class = class_builder.build();
         let property = DataDescriptor::new(class, T::ATTRIBUTE);
-        self.global_object()
-            .as_object()
-            .unwrap()
-            .insert(T::NAME, property);
+        self.global_object().clone().insert(T::NAME, property);
         Ok(())
     }
 
@@ -645,10 +639,7 @@ impl Context {
         V: Into<Value>,
     {
         let property = DataDescriptor::new(value, attribute);
-        self.global_object()
-            .as_object()
-            .unwrap()
-            .insert(key, property);
+        self.global_object().clone().insert(key, property);
     }
 
     /// Evaluates the given code.

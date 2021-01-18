@@ -84,6 +84,12 @@ where
         self.lexer.lex_slash_token(start).map_err(|e| e.into())
     }
 
+    /// Lexes the next tokens as template middle or template tail assuming that the starting
+    /// '}' has already been consumed.
+    pub(super) fn lex_template(&mut self, start: Position) -> Result<Token, ParseError> {
+        self.lexer.lex_template(start).map_err(ParseError::from)
+    }
+
     #[inline]
     pub(super) fn strict_mode(&self) -> bool {
         self.lexer.strict_mode()

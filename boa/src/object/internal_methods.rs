@@ -6,7 +6,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
 use crate::{
-    object::{GcObject, Object},
+    object::{GcObject, Object, ObjectData},
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
     value::{same_value, Type, Value},
     BoaProfiler, Context, Result,
@@ -554,6 +554,11 @@ impl GcObject {
     #[track_caller]
     pub fn is_constructable(&self) -> bool {
         self.borrow().is_constructable()
+    }
+
+    /// Returns true if the GcObject is the global for a Realm
+    pub fn is_global(&self) -> bool {
+        matches!(self.borrow().data, ObjectData::Global)
     }
 
     /// It is used to create List value whose elements are provided by the indexed properties of
