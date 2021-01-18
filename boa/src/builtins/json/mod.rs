@@ -40,10 +40,15 @@ impl BuiltIn for Json {
 
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
+        let string_tag = context.well_known_symbols().to_string_tag_symbol();
         let json_object = ObjectInitializer::new(context)
             .function(Self::parse, "parse", 2)
             .function(Self::stringify, "stringify", 3)
+            .property(
+                string_tag,
+                Json::NAME,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .build();
 
         (Self::NAME, json_object.into(), Self::attribute())

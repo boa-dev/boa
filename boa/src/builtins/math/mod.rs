@@ -35,6 +35,7 @@ impl BuiltIn for Math {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
+        let string_tag = context.well_known_symbols().to_string_tag_symbol();
         let object = ObjectInitializer::new(context)
             .property("E", f64::consts::E, attribute)
             .property("LN2", f64::consts::LN_2, attribute)
@@ -79,6 +80,11 @@ impl BuiltIn for Math {
             .function(Self::tan, "tan", 1)
             .function(Self::tanh, "tanh", 1)
             .function(Self::trunc, "trunc", 1)
+            .property(
+                string_tag,
+                Math::NAME,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .build();
 
         (Self::NAME, object.into(), Self::attribute())
