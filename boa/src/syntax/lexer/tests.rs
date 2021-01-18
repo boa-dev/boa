@@ -864,7 +864,7 @@ fn unicode_escape_with_braces_() {
 
     let mut cursor = Cursor::new(s.as_bytes());
 
-    if let Ok((s, _)) = StringLiteral::unescape_string(
+    if let Ok((s, _)) = StringLiteral::take_string_characters(
         &mut cursor,
         Position::new(1, 1),
         StringTerminator::End,
@@ -880,7 +880,7 @@ fn unicode_escape_with_braces_() {
 fn unescape_string_with_single_escape() {
     let s = r#"\Б"#.to_string();
     let mut cursor = Cursor::new(s.as_bytes());
-    let (s, _) = StringLiteral::unescape_string(
+    let (s, _) = StringLiteral::take_string_characters(
         &mut cursor,
         Position::new(1, 1),
         StringTerminator::End,
@@ -904,7 +904,7 @@ fn legacy_octal_escape() {
 
     for (s, expected) in test_cases.iter() {
         let mut cursor = Cursor::new(s.as_bytes());
-        let (s, _) = StringLiteral::unescape_string(
+        let (s, _) = StringLiteral::take_string_characters(
             &mut cursor,
             Position::new(1, 1),
             StringTerminator::End,
@@ -922,7 +922,7 @@ fn zero_escape() {
 
     for (s, expected) in test_cases.iter() {
         let mut cursor = Cursor::new(s.as_bytes());
-        let (s, _) = StringLiteral::unescape_string(
+        let (s, _) = StringLiteral::take_string_characters(
             &mut cursor,
             Position::new(1, 1),
             StringTerminator::End,

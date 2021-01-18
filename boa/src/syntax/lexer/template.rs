@@ -44,7 +44,7 @@ impl<R> Tokenizer<R> for TemplateLiteral {
             match next_chr {
                 '`' => {
                     let raw = String::from_utf16_lossy(buf.as_slice());
-                    let (cooked, _) = StringLiteral::unescape_string(
+                    let (cooked, _) = StringLiteral::take_string_characters(
                         &mut Cursor::with_position(raw.as_bytes(), start_pos),
                         start_pos,
                         StringTerminator::End,
@@ -58,7 +58,7 @@ impl<R> Tokenizer<R> for TemplateLiteral {
                 '$' if cursor.peek()? == Some(b'{') => {
                     let _ = cursor.next_byte()?;
                     let raw = String::from_utf16_lossy(buf.as_slice());
-                    let (cooked, _) = StringLiteral::unescape_string(
+                    let (cooked, _) = StringLiteral::take_string_characters(
                         &mut Cursor::with_position(raw.as_bytes(), start_pos),
                         start_pos,
                         StringTerminator::End,

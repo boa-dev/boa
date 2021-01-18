@@ -58,14 +58,14 @@ impl<R> Tokenizer<R> for StringLiteral {
         let _timer = BoaProfiler::global().start_event("StringLiteral", "Lexing");
 
         let (lit, span) =
-            Self::unescape_string(cursor, start_pos, self.terminator, cursor.strict_mode())?;
+            Self::take_string_characters(cursor, start_pos, self.terminator, cursor.strict_mode())?;
 
         Ok(Token::new(TokenKind::string_literal(lit), span))
     }
 }
 
 impl StringLiteral {
-    pub(super) fn unescape_string<R>(
+    pub(super) fn take_string_characters<R>(
         cursor: &mut Cursor<R>,
         start_pos: Position,
         terminator: StringTerminator,
@@ -114,13 +114,13 @@ impl StringLiteral {
                                 buf.push('\0' as u16)
                             }
                             b'x' => {
-                                Self::hex_escape_sequence(cursor, Some(&mut buf))?;
+                                Self::take_hex_escape_sequence(cursor, Some(&mut buf))?;
                             }
                             b'u' => {
-                                Self::unicode_escape_sequence(cursor, Some(&mut buf))?;
+                                Self::take_unicode_escape_sequence(cursor, Some(&mut buf))?;
                             }
                             byte if (b'0'..b'8').contains(&byte) => {
-                                Self::legacy_octal_escape_sequence(
+                                Self::take_legacy_octal_escape_sequence(
                                     cursor,
                                     Some(&mut buf),
                                     strict_mode,
@@ -160,7 +160,7 @@ impl StringLiteral {
     }
 
     #[inline]
-    pub(super) fn unicode_escape_sequence<R>(
+    pub(super) fn take_unicode_escape_sequence<R>(
         cursor: &mut Cursor<R>,
         code_units_buf: Option<&mut Vec<u16>>,
     ) -> Result<u32, Error>
@@ -218,7 +218,7 @@ impl StringLiteral {
     }
 
     #[inline]
-    fn hex_escape_sequence<R>(
+    fn take_hex_escape_sequence<R>(
         cursor: &mut Cursor<R>,
         code_units_buf: Option<&mut Vec<u16>>,
     ) -> Result<u32, Error>
@@ -240,7 +240,7 @@ impl StringLiteral {
     }
 
     #[inline]
-    fn legacy_octal_escape_sequence<R>(
+    fn take_legacy_octal_escape_sequence<R>(
         cursor: &mut Cursor<R>,
         code_units_buf: Option<&mut Vec<u16>>,
         strict_mode: bool,
