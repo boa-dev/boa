@@ -112,12 +112,12 @@ impl StringLiteral {
                             b'u' => {
                                 Self::unicode_escape_sequence(cursor, Some(&mut buf))?;
                             }
-                            n if char::is_digit(char::from(n), 8) => {
+                            byte if (b'0'..b'8').contains(&byte) => {
                                 Self::legacy_octal_escape_sequence(
                                     cursor,
                                     Some(&mut buf),
                                     strict_mode,
-                                    n,
+                                    byte,
                                 )?;
                             }
                             _ => buf.push(escape as u16),
@@ -237,7 +237,7 @@ impl StringLiteral {
         cursor: &mut Cursor<R>,
         code_units_buf: Option<&mut Vec<u16>>,
         strict_mode: bool,
-        init: u8,
+        init_byte: u8,
     ) -> Result<u32, Error>
     where
         R: Read,
@@ -248,23 +248,26 @@ impl StringLiteral {
                 cursor.pos(),
             ));
         }
-        let mut code_point = char::from(init).to_digit(8).unwrap();
+        // Grammar: OctalDigit
+        let mut code_point = (init_byte - b'0') as u32;
 
-        match cursor.peek()? {
-            Some(c) if char::is_digit(char::from(c), 8) => {
+        // Grammar: ZeroToThree OctalDigit
+        // Grammar: FourToSeven OctalDigit
+        if let Some(byte) = cursor.peek()? {
+            if (b'0'..b'8').contains(&byte) {
                 let _ = cursor.next_byte()?;
-                code_point = code_point * 8 + char::from(init).to_digit(8).unwrap();
-                if init <= b'3' {
-                    match cursor.peek()? {
-                        Some(c) if char::is_digit(char::from(c), 8) => {
-                            let _ = cursor.next_byte();
-                            code_point = code_point * 8 + char::from(init).to_digit(8).unwrap();
+                code_point = (code_point * 8) + (byte - b'0') as u32;
+
+                if (b'0'..b'4').contains(&init_byte) {
+                    // Grammar: ZeroToThree OctalDigit OctalDigit
+                    if let Some(byte) = cursor.peek()? {
+                        if (b'0'..b'8').contains(&byte) {
+                            let _ = cursor.next_byte()?;
+                            code_point = (code_point * 8) + (byte - b'0') as u32;
                         }
-                        _ => (),
                     }
                 }
             }
-            _ => (),
         }
 
         if let Some(code_units_buf) = code_units_buf {
