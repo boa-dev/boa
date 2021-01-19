@@ -90,9 +90,10 @@ impl StringLiteral {
     {
         let mut buf = Vec::new();
         loop {
-            let next_ch = cursor.next_char()?.map(char::try_from).transpose().unwrap();
+            let ch_start_pos = cursor.pos();
+            let ch = cursor.next_char()?.map(char::try_from).transpose().unwrap();
 
-            match next_ch {
+            match ch {
                 Some('\'') if terminator == StringTerminator::SingleQuote => {
                     break;
                 }
@@ -135,17 +136,17 @@ impl StringLiteral {
                             buf.push(0x0000 /* NULL */)
                         }
                         'x' => {
-                            Self::take_hex_escape_sequence(cursor, Some(&mut buf))?;
+                            Self::take_hex_escape_sequence(cursor, ch_start_pos, Some(&mut buf))?;
                         }
                         'u' => {
-                            Self::take_unicode_escape_sequence(cursor, Some(&mut buf))?;
+                            Self::take_unicode_escape_sequence(cursor, ch_start_pos, Some(&mut buf))?;
                         }
                         '8' | '9' => {
                             // Grammar: NonOctalDecimalEscapeSequence
                             if strict_mode {
                                 return Err(Error::syntax(
                                     "\\8 and \\9 are not allowed in strict mode",
-                                    cursor.pos(),
+                                    ch_start_pos,
                                 ));
                             } else {
                                 buf.push(escape_ch as u16);
@@ -154,6 +155,7 @@ impl StringLiteral {
                         _ if escape_ch.is_digit(8) => {
                             Self::take_legacy_octal_escape_sequence(
                                 cursor,
+                                ch_start_pos,
                                 Some(&mut buf),
                                 strict_mode,
                                 escape_ch as u8,
@@ -173,11 +175,11 @@ impl StringLiteral {
                         }
                     };
                 }
-                Some(next_ch) => {
-                    if next_ch.len_utf16() == 1 {
-                        buf.push(next_ch as u16);
+                Some(ch) => {
+                    if ch.len_utf16() == 1 {
+                        buf.push(ch as u16);
                     } else {
-                        buf.extend(next_ch.encode_utf16(&mut [0u16; 2]).iter());
+                        buf.extend(ch.encode_utf16(&mut [0u16; 2]).iter());
                     }
                 }
                 None => {
@@ -198,6 +200,7 @@ impl StringLiteral {
     #[inline]
     pub(super) fn take_unicode_escape_sequence<R>(
         cursor: &mut Cursor<R>,
+        start_pos: Position,
         code_units_buf: Option<&mut Vec<u16>>,
     ) -> Result<u32, Error>
     where
@@ -212,14 +215,14 @@ impl StringLiteral {
             let code_point_str = unsafe { str::from_utf8_unchecked(code_point_buf.as_slice()) };
             // We know this is a single unicode codepoint, convert to u32
             let code_point = u32::from_str_radix(&code_point_str, 16).map_err(|_| {
-                Error::syntax("malformed Unicode character escape sequence", cursor.pos())
+                Error::syntax("malformed Unicode character escape sequence", start_pos)
             })?;
 
             // UTF16Encoding of a numeric code point value
             if code_point > 0x10_FFFF {
                 return Err(Error::syntax(
                     "Unicode codepoint must not be greater than 0x10FFFF in escape sequence",
-                    cursor.pos(),
+                    start_pos,
                 ));
             } else if let Some(code_units_buf) = code_units_buf {
                 if code_point <= 65535 {
@@ -243,7 +246,7 @@ impl StringLiteral {
             let code_point_str = str::from_utf8(&code_point_utf8_bytes)
                 .expect("malformed Unicode character escape sequence");
             let code_point = u16::from_str_radix(code_point_str, 16)
-                .map_err(|_| Error::syntax("invalid Unicode escape sequence", cursor.pos()))?;
+                .map_err(|_| Error::syntax("invalid Unicode escape sequence", start_pos))?;
 
             if let Some(code_units_buf) = code_units_buf {
                 code_units_buf.push(code_point);
@@ -256,6 +259,7 @@ impl StringLiteral {
     #[inline]
     fn take_hex_escape_sequence<R>(
         cursor: &mut Cursor<R>,
+        start_pos: Position,
         code_units_buf: Option<&mut Vec<u16>>,
     ) -> Result<u32, Error>
     where
@@ -266,7 +270,7 @@ impl StringLiteral {
         let code_point_str = str::from_utf8(&code_point_utf8_bytes)
             .expect("malformed Hexadecimal character escape sequence");
         let code_point = u16::from_str_radix(&code_point_str, 16)
-            .map_err(|_| Error::syntax("invalid Hexadecimal escape sequence", cursor.pos()))?;
+            .map_err(|_| Error::syntax("invalid Hexadecimal escape sequence", start_pos))?;
 
         if let Some(code_units_buf) = code_units_buf {
             code_units_buf.push(code_point);
@@ -278,6 +282,7 @@ impl StringLiteral {
     #[inline]
     fn take_legacy_octal_escape_sequence<R>(
         cursor: &mut Cursor<R>,
+        start_pos: Position,
         code_units_buf: Option<&mut Vec<u16>>,
         strict_mode: bool,
         init_byte: u8,
@@ -288,7 +293,7 @@ impl StringLiteral {
         if strict_mode {
             return Err(Error::syntax(
                 "octal escape sequences are not allowed in strict mode",
-                cursor.pos(),
+                start_pos,
             ));
         }
         // Grammar: OctalDigit

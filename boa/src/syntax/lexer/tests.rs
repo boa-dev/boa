@@ -917,13 +917,19 @@ fn take_string_characters_legacy_octal_escape() {
 
     for (s, _) in test_cases.iter() {
         let mut cursor = Cursor::new(s.as_bytes());
-        StringLiteral::take_string_characters(
+
+        if let Error::Syntax(_, pos) = StringLiteral::take_string_characters(
             &mut cursor,
             Position::new(1, 1),
             StringTerminator::End,
             true,
         )
-        .expect_err("Octal-escape in strict mode not rejected as expected");
+        .expect_err("Octal-escape in strict mode not rejected as expected")
+        {
+            assert_eq!(pos, Position::new(1, 1));
+        } else {
+            panic!("invalid error type");
+        }
     }
 }
 
@@ -964,13 +970,19 @@ fn take_string_characters_non_octal_decimal_escape() {
 
     for (s, _) in test_cases.iter() {
         let mut cursor = Cursor::new(s.as_bytes());
-        StringLiteral::take_string_characters(
+
+        if let Error::Syntax(_, pos) = StringLiteral::take_string_characters(
             &mut cursor,
             Position::new(1, 1),
             StringTerminator::End,
             true,
         )
-        .expect_err("Non-octal-decimal-escape in strict mode not rejected as expected");
+        .expect_err("Non-octal-decimal-escape in strict mode not rejected as expected")
+        {
+            assert_eq!(pos, Position::new(1, 1));
+        } else {
+            panic!("invalid error type");
+        }
     }
 }
 
