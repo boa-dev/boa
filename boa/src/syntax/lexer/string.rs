@@ -211,12 +211,15 @@ impl StringLiteral {
             let mut code_point_buf = Vec::with_capacity(6);
             cursor.take_until(b'}', &mut code_point_buf)?;
 
-            // Safety: invalid UTF-8 bytes will be handled by returning Err in the following `u32::from_str_radix`
-            let code_point_str = unsafe { str::from_utf8_unchecked(code_point_buf.as_slice()) };
-            // The `code_point_str` should represent a single unicode codepoint, convert to u32
-            let code_point = u32::from_str_radix(&code_point_str, 16).map_err(|_| {
-                Error::syntax("malformed Unicode character escape sequence", start_pos)
-            })?;
+            let code_point = str::from_utf8(code_point_buf.as_slice())
+                .ok()
+                .and_then(|code_point_str| {
+                    // The `code_point_str` should represent a single unicode codepoint, convert to u32
+                    u32::from_str_radix(&code_point_str, 16).ok()
+                })
+                .ok_or_else(|| {
+                    Error::syntax("malformed Unicode character escape sequence", start_pos)
+                })?;
 
             // UTF16Encoding of a numeric code point value
             if code_point > 0x10_FFFF {
