@@ -140,7 +140,18 @@ impl StringLiteral {
                         'u' => {
                             Self::take_unicode_escape_sequence(cursor, Some(&mut buf))?;
                         }
-                        _ if escape_ch.is_digit(10) => {
+                        '8' | '9' => {
+                            // Grammar: NonOctalDecimalEscapeSequence
+                            if strict_mode {
+                                return Err(Error::syntax(
+                                    "\\8 and \\9 are not allowed in strict mode.",
+                                    cursor.pos(),
+                                ));
+                            } else {
+                                buf.push(escape_ch as u16);
+                            }
+                        }
+                        _ if escape_ch.is_digit(8) => {
                             Self::take_legacy_octal_escape_sequence(
                                 cursor,
                                 Some(&mut buf),
