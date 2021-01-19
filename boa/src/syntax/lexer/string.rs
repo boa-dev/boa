@@ -132,7 +132,7 @@ impl StringLiteral {
                             .filter(|next_ch| next_ch.is_digit(10))
                             .is_none() =>
                         {
-                            buf.push('\0' as u16)
+                            buf.push('\u{0000}' as u16 /* NULL */)
                         }
                         'x' => {
                             Self::take_hex_escape_sequence(cursor, Some(&mut buf))?;
@@ -153,17 +153,20 @@ impl StringLiteral {
                             // Grammar: \ LineTerminatorSequence
                             // LineContinuation is the empty String. Do nothing and continue lexing.
                         }
-                        _ => buf.push(escape_ch as u16),
+                        _ => {
+                            if escape_ch.len_utf16() == 1 {
+                                buf.push(escape_ch as u16);
+                            } else {
+                                buf.extend(escape_ch.encode_utf16(&mut [0u16; 2]).iter());
+                            }
+                        }
                     };
                 }
                 Some(next_ch) => {
                     if next_ch.len_utf16() == 1 {
                         buf.push(next_ch as u16);
                     } else {
-                        let mut code_units_buf = [0u16; 2];
-                        let code_units_buf = next_ch.encode_utf16(&mut code_units_buf);
-
-                        buf.extend(code_units_buf.iter());
+                        buf.extend(next_ch.encode_utf16(&mut [0u16; 2]).iter());
                     }
                 }
                 None => {
