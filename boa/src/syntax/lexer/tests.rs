@@ -795,7 +795,7 @@ fn illegal_following_numeric_literal() {
 }
 
 #[test]
-fn codepoint_with_no_braces() {
+fn string_codepoint_with_no_braces() {
     let mut lexer = Lexer::new(&br#""test\uD38Dtest""#[..]);
     assert!(lexer.next().is_ok());
 }
@@ -814,7 +814,7 @@ fn illegal_code_point_following_numeric_literal() {
 }
 
 #[test]
-fn non_english_str() {
+fn string_unicode() {
     let str = r#"'中文';"#;
 
     let mut lexer = Lexer::new(str.as_bytes());
@@ -828,7 +828,7 @@ fn non_english_str() {
 }
 
 #[test]
-fn unicode_escape_with_braces() {
+fn string_unicode_escape_with_braces() {
     let mut lexer = Lexer::new(&br#"'{\u{20ac}\u{a0}\u{a0}}'"#[..]);
 
     let expected = [TokenKind::StringLiteral("{\u{20ac}\u{a0}\u{a0}}".into())];
@@ -859,7 +859,7 @@ fn unicode_escape_with_braces() {
 }
 
 #[test]
-fn unicode_escape_with_braces_() {
+fn take_string_characters_unicode_escape_with_braces_2() {
     let s = r#"\u{20ac}\u{a0}\u{a0}"#.to_string();
 
     let mut cursor = Cursor::new(s.as_bytes());
@@ -877,7 +877,7 @@ fn unicode_escape_with_braces_() {
 }
 
 #[test]
-fn unescape_string_with_single_escape() {
+fn take_string_characters_with_single_escape() {
     let s = r#"\Б"#.to_string();
     let mut cursor = Cursor::new(s.as_bytes());
     let (s, _) = StringLiteral::take_string_characters(
@@ -891,7 +891,7 @@ fn unescape_string_with_single_escape() {
 }
 
 #[test]
-fn legacy_octal_escape() {
+fn take_string_characters_legacy_octal_escape() {
     let test_cases = [
         (r#"\3"#, "\u{3}"),
         (r#"\03"#, "\u{3}"),
@@ -928,7 +928,7 @@ fn legacy_octal_escape() {
 }
 
 #[test]
-fn zero_escape() {
+fn take_string_characters_zero_escape() {
     let test_cases = [(r#"\0"#, "\u{0}"), (r#"\0A"#, "\u{0}A")];
 
     for (s, expected) in test_cases.iter() {
@@ -946,7 +946,7 @@ fn zero_escape() {
 }
 
 #[test]
-fn non_octal_decimal_escape() {
+fn take_string_characters_non_octal_decimal_escape() {
     let test_cases = [(r#"\8"#, "8"), (r#"\9"#, "9")];
 
     for (s, expected) in test_cases.iter() {
@@ -975,7 +975,7 @@ fn non_octal_decimal_escape() {
 }
 
 #[test]
-fn line_continuation() {
+fn take_string_characters_line_continuation() {
     let s = "hello \\\nworld";
     let mut cursor = Cursor::new(s.as_bytes());
     let (s, _) = StringLiteral::take_string_characters(
