@@ -246,10 +246,10 @@ impl StringLiteral {
             cursor.fill_bytes(&mut code_point_utf8_bytes)?;
 
             // Convert to u16
-            let code_point_str = str::from_utf8(&code_point_utf8_bytes)
-                .expect("malformed Unicode character escape sequence");
-            let code_point = u16::from_str_radix(code_point_str, 16)
-                .map_err(|_| Error::syntax("invalid Unicode escape sequence", start_pos))?;
+            let code_point = str::from_utf8(&code_point_utf8_bytes)
+                .ok()
+                .and_then(|code_point_str| u16::from_str_radix(&code_point_str, 16).ok())
+                .ok_or_else(|| Error::syntax("invalid Unicode escape sequence", start_pos))?;
 
             if let Some(code_units_buf) = code_units_buf {
                 code_units_buf.push(code_point);
@@ -270,10 +270,10 @@ impl StringLiteral {
     {
         let mut code_point_utf8_bytes = [0u8; 2];
         cursor.fill_bytes(&mut code_point_utf8_bytes)?;
-        let code_point_str = str::from_utf8(&code_point_utf8_bytes)
-            .expect("malformed Hexadecimal character escape sequence");
-        let code_point = u16::from_str_radix(&code_point_str, 16)
-            .map_err(|_| Error::syntax("invalid Hexadecimal escape sequence", start_pos))?;
+        let code_point = str::from_utf8(&code_point_utf8_bytes)
+            .ok()
+            .and_then(|code_point_str| u16::from_str_radix(&code_point_str, 16).ok())
+            .ok_or_else(|| Error::syntax("invalid Hexadecimal escape sequence", start_pos))?;
 
         if let Some(code_units_buf) = code_units_buf {
             code_units_buf.push(code_point);
