@@ -129,8 +129,7 @@ impl StringLiteral {
                         '\\' => buf.push(0x005C /* \ */),
                         '0' if cursor
                             .peek()?
-                            .and_then(|next_byte| char::try_from(next_byte).ok())
-                            .filter(|next_ch| next_ch.is_digit(10))
+                            .filter(|next_byte| (b'0'..=b'9').contains(next_byte))
                             .is_none() =>
                         {
                             buf.push(0x0000 /* NULL */)
@@ -303,14 +302,14 @@ impl StringLiteral {
         // Grammar: ZeroToThree OctalDigit
         // Grammar: FourToSeven OctalDigit
         if let Some(byte) = cursor.peek()? {
-            if (b'0'..b'8').contains(&byte) {
+            if (b'0'..=b'7').contains(&byte) {
                 let _ = cursor.next_byte()?;
                 code_point = (code_point * 8) + (byte - b'0') as u32;
 
-                if (b'0'..b'4').contains(&init_byte) {
+                if (b'0'..=b'3').contains(&init_byte) {
                     // Grammar: ZeroToThree OctalDigit OctalDigit
                     if let Some(byte) = cursor.peek()? {
-                        if (b'0'..b'8').contains(&byte) {
+                        if (b'0'..=b'7').contains(&byte) {
                             let _ = cursor.next_byte()?;
                             code_point = (code_point * 8) + (byte - b'0') as u32;
                         }
