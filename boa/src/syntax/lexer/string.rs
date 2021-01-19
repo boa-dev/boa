@@ -117,11 +117,15 @@ impl StringLiteral {
                         })?;
 
                     match escape_ch {
-                        'b' => buf.push('\x08' as u16),
-                        'f' => buf.push('\x0c' as u16),
-                        'n' => buf.push('\n' as u16),
-                        'r' => buf.push('\r' as u16),
-                        't' => buf.push('\t' as u16),
+                        'b' => buf.push('\u{0008}' as u16 /* <BS> */),
+                        't' => buf.push('\u{0009}' as u16 /* <HT> */),
+                        'n' => buf.push('\u{000A}' as u16 /* <LF> */),
+                        'v' => buf.push('\u{000B}' as u16 /* <VT> */),
+                        'f' => buf.push('\u{000C}' as u16 /* <FF> */),
+                        'r' => buf.push('\u{000D}' as u16 /* <CR> */),
+                        '"' => buf.push('\u{0022}' as u16 /* " */),
+                        '\'' => buf.push('\u{0027}' as u16 /* ' */),
+                        '\\' => buf.push('\u{005C}' as u16 /* \ */),
                         '0' if cursor
                             .peek()?
                             .and_then(|next_byte| char::try_from(next_byte).ok())
@@ -145,9 +149,9 @@ impl StringLiteral {
                             )?;
                         }
                         _ if Self::is_line_terminator(escape_ch) => {
-                            // Check match LineContinuation
+                            // Match LineContinuation
                             // Grammar: \ LineTerminatorSequence
-                            // do nothing, continue lexing
+                            // LineContinuation is the empty String. Do nothing and continue lexing.
                         }
                         _ => buf.push(escape_ch as u16),
                     };
