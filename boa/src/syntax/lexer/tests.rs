@@ -914,6 +914,17 @@ fn legacy_octal_escape() {
 
         assert_eq!(s, *expected);
     }
+
+    for (s, _) in test_cases.iter() {
+        let mut cursor = Cursor::new(s.as_bytes());
+        StringLiteral::take_string_characters(
+            &mut cursor,
+            Position::new(1, 1),
+            StringTerminator::End,
+            true,
+        )
+        .expect_err("Octal-escape in strict mode not rejected as expected");
+    }
 }
 
 #[test]
@@ -932,6 +943,50 @@ fn zero_escape() {
 
         assert_eq!(s, *expected);
     }
+}
+
+#[test]
+fn non_octal_decimal_escape() {
+    let test_cases = [(r#"\8"#, "8"), (r#"\9"#, "9")];
+
+    for (s, expected) in test_cases.iter() {
+        let mut cursor = Cursor::new(s.as_bytes());
+        let (s, _) = StringLiteral::take_string_characters(
+            &mut cursor,
+            Position::new(1, 1),
+            StringTerminator::End,
+            false,
+        )
+        .unwrap();
+
+        assert_eq!(s, *expected);
+    }
+
+    for (s, _) in test_cases.iter() {
+        let mut cursor = Cursor::new(s.as_bytes());
+        StringLiteral::take_string_characters(
+            &mut cursor,
+            Position::new(1, 1),
+            StringTerminator::End,
+            true,
+        )
+        .expect_err("Non-octal-decimal-escape in strict mode not rejected as expected");
+    }
+}
+
+#[test]
+fn line_continuation() {
+    let s = "hello \\\nworld";
+    let mut cursor = Cursor::new(s.as_bytes());
+    let (s, _) = StringLiteral::take_string_characters(
+        &mut cursor,
+        Position::new(1, 1),
+        StringTerminator::End,
+        false,
+    )
+    .unwrap();
+
+    assert_eq!(s, "hello world");
 }
 
 mod carriage_return {
