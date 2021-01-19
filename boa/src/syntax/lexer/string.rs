@@ -160,7 +160,7 @@ impl StringLiteral {
                             )?;
                         }
                         _ if Self::is_line_terminator(escape_ch) => {
-                            // Match LineContinuation
+                            // Grammar: LineContinuation
                             // Grammar: \ LineTerminatorSequence
                             // LineContinuation is the empty String. Do nothing and continue lexing.
                         }
