@@ -117,22 +117,22 @@ impl StringLiteral {
                         })?;
 
                     match escape_ch {
-                        'b' => buf.push('\u{0008}' as u16 /* <BS> */),
-                        't' => buf.push('\u{0009}' as u16 /* <HT> */),
-                        'n' => buf.push('\u{000A}' as u16 /* <LF> */),
-                        'v' => buf.push('\u{000B}' as u16 /* <VT> */),
-                        'f' => buf.push('\u{000C}' as u16 /* <FF> */),
-                        'r' => buf.push('\u{000D}' as u16 /* <CR> */),
-                        '"' => buf.push('\u{0022}' as u16 /* " */),
-                        '\'' => buf.push('\u{0027}' as u16 /* ' */),
-                        '\\' => buf.push('\u{005C}' as u16 /* \ */),
+                        'b' => buf.push(0x0008 /* <BS> */),
+                        't' => buf.push(0x0009 /* <HT> */),
+                        'n' => buf.push(0x000A /* <LF> */),
+                        'v' => buf.push(0x000B /* <VT> */),
+                        'f' => buf.push(0x000C /* <FF> */),
+                        'r' => buf.push(0x000D /* <CR> */),
+                        '"' => buf.push(0x0022 /* " */),
+                        '\'' => buf.push(0x0027 /* ' */),
+                        '\\' => buf.push(0x005C /* \ */),
                         '0' if cursor
                             .peek()?
                             .and_then(|next_byte| char::try_from(next_byte).ok())
                             .filter(|next_ch| next_ch.is_digit(10))
                             .is_none() =>
                         {
-                            buf.push('\u{0000}' as u16 /* NULL */)
+                            buf.push(0x0000 /* NULL */)
                         }
                         'x' => {
                             Self::take_hex_escape_sequence(cursor, Some(&mut buf))?;
