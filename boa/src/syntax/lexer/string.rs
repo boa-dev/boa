@@ -144,7 +144,7 @@ impl StringLiteral {
                             // Grammar: NonOctalDecimalEscapeSequence
                             if strict_mode {
                                 return Err(Error::syntax(
-                                    "\\8 and \\9 are not allowed in strict mode.",
+                                    "\\8 and \\9 are not allowed in strict mode",
                                     cursor.pos(),
                                 ));
                             } else {
@@ -287,7 +287,7 @@ impl StringLiteral {
     {
         if strict_mode {
             return Err(Error::syntax(
-                "octal escape sequences are deprecated",
+                "octal escape sequences are not allowed in strict mode",
                 cursor.pos(),
             ));
         }
