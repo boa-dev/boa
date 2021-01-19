@@ -65,6 +65,20 @@ impl<R> Tokenizer<R> for StringLiteral {
 }
 
 impl StringLiteral {
+    /// Checks if a character is LineTerminator as per ECMAScript standards.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-LineTerminator
+    #[inline]
+    pub(super) fn is_line_terminator(ch: char) -> bool {
+        matches!(
+            ch,
+            '\u{000A}' /* <LF> */ | '\u{000D}' /* <CR> */ | '\u{2028}' /* <LS> */ | '\u{2029}' /* <PS> */
+        )
+    }
+
     pub(super) fn take_string_characters<R>(
         cursor: &mut Cursor<R>,
         start_pos: Position,
@@ -92,47 +106,51 @@ impl StringLiteral {
                     let _timer = BoaProfiler::global()
                         .start_event("StringLiteral - escape sequence", "Lexing");
 
-                    let escape = cursor.peek()?.ok_or_else(|| {
-                        Error::from(io::Error::new(
-                            ErrorKind::UnexpectedEof,
-                            "unterminated escape sequence in literal",
-                        ))
-                    })?;
+                    let escape_ch = cursor
+                        .next_char()?
+                        .and_then(|byte| char::try_from(byte).ok())
+                        .ok_or_else(|| {
+                            Error::from(io::Error::new(
+                                ErrorKind::UnexpectedEof,
+                                "unterminated escape sequence in literal",
+                            ))
+                        })?;
 
-                    if escape <= 0x7f {
-                        let _ = cursor.next_byte()?;
-                        match escape {
-                            b'\n' => (),
-                            b'n' => buf.push('\n' as u16),
-                            b'r' => buf.push('\r' as u16),
-                            b't' => buf.push('\t' as u16),
-                            b'b' => buf.push('\x08' as u16),
-                            b'f' => buf.push('\x0c' as u16),
-                            b'0' if cursor
-                                .peek()?
-                                .and_then(|next_byte| char::try_from(next_byte).ok())
-                                .filter(|next_ch| next_ch.is_digit(10))
-                                .is_none() =>
-                            {
-                                buf.push('\0' as u16)
-                            }
-                            b'x' => {
-                                Self::take_hex_escape_sequence(cursor, Some(&mut buf))?;
-                            }
-                            b'u' => {
-                                Self::take_unicode_escape_sequence(cursor, Some(&mut buf))?;
-                            }
-                            byte if (b'0'..b'8').contains(&byte) => {
-                                Self::take_legacy_octal_escape_sequence(
-                                    cursor,
-                                    Some(&mut buf),
-                                    strict_mode,
-                                    byte,
-                                )?;
-                            }
-                            _ => buf.push(escape as u16),
-                        };
-                    }
+                    match escape_ch {
+                        'b' => buf.push('\x08' as u16),
+                        'f' => buf.push('\x0c' as u16),
+                        'n' => buf.push('\n' as u16),
+                        'r' => buf.push('\r' as u16),
+                        't' => buf.push('\t' as u16),
+                        '0' if cursor
+                            .peek()?
+                            .and_then(|next_byte| char::try_from(next_byte).ok())
+                            .filter(|next_ch| next_ch.is_digit(10))
+                            .is_none() =>
+                        {
+                            buf.push('\0' as u16)
+                        }
+                        'x' => {
+                            Self::take_hex_escape_sequence(cursor, Some(&mut buf))?;
+                        }
+                        'u' => {
+                            Self::take_unicode_escape_sequence(cursor, Some(&mut buf))?;
+                        }
+                        _ if escape_ch.is_digit(10) => {
+                            Self::take_legacy_octal_escape_sequence(
+                                cursor,
+                                Some(&mut buf),
+                                strict_mode,
+                                escape_ch as u8,
+                            )?;
+                        }
+                        _ if Self::is_line_terminator(escape_ch) => {
+                            // Check match LineContinuation
+                            // Grammar: \ LineTerminatorSequence
+                            // do nothing, continue lexing
+                        }
+                        _ => buf.push(escape_ch as u16),
+                    };
                 }
                 Some(next_ch) => {
                     if next_ch.len_utf16() == 1 {
