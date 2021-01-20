@@ -446,7 +446,6 @@ impl Value {
 
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     /// get_field receives a Property from get_prop(). It should then return the `[[Get]]` result value if that's set, otherwise fall back to `[[Value]]`
-    /// TODO: this function should use the get Value if its set
     pub fn get_field<K>(&self, key: K, context: &mut Context) -> Result<Self>
     where
         K: Into<PropertyKey>,

@@ -72,7 +72,10 @@ impl Executable for Call {
                 )
             }
             Node::GetField(ref get_field) => {
-                let obj = get_field.obj().run(context)?;
+                let mut obj = get_field.obj().run(context)?;
+                if obj.get_type() != Type::Object {
+                    obj = Value::Object(obj.to_object(context)?);
+                }
                 let field = get_field.field().run(context)?;
                 (
                     obj.clone(),
