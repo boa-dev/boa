@@ -6,7 +6,7 @@ use super::token::Numeric;
 use super::*;
 use super::{Error, Position};
 use crate::syntax::ast::Keyword;
-use crate::syntax::lexer::string::{unescape_string, StringTerminator};
+use crate::syntax::lexer::string::{StringLiteral, StringTerminator};
 use std::str;
 
 fn span(start: (u32, u32), end: (u32, u32)) -> Span {
@@ -795,7 +795,7 @@ fn illegal_following_numeric_literal() {
 }
 
 #[test]
-fn codepoint_with_no_braces() {
+fn string_codepoint_with_no_braces() {
     let mut lexer = Lexer::new(&br#""test\uD38Dtest""#[..]);
     assert!(lexer.next().is_ok());
 }
@@ -814,7 +814,7 @@ fn illegal_code_point_following_numeric_literal() {
 }
 
 #[test]
-fn non_english_str() {
+fn string_unicode() {
     let str = r#"'中文';"#;
 
     let mut lexer = Lexer::new(str.as_bytes());
@@ -828,7 +828,7 @@ fn non_english_str() {
 }
 
 #[test]
-fn unicode_escape_with_braces() {
+fn string_unicode_escape_with_braces() {
     let mut lexer = Lexer::new(&br#"'{\u{20ac}\u{a0}\u{a0}}'"#[..]);
 
     let expected = [TokenKind::StringLiteral("{\u{20ac}\u{a0}\u{a0}}".into())];
@@ -859,12 +859,12 @@ fn unicode_escape_with_braces() {
 }
 
 #[test]
-fn unicode_escape_with_braces_() {
+fn take_string_characters_unicode_escape_with_braces_2() {
     let s = r#"\u{20ac}\u{a0}\u{a0}"#.to_string();
 
     let mut cursor = Cursor::new(s.as_bytes());
 
-    if let Ok((s, _)) = unescape_string(
+    if let Ok((s, _)) = StringLiteral::take_string_characters(
         &mut cursor,
         Position::new(1, 1),
         StringTerminator::End,
@@ -877,10 +877,10 @@ fn unicode_escape_with_braces_() {
 }
 
 #[test]
-fn unescape_string_with_single_escape() {
+fn take_string_characters_with_single_escape() {
     let s = r#"\Б"#.to_string();
     let mut cursor = Cursor::new(s.as_bytes());
-    let (s, _) = unescape_string(
+    let (s, _) = StringLiteral::take_string_characters(
         &mut cursor,
         Position::new(1, 1),
         StringTerminator::End,
@@ -888,6 +888,117 @@ fn unescape_string_with_single_escape() {
     )
     .unwrap();
     assert_eq!(s, "Б");
+}
+
+#[test]
+fn take_string_characters_legacy_octal_escape() {
+    let test_cases = [
+        (r#"\3"#, "\u{3}"),
+        (r#"\03"#, "\u{3}"),
+        (r#"\003"#, "\u{3}"),
+        (r#"\0003"#, "\u{0}3"),
+        (r#"\43"#, "#"),
+        (r#"\043"#, "#"),
+        (r#"\101"#, "A"),
+    ];
+
+    for (s, expected) in test_cases.iter() {
+        let mut cursor = Cursor::new(s.as_bytes());
+        let (s, _) = StringLiteral::take_string_characters(
+            &mut cursor,
+            Position::new(1, 1),
+            StringTerminator::End,
+            false,
+        )
+        .unwrap();
+
+        assert_eq!(s, *expected);
+    }
+
+    for (s, _) in test_cases.iter() {
+        let mut cursor = Cursor::new(s.as_bytes());
+
+        if let Error::Syntax(_, pos) = StringLiteral::take_string_characters(
+            &mut cursor,
+            Position::new(1, 1),
+            StringTerminator::End,
+            true,
+        )
+        .expect_err("Octal-escape in strict mode not rejected as expected")
+        {
+            assert_eq!(pos, Position::new(1, 1));
+        } else {
+            panic!("invalid error type");
+        }
+    }
+}
+
+#[test]
+fn take_string_characters_zero_escape() {
+    let test_cases = [(r#"\0"#, "\u{0}"), (r#"\0A"#, "\u{0}A")];
+
+    for (s, expected) in test_cases.iter() {
+        let mut cursor = Cursor::new(s.as_bytes());
+        let (s, _) = StringLiteral::take_string_characters(
+            &mut cursor,
+            Position::new(1, 1),
+            StringTerminator::End,
+            false,
+        )
+        .unwrap();
+
+        assert_eq!(s, *expected);
+    }
+}
+
+#[test]
+fn take_string_characters_non_octal_decimal_escape() {
+    let test_cases = [(r#"\8"#, "8"), (r#"\9"#, "9")];
+
+    for (s, expected) in test_cases.iter() {
+        let mut cursor = Cursor::new(s.as_bytes());
+        let (s, _) = StringLiteral::take_string_characters(
+            &mut cursor,
+            Position::new(1, 1),
+            StringTerminator::End,
+            false,
+        )
+        .unwrap();
+
+        assert_eq!(s, *expected);
+    }
+
+    for (s, _) in test_cases.iter() {
+        let mut cursor = Cursor::new(s.as_bytes());
+
+        if let Error::Syntax(_, pos) = StringLiteral::take_string_characters(
+            &mut cursor,
+            Position::new(1, 1),
+            StringTerminator::End,
+            true,
+        )
+        .expect_err("Non-octal-decimal-escape in strict mode not rejected as expected")
+        {
+            assert_eq!(pos, Position::new(1, 1));
+        } else {
+            panic!("invalid error type");
+        }
+    }
+}
+
+#[test]
+fn take_string_characters_line_continuation() {
+    let s = "hello \\\nworld";
+    let mut cursor = Cursor::new(s.as_bytes());
+    let (s, _) = StringLiteral::take_string_characters(
+        &mut cursor,
+        Position::new(1, 1),
+        StringTerminator::End,
+        false,
+    )
+    .unwrap();
+
+    assert_eq!(s, "hello world");
 }
 
 mod carriage_return {
