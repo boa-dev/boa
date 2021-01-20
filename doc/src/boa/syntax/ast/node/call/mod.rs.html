@@ -130,6 +130,9 @@
 <span id="129">129</span>
 <span id="130">130</span>
 <span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::<span class="ident">iterable</span>,
@@ -205,7 +208,10 @@
                 )
             }
             <span class="ident">Node</span>::<span class="ident">GetField</span>(<span class="kw-2">ref</span> <span class="ident">get_field</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">get_field</span>.<span class="ident">obj</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">get_field</span>.<span class="ident">obj</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">Type</span>::<span class="ident">Object</span> {
+                    <span class="ident">obj</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="ident">obj</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
+                }
                 <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="ident">get_field</span>.<span class="ident">field</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 (
                     <span class="ident">obj</span>.<span class="ident">clone</span>(),

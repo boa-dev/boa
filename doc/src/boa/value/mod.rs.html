@@ -996,7 +996,6 @@
 <span id="995">995</span>
 <span id="996">996</span>
 <span id="997">997</span>
-<span id="998">998</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -1446,7 +1445,6 @@
 
     <span class="doccomment">/// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn&#39;t exist</span>
     <span class="doccomment">/// get_field receives a Property from get_prop(). It should then return the `[[Get]]` result value if that&#39;s set, otherwise fall back to `[[Value]]`</span>
-    <span class="doccomment">/// TODO: this function should use the get Value if its set</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_field</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
