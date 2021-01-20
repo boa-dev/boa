@@ -103,7 +103,7 @@
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Cursor</span>, <span class="ident">Error</span>, <span class="ident">Tokenizer</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">profiler</span>::<span class="ident">BoaProfiler</span>,
-    <span class="ident">syntax</span>::<span class="ident">lexer</span>::<span class="ident">string</span>::{<span class="ident">unescape_string</span>, <span class="ident">StringTerminator</span>},
+    <span class="ident">syntax</span>::<span class="ident">lexer</span>::<span class="ident">string</span>::{<span class="ident">StringLiteral</span>, <span class="ident">StringTerminator</span>},
     <span class="ident">syntax</span>::{
         <span class="ident">ast</span>::{<span class="ident">Position</span>, <span class="ident">Span</span>},
         <span class="ident">lexer</span>::{<span class="ident">Token</span>, <span class="ident">TokenKind</span>},
@@ -144,7 +144,7 @@
             <span class="kw">match</span> <span class="ident">next_chr</span> {
                 <span class="string">&#39;`&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from_utf16_lossy</span>(<span class="ident">buf</span>.<span class="ident">as_slice</span>());
-                    <span class="kw">let</span> (<span class="ident">cooked</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">unescape_string</span>(
+                    <span class="kw">let</span> (<span class="ident">cooked</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">StringLiteral</span>::<span class="ident">take_string_characters</span>(
                         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span>::<span class="ident">with_position</span>(<span class="ident">raw</span>.<span class="ident">as_bytes</span>(), <span class="ident">start_pos</span>),
                         <span class="ident">start_pos</span>,
                         <span class="ident">StringTerminator</span>::<span class="ident">End</span>,
@@ -158,7 +158,7 @@
                 <span class="string">&#39;$&#39;</span> <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;{&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from_utf16_lossy</span>(<span class="ident">buf</span>.<span class="ident">as_slice</span>());
-                    <span class="kw">let</span> (<span class="ident">cooked</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">unescape_string</span>(
+                    <span class="kw">let</span> (<span class="ident">cooked</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">StringLiteral</span>::<span class="ident">take_string_characters</span>(
                         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span>::<span class="ident">with_position</span>(<span class="ident">raw</span>.<span class="ident">as_bytes</span>(), <span class="ident">start_pos</span>),
                         <span class="ident">start_pos</span>,
                         <span class="ident">StringTerminator</span>::<span class="ident">End</span>,
