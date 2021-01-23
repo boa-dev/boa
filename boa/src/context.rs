@@ -3,6 +3,7 @@
 use crate::{
     builtins::{
         self,
+        async_function::AsyncFunction,
         function::{Function, FunctionFlags, NativeFunction},
         iterable::IteratorPrototypes,
         symbol::{Symbol, WellKnownSymbols},
@@ -530,14 +531,13 @@ impl Context {
 
         let params = params.into();
         let params_len = params.len();
-        let func = Function::Ordinary {
-            flags,
+        let func = AsyncFunction {
             body: RcStatementList::from(body.into()),
             params,
             environment: self.realm.environment.get_current_environment().clone(),
         };
 
-        let new_func = Object::function(func, prototype);
+        let new_func = Object::async_function(func, prototype);
 
         let val = Value::from(new_func);
         val.set_field("length", Value::from(params_len), self)?;

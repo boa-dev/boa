@@ -1,7 +1,15 @@
-use crate::gc::{empty_trace, Finalize, Trace};
+use crate::{
+    environment::lexical_environment::Environment,
+    gc::{empty_trace, Finalize, Trace},
+    syntax::ast::node::{FormalParameter, RcStatementList},
+};
 
-#[derive(Clone, Copy, Finalize, Debug)]
-pub struct AsyncFunction;
+#[derive(Clone, Finalize, Debug)]
+pub struct AsyncFunction {
+    body: RcStatementList,
+    params: Box<[FormalParameter]>,
+    environment: Environment,
+}
 
 unsafe impl Trace for AsyncFunction {
     empty_trace!();
