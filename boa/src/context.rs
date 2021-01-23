@@ -527,6 +527,22 @@ impl Context {
         B: Into<StatementList>,
     {
         let prototype: Value = self.standard_objects().object_object().prototype().into();
+
+        let params = params.into();
+        let params_len = params.len();
+        let func = Function::Ordinary {
+            flags,
+            body: RcStatementList::from(body.into()),
+            params,
+            environment: self.realm.environment.get_current_environment().clone(),
+        };
+
+        let new_func = Object::function(func, prototype);
+
+        let val = Value::from(new_func);
+        val.set_field("length", Value::from(params_len), self)?;
+
+        Ok(val)
     }
 
     /// Create a new builin function.

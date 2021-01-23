@@ -3,6 +3,7 @@
 use crate::{
     builtins::{
         array::array_iterator::ArrayIterator,
+        async_function::AsyncFunction,
         function::{BuiltInFunction, Function, FunctionFlags, NativeFunction},
         map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
@@ -96,6 +97,7 @@ pub enum ObjectData {
     Date(Date),
     Global,
     NativeObject(Box<dyn NativeObject>),
+    AsyncFunction(AsyncFunction),
 }
 
 impl Display for ObjectData {
@@ -122,6 +124,7 @@ impl Display for ObjectData {
                 Self::Date(_) => "Date",
                 Self::Global => "Global",
                 Self::NativeObject(_) => "NativeObject",
+                Self::AsyncFunction(_) => "AsyncFunction",
             }
         )
     }
