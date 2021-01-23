@@ -526,7 +526,7 @@ impl Context {
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
     {
-        todo!('Implement create_async_function');
+        let prototype: Value = self.standard_objects().object_object().prototype().into();
     }
 
     /// Create a new builin function.

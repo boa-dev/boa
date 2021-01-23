@@ -1,6 +1,8 @@
 //! Async Function Declaration.
 
 use crate::{
+    builtins::function::FunctionFlags,
+    environment::lexical_environment::VariableScope,
     exec::Executable,
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
     BoaProfiler, Context, Result, Value,
@@ -83,18 +85,38 @@ impl AsyncFunctionDecl {
 impl Executable for AsyncFunctionDecl {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("AsyncFunctionDecl", "exec");
-        // TODO: Implement AsyncFunctionDecl
         let val = context.create_async_function(
             self.parameters().to_vec(),
             self.body().to_vec(),
-            FunctionFlags::CALLABLE,
+            FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
         )?;
 
-        // https://tc39.es/ecma262/#sec-async-function-definitions-InstantiateFunctionObject
+        val.set_field("name", self.name(), context)?;
 
-        context.create_async_function()
+        let name = if let Some(s) = self.name() {
+            s
+        } else {
+            // https://tc39.es/ecma262/#sec-runtime-semantics-instantiateasyncfunctionobject
+            "Default"
+        };
 
-        // Return Completion { [[Type]]: normal, [[Value]]: argument, [[Target]]: empty }.
+        let environment = &mut context.realm_mut().environment;
+        if environment.has_binding(name) {
+            environment
+                .set_mutable_binding(name, val, true)
+                .map_err(|e| e.to_error(context))?;
+        } else {
+            environment
+                .create_mutable_binding(name.to_owned(), false, VariableScope::Function)
+                .map_err(|e| e.to_error(context))?;
+
+            context
+                .realm_mut()
+                .environment
+                .initialize_binding(name, val)
+                .map_err(|e| e.to_error(context))?;
+        }
+
         Ok(Value::undefined())
     }
 }

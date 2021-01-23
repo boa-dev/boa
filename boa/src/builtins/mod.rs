@@ -1,6 +1,7 @@
 //! Builtins live here, such as Object, String, Math, etc.
 
 pub mod array;
+pub mod async_function;
 pub mod bigint;
 pub mod boolean;
 #[cfg(feature = "console")]
