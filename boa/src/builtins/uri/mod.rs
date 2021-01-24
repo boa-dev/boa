@@ -29,6 +29,20 @@ const PARSE_INT_MAX_ARG_COUNT: usize = 1;
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct EncodeURI;
 
+fn get_utf(url: &str) -> Vec<u32> {
+    let mut foo: Vec<u32> = vec![];
+    for ch in url.chars() {
+        foo.push(ch as u32);
+    }
+    foo
+}
+
+fn print_utf8(utf_str: Vec<u32>) {
+    for code in utf_str {
+        println!("{:04X}", code)
+    }
+}
+
 impl BuiltIn for EncodeURI {
     const NAME: &'static str = "encodeURI";
 

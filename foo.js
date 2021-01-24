@@ -1,1 +1,1 @@
-console.log(encodeURI())
+console.log(getAge())
