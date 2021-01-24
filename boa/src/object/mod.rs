@@ -272,6 +272,7 @@ impl Object {
     #[inline]
     pub fn is_callable(&self) -> bool {
         matches!(self.data, ObjectData::Function(ref f) if f.is_callable())
+        || matches!(self.data, ObjectData::AsyncFunction(ref f) if f.is_callable())
     }
 
     /// It determines if Object is a function object with a `[[Construct]]` internal method.
@@ -283,6 +284,7 @@ impl Object {
     #[inline]
     pub fn is_constructable(&self) -> bool {
         matches!(self.data, ObjectData::Function(ref f) if f.is_constructable())
+        || matches!(self.data, ObjectData::AsyncFunction(ref f) if f.is_constructable())
     }
 
     /// Checks if it an `Array` object.
@@ -396,9 +398,10 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_function(&self) -> Option<&Function> {
+    pub fn as_function(&self) -> Option<&FunctionTrait> {
         match self.data {
             ObjectData::Function(ref function) => Some(function),
+            ObjectData::AsyncFunction(ref function) => Some(function),
             _ => None,
         }
     }

@@ -184,7 +184,7 @@ impl GcObject {
                 return context.throw_type_error("function object is not callable");
             }
         } else {
-            return context.throw_type_error("not a function");
+            return context.throw_type_error("not a function / None");
         };
 
         match f_body {
