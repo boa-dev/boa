@@ -531,11 +531,11 @@ impl Context {
 
         let params = params.into();
         let params_len = params.len();
-        let func = AsyncFunction {
-            body: RcStatementList::from(body.into()),
+        let func = AsyncFunction::new(
+            RcStatementList::from(body.into()),
             params,
-            environment: self.realm.environment.get_current_environment().clone(),
-        };
+            self.realm.environment.get_current_environment().clone(),
+        );
 
         let new_func = Object::async_function(func, prototype);
 

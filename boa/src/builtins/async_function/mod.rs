@@ -11,6 +11,21 @@ pub struct AsyncFunction {
     environment: Environment,
 }
 
+impl AsyncFunction {
+    pub fn new<B, P, E>(body: B, params: P, environment: E) -> Self
+    where
+        B: Into<RcStatementList>,
+        P: Into<Box<[FormalParameter]>>,
+        E: Into<Environment>,
+    {
+        Self {
+            body: body.into(),
+            params: params.into(),
+            environment: environment.into(),
+        }
+    }
+}
+
 unsafe impl Trace for AsyncFunction {
     empty_trace!();
 }

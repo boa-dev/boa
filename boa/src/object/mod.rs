@@ -166,6 +166,18 @@ impl Object {
         }
     }
 
+    #[inline]
+    pub fn async_function(func: AsyncFunction, prototype: Value) -> Self {
+        Self {
+            data: ObjectData::AsyncFunction(func),
+            indexed_properties: FxHashMap::default(),
+            string_properties: FxHashMap::default(),
+            symbol_properties: FxHashMap::default(),
+            prototype,
+            extensible: true,
+        }
+    }
+
     /// ObjectCreate is used to specify the runtime creation of new ordinary objects.
     ///
     /// More information:
