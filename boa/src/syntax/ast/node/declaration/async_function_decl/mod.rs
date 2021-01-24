@@ -1,7 +1,6 @@
 //! Async Function Declaration.
 
 use crate::{
-    builtins::function::FunctionFlags,
     environment::lexical_environment::VariableScope,
     exec::Executable,
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
@@ -85,13 +84,8 @@ impl AsyncFunctionDecl {
 impl Executable for AsyncFunctionDecl {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("AsyncFunctionDecl", "exec");
-        let val = context.create_async_function(
-            self.parameters().to_vec(),
-            self.body().to_vec(),
-            FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
-        )?;
-
-        val.set_field("name", self.name(), context)?;
+        let val =
+            context.create_async_function(self.parameters().to_vec(), self.body().to_vec())?;
 
         let name = if let Some(s) = self.name() {
             s
@@ -99,6 +93,8 @@ impl Executable for AsyncFunctionDecl {
             // https://tc39.es/ecma262/#sec-runtime-semantics-instantiateasyncfunctionobject
             "Default"
         };
+
+        val.set_field("name", name, context)?;
 
         let environment = &mut context.realm_mut().environment;
         if environment.has_binding(name) {

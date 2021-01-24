@@ -79,9 +79,15 @@ impl AsyncFunctionExpr {
 }
 
 impl Executable for AsyncFunctionExpr {
-    fn run(&self, _: &mut Context) -> Result<Value> {
-        // TODO: Implement AsyncFunctionExpr
-        Ok(Value::Undefined)
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        let val =
+            context.create_async_function(self.parameters().to_vec(), self.body().to_vec())?;
+
+        if let Some(name) = self.name() {
+            val.set_field("name", name, context)?;
+        }
+
+        Ok(val)
     }
 }
 

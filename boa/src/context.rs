@@ -517,12 +517,7 @@ impl Context {
         Ok(val)
     }
 
-    pub(crate) fn create_async_function<P, B>(
-        &mut self,
-        params: P,
-        body: B,
-        flags: FunctionFlags,
-    ) -> Result<Value>
+    pub(crate) fn create_async_function<P, B>(&mut self, params: P, body: B) -> Result<Value>
     where
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
