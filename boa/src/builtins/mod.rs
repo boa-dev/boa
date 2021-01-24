@@ -21,6 +21,7 @@ pub mod regexp;
 pub mod string;
 pub mod symbol;
 pub mod undefined;
+pub mod uri;
 
 pub(crate) use self::{
     array::{array_iterator::ArrayIterator, Array},
@@ -43,6 +44,7 @@ pub(crate) use self::{
     string::String,
     symbol::Symbol,
     undefined::Undefined,
+    uri::EncodeURI,
 };
 use crate::{
     property::{Attribute, DataDescriptor},
@@ -88,6 +90,7 @@ pub fn init(context: &mut Context) {
         UriError::init,
         #[cfg(feature = "console")]
         console::Console::init,
+        EncodeURI::init,
     ];
 
     let global_object = context.global_object().clone();
