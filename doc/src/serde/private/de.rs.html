@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.120/src/private/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.123/src/private/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../serde/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -2951,17 +2951,14 @@
 <span id="2948">2948</span>
 <span id="2949">2949</span>
 <span id="2950">2950</span>
-<span id="2951">2951</span>
-<span id="2952">2952</span>
-<span id="2953">2953</span>
-<span id="2954">2954</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">lib</span>::<span class="kw-2">*</span>;
 
-<span class="kw">use</span> <span class="ident">de</span>::{<span class="ident">Deserialize</span>, <span class="ident">DeserializeSeed</span>, <span class="ident">Deserializer</span>, <span class="ident">Error</span>, <span class="ident">IntoDeserializer</span>, <span class="ident">Visitor</span>};
+<span class="kw">use</span> <span class="ident">de</span>::<span class="ident">value</span>::{<span class="ident">BorrowedBytesDeserializer</span>, <span class="ident">BytesDeserializer</span>};
+<span class="kw">use</span> <span class="ident">de</span>::{<span class="ident">Deserialize</span>, <span class="ident">Deserializer</span>, <span class="ident">Error</span>, <span class="ident">IntoDeserializer</span>, <span class="ident">Visitor</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>))]</span>
-<span class="kw">use</span> <span class="ident">de</span>::{<span class="ident">MapAccess</span>, <span class="ident">Unexpected</span>};
+<span class="kw">use</span> <span class="ident">de</span>::{<span class="ident">DeserializeSeed</span>, <span class="ident">MapAccess</span>, <span class="ident">Unexpected</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>))]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">content</span>::{
@@ -2969,6 +2966,8 @@
     <span class="ident">InternallyTaggedUnitVisitor</span>, <span class="ident">TagContentOtherField</span>, <span class="ident">TagContentOtherFieldVisitor</span>,
     <span class="ident">TagOrContentField</span>, <span class="ident">TagOrContentFieldVisitor</span>, <span class="ident">TaggedContentVisitor</span>, <span class="ident">UntaggedUnitVisitor</span>,
 };
+
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">seed</span>::<span class="ident">InPlaceSeed</span>;
 
 <span class="doccomment">/// If the missing field is of type `Option&lt;T&gt;` then treat is as `None`,</span>
 <span class="doccomment">/// otherwise it is an error.</span>
@@ -3146,29 +3145,6 @@
         .<span class="ident">map</span>(<span class="ident">From</span>::<span class="ident">from</span>)
 }
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">size_hint</span> {
-    <span class="kw">use</span> <span class="ident">lib</span>::<span class="kw-2">*</span>;
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_bounds</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="kw-2">&amp;</span><span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">Iterator</span>,
-    {
-        <span class="ident">helper</span>(<span class="ident">iter</span>.<span class="ident">size_hint</span>())
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cautious</span>(<span class="ident">hint</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-        <span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">hint</span>.<span class="ident">unwrap_or</span>(<span class="number">0</span>), <span class="number">4096</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">helper</span>(<span class="ident">bounds</span>: (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>)) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">bounds</span> {
-            (<span class="ident">lower</span>, <span class="prelude-val">Some</span>(<span class="ident">upper</span>)) <span class="kw">if</span> <span class="ident">lower</span> <span class="op">=</span><span class="op">=</span> <span class="ident">upper</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">upper</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-        }
-    }
-}
-
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>))]</span>
 <span class="kw">mod</span> <span class="ident">content</span> {
     <span class="comment">// This module is private and nothing here should be used outside of</span>
@@ -3183,7 +3159,7 @@
 
     <span class="kw">use</span> <span class="ident">lib</span>::<span class="kw-2">*</span>;
 
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">size_hint</span>;
+    <span class="kw">use</span> <span class="ident">__private</span>::<span class="ident">size_hint</span>;
     <span class="kw">use</span> <span class="ident">de</span>::{
         <span class="self">self</span>, <span class="ident">Deserialize</span>, <span class="ident">DeserializeSeed</span>, <span class="ident">Deserializer</span>, <span class="ident">EnumAccess</span>, <span class="ident">Expected</span>, <span class="ident">IgnoredAny</span>,
         <span class="ident">MapAccess</span>, <span class="ident">SeqAccess</span>, <span class="ident">Unexpected</span>, <span class="ident">Visitor</span>,
@@ -3782,15 +3758,17 @@
     <span class="doccomment">/// Not public API.</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TaggedContentVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident">tag_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
+        <span class="ident">expecting</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
         <span class="ident">value</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">TaggedContent</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">TaggedContentVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="doccomment">/// Visitor for the content of an internally tagged enum with the given</span>
         <span class="doccomment">/// tag name.</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">expecting</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
             <span class="ident">TaggedContentVisitor</span> {
                 <span class="ident">tag_name</span>: <span class="ident">name</span>,
+                <span class="ident">expecting</span>: <span class="ident">expecting</span>,
                 <span class="ident">value</span>: <span class="ident">PhantomData</span>,
             }
         }
@@ -3819,7 +3797,7 @@
         <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">TaggedContent</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">T</span><span class="op">&gt;</span>;
 
         <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-            <span class="ident">fmt</span>.<span class="ident">write_str</span>(<span class="string">&quot;internally tagged enum&quot;</span>)
+            <span class="ident">fmt</span>.<span class="ident">write_str</span>(<span class="self">self</span>.<span class="ident">expecting</span>)
         }
 
         <span class="kw">fn</span> <span class="ident">visit_seq</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">seq</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Value</span>, <span class="ident">S</span>::<span class="ident">Error</span><span class="op">&gt;</span>
@@ -3998,6 +3976,25 @@
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">invalid_type</span>(<span class="kw-2">&amp;</span><span class="ident">visitor</span>)),
             }
         }
+
+        <span class="kw">fn</span> <span class="ident">deserialize_float</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V</span>::<span class="ident">Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
+        <span class="kw">where</span>
+            <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+        {
+            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">content</span> {
+                <span class="ident">Content</span>::<span class="ident">F32</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_f32</span>(<span class="ident">v</span>),
+                <span class="ident">Content</span>::<span class="ident">F64</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_f64</span>(<span class="ident">v</span>),
+                <span class="ident">Content</span>::<span class="ident">U8</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_u8</span>(<span class="ident">v</span>),
+                <span class="ident">Content</span>::<span class="ident">U16</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_u16</span>(<span class="ident">v</span>),
+                <span class="ident">Content</span>::<span class="ident">U32</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_u32</span>(<span class="ident">v</span>),
+                <span class="ident">Content</span>::<span class="ident">U64</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_u64</span>(<span class="ident">v</span>),
+                <span class="ident">Content</span>::<span class="ident">I8</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_i8</span>(<span class="ident">v</span>),
+                <span class="ident">Content</span>::<span class="ident">I16</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_i16</span>(<span class="ident">v</span>),
+                <span class="ident">Content</span>::<span class="ident">I32</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_i32</span>(<span class="ident">v</span>),
+                <span class="ident">Content</span>::<span class="ident">I64</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_i64</span>(<span class="ident">v</span>),
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">invalid_type</span>(<span class="kw-2">&amp;</span><span class="ident">visitor</span>)),
+            }
+        }
     }
 
     <span class="kw">fn</span> <span class="ident">visit_content_seq</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">V</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">content</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Content</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V</span>::<span class="ident">Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
@@ -4137,25 +4134,14 @@
         <span class="kw">where</span>
             <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">content</span> {
-                <span class="ident">Content</span>::<span class="ident">F32</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_f32</span>(<span class="ident">v</span>),
-                <span class="ident">Content</span>::<span class="ident">F64</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_f64</span>(<span class="ident">v</span>),
-                <span class="ident">Content</span>::<span class="ident">U64</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_u64</span>(<span class="ident">v</span>),
-                <span class="ident">Content</span>::<span class="ident">I64</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_i64</span>(<span class="ident">v</span>),
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">invalid_type</span>(<span class="kw-2">&amp;</span><span class="ident">visitor</span>)),
-            }
+            <span class="self">self</span>.<span class="ident">deserialize_float</span>(<span class="ident">visitor</span>)
         }
 
         <span class="kw">fn</span> <span class="ident">deserialize_f64</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V</span>::<span class="ident">Value</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
             <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">content</span> {
-                <span class="ident">Content</span>::<span class="ident">F64</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_f64</span>(<span class="ident">v</span>),
-                <span class="ident">Content</span>::<span class="ident">U64</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_u64</span>(<span class="ident">v</span>),
-                <span class="ident">Content</span>::<span class="ident">I64</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">visitor</span>.<span class="ident">visit_i64</span>(<span class="ident">v</span>),
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">invalid_type</span>(<span class="kw-2">&amp;</span><span class="ident">visitor</span>)),
-            }
+            <span class="self">self</span>.<span class="ident">deserialize_float</span>(<span class="ident">visitor</span>)
         }
 
         <span class="kw">fn</span> <span class="ident">deserialize_char</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V</span>::<span class="ident">Value</span>, <span class="self">Self</span>::<span class="ident">Error</span><span class="op">&gt;</span>
@@ -5500,11 +5486,13 @@
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Deserializer</span>;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">IdentifierDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Borrowed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">T</span>: <span class="lifetime">&#39;de</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw">pub</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;de</span> <span class="ident">T</span>);
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">IdentifierDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u64</span>
 <span class="kw">where</span>
     <span class="ident">E</span>: <span class="ident">Error</span>,
 {
-    <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">u32</span> <span class="kw">as</span> <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">Deserializer</span>;
+    <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">u64</span> <span class="kw">as</span> <span class="ident">IntoDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>::<span class="ident">Deserializer</span>;
 
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Deserializer</span> {
         <span class="self">self</span>.<span class="ident">into_deserializer</span>()
@@ -5514,20 +5502,6 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> {
     <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
     <span class="ident">marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">IdentifierDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>
-<span class="kw">where</span>
-    <span class="ident">E</span>: <span class="ident">Error</span>,
-{
-    <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="ident">StrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span>;
-
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Deserializer</span> {
-        <span class="ident">StrDeserializer</span> {
-            <span class="ident">value</span>: <span class="self">self</span>,
-            <span class="ident">marker</span>: <span class="ident">PhantomData</span>,
-        }
-    }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">StrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span>
@@ -5550,26 +5524,12 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BytesDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>],
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BorrowedStrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> {
+    <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;de</span> <span class="ident">str</span>,
     <span class="ident">marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">IdentifierDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]
-<span class="kw">where</span>
-    <span class="ident">E</span>: <span class="ident">Error</span>,
-{
-    <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="ident">BytesDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span>;
-
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Deserializer</span> {
-        <span class="ident">BytesDeserializer</span> {
-            <span class="ident">value</span>: <span class="self">self</span>,
-            <span class="ident">marker</span>: <span class="ident">PhantomData</span>,
-        }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BytesDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BorrowedStrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">E</span>: <span class="ident">Error</span>,
 {
@@ -5579,7 +5539,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <span class="ident">visitor</span>.<span class="ident">visit_bytes</span>(<span class="self">self</span>.<span class="ident">value</span>)
+        <span class="ident">visitor</span>.<span class="ident">visit_borrowed_str</span>(<span class="self">self</span>.<span class="ident">value</span>)
     }
 
     <span class="macro">forward_to_deserialize_any</span><span class="macro">!</span> {
@@ -5589,21 +5549,53 @@
     }
 }
 
-<span class="doccomment">/// A DeserializeSeed helper for implementing deserialize_in_place Visitors.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Wraps a mutable reference and calls deserialize_in_place on it.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InPlaceSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw">pub</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">T</span>);
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;de</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">InPlaceSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">IdentifierDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    <span class="ident">E</span>: <span class="ident">Error</span>,
 {
-    <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> ();
-    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Value</span>, <span class="ident">D</span>::<span class="ident">Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
-    {
-        <span class="ident">T</span>::<span class="ident">deserialize_in_place</span>(<span class="ident">deserializer</span>, <span class="self">self</span>.<span class="number">0</span>)
+    <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="ident">StrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span>;
+
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Deserializer</span> {
+        <span class="ident">StrDeserializer</span> {
+            <span class="ident">value</span>: <span class="self">self</span>,
+            <span class="ident">marker</span>: <span class="ident">PhantomData</span>,
+        }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">IdentifierDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Borrowed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">str</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">E</span>: <span class="ident">Error</span>,
+{
+    <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="ident">BorrowedStrDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>;
+
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Deserializer</span> {
+        <span class="ident">BorrowedStrDeserializer</span> {
+            <span class="ident">value</span>: <span class="self">self</span>.<span class="number">0</span>,
+            <span class="ident">marker</span>: <span class="ident">PhantomData</span>,
+        }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">IdentifierDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]
+<span class="kw">where</span>
+    <span class="ident">E</span>: <span class="ident">Error</span>,
+{
+    <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="ident">BytesDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">E</span><span class="op">&gt;</span>;
+
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Deserializer</span> {
+        <span class="ident">BytesDeserializer</span>::<span class="ident">new</span>(<span class="self">self</span>)
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">IdentifierDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Borrowed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, [<span class="ident">u8</span>]<span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">E</span>: <span class="ident">Error</span>,
+{
+    <span class="kw">type</span> <span class="ident">Deserializer</span> <span class="op">=</span> <span class="ident">BorrowedBytesDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">E</span><span class="op">&gt;</span>;
+
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Deserializer</span> {
+        <span class="ident">BorrowedBytesDeserializer</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="number">0</span>)
     }
 }
 

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.120/src/de/impls.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>impls.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.123/src/de/impls.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>impls.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../serde/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -2574,6 +2574,78 @@
 <span id="2571">2571</span>
 <span id="2572">2572</span>
 <span id="2573">2573</span>
+<span id="2574">2574</span>
+<span id="2575">2575</span>
+<span id="2576">2576</span>
+<span id="2577">2577</span>
+<span id="2578">2578</span>
+<span id="2579">2579</span>
+<span id="2580">2580</span>
+<span id="2581">2581</span>
+<span id="2582">2582</span>
+<span id="2583">2583</span>
+<span id="2584">2584</span>
+<span id="2585">2585</span>
+<span id="2586">2586</span>
+<span id="2587">2587</span>
+<span id="2588">2588</span>
+<span id="2589">2589</span>
+<span id="2590">2590</span>
+<span id="2591">2591</span>
+<span id="2592">2592</span>
+<span id="2593">2593</span>
+<span id="2594">2594</span>
+<span id="2595">2595</span>
+<span id="2596">2596</span>
+<span id="2597">2597</span>
+<span id="2598">2598</span>
+<span id="2599">2599</span>
+<span id="2600">2600</span>
+<span id="2601">2601</span>
+<span id="2602">2602</span>
+<span id="2603">2603</span>
+<span id="2604">2604</span>
+<span id="2605">2605</span>
+<span id="2606">2606</span>
+<span id="2607">2607</span>
+<span id="2608">2608</span>
+<span id="2609">2609</span>
+<span id="2610">2610</span>
+<span id="2611">2611</span>
+<span id="2612">2612</span>
+<span id="2613">2613</span>
+<span id="2614">2614</span>
+<span id="2615">2615</span>
+<span id="2616">2616</span>
+<span id="2617">2617</span>
+<span id="2618">2618</span>
+<span id="2619">2619</span>
+<span id="2620">2620</span>
+<span id="2621">2621</span>
+<span id="2622">2622</span>
+<span id="2623">2623</span>
+<span id="2624">2624</span>
+<span id="2625">2625</span>
+<span id="2626">2626</span>
+<span id="2627">2627</span>
+<span id="2628">2628</span>
+<span id="2629">2629</span>
+<span id="2630">2630</span>
+<span id="2631">2631</span>
+<span id="2632">2632</span>
+<span id="2633">2633</span>
+<span id="2634">2634</span>
+<span id="2635">2635</span>
+<span id="2636">2636</span>
+<span id="2637">2637</span>
+<span id="2638">2638</span>
+<span id="2639">2639</span>
+<span id="2640">2640</span>
+<span id="2641">2641</span>
+<span id="2642">2642</span>
+<span id="2643">2643</span>
+<span id="2644">2644</span>
+<span id="2645">2645</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">lib</span>::<span class="kw-2">*</span>;
 
@@ -2584,11 +2656,10 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">core_duration</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>))]</span>
 <span class="kw">use</span> <span class="ident">de</span>::<span class="ident">MapAccess</span>;
 
-<span class="kw">use</span> <span class="ident">__private</span>::<span class="ident">de</span>::<span class="ident">InPlaceSeed</span>;
-<span class="kw">use</span> <span class="ident">de</span>::<span class="ident">from_primitive</span>::<span class="ident">FromPrimitive</span>;
+<span class="kw">use</span> <span class="ident">seed</span>::<span class="ident">InPlaceSeed</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>))]</span>
-<span class="kw">use</span> <span class="ident">__private</span>::<span class="ident">de</span>::<span class="ident">size_hint</span>;
+<span class="kw">use</span> <span class="ident">__private</span>::<span class="ident">size_hint</span>;
 
 <span class="comment">////////////////////////////////////////////////////////////////////////////////</span>
 
@@ -2658,38 +2729,8 @@
 
 <span class="comment">////////////////////////////////////////////////////////////////////////////////</span>
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">visit_integer_method</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">src_ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">from_method</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">group</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">group_ty</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">src_ty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="ident">E</span>: <span class="ident">Error</span>,
-        {
-            <span class="kw">match</span> <span class="ident">FromPrimitive</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">from_method</span>(<span class="ident">v</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>),
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">invalid_value</span>(
-                    <span class="ident">Unexpected</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">group</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">group_ty</span>),
-                    <span class="kw-2">&amp;</span><span class="self">self</span>,
-                )),
-            }
-        }
-    };
-}
-
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">visit_float_method</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">src_ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">src_ty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="ident">E</span>: <span class="ident">Error</span>,
-        {
-            <span class="prelude-val">Ok</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="self">Self</span>::<span class="ident">Value</span>)
-        }
-    };
-}
-
 <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_deserialize_num</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">visit</span>:<span class="ident">ident</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">deserialize</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">methods</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D</span>::<span class="ident">Error</span><span class="op">&gt;</span>
@@ -2705,131 +2746,221 @@
                         <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>))
                     }
 
-                    $(
-                        <span class="macro">impl_deserialize_num</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">visit</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>);
-                    )<span class="op">*</span>
+                    $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">methods</span>)<span class="op">*</span>
                 }
 
-                <span class="ident">deserializer</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>(<span class="ident">PrimitiveVisitor</span>)
+                <span class="ident">deserializer</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">deserialize</span>(<span class="ident">PrimitiveVisitor</span>)
             }
         }
-    };
-
-    (<span class="ident">integer</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">visit_integer_method</span><span class="macro">!</span>(<span class="ident">i8</span>, <span class="ident">visit_i8</span>, <span class="ident">from_i8</span>, <span class="ident">Signed</span>, <span class="ident">i64</span>);
-        <span class="macro">visit_integer_method</span><span class="macro">!</span>(<span class="ident">i16</span>, <span class="ident">visit_i16</span>, <span class="ident">from_i16</span>, <span class="ident">Signed</span>, <span class="ident">i64</span>);
-        <span class="macro">visit_integer_method</span><span class="macro">!</span>(<span class="ident">i32</span>, <span class="ident">visit_i32</span>, <span class="ident">from_i32</span>, <span class="ident">Signed</span>, <span class="ident">i64</span>);
-        <span class="macro">visit_integer_method</span><span class="macro">!</span>(<span class="ident">i64</span>, <span class="ident">visit_i64</span>, <span class="ident">from_i64</span>, <span class="ident">Signed</span>, <span class="ident">i64</span>);
-
-        <span class="macro">visit_integer_method</span><span class="macro">!</span>(<span class="ident">u8</span>, <span class="ident">visit_u8</span>, <span class="ident">from_u8</span>, <span class="ident">Unsigned</span>, <span class="ident">u64</span>);
-        <span class="macro">visit_integer_method</span><span class="macro">!</span>(<span class="ident">u16</span>, <span class="ident">visit_u16</span>, <span class="ident">from_u16</span>, <span class="ident">Unsigned</span>, <span class="ident">u64</span>);
-        <span class="macro">visit_integer_method</span><span class="macro">!</span>(<span class="ident">u32</span>, <span class="ident">visit_u32</span>, <span class="ident">from_u32</span>, <span class="ident">Unsigned</span>, <span class="ident">u64</span>);
-        <span class="macro">visit_integer_method</span><span class="macro">!</span>(<span class="ident">u64</span>, <span class="ident">visit_u64</span>, <span class="ident">from_u64</span>, <span class="ident">Unsigned</span>, <span class="ident">u64</span>);
-    };
-
-    (<span class="ident">float</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">visit_float_method</span><span class="macro">!</span>(<span class="ident">f32</span>, <span class="ident">visit_f32</span>);
-        <span class="macro">visit_float_method</span><span class="macro">!</span>(<span class="ident">f64</span>, <span class="ident">visit_f64</span>);
     };
 }
 
-<span class="macro">impl_deserialize_num</span><span class="macro">!</span>(<span class="ident">i8</span>, <span class="ident">deserialize_i8</span>, <span class="ident">integer</span>);
-<span class="macro">impl_deserialize_num</span><span class="macro">!</span>(<span class="ident">i16</span>, <span class="ident">deserialize_i16</span>, <span class="ident">integer</span>);
-<span class="macro">impl_deserialize_num</span><span class="macro">!</span>(<span class="ident">i32</span>, <span class="ident">deserialize_i32</span>, <span class="ident">integer</span>);
-<span class="macro">impl_deserialize_num</span><span class="macro">!</span>(<span class="ident">i64</span>, <span class="ident">deserialize_i64</span>, <span class="ident">integer</span>);
-<span class="macro">impl_deserialize_num</span><span class="macro">!</span>(<span class="ident">isize</span>, <span class="ident">deserialize_i64</span>, <span class="ident">integer</span>);
-
-<span class="macro">impl_deserialize_num</span><span class="macro">!</span>(<span class="ident">u8</span>, <span class="ident">deserialize_u8</span>, <span class="ident">integer</span>);
-<span class="macro">impl_deserialize_num</span><span class="macro">!</span>(<span class="ident">u16</span>, <span class="ident">deserialize_u16</span>, <span class="ident">integer</span>);
-<span class="macro">impl_deserialize_num</span><span class="macro">!</span>(<span class="ident">u32</span>, <span class="ident">deserialize_u32</span>, <span class="ident">integer</span>);
-<span class="macro">impl_deserialize_num</span><span class="macro">!</span>(<span class="ident">u64</span>, <span class="ident">deserialize_u64</span>, <span class="ident">integer</span>);
-<span class="macro">impl_deserialize_num</span><span class="macro">!</span>(<span class="ident">usize</span>, <span class="ident">deserialize_u64</span>, <span class="ident">integer</span>);
-
-<span class="macro">impl_deserialize_num</span><span class="macro">!</span>(<span class="ident">f32</span>, <span class="ident">deserialize_f32</span>, <span class="ident">integer</span>, <span class="ident">float</span>);
-<span class="macro">impl_deserialize_num</span><span class="macro">!</span>(<span class="ident">f64</span>, <span class="ident">deserialize_f64</span>, <span class="ident">integer</span>, <span class="ident">float</span>);
-
-<span class="macro">serde_if_integer128</span><span class="macro">!</span> {
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">i128</span> {
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">num_self</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visit</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visit</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
         <span class="kw">where</span>
-            <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+            <span class="ident">E</span>: <span class="ident">Error</span>,
         {
-            <span class="kw">struct</span> <span class="ident">PrimitiveVisitor</span>;
+            <span class="prelude-val">Ok</span>(<span class="ident">v</span>)
+        }
+    };
+}
 
-            <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PrimitiveVisitor</span> {
-                <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">i128</span>;
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">num_as_self</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visit</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        $(
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
+            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visit</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
+            <span class="kw">where</span>
+                <span class="ident">E</span>: <span class="ident">Error</span>,
+            {
+                <span class="prelude-val">Ok</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="self">Self</span>::<span class="ident">Value</span>)
+            }
+        )<span class="op">*</span>
+    };
+}
 
-                <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-                    <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;i128&quot;</span>)
-                }
-
-                <span class="macro">impl_deserialize_num</span><span class="macro">!</span>(<span class="ident">integer</span> <span class="ident">i128</span>);
-
-                <span class="attribute">#[<span class="ident">inline</span>]</span>
-                <span class="kw">fn</span> <span class="ident">visit_i128</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">i128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
-                <span class="kw">where</span>
-                    <span class="ident">E</span>: <span class="ident">Error</span>,
-                {
-                    <span class="prelude-val">Ok</span>(<span class="ident">v</span>)
-                }
-
-                <span class="attribute">#[<span class="ident">inline</span>]</span>
-                <span class="kw">fn</span> <span class="ident">visit_u128</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">u128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
-                <span class="kw">where</span>
-                    <span class="ident">E</span>: <span class="ident">Error</span>,
-                {
-                    <span class="kw">if</span> <span class="ident">v</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">i128</span>::<span class="ident">max_value</span>() <span class="kw">as</span> <span class="ident">u128</span> {
-                        <span class="prelude-val">Ok</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="ident">i128</span>)
-                    } <span class="kw">else</span> {
-                        <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">invalid_value</span>(<span class="ident">Unexpected</span>::<span class="ident">Other</span>(<span class="string">&quot;u128&quot;</span>), <span class="kw-2">&amp;</span><span class="self">self</span>))
-                    }
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">int_to_int</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visit</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        $(
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
+            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visit</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
+            <span class="kw">where</span>
+                <span class="ident">E</span>: <span class="ident">Error</span>,
+            {
+                <span class="kw">if</span> <span class="self">Self</span>::<span class="ident">Value</span>::<span class="ident">min_value</span>() <span class="kw">as</span> <span class="ident">i64</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">v</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">&amp;&amp;</span> <span class="ident">v</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">Value</span>::<span class="ident">max_value</span>() <span class="kw">as</span> <span class="ident">i64</span> {
+                    <span class="prelude-val">Ok</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="self">Self</span>::<span class="ident">Value</span>)
+                } <span class="kw">else</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">invalid_value</span>(<span class="ident">Unexpected</span>::<span class="ident">Signed</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="ident">i64</span>), <span class="kw-2">&amp;</span><span class="self">self</span>))
                 }
             }
+        )<span class="op">*</span>
+    };
+}
 
-            <span class="ident">deserializer</span>.<span class="ident">deserialize_i128</span>(<span class="ident">PrimitiveVisitor</span>)
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">int_to_uint</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visit</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        $(
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
+            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visit</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
+            <span class="kw">where</span>
+                <span class="ident">E</span>: <span class="ident">Error</span>,
+            {
+                <span class="kw">if</span> <span class="number">0</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">v</span> <span class="op">&amp;&amp;</span> <span class="ident">v</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">Value</span>::<span class="ident">max_value</span>() <span class="kw">as</span> <span class="ident">u64</span> {
+                    <span class="prelude-val">Ok</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="self">Self</span>::<span class="ident">Value</span>)
+                } <span class="kw">else</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">invalid_value</span>(<span class="ident">Unexpected</span>::<span class="ident">Signed</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="ident">i64</span>), <span class="kw-2">&amp;</span><span class="self">self</span>))
+                }
+            }
+        )<span class="op">*</span>
+    };
+}
+
+<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">uint_to_self</span> {
+    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ident</span> : <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visit</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        $(
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
+            <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">visit</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
+            <span class="kw">where</span>
+                <span class="ident">E</span>: <span class="ident">Error</span>,
+            {
+                <span class="kw">if</span> <span class="ident">v</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">Self</span>::<span class="ident">Value</span>::<span class="ident">max_value</span>() <span class="kw">as</span> <span class="ident">u64</span> {
+                    <span class="prelude-val">Ok</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="self">Self</span>::<span class="ident">Value</span>)
+                } <span class="kw">else</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">invalid_value</span>(<span class="ident">Unexpected</span>::<span class="ident">Unsigned</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="ident">u64</span>), <span class="kw-2">&amp;</span><span class="self">self</span>))
+                }
+            }
+        )<span class="op">*</span>
+    };
+}
+
+<span class="macro">impl_deserialize_num</span><span class="macro">!</span> {
+    <span class="ident">i8</span>, <span class="ident">deserialize_i8</span>
+    <span class="macro">num_self</span><span class="macro">!</span>(<span class="ident">i8</span>:<span class="ident">visit_i8</span>);
+    <span class="macro">int_to_int</span><span class="macro">!</span>(<span class="ident">i16</span>:<span class="ident">visit_i16</span> <span class="ident">i32</span>:<span class="ident">visit_i32</span> <span class="ident">i64</span>:<span class="ident">visit_i64</span>);
+    <span class="macro">uint_to_self</span><span class="macro">!</span>(<span class="ident">u8</span>:<span class="ident">visit_u8</span> <span class="ident">u16</span>:<span class="ident">visit_u16</span> <span class="ident">u32</span>:<span class="ident">visit_u32</span> <span class="ident">u64</span>:<span class="ident">visit_u64</span>);
+}
+
+<span class="macro">impl_deserialize_num</span><span class="macro">!</span> {
+    <span class="ident">i16</span>, <span class="ident">deserialize_i16</span>
+    <span class="macro">num_self</span><span class="macro">!</span>(<span class="ident">i16</span>:<span class="ident">visit_i16</span>);
+    <span class="macro">num_as_self</span><span class="macro">!</span>(<span class="ident">i8</span>:<span class="ident">visit_i8</span>);
+    <span class="macro">int_to_int</span><span class="macro">!</span>(<span class="ident">i32</span>:<span class="ident">visit_i32</span> <span class="ident">i64</span>:<span class="ident">visit_i64</span>);
+    <span class="macro">uint_to_self</span><span class="macro">!</span>(<span class="ident">u8</span>:<span class="ident">visit_u8</span> <span class="ident">u16</span>:<span class="ident">visit_u16</span> <span class="ident">u32</span>:<span class="ident">visit_u32</span> <span class="ident">u64</span>:<span class="ident">visit_u64</span>);
+}
+
+<span class="macro">impl_deserialize_num</span><span class="macro">!</span> {
+    <span class="ident">i32</span>, <span class="ident">deserialize_i32</span>
+    <span class="macro">num_self</span><span class="macro">!</span>(<span class="ident">i32</span>:<span class="ident">visit_i32</span>);
+    <span class="macro">num_as_self</span><span class="macro">!</span>(<span class="ident">i8</span>:<span class="ident">visit_i8</span> <span class="ident">i16</span>:<span class="ident">visit_i16</span>);
+    <span class="macro">int_to_int</span><span class="macro">!</span>(<span class="ident">i64</span>:<span class="ident">visit_i64</span>);
+    <span class="macro">uint_to_self</span><span class="macro">!</span>(<span class="ident">u8</span>:<span class="ident">visit_u8</span> <span class="ident">u16</span>:<span class="ident">visit_u16</span> <span class="ident">u32</span>:<span class="ident">visit_u32</span> <span class="ident">u64</span>:<span class="ident">visit_u64</span>);
+}
+
+<span class="macro">impl_deserialize_num</span><span class="macro">!</span> {
+    <span class="ident">i64</span>, <span class="ident">deserialize_i64</span>
+    <span class="macro">num_self</span><span class="macro">!</span>(<span class="ident">i64</span>:<span class="ident">visit_i64</span>);
+    <span class="macro">num_as_self</span><span class="macro">!</span>(<span class="ident">i8</span>:<span class="ident">visit_i8</span> <span class="ident">i16</span>:<span class="ident">visit_i16</span> <span class="ident">i32</span>:<span class="ident">visit_i32</span>);
+    <span class="macro">uint_to_self</span><span class="macro">!</span>(<span class="ident">u8</span>:<span class="ident">visit_u8</span> <span class="ident">u16</span>:<span class="ident">visit_u16</span> <span class="ident">u32</span>:<span class="ident">visit_u32</span> <span class="ident">u64</span>:<span class="ident">visit_u64</span>);
+}
+
+<span class="macro">impl_deserialize_num</span><span class="macro">!</span> {
+    <span class="ident">isize</span>, <span class="ident">deserialize_i64</span>
+    <span class="macro">num_as_self</span><span class="macro">!</span>(<span class="ident">i8</span>:<span class="ident">visit_i8</span> <span class="ident">i16</span>:<span class="ident">visit_i16</span>);
+    <span class="macro">int_to_int</span><span class="macro">!</span>(<span class="ident">i32</span>:<span class="ident">visit_i32</span> <span class="ident">i64</span>:<span class="ident">visit_i64</span>);
+    <span class="macro">uint_to_self</span><span class="macro">!</span>(<span class="ident">u8</span>:<span class="ident">visit_u8</span> <span class="ident">u16</span>:<span class="ident">visit_u16</span> <span class="ident">u32</span>:<span class="ident">visit_u32</span> <span class="ident">u64</span>:<span class="ident">visit_u64</span>);
+}
+
+<span class="macro">impl_deserialize_num</span><span class="macro">!</span> {
+    <span class="ident">u8</span>, <span class="ident">deserialize_u8</span>
+    <span class="macro">num_self</span><span class="macro">!</span>(<span class="ident">u8</span>:<span class="ident">visit_u8</span>);
+    <span class="macro">int_to_uint</span><span class="macro">!</span>(<span class="ident">i8</span>:<span class="ident">visit_i8</span> <span class="ident">i16</span>:<span class="ident">visit_i16</span> <span class="ident">i32</span>:<span class="ident">visit_i32</span> <span class="ident">i64</span>:<span class="ident">visit_i64</span>);
+    <span class="macro">uint_to_self</span><span class="macro">!</span>(<span class="ident">u16</span>:<span class="ident">visit_u16</span> <span class="ident">u32</span>:<span class="ident">visit_u32</span> <span class="ident">u64</span>:<span class="ident">visit_u64</span>);
+}
+
+<span class="macro">impl_deserialize_num</span><span class="macro">!</span> {
+    <span class="ident">u16</span>, <span class="ident">deserialize_u16</span>
+    <span class="macro">num_self</span><span class="macro">!</span>(<span class="ident">u16</span>:<span class="ident">visit_u16</span>);
+    <span class="macro">num_as_self</span><span class="macro">!</span>(<span class="ident">u8</span>:<span class="ident">visit_u8</span>);
+    <span class="macro">int_to_uint</span><span class="macro">!</span>(<span class="ident">i8</span>:<span class="ident">visit_i8</span> <span class="ident">i16</span>:<span class="ident">visit_i16</span> <span class="ident">i32</span>:<span class="ident">visit_i32</span> <span class="ident">i64</span>:<span class="ident">visit_i64</span>);
+    <span class="macro">uint_to_self</span><span class="macro">!</span>(<span class="ident">u32</span>:<span class="ident">visit_u32</span> <span class="ident">u64</span>:<span class="ident">visit_u64</span>);
+}
+
+<span class="macro">impl_deserialize_num</span><span class="macro">!</span> {
+    <span class="ident">u32</span>, <span class="ident">deserialize_u32</span>
+    <span class="macro">num_self</span><span class="macro">!</span>(<span class="ident">u32</span>:<span class="ident">visit_u32</span>);
+    <span class="macro">num_as_self</span><span class="macro">!</span>(<span class="ident">u8</span>:<span class="ident">visit_u8</span> <span class="ident">u16</span>:<span class="ident">visit_u16</span>);
+    <span class="macro">int_to_uint</span><span class="macro">!</span>(<span class="ident">i8</span>:<span class="ident">visit_i8</span> <span class="ident">i16</span>:<span class="ident">visit_i16</span> <span class="ident">i32</span>:<span class="ident">visit_i32</span> <span class="ident">i64</span>:<span class="ident">visit_i64</span>);
+    <span class="macro">uint_to_self</span><span class="macro">!</span>(<span class="ident">u64</span>:<span class="ident">visit_u64</span>);
+}
+
+<span class="macro">impl_deserialize_num</span><span class="macro">!</span> {
+    <span class="ident">u64</span>, <span class="ident">deserialize_u64</span>
+    <span class="macro">num_self</span><span class="macro">!</span>(<span class="ident">u64</span>:<span class="ident">visit_u64</span>);
+    <span class="macro">num_as_self</span><span class="macro">!</span>(<span class="ident">u8</span>:<span class="ident">visit_u8</span> <span class="ident">u16</span>:<span class="ident">visit_u16</span> <span class="ident">u32</span>:<span class="ident">visit_u32</span>);
+    <span class="macro">int_to_uint</span><span class="macro">!</span>(<span class="ident">i8</span>:<span class="ident">visit_i8</span> <span class="ident">i16</span>:<span class="ident">visit_i16</span> <span class="ident">i32</span>:<span class="ident">visit_i32</span> <span class="ident">i64</span>:<span class="ident">visit_i64</span>);
+}
+
+<span class="macro">impl_deserialize_num</span><span class="macro">!</span> {
+    <span class="ident">usize</span>, <span class="ident">deserialize_u64</span>
+    <span class="macro">num_as_self</span><span class="macro">!</span>(<span class="ident">u8</span>:<span class="ident">visit_u8</span> <span class="ident">u16</span>:<span class="ident">visit_u16</span>);
+    <span class="macro">int_to_uint</span><span class="macro">!</span>(<span class="ident">i8</span>:<span class="ident">visit_i8</span> <span class="ident">i16</span>:<span class="ident">visit_i16</span> <span class="ident">i32</span>:<span class="ident">visit_i32</span> <span class="ident">i64</span>:<span class="ident">visit_i64</span>);
+    <span class="macro">uint_to_self</span><span class="macro">!</span>(<span class="ident">u32</span>:<span class="ident">visit_u32</span> <span class="ident">u64</span>:<span class="ident">visit_u64</span>);
+}
+
+<span class="macro">impl_deserialize_num</span><span class="macro">!</span> {
+    <span class="ident">f32</span>, <span class="ident">deserialize_f32</span>
+    <span class="macro">num_self</span><span class="macro">!</span>(<span class="ident">f32</span>:<span class="ident">visit_f32</span>);
+    <span class="macro">num_as_self</span><span class="macro">!</span>(<span class="ident">f64</span>:<span class="ident">visit_f64</span>);
+    <span class="macro">num_as_self</span><span class="macro">!</span>(<span class="ident">i8</span>:<span class="ident">visit_i8</span> <span class="ident">i16</span>:<span class="ident">visit_i16</span> <span class="ident">i32</span>:<span class="ident">visit_i32</span> <span class="ident">i64</span>:<span class="ident">visit_i64</span>);
+    <span class="macro">num_as_self</span><span class="macro">!</span>(<span class="ident">u8</span>:<span class="ident">visit_u8</span> <span class="ident">u16</span>:<span class="ident">visit_u16</span> <span class="ident">u32</span>:<span class="ident">visit_u32</span> <span class="ident">u64</span>:<span class="ident">visit_u64</span>);
+}
+
+<span class="macro">impl_deserialize_num</span><span class="macro">!</span> {
+    <span class="ident">f64</span>, <span class="ident">deserialize_f64</span>
+    <span class="macro">num_self</span><span class="macro">!</span>(<span class="ident">f64</span>:<span class="ident">visit_f64</span>);
+    <span class="macro">num_as_self</span><span class="macro">!</span>(<span class="ident">f32</span>:<span class="ident">visit_f32</span>);
+    <span class="macro">num_as_self</span><span class="macro">!</span>(<span class="ident">i8</span>:<span class="ident">visit_i8</span> <span class="ident">i16</span>:<span class="ident">visit_i16</span> <span class="ident">i32</span>:<span class="ident">visit_i32</span> <span class="ident">i64</span>:<span class="ident">visit_i64</span>);
+    <span class="macro">num_as_self</span><span class="macro">!</span>(<span class="ident">u8</span>:<span class="ident">visit_u8</span> <span class="ident">u16</span>:<span class="ident">visit_u16</span> <span class="ident">u32</span>:<span class="ident">visit_u32</span> <span class="ident">u64</span>:<span class="ident">visit_u64</span>);
+}
+
+<span class="macro">serde_if_integer128</span><span class="macro">!</span> {
+    <span class="macro">impl_deserialize_num</span><span class="macro">!</span> {
+        <span class="ident">i128</span>, <span class="ident">deserialize_i128</span>
+        <span class="macro">num_self</span><span class="macro">!</span>(<span class="ident">i128</span>:<span class="ident">visit_i128</span>);
+        <span class="macro">num_as_self</span><span class="macro">!</span>(<span class="ident">i8</span>:<span class="ident">visit_i8</span> <span class="ident">i16</span>:<span class="ident">visit_i16</span> <span class="ident">i32</span>:<span class="ident">visit_i32</span> <span class="ident">i64</span>:<span class="ident">visit_i64</span>);
+        <span class="macro">num_as_self</span><span class="macro">!</span>(<span class="ident">u8</span>:<span class="ident">visit_u8</span> <span class="ident">u16</span>:<span class="ident">visit_u16</span> <span class="ident">u32</span>:<span class="ident">visit_u32</span> <span class="ident">u64</span>:<span class="ident">visit_u64</span>);
+
+        <span class="attribute">#[<span class="ident">inline</span>]</span>
+        <span class="kw">fn</span> <span class="ident">visit_u128</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">u128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
+        <span class="kw">where</span>
+            <span class="ident">E</span>: <span class="ident">Error</span>,
+        {
+            <span class="kw">if</span> <span class="ident">v</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">i128</span>::<span class="ident">max_value</span>() <span class="kw">as</span> <span class="ident">u128</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="ident">i128</span>)
+            } <span class="kw">else</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">invalid_value</span>(<span class="ident">Unexpected</span>::<span class="ident">Other</span>(<span class="string">&quot;u128&quot;</span>), <span class="kw-2">&amp;</span><span class="self">self</span>))
+            }
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u128</span> {
+    <span class="macro">impl_deserialize_num</span><span class="macro">!</span> {
+        <span class="ident">u128</span>, <span class="ident">deserialize_u128</span>
+        <span class="macro">num_self</span><span class="macro">!</span>(<span class="ident">u128</span>:<span class="ident">visit_u128</span>);
+        <span class="macro">num_as_self</span><span class="macro">!</span>(<span class="ident">u8</span>:<span class="ident">visit_u8</span> <span class="ident">u16</span>:<span class="ident">visit_u16</span> <span class="ident">u32</span>:<span class="ident">visit_u32</span> <span class="ident">u64</span>:<span class="ident">visit_u64</span>);
+        <span class="macro">int_to_uint</span><span class="macro">!</span>(<span class="ident">i8</span>:<span class="ident">visit_i8</span> <span class="ident">i16</span>:<span class="ident">visit_i16</span> <span class="ident">i32</span>:<span class="ident">visit_i32</span> <span class="ident">i64</span>:<span class="ident">visit_i64</span>);
+
         <span class="attribute">#[<span class="ident">inline</span>]</span>
-        <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+        <span class="kw">fn</span> <span class="ident">visit_i128</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">i128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
         <span class="kw">where</span>
-            <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+            <span class="ident">E</span>: <span class="ident">Error</span>,
         {
-            <span class="kw">struct</span> <span class="ident">PrimitiveVisitor</span>;
-
-            <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PrimitiveVisitor</span> {
-                <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">u128</span>;
-
-                <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-                    <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;u128&quot;</span>)
-                }
-
-                <span class="macro">impl_deserialize_num</span><span class="macro">!</span>(<span class="ident">integer</span> <span class="ident">u128</span>);
-
-                <span class="attribute">#[<span class="ident">inline</span>]</span>
-                <span class="kw">fn</span> <span class="ident">visit_i128</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">i128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
-                <span class="kw">where</span>
-                    <span class="ident">E</span>: <span class="ident">Error</span>,
-                {
-                    <span class="kw">if</span> <span class="ident">v</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> {
-                        <span class="prelude-val">Ok</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="ident">u128</span>)
-                    } <span class="kw">else</span> {
-                        <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">invalid_value</span>(<span class="ident">Unexpected</span>::<span class="ident">Other</span>(<span class="string">&quot;i128&quot;</span>), <span class="kw-2">&amp;</span><span class="self">self</span>))
-                    }
-                }
-
-                <span class="attribute">#[<span class="ident">inline</span>]</span>
-                <span class="kw">fn</span> <span class="ident">visit_u128</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">v</span>: <span class="ident">u128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Value</span>, <span class="ident">E</span><span class="op">&gt;</span>
-                <span class="kw">where</span>
-                    <span class="ident">E</span>: <span class="ident">Error</span>,
-                {
-                    <span class="prelude-val">Ok</span>(<span class="ident">v</span>)
-                }
+            <span class="kw">if</span> <span class="number">0</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">v</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="ident">u128</span>)
+            } <span class="kw">else</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">invalid_value</span>(<span class="ident">Unexpected</span>::<span class="ident">Other</span>(<span class="string">&quot;i128&quot;</span>), <span class="kw-2">&amp;</span><span class="self">self</span>))
             }
-
-            <span class="ident">deserializer</span>.<span class="ident">deserialize_u128</span>(<span class="ident">PrimitiveVisitor</span>)
         }
     }
 }
@@ -4426,6 +4557,17 @@
             }
         }
 
+        <span class="kw">fn</span> <span class="ident">check_overflow</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">secs</span>: <span class="ident">u64</span>, <span class="ident">nanos</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span>
+        <span class="kw">where</span>
+            <span class="ident">E</span>: <span class="ident">Error</span>,
+        {
+            <span class="kw">static</span> <span class="ident">NANOS_PER_SEC</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1_000_000_000</span>;
+            <span class="kw">match</span> <span class="ident">secs</span>.<span class="ident">checked_add</span>((<span class="ident">nanos</span> <span class="op">/</span> <span class="ident">NANOS_PER_SEC</span>) <span class="kw">as</span> <span class="ident">u64</span>) {
+                <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">E</span>::<span class="ident">custom</span>(<span class="string">&quot;overflow deserializing Duration&quot;</span>)),
+            }
+        }
+
         <span class="kw">struct</span> <span class="ident">DurationVisitor</span>;
 
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DurationVisitor</span> {
@@ -4451,6 +4593,7 @@
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">invalid_length</span>(<span class="number">1</span>, <span class="kw-2">&amp;</span><span class="self">self</span>));
                     }
                 };
+                <span class="macro">try</span><span class="macro">!</span>(<span class="ident">check_overflow</span>(<span class="ident">secs</span>, <span class="ident">nanos</span>));
                 <span class="prelude-val">Ok</span>(<span class="ident">Duration</span>::<span class="ident">new</span>(<span class="ident">secs</span>, <span class="ident">nanos</span>))
             }
 
@@ -4484,6 +4627,7 @@
                     <span class="prelude-val">Some</span>(<span class="ident">nanos</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">nanos</span>,
                     <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="op">&lt;</span><span class="ident">A</span>::<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">Error</span><span class="op">&gt;</span>::<span class="ident">missing_field</span>(<span class="string">&quot;nanos&quot;</span>)),
                 };
+                <span class="macro">try</span><span class="macro">!</span>(<span class="ident">check_overflow</span>(<span class="ident">secs</span>, <span class="ident">nanos</span>));
                 <span class="prelude-val">Ok</span>(<span class="ident">Duration</span>::<span class="ident">new</span>(<span class="ident">secs</span>, <span class="ident">nanos</span>))
             }
         }
