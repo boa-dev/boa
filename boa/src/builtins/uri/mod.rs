@@ -14,34 +14,21 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
 
 use super::function::make_builtin_fn;
-use crate::{
-    builtins::BuiltIn,
-    object::{ConstructorBuilder, ObjectData, PROTOTYPE},
-    property::Attribute,
-    value::{AbstractRelation, IntegerOrInfinity, Value},
-    BoaProfiler, Context, Result,
-};
-use num_traits::{float::FloatCore, Num};
+use std::borrow::Borrow;
 
+use crate::{
+    builtins::BuiltIn, object::ConstructorBuilder, property::Attribute, value::Value, BoaProfiler,
+    Context, Result,
+};
+
+use percent_encoding::{percent_decode, utf8_percent_encode, AsciiSet, CONTROLS};
+
+// https://url.spec.whatwg.org/#fragment-percent-encode-set
+const ENCODE_FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b'>').add(b'`');
 const PARSE_INT_MAX_ARG_COUNT: usize = 1;
 
-/// `Number` implementation.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct EncodeURI;
-
-fn get_utf(url: &str) -> Vec<u32> {
-    let mut foo: Vec<u32> = vec![];
-    for ch in url.chars() {
-        foo.push(ch as u32);
-    }
-    foo
-}
-
-fn print_utf8(utf_str: Vec<u32>) {
-    for code in utf_str {
-        println!("{:04X}", code)
-    }
-}
 
 impl BuiltIn for EncodeURI {
     const NAME: &'static str = "encodeURI";
@@ -61,17 +48,17 @@ impl BuiltIn for EncodeURI {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
-        .static_property("AGE", 42, attribute)
         .build();
 
         let global = context.global_object();
         make_builtin_fn(
-            Self::get_age,
-            "getAge",
+            Self::decode_uri,
+            "decodeURI",
             &global,
             PARSE_INT_MAX_ARG_COUNT,
             context,
         );
+
         (Self::NAME, number_object.into(), Self::attribute())
     }
 }
@@ -79,15 +66,39 @@ impl BuiltIn for EncodeURI {
 impl EncodeURI {
     pub(crate) const LENGTH: usize = 1;
 
-    pub(crate) fn get_age(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        Ok(Value::Integer(42))
-    }
-
     pub(crate) fn constructor(
         new_target: &Value,
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        Ok(Value::Integer(42))
+        let first_arg = match args.get(0) {
+            Some(Value::String(ref str)) => {
+                if str.len() == 0 {
+                    Value::string("")
+                } else {
+                    let encoded = utf8_percent_encode(str, ENCODE_FRAGMENT).to_string();
+                    Value::string(encoded)
+                }
+            }
+            _ => Value::Undefined,
+        };
+
+        Ok(first_arg)
+    }
+
+    pub(crate) fn decode_uri(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let first_arg = match args.get(0) {
+            Some(Value::String(ref str)) => {
+                if str.len() == 0 {
+                    Value::string("")
+                } else {
+                    let encoded = percent_decode(str.as_bytes()).decode_utf8().unwrap();
+                    Value::string(encoded.borrow())
+                }
+            }
+            _ => Value::Undefined,
+        };
+
+        Ok(first_arg)
     }
 }

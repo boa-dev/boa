@@ -17,6 +17,7 @@ dependencies = [
  "num-integer",
  "num-traits",
  "once_cell",
+ "percent-encoding",
  "rand",
  "regress",
  "rustc-hash",
