@@ -17,8 +17,9 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, PartialEq, Debug)]
 pub struct TemplateString {
+    /// The start position of the template string. Used to make lexer error if `to_owned_cooked` failed.
     start_pos: Position,
-    /// The raw string with escape sequences processed.
+    /// The template string of template literal with argument `raw` true.
     raw: Box<str>,
 }
 
@@ -33,10 +34,22 @@ impl TemplateString {
         }
     }
 
+    /// Converts the raw template string into a mutable string slice.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-templatestrings
     pub fn as_raw(&self) -> &str {
         self.raw.as_ref()
     }
 
+    /// Creats a new cooked template string. Returns a lexer error if it fails to cook the template string.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-templatestrings
     pub fn to_owned_cooked(&self) -> Result<Box<str>, Error> {
         self.cook_template_string()
     }
