@@ -199,6 +199,16 @@ pub enum Keyword {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/extends
     Extends,
 
+    /// The `false` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-BooleanLiteral
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+    False,
+
     /// The `finally` keyword.
     ///
     /// More information:
@@ -301,6 +311,16 @@ pub enum Keyword {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new
     New,
 
+    /// The `null` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-NullLiteral
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null
+    Null,
+
     /// The `of` keyword.
     ///
     /// More information:
@@ -368,6 +388,16 @@ pub enum Keyword {
     /// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
     Throw,
+
+    /// The `true` keyword
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-BooleanLiteral
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean
+    True,
 
     /// The `try` keyword.
     ///
@@ -479,6 +509,7 @@ impl Keyword {
             Self::Enum => "enum",
             Self::Extends => "extends",
             Self::Export => "export",
+            Self::False => "false",
             Self::Finally => "finally",
             Self::For => "for",
             Self::Function => "function",
@@ -488,12 +519,14 @@ impl Keyword {
             Self::Import => "import",
             Self::Let => "let",
             Self::New => "new",
+            Self::Null => "null",
             Self::Of => "of",
             Self::Return => "return",
             Self::Super => "super",
             Self::Switch => "switch",
             Self::This => "this",
             Self::Throw => "throw",
+            Self::True => "true",
             Self::Try => "try",
             Self::TypeOf => "typeof",
             Self::Var => "var",
@@ -552,6 +585,7 @@ impl FromStr for Keyword {
             "enum" => Ok(Self::Enum),
             "extends" => Ok(Self::Extends),
             "export" => Ok(Self::Export),
+            "false" => Ok(Self::False),
             "finally" => Ok(Self::Finally),
             "for" => Ok(Self::For),
             "function" => Ok(Self::Function),
@@ -561,12 +595,14 @@ impl FromStr for Keyword {
             "import" => Ok(Self::Import),
             "let" => Ok(Self::Let),
             "new" => Ok(Self::New),
+            "null" => Ok(Self::Null),
             "of" => Ok(Self::Of),
             "return" => Ok(Self::Return),
             "super" => Ok(Self::Super),
             "switch" => Ok(Self::Switch),
             "this" => Ok(Self::This),
             "throw" => Ok(Self::Throw),
+            "true" => Ok(Self::True),
             "try" => Ok(Self::Try),
             "typeof" => Ok(Self::TypeOf),
             "var" => Ok(Self::Var),

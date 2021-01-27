@@ -130,6 +130,7 @@ where
     /// predicate on the ascii char
     ///
     /// The buffer is not incremented.
+    #[allow(dead_code)]
     #[inline]
     pub(super) fn next_is_char_pred<F>(&mut self, pred: &F) -> io::Result<bool>
     where
@@ -191,6 +192,7 @@ where
     /// It also stops when there is no next character.
     ///
     /// Note that all characters up until the stop character are added to the buffer, including the character right before.
+    #[allow(dead_code)]
     pub(super) fn take_while_char_pred<F>(&mut self, buf: &mut Vec<u8>, pred: &F) -> io::Result<()>
     where
         F: Fn(u32) -> bool,
