@@ -269,11 +269,8 @@ where
                 TokenKind::Punctuator(Punctuator::CloseBlock) => {
                     return Ok(Vec::new().into());
                 }
-                TokenKind::StringLiteral(string)
-                | TokenKind::TemplateNoSubstitution { cooked: string, .. } => {
-                    if string == &"use strict".into() {
-                        cursor.set_strict_mode(true);
-                    }
+                TokenKind::StringLiteral(string) if string.as_ref() == "use strict" => {
+                    cursor.set_strict_mode(true);
                 }
                 _ => {}
             }

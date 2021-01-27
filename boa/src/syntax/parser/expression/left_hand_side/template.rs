@@ -59,9 +59,9 @@ where
 
         loop {
             match token.kind() {
-                TokenKind::TemplateMiddle { raw, cooked } => {
-                    raws.push(raw.clone());
-                    cookeds.push(cooked.clone());
+                TokenKind::TemplateMiddle(template_string) => {
+                    raws.push(template_string.as_raw().to_owned().into_boxed_str());
+                    cookeds.push(template_string.to_owned_cooked().ok());
                     exprs.push(
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?,
                     );
@@ -70,9 +70,9 @@ where
                         "template literal",
                     )?;
                 }
-                TokenKind::TemplateNoSubstitution { raw, cooked } => {
-                    raws.push(raw.clone());
-                    cookeds.push(cooked.clone());
+                TokenKind::TemplateNoSubstitution(template_string) => {
+                    raws.push(template_string.as_raw().to_owned().into_boxed_str());
+                    cookeds.push(template_string.to_owned_cooked().ok());
                     return Ok(Node::from(TaggedTemplate::new(
                         self.tag, raws, cookeds, exprs,
                     )));

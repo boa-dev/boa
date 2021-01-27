@@ -74,10 +74,10 @@ where
 
         loop {
             match cursor.lex_template(self.start)?.kind() {
-                TokenKind::TemplateMiddle {
-                    cooked: template, ..
-                } => {
-                    elements.push(TemplateElement::String(template.to_owned()));
+                TokenKind::TemplateMiddle(template_string) => {
+                    let cooked = template_string.to_owned_cooked().map_err(ParseError::lex)?;
+
+                    elements.push(TemplateElement::String(cooked));
                     elements.push(TemplateElement::Expr(
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?,
                     ));
@@ -86,10 +86,10 @@ where
                         "template literal",
                     )?;
                 }
-                TokenKind::TemplateNoSubstitution {
-                    cooked: template, ..
-                } => {
-                    elements.push(TemplateElement::String(template.to_owned()));
+                TokenKind::TemplateNoSubstitution(template_string) => {
+                    let cooked = template_string.to_owned_cooked().map_err(ParseError::lex)?;
+
+                    elements.push(TemplateElement::String(cooked));
                     return Ok(TemplateLit::new(elements));
                 }
                 _ => {

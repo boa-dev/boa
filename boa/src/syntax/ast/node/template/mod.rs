@@ -69,12 +69,17 @@ impl fmt::Display for TemplateLit {
 pub struct TaggedTemplate {
     tag: Box<Node>,
     raws: Vec<Box<str>>,
-    cookeds: Vec<Box<str>>,
+    cookeds: Vec<Option<Box<str>>>,
     exprs: Vec<Node>,
 }
 
 impl TaggedTemplate {
-    pub fn new(tag: Node, raws: Vec<Box<str>>, cookeds: Vec<Box<str>>, exprs: Vec<Node>) -> Self {
+    pub fn new(
+        tag: Node,
+        raws: Vec<Box<str>>,
+        cookeds: Vec<Option<Box<str>>>,
+        exprs: Vec<Node>,
+    ) -> Self {
         Self {
             tag: Box::new(tag),
             raws,
@@ -96,7 +101,11 @@ impl Executable for TaggedTemplate {
         }
 
         for (i, cooked) in self.cookeds.iter().enumerate() {
-            template_object.set_field(i, Value::from(cooked), context)?;
+            if let Some(cooked) = cooked {
+                template_object.set_field(i, Value::from(cooked), context)?;
+            } else {
+                template_object.set_field(i, Value::undefined(), context)?;
+            }
         }
         template_object.set_field("raw", raw_array, context)?;
 
