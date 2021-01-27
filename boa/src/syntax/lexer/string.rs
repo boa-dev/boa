@@ -8,7 +8,6 @@ use crate::{
         lexer::{Token, TokenKind},
     },
 };
-use core::convert::TryFrom;
 use std::{
     io::{self, ErrorKind, Read},
     str,
@@ -47,7 +46,34 @@ impl StringLiteral {
 pub(crate) enum StringTerminator {
     SingleQuote,
     DoubleQuote,
-    End,
+}
+
+/// Extends a buffer type to store UTF-16 code units and convert to string.
+pub(crate) trait UTF16CodeUnitsBuffer {
+    /// Encodes the code point to UTF-16 code units and push to the buffer.
+    fn push_code_point(&mut self, code_point: u32);
+
+    /// Decodes the buffer into a String and replace the invalid data with the replacement character (U+FFFD).
+    fn to_string_lossy(&self) -> String;
+}
+
+impl UTF16CodeUnitsBuffer for Vec<u16> {
+    #[inline]
+    fn push_code_point(&mut self, code_point: u32) {
+        if code_point <= 65535 {
+            self.push(code_point as u16);
+        } else {
+            let cu1 = ((code_point - 65536) / 1024 + 0xD800) as u16;
+            let cu2 = ((code_point - 65536) % 1024 + 0xDC00) as u16;
+            self.push(cu1);
+            self.push(cu2);
+        }
+    }
+
+    #[inline]
+    fn to_string_lossy(&self) -> String {
+        String::from_utf16_lossy(self.as_slice())
+    }
 }
 
 impl<R> Tokenizer<R> for StringLiteral {
@@ -72,18 +98,19 @@ impl StringLiteral {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-LineTerminator
     #[inline]
-    pub(super) fn is_line_terminator(ch: char) -> bool {
+    pub(super) fn is_line_terminator(ch: u32) -> bool {
         matches!(
             ch,
-            '\u{000A}' /* <LF> */ | '\u{000D}' /* <CR> */ | '\u{2028}' /* <LS> */ | '\u{2029}' /* <PS> */
+            0x000A /* <LF> */ | 0x000D /* <CR> */ | 0x2028 /* <LS> */ | 0x2029 /* <PS> */
         )
     }
 
-    pub(super) fn take_string_characters<R>(
+    #[inline]
+    fn take_string_characters<R>(
         cursor: &mut Cursor<R>,
         start_pos: Position,
         terminator: StringTerminator,
-        strict_mode: bool,
+        is_strict_mode: bool,
     ) -> Result<(String, Span), Error>
     where
         R: Read,
@@ -91,97 +118,25 @@ impl StringLiteral {
         let mut buf = Vec::new();
         loop {
             let ch_start_pos = cursor.pos();
-            let ch = cursor.next_char()?.map(char::try_from).transpose().unwrap();
+            let ch = cursor.next_char()?;
 
             match ch {
-                Some('\'') if terminator == StringTerminator::SingleQuote => {
-                    break;
-                }
-                Some('"') if terminator == StringTerminator::DoubleQuote => {
-                    break;
-                }
-                None if terminator == StringTerminator::End => {
-                    break;
-                }
-                Some('\\') => {
+                Some(0x0027 /* ' */) if terminator == StringTerminator::SingleQuote => break,
+                Some(0x0022 /* " */) if terminator == StringTerminator::DoubleQuote => break,
+                Some(0x005C /* \ */) => {
                     let _timer = BoaProfiler::global()
                         .start_event("StringLiteral - escape sequence", "Lexing");
 
-                    let escape_ch = cursor
-                        .next_char()?
-                        .and_then(|byte| char::try_from(byte).ok())
-                        .ok_or_else(|| {
-                            Error::from(io::Error::new(
-                                ErrorKind::UnexpectedEof,
-                                "unterminated escape sequence in literal",
-                            ))
-                        })?;
-
-                    match escape_ch {
-                        'b' => buf.push(0x0008 /* <BS> */),
-                        't' => buf.push(0x0009 /* <HT> */),
-                        'n' => buf.push(0x000A /* <LF> */),
-                        'v' => buf.push(0x000B /* <VT> */),
-                        'f' => buf.push(0x000C /* <FF> */),
-                        'r' => buf.push(0x000D /* <CR> */),
-                        '"' => buf.push(0x0022 /* " */),
-                        '\'' => buf.push(0x0027 /* ' */),
-                        '\\' => buf.push(0x005C /* \ */),
-                        '0' if cursor
-                            .peek()?
-                            .filter(|next_byte| (b'0'..=b'9').contains(next_byte))
-                            .is_none() =>
-                        {
-                            buf.push(0x0000 /* NULL */)
-                        }
-                        'x' => {
-                            Self::take_hex_escape_sequence(cursor, ch_start_pos, Some(&mut buf))?;
-                        }
-                        'u' => {
-                            Self::take_unicode_escape_sequence(cursor, ch_start_pos, Some(&mut buf))?;
-                        }
-                        '8' | '9' => {
-                            // Grammar: NonOctalDecimalEscapeSequence
-                            if strict_mode {
-                                return Err(Error::syntax(
-                                    "\\8 and \\9 are not allowed in strict mode",
-                                    ch_start_pos,
-                                ));
-                            } else {
-                                buf.push(escape_ch as u16);
-                            }
-                        }
-                        _ if escape_ch.is_digit(8) => {
-                            Self::take_legacy_octal_escape_sequence(
-                                cursor,
-                                ch_start_pos,
-                                Some(&mut buf),
-                                strict_mode,
-                                escape_ch as u8,
-                            )?;
-                        }
-                        _ if Self::is_line_terminator(escape_ch) => {
-                            // Grammar: LineContinuation
-                            // Grammar: \ LineTerminatorSequence
-                            // LineContinuation is the empty String. Do nothing and continue lexing.
-                        }
-                        _ => {
-                            if escape_ch.len_utf16() == 1 {
-                                buf.push(escape_ch as u16);
-                            } else {
-                                buf.extend(escape_ch.encode_utf16(&mut [0u16; 2]).iter());
-                            }
-                        }
-                    };
-                }
-                Some(ch) => {
-                    if ch.len_utf16() == 1 {
-                        buf.push(ch as u16);
-                    } else {
-                        buf.extend(ch.encode_utf16(&mut [0u16; 2]).iter());
+                    if let Some(escape_value) = Self::take_escape_sequence_or_line_continuation(cursor, ch_start_pos, is_strict_mode, false)? {
+                        buf.push_code_point(escape_value);
                     }
                 }
-                None => {
+                Some(0x2028) => buf.push(0x2028 /* <LS> */),
+                Some(0x2029) => buf.push(0x2029 /* <PS> */),
+                Some(ch) if !Self::is_line_terminator(ch) => {
+                    buf.push_code_point(ch);
+                }
+                _ => {
                     return Err(Error::from(io::Error::new(
                         ErrorKind::UnexpectedEof,
                         "unterminated string literal",
@@ -190,17 +145,99 @@ impl StringLiteral {
             }
         }
 
-        Ok((
-            String::from_utf16_lossy(buf.as_slice()),
-            Span::new(start_pos, cursor.pos()),
-        ))
+        Ok((buf.to_string_lossy(), Span::new(start_pos, cursor.pos())))
+    }
+
+    #[inline]
+    pub(super) fn take_escape_sequence_or_line_continuation<R>(
+        cursor: &mut Cursor<R>,
+        start_pos: Position,
+        is_strict_mode: bool,
+        is_template_literal: bool,
+    ) -> Result<Option<u32>, Error>
+    where
+        R: Read,
+    {
+        let escape_ch = cursor.next_char()?.ok_or_else(|| {
+            Error::from(io::Error::new(
+                ErrorKind::UnexpectedEof,
+                "unterminated escape sequence in literal",
+            ))
+        })?;
+
+        let escape_value = match escape_ch {
+            0x0062 /* b */ => Some(0x0008 /* <BS> */),
+            0x0074 /* t */ => Some(0x0009 /* <HT> */),
+            0x006E /* n */ => Some(0x000A /* <LF> */),
+            0x0076 /* v */ => Some(0x000B /* <VT> */),
+            0x0066 /* f */ => Some(0x000C /* <FF> */),
+            0x0072 /* r */ => Some(0x000D /* <CR> */),
+            0x0022 /* " */ => Some(0x0022 /* " */),
+            0x0027 /* ' */ => Some(0x0027 /* ' */),
+            0x005C /* \ */ => Some(0x005C /* \ */),
+            0x0030 /* 0 */ if cursor
+                .peek()?
+                .filter(|next_byte| (b'0'..=b'9').contains(next_byte))
+                .is_none() =>
+                Some(0x0000 /* NULL */),
+            0x0078 /* x */ => {
+                Some(Self::take_hex_escape_sequence(cursor, start_pos)?)
+            }
+            0x0075 /* u */ => {
+                Some(Self::take_unicode_escape_sequence(cursor, start_pos)?)
+            }
+            0x0038 /* 8 */ | 0x0039 /* 9 */ => {
+                // Grammar: NonOctalDecimalEscapeSequence
+                if is_template_literal {
+                    return Err(Error::syntax(
+                        "\\8 and \\9 are not allowed in template literal",
+                        start_pos,
+                    ));
+                } else if is_strict_mode {
+                    return Err(Error::syntax(
+                        "\\8 and \\9 are not allowed in strict mode",
+                        start_pos,
+                    ));
+                } else {
+                    Some(escape_ch)
+                }
+            }
+            _ if (0x0030..=0x0037 /* '0'..='7' */).contains(&escape_ch) => {
+                if is_template_literal {
+                    return Err(Error::syntax(
+                        "octal escape sequences are not allowed in template literal",
+                        start_pos,
+                    ));
+                } else if is_strict_mode {
+                    return Err(Error::syntax(
+                        "octal escape sequences are not allowed in strict mode",
+                        start_pos,
+                    ));
+                } else {
+                    Some(Self::take_legacy_octal_escape_sequence(
+                        cursor,
+                        escape_ch as u8,
+                    )?)
+                }
+            }
+            _ if Self::is_line_terminator(escape_ch) => {
+                // Grammar: LineContinuation
+                // Grammar: \ LineTerminatorSequence
+                // LineContinuation is the empty String.
+                None
+            }
+            _ => {
+                Some(escape_ch)
+            }
+        };
+
+        Ok(escape_value)
     }
 
     #[inline]
     pub(super) fn take_unicode_escape_sequence<R>(
         cursor: &mut Cursor<R>,
         start_pos: Position,
-        code_units_buf: Option<&mut Vec<u16>>,
     ) -> Result<u32, Error>
     where
         R: Read,
@@ -227,15 +264,6 @@ impl StringLiteral {
                     "Unicode codepoint must not be greater than 0x10FFFF in escape sequence",
                     start_pos,
                 ));
-            } else if let Some(code_units_buf) = code_units_buf {
-                if code_point <= 65535 {
-                    code_units_buf.push(code_point as u16);
-                } else {
-                    let cu1 = ((code_point - 65536) / 1024 + 0xD800) as u16;
-                    let cu2 = ((code_point - 65536) % 1024 + 0xDC00) as u16;
-                    code_units_buf.push(cu1);
-                    code_units_buf.push(cu2);
-                }
             }
 
             Ok(code_point)
@@ -251,10 +279,6 @@ impl StringLiteral {
                 .and_then(|code_point_str| u16::from_str_radix(&code_point_str, 16).ok())
                 .ok_or_else(|| Error::syntax("invalid Unicode escape sequence", start_pos))?;
 
-            if let Some(code_units_buf) = code_units_buf {
-                code_units_buf.push(code_point);
-            }
-
             Ok(code_point as u32)
         }
     }
@@ -263,7 +287,6 @@ impl StringLiteral {
     fn take_hex_escape_sequence<R>(
         cursor: &mut Cursor<R>,
         start_pos: Position,
-        code_units_buf: Option<&mut Vec<u16>>,
     ) -> Result<u32, Error>
     where
         R: Read,
@@ -275,30 +298,17 @@ impl StringLiteral {
             .and_then(|code_point_str| u16::from_str_radix(&code_point_str, 16).ok())
             .ok_or_else(|| Error::syntax("invalid Hexadecimal escape sequence", start_pos))?;
 
-        if let Some(code_units_buf) = code_units_buf {
-            code_units_buf.push(code_point);
-        }
-
         Ok(code_point as u32)
     }
 
     #[inline]
     fn take_legacy_octal_escape_sequence<R>(
         cursor: &mut Cursor<R>,
-        start_pos: Position,
-        code_units_buf: Option<&mut Vec<u16>>,
-        strict_mode: bool,
         init_byte: u8,
     ) -> Result<u32, Error>
     where
         R: Read,
     {
-        if strict_mode {
-            return Err(Error::syntax(
-                "octal escape sequences are not allowed in strict mode",
-                start_pos,
-            ));
-        }
         // Grammar: OctalDigit
         let mut code_point = (init_byte - b'0') as u32;
 
@@ -319,10 +329,6 @@ impl StringLiteral {
                     }
                 }
             }
-        }
-
-        if let Some(code_units_buf) = code_units_buf {
-            code_units_buf.push(code_point as u16);
         }
 
         Ok(code_point)
