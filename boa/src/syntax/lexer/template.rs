@@ -51,11 +51,6 @@ impl TemplateString {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-templatestrings
     pub fn to_owned_cooked(&self) -> Result<Box<str>, Error> {
-        self.cook_template_string()
-    }
-
-    #[inline]
-    fn cook_template_string(&self) -> Result<Box<str>, Error> {
         let mut cursor = Cursor::with_position(self.raw.as_bytes(), self.start_pos);
         let mut buf: Vec<u16> = Vec::new();
 
