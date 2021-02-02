@@ -9,8 +9,8 @@ use crate::{
         lexer::{token::Numeric, Token},
     },
 };
+use std::io::Read;
 use std::str;
-use std::{io::Read, str::FromStr};
 
 /// Number literal lexing.
 ///
@@ -381,7 +381,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                     )
             }
             NumericKind::Rational /* base: 10 */ => {
-                let val = f64::from_str(num_str).expect("Failed to parse float after checks");
+                let val: f64 = fast_float::parse(num_str).expect("Failed to parse float after checks");
                 let int_val = val as i32;
 
                 // The truncated float should be identically to the non-truncated float for the conversion to be loss-less,
