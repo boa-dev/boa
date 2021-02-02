@@ -57,8 +57,8 @@ impl BuiltIn for Error {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
-        .property("name", Self::NAME, attribute)
-        .property("message", "", attribute)
+        .data_property("name", Self::NAME, attribute)
+        .data_property("message", "", attribute)
         .method(Self::to_string, "toString", 0)
         .build();
 

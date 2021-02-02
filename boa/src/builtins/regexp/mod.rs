@@ -78,7 +78,7 @@ impl BuiltIn for RegExp {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
-        .property("lastIndex", 0, Attribute::all())
+        .data_property("lastIndex", 0, Attribute::all())
         .method(Self::test, "test", 1)
         .method(Self::exec, "exec", 1)
         .method(Self::to_string, "toString", 0)

@@ -40,8 +40,8 @@ impl BuiltIn for ReferenceError {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .inherit(error_prototype.into())
-        .property("name", Self::NAME, attribute)
-        .property("message", "", attribute)
+        .data_property("name", Self::NAME, attribute)
+        .data_property("message", "", attribute)
         .build();
 
         (Self::NAME, reference_error_object.into(), Self::attribute())

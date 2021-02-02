@@ -40,12 +40,12 @@ impl BuiltIn for Map {
         let map_object = ConstructorBuilder::new(context, Self::constructor)
             .name(Self::NAME)
             .length(Self::LENGTH)
-            .property(
+            .data_property(
                 "entries",
                 entries_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .property(
+            .data_property(
                 iterator_symbol,
                 entries_function,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,

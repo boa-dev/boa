@@ -104,11 +104,11 @@ impl Class for Person {
 
         // Add a inherited property with the value `10`, with default attribute.
         // (`READONLY, NON_ENUMERABLE, PERMANENT).
-        class.property("inheritedProperty", 10, Attribute::default());
+        class.data_property("inheritedProperty", 10, Attribute::default());
 
         // Add a static property with the value `"Im a static property"`, with default attribute.
         // (`WRITABLE, ENUMERABLE, PERMANENT`).
-        class.static_property(
+        class.static_data_property(
             "staticProperty",
             "Im a static property",
             Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::PERMANENT,
