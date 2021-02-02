@@ -814,7 +814,7 @@ impl Value {
                 if string.trim().is_empty() {
                     return Ok(0.0);
                 }
-                Ok(string.parse().unwrap_or(f64::NAN))
+                Ok(fast_float::parse(string.as_str()).unwrap_or(f64::NAN))
             }
             Value::Rational(number) => Ok(number),
             Value::Integer(integer) => Ok(f64::from(integer)),

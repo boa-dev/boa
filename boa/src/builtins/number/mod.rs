@@ -793,15 +793,18 @@ impl Number {
         if let Some(val) = args.get(0) {
             match val {
                 Value::String(s) => {
-                    if let Ok(i) = s.parse::<i32>() {
-                        // Attempt to parse an integer first so that it can be stored as an integer
-                        // to improve performance
-                        Ok(Value::integer(i))
-                    } else if let Ok(f) = s.parse::<f64>() {
-                        Ok(Value::rational(f))
-                    } else {
-                        // String can't be parsed.
-                        Ok(Value::from(f64::NAN))
+                    match fast_float::parse_partial::<f64, _>(s.as_str()) {
+                        Ok((f, len)) if len > 0 => {
+                            let int = f as i32;
+                            #[allow(clippy::float_cmp)]
+                            if int as f64 == f {
+                                // If the number is closed to an integer, stores it as integer
+                                Ok(Value::integer(int))
+                            } else {
+                                Ok(Value::rational(f))
+                            }
+                        }
+                        _ => Ok(Value::from(f64::NAN)), // String can't be parsed.
                     }
                 }
                 Value::Integer(i) => Ok(Value::integer(*i)),
