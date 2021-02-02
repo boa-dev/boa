@@ -14,6 +14,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
 
 use super::function::make_builtin_fn;
+use super::string::is_trimmable_whitespace;
 use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, ObjectData, PROTOTYPE},
@@ -793,18 +794,33 @@ impl Number {
         if let Some(val) = args.get(0) {
             match val {
                 Value::String(s) => {
-                    match fast_float::parse_partial::<f64, _>(s.as_str()) {
-                        Ok((f, len)) if len > 0 => {
-                            let int = f as i32;
-                            #[allow(clippy::float_cmp)]
-                            if int as f64 == f {
-                                // If the number is closed to an integer, stores it as integer
-                                Ok(Value::integer(int))
-                            } else {
-                                Ok(Value::rational(f))
+                    let s = s.as_str().trim_start_matches(is_trimmable_whitespace);
+                    let s_prefix_lower = s.chars().take(4).collect::<String>().to_ascii_lowercase();
+
+                    if s.starts_with("Infinity") || s.starts_with("+Infinity") {
+                        Ok(Value::from(f64::INFINITY))
+                    } else if s.starts_with("-Infinity") {
+                        Ok(Value::from(f64::NEG_INFINITY))
+                    } else if s_prefix_lower.starts_with("inf")
+                        || s_prefix_lower.starts_with("+inf")
+                        || s_prefix_lower.starts_with("-inf")
+                    {
+                        // HACK: Prevent fast_float from parsing "inf", "+inf" as Infinity and "-inf" as -Infinity
+                        Ok(Value::from(f64::NAN))
+                    } else {
+                        match fast_float::parse_partial::<f64, _>(s) {
+                            Ok((f, len)) if len > 0 => {
+                                let int = f as i32;
+                                #[allow(clippy::float_cmp)]
+                                if int as f64 == f {
+                                    // If the number is closed to an integer, stores it as integer
+                                    Ok(Value::integer(int))
+                                } else {
+                                    Ok(Value::rational(f))
+                                }
                             }
+                            _ => Ok(Value::from(f64::NAN)), // String can't be parsed.
                         }
-                        _ => Ok(Value::from(f64::NAN)), // String can't be parsed.
                     }
                 }
                 Value::Integer(i) => Ok(Value::integer(*i)),
