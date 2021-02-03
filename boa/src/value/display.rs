@@ -170,10 +170,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                     if print_children {
                         let entries = set
                             .iter()
-                            .map(|value| {
-                                let value = log_string_from(value, print_internals, false);
-                                format!("{}", value)
-                            })
+                            .map(|value| log_string_from(value, print_internals, false))
                             .collect::<Vec<String>>()
                             .join(", ");
                         format!("Set {{ {} }}", entries)

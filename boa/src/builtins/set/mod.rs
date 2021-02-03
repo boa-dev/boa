@@ -64,7 +64,7 @@ impl BuiltIn for Set {
             )
             .property(
                 iterator_symbol,
-                values_function.clone(),
+                values_function,
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(to_string_tag, "Set", Attribute::CONFIGURABLE)
@@ -217,8 +217,7 @@ impl Set {
 
         let res = if let Some(object) = this.as_object() {
             if let Some(set) = object.borrow_mut().as_set_mut() {
-                let res = set.delete(&value);
-                res
+                set.delete(&value)
             } else {
                 return context.throw_type_error("'this' is not a Set");
             }
