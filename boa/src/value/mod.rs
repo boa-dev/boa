@@ -813,6 +813,7 @@ impl Value {
             Value::String(ref string) => {
                 let string = string.trim_matches(is_trimmable_whitespace);
 
+                // TODO: write our own lexer to match syntax StrDecimalLiteral
                 match string {
                     "" => Ok(0.0),
                     "Infinity" | "+Infinity" => Ok(f64::INFINITY),

@@ -796,6 +796,7 @@ impl Number {
             let s = input_string.trim_start_matches(is_trimmable_whitespace);
             let s_prefix_lower = s.chars().take(4).collect::<String>().to_ascii_lowercase();
 
+            // TODO: write our own lexer to match syntax StrDecimalLiteral
             if s.starts_with("Infinity") || s.starts_with("+Infinity") {
                 Ok(Value::from(f64::INFINITY))
             } else if s.starts_with("-Infinity") {
