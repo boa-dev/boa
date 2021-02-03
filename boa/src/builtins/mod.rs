@@ -18,6 +18,7 @@ pub mod nan;
 pub mod number;
 pub mod object;
 pub mod regexp;
+pub mod set;
 pub mod string;
 pub mod symbol;
 pub mod undefined;
@@ -40,6 +41,8 @@ pub(crate) use self::{
     object::for_in_iterator::ForInIterator,
     object::Object as BuiltInObjectObject,
     regexp::RegExp,
+    set::set_iterator::SetIterator,
+    set::Set,
     string::String,
     symbol::Symbol,
     undefined::Undefined,
@@ -76,6 +79,7 @@ pub fn init(context: &mut Context) {
         Date::init,
         Map::init,
         Number::init,
+        Set::init,
         String::init,
         RegExp::init,
         Symbol::init,

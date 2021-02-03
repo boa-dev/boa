@@ -169,6 +169,27 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                         format!("Map({})", size)
                     }
                 }
+                ObjectData::Set(ref set) => {
+                    let size = set.size();
+
+                    if size == 0 {
+                        return String::from("Set(0)");
+                    }
+
+                    if print_children {
+                        let entries = set
+                            .iter()
+                            .map(|value| {
+                                let value = log_string_from(value, print_internals, false);
+                                format!("{}", value)
+                            })
+                            .collect::<Vec<String>>()
+                            .join(", ");
+                        format!("Set {{ {} }}", entries)
+                    } else {
+                        format!("Set({})", size)
+                    }
+                }
                 _ => display_obj(&x, print_internals),
             }
         }

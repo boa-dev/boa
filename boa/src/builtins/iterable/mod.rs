@@ -3,6 +3,7 @@ use crate::{
     builtins::ArrayIterator,
     builtins::ForInIterator,
     builtins::MapIterator,
+    builtins::SetIterator,
     object::{GcObject, ObjectInitializer},
     property::{Attribute, DataDescriptor},
     BoaProfiler, Context, Result, Value,
@@ -12,6 +13,7 @@ use crate::{
 pub struct IteratorPrototypes {
     iterator_prototype: GcObject,
     array_iterator: GcObject,
+    set_iterator: GcObject,
     string_iterator: GcObject,
     map_iterator: GcObject,
     for_in_iterator: GcObject,
@@ -25,6 +27,7 @@ impl IteratorPrototypes {
                 context,
                 iterator_prototype.clone().into(),
             ),
+            set_iterator: SetIterator::create_prototype(context, iterator_prototype.clone().into()),
             string_iterator: StringIterator::create_prototype(
                 context,
                 iterator_prototype.clone().into(),
@@ -46,6 +49,11 @@ impl IteratorPrototypes {
     #[inline]
     pub fn iterator_prototype(&self) -> GcObject {
         self.iterator_prototype.clone()
+    }
+
+    #[inline]
+    pub fn set_iterator(&self) -> GcObject {
+        self.set_iterator.clone()
     }
 
     #[inline]

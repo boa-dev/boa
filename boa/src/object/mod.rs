@@ -6,6 +6,8 @@ use crate::{
         function::{BuiltInFunction, Function, FunctionFlags, NativeFunction},
         map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
+        set::ordered_set::OrderedSet,
+        set::set_iterator::SetIterator,
         string::string_iterator::StringIterator,
         BigInt, Date, RegExp,
     },
@@ -87,6 +89,8 @@ pub enum ObjectData {
     Boolean(bool),
     ForInIterator(ForInIterator),
     Function(Function),
+    Set(OrderedSet<Value>),
+    SetIterator(SetIterator),
     String(RcString),
     StringIterator(StringIterator),
     Number(f64),
@@ -111,6 +115,8 @@ impl Display for ObjectData {
                 Self::RegExp(_) => "RegExp",
                 Self::Map(_) => "Map",
                 Self::MapIterator(_) => "MapIterator",
+                Self::Set(_) => "Set",
+                Self::SetIterator(_) => "SetIterator",
                 Self::String(_) => "String",
                 Self::StringIterator(_) => "StringIterator",
                 Self::Symbol(_) => "Symbol",
@@ -356,6 +362,35 @@ impl Object {
     pub fn as_map_iterator_mut(&mut self) -> Option<&mut MapIterator> {
         match &mut self.data {
             ObjectData::MapIterator(iter) => Some(iter),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn is_set(&self) -> bool {
+        matches!(self.data, ObjectData::Set(_))
+    }
+
+    #[inline]
+    pub fn as_set_ref(&self) -> Option<&OrderedSet<Value>> {
+        match self.data {
+            ObjectData::Set(ref set) => Some(set),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_set_mut(&mut self) -> Option<&mut OrderedSet<Value>> {
+        match &mut self.data {
+            ObjectData::Set(set) => Some(set),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_set_iterator_mut(&mut self) -> Option<&mut SetIterator> {
+        match &mut self.data {
+            ObjectData::SetIterator(iter) => Some(iter),
             _ => None,
         }
     }
