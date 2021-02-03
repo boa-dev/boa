@@ -140,16 +140,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                     }
                 }
                 ObjectData::Map(ref map) => {
-                    let size = v
-                        .get_own_property(&PropertyKey::from("size"))
-                        // TODO: do this in a better way "unwrap"
-                        .unwrap()
-                        // FIXME: handle accessor descriptors
-                        .as_data_descriptor()
-                        .unwrap()
-                        .value()
-                        .as_number()
-                        .unwrap() as i32;
+                    let size = map.len();
                     if size == 0 {
                         return String::from("Map(0)");
                     }

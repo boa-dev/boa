@@ -58,7 +58,6 @@ impl BuiltIn for Map {
             .method(Self::has, "has", 1)
             .method(Self::for_each, "forEach", 1)
             .method(Self::values, "values", 0)
-            .callable(false)
             .build();
 
         (Self::NAME, map_object.into(), Self::attribute())
@@ -66,7 +65,7 @@ impl BuiltIn for Map {
 }
 
 impl Map {
-    pub(crate) const LENGTH: usize = 1;
+    pub(crate) const LENGTH: usize = 0;
 
     /// Create a new map
     pub(crate) fn constructor(
@@ -75,7 +74,7 @@ impl Map {
         context: &mut Context,
     ) -> Result<Value> {
         if new_target.is_undefined() {
-            return context.throw_type_error("Map requires new");
+            return context.throw_type_error("Constructor Map requires 'new'");
         }
         let map_prototype = context
             .global_object()
