@@ -815,7 +815,7 @@ impl Number {
                             Value::nan()
                         }
                     })
-                    .unwrap_or(Value::nan()))
+                    .unwrap_or_else(|_| Value::nan()))
             }
         } else {
             // Not enough arguments to parseFloat.

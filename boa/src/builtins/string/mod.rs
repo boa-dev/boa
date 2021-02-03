@@ -1004,9 +1004,7 @@ impl String {
     pub(crate) fn trim(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         let this = this.require_object_coercible(context)?;
         let string = this.to_string(context)?;
-        Ok(Value::from(
-            string.trim_matches(is_trimmable_whitespace),
-        ))
+        Ok(Value::from(string.trim_matches(is_trimmable_whitespace)))
     }
 
     /// `String.prototype.trimStart()`
