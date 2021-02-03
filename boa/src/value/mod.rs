@@ -8,6 +8,7 @@ mod tests;
 use crate::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
+        string::is_trimmable_whitespace,
         BigInt, Number,
     },
     object::{GcObject, Object, ObjectData},
@@ -809,12 +810,28 @@ impl Value {
             Value::Null => Ok(0.0),
             Value::Undefined => Ok(f64::NAN),
             Value::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
-            // TODO: this is probably not 100% correct, see https://tc39.es/ecma262/#sec-tonumber-applied-to-the-string-type
             Value::String(ref string) => {
-                if string.trim().is_empty() {
-                    return Ok(0.0);
+                let string = string.trim_matches(is_trimmable_whitespace);
+
+                match string {
+                    "" => Ok(0.0),
+                    "Infinity" | "+Infinity" => Ok(f64::INFINITY),
+                    "-Infinity" => Ok(f64::NEG_INFINITY),
+                    _ if matches!(
+                        string
+                            .chars()
+                            .take(4)
+                            .collect::<String>()
+                            .to_ascii_lowercase()
+                            .as_str(),
+                        "inf" | "+inf" | "-inf" | "nan" | "+nan" | "-nan"
+                    ) =>
+                    {
+                        // Prevent fast_float from parsing "inf", "+inf" as Infinity and "-inf" as -Infinity
+                        Ok(f64::NAN)
+                    }
+                    _ => Ok(fast_float::parse(string).unwrap_or(f64::NAN)),
                 }
-                Ok(fast_float::parse(string.as_str()).unwrap_or(f64::NAN))
             }
             Value::Rational(number) => Ok(number),
             Value::Integer(integer) => Ok(f64::from(integer)),

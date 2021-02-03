@@ -674,7 +674,7 @@ impl Number {
             let input_string = val.to_string(context)?;
 
             // 2. Let S be ! TrimString(inputString, start).
-            let mut var_s = input_string.trim();
+            let mut var_s = input_string.trim_start_matches(is_trimmable_whitespace);
 
             // 3. Let sign be 1.
             // 4. If S is not empty and the first code unit of S is the code unit 0x002D (HYPHEN-MINUS),
@@ -790,49 +790,36 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parsefloat-string
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
-    pub(crate) fn parse_float(_: &Value, args: &[Value], _ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn parse_float(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         if let Some(val) = args.get(0) {
-            match val {
-                Value::String(s) => {
-                    let s = s.as_str().trim_start_matches(is_trimmable_whitespace);
-                    let s_prefix_lower = s.chars().take(4).collect::<String>().to_ascii_lowercase();
+            let input_string = val.to_string(context)?;
+            let s = input_string.trim_start_matches(is_trimmable_whitespace);
+            let s_prefix_lower = s.chars().take(4).collect::<String>().to_ascii_lowercase();
 
-                    if s.starts_with("Infinity") || s.starts_with("+Infinity") {
-                        Ok(Value::from(f64::INFINITY))
-                    } else if s.starts_with("-Infinity") {
-                        Ok(Value::from(f64::NEG_INFINITY))
-                    } else if s_prefix_lower.starts_with("inf")
-                        || s_prefix_lower.starts_with("+inf")
-                        || s_prefix_lower.starts_with("-inf")
-                    {
-                        // HACK: Prevent fast_float from parsing "inf", "+inf" as Infinity and "-inf" as -Infinity
-                        Ok(Value::from(f64::NAN))
-                    } else {
-                        match fast_float::parse_partial::<f64, _>(s) {
-                            Ok((f, len)) if len > 0 => {
-                                let int = f as i32;
-                                #[allow(clippy::float_cmp)]
-                                if int as f64 == f {
-                                    // If the number is closed to an integer, stores it as integer
-                                    Ok(Value::integer(int))
-                                } else {
-                                    Ok(Value::rational(f))
-                                }
-                            }
-                            _ => Ok(Value::from(f64::NAN)), // String can't be parsed.
+            if s.starts_with("Infinity") || s.starts_with("+Infinity") {
+                Ok(Value::from(f64::INFINITY))
+            } else if s.starts_with("-Infinity") {
+                Ok(Value::from(f64::NEG_INFINITY))
+            } else if s_prefix_lower.starts_with("inf")
+                || s_prefix_lower.starts_with("+inf")
+                || s_prefix_lower.starts_with("-inf")
+            {
+                // Prevent fast_float from parsing "inf", "+inf" as Infinity and "-inf" as -Infinity
+                Ok(Value::nan())
+            } else {
+                Ok(fast_float::parse_partial::<f64, _>(s)
+                    .map(|(f, len)| {
+                        if len > 0 {
+                            Value::rational(f)
+                        } else {
+                            Value::nan()
                         }
-                    }
-                }
-                Value::Integer(i) => Ok(Value::integer(*i)),
-                Value::Rational(f) => Ok(Value::rational(*f)),
-                _ => {
-                    // Wrong argument type to parseFloat.
-                    Ok(Value::from(f64::NAN))
-                }
+                    })
+                    .unwrap_or(Value::nan()))
             }
         } else {
             // Not enough arguments to parseFloat.
-            Ok(Value::from(f64::NAN))
+            Ok(Value::nan())
         }
     }
 
