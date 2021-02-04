@@ -65,7 +65,7 @@ pub(crate) fn is_trimmable_whitespace(c: char) -> bool {
     matches!(
         c,
         '\u{0009}' | '\u{000B}' | '\u{000C}' | '\u{0020}' | '\u{00A0}' | '\u{FEFF}' |
-    // Unicode Space_Seperator category
+    // Unicode Space_Separator category
     '\u{1680}' | '\u{2000}'
             ..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}' |
     // Line terminators: https://tc39.es/ecma262/#sec-line-terminators
