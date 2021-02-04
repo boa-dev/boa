@@ -52,6 +52,27 @@ pub(crate) fn code_point_at(string: RcString, position: i32) -> Option<(u32, u8,
     Some((cp, 2, false))
 }
 
+/// Helper function to check if a `char` is trimmable.
+#[inline]
+pub(crate) fn is_trimmable_whitespace(c: char) -> bool {
+    // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
+    //
+    // Rust uses \p{White_Space} by default, which also includes:
+    // `\u{0085}' (next line)
+    // And does not include:
+    // '\u{FEFF}' (zero width non-breaking space)
+    // Explicit whitespace: https://tc39.es/ecma262/#sec-white-space
+    matches!(
+        c,
+        '\u{0009}' | '\u{000B}' | '\u{000C}' | '\u{0020}' | '\u{00A0}' | '\u{FEFF}' |
+    // Unicode Space_Separator category
+    '\u{1680}' | '\u{2000}'
+            ..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}' |
+    // Line terminators: https://tc39.es/ecma262/#sec-line-terminators
+    '\u{000A}' | '\u{000D}' | '\u{2028}' | '\u{2029}'
+    )
+}
+
 fn is_leading_surrogate(value: u16) -> bool {
     (0xD800..=0xDBFF).contains(&value)
 }
@@ -968,27 +989,6 @@ impl String {
         Self::string_pad(primitive, max_length, fill_string, true)
     }
 
-    /// Helper function to check if a `char` is trimmable.
-    #[inline]
-    fn is_trimmable_whitespace(c: char) -> bool {
-        // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
-        //
-        // Rust uses \p{White_Space} by default, which also includes:
-        // `\u{0085}' (next line)
-        // And does not include:
-        // '\u{FEFF}' (zero width non-breaking space)
-        // Explicit whitespace: https://tc39.es/ecma262/#sec-white-space
-        matches!(
-            c,
-            '\u{0009}' | '\u{000B}' | '\u{000C}' | '\u{0020}' | '\u{00A0}' | '\u{FEFF}' |
-        // Unicode Space_Seperator category
-        '\u{1680}' | '\u{2000}'
-                ..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}' |
-        // Line terminators: https://tc39.es/ecma262/#sec-line-terminators
-        '\u{000A}' | '\u{000D}' | '\u{2028}' | '\u{2029}'
-        )
-    }
-
     /// String.prototype.trim()
     ///
     /// The `trim()` method removes whitespace from both ends of a string.
@@ -1004,9 +1004,7 @@ impl String {
     pub(crate) fn trim(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         let this = this.require_object_coercible(context)?;
         let string = this.to_string(context)?;
-        Ok(Value::from(
-            string.trim_matches(Self::is_trimmable_whitespace),
-        ))
+        Ok(Value::from(string.trim_matches(is_trimmable_whitespace)))
     }
 
     /// `String.prototype.trimStart()`
@@ -1024,7 +1022,7 @@ impl String {
     pub(crate) fn trim_start(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         let string = this.to_string(context)?;
         Ok(Value::from(
-            string.trim_start_matches(Self::is_trimmable_whitespace),
+            string.trim_start_matches(is_trimmable_whitespace),
         ))
     }
 
@@ -1044,7 +1042,7 @@ impl String {
         let this = this.require_object_coercible(context)?;
         let string = this.to_string(context)?;
         Ok(Value::from(
-            string.trim_end_matches(Self::is_trimmable_whitespace),
+            string.trim_end_matches(is_trimmable_whitespace),
         ))
     }
 

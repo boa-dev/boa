@@ -8,6 +8,7 @@ dependencies = [
  "boa_unicode",
  "chrono",
  "criterion",
+ "fast-float",
  "float-cmp",
  "gc",
  "indexmap",
@@ -360,6 +361,12 @@ name = "either"
 version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e78d4f1cc4ae33bbfc157ed5d5a5ef3bc29227303d595861deb238fcec4e9457"
+
+[[package]]
+name = "fast-float"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95765f67b4b18863968b4a1bd5bb576f732b29a4a28c7cd84c09fa3e2875f33c"
 
 [[package]]
 name = "float-cmp"
