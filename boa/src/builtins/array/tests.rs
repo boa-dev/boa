@@ -69,6 +69,43 @@ fn is_array() {
 }
 
 #[test]
+fn of() {
+    let mut context = Context::new();
+    assert_eq!(
+        context
+            .eval("Array.of(1, 2, 3)")
+            .unwrap()
+            .to_string(&mut context)
+            .unwrap(),
+        context
+            .eval("[1, 2, 3]")
+            .unwrap()
+            .to_string(&mut context)
+            .unwrap()
+    );
+    assert_eq!(
+        context
+            .eval("Array.of(1, 'a', [], undefined, null)")
+            .unwrap()
+            .to_string(&mut context)
+            .unwrap(),
+        context
+            .eval("[1, 'a', [], undefined, null]")
+            .unwrap()
+            .to_string(&mut context)
+            .unwrap()
+    );
+    assert_eq!(
+        context
+            .eval("Array.of()")
+            .unwrap()
+            .to_string(&mut context)
+            .unwrap(),
+        context.eval("[]").unwrap().to_string(&mut context).unwrap()
+    );
+}
+
+#[test]
 #[ignore]
 fn concat() {
     //TODO: array display formatter
