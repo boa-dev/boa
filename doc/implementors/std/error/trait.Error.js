@@ -4,6 +4,7 @@ implementors["arrayvec"] = [{"text":"impl&lt;T:&nbsp;Any&gt; Error for CapacityE
 implementors["boa"] = [{"text":"impl Error for EnvironmentError","synthetic":false,"types":[]},{"text":"impl Error for BorrowError","synthetic":false,"types":[]},{"text":"impl Error for BorrowMutError","synthetic":false,"types":[]},{"text":"impl Error for KeywordError","synthetic":false,"types":[]},{"text":"impl Error for Error","synthetic":false,"types":[]}];
 implementors["chrono"] = [{"text":"impl Error for ParseError","synthetic":false,"types":[]},{"text":"impl Error for RoundingError","synthetic":false,"types":[]}];
 implementors["clap"] = [{"text":"impl Error for Error","synthetic":false,"types":[]}];
+implementors["fast_float"] = [{"text":"impl Error for Error","synthetic":false,"types":[]}];
 implementors["getrandom"] = [{"text":"impl Error for Error","synthetic":false,"types":[]}];
 implementors["git2"] = [{"text":"impl Error for Error","synthetic":false,"types":[]}];
 implementors["hex"] = [{"text":"impl Error for FromHexError","synthetic":false,"types":[]}];

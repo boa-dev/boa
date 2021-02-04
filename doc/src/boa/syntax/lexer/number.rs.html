@@ -428,8 +428,8 @@
         <span class="ident">lexer</span>::{<span class="ident">token</span>::<span class="ident">Numeric</span>, <span class="ident">Token</span>},
     },
 };
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Read</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">io</span>::<span class="ident">Read</span>, <span class="ident">str</span>::<span class="ident">FromStr</span>};
 
 <span class="doccomment">/// Number literal lexing.</span>
 <span class="doccomment">///</span>
@@ -800,7 +800,7 @@
                     )
             }
             <span class="ident">NumericKind</span>::<span class="ident">Rational</span> <span class="comment">/* base: 10 */</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">f64</span>::<span class="ident">from_str</span>(<span class="ident">num_str</span>).<span class="ident">expect</span>(<span class="string">&quot;Failed to parse float after checks&quot;</span>);
+                <span class="kw">let</span> <span class="ident">val</span>: <span class="ident">f64</span> <span class="op">=</span> <span class="ident">fast_float</span>::<span class="ident">parse</span>(<span class="ident">num_str</span>).<span class="ident">expect</span>(<span class="string">&quot;Failed to parse float after checks&quot;</span>);
                 <span class="kw">let</span> <span class="ident">int_val</span> <span class="op">=</span> <span class="ident">val</span> <span class="kw">as</span> <span class="ident">i32</span>;
 
                 <span class="comment">// The truncated float should be identically to the non-truncated float for the conversion to be loss-less,</span>

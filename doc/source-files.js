@@ -15,6 +15,7 @@ sourcesIndex["chrono"] = {"name":"","dirs":[{"name":"format","files":["mod.rs","
 sourcesIndex["clap"] = {"name":"","dirs":[{"name":"app","files":["help.rs","meta.rs","mod.rs","parser.rs","settings.rs","usage.rs","validator.rs"]},{"name":"args","dirs":[{"name":"arg_builder","files":["base.rs","flag.rs","mod.rs","option.rs","positional.rs","switched.rs","valued.rs"]}],"files":["any_arg.rs","arg.rs","arg_matcher.rs","arg_matches.rs","group.rs","macros.rs","matched_arg.rs","mod.rs","settings.rs","subcommand.rs"]},{"name":"completions","files":["bash.rs","elvish.rs","fish.rs","macros.rs","mod.rs","powershell.rs","shell.rs","zsh.rs"]}],"files":["errors.rs","fmt.rs","lib.rs","macros.rs","map.rs","osstringext.rs","strext.rs","suggestions.rs","usage_parser.rs"]};
 sourcesIndex["colored"] = {"name":"","files":["color.rs","control.rs","lib.rs","style.rs"]};
 sourcesIndex["dtoa"] = {"name":"","files":["diyfp.rs","dtoa.rs","lib.rs"]};
+sourcesIndex["fast_float"] = {"name":"","files":["binary.rs","common.rs","decimal.rs","float.rs","lib.rs","number.rs","parse.rs","simple.rs","table.rs"]};
 sourcesIndex["form_urlencoded"] = {"name":"","files":["lib.rs","query_encoding.rs"]};
 sourcesIndex["fxhash"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["gc"] = {"name":"","files":["gc.rs","lib.rs","trace.rs"]};
