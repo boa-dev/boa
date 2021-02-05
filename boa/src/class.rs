@@ -160,12 +160,12 @@ impl<'context> ClassBuilder<'context> {
     ///
     /// It is added to `prototype`.
     #[inline]
-    pub fn data_property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
+    pub fn property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
         K: Into<PropertyKey>,
         V: Into<Value>,
     {
-        self.builder.data_property(key, value, attribute);
+        self.builder.property(key, value, attribute);
         self
     }
 
@@ -173,17 +173,12 @@ impl<'context> ClassBuilder<'context> {
     ///
     /// It is added to class object itself.
     #[inline]
-    pub fn static_data_property<K, V>(
-        &mut self,
-        key: K,
-        value: V,
-        attribute: Attribute,
-    ) -> &mut Self
+    pub fn static_property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
         K: Into<PropertyKey>,
         V: Into<Value>,
     {
-        self.builder.static_data_property(key, value, attribute);
+        self.builder.static_property(key, value, attribute);
         self
     }
 
@@ -191,7 +186,7 @@ impl<'context> ClassBuilder<'context> {
     ///
     /// It is added to `prototype`.
     #[inline]
-    pub fn accessor_property<K>(
+    pub fn accessor<K>(
         &mut self,
         key: K,
         get: Option<GcObject>,
@@ -201,7 +196,7 @@ impl<'context> ClassBuilder<'context> {
     where
         K: Into<PropertyKey>,
     {
-        self.builder.accessor_property(key, get, set, attribute);
+        self.builder.accessor(key, get, set, attribute);
         self
     }
 
@@ -209,7 +204,7 @@ impl<'context> ClassBuilder<'context> {
     ///
     /// It is added to class object itself.
     #[inline]
-    pub fn static_accessor_property<K>(
+    pub fn static_accessor<K>(
         &mut self,
         key: K,
         get: Option<GcObject>,
@@ -219,8 +214,7 @@ impl<'context> ClassBuilder<'context> {
     where
         K: Into<PropertyKey>,
     {
-        self.builder
-            .static_accessor_property(key, get, set, attribute);
+        self.builder.static_accessor(key, get, set, attribute);
         self
     }
 

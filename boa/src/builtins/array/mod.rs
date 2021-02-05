@@ -58,17 +58,17 @@ impl BuiltIn for Array {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
-        .data_property(
+        .property(
             "length",
             0,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
         )
-        .data_property(
+        .property(
             "values",
             values_function.clone(),
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
-        .data_property(
+        .property(
             symbol_iterator,
             values_function,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,

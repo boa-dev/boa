@@ -939,7 +939,7 @@ impl<'context> ConstructorBuilder<'context> {
 
     /// Add new data property to the constructor's prototype.
     #[inline]
-    pub fn data_property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
+    pub fn property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
         K: Into<PropertyKey>,
         V: Into<Value>,
@@ -949,14 +949,9 @@ impl<'context> ConstructorBuilder<'context> {
         self
     }
 
-    /// Add new static data property to the constructor's object itself.
+    /// Add new static data property to the constructor object itself.
     #[inline]
-    pub fn static_data_property<K, V>(
-        &mut self,
-        key: K,
-        value: V,
-        attribute: Attribute,
-    ) -> &mut Self
+    pub fn static_property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
         K: Into<PropertyKey>,
         V: Into<Value>,
@@ -968,7 +963,7 @@ impl<'context> ConstructorBuilder<'context> {
 
     /// Add new accessor property to the constructor's prototype.
     #[inline]
-    pub fn accessor_property<K>(
+    pub fn accessor<K>(
         &mut self,
         key: K,
         get: Option<GcObject>,
@@ -983,9 +978,9 @@ impl<'context> ConstructorBuilder<'context> {
         self
     }
 
-    /// Add new static accessor property to the constructor's object itself.
+    /// Add new static accessor property to the constructor object itself.
     #[inline]
-    pub fn static_accessor_property<K>(
+    pub fn static_accessor<K>(
         &mut self,
         key: K,
         get: Option<GcObject>,
@@ -1012,7 +1007,7 @@ impl<'context> ConstructorBuilder<'context> {
         self
     }
 
-    /// Add new static property to the constructor's object itself.
+    /// Add new static property to the constructor object itself.
     #[inline]
     pub fn static_property_descriptor<K, P>(&mut self, key: K, property: P) -> &mut Self
     where

@@ -105,7 +105,7 @@ impl BuiltIn for String {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
-        .data_property("length", 0, attribute)
+        .property("length", 0, attribute)
         .method(Self::char_at, "charAt", 1)
         .method(Self::char_code_at, "charCodeAt", 1)
         .method(Self::code_point_at, "codePointAt", 1)
