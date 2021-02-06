@@ -26,6 +26,14 @@ impl BuiltIn for Set {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
+        let species = context.well_known_symbols().species_symbol();
+
+        let species_getter = FunctionBuilder::new(context, Self::species_getter)
+            .callable(true)
+            .constructable(false)
+            .name("get [Symbol.species]")
+            .build();
+
         let size_getter = FunctionBuilder::new(context, Self::size_getter)
             .callable(true)
             .constructable(false)
@@ -42,9 +50,10 @@ impl BuiltIn for Set {
             .constructable(false)
             .build();
 
-        let map_object = ConstructorBuilder::new(context, Self::constructor)
+        let set_object = ConstructorBuilder::new(context, Self::constructor)
             .name(Self::NAME)
             .length(Self::LENGTH)
+            .static_accessor(species, Some(species_getter), None, Attribute::default())
             .method(Self::add, "add", 1)
             .method(Self::clear, "clear", 0)
             .method(Self::delete, "delete", 1)
@@ -70,7 +79,7 @@ impl BuiltIn for Set {
             .property(to_string_tag, "Set", Attribute::CONFIGURABLE)
             .build();
 
-        (Self::NAME, map_object.into(), Self::attribute())
+        (Self::NAME, set_object.into(), Self::attribute())
     }
 }
 
@@ -150,6 +159,18 @@ impl Set {
 
         // 8.b
         Ok(set)
+    }
+
+    /// `get Set [ @@species ]`
+    ///
+    /// get accessor for the @@species property of Set
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-set-@@species
+    fn species_getter(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+        Ok(this.clone())
     }
 
     /// `Set.prototype.add( value )`
