@@ -17,7 +17,9 @@ use crate::builtins::Symbol;
 use crate::object::PROTOTYPE;
 use crate::property::DataDescriptor;
 use crate::{
-    builtins::{string::string_iterator::StringIterator, Array, BuiltIn, RegExp},
+    builtins::{
+        number::f64_to_uint16, string::string_iterator::StringIterator, Array, BuiltIn, RegExp,
+    },
     object::{ConstructorBuilder, Object, ObjectData},
     property::Attribute,
     value::{RcString, Value},
@@ -27,7 +29,8 @@ use regress::Regex;
 use std::{
     char::{decode_utf16, from_u32},
     cmp::{max, min},
-    f64::NAN,
+    f32::INFINITY,
+    f64::{NAN, NEG_INFINITY},
     string::String as StdString,
 };
 
@@ -133,6 +136,7 @@ impl BuiltIn for String {
         .method(Self::match_all, "matchAll", 1)
         .method(Self::replace, "replace", 2)
         .method(Self::iterator, (symbol_iterator, "[Symbol.iterator]"), 0)
+        .static_method(Self::from_char_code, "fromCharCode", 1)
         .build();
 
         (Self::NAME, string_object.into(), Self::attribute())
@@ -1322,6 +1326,33 @@ impl String {
         }?;
 
         RegExp::match_all(&re, this.to_string(context)?.to_string(), context)
+    }
+
+    /// `String.fromCharCode(num1[, ...[, numN]])`
+    ///
+    /// The static String.fromCharCode() method returns a string created from the specified sequence of UTF-16 code units.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.fromcharcode
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fromCharCode
+    pub(crate) fn from_char_code(
+        _: &Value,
+        args: &[Value],
+        context: &mut Context,
+    ) -> Result<Value> {
+        let mut elements: Vec<u16> = Vec::new();
+
+        for arg in args.iter() {
+            let number = f64_to_uint16(arg.to_number(context)?);
+            elements.push(number);
+        }
+
+        let string = std::string::String::from_utf16_lossy(&elements);
+
+        Ok(Value::from(string))
     }
 
     pub(crate) fn iterator(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
