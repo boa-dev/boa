@@ -63,7 +63,7 @@
 use crate::{
     builtins::function::NativeFunction,
     object::{ConstructorBuilder, GcObject, NativeObject, ObjectData},
-    property::{Attribute, PropertyKey},
+    property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, Result, Value,
 };
 
@@ -156,7 +156,7 @@ impl<'context> ClassBuilder<'context> {
         self
     }
 
-    /// Add a property to the class, with the specified attribute.
+    /// Add a data property to the class, with the specified attribute.
     ///
     /// It is added to `prototype`.
     #[inline]
@@ -169,7 +169,7 @@ impl<'context> ClassBuilder<'context> {
         self
     }
 
-    /// Add a static property to the class, with the specified attribute.
+    /// Add a static data property to the class, with the specified attribute.
     ///
     /// It is added to class object itself.
     #[inline]
@@ -179,6 +179,68 @@ impl<'context> ClassBuilder<'context> {
         V: Into<Value>,
     {
         self.builder.static_property(key, value, attribute);
+        self
+    }
+
+    /// Add an accessor property to the class, with the specified attribute.
+    ///
+    /// It is added to `prototype`.
+    #[inline]
+    pub fn accessor<K>(
+        &mut self,
+        key: K,
+        get: Option<GcObject>,
+        set: Option<GcObject>,
+        attribute: Attribute,
+    ) -> &mut Self
+    where
+        K: Into<PropertyKey>,
+    {
+        self.builder.accessor(key, get, set, attribute);
+        self
+    }
+
+    /// Add a static accessor property to the class, with the specified attribute.
+    ///
+    /// It is added to class object itself.
+    #[inline]
+    pub fn static_accessor<K>(
+        &mut self,
+        key: K,
+        get: Option<GcObject>,
+        set: Option<GcObject>,
+        attribute: Attribute,
+    ) -> &mut Self
+    where
+        K: Into<PropertyKey>,
+    {
+        self.builder.static_accessor(key, get, set, attribute);
+        self
+    }
+
+    /// Add a property descriptor to the class, with the specified attribute.
+    ///
+    /// It is added to `prototype`.
+    #[inline]
+    pub fn property_descriptor<K, P>(&mut self, key: K, property: P) -> &mut Self
+    where
+        K: Into<PropertyKey>,
+        P: Into<PropertyDescriptor>,
+    {
+        self.builder.property_descriptor(key, property);
+        self
+    }
+
+    /// Add a static property descriptor to the class, with the specified attribute.
+    ///
+    /// It is added to class object itself.
+    #[inline]
+    pub fn static_property_descriptor<K, P>(&mut self, key: K, property: P) -> &mut Self
+    where
+        K: Into<PropertyKey>,
+        P: Into<PropertyDescriptor>,
+    {
+        self.builder.static_property_descriptor(key, property);
         self
     }
 

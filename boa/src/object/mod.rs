@@ -11,7 +11,7 @@ use crate::{
     },
     context::StandardConstructor,
     gc::{Finalize, Trace},
-    property::{Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
+    property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
     value::{same_value, RcBigInt, RcString, RcSymbol, Value},
     BoaProfiler, Context,
 };
@@ -937,7 +937,7 @@ impl<'context> ConstructorBuilder<'context> {
         self
     }
 
-    /// Add new property to the constructors prototype.
+    /// Add new data property to the constructor's prototype.
     #[inline]
     pub fn property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
@@ -949,7 +949,7 @@ impl<'context> ConstructorBuilder<'context> {
         self
     }
 
-    /// Add new static property to the constructors object itself.
+    /// Add new static data property to the constructor object itself.
     #[inline]
     pub fn static_property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
@@ -957,6 +957,64 @@ impl<'context> ConstructorBuilder<'context> {
         V: Into<Value>,
     {
         let property = DataDescriptor::new(value, attribute);
+        self.constructor_object.borrow_mut().insert(key, property);
+        self
+    }
+
+    /// Add new accessor property to the constructor's prototype.
+    #[inline]
+    pub fn accessor<K>(
+        &mut self,
+        key: K,
+        get: Option<GcObject>,
+        set: Option<GcObject>,
+        attribute: Attribute,
+    ) -> &mut Self
+    where
+        K: Into<PropertyKey>,
+    {
+        let property = AccessorDescriptor::new(get, set, attribute);
+        self.prototype.borrow_mut().insert(key, property);
+        self
+    }
+
+    /// Add new static accessor property to the constructor object itself.
+    #[inline]
+    pub fn static_accessor<K>(
+        &mut self,
+        key: K,
+        get: Option<GcObject>,
+        set: Option<GcObject>,
+        attribute: Attribute,
+    ) -> &mut Self
+    where
+        K: Into<PropertyKey>,
+    {
+        let property = AccessorDescriptor::new(get, set, attribute);
+        self.constructor_object.borrow_mut().insert(key, property);
+        self
+    }
+
+    /// Add new property to the constructor's prototype.
+    #[inline]
+    pub fn property_descriptor<K, P>(&mut self, key: K, property: P) -> &mut Self
+    where
+        K: Into<PropertyKey>,
+        P: Into<PropertyDescriptor>,
+    {
+        let property = property.into();
+        self.prototype.borrow_mut().insert(key, property);
+        self
+    }
+
+    /// Add new static property to the constructor object itself.
+    #[inline]
+    pub fn static_property_descriptor<K, P>(&mut self, key: K, property: P) -> &mut Self
+    where
+        K: Into<PropertyKey>,
+        P: Into<PropertyDescriptor>,
+    {
+        let property = property.into();
         self.constructor_object.borrow_mut().insert(key, property);
         self
     }
