@@ -26,7 +26,7 @@ use num_traits::{float::FloatCore, Num};
 
 mod conversions;
 
-pub(crate) use conversions::{f64_to_int32, f64_to_uint32, f64_to_uint16};
+pub(crate) use conversions::{f64_to_int32, f64_to_uint16, f64_to_uint32};
 
 #[cfg(test)]
 mod tests;

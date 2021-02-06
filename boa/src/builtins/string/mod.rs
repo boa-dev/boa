@@ -18,7 +18,8 @@ use crate::object::PROTOTYPE;
 use crate::property::DataDescriptor;
 use crate::{
     builtins::{
-        number::f64_to_uint16, string::string_iterator::StringIterator, Array, BuiltIn, RegExp,
+        number::f64_to_uint16, string::string_iterator::StringIterator, Array, BuiltIn, Number,
+        RegExp,
     },
     object::{ConstructorBuilder, Object, ObjectData},
     property::Attribute,
@@ -29,8 +30,8 @@ use regress::Regex;
 use std::{
     char::{decode_utf16, from_u32},
     cmp::{max, min},
-    f32::INFINITY,
-    f64::{NAN, NEG_INFINITY},
+    convert::TryFrom,
+    f64::NAN,
     string::String as StdString,
 };
 
@@ -137,6 +138,7 @@ impl BuiltIn for String {
         .method(Self::replace, "replace", 2)
         .method(Self::iterator, (symbol_iterator, "[Symbol.iterator]"), 0)
         .static_method(Self::from_char_code, "fromCharCode", 1)
+        .static_method(Self::from_code_point, "fromCodePoint", 1)
         .build();
 
         (Self::NAME, string_object.into(), Self::attribute())
@@ -1257,7 +1259,7 @@ impl String {
             Some(separator) if separator.is_empty() => string
                 .encode_utf16()
                 // TODO: Support keeping invalid code point in string
-                .map(|cp| Value::from(std::string::String::from_utf16_lossy(&[cp])))
+                .map(|cp| Value::from(StdString::from_utf16_lossy(&[cp])))
                 .take(limit)
                 .collect(),
             Some(separator) => string
@@ -1330,7 +1332,7 @@ impl String {
 
     /// `String.fromCharCode(num1[, ...[, numN]])`
     ///
-    /// The static String.fromCharCode() method returns a string created from the specified sequence of UTF-16 code units.
+    /// The static `String.fromCharCode()` method returns a string created from the specified sequence of UTF-16 code units.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1350,9 +1352,41 @@ impl String {
             elements.push(number);
         }
 
-        let string = std::string::String::from_utf16_lossy(&elements);
+        let string = StdString::from_utf16_lossy(&elements);
 
         Ok(Value::from(string))
+    }
+
+    /// `String.fromCodePoint(num1[, ...[, numN]])`
+    ///
+    /// The static `String.fromCodePoint()` method returns a string created by using the specified sequence of code points.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.fromcodepoint
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fromCodePoint
+    pub(crate) fn from_code_point(
+        _: &Value,
+        args: &[Value],
+        context: &mut Context,
+    ) -> Result<Value> {
+        let mut result = StdString::new();
+
+        for arg in args.iter() {
+            let number = arg.to_number(context)?;
+
+            if !Number::is_float_integer(number) || number < 0f64 || number > (0x10FFFF as f64) {
+                return Err(
+                    context.construct_range_error(format!("invalid code point: {}", number))
+                );
+            }
+
+            result.push(char::try_from(number as u32).unwrap());
+        }
+
+        Ok(Value::from(result))
     }
 
     pub(crate) fn iterator(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
