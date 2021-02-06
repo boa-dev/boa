@@ -139,6 +139,7 @@ impl BuiltIn for String {
         .method(Self::iterator, (symbol_iterator, "[Symbol.iterator]"), 0)
         .static_method(Self::from_char_code, "fromCharCode", 1)
         .static_method(Self::from_code_point, "fromCodePoint", 1)
+        .static_method(Self::raw, "raw", 1)
         .build();
 
         (Self::NAME, string_object.into(), Self::attribute())
@@ -1387,6 +1388,48 @@ impl String {
         }
 
         Ok(Value::from(result))
+    }
+
+    /// `String.raw(callSite, ...substitutions)`
+    ///
+    /// The static `String.raw()` method is a tag function of template literals. It's used to get the raw string form of template strings,
+    /// that is, substitutions (e.g. ${foo}) are processed, but escapes (e.g. \n) are not.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.raw
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/raw
+    pub(crate) fn raw(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let cooked: Value = args
+            .get(0)
+            .unwrap_or(&Value::undefined())
+            .to_object(context)?
+            .into();
+        let raw: Value = cooked.get_field("raw", context)?.to_object(context)?.into();
+        let literal_segments = raw.get_field("length", context)?.to_length(context)?;
+
+        if literal_segments == 0 {
+            return Ok(Value::from(""));
+        }
+
+        let mut string_elements = StdString::new();
+        for i in 0..literal_segments {
+            let seg = raw.get_field(i, context)?.to_string(context)?;
+
+            string_elements.push_str(&seg);
+
+            if i + 1 == literal_segments {
+                break;
+            }
+
+            if let Some(next) = args.get(i + 1) {
+                string_elements.push_str(&next.to_string(context)?);
+            }
+        }
+
+        Ok(Value::from(string_elements))
     }
 
     pub(crate) fn iterator(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
