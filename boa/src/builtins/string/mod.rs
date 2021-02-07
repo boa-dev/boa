@@ -960,7 +960,7 @@ impl String {
             } else {
                 truncated_string_filler
                     .extend(filler.chars().take(fill_len - truncated_string_filler_len));
-                truncated_string_filler_len = filler_len;
+                truncated_string_filler_len = fill_len;
             }
         }
 
