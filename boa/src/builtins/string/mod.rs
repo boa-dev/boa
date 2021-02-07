@@ -27,13 +27,7 @@ use crate::{
     BoaProfiler, Context, Result,
 };
 use regress::Regex;
-use std::{
-    char::{decode_utf16, from_u32},
-    cmp::{max, min},
-    convert::TryFrom,
-    f64::NAN,
-    string::String as StdString,
-};
+use std::{convert::TryFrom, f64::NAN, string::String as StdString};
 
 pub(crate) fn code_point_at(string: RcString, position: i32) -> Option<(u32, u8, bool)> {
     let size = string.encode_utf16().count() as i32;
@@ -249,15 +243,16 @@ impl String {
     pub(crate) fn char_at(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = this.to_string(context)?;
-        let pos = args
+        let object = this.require_object_coercible(context)?;
+        let string = object.to_string(context)?;
+        let position = args
             .get(0)
             .cloned()
             .unwrap_or_else(Value::undefined)
-            .to_integer(context)? as i32;
+            .to_integer(context)?;
 
         // Fast path returning empty string when pos is obviously out of range
-        if pos < 0 || pos >= primitive_val.len() as i32 {
+        if position < 0f64 || position >= string.len() as f64 {
             return Ok("".into());
         }
 
@@ -265,8 +260,11 @@ impl String {
         // unicode code points
         // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of
         // bytes is an O(1) operation.
-        if let Some(utf16_val) = primitive_val.encode_utf16().nth(pos as usize) {
-            Ok(Value::from(from_u32(utf16_val as u32).unwrap()))
+        if let Some(utf16_val) = string.encode_utf16().nth(position as usize) {
+            // TODO: Full UTF-16 support
+            Ok(Value::from(
+                char::try_from(utf16_val as u32).unwrap_or('\u{FFFD}' /* replacement char */),
+            ))
         } else {
             Ok("".into())
         }
@@ -333,22 +331,23 @@ impl String {
     ) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = this.to_string(context)?;
-        let pos = args
+        let object = this.require_object_coercible(context)?;
+        let string = object.to_string(context)?;
+        let position = args
             .get(0)
             .cloned()
             .unwrap_or_else(Value::undefined)
-            .to_integer(context)? as i32;
+            .to_integer(context)?;
 
         // Fast path returning NaN when pos is obviously out of range
-        if pos < 0 || pos >= primitive_val.len() as i32 {
+        if position < 0f64 || position >= string.len() as f64 {
             return Ok(Value::from(NAN));
         }
 
         // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
         // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
         // If there is no element at that index, the result is NaN
-        if let Some(utf16_val) = primitive_val.encode_utf16().nth(pos as usize) {
+        if let Some(utf16_val) = string.encode_utf16().nth(position as usize) {
             Ok(Value::from(f64::from(utf16_val)))
         } else {
             Ok(Value::from(NAN))
@@ -395,23 +394,20 @@ impl String {
         let object = this.require_object_coercible(context)?;
         let string = object.to_string(context)?;
 
-        if let Some(arg) = args.get(0) {
-            let n = arg.to_integer(context)?;
+        if let Some(count) = args.get(0) {
+            let n = count.to_integer(context)?;
+
             if n < 0.0 {
-                return context.throw_range_error("repeat count cannot be a negative number");
+                context.throw_range_error("repeat count cannot be a negative number")
+            } else if n.is_infinite() {
+                context.throw_range_error("repeat count cannot be infinity")
+            } else if n * (string.len() as f64) > Self::MAX_STRING_LENGTH {
+                context.throw_range_error("repeat count must not overflow maximum string length")
+            } else {
+                Ok(Value::from(string.repeat(n as usize)))
             }
-
-            if n.is_infinite() {
-                return context.throw_range_error("repeat count cannot be infinity");
-            }
-
-            if n * (string.len() as f64) > Self::MAX_STRING_LENGTH {
-                return context
-                    .throw_range_error("repeat count must not overflow maximum string length");
-            }
-            Ok(string.repeat(n as usize).into())
         } else {
-            Ok("".into())
+            Ok(Value::from(""))
         }
     }
 
@@ -428,42 +424,50 @@ impl String {
     pub(crate) fn slice(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = this.to_string(context)?;
+        let object = this.require_object_coercible(context)?;
+        let string = object.to_string(context)?;
 
         // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
         // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
-        let length = primitive_val.chars().count() as i32;
+        let length = string.chars().count();
 
-        let start = args
+        let int_start = args
             .get(0)
             .cloned()
             .unwrap_or_else(Value::undefined)
-            .to_integer(context)? as i32;
-        let end = args
-            .get(1)
-            .cloned()
-            .unwrap_or_else(|| Value::integer(length))
-            .to_integer(context)? as i32;
+            .to_integer(context)?;
 
-        let from = if start < 0 {
-            max(length.wrapping_add(start), 0)
+        let from = if int_start == f64::NEG_INFINITY {
+            0.0
+        } else if int_start < 0.0 {
+            (length as f64 + int_start).max(0.0)
         } else {
-            min(start, length)
-        };
-        let to = if end < 0 {
-            max(length.wrapping_add(end), 0)
+            int_start.min(length as f64)
+        } as usize;
+
+        let end = args.get(1).cloned().unwrap_or_else(Value::undefined);
+
+        let int_end = if end.is_undefined() {
+            length as f64
         } else {
-            min(end, length)
+            end.to_integer(context)?
         };
 
-        let span = max(to.wrapping_sub(from), 0);
+        let to = if int_end == f64::NEG_INFINITY {
+            0.0
+        } else if int_end < 0.0 {
+            (length as f64 + int_end).max(0.0)
+        } else {
+            int_end.min(length as f64)
+        } as usize;
 
-        let new_str: StdString = primitive_val
-            .chars()
-            .skip(from as usize)
-            .take(span as usize)
-            .collect();
-        Ok(Value::from(new_str))
+        if from >= to {
+            Ok(Value::from(""))
+        } else {
+            let span = to - from;
+            let substring: StdString = string.chars().skip(from).take(span).collect();
+            Ok(Value::from(substring))
+        }
     }
 
     /// `String.prototype.startWith( searchString[, position] )`
@@ -483,39 +487,37 @@ impl String {
     ) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = this.to_string(context)?;
+        let object = this.require_object_coercible(context)?;
+        let string = object.to_string(context)?;
 
-        let arg = args.get(0).cloned().unwrap_or_else(Value::undefined);
+        let search_string = args.get(0).cloned().unwrap_or_else(Value::undefined);
 
-        if Self::is_regexp_object(&arg) {
+        if Self::is_regexp_object(&search_string) {
             context.throw_type_error(
                 "First argument to String.prototype.startsWith must not be a regular expression",
             )?;
         }
 
-        let search_string = arg.to_string(context)?;
+        let search_string = search_string.to_string(context)?;
 
-        let length = primitive_val.chars().count() as i32;
-        let search_length = search_string.chars().count() as i32;
+        let length = string.chars().count();
+        let search_length = search_string.chars().count();
 
         // If less than 2 args specified, position is 'undefined', defaults to 0
-        let position = if args.len() < 2 {
-            0
-        } else {
-            args.get(1)
-                .expect("failed to get arg")
-                .to_integer(context)? as i32
+        let pos = match args.get(1).cloned().unwrap_or_else(Value::undefined) {
+            position if position.is_undefined() => 0.0,
+            position => position.to_integer(context)?,
         };
 
-        let start = min(max(position, 0), length);
-        let end = start.wrapping_add(search_length);
+        let start = pos.min(length as f64).max(0.0);
+        let end = start + search_length as f64;
 
-        if end > length {
+        if end > length as f64 {
             Ok(Value::from(false))
         } else {
             // Only use the part of the string from "start"
-            let this_string: StdString = primitive_val.chars().skip(start as usize).collect();
-            Ok(Value::from(this_string.starts_with(search_string.as_str())))
+            let substring: StdString = string.chars().skip(start as usize).collect();
+            Ok(Value::from(substring.starts_with(search_string.as_str())))
         }
     }
 
@@ -532,40 +534,38 @@ impl String {
     pub(crate) fn ends_with(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = this.to_string(context)?;
+        let object = this.require_object_coercible(context)?;
+        let string = object.to_string(context)?;
 
-        let arg = args.get(0).cloned().unwrap_or_else(Value::undefined);
+        let search_string = args.get(0).cloned().unwrap_or_else(Value::undefined);
 
-        if Self::is_regexp_object(&arg) {
+        if Self::is_regexp_object(&search_string) {
             context.throw_type_error(
                 "First argument to String.prototype.endsWith must not be a regular expression",
             )?;
         }
 
-        let search_string = arg.to_string(context)?;
+        let search_string = search_string.to_string(context)?;
 
-        let length = primitive_val.chars().count() as i32;
-        let search_length = search_string.chars().count() as i32;
+        let length = string.chars().count() as f64;
+        let search_length = search_string.chars().count() as f64;
 
         // If less than 2 args specified, end_position is 'undefined', defaults to
         // length of this
-        let end_position = if args.len() < 2 {
-            length
-        } else {
-            args.get(1)
-                .expect("Could not get argumetn")
-                .to_integer(context)? as i32
-        };
+        let end = args
+            .get(1)
+            .map(|end_position| end_position.to_integer(context))
+            .transpose()?
+            .map_or(length, |end_position| end_position.max(0.0).min(length));
 
-        let end = min(max(end_position, 0), length);
-        let start = end.wrapping_sub(search_length);
+        let start = end - search_length;
 
-        if start < 0 {
+        if start < 0f64 {
             Ok(Value::from(false))
         } else {
             // Only use the part of the string up to "end"
-            let this_string: StdString = primitive_val.chars().take(end as usize).collect();
-            Ok(Value::from(this_string.ends_with(search_string.as_str())))
+            let substring: StdString = string.chars().take(end as usize).collect();
+            Ok(Value::from(substring.ends_with(search_string.as_str())))
         }
     }
 
@@ -582,7 +582,8 @@ impl String {
     pub(crate) fn includes(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = this.to_string(context)?;
+        let object = this.require_object_coercible(context)?;
+        let string = object.to_string(context)?;
 
         let arg = args.get(0).cloned().unwrap_or_else(Value::undefined);
 
@@ -594,23 +595,19 @@ impl String {
 
         let search_string = arg.to_string(context)?;
 
-        let length = primitive_val.chars().count() as i32;
+        let length = string.chars().count();
 
         // If less than 2 args specified, position is 'undefined', defaults to 0
-        let position = if args.len() < 2 {
-            0
-        } else {
-            args.get(1)
-                .expect("Could not get argument")
-                .to_integer(context)? as i32
-        };
-
-        let start = min(max(position, 0), length);
+        let start = args
+            .get(1)
+            .map(|position| position.to_integer(context))
+            .transpose()?
+            .map_or(0, |position| position.max(0.0).min(length as f64) as usize);
 
         // Take the string from "this" and use only the part of it after "start"
-        let this_string: StdString = primitive_val.chars().skip(start as usize).collect();
+        let substring: StdString = string.chars().skip(start).collect();
 
-        Ok(Value::from(this_string.contains(search_string.as_str())))
+        Ok(Value::from(substring.contains(search_string.as_str())))
     }
 
     /// Return either the string itself or the string of the regex equivalent
@@ -654,19 +651,20 @@ impl String {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace
     pub(crate) fn replace(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // TODO: Support Symbol replacer
-        let primitive_val = this.to_string(context)?;
+        let object = this.require_object_coercible(context)?;
+        let string = object.to_string(context)?;
         if args.is_empty() {
-            return Ok(Value::from(primitive_val));
+            return Ok(Value::from(string));
         }
 
         let regex_body = Self::get_regex_string(args.get(0).expect("Value needed"));
         let re = Regex::new(&regex_body).expect("unable to convert regex to regex object");
-        let mat = match re.find(&primitive_val) {
+        let mat = match re.find(&string) {
             Some(mat) => mat,
-            None => return Ok(Value::from(primitive_val)),
+            None => return Ok(Value::from(string)),
         };
         let caps = re
-            .find(&primitive_val)
+            .find(&string)
             .expect("unable to get capture groups from text")
             .captures;
 
@@ -696,17 +694,17 @@ impl String {
                                 }
                                 (Some('&'), _) => {
                                     // $&
-                                    result.push_str(&primitive_val[mat.range()]);
+                                    result.push_str(&string[mat.range()]);
                                 }
                                 (Some('`'), _) => {
                                     // $`
                                     let start_of_match = mat.start();
-                                    result.push_str(&primitive_val[..start_of_match]);
+                                    result.push_str(&string[..start_of_match]);
                                 }
                                 (Some('\''), _) => {
                                     // $'
                                     let end_of_match = mat.end();
-                                    result.push_str(&primitive_val[end_of_match..]);
+                                    result.push_str(&string[end_of_match..]);
                                 }
                                 (Some(second), Some(third))
                                     if second_is_digit && third_is_digit =>
@@ -723,7 +721,7 @@ impl String {
                                         }
                                     } else {
                                         let group = match mat.group(nn) {
-                                            Some(range) => &primitive_val[range.clone()],
+                                            Some(range) => &string[range.clone()],
                                             _ => "",
                                         };
                                         result.push_str(group);
@@ -738,7 +736,7 @@ impl String {
                                         result.push(second);
                                     } else {
                                         let group = match mat.group(n) {
-                                            Some(range) => &primitive_val[range.clone()],
+                                            Some(range) => &string[range.clone()],
                                             _ => "",
                                         };
                                         result.push_str(group);
@@ -770,7 +768,7 @@ impl String {
                     let mut results: Vec<Value> = mat
                         .groups()
                         .map(|group| match group {
-                            Some(range) => Value::from(&primitive_val[range]),
+                            Some(range) => Value::from(&string[range]),
                             None => Value::undefined(),
                         })
                         .collect();
@@ -779,7 +777,7 @@ impl String {
                     let start = mat.start();
                     results.push(Value::from(start));
                     // Push the whole string being examined
-                    results.push(Value::from(primitive_val.to_string()));
+                    results.push(Value::from(string.to_string()));
 
                     let result = context.call(&replace_object, this, &results)?;
 
@@ -791,8 +789,8 @@ impl String {
             "undefined".to_string()
         };
 
-        Ok(Value::from(primitive_val.replacen(
-            &primitive_val[mat.range()],
+        Ok(Value::from(string.replacen(
+            &string[mat.range()],
             &replace_value,
             1,
         )))
@@ -812,8 +810,8 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.indexof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/indexOf
     pub(crate) fn index_of(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let this = this.require_object_coercible(context)?;
-        let string = this.to_string(context)?;
+        let object = this.require_object_coercible(context)?;
+        let string = object.to_string(context)?;
 
         let search_string = args
             .get(0)
@@ -859,8 +857,8 @@ impl String {
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        let this = this.require_object_coercible(context)?;
-        let string = this.to_string(context)?;
+        let object = this.require_object_coercible(context)?;
+        let string = object.to_string(context)?;
 
         let search_string = args
             .get(0)
@@ -871,21 +869,29 @@ impl String {
         let length = string.chars().count();
         let start = args
             .get(1)
-            .map(|position| position.to_integer(context))
+            .map(|position| {
+                let num_pos = position.to_number(context)?;
+                if num_pos.is_nan() {
+                    Ok(f64::INFINITY)
+                } else {
+                    Value::from(num_pos).to_integer(context)
+                }
+            })
             .transpose()?
-            .map_or(0, |position| position.max(0.0).min(length as f64) as usize);
+            .map_or(length, |position| {
+                position.max(0.0).min(length as f64) as usize
+            });
 
         if search_string.is_empty() {
             return Ok(start.min(length).into());
         }
 
-        if start < length {
-            if let Some(position) = string.rfind(search_string.as_str()) {
-                return Ok(string[..position].chars().count().into());
-            }
+        let substring: StdString = string.chars().take(start + 1).collect();
+        if let Some(position) = substring.rfind(search_string.as_str()) {
+            Ok(substring[..position].chars().count().into())
+        } else {
+            Ok(Value::from(-1))
         }
-
-        Ok(Value::from(-1))
     }
 
     /// `String.prototype.match( regexp )`
@@ -900,12 +906,15 @@ impl String {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match
     /// [regex]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
     pub(crate) fn r#match(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let object = this.require_object_coercible(context)?;
+        let string = object.to_string(context)?;
+
         let re = RegExp::constructor(
             &Value::from(Object::default()),
             &[args.get(0).cloned().unwrap_or_default()],
             context,
         )?;
-        RegExp::r#match(&re, this.to_string(context)?, context)
+        RegExp::r#match(&re, string, context)
     }
 
     /// Abstract method `StringPad`.
@@ -913,32 +922,55 @@ impl String {
     /// Performs the actual string padding for padStart/End.
     /// <https://tc39.es/ecma262/#sec-stringpad/>
     fn string_pad(
-        primitive: RcString,
-        max_length: i32,
-        fill_string: Option<RcString>,
+        object: &Value,
+        max_length: &Value,
+        fill_string: &Value,
         at_start: bool,
+        context: &mut Context,
     ) -> Result<Value> {
-        let primitive_length = primitive.len() as i32;
+        let string = object.to_string(context)?;
 
-        if max_length <= primitive_length {
-            return Ok(Value::from(primitive));
+        let int_max_length = max_length.to_length(context)?;
+        let string_length = string.chars().count();
+
+        if int_max_length <= string_length {
+            return Ok(Value::from(string));
         }
 
-        let filter = fill_string.as_deref().unwrap_or(" ");
+        let filler = if fill_string.is_undefined() {
+            "\u{0020}".into()
+        } else {
+            fill_string.to_string(context)?
+        };
 
-        let fill_len = max_length.wrapping_sub(primitive_length);
-        let mut fill_str = StdString::new();
-
-        while fill_str.len() < fill_len as usize {
-            fill_str.push_str(filter);
+        if filler.is_empty() {
+            return Ok(Value::from(string));
         }
-        // Cut to size max_length
-        let concat_fill_str: StdString = fill_str.chars().take(fill_len as usize).collect();
+
+        let fill_len = int_max_length - string_length;
+        let filler_len = filler.chars().count();
+
+        let mut truncated_string_filler = StdString::new();
+        let mut truncated_string_filler_len: usize = 0;
+
+        while truncated_string_filler_len < fill_len {
+            if truncated_string_filler_len.wrapping_add(filler_len) <= fill_len {
+                truncated_string_filler.push_str(&filler);
+                truncated_string_filler_len += filler_len;
+            } else {
+                truncated_string_filler
+                    .extend(filler.chars().take(fill_len - truncated_string_filler_len));
+                truncated_string_filler_len = filler_len;
+            }
+        }
 
         if at_start {
-            Ok(Value::from(format!("{}{}", concat_fill_str, &primitive)))
+            truncated_string_filler.push_str(&string);
+            Ok(Value::from(truncated_string_filler))
         } else {
-            Ok(Value::from(format!("{}{}", primitive, &concat_fill_str)))
+            let mut string = string.to_string();
+            string.push_str(&truncated_string_filler);
+            Ok(Value::from(string))
         }
     }
 
@@ -955,18 +987,12 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.padend
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padEnd
     pub(crate) fn pad_end(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let primitive = this.to_string(context)?;
-        if args.is_empty() {
-            return Err(Value::from("padEnd requires maxLength argument"));
-        }
-        let max_length = args
-            .get(0)
-            .expect("failed to get argument for String method")
-            .to_integer(context)? as i32;
+        let object = this.require_object_coercible(context)?;
 
-        let fill_string = args.get(1).map(|arg| arg.to_string(context)).transpose()?;
+        let max_length = args.get(0).cloned().unwrap_or_else(Value::undefined);
+        let fill_string = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        Self::string_pad(primitive, max_length, fill_string, false)
+        Self::string_pad(object, &max_length, &fill_string, false, context)
     }
 
     /// `String.prototype.padStart( targetLength [, padString] )`
@@ -982,18 +1008,12 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.padstart
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
     pub(crate) fn pad_start(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let primitive = this.to_string(context)?;
-        if args.is_empty() {
-            return Err(Value::from("padStart requires maxLength argument"));
-        }
-        let max_length = args
-            .get(0)
-            .expect("failed to get argument for String method")
-            .to_integer(context)? as i32;
+        let object = this.require_object_coercible(context)?;
 
-        let fill_string = args.get(1).map(|arg| arg.to_string(context)).transpose()?;
+        let max_length = args.get(0).cloned().unwrap_or_else(Value::undefined);
+        let fill_string = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        Self::string_pad(primitive, max_length, fill_string, true)
+        Self::string_pad(object, &max_length, &fill_string, true, context)
     }
 
     /// String.prototype.trim()
@@ -1009,8 +1029,8 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trim
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim
     pub(crate) fn trim(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        let this = this.require_object_coercible(context)?;
-        let string = this.to_string(context)?;
+        let object = this.require_object_coercible(context)?;
+        let string = object.to_string(context)?;
         Ok(Value::from(string.trim_matches(is_trimmable_whitespace)))
     }
 
@@ -1027,7 +1047,8 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimstart
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimStart
     pub(crate) fn trim_start(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        let string = this.to_string(context)?;
+        let object = this.require_object_coercible(context)?;
+        let string = object.to_string(context)?;
         Ok(Value::from(
             string.trim_start_matches(is_trimmable_whitespace),
         ))
@@ -1046,8 +1067,8 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimend
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimEnd
     pub(crate) fn trim_end(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        let this = this.require_object_coercible(context)?;
-        let string = this.to_string(context)?;
+        let object = this.require_object_coercible(context)?;
+        let string = object.to_string(context)?;
         Ok(Value::from(
             string.trim_end_matches(is_trimmable_whitespace),
         ))
@@ -1067,10 +1088,11 @@ impl String {
     pub(crate) fn to_lowercase(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let this_str = this.to_string(context)?;
+        let object = this.require_object_coercible(context)?;
+        let string = object.to_string(context)?;
         // The Rust String is mapped to uppercase using the builtin .to_lowercase().
         // There might be corner cases where it does not behave exactly like Javascript expects
-        Ok(Value::from(this_str.to_lowercase()))
+        Ok(Value::from(string.to_lowercase()))
     }
 
     /// `String.prototype.toUpperCase()`
@@ -1089,10 +1111,11 @@ impl String {
     pub(crate) fn to_uppercase(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let this_str = this.to_string(context)?;
+        let object = this.require_object_coercible(context)?;
+        let string = object.to_string(context)?;
         // The Rust String is mapped to uppercase using the builtin .to_uppercase().
         // There might be corner cases where it does not behave exactly like Javascript expects
-        Ok(Value::from(this_str.to_uppercase()))
+        Ok(Value::from(string.to_uppercase()))
     }
 
     /// `String.prototype.substring( indexStart[, indexEnd] )`
@@ -1108,41 +1131,41 @@ impl String {
     pub(crate) fn substring(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = this.to_string(context)?;
-        // If no args are specified, start is 'undefined', defaults to 0
-        let start = if args.is_empty() {
-            0
-        } else {
-            args.get(0)
-                .expect("failed to get argument for String method")
-                .to_integer(context)? as i32
+        let object = this.require_object_coercible(context)?;
+        let string = object.to_string(context)?;
+
+        let len = string.len();
+        let int_start = args
+            .get(0)
+            .cloned()
+            .unwrap_or_else(Value::undefined)
+            .to_integer(context)?;
+
+        let int_end = match args.get(1).cloned().unwrap_or_else(Value::undefined) {
+            end if end.is_undefined() => len as f64,
+            end => end.to_integer(context)?,
         };
-        let length = primitive_val.encode_utf16().count() as i32;
-        // If less than 2 args specified, end is the length of the this object converted to a String
-        let end = if args.len() < 2 {
-            length
-        } else {
-            args.get(1)
-                .expect("Could not get argument")
-                .to_integer(context)? as i32
-        };
+
         // Both start and end args replaced by 0 if they were negative
         // or by the length of the String if they were greater
-        let final_start = min(max(start, 0), length);
-        let final_end = min(max(end, 0), length);
+        let final_start = int_start.max(0.0).min(len as f64);
+        let final_end = int_end.max(0.0).min(len as f64);
+
         // Start and end are swapped if start is greater than end
-        let from = min(final_start, final_end) as usize;
-        let to = max(final_start, final_end) as usize;
+        let from = final_start.min(final_end);
+        let to = final_start.max(final_end);
+
         // Extract the part of the string contained between the start index and the end index
         // where start is guaranteed to be smaller or equals to end
-        let extracted_string: std::result::Result<StdString, _> = decode_utf16(
-            primitive_val
-                .encode_utf16()
-                .skip(from)
-                .take(to.wrapping_sub(from)),
-        )
-        .collect();
-        Ok(Value::from(extracted_string.expect("Invalid string")))
+        let substring_utf16: Vec<u16> = string
+            .encode_utf16()
+            .skip(from as usize)
+            .take((to - from) as usize)
+            .collect();
+        // TODO: Full UTF-16 support
+        let substring = StdString::from_utf16_lossy(&substring_utf16);
+
+        Ok(Value::from(substring))
     }
 
     /// `String.prototype.substr( start[, length] )`
@@ -1159,46 +1182,48 @@ impl String {
     pub(crate) fn substr(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = this.to_string(context)?;
+        let object = this.require_object_coercible(context)?;
+        let string: Vec<u16> = object.to_string(context)?.encode_utf16().collect();
+        let size = string.len();
+
         // If no args are specified, start is 'undefined', defaults to 0
-        let mut start = if args.is_empty() {
-            0
+
+        let int_start = args
+            .get(0)
+            .cloned()
+            .unwrap_or_else(Value::undefined)
+            .to_integer(context)?;
+        let int_start = if int_start == f64::NEG_INFINITY {
+            0.0
+        } else if int_start < 0.0 {
+            (int_start + size as f64).max(0.0)
         } else {
-            args.get(0)
-                .expect("failed to get argument for String method")
-                .to_integer(context)? as i32
+            int_start
         };
-        let length = primitive_val.chars().count() as i32;
+
         // If less than 2 args specified, end is +infinity, the maximum number value.
         // Using i32::max_value() should be safe because the final length used is at most
         // the number of code units from start to the end of the string,
         // which should always be smaller or equals to both +infinity and i32::max_value
-        let end = if args.len() < 2 {
-            i32::max_value()
-        } else {
-            args.get(1)
-                .expect("Could not get argument")
-                .to_integer(context)? as i32
+        let int_length = match args.get(1).cloned().unwrap_or_else(Value::undefined) {
+            length if length.is_undefined() => size as f64,
+            length => length.to_integer(context)?,
         };
-        // If start is negative it become the number of code units from the end of the string
-        if start < 0 {
-            start = max(length.wrapping_add(start), 0);
+
+        if int_start == f64::INFINITY || int_length <= 0.0 || int_length == f64::INFINITY {
+            return Ok(Value::from(""));
         }
-        // length replaced by 0 if it was negative
-        // or by the number of code units from start to the end of the string if it was greater
-        let result_length = min(max(end, 0), length.wrapping_sub(start));
-        // If length is negative we return an empty string
-        // otherwise we extract the part of the string from start and is length code units long
-        if result_length <= 0 {
+
+        let int_end = (int_start + int_length).min(size as f64) as usize;
+        let int_start = int_start as usize;
+
+        if int_start >= int_end {
             Ok(Value::from(""))
         } else {
-            let extracted_string: StdString = primitive_val
-                .chars()
-                .skip(start as usize)
-                .take(result_length as usize)
-                .collect();
+            let substring_utf16 = &string[int_start..int_end];
+            let substring = StdString::from_utf16_lossy(substring_utf16);
 
-            Ok(Value::from(extracted_string))
+            Ok(Value::from(substring))
         }
     }
 
@@ -1215,8 +1240,8 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.split
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/split
     pub(crate) fn split(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let this = this.require_object_coercible(context)?;
-        let string = this.to_string(context)?;
+        let object = this.require_object_coercible(context)?;
+        let string = object.to_string(context)?;
 
         let separator = args.get(0).filter(|value| !value.is_null_or_undefined());
 
@@ -1303,6 +1328,9 @@ impl String {
     /// [cg]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Groups_and_Ranges
     // TODO: update this method to return iterator
     pub(crate) fn match_all(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let object = this.require_object_coercible(context)?;
+        let string = object.to_string(context)?;
+
         let re: Value = match args.get(0) {
             Some(arg) => {
                 if arg.is_null() {
@@ -1328,7 +1356,7 @@ impl String {
             ),
         }?;
 
-        RegExp::match_all(&re, this.to_string(context)?.to_string(), context)
+        RegExp::match_all(&re, string.to_string(), context)
     }
 
     /// `String.fromCharCode(num1[, ...[, numN]])`
@@ -1353,6 +1381,7 @@ impl String {
             elements.push(number);
         }
 
+        // TODO: Full UTF-16 support
         let string = StdString::from_utf16_lossy(&elements);
 
         Ok(Value::from(string))
