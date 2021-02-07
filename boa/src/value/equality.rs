@@ -192,6 +192,7 @@ fn same_value_non_numeric(x: &Value, y: &Value) -> bool {
         (Value::String(ref x), Value::String(ref y)) => x == y,
         (Value::Boolean(x), Value::Boolean(y)) => x == y,
         (Value::Object(ref x), Value::Object(ref y)) => GcObject::equals(x, y),
+        (Value::Symbol(ref x), Value::Symbol(ref y)) => x == y,
         _ => false,
     }
 }

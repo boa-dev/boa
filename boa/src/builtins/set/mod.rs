@@ -37,6 +37,7 @@ impl BuiltIn for Set {
         let size_getter = FunctionBuilder::new(context, Self::size_getter)
             .callable(true)
             .constructable(false)
+            .name("get size")
             .build();
 
         let iterator_symbol = context.well_known_symbols().iterator_symbol();
@@ -53,19 +54,19 @@ impl BuiltIn for Set {
         let set_object = ConstructorBuilder::new(context, Self::constructor)
             .name(Self::NAME)
             .length(Self::LENGTH)
-            .static_accessor(species, Some(species_getter), None, Attribute::default())
+            .static_accessor(species, Some(species_getter), None, Attribute::CONFIGURABLE)
             .method(Self::add, "add", 1)
             .method(Self::clear, "clear", 0)
             .method(Self::delete, "delete", 1)
             .method(Self::entries, "entries", 0)
-            .method(Self::for_each, "forEach", 0)
+            .method(Self::for_each, "forEach", 1)
             .method(Self::has, "has", 1)
             .property(
                 "keys",
                 values_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .accessor("size", Some(size_getter), None, Attribute::default())
+            .accessor("size", Some(size_getter), None, Attribute::CONFIGURABLE)
             .property(
                 "values",
                 values_function.clone(),
@@ -152,7 +153,9 @@ impl Set {
             let next_value = next.value();
 
             // d, e
-            context.call(&adder, &set, &[next_value])?;
+            if let Err(status) = context.call(&adder, &set, &[next_value]) {
+                return iterator_record.close(Err(status), context);
+            }
 
             next = iterator_record.next(context)?
         }
@@ -184,10 +187,13 @@ impl Set {
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.add
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/add
     pub(crate) fn add(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let value = args.get(0).cloned().unwrap_or_default();
+        let mut value = args.get(0).cloned().unwrap_or_default();
 
         if let Some(object) = this.as_object() {
             if let Some(set) = object.borrow_mut().as_set_mut() {
+                if value.as_number().map(|n| n == -0f64).unwrap_or(false) {
+                    value = Value::Integer(0);
+                }
                 set.add(value);
             } else {
                 return context.throw_type_error("'this' is not a Set");
@@ -260,6 +266,18 @@ impl Set {
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.entries
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/entries
     pub(crate) fn entries(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        if let Some(object) = this.as_object() {
+            let object = object.borrow();
+            if !object.is_set() {
+                return context.throw_type_error(
+                    "Method Set.prototype.entries called on incompatible receiver",
+                );
+            }
+        } else {
+            return context
+                .throw_type_error("Method Set.prototype.entries called on incompatible receiver");
+        }
+
         SetIterator::create_set_iterator(context, this.clone(), SetIterationKind::KeyAndValue)
     }
 
@@ -280,6 +298,12 @@ impl Set {
 
         let callback_arg = &args[0];
         let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
+        // TODO: if condition should also check that we are not in strict mode
+        let this_arg = if this_arg.is_undefined() {
+            Value::Object(context.global_object().clone())
+        } else {
+            this_arg
+        };
 
         let mut index = 0;
 
@@ -347,6 +371,18 @@ impl Set {
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/values
     pub(crate) fn values(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        if let Some(object) = this.as_object() {
+            let object = object.borrow();
+            if !object.is_set() {
+                return context.throw_type_error(
+                    "Method Set.prototype.values called on incompatible receiver",
+                );
+            }
+        } else {
+            return context
+                .throw_type_error("Method Set.prototype.values called on incompatible receiver");
+        }
+
         SetIterator::create_set_iterator(context, this.clone(), SetIterationKind::Value)
     }
 

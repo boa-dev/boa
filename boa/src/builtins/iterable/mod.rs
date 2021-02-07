@@ -147,6 +147,40 @@ impl IteratorRecord {
         let next_result = next.get_field("value", context)?;
         Ok(IteratorResult::new(next_result, done))
     }
+
+    /// Cleanup the iterator
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    ///  [spec]: https://tc39.es/ecma262/#sec-iteratorclose
+    pub(crate) fn close(&self, completion: Result<Value>, context: &mut Context) -> Result<Value> {
+        let mut inner_result = self.iterator_object.get_field("return", context);
+
+        // 5
+        if let Ok(inner_value) = inner_result {
+            // b
+            if inner_value.is_undefined() {
+                return completion;
+            }
+            // c
+            inner_result = context.call(&inner_value, &self.iterator_object, &[]);
+        }
+
+        // 6
+        let completion = completion?;
+
+        // 7
+        let inner_result = inner_result?;
+
+        // 8
+        if !inner_result.is_object() {
+            return context.throw_type_error("`return` method of iterator didn't return an Object");
+        }
+
+        // 9
+        Ok(completion)
+    }
 }
 
 #[derive(Debug)]
