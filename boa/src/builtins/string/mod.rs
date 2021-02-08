@@ -507,15 +507,18 @@ impl String {
             position => position.to_integer(context)?,
         };
 
-        let start = pos.min(len as f64).max(0.0) as usize;
-        let end = start + search_length;
+        let start = pos.min(len as f64).max(0.0);
+        let end = start + search_length as f64;
 
-        if end > len {
+        if end > len as f64 {
             Ok(Value::from(false))
         } else {
             // Only use the part of the string from "start"
             // TODO: Full UTF-16 support
-            let substring_utf16 = string.encode_utf16().skip(start).take(search_length);
+            let substring_utf16 = string
+                .encode_utf16()
+                .skip(start as usize)
+                .take(search_length);
             let search_str_utf16 = search_str.encode_utf16();
             Ok(Value::from(substring_utf16.eq(search_str_utf16)))
         }
