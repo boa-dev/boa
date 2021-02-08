@@ -46,8 +46,8 @@ impl StringIterator {
                     string_iterator.string = Value::undefined();
                     return Ok(create_iter_result_object(context, Value::undefined(), true));
                 }
-                let (_, code_unit_count, _) =
-                    code_point_at(native_string, position).expect("Invalid code point position");
+                let (_, code_unit_count, _) = code_point_at(native_string, position as i64)
+                    .expect("Invalid code point position");
                 string_iterator.next_index += code_unit_count as i32;
                 let result_string = crate::builtins::string::String::substring(
                     &string_iterator.string,

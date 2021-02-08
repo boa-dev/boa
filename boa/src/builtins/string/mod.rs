@@ -29,17 +29,18 @@ use crate::{
 use regress::Regex;
 use std::{convert::TryFrom, f64::NAN, string::String as StdString};
 
-pub(crate) fn code_point_at(string: RcString, position: i32) -> Option<(u32, u8, bool)> {
-    let size = string.encode_utf16().count() as i32;
-    if position < 0 || position >= size {
+pub(crate) fn code_point_at(string: RcString, position: i64) -> Option<(u32, u8, bool)> {
+    let size = string.encode_utf16().count();
+    if position < 0 || position >= size as i64 {
         return None;
     }
+
     let mut encoded = string.encode_utf16();
     let first = encoded.nth(position as usize)?;
     if !is_leading_surrogate(first) && !is_trailing_surrogate(first) {
         return Some((first as u32, 1, false));
     }
-    if is_trailing_surrogate(first) || position + 1 == size {
+    if is_trailing_surrogate(first) || position + 1 == size as i64 {
         return Some((first as u32, 1, true));
     }
     let second = encoded.next()?;
@@ -252,8 +253,8 @@ impl String {
             .to_integer(context)?;
 
         // Fast path returning empty string when pos is obviously out of range
-        if position < 0f64 || position >= string.len() as f64 {
-            return Ok("".into());
+        if position < 0f64 {
+            return Ok(Value::from(""));
         }
 
         // Calling .len() on a string would give the wrong result, as they are bytes not the number of
@@ -266,7 +267,7 @@ impl String {
                 char::try_from(utf16_val as u32).unwrap_or('\u{FFFD}' /* replacement char */),
             ))
         } else {
-            Ok("".into())
+            Ok(Value::from(""))
         }
     }
 
@@ -291,19 +292,20 @@ impl String {
     ) -> Result<Value> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
-        let primitive_val = this.to_string(context)?;
-        let pos = args
+        let object = this.require_object_coercible(context)?;
+        let string = object.to_string(context)?;
+        let position = args
             .get(0)
             .cloned()
             .unwrap_or_else(Value::undefined)
-            .to_integer(context)? as i32;
+            .to_integer(context)?;
 
         // Fast path returning undefined when pos is obviously out of range
-        if pos < 0 || pos >= primitive_val.len() as i32 {
+        if position < 0.0 {
             return Ok(Value::undefined());
         }
 
-        if let Some((code_point, _, _)) = code_point_at(primitive_val, pos) {
+        if let Some((code_point, _, _)) = code_point_at(string, position as i64) {
             Ok(Value::from(code_point))
         } else {
             Ok(Value::undefined())
@@ -340,7 +342,7 @@ impl String {
             .to_integer(context)?;
 
         // Fast path returning NaN when pos is obviously out of range
-        if position < 0f64 || position >= string.len() as f64 {
+        if position < 0f64 {
             return Ok(Value::from(NAN));
         }
 
@@ -350,7 +352,7 @@ impl String {
         if let Some(utf16_val) = string.encode_utf16().nth(position as usize) {
             Ok(Value::from(f64::from(utf16_val)))
         } else {
-            Ok(Value::from(NAN))
+            Ok(Value::from(f64::NAN))
         }
     }
 
@@ -429,44 +431,40 @@ impl String {
 
         // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
         // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
-        let length = string.chars().count();
+        let len = string.encode_utf16().count();
 
-        let int_start = args
+        let from = match args
             .get(0)
             .cloned()
             .unwrap_or_else(Value::undefined)
-            .to_integer(context)?;
-
-        let from = if int_start == f64::NEG_INFINITY {
-            0.0
-        } else if int_start < 0.0 {
-            (length as f64 + int_start).max(0.0)
-        } else {
-            int_start.min(length as f64)
+            .to_integer(context)?
+        {
+            int_start if int_start.is_infinite() && int_start.is_sign_negative() => 0.0,
+            int_start if int_start < 0.0 => (len as f64 + int_start).max(0.0),
+            int_start => int_start.min(len as f64),
         } as usize;
 
-        let end = args.get(1).cloned().unwrap_or_else(Value::undefined);
-
-        let int_end = if end.is_undefined() {
-            length as f64
-        } else {
-            end.to_integer(context)?
-        };
-
-        let to = if int_end == f64::NEG_INFINITY {
-            0.0
-        } else if int_end < 0.0 {
-            (length as f64 + int_end).max(0.0)
-        } else {
-            int_end.min(length as f64)
+        let to = match args
+            .get(1)
+            .filter(|end| !end.is_undefined())
+            .map(|end| end.to_integer(context))
+            .transpose()?
+            .unwrap_or(len as f64)
+        {
+            int_end if int_end.is_infinite() && int_end.is_sign_negative() => 0.0,
+            int_end if int_end < 0.0 => (len as f64 + int_end).max(0.0),
+            int_end => int_end.min(len as f64),
         } as usize;
 
         if from >= to {
             Ok(Value::from(""))
         } else {
             let span = to - from;
-            let substring: StdString = string.chars().skip(from).take(span).collect();
-            Ok(Value::from(substring))
+
+            // TODO: Full UTF-16 support
+            let substring_utf16: Vec<u16> = string.encode_utf16().skip(from).take(span).collect();
+            let substring_lossy = StdString::from_utf16_lossy(&substring_utf16);
+            Ok(Value::from(substring_lossy))
         }
     }
 
@@ -498,10 +496,10 @@ impl String {
             )?;
         }
 
-        let search_string = search_string.to_string(context)?;
+        let search_str = search_string.to_string(context)?;
 
-        let length = string.chars().count();
-        let search_length = search_string.chars().count();
+        let len = string.encode_utf16().count();
+        let search_length = search_str.encode_utf16().count();
 
         // If less than 2 args specified, position is 'undefined', defaults to 0
         let pos = match args.get(1).cloned().unwrap_or_else(Value::undefined) {
@@ -509,15 +507,17 @@ impl String {
             position => position.to_integer(context)?,
         };
 
-        let start = pos.min(length as f64).max(0.0);
-        let end = start + search_length as f64;
+        let start = pos.min(len as f64).max(0.0) as usize;
+        let end = start + search_length;
 
-        if end > length as f64 {
+        if end > len {
             Ok(Value::from(false))
         } else {
             // Only use the part of the string from "start"
-            let substring: StdString = string.chars().skip(start as usize).collect();
-            Ok(Value::from(substring.starts_with(search_string.as_str())))
+            // TODO: Full UTF-16 support
+            let substring_utf16 = string.encode_utf16().skip(start).take(search_length);
+            let search_str_utf16 = search_str.encode_utf16();
+            Ok(Value::from(substring_utf16.eq(search_str_utf16)))
         }
     }
 
@@ -537,35 +537,40 @@ impl String {
         let object = this.require_object_coercible(context)?;
         let string = object.to_string(context)?;
 
-        let search_string = args.get(0).cloned().unwrap_or_else(Value::undefined);
+        let search_str = match args.get(0).cloned().unwrap_or_else(Value::undefined) {
+            search_string if Self::is_regexp_object(&search_string) => {
+                return context.throw_type_error(
+                    "First argument to String.prototype.endsWith must not be a regular expression",
+                );
+            }
+            search_string => search_string.to_string(context)?,
+        };
 
-        if Self::is_regexp_object(&search_string) {
-            context.throw_type_error(
-                "First argument to String.prototype.endsWith must not be a regular expression",
-            )?;
+        let len = string.encode_utf16().count();
+
+        let pos = match args.get(1).cloned().unwrap_or_else(Value::undefined) {
+            end_position if end_position.is_undefined() => len as f64,
+            end_position => end_position.to_integer(context)?,
+        };
+
+        let end = pos.max(0.0).min(len as f64) as usize;
+
+        if search_str.is_empty() {
+            return Ok(Value::from(true));
         }
 
-        let search_string = search_string.to_string(context)?;
+        let search_length = search_str.encode_utf16().count();
 
-        let length = string.chars().count() as f64;
-        let search_length = search_string.chars().count() as f64;
-
-        // If less than 2 args specified, end_position is 'undefined', defaults to
-        // length of this
-        let end = args
-            .get(1)
-            .map(|end_position| end_position.to_integer(context))
-            .transpose()?
-            .map_or(length, |end_position| end_position.max(0.0).min(length));
-
-        let start = end - search_length;
-
-        if start < 0f64 {
+        if end < search_length {
             Ok(Value::from(false))
         } else {
-            // Only use the part of the string up to "end"
-            let substring: StdString = string.chars().take(end as usize).collect();
-            Ok(Value::from(substring.ends_with(search_string.as_str())))
+            let start = end - search_length;
+
+            // TODO: Full UTF-16 support
+            let substring_utf16 = string.encode_utf16().skip(start).take(search_length);
+            let search_str_utf16 = search_str.encode_utf16();
+
+            Ok(Value::from(substring_utf16.eq(search_str_utf16)))
         }
     }
 
@@ -585,29 +590,31 @@ impl String {
         let object = this.require_object_coercible(context)?;
         let string = object.to_string(context)?;
 
-        let arg = args.get(0).cloned().unwrap_or_else(Value::undefined);
+        let search_str = match args.get(0).cloned().unwrap_or_else(Value::undefined) {
+            search_string if Self::is_regexp_object(&search_string) => {
+                return context.throw_type_error(
+                    "First argument to String.prototype.includes must not be a regular expression",
+                );
+            }
+            search_string => search_string.to_string(context)?,
+        };
 
-        if Self::is_regexp_object(&arg) {
-            context.throw_type_error(
-                "First argument to String.prototype.includes must not be a regular expression",
-            )?;
-        }
-
-        let search_string = arg.to_string(context)?;
-
-        let length = string.chars().count();
-
-        // If less than 2 args specified, position is 'undefined', defaults to 0
-        let start = args
+        let pos = args
             .get(1)
-            .map(|position| position.to_integer(context))
-            .transpose()?
-            .map_or(0, |position| position.max(0.0).min(length as f64) as usize);
+            .cloned()
+            .unwrap_or_else(Value::undefined)
+            .to_integer(context)?;
 
-        // Take the string from "this" and use only the part of it after "start"
-        let substring: StdString = string.chars().skip(start).collect();
+        let start = pos.max(0.0) as usize;
 
-        Ok(Value::from(substring.contains(search_string.as_str())))
+        // TODO: Full UTF-16 support
+        let substring_lossy = if start > 0 {
+            let substring_utf16: Vec<u16> = string.encode_utf16().skip(start).collect();
+            StdString::from_utf16_lossy(&substring_utf16)
+        } else {
+            string.to_string()
+        };
+        Ok(Value::from(substring_lossy.contains(search_str.as_str())))
     }
 
     /// Return either the string itself or the string of the regex equivalent
@@ -813,26 +820,39 @@ impl String {
         let object = this.require_object_coercible(context)?;
         let string = object.to_string(context)?;
 
-        let search_string = args
+        let search_str = args
             .get(0)
             .cloned()
             .unwrap_or_else(Value::undefined)
             .to_string(context)?;
 
-        let length = string.chars().count();
-        let start = args
+        let pos = args
             .get(1)
-            .map(|position| position.to_integer(context))
-            .transpose()?
-            .map_or(0, |position| position.max(0.0).min(length as f64) as usize);
+            .cloned()
+            .unwrap_or_else(Value::undefined)
+            .to_integer(context)?;
 
-        if search_string.is_empty() {
-            return Ok(start.min(length).into());
+        let len = string.encode_utf16().count();
+        let start = pos.max(0.0);
+
+        if search_str.is_empty() {
+            return Ok(Value::from(start.min(len as f64)));
         }
 
-        if start < length {
-            if let Some(position) = string.find(search_string.as_str()) {
-                return Ok(string[..position].chars().count().into());
+        if start < len as f64 {
+            let start = start as usize;
+
+            let substring_lossy = if start > 0 {
+                let substring_utf16: Vec<u16> = string.encode_utf16().skip(start).collect();
+                StdString::from_utf16_lossy(&substring_utf16)
+            } else {
+                string.to_string()
+            };
+
+            if let Some(position) = substring_lossy.find(search_str.as_str()) {
+                return Ok(Value::from(
+                    substring_lossy[..position].encode_utf16().count() + start,
+                ));
             }
         }
 
@@ -860,35 +880,38 @@ impl String {
         let object = this.require_object_coercible(context)?;
         let string = object.to_string(context)?;
 
-        let search_string = args
+        let search_str = args
             .get(0)
             .cloned()
             .unwrap_or_else(Value::undefined)
             .to_string(context)?;
 
-        let length = string.chars().count();
-        let start = args
+        let num_pos = args
             .get(1)
-            .map(|position| {
-                let num_pos = position.to_number(context)?;
-                if num_pos.is_nan() {
-                    Ok(f64::INFINITY)
-                } else {
-                    Value::from(num_pos).to_integer(context)
-                }
-            })
-            .transpose()?
-            .map_or(length, |position| {
-                position.max(0.0).min(length as f64) as usize
-            });
+            .cloned()
+            .unwrap_or_else(Value::undefined)
+            .to_number(context)?;
 
-        if search_string.is_empty() {
-            return Ok(start.min(length).into());
+        let pos = if num_pos.is_nan() {
+            f64::INFINITY
+        } else {
+            Value::from(num_pos).to_integer(context)?
+        };
+
+        let len = string.encode_utf16().count();
+        let start = pos.max(0.0).min(len as f64) as usize;
+
+        if search_str.is_empty() {
+            return Ok(Value::from(start as f64));
         }
 
-        let substring: StdString = string.chars().take(start + 1).collect();
-        if let Some(position) = substring.rfind(search_string.as_str()) {
-            Ok(substring[..position].chars().count().into())
+        // TODO: Full UTF-16 support
+        let substring_utf16: Vec<u16> = string.encode_utf16().take(start + 1).collect();
+        let substring_lossy = StdString::from_utf16_lossy(&substring_utf16);
+        if let Some(position) = substring_lossy.rfind(search_str.as_str()) {
+            Ok(Value::from(
+                substring_lossy[..position].encode_utf16().count(),
+            ))
         } else {
             Ok(Value::from(-1))
         }
@@ -931,7 +954,7 @@ impl String {
         let string = object.to_string(context)?;
 
         let int_max_length = max_length.to_length(context)?;
-        let string_length = string.chars().count();
+        let string_length = string.encode_utf16().count();
 
         if int_max_length <= string_length {
             return Ok(Value::from(string));
@@ -942,13 +965,14 @@ impl String {
         } else {
             fill_string.to_string(context)?
         };
+        let filler_utf16: Vec<u16> = filler.encode_utf16().collect();
 
         if filler.is_empty() {
             return Ok(Value::from(string));
         }
 
         let fill_len = int_max_length - string_length;
-        let filler_len = filler.chars().count();
+        let filler_len = filler_utf16.len();
 
         let mut truncated_string_filler = StdString::new();
         let mut truncated_string_filler_len: usize = 0;
@@ -958,8 +982,12 @@ impl String {
                 truncated_string_filler.push_str(&filler);
                 truncated_string_filler_len += filler_len;
             } else {
-                truncated_string_filler
-                    .extend(filler.chars().take(fill_len - truncated_string_filler_len));
+                truncated_string_filler.push_str(
+                    StdString::from_utf16_lossy(
+                        &filler_utf16[..fill_len - truncated_string_filler_len],
+                    )
+                    .as_str(),
+                );
                 truncated_string_filler_len = fill_len;
             }
         }
@@ -1152,17 +1180,13 @@ impl String {
         let final_end = int_end.max(0.0).min(len as f64);
 
         // Start and end are swapped if start is greater than end
-        let from = final_start.min(final_end);
-        let to = final_start.max(final_end);
+        let from = final_start.min(final_end) as usize;
+        let to = final_start.max(final_end) as usize;
 
         // Extract the part of the string contained between the start index and the end index
         // where start is guaranteed to be smaller or equals to end
-        let substring_utf16: Vec<u16> = string
-            .encode_utf16()
-            .skip(from as usize)
-            .take((to - from) as usize)
-            .collect();
         // TODO: Full UTF-16 support
+        let substring_utf16: Vec<u16> = string.encode_utf16().skip(from).take(to - from).collect();
         let substring = StdString::from_utf16_lossy(&substring_utf16);
 
         Ok(Value::from(substring))
@@ -1188,17 +1212,15 @@ impl String {
 
         // If no args are specified, start is 'undefined', defaults to 0
 
-        let int_start = args
+        let int_start = match args
             .get(0)
             .cloned()
             .unwrap_or_else(Value::undefined)
-            .to_integer(context)?;
-        let int_start = if int_start == f64::NEG_INFINITY {
-            0.0
-        } else if int_start < 0.0 {
-            (int_start + size as f64).max(0.0)
-        } else {
-            int_start
+            .to_integer(context)?
+        {
+            int_start if int_start.is_infinite() && int_start.is_sign_negative() => 0.0,
+            int_start if int_start < 0.0 => (int_start + size as f64).max(0.0),
+            int_start => int_start,
         };
 
         // If less than 2 args specified, end is +infinity, the maximum number value.
@@ -1210,7 +1232,7 @@ impl String {
             length => length.to_integer(context)?,
         };
 
-        if int_start == f64::INFINITY || int_length <= 0.0 || int_length == f64::INFINITY {
+        if int_start.is_infinite() || int_length <= 0.0 || int_length.is_infinite() {
             return Ok(Value::from(""));
         }
 
@@ -1407,7 +1429,7 @@ impl String {
         for arg in args.iter() {
             let number = arg.to_number(context)?;
 
-            if !Number::is_float_integer(number) || number < 0f64 || number > (0x10FFFF as f64) {
+            if !Number::is_float_integer(number) || number < 0.0 || number > (0x10FFFF as f64) {
                 return Err(
                     context.construct_range_error(format!("invalid code point: {}", number))
                 );
