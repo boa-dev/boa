@@ -14,7 +14,7 @@ edition = "2018"
 Boa = { path = "../boa" }
 structopt = "0.3.21"
 serde = { version = "1.0.123", features = ["derive"] }
-serde_yaml = "0.8.16"
+serde_yaml = "0.8.17"
 serde_json = "1.0.62"
 bitflags = "1.2.1"
 regex = "1.4.3"
