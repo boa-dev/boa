@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.16/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.17/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../serde_yaml/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -112,19 +112,6 @@
 <span id="109">109</span>
 <span id="110">110</span>
 <span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
-<span id="124">124</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! [![github]](https://github.com/dtolnay/serde-yaml)&amp;ensp;[![crates-io]](https://crates.io/crates/serde-yaml)&amp;ensp;[![docs-rs]](https://docs.rs/serde-yaml)</span>
 <span class="doccomment">//!</span>
@@ -193,7 +180,7 @@
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 
-<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/serde_yaml/0.8.16&quot;</span>)]</span>
+<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/serde_yaml/0.8.17&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="comment">// Suppressed clippy_pedantic lints</span>
 <span class="attribute">#![<span class="ident">allow</span>(
@@ -205,25 +192,12 @@
     <span class="ident">clippy</span>::<span class="ident">needless_pass_by_value</span>,
     <span class="ident">clippy</span>::<span class="ident">option_if_let_else</span>,
     <span class="ident">clippy</span>::<span class="ident">single_match_else</span>,
-    <span class="ident">clippy</span>::<span class="ident">use_self</span>,
     <span class="comment">// code is acceptable</span>
     <span class="ident">clippy</span>::<span class="ident">cast_possible_wrap</span>,
     <span class="ident">clippy</span>::<span class="ident">cast_precision_loss</span>,
-    <span class="ident">clippy</span>::<span class="ident">cast_sign_loss</span>,
-    <span class="comment">// not practical</span>
-    <span class="ident">clippy</span>::<span class="ident">indexing_slicing</span>,
-    <span class="ident">clippy</span>::<span class="ident">missing_docs_in_private_items</span>,
-    <span class="comment">// not stable</span>
-    <span class="ident">clippy</span>::<span class="ident">checked_conversions</span>,
-    <span class="ident">clippy</span>::<span class="ident">empty_enum</span>,
-    <span class="comment">// meh, some things won&#39;t fail</span>
-    <span class="ident">clippy</span>::<span class="ident">unwrap_used</span>,
     <span class="comment">// noisy</span>
     <span class="ident">clippy</span>::<span class="ident">missing_errors_doc</span>,
     <span class="ident">clippy</span>::<span class="ident">must_use_candidate</span>,
-    <span class="comment">// we support older compilers</span>
-    <span class="ident">clippy</span>::<span class="ident">manual_strip</span>,
-    <span class="ident">clippy</span>::<span class="ident">match_like_matches_macro</span>,
 )]</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">de</span>::{<span class="ident">from_reader</span>, <span class="ident">from_slice</span>, <span class="ident">from_str</span>, <span class="ident">Deserializer</span>};
