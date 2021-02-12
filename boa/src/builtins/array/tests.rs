@@ -1366,7 +1366,7 @@ fn get_relative_end() {
 fn array_length_is_not_enumerable() {
     let context = Context::new();
 
-    let array = Array::new_array(&context).unwrap();
+    let array = Array::new_array(&context);
     let desc = array.get_property("length").unwrap();
     assert!(!desc.enumerable());
 }

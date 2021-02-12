@@ -910,11 +910,11 @@ impl String {
         max_length: i32,
         fill_string: Option<RcString>,
         at_start: bool,
-    ) -> Result<Value> {
+    ) -> Value {
         let primitive_length = primitive.len() as i32;
 
         if max_length <= primitive_length {
-            return Ok(Value::from(primitive));
+            return Value::from(primitive);
         }
 
         let filter = fill_string.as_deref().unwrap_or(" ");
@@ -929,9 +929,9 @@ impl String {
         let concat_fill_str: StdString = fill_str.chars().take(fill_len as usize).collect();
 
         if at_start {
-            Ok(Value::from(format!("{}{}", concat_fill_str, &primitive)))
+            Value::from(format!("{}{}", concat_fill_str, &primitive))
         } else {
-            Ok(Value::from(format!("{}{}", primitive, &concat_fill_str)))
+            Value::from(format!("{}{}", primitive, &concat_fill_str))
         }
     }
 
@@ -947,6 +947,7 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.padend
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padEnd
+    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn pad_end(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let primitive = this.to_string(context)?;
         if args.is_empty() {
@@ -959,7 +960,7 @@ impl String {
 
         let fill_string = args.get(1).map(|arg| arg.to_string(context)).transpose()?;
 
-        Self::string_pad(primitive, max_length, fill_string, false)
+        Ok(Self::string_pad(primitive, max_length, fill_string, false))
     }
 
     /// `String.prototype.padStart( targetLength [, padString] )`
@@ -974,6 +975,7 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.padstart
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
+    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn pad_start(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let primitive = this.to_string(context)?;
         if args.is_empty() {
@@ -986,7 +988,7 @@ impl String {
 
         let fill_string = args.get(1).map(|arg| arg.to_string(context)).transpose()?;
 
-        Self::string_pad(primitive, max_length, fill_string, true)
+        Ok(Self::string_pad(primitive, max_length, fill_string, true))
     }
 
     /// String.prototype.trim()
@@ -1263,7 +1265,7 @@ impl String {
                 .collect(),
         };
 
-        let new = Array::new_array(context)?;
+        let new = Array::new_array(context);
         Array::construct_array(&new, &values, context)
     }
 

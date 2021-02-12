@@ -545,6 +545,7 @@ impl Math {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-math.random
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random
+    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn random(_: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
         Ok(rand::random::<f64>().into())
     }

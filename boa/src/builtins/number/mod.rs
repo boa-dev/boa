@@ -888,6 +888,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number.isfinite
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isFinite
+    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn number_is_finite(_: &Value, args: &[Value], _ctx: &mut Context) -> Result<Value> {
         Ok(Value::from(if let Some(val) = args.get(0) {
             match val {
@@ -910,6 +911,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number.isinteger
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isInteger
+    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn number_is_integer(
         _: &Value,
         args: &[Value],
@@ -932,6 +934,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isNaN
+    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn number_is_nan(_: &Value, args: &[Value], _ctx: &mut Context) -> Result<Value> {
         Ok(Value::from(if let Some(val) = args.get(0) {
             match val {
@@ -958,6 +961,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isNaN
+    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn is_safe_integer(_: &Value, args: &[Value], _ctx: &mut Context) -> Result<Value> {
         Ok(Value::from(match args.get(0) {
             Some(Value::Integer(_)) => true,

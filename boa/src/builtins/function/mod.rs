@@ -119,7 +119,7 @@ impl Function {
         local_env: &Environment,
     ) {
         // Create array of values
-        let array = Array::new_array(context).unwrap();
+        let array = Array::new_array(context);
         Array::add_to_array_object(&array, &args_list[index..], context).unwrap();
 
         // Create binding
@@ -279,6 +279,7 @@ impl BuiltInFunctionObject {
         Ok(this)
     }
 
+    #[allow(clippy::unnecessary_wraps)] // built-in function
     fn prototype(_: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
         Ok(Value::undefined())
     }

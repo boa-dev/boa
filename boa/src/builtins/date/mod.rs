@@ -371,7 +371,7 @@ impl Date {
         context: &mut Context,
     ) -> Result<Value> {
         if new_target.is_undefined() {
-            Self::make_date_string()
+            Ok(Self::make_date_string())
         } else {
             let prototype = new_target
                 .as_object()
@@ -386,7 +386,7 @@ impl Date {
             obj.set_prototype_instance(prototype.into());
             let this = obj.into();
             if args.is_empty() {
-                Self::make_date_now(&this)
+                Ok(Self::make_date_now(&this))
             } else if args.len() == 1 {
                 Self::make_date_single(&this, args, context)
             } else {
@@ -405,8 +405,8 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
-    pub(crate) fn make_date_string() -> Result<Value> {
-        Ok(Value::from(Local::now().to_rfc3339()))
+    pub(crate) fn make_date_string() -> Value {
+        Value::from(Local::now().to_rfc3339())
     }
 
     /// `Date()`
@@ -419,10 +419,10 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
-    pub(crate) fn make_date_now(this: &Value) -> Result<Value> {
+    pub(crate) fn make_date_now(this: &Value) -> Value {
         let date = Date::default();
         this.set_data(ObjectData::Date(date));
-        Ok(this.clone())
+        this.clone()
     }
 
     /// `Date(value)`
@@ -1313,6 +1313,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.now
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
+    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn now(_: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
         Ok(Value::from(Utc::now().timestamp_millis() as f64))
     }
