@@ -120,7 +120,7 @@ impl Array {
             .unwrap_or_else(|| context.standard_objects().array_object().prototype());
         // Delegate to the appropriate constructor based on the number of arguments
         match args.len() {
-            0 => Array::construct_array_empty(prototype, context),
+            0 => Ok(Array::construct_array_empty(prototype, context)),
             1 => Array::construct_array_length(prototype, &args[0], context),
             _ => Array::construct_array_values(prototype, args, context),
         }
@@ -132,7 +132,7 @@ impl Array {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array-constructor-array
-    fn construct_array_empty(proto: GcObject, context: &mut Context) -> Result<Value> {
+    fn construct_array_empty(proto: GcObject, context: &mut Context) -> Value {
         Array::array_create(0, Some(proto), context)
     }
 
@@ -147,7 +147,7 @@ impl Array {
         length: &Value,
         context: &mut Context,
     ) -> Result<Value> {
-        let array = Array::array_create(0, Some(prototype), context)?;
+        let array = Array::array_create(0, Some(prototype), context);
 
         if !length.is_number() {
             array.set_property(0, DataDescriptor::new(length, Attribute::all()));
@@ -174,7 +174,7 @@ impl Array {
         context: &mut Context,
     ) -> Result<Value> {
         let items_len = items.len().try_into().map_err(interror_to_value)?;
-        let array = Array::array_create(items_len, Some(prototype), context)?;
+        let array = Array::array_create(items_len, Some(prototype), context);
 
         for (k, item) in items.iter().enumerate() {
             array.set_property(k, DataDescriptor::new(item.clone(), Attribute::all()));
@@ -189,11 +189,7 @@ impl Array {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-arraycreate
-    fn array_create(
-        length: u32,
-        prototype: Option<GcObject>,
-        context: &mut Context,
-    ) -> Result<Value> {
+    fn array_create(length: u32, prototype: Option<GcObject>, context: &mut Context) -> Value {
         let prototype = match prototype {
             Some(prototype) => prototype,
             None => context.standard_objects().array_object().prototype(),
@@ -214,11 +210,11 @@ impl Array {
         );
         array.set_property("length", length);
 
-        Ok(array)
+        array
     }
 
     /// Creates a new `Array` instance.
-    pub(crate) fn new_array(context: &Context) -> Result<Value> {
+    pub(crate) fn new_array(context: &Context) -> Value {
         let array = Value::new_object(context);
         array.set_data(ObjectData::Array);
         array
@@ -230,7 +226,7 @@ impl Array {
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
         );
         array.set_property("length", length);
-        Ok(array)
+        array
     }
 
     /// Utility function for creating array objects.
@@ -682,7 +678,7 @@ impl Array {
             return context.throw_range_error("Invalid array length");
         }
 
-        let new = Self::new_array(context)?;
+        let new = Self::new_array(context);
 
         let values = (0..length)
             .map(|idx| {
@@ -960,7 +956,7 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.slice
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice
     pub(crate) fn slice(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let new_array = Self::new_array(context)?;
+        let new_array = Self::new_array(context);
 
         let len = this.get_field("length", context)?.to_length(context)?;
         let from = Self::get_relative_start(context, args.get(0), len)?;
@@ -1005,7 +1001,7 @@ impl Array {
 
         let length = this.get_field("length", context)?.to_length(context)?;
 
-        let new = Self::new_array(context)?;
+        let new = Self::new_array(context);
 
         let values = (0..length)
             .map(|idx| {
@@ -1245,7 +1241,11 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
     pub(crate) fn values(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        ArrayIterator::create_array_iterator(context, this.clone(), ArrayIterationKind::Value)
+        Ok(ArrayIterator::create_array_iterator(
+            context,
+            this.clone(),
+            ArrayIterationKind::Value,
+        ))
     }
 
     /// `Array.prototype.keys( )`
@@ -1259,7 +1259,11 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
     pub(crate) fn keys(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        ArrayIterator::create_array_iterator(context, this.clone(), ArrayIterationKind::Key)
+        Ok(ArrayIterator::create_array_iterator(
+            context,
+            this.clone(),
+            ArrayIterationKind::Key,
+        ))
     }
 
     /// `Array.prototype.entries( )`
@@ -1273,7 +1277,11 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
     pub(crate) fn entries(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        ArrayIterator::create_array_iterator(context, this.clone(), ArrayIterationKind::KeyAndValue)
+        Ok(ArrayIterator::create_array_iterator(
+            context,
+            this.clone(),
+            ArrayIterationKind::KeyAndValue,
+        ))
     }
 
     /// Represents the algorithm to calculate `relativeStart` (or `k`) in array functions.

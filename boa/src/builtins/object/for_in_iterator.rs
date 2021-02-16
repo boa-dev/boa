@@ -45,14 +45,14 @@ impl ForInIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createforiniterator
-    pub(crate) fn create_for_in_iterator(context: &Context, object: Value) -> Result<Value> {
+    pub(crate) fn create_for_in_iterator(context: &Context, object: Value) -> Value {
         let for_in_iterator = Value::new_object(context);
         for_in_iterator.set_data(ObjectData::ForInIterator(Self::new(object)));
         for_in_iterator
             .as_object()
             .expect("for in iterator object")
             .set_prototype_instance(context.iterator_prototypes().for_in_iterator().into());
-        Ok(for_in_iterator)
+        for_in_iterator
     }
 
     /// %ForInIteratorPrototype%.next( )

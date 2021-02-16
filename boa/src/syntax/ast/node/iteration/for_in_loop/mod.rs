@@ -84,7 +84,7 @@ impl Executable for ForInLoop {
             return Ok(result);
         }
         let object = object.to_object(context)?;
-        let for_in_iterator = ForInIterator::create_for_in_iterator(context, Value::from(object))?;
+        let for_in_iterator = ForInIterator::create_for_in_iterator(context, Value::from(object));
         let next_function = for_in_iterator
             .get_property("next")
             .map(|p| p.as_data_descriptor().unwrap().value())

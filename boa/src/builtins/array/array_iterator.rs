@@ -49,14 +49,14 @@ impl ArrayIterator {
         context: &Context,
         array: Value,
         kind: ArrayIterationKind,
-    ) -> Result<Value> {
+    ) -> Value {
         let array_iterator = Value::new_object(context);
         array_iterator.set_data(ObjectData::ArrayIterator(Self::new(array, kind)));
         array_iterator
             .as_object()
             .expect("array iterator object")
             .set_prototype_instance(context.iterator_prototypes().array_iterator().into());
-        Ok(array_iterator)
+        array_iterator
     }
 
     /// %ArrayIteratorPrototype%.next( )

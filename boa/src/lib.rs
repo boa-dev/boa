@@ -42,6 +42,8 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
     missing_doc_code_examples
 )]
 
+// builtins module has a lot of built-in functions that need unnecessary_wraps
+#[allow(clippy::unnecessary_wraps)]
 pub mod builtins;
 pub mod class;
 pub mod environment;

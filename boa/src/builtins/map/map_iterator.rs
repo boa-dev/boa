@@ -49,14 +49,14 @@ impl MapIterator {
         context: &Context,
         map: Value,
         kind: MapIterationKind,
-    ) -> Result<Value> {
+    ) -> Value {
         let map_iterator = Value::new_object(context);
         map_iterator.set_data(ObjectData::MapIterator(Self::new(map, kind)));
         map_iterator
             .as_object()
             .expect("map iterator object")
             .set_prototype_instance(context.iterator_prototypes().map_iterator().into());
-        Ok(map_iterator)
+        map_iterator
     }
 
     /// %MapIteratorPrototype%.next( )
@@ -104,7 +104,7 @@ impl MapIterator {
                                     }
                                     MapIterationKind::KeyAndValue => {
                                         let result = Array::construct_array(
-                                            &Array::new_array(context)?,
+                                            &Array::new_array(context),
                                             &[key.clone(), value.clone()],
                                             context,
                                         )?;

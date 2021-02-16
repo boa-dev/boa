@@ -208,8 +208,10 @@ where
             idn @ "get" | idn @ "set"
                 if matches!(
                     cursor.peek(0)?.map(|t| t.kind()),
-                    Some(&TokenKind::Identifier(_)) | Some(&TokenKind::Keyword(_))
-                        | Some(&TokenKind::BooleanLiteral(_)) | Some(&TokenKind::NullLiteral)
+                    Some(&TokenKind::Identifier(_))
+                        | Some(&TokenKind::Keyword(_))
+                        | Some(&TokenKind::BooleanLiteral(_))
+                        | Some(&TokenKind::NullLiteral)
                         | Some(&TokenKind::NumericLiteral(_))
                 ) =>
             {
