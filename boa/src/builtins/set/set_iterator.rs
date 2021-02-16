@@ -24,8 +24,8 @@ pub enum SetIterationKind {
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct SetIterator {
     iterated_set: Value,
-    set_next_index: usize,
-    set_iteration_kind: SetIterationKind,
+    next_index: usize,
+    iteration_kind: SetIterationKind,
 }
 
 impl SetIterator {
@@ -34,8 +34,8 @@ impl SetIterator {
     fn new(set: Value, kind: SetIterationKind) -> Self {
         SetIterator {
             iterated_set: set,
-            set_next_index: 0,
-            set_iteration_kind: kind,
+            next_index: 0,
+            iteration_kind: kind,
         }
     }
 
@@ -51,14 +51,14 @@ impl SetIterator {
         context: &Context,
         set: Value,
         kind: SetIterationKind,
-    ) -> Result<Value> {
+    ) -> Value {
         let set_iterator = Value::new_object(context);
         set_iterator.set_data(ObjectData::SetIterator(Self::new(set, kind)));
         set_iterator
             .as_object()
             .expect("set iterator object")
             .set_prototype_instance(context.iterator_prototypes().set_iterator().into());
-        Ok(set_iterator)
+        set_iterator
     }
 
     /// %SetIteratorPrototype%.next( )
@@ -74,8 +74,8 @@ impl SetIterator {
             let mut object = object.borrow_mut();
             if let Some(set_iterator) = object.as_set_iterator_mut() {
                 let m = &set_iterator.iterated_set;
-                let mut index = set_iterator.set_next_index;
-                let item_kind = &set_iterator.set_iteration_kind;
+                let mut index = set_iterator.next_index;
+                let item_kind = &set_iterator.iteration_kind;
 
                 if set_iterator.iterated_set.is_undefined() {
                     return Ok(create_iter_result_object(context, Value::undefined(), true));
@@ -87,7 +87,7 @@ impl SetIterator {
                         while index < num_entries {
                             let e = entries.get_index(index);
                             index += 1;
-                            set_iterator.set_next_index = index;
+                            set_iterator.next_index = index;
                             if let Some(value) = e {
                                 match item_kind {
                                     SetIterationKind::Value => {

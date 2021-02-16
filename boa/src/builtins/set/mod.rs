@@ -278,7 +278,11 @@ impl Set {
                 .throw_type_error("Method Set.prototype.entries called on incompatible receiver");
         }
 
-        SetIterator::create_set_iterator(context, this.clone(), SetIterationKind::KeyAndValue)
+        Ok(SetIterator::create_set_iterator(
+            context,
+            this.clone(),
+            SetIterationKind::KeyAndValue,
+        ))
     }
 
     /// `Set.prototype.forEach( callbackFn [ , thisArg ] )`
@@ -383,7 +387,11 @@ impl Set {
                 .throw_type_error("Method Set.prototype.values called on incompatible receiver");
         }
 
-        SetIterator::create_set_iterator(context, this.clone(), SetIterationKind::Value)
+        Ok(SetIterator::create_set_iterator(
+            context,
+            this.clone(),
+            SetIterationKind::Value,
+        ))
     }
 
     fn size_getter(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
