@@ -279,7 +279,6 @@ impl BuiltInFunctionObject {
         Ok(this)
     }
 
-    #[allow(clippy::unnecessary_wraps)] // built-in function
     fn prototype(_: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
         Ok(Value::undefined())
     }

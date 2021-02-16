@@ -947,7 +947,6 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.padend
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padEnd
-    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn pad_end(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let primitive = this.to_string(context)?;
         if args.is_empty() {
@@ -975,7 +974,6 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.padstart
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
-    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn pad_start(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let primitive = this.to_string(context)?;
         if args.is_empty() {

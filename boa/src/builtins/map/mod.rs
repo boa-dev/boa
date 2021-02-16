@@ -157,7 +157,6 @@ impl Map {
     ///
     /// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-map.prototype.entries
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries
-    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn entries(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         Ok(MapIterator::create_map_iterator(
             context,
@@ -176,7 +175,6 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.keys
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
-    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn keys(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         Ok(MapIterator::create_map_iterator(
             context,
@@ -299,7 +297,6 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/clear
-    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn clear(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
         this.set_data(ObjectData::Map(OrderedMap::new()));
 
@@ -405,7 +402,6 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/values
-    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn values(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         Ok(MapIterator::create_map_iterator(
             context,

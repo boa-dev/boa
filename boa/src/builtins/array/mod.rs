@@ -293,7 +293,6 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.isarray
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray
-    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn is_array(_: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
         match args.get(0).and_then(|x| x.as_object()) {
             Some(object) => Ok(Value::from(object.borrow().is_array())),
@@ -1241,7 +1240,6 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
-    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn values(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         Ok(ArrayIterator::create_array_iterator(
             context,
@@ -1260,7 +1258,6 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
-    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn keys(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         Ok(ArrayIterator::create_array_iterator(
             context,
@@ -1279,7 +1276,6 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
-    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn entries(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         Ok(ArrayIterator::create_array_iterator(
             context,

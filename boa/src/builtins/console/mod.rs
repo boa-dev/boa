@@ -226,7 +226,6 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/clear
-    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn clear(_: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         context.console_mut().groups.clear();
         Ok(Value::undefined())
@@ -536,7 +535,6 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#groupend
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/groupEnd
-    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn group_end(_: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         context.console_mut().groups.pop();
 
@@ -553,7 +551,6 @@ impl Console {
     ///
     /// [spec]: https://console.spec.whatwg.org/#dir
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/dir
-    #[allow(clippy::unnecessary_wraps)] // built-in function
     pub(crate) fn dir(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let undefined = Value::undefined();
         logger(
