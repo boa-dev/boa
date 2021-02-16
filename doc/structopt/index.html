@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `structopt` crate."><meta name="keywords" content="rust, rustlang, rust-lang, structopt"><title>structopt - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings"></script><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../structopt/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><p class="location">Crate structopt</p><div class="block version"><p>Version 0.3.21</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all structopt's items</p></a><div class="block items"><ul><li><a href="#reexports">Re-exports</a></li><li><a href="#traits">Traits</a></li></ul></div><p class="location"></p><script>window.sidebarCurrent = {name: "structopt", ty: "mod", relpath: "../"};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><span class="help-button">?</span>
+<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../structopt/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><p class="location">Crate structopt</p><div class="block version"><p>Version 0.3.21</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all structopt's items</p></a><div class="block items"><ul><li><a href="#reexports">Re-exports</a></li><li><a href="#traits">Traits</a></li></ul></div><p class="location"></p><script>window.sidebarCurrent = {name: "structopt", ty: "mod", relpath: "../"};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/structopt/lib.rs.html#9-1181" title="goto source code">[src]</a></span><span class="in-band">Crate <a class="mod" href="">structopt</a></span></h1><div class="docblock"><p>This crate defines the <code>StructOpt</code> trait and its custom derive.</p>
 <h2 id="features" class="section-header"><a href="#features">Features</a></h2>
 <p>If you want to disable all the <code>clap</code> features (colors,
@@ -49,7 +49,7 @@ paw = &quot;1.0&quot;
 <h2 id="how-to-derivestructopt" class="section-header"><a href="#how-to-derivestructopt">How to <code>derive(StructOpt)</code></a></h2>
 <p>First, let's look at the example:</p>
 
-<div class='information'><div class='tooltip should_panic'>ⓘ<span class='tooltiptext'>This example panics</span></div></div><div class="example-wrap"><pre class="rust rust-example-rendered should_panic">
+<div class='information'><div class='tooltip should_panic'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered should_panic">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
 <span class="kw">use</span> <span class="ident">structopt</span>::<span class="ident">StructOpt</span>;
 
@@ -119,7 +119,7 @@ They are what used to be explicit <code>#[structopt(raw(...))]</code> attrs in p
 </ul>
 <p>Every <code>structopt attribute</code> looks like comma-separated sequence of methods:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
 <span class="attribute">#[<span class="ident">structopt</span>(
     <span class="ident">short</span>, <span class="comment">// method with no arguments - always magical</span>
     <span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;--long-option&quot;</span>, <span class="comment">// method with one argument</span>
@@ -151,7 +151,7 @@ will be turned into this (<em>details omitted</em>):</p>
 <p>They are the reason why <code>structopt</code> is so flexible. <strong>Every and each method from
 <code>clap::App/Arg</code> can be used this way!</strong></p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
 <span class="attribute">#[<span class="ident">structopt</span>(
     <span class="ident">global</span> <span class="op">=</span> <span class="bool-val">true</span>, <span class="comment">// name = arg form, neat for one-arg methods</span>
     <span class="ident">required_if</span>(<span class="string">&quot;out&quot;</span>, <span class="string">&quot;file&quot;</span>) <span class="comment">// name(arg1, arg2, ...) form.</span>
@@ -178,7 +178,7 @@ and/or on &quot;field-level&quot; (on top of a <code>struct</code> field or <em>
 Top level (non-magical) methods correspond to <code>App::method</code> calls, field-level methods
 are <code>Arg::method</code> calls.</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
 <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">top_level</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Foo</span> {
     <span class="attribute">#[<span class="ident">structopt</span>(<span class="ident">field_level</span>)]</span>
@@ -542,7 +542,7 @@ line, even if this attribute is present, to allow for a space between
 <p>Also, <code>structopt</code> will <em>still</em> remove leading and trailing blank lines so
 these formats are equivalent:</p>
 
-<div class='information'><div class='tooltip ignore'>ⓘ<span class='tooltiptext'>This example is not tested</span></div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore">
 <span class="doccomment">/** This is a doc comment
 
 Hello! */</span>
