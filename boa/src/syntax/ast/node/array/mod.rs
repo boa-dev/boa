@@ -38,7 +38,7 @@ pub struct ArrayDecl {
 impl Executable for ArrayDecl {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("ArrayDecl", "exec");
-        let array = Array::new_array(context)?;
+        let array = Array::new_array(context);
         let mut elements = Vec::new();
         for elem in self.as_ref() {
             if let Node::Spread(ref x) = elem {

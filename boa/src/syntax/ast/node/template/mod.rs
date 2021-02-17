@@ -88,8 +88,8 @@ impl Executable for TaggedTemplate {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("TaggedTemplate", "exec");
 
-        let template_object = Array::new_array(context)?;
-        let raw_array = Array::new_array(context)?;
+        let template_object = Array::new_array(context);
+        let raw_array = Array::new_array(context);
 
         for (i, raw) in self.raws.iter().enumerate() {
             raw_array.set_field(i, Value::from(raw), context)?;

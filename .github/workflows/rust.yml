@@ -20,7 +20,7 @@ jobs:
           override: true
           profile: minimal
       - name: Cache cargo
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.4
         with:
           path: |
             target
@@ -43,7 +43,7 @@ jobs:
           override: true
           profile: minimal
       - name: Cache cargo build
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.4
         with:
           path: target
           key: ${{ runner.os }}-cargo-check-${{ hashFiles('**/Cargo.lock') }}
@@ -78,7 +78,7 @@ jobs:
           override: true
           profile: minimal
       - name: Cache cargo
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.4
         with:
           path: |
             target
@@ -107,7 +107,7 @@ jobs:
           override: true
           profile: minimal
       - name: Cache cargo
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.4
         with:
           path: target
           key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
@@ -159,7 +159,7 @@ jobs:
           profile: minimal
           components: clippy
       - name: Cache cargo
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.4
         with:
           path: |
             target
@@ -182,7 +182,7 @@ jobs:
           override: true
           profile: minimal
       - name: Cache cargo
-        uses: actions/cache@v2
+        uses: actions/cache@v2.1.4
         with:
           path: |
             target

@@ -164,7 +164,7 @@ impl Object {
             let key = key.to_property_key(context)?;
 
             if let Some(desc) = object.get_own_property(&key) {
-                return Ok(Self::from_property_descriptor(desc, context)?);
+                return Ok(Self::from_property_descriptor(desc, context));
             }
         }
 
@@ -197,7 +197,7 @@ impl Object {
                 let desc = object
                     .get_own_property(&key)
                     .expect("Expected property to be on object.");
-                Self::from_property_descriptor(desc, context)?
+                Self::from_property_descriptor(desc, context)
             };
 
             if !descriptor.is_undefined() {
@@ -216,7 +216,7 @@ impl Object {
     /// [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-frompropertydescriptor
-    fn from_property_descriptor(desc: PropertyDescriptor, context: &mut Context) -> Result<Value> {
+    fn from_property_descriptor(desc: PropertyDescriptor, context: &mut Context) -> Value {
         let mut descriptor = ObjectInitializer::new(context);
 
         if let PropertyDescriptor::Data(data_desc) = &desc {
@@ -251,7 +251,7 @@ impl Object {
                 Attribute::all(),
             );
 
-        Ok(descriptor.build().into())
+        descriptor.build().into()
     }
 
     /// Uses the SameValue algorithm to check equality of objects

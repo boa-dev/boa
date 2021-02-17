@@ -1320,7 +1320,7 @@ impl String {
                 .collect(),
         };
 
-        let new = Array::new_array(context)?;
+        let new = Array::new_array(context);
         Array::construct_array(&new, &values, context)
     }
 
