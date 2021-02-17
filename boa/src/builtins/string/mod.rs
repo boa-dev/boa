@@ -352,7 +352,7 @@ impl String {
         if let Some(utf16_val) = string.encode_utf16().nth(position as usize) {
             Ok(Value::from(f64::from(utf16_val)))
         } else {
-            Ok(Value::from(f64::NAN))
+            Ok(Value::nan())
         }
     }
 
