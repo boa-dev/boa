@@ -896,7 +896,7 @@ impl Array {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
-    /// 
+    ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.flat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat   
     pub(crate) fn flat(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
@@ -913,7 +913,10 @@ impl Array {
         // 4. If depth is not undefined, then set depthNum to IntegerOrInfinity(depth)
         // 4.a. Set depthNum to ToIntegerOrInfinity(depth)
         // 4.b. If depthNum < 0, set depthNum to 0
-        let depth_num = match depth.unwrap_or(&default_depth).to_integer_or_infinity(context)? {
+        let depth_num = match depth
+            .unwrap_or(&default_depth)
+            .to_integer_or_infinity(context)?
+        {
             IntegerOrInfinity::PositiveInfinity => IntegerOrInfinity::PositiveInfinity,
             IntegerOrInfinity::NegativeInfinity => IntegerOrInfinity::NegativeInfinity,
             IntegerOrInfinity::Integer(i) if i < 0 => IntegerOrInfinity::Integer(0),
@@ -925,17 +928,17 @@ impl Array {
 
         // 6. Perform FlattenIntoArray(A, O, sourceLen, 0, depthNum)
         let len = Self::flatten_into_array(
-            context, 
-            &new_array, 
-            &this, 
-            source_len, 
-            0, 
+            context,
+            &new_array,
+            &this,
+            source_len,
+            0,
             depth_num,
             &Value::undefined(),
-            &Value::undefined()
+            &Value::undefined(),
         )?;
         new_array.set_field("length", len.to_length(context)?, context)?;
-        
+
         Ok(new_array)
     }
 
@@ -949,7 +952,7 @@ impl Array {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
-    /// 
+    ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.flatMap
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap
     pub(crate) fn flat_map(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
@@ -962,24 +965,24 @@ impl Array {
         // 3. If IsCallable(mapperFunction) is false, throw a TypeError exception
         let mapper_function = args.get(0).cloned().unwrap_or_else(Value::undefined);
         if !mapper_function.is_function() {
-            return context.throw_type_error("flatMap mapper function is not callable")
+            return context.throw_type_error("flatMap mapper function is not callable");
         }
         let this_arg = args.get(1).cloned().unwrap_or(o);
 
         // 4. Let A be ArraySpeciesCreate(O, 0)
         let new_array = Self::new_array(context);
-        
+
         // 5. Perform FlattenIntoArray(A, O, sourceLen, 0, 1, mapperFunction, thisArg)
         let depth = Value::Integer(1).to_integer_or_infinity(context)?;
         let len = Self::flatten_into_array(
-            context, 
-            &new_array, 
-            &this, 
-            source_len, 
-            0, 
-            depth, 
-            &mapper_function, 
-            &this_arg
+            context,
+            &new_array,
+            &this,
+            source_len,
+            0,
+            depth,
+            &mapper_function,
+            &this_arg,
         )?;
         new_array.set_field("length", len.to_length(context)?, context)?;
 
@@ -995,14 +998,14 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-flattenintoarray
     #[allow(clippy::too_many_arguments)]
     fn flatten_into_array(
-        context: &mut Context, 
-        target: &Value, 
-        source: &Value, 
-        source_len: u32, 
-        start: u32, 
+        context: &mut Context,
+        target: &Value,
+        source: &Value,
+        source_len: u32,
+        start: u32,
         depth: IntegerOrInfinity,
         mapper_function: &Value,
-        this_arg: &Value
+        this_arg: &Value,
     ) -> Result<Value> {
         // 1. Assert target is Object
         debug_assert!(target.is_object());
@@ -1010,7 +1013,7 @@ impl Array {
         // 2. Assert source is Object
         debug_assert!(source.is_object());
 
-        // 3. Assert if mapper_function is present, then: 
+        // 3. Assert if mapper_function is present, then:
         // - IsCallable(mapper_function) is true
         // - thisArg is present
         // - depth is 1
@@ -1029,7 +1032,7 @@ impl Array {
 
             // 6.c.i. Let element be Get(source, P)
             let mut element = source.get_field(source_index, context)?;
-            
+
             // 6.c.ii. If mapperFunction is present, then
             if !mapper_function.is_undefined() {
                 // 6.c.ii.1. Set element to Call(mapperFunction, thisArg, <<element, sourceIndex, source>>)
@@ -1037,7 +1040,6 @@ impl Array {
                 element = context.call(&mapper_function, &this_arg, &args)?;
             }
             let element_as_object = element.as_object();
-            
 
             // 6.c.iii. Let shouldFlatten be false
             let mut should_flatten = false;
@@ -1052,7 +1054,7 @@ impl Array {
                 // 6.c.iv.1. Set shouldFlatten is IsArray(element)
                 should_flatten = match element_as_object {
                     Some(obj) => obj.is_array(),
-                    _ => false
+                    _ => false,
                 };
             }
             // 6.c.v. If shouldFlatten is true
@@ -1066,35 +1068,31 @@ impl Array {
                 };
 
                 // 6.c.v.3. Let elementLen be LengthOfArrayLike(element)
-                let element_len = element
-                    .get_field("length", context)?
-                    .to_length(context)? as u32;
+                let element_len = element.get_field("length", context)?.to_length(context)? as u32;
 
                 // 6.c.v.4. Set targetIndex to FlattenIntoArray(target, element, elementLen, targetIndex, newDepth)
                 target_index = Self::flatten_into_array(
-                    context, 
-                    target, 
-                    &element, 
-                    element_len, 
-                    target_index, 
+                    context,
+                    target,
+                    &element,
+                    element_len,
+                    target_index,
                     new_depth,
                     &Value::undefined(),
                     &Value::undefined(),
-                )?.to_u32(context)?;
+                )?
+                .to_u32(context)?;
 
             // 6.c.vi. Else
             } else {
                 // 6.c.vi.1. If targetIndex >= 2^53 - 1, throw a TypeError exception
                 if target_index.to_f64().ok_or(0)? >= Number::MAX_SAFE_INTEGER {
-                    return context.throw_type_error("Target index exceeded max safe integer value")
+                    return context.throw_type_error("Target index exceeded max safe integer value");
                 }
 
                 // 6.c.vi.2. Perform CreateDataPropertyOrThrow(target, targetIndex, element)
-                target.set_property(
-                 target_index,
-                 DataDescriptor::new(element, Attribute::all()),
-                );
-                
+                target.set_property(target_index, DataDescriptor::new(element, Attribute::all()));
+
                 // 6.c.vi.3. Set targetIndex to targetIndex + 1
                 target_index = target_index.saturating_add(1);
             }
@@ -1291,8 +1289,6 @@ impl Array {
         }
         Ok(Value::from(false))
     }
-
-
 
     /// `Array.prototype.reduce( callbackFn [ , initialValue ] )`
     ///

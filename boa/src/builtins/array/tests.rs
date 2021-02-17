@@ -291,7 +291,7 @@ fn flat_map() {
         var double = [1, 2, 3];
         var double_flatmap = double.flatMap(i => [i * 2]);
 
-        var sentence = ["it's Sunny", "in California"];
+        var sentence = ["it's Sunny", "in Cali"];
         var flat_split_sentence = sentence.flatMap(x => x.split(" "));
     "#;
     forward(&mut context, code);
@@ -304,7 +304,7 @@ fn flat_map() {
     assert_eq!(forward(&mut context, "flat_split_sentence[0]"), "\"it's\"");
     assert_eq!(forward(&mut context, "flat_split_sentence[1]"), "\"Sunny\"");
     assert_eq!(forward(&mut context, "flat_split_sentence[2]"), "\"in\"");
-    assert_eq!(forward(&mut context, "flat_split_sentence[3]"), "\"California\"");
+    assert_eq!(forward(&mut context, "flat_split_sentence[3]"), "\"Cali\"");
     assert_eq!(forward(&mut context, "flat_split_sentence.length"), "4");
 }
 
@@ -323,7 +323,6 @@ fn flat_map_not_callable() {
 
     assert_eq!(forward(&mut context, code), "true");
 }
-
 
 #[test]
 fn push() {
