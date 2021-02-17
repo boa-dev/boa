@@ -242,8 +242,6 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.charat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/charAt
     pub(crate) fn char_at(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the context has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
         let object = this.require_object_coercible(context)?;
         let string = object.to_string(context)?;
         let position = args
@@ -253,7 +251,7 @@ impl String {
             .to_integer(context)?;
 
         // Fast path returning empty string when pos is obviously out of range
-        if position < 0f64 {
+        if position < 0.0 {
             return Ok(Value::from(""));
         }
 
@@ -290,8 +288,6 @@ impl String {
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the context has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
         let object = this.require_object_coercible(context)?;
         let string = object.to_string(context)?;
         let position = args
@@ -331,8 +327,6 @@ impl String {
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the context has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
         let object = this.require_object_coercible(context)?;
         let string = object.to_string(context)?;
         let position = args
@@ -342,7 +336,7 @@ impl String {
             .to_integer(context)?;
 
         // Fast path returning NaN when pos is obviously out of range
-        if position < 0f64 {
+        if position < 0.0 {
             return Ok(Value::from(NAN));
         }
 
@@ -424,8 +418,6 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.slice
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/slice
     pub(crate) fn slice(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the context has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
         let object = this.require_object_coercible(context)?;
         let string = object.to_string(context)?;
 
@@ -483,8 +475,6 @@ impl String {
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the context has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
         let object = this.require_object_coercible(context)?;
         let string = object.to_string(context)?;
 
@@ -535,8 +525,6 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.endswith
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith
     pub(crate) fn ends_with(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the context has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
         let object = this.require_object_coercible(context)?;
         let string = object.to_string(context)?;
 
@@ -588,8 +576,6 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.includes
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/includes
     pub(crate) fn includes(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the context has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
         let object = this.require_object_coercible(context)?;
         let string = object.to_string(context)?;
 
@@ -1117,8 +1103,6 @@ impl String {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toLowerCase
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_lowercase(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the context has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
         let object = this.require_object_coercible(context)?;
         let string = object.to_string(context)?;
         // The Rust String is mapped to uppercase using the builtin .to_lowercase().
@@ -1140,8 +1124,6 @@ impl String {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toUpperCase
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_uppercase(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the context has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
         let object = this.require_object_coercible(context)?;
         let string = object.to_string(context)?;
         // The Rust String is mapped to uppercase using the builtin .to_uppercase().
@@ -1160,8 +1142,6 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.substring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substring
     pub(crate) fn substring(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the context has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
         let object = this.require_object_coercible(context)?;
         let string = object.to_string(context)?;
 
@@ -1182,12 +1162,11 @@ impl String {
         let final_start = int_start.max(0.0).min(len as f64);
         let final_end = int_end.max(0.0).min(len as f64);
 
-        // Start and end are swapped if start is greater than end
         let from = final_start.min(final_end) as usize;
         let to = final_start.max(final_end) as usize;
 
-        // Extract the part of the string contained between the start index and the end index
-        // where start is guaranteed to be smaller or equals to end
+        // Extract the part of the string contained between the from index and the to index
+        // where from is guaranteed to be smaller or equal to to
         // TODO: Full UTF-16 support
         let substring_utf16: Vec<u16> = string.encode_utf16().skip(from).take(to - from).collect();
         let substring = StdString::from_utf16_lossy(&substring_utf16);
@@ -1207,13 +1186,9 @@ impl String {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substr
     /// <https://tc39.es/ecma262/#sec-string.prototype.substr>
     pub(crate) fn substr(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        // First we get it the actual string a private field stored on the object only the context has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
         let object = this.require_object_coercible(context)?;
         let string: Vec<u16> = object.to_string(context)?.encode_utf16().collect();
         let size = string.len();
-
-        // If no args are specified, start is 'undefined', defaults to 0
 
         let int_start = match args
             .get(0)
@@ -1226,10 +1201,6 @@ impl String {
             int_start => int_start,
         };
 
-        // If less than 2 args specified, end is +infinity, the maximum number value.
-        // Using i32::max_value() should be safe because the final length used is at most
-        // the number of code units from start to the end of the string,
-        // which should always be smaller or equals to both +infinity and i32::max_value
         let int_length = match args.get(1).cloned().unwrap_or_else(Value::undefined) {
             length if length.is_undefined() => size as f64,
             length => length.to_integer(context)?,
