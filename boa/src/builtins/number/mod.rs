@@ -337,7 +337,26 @@ impl Number {
                 }
             }
 
-            digits.push(digit as char);
+            if digit as char == ':' {
+                // need to propagate the incrementation backward
+                let mut replacement = String::from("0");
+                for c in digits.chars().rev() {
+                    let d = match c {
+                        '0'..='8' => (c as u8 + 1) as char,
+                        _ => '0',
+                    };
+                    replacement.push(d);
+                    if d != '0' {
+                        break;
+                    }
+                }
+                let _trash = digits.split_off(digits.len() + 1 - replacement.len());
+                for c in replacement.chars().rev() {
+                    digits.push(c)
+                }
+            } else {
+                digits.push(digit as char);
+            }
         } else {
             digits.push_str(&"0".repeat(precision - digits.len()));
         }
@@ -399,10 +418,8 @@ impl Number {
         } else {
             // Due to f64 limitations, this part differs a bit from the spec,
             // but has the same effect. It manipulates the string constructed
-            // by ryu-js: digits with an optional dot between two of them.
-
-            let mut buffer = ryu_js::Buffer::new();
-            suffix = buffer.format(this_num).to_string();
+            // by `format`: digits with an optional dot between two of them.
+            suffix = format!("{:.100}", this_num);
 
             // a: getting an exponent
             exponent = Self::flt_str_to_exp(&suffix);
@@ -449,6 +466,8 @@ impl Number {
             prefix.push('0');
             prefix.push('.');
             prefix.push_str(&"0".repeat(-e_inc as usize));
+            // we have one too many precision in `suffix`
+            Self::round_to_precision(&mut suffix, precision - 1);
         }
 
         // 14
