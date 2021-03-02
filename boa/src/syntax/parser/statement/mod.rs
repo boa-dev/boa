@@ -178,6 +178,10 @@ where
                     .parse(cursor)
                     .map(Node::from)
             }
+            TokenKind::Punctuator(Punctuator::Semicolon) => {
+                cursor.next().expect("semicolon disappeared");
+                Ok(Node::Empty)
+            }
             TokenKind::Identifier(_) => {
                 // Labelled Statement check
                 cursor.set_goal(InputElement::Div);

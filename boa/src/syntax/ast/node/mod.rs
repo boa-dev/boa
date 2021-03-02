@@ -196,6 +196,8 @@ pub enum Node {
 
     /// A 'while {...}' node. [More information](./iteration/struct.WhileLoop.html).
     WhileLoop(WhileLoop),
+
+    Empty,
 }
 
 impl Display for Node {
@@ -274,6 +276,7 @@ impl Node {
             Self::AsyncFunctionDecl(ref decl) => decl.display(f, indentation),
             Self::AsyncFunctionExpr(ref expr) => expr.display(f, indentation),
             Self::AwaitExpr(ref expr) => expr.display(f, indentation),
+            Self::Empty => write!(f, "Empty"),
         }
     }
 }
@@ -338,6 +341,7 @@ impl Executable for Node {
             Node::Try(ref try_node) => try_node.run(context),
             Node::Break(ref break_node) => break_node.run(context),
             Node::Continue(ref continue_node) => continue_node.run(context),
+            Node::Empty => Ok(Value::Undefined)
         }
     }
 }
