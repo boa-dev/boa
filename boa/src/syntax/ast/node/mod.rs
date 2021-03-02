@@ -197,6 +197,16 @@ pub enum Node {
     /// A 'while {...}' node. [More information](./iteration/struct.WhileLoop.html).
     WhileLoop(WhileLoop),
 
+    /// A empty node.
+    ///
+    /// Empty statement do nothing, just return undefined.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-EmptyStatement
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/Empty
     Empty,
 }
 

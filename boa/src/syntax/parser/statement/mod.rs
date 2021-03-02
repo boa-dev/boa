@@ -179,6 +179,7 @@ where
                     .map(Node::from)
             }
             TokenKind::Punctuator(Punctuator::Semicolon) => {
+                // parse the EmptyStatement
                 cursor.next().expect("semicolon disappeared");
                 Ok(Node::Empty)
             }
