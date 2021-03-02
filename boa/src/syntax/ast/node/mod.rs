@@ -351,7 +351,7 @@ impl Executable for Node {
             Node::Try(ref try_node) => try_node.run(context),
             Node::Break(ref break_node) => break_node.run(context),
             Node::Continue(ref continue_node) => continue_node.run(context),
-            Node::Empty => Ok(Value::Undefined)
+            Node::Empty => Ok(Value::Undefined),
         }
     }
 }
