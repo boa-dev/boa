@@ -93,8 +93,6 @@ impl LexicalEnvironment {
     }
 
     pub fn push(&mut self, env: Environment) {
-        let current_env: Environment = self.get_current_environment().clone();
-        env.borrow_mut().set_outer_environment(current_env);
         self.environment_stack.push_back(env);
     }
 
@@ -102,8 +100,10 @@ impl LexicalEnvironment {
         self.environment_stack.pop_back()
     }
 
-    pub fn environments(&self) -> impl Iterator<Item = &Environment> {
-        self.environment_stack.iter().rev()
+    fn environments(&self) -> impl Iterator<Item = Environment> {
+        std::iter::successors(Some(self.get_current_environment_ref().clone()), |env| {
+            env.borrow().get_outer_environment()
+        })
     }
 
     pub fn get_global_object(&self) -> Option<Value> {
@@ -134,17 +134,15 @@ impl LexicalEnvironment {
                 .create_mutable_binding(name, deletion, false),
             VariableScope::Function => {
                 // Find the first function or global environment (from the top of the stack)
-                let env = self
-                    .environments()
+                self.environments()
                     .find(|env| {
                         matches!(
                             env.borrow().get_environment_type(),
                             EnvironmentType::Function | EnvironmentType::Global
                         )
                     })
-                    .expect("No function or global environment");
-
-                env.borrow_mut()
+                    .expect("No function or global environment")
+                    .borrow_mut()
                     .create_mutable_binding(name, deletion, false)
             }
         }
@@ -163,17 +161,16 @@ impl LexicalEnvironment {
                 .create_immutable_binding(name, deletion),
             VariableScope::Function => {
                 // Find the first function or global environment (from the top of the stack)
-                let env = self
-                    .environments()
+                self.environments()
                     .find(|env| {
                         matches!(
                             env.borrow().get_environment_type(),
                             EnvironmentType::Function | EnvironmentType::Global
                         )
                     })
-                    .expect("No function or global environment");
-
-                env.borrow_mut().create_immutable_binding(name, deletion)
+                    .expect("No function or global environment")
+                    .borrow_mut()
+                    .create_immutable_binding(name, deletion)
             }
         }
     }
@@ -189,15 +186,17 @@ impl LexicalEnvironment {
             .environments()
             .find(|env| env.borrow().has_binding(name));
 
-        let env = if let Some(env) = env {
+        if let Some(ref env) = env {
             env
         } else {
             // global_env doesn't need has_binding to be satisfied in non strict mode
             self.environment_stack
                 .get(0)
                 .expect("Environment stack underflow")
-        };
-        env.borrow_mut().set_mutable_binding(name, value, strict)
+        }
+        .borrow_mut()
+        .set_mutable_binding(name, value, strict)?;
+        Ok(())
     }
 
     pub fn initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind> {
@@ -206,15 +205,17 @@ impl LexicalEnvironment {
             .environments()
             .find(|env| env.borrow().has_binding(name));
 
-        let env = if let Some(env) = env {
+        if let Some(ref env) = env {
             env
         } else {
             // global_env doesn't need has_binding to be satisfied in non strict mode
             self.environment_stack
                 .get(0)
                 .expect("Environment stack underflow")
-        };
-        env.borrow_mut().initialize_binding(name, value)
+        }
+        .borrow_mut()
+        .initialize_binding(name, value)?;
+        Ok(())
     }
 
     /// get_current_environment_ref is used when you only need to borrow the environment
