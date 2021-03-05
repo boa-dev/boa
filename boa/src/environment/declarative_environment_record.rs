@@ -184,8 +184,8 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         Value::undefined()
     }
 
-    fn get_outer_environment(&self) -> Option<Environment> {
-        self.outer_env.as_ref().cloned()
+    fn get_outer_environment_ref(&self) -> Option<&Environment> {
+        self.outer_env.as_ref()
     }
 
     fn set_outer_environment(&mut self, env: Environment) {

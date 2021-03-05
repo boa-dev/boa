@@ -100,25 +100,16 @@ impl LexicalEnvironment {
         self.environment_stack.pop_back()
     }
 
-    fn environments(&self) -> impl Iterator<Item = Environment> {
-        std::iter::successors(Some(self.get_current_environment_ref().clone()), |env| {
-            env.borrow().get_outer_environment()
-        })
-    }
-
     pub fn get_global_object(&self) -> Option<Value> {
-        self.environment_stack
-            .get(0)
-            .expect("")
+        self.get_current_environment_ref()
             .borrow()
             .get_global_object()
     }
 
     pub fn get_this_binding(&self) -> Result<Value, ErrorKind> {
-        self.environments()
-            .find(|env| env.borrow().has_this_binding())
-            .map(|env| env.borrow().get_this_binding())
-            .unwrap_or_else(|| Ok(Value::Undefined))
+        self.get_current_environment_ref()
+            .borrow()
+            .recursive_get_this_binding()
     }
 
     pub fn create_mutable_binding(
@@ -127,25 +118,9 @@ impl LexicalEnvironment {
         deletion: bool,
         scope: VariableScope,
     ) -> Result<(), ErrorKind> {
-        match scope {
-            VariableScope::Block => self
-                .get_current_environment()
-                .borrow_mut()
-                .create_mutable_binding(name, deletion, false),
-            VariableScope::Function => {
-                // Find the first function or global environment (from the top of the stack)
-                self.environments()
-                    .find(|env| {
-                        matches!(
-                            env.borrow().get_environment_type(),
-                            EnvironmentType::Function | EnvironmentType::Global
-                        )
-                    })
-                    .expect("No function or global environment")
-                    .borrow_mut()
-                    .create_mutable_binding(name, deletion, false)
-            }
-        }
+        self.get_current_environment()
+            .borrow_mut()
+            .recursive_create_mutable_binding(name, deletion, scope)
     }
 
     pub fn create_immutable_binding(
@@ -154,25 +129,9 @@ impl LexicalEnvironment {
         deletion: bool,
         scope: VariableScope,
     ) -> Result<(), ErrorKind> {
-        match scope {
-            VariableScope::Block => self
-                .get_current_environment()
-                .borrow_mut()
-                .create_immutable_binding(name, deletion),
-            VariableScope::Function => {
-                // Find the first function or global environment (from the top of the stack)
-                self.environments()
-                    .find(|env| {
-                        matches!(
-                            env.borrow().get_environment_type(),
-                            EnvironmentType::Function | EnvironmentType::Global
-                        )
-                    })
-                    .expect("No function or global environment")
-                    .borrow_mut()
-                    .create_immutable_binding(name, deletion)
-            }
-        }
+        self.get_current_environment()
+            .borrow_mut()
+            .recursive_create_immutable_binding(name, deletion, scope)
     }
 
     pub fn set_mutable_binding(
@@ -181,41 +140,15 @@ impl LexicalEnvironment {
         value: Value,
         strict: bool,
     ) -> Result<(), ErrorKind> {
-        // Find the first environment which has the given binding
-        let env = self
-            .environments()
-            .find(|env| env.borrow().has_binding(name));
-
-        if let Some(ref env) = env {
-            env
-        } else {
-            // global_env doesn't need has_binding to be satisfied in non strict mode
-            self.environment_stack
-                .get(0)
-                .expect("Environment stack underflow")
-        }
-        .borrow_mut()
-        .set_mutable_binding(name, value, strict)?;
-        Ok(())
+        self.get_current_environment()
+            .borrow_mut()
+            .recursive_set_mutable_binding(name, value, strict)
     }
 
     pub fn initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind> {
-        // Find the first environment which has the given binding
-        let env = self
-            .environments()
-            .find(|env| env.borrow().has_binding(name));
-
-        if let Some(ref env) = env {
-            env
-        } else {
-            // global_env doesn't need has_binding to be satisfied in non strict mode
-            self.environment_stack
-                .get(0)
-                .expect("Environment stack underflow")
-        }
-        .borrow_mut()
-        .initialize_binding(name, value)?;
-        Ok(())
+        self.get_current_environment()
+            .borrow_mut()
+            .recursive_initialize_binding(name, value)
     }
 
     /// get_current_environment_ref is used when you only need to borrow the environment
@@ -235,20 +168,15 @@ impl LexicalEnvironment {
     }
 
     pub fn has_binding(&self, name: &str) -> bool {
-        self.environments()
-            .any(|env| env.borrow().has_binding(name))
+        self.get_current_environment_ref()
+            .borrow()
+            .recursive_has_binding(name)
     }
 
     pub fn get_binding_value(&self, name: &str) -> Result<Value, ErrorKind> {
-        self.environments()
-            .find(|env| env.borrow().has_binding(name))
-            .map(|env| env.borrow().get_binding_value(name, false))
-            .unwrap_or_else(|| {
-                Err(ErrorKind::new_reference_error(format!(
-                    "{} is not defined",
-                    name
-                )))
-            })
+        self.get_current_environment_ref()
+            .borrow()
+            .recursive_get_binding_value(name)
     }
 }
 

@@ -9,6 +9,7 @@
 //! There are 5 Environment record kinds. They all have methods in common, these are implemented as a the `EnvironmentRecordTrait`
 //!
 use super::ErrorKind;
+use crate::environment::lexical_environment::VariableScope;
 use crate::{
     environment::lexical_environment::{Environment, EnvironmentType},
     gc::{Finalize, Trace},
@@ -88,7 +89,10 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     fn with_base_object(&self) -> Value;
 
     /// Get the next environment up
-    fn get_outer_environment(&self) -> Option<Environment>;
+    fn get_outer_environment_ref(&self) -> Option<&Environment>;
+    fn get_outer_environment(&self) -> Option<Environment> {
+        self.get_outer_environment_ref().cloned()
+    }
 
     /// Set the next environment up
     fn set_outer_environment(&mut self, env: Environment);
@@ -98,4 +102,110 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
 
     /// Fetch global variable
     fn get_global_object(&self) -> Option<Value>;
+
+    fn recursive_get_this_binding(&self) -> Result<Value, ErrorKind> {
+        if self.has_this_binding() {
+            self.get_this_binding()
+        } else {
+            match self.get_outer_environment_ref() {
+                Some(outer) => outer.borrow().recursive_get_this_binding(),
+                None => Ok(Value::Undefined),
+            }
+        }
+    }
+
+    /// Create mutable binding while handling outer environments
+    fn recursive_create_mutable_binding(
+        &mut self,
+        name: String,
+        deletion: bool,
+        scope: VariableScope,
+    ) -> Result<(), ErrorKind> {
+        match (scope, self.get_environment_type()) {
+            (VariableScope::Block, _)
+            | (VariableScope::Function, EnvironmentType::Function)
+            | (VariableScope::Function, EnvironmentType::Global) => {
+                self.create_mutable_binding(name, deletion, false)
+            }
+            _ => self
+                .get_outer_environment_ref()
+                .expect("No function or global environment")
+                .borrow_mut()
+                .recursive_create_mutable_binding(name, deletion, scope),
+        }
+    }
+
+    /// Create immutable binding while handling outer environments
+    fn recursive_create_immutable_binding(
+        &mut self,
+        name: String,
+        deletion: bool,
+        scope: VariableScope,
+    ) -> Result<(), ErrorKind> {
+        match (scope, self.get_environment_type()) {
+            (VariableScope::Block, _)
+            | (VariableScope::Function, EnvironmentType::Function)
+            | (VariableScope::Function, EnvironmentType::Global) => {
+                self.create_immutable_binding(name, deletion)
+            }
+            _ => self
+                .get_outer_environment_ref()
+                .expect("No function or global environment")
+                .borrow_mut()
+                .recursive_create_immutable_binding(name, deletion, scope),
+        }
+    }
+
+    /// Set mutable binding while handling outer environments
+    fn recursive_set_mutable_binding(
+        &mut self,
+        name: &str,
+        value: Value,
+        strict: bool,
+    ) -> Result<(), ErrorKind> {
+        if self.has_binding(name) || self.get_environment_type() == EnvironmentType::Global {
+            self.set_mutable_binding(name, value, strict)
+        } else {
+            self.get_outer_environment_ref()
+                .expect("Environment stack underflow")
+                .borrow_mut()
+                .recursive_set_mutable_binding(name, value, strict)
+        }
+    }
+
+    /// Initialize binding while handling outer environments
+    fn recursive_initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind> {
+        if self.has_binding(name) || self.get_environment_type() == EnvironmentType::Global {
+            self.initialize_binding(name, value)
+        } else {
+            self.get_outer_environment_ref()
+                .expect("Environment stack underflow")
+                .borrow_mut()
+                .recursive_initialize_binding(name, value)
+        }
+    }
+
+    /// Check if a binding exists in current or any outer environment
+    fn recursive_has_binding(&self, name: &str) -> bool {
+        self.has_binding(name)
+            || match self.get_outer_environment_ref() {
+                Some(outer) => outer.borrow().recursive_has_binding(name),
+                None => false,
+            }
+    }
+
+    /// Retrieve binding from current or any outer environment
+    fn recursive_get_binding_value(&self, name: &str) -> Result<Value, ErrorKind> {
+        if self.has_binding(name) {
+            self.get_binding_value(name, false)
+        } else {
+            match self.get_outer_environment_ref() {
+                Some(outer) => outer.borrow().recursive_get_binding_value(name),
+                None => Err(ErrorKind::new_reference_error(format!(
+                    "{} is not defined",
+                    name
+                ))),
+            }
+        }
+    }
 }

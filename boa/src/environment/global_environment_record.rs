@@ -228,6 +228,10 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         None
     }
 
+    fn get_outer_environment_ref(&self) -> Option<&Environment> {
+        None
+    }
+
     fn set_outer_environment(&mut self, _env: Environment) {
         // TODO: Implement
         panic!("Not implemented yet")

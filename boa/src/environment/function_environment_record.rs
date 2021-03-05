@@ -160,8 +160,8 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         Value::undefined()
     }
 
-    fn get_outer_environment(&self) -> Option<Environment> {
-        self.declarative_record.get_outer_environment()
+    fn get_outer_environment_ref(&self) -> Option<&Environment> {
+        self.declarative_record.get_outer_environment_ref()
     }
 
     fn set_outer_environment(&mut self, env: Environment) {
