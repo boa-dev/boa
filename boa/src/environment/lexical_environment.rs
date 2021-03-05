@@ -373,6 +373,25 @@ mod tests {
     }
 
     #[test]
+    fn functions_use_declaration_scope() {
+        let scenario = r#"
+          function foo() {
+            try {
+                bar;
+            } catch (err) {
+                return err.message;
+            }
+          }
+          {
+            let bar = "bar";
+            foo();
+          }
+        "#;
+
+        assert_eq!(&exec(scenario), "\"bar is not defined\"");
+    }
+
+    #[test]
     fn set_outer_var_in_blockscope() {
         let scenario = r#"
           var bar;
