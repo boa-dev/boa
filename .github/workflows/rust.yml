@@ -93,6 +93,7 @@ jobs:
         uses: actions-rs/tarpaulin@v0.1
         with:
           args: --ignore-tests
+          version: '0.17.0'
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1
 
