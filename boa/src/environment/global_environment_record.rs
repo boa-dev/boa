@@ -120,10 +120,6 @@ impl GlobalEnvironmentRecord {
 }
 
 impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
-    fn get_this_binding(&self) -> Result<Value, ErrorKind> {
-        Ok(self.global_this_binding.clone())
-    }
-
     fn has_binding(&self, name: &str) -> bool {
         if self.declarative_record.has_binding(name) {
             return true;
@@ -214,6 +210,10 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn has_this_binding(&self) -> bool {
         true
+    }
+
+    fn get_this_binding(&self) -> Result<Value, ErrorKind> {
+        Ok(self.global_this_binding.clone())
     }
 
     fn has_super_binding(&self) -> bool {

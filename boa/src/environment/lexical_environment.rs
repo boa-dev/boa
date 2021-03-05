@@ -270,12 +270,14 @@ pub fn new_function_environment(
     new_target: Value,
 ) -> Environment {
     let mut func_env = FunctionEnvironmentRecord {
-        env_rec: FxHashMap::default(),
+        declarative_record: DeclarativeEnvironmentRecord {
+            env_rec: FxHashMap::default(),
+            outer_env: outer, // this will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
+        },
         function: f,
         this_binding_status: binding_status,
         home_object: Value::undefined(),
         new_target,
-        outer_env: outer, // this will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
         this_value: Value::undefined(),
     };
     // If a `this` value has been passed, bind it to the environment
