@@ -414,18 +414,18 @@ dependencies = [
 
 [[package]]
 name = "gc"
-version = "0.3.6"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c94b8d46989f31474299e1483db243a9ed1f8a7d8508a78c91449e76e9ef6756"
+checksum = "a37489b04ba0644e62042be92dbc1e4a077d6460d6e9cf681f6581d742f17efa"
 dependencies = [
  "gc_derive",
 ]
 
 [[package]]
 name = "gc_derive"
-version = "0.3.6"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52c734b94d1d53fcc70e42c83cd7c6e108c9a4f6da8e78098a7d212805e86151"
+checksum = "65efbb0b023f127470376f3c425dde78a27bf0de2c549e92e51760db036a615c"
 dependencies = [
  "proc-macro2",
  "quote",
