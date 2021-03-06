@@ -13,7 +13,7 @@ use crate::{
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
         environment_record_trait::EnvironmentRecordTrait,
-        lexical_environment::{Environment, EnvironmentType},
+        lexical_environment::{Environment, EnvironmentType, VariableScope},
     },
     gc::{empty_trace, Finalize, Trace},
     object::GcObject,
@@ -174,5 +174,23 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
 
     fn get_global_object(&self) -> Option<Value> {
         self.declarative_record.get_global_object()
+    }
+
+    fn recursive_create_mutable_binding(
+        &mut self,
+        name: String,
+        deletion: bool,
+        _scope: VariableScope,
+    ) -> Result<(), ErrorKind> {
+        self.create_mutable_binding(name, deletion, false)
+    }
+
+    fn recursive_create_immutable_binding(
+        &mut self,
+        name: String,
+        deletion: bool,
+        _scope: VariableScope,
+    ) -> Result<(), ErrorKind> {
+        self.create_immutable_binding(name, deletion)
     }
 }

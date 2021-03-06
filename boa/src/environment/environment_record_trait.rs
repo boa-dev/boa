@@ -103,6 +103,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// Fetch global variable
     fn get_global_object(&self) -> Option<Value>;
 
+    /// Return the `this` binding from the environment or try to get it from outer environments
     fn recursive_get_this_binding(&self) -> Result<Value, ErrorKind> {
         if self.has_this_binding() {
             self.get_this_binding()
@@ -121,13 +122,9 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         deletion: bool,
         scope: VariableScope,
     ) -> Result<(), ErrorKind> {
-        match (scope, self.get_environment_type()) {
-            (VariableScope::Block, _)
-            | (VariableScope::Function, EnvironmentType::Function)
-            | (VariableScope::Function, EnvironmentType::Global) => {
-                self.create_mutable_binding(name, deletion, false)
-            }
-            _ => self
+        match scope {
+            VariableScope::Block => self.create_mutable_binding(name, deletion, false),
+            VariableScope::Function => self
                 .get_outer_environment_ref()
                 .expect("No function or global environment")
                 .borrow_mut()
@@ -142,13 +139,9 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         deletion: bool,
         scope: VariableScope,
     ) -> Result<(), ErrorKind> {
-        match (scope, self.get_environment_type()) {
-            (VariableScope::Block, _)
-            | (VariableScope::Function, EnvironmentType::Function)
-            | (VariableScope::Function, EnvironmentType::Global) => {
-                self.create_immutable_binding(name, deletion)
-            }
-            _ => self
+        match scope {
+            VariableScope::Block => self.create_immutable_binding(name, deletion),
+            VariableScope::Function => self
                 .get_outer_environment_ref()
                 .expect("No function or global environment")
                 .borrow_mut()
@@ -163,7 +156,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         value: Value,
         strict: bool,
     ) -> Result<(), ErrorKind> {
-        if self.has_binding(name) || self.get_environment_type() == EnvironmentType::Global {
+        if self.has_binding(name) {
             self.set_mutable_binding(name, value, strict)
         } else {
             self.get_outer_environment_ref()
@@ -175,7 +168,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
 
     /// Initialize binding while handling outer environments
     fn recursive_initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind> {
-        if self.has_binding(name) || self.get_environment_type() == EnvironmentType::Global {
+        if self.has_binding(name) {
             self.initialize_binding(name, value)
         } else {
             self.get_outer_environment_ref()
