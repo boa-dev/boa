@@ -23,7 +23,7 @@ console = []
 [dependencies]
 boa_unicode = { path = "../boa_unicode", version = "0.11.0" }
 gc = { version = "0.3.6", features = ["derive"] }
-serde = { version = "1.0.123", features = ["derive"] }
+serde = { version = "1.0.124", features = ["derive"] }
 serde_json = "1.0.64"
 rand = "0.8.3"
 num-traits = "0.2.14"
