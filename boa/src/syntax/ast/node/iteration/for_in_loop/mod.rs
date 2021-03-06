@@ -100,6 +100,7 @@ impl Executable for ForInLoop {
             }
             let iterator_result = iterator.next(context)?;
             if iterator_result.is_done() {
+                context.realm_mut().environment.pop();
                 break;
             }
             let next_result = iterator_result.value();
