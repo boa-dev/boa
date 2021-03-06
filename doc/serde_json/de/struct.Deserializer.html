@@ -7,7 +7,7 @@ sources.</p>
 <p>Typically it is more convenient to use one of these methods instead:</p>
 <ul>
 <li>Deserializer::from_str</li>
-<li>Deserializer::from_bytes</li>
+<li>Deserializer::from_slice</li>
 <li>Deserializer::from_reader</li>
 </ul>
 </div></div><h3 id="impl-1" class="impl"><code class="in-band">impl&lt;R&gt; <a class="struct" href="../../serde_json/struct.Deserializer.html" title="struct serde_json::Deserializer">Deserializer</a>&lt;<a class="struct" href="../../serde_json/de/struct.IoRead.html" title="struct serde_json::de::IoRead">IoRead</a>&lt;R&gt;&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;R: <a class="trait" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html" title="trait std::io::Read">Read</a>,&nbsp;</span></code><a href="#impl-1" class="anchor"></a><a class="srclink" href="../../src/serde_json/de.rs.html#60-72" title="goto source code">[src]</a></h3><div class="impl-items"><h4 id="method.from_reader" class="method"><code>pub fn <a href="#method.from_reader" class="fnname">from_reader</a>(reader: R) -&gt; Self</code><a class="srclink" href="../../src/serde_json/de.rs.html#69-71" title="goto source code">[src]</a></h4><div class="docblock"><p>Creates a JSON deserializer from an <code>io::Read</code>.</p>

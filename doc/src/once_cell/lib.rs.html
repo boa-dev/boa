@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.5.2/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.7.2/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../once_cell/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -1048,6 +1048,39 @@
 <span id="1045">1045</span>
 <span id="1046">1046</span>
 <span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Overview</span>
 <span class="doccomment">//!</span>
@@ -1284,10 +1317,11 @@
 <span class="doccomment">//! and [`lazy_cell`](https://github.com/indiv0/lazycell/) crates and [`std::sync::Once`]. In some sense,</span>
 <span class="doccomment">//! `once_cell` just streamlines and unifies those APIs.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! To implement a sync flavor of `OnceCell`, this crates uses either a custom re-implementation of</span>
-<span class="doccomment">//! `std::sync::Once` or `parking_lot::Mutex`. This is controlled by the `parking_lot` feature, which</span>
-<span class="doccomment">//! is enabled by default. Performance is the same for both cases, but the `parking_lot` based `OnceCell&lt;T&gt;`</span>
-<span class="doccomment">//! is smaller by up to 16 bytes.</span>
+<span class="doccomment">//! To implement a sync flavor of `OnceCell`, this crates uses either a custom</span>
+<span class="doccomment">//! re-implementation of `std::sync::Once` or `parking_lot::Mutex`. This is</span>
+<span class="doccomment">//! controlled by the `parking_lot` feature (disabled by default). Performance</span>
+<span class="doccomment">//! is the same for both cases, but the `parking_lot` based `OnceCell&lt;T&gt;` is</span>
+<span class="doccomment">//! smaller by up to 16 bytes.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This crate uses `unsafe`.</span>
 <span class="doccomment">//!</span>
@@ -1328,7 +1362,6 @@
 
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
 
@@ -1649,6 +1682,17 @@
         <span class="doccomment">/// ```</span>
         <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">init</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span> {
             <span class="ident">Lazy</span> { <span class="ident">cell</span>: <span class="ident">OnceCell</span>::<span class="ident">new</span>(), <span class="ident">init</span>: <span class="ident">Cell</span>::<span class="ident">new</span>(<span class="prelude-val">Some</span>(<span class="ident">init</span>)) }
+        }
+
+        <span class="doccomment">/// Consumes this `Lazy` returning the stored value.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// Returns `Ok(value)` if `Lazy` is initialized and `Err(f)` otherwise.</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_value</span>(<span class="ident">this</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">cell</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">cell</span>;
+            <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">init</span>;
+            <span class="ident">cell</span>.<span class="ident">into_inner</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">init</span>.<span class="ident">take</span>().<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Lazy instance has previously been poisoned&quot;</span>))
+            })
         }
     }
 
@@ -2031,6 +2075,17 @@
         <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span> {
             <span class="ident">Lazy</span> { <span class="ident">cell</span>: <span class="ident">OnceCell</span>::<span class="ident">new</span>(), <span class="ident">init</span>: <span class="ident">Cell</span>::<span class="ident">new</span>(<span class="prelude-val">Some</span>(<span class="ident">f</span>)) }
         }
+
+        <span class="doccomment">/// Consumes this `Lazy` returning the stored value.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// Returns `Ok(value)` if `Lazy` is initialized and `Err(f)` otherwise.</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_value</span>(<span class="ident">this</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">cell</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">cell</span>;
+            <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">init</span>;
+            <span class="ident">cell</span>.<span class="ident">into_inner</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">init</span>.<span class="ident">take</span>().<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Lazy instance has previously been poisoned&quot;</span>))
+            })
+        }
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span> {
@@ -2094,7 +2149,18 @@
     <span class="kw">fn</span> <span class="ident">_dummy</span>() {}
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;race&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">race</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">take_unchecked</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
+    <span class="kw">match</span> <span class="ident">val</span>.<span class="ident">take</span>() {
+        <span class="prelude-val">Some</span>(<span class="ident">it</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">it</span>,
+        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="bool-val">false</span>);
+            <span class="ident">std</span>::<span class="ident">hint</span>::<span class="ident">unreachable_unchecked</span>()
+        }
+    }
+}
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../";window.currentCrate = "once_cell";</script><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
