@@ -286,7 +286,7 @@ impl Node {
             Self::AsyncFunctionDecl(ref decl) => decl.display(f, indentation),
             Self::AsyncFunctionExpr(ref expr) => expr.display(f, indentation),
             Self::AwaitExpr(ref expr) => expr.display(f, indentation),
-            Self::Empty => write!(f, "Empty"),
+            Self::Empty => write!(f, ";"),
         }
     }
 }
