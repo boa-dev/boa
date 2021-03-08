@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.81/src/unix/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.88/src/unix/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../libc/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -1668,6 +1668,53 @@
 <span id="1665">1665</span>
 <span id="1666">1666</span>
 <span id="1667">1667</span>
+<span id="1668">1668</span>
+<span id="1669">1669</span>
+<span id="1670">1670</span>
+<span id="1671">1671</span>
+<span id="1672">1672</span>
+<span id="1673">1673</span>
+<span id="1674">1674</span>
+<span id="1675">1675</span>
+<span id="1676">1676</span>
+<span id="1677">1677</span>
+<span id="1678">1678</span>
+<span id="1679">1679</span>
+<span id="1680">1680</span>
+<span id="1681">1681</span>
+<span id="1682">1682</span>
+<span id="1683">1683</span>
+<span id="1684">1684</span>
+<span id="1685">1685</span>
+<span id="1686">1686</span>
+<span id="1687">1687</span>
+<span id="1688">1688</span>
+<span id="1689">1689</span>
+<span id="1690">1690</span>
+<span id="1691">1691</span>
+<span id="1692">1692</span>
+<span id="1693">1693</span>
+<span id="1694">1694</span>
+<span id="1695">1695</span>
+<span id="1696">1696</span>
+<span id="1697">1697</span>
+<span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
+<span id="1703">1703</span>
+<span id="1704">1704</span>
+<span id="1705">1705</span>
+<span id="1706">1706</span>
+<span id="1707">1707</span>
+<span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Definitions found commonly among almost all Unix derivatives</span>
 <span class="doccomment">//!</span>
@@ -1898,7 +1945,8 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">S_ISVTX</span>: ::<span class="ident">mode_t</span> <span class="op">=</span> <span class="number">0x200</span>;
 
 <span class="macro">cfg_if</span><span class="macro">!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>)))]</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;haiku&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>,
+                     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>)))]</span> {
         <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IF_NAMESIZE</span>: ::<span class="ident">size_t</span> <span class="op">=</span> <span class="number">16</span>;
         <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IFNAMSIZ</span>: ::<span class="ident">size_t</span> <span class="op">=</span> <span class="ident">IF_NAMESIZE</span>;
     }
@@ -1931,12 +1979,15 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_LOCAL6</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">22</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">3</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_LOCAL7</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">23</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">3</span>;
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_PID</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x01</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_CONS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x02</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_ODELAY</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x04</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_NDELAY</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x08</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_NOWAIT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x10</span>;
-
+<span class="macro">cfg_if</span><span class="macro">!</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;haiku&quot;</span>))]</span> {
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_PID</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x01</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_CONS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x02</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_ODELAY</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x04</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_NDELAY</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x08</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_NOWAIT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x10</span>;
+    }
+}
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_PRIMASK</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">7</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_FACMASK</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x3f8</span>;
 
@@ -1970,7 +2021,7 @@
         <span class="comment">// cargo build, don&#39;t pull in anything extra as the libstd dep</span>
         <span class="comment">// already pulls in all libs.</span>
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
-                        <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;gnu&quot;</span>,
+                        <span class="ident">any</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;gnu&quot;</span>, <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>),
                         <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustc-dep-of-std&quot;</span>))]</span> {
         <span class="attribute">#[<span class="ident">link</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;util&quot;</span>, <span class="ident">kind</span> <span class="op">=</span> <span class="string">&quot;static-nobundle&quot;</span>,
             <span class="ident">cfg</span>(<span class="ident">target_feature</span> <span class="op">=</span> <span class="string">&quot;crt-static&quot;</span>))]</span>
@@ -2125,10 +2176,7 @@
         <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_char</span>,
         <span class="ident">sizeloc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">size_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FILE</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">open_wmemstream</span>(
-        <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">wchar_t</span>,
-        <span class="ident">sizeloc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">size_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FILE</span>;
+
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fflush</span>(<span class="ident">file</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FILE</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fclose</span>(<span class="ident">file</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FILE</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span>(<span class="ident">filename</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
@@ -2293,27 +2341,42 @@
         ...
     ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sprintf</span>(<span class="ident">s</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">c_char</span>, <span class="ident">format</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">c_char</span>, ...) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__isoc99_fscanf&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(
+        <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">not</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>)),
+        <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__isoc99_fscanf&quot;</span>
+    )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fscanf</span>(
         <span class="ident">stream</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">FILE</span>,
         <span class="ident">format</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">c_char</span>,
         ...
     ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__isoc99_scanf&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(
+        <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">not</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>)),
+        <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__isoc99_scanf&quot;</span>
+    )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">scanf</span>(<span class="ident">format</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">c_char</span>, ...) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__isoc99_sscanf&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(
+        <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>, <span class="ident">not</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>)),
+        <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__isoc99_sscanf&quot;</span>
+    )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sscanf</span>(<span class="ident">s</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">c_char</span>, <span class="ident">format</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">c_char</span>, ...)
         <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getchar_unlocked</span>() <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">putchar_unlocked</span>(<span class="ident">c</span>: ::<span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">libc_cfg_target_vendor</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
-          <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>)))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(
+        <span class="ident">libc_cfg_target_vendor</span>,
+        <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
+        <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>
+    )))]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__socket30&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__xnet_socket&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">socket</span>(<span class="ident">domain</span>: ::<span class="ident">c_int</span>, <span class="ident">ty</span>: ::<span class="ident">c_int</span>, <span class="ident">protocol</span>: ::<span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">libc_cfg_target_vendor</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
-          <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>)))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(
+        <span class="ident">libc_cfg_target_vendor</span>,
+        <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
+        <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>
+    )))]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>),
         <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;connect$UNIX2003&quot;</span>
@@ -2329,8 +2392,11 @@
         <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;listen$UNIX2003&quot;</span>
     )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">listen</span>(<span class="ident">socket</span>: ::<span class="ident">c_int</span>, <span class="ident">backlog</span>: ::<span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">libc_cfg_target_vendor</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
-          <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>)))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(
+        <span class="ident">libc_cfg_target_vendor</span>,
+        <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
+        <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>
+    )))]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>),
         <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;accept$UNIX2003&quot;</span>
@@ -2340,8 +2406,11 @@
         <span class="ident">address</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">sockaddr</span>,
         <span class="ident">address_len</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">socklen_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">libc_cfg_target_vendor</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
-          <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>)))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(
+        <span class="ident">libc_cfg_target_vendor</span>,
+        <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
+        <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>
+    )))]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>),
         <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;getpeername$UNIX2003&quot;</span>
@@ -2351,8 +2420,11 @@
         <span class="ident">address</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">sockaddr</span>,
         <span class="ident">address_len</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">socklen_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">libc_cfg_target_vendor</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
-          <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>)))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(
+        <span class="ident">libc_cfg_target_vendor</span>,
+        <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
+        <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>
+    )))]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>),
         <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;getsockname$UNIX2003&quot;</span>
@@ -2380,8 +2452,11 @@
         <span class="ident">protocol</span>: ::<span class="ident">c_int</span>,
         <span class="ident">socket_vector</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">c_int</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">libc_cfg_target_vendor</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
-          <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>)))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(
+        <span class="ident">libc_cfg_target_vendor</span>,
+        <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
+        <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>
+    )))]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>),
         <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;sendto$UNIX2003&quot;</span>
@@ -2957,8 +3032,11 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dlclose</span>(<span class="ident">handle</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">c_void</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dladdr</span>(<span class="ident">addr</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">c_void</span>, <span class="ident">info</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">Dl_info</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">libc_cfg_target_vendor</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
-          <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>)))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(
+        <span class="ident">libc_cfg_target_vendor</span>,
+        <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
+        <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>
+    )))]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__xnet_getaddrinfo&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getaddrinfo</span>(
         <span class="ident">node</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
@@ -2966,8 +3044,11 @@
         <span class="ident">hints</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">addrinfo</span>,
         <span class="ident">res</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">addrinfo</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">libc_cfg_target_vendor</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
-          <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>)))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(
+        <span class="ident">libc_cfg_target_vendor</span>,
+        <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
+        <span class="ident">target_vendor</span> <span class="op">=</span> <span class="string">&quot;nintendo&quot;</span>
+    )))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">freeaddrinfo</span>(<span class="ident">res</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">addrinfo</span>);
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gai_strerror</span>(<span class="ident">errcode</span>: ::<span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">c_char</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
@@ -2986,32 +3067,40 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">res_init</span>() <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__gmtime_r50&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span> <span class="comment">// FIXME: for `time_t`</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span>
+    <span class="comment">// FIXME: for `time_t`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gmtime_r</span>(<span class="ident">time_p</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">time_t</span>, <span class="ident">result</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">tm</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">tm</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__localtime_r50&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span> <span class="comment">// FIXME: for `time_t`</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span>
+    <span class="comment">// FIXME: for `time_t`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">localtime_r</span>(<span class="ident">time_p</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">time_t</span>, <span class="ident">result</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">tm</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">tm</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">all</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86&quot;</span>),
         <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;mktime$UNIX2003&quot;</span>
     )]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__mktime50&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span> <span class="comment">// FIXME: for `time_t`</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span>
+    <span class="comment">// FIXME: for `time_t`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mktime</span>(<span class="ident">tm</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">tm</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">time_t</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__time50&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span> <span class="comment">// FIXME: for `time_t`</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span>
+    <span class="comment">// FIXME: for `time_t`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">time</span>(<span class="ident">time</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">time_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">time_t</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__gmtime50&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span> <span class="comment">// FIXME: for `time_t`</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span>
+    <span class="comment">// FIXME: for `time_t`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gmtime</span>(<span class="ident">time_p</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">time_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">tm</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__locatime50&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span> <span class="comment">// FIXME: for `time_t`</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span>
+    <span class="comment">// FIXME: for `time_t`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">localtime</span>(<span class="ident">time_p</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">time_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">tm</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__difftime50&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span> <span class="comment">// FIXME: for `time_t`</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span>
+    <span class="comment">// FIXME: for `time_t`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">difftime</span>(<span class="ident">time1</span>: <span class="ident">time_t</span>, <span class="ident">time0</span>: <span class="ident">time_t</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_double</span>;
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__timegm50&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span> <span class="comment">// FIXME: for `time_t`</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>, <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span>
+    <span class="comment">// FIXME: for `time_t`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">timegm</span>(<span class="ident">tm</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">tm</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">time_t</span>;
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__mknod50&quot;</span>)]</span>
@@ -3208,11 +3297,18 @@
         <span class="ident">stream</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FILE</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ssize_t</span>;
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lockf</span>(
-        <span class="ident">fd</span>: ::<span class="ident">c_int</span>,
-        <span class="ident">cmd</span>: ::<span class="ident">c_int</span>,
-        <span class="ident">len</span>: ::<span class="ident">off_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lockf</span>(<span class="ident">fd</span>: ::<span class="ident">c_int</span>, <span class="ident">cmd</span>: ::<span class="ident">c_int</span>, <span class="ident">len</span>: ::<span class="ident">off_t</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
+}
+
+<span class="macro">cfg_if</span><span class="macro">!</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>))]</span> {
+        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">open_wmemstream</span>(
+                <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">wchar_t</span>,
+                <span class="ident">sizeloc</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">size_t</span>,
+            ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">FILE</span>;
+        }
+    }
 }
 
 <span class="macro">cfg_if</span><span class="macro">!</span> {
@@ -3270,13 +3366,11 @@
 }
 
 <span class="macro">cfg_if</span><span class="macro">!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>)]</span> {
-        <span class="kw">mod</span> <span class="ident">uclibc</span>;
-        <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">uclibc</span>::<span class="kw-2">*</span>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;newlib&quot;</span>)]</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;newlib&quot;</span>)]</span> {
         <span class="kw">mod</span> <span class="ident">newlib</span>;
         <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">newlib</span>::<span class="kw-2">*</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>,
+                        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;l4re&quot;</span>,
                         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>))]</span> {
         <span class="kw">mod</span> <span class="ident">linux_like</span>;

@@ -121,20 +121,20 @@ instead.</p>
 its value.</p>
 <p>Like <code>Vec::swap_remove</code>, the pair is removed by swapping it with the
 last element of the map and popping it off. <strong>This perturbs
-the postion of what used to be the last element!</strong></p>
+the position of what used to be the last element!</strong></p>
 <p>Return <code>None</code> if <code>key</code> is not in map.</p>
 <p>Computes in <strong>O(1)</strong> time (average).</p>
 </div><h4 id="method.swap_remove_entry" class="method"><code>pub fn <a href="#method.swap_remove_entry" class="fnname">swap_remove_entry</a>&lt;Q:&nbsp;?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(&amp;mut self, key: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;</a>Q) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">(</a>K, V<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">)</a>&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Q: <a class="trait" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html" title="trait core::hash::Hash">Hash</a> + <a class="trait" href="../../indexmap/trait.Equivalent.html" title="trait indexmap::Equivalent">Equivalent</a>&lt;K&gt;,&nbsp;</span></code><a class="srclink" href="../../src/indexmap/map.rs.html#533-541" title="goto source code">[src]</a></h4><div class="docblock"><p>Remove and return the key-value pair equivalent to <code>key</code>.</p>
 <p>Like <code>Vec::swap_remove</code>, the pair is removed by swapping it with the
 last element of the map and popping it off. <strong>This perturbs
-the postion of what used to be the last element!</strong></p>
+the position of what used to be the last element!</strong></p>
 <p>Return <code>None</code> if <code>key</code> is not in map.</p>
 <p>Computes in <strong>O(1)</strong> time (average).</p>
 </div><h4 id="method.swap_remove_full" class="method"><code>pub fn <a href="#method.swap_remove_full" class="fnname">swap_remove_full</a>&lt;Q:&nbsp;?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(&amp;mut self, key: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;</a>Q) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">(</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, K, V<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">)</a>&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Q: <a class="trait" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html" title="trait core::hash::Hash">Hash</a> + <a class="trait" href="../../indexmap/trait.Equivalent.html" title="trait indexmap::Equivalent">Equivalent</a>&lt;K&gt;,&nbsp;</span></code><a class="srclink" href="../../src/indexmap/map.rs.html#553-562" title="goto source code">[src]</a></h4><div class="docblock"><p>Remove the key-value pair equivalent to <code>key</code> and return it and
 the index it had.</p>
 <p>Like <code>Vec::swap_remove</code>, the pair is removed by swapping it with the
 last element of the map and popping it off. <strong>This perturbs
-the postion of what used to be the last element!</strong></p>
+the position of what used to be the last element!</strong></p>
 <p>Return <code>None</code> if <code>key</code> is not in map.</p>
 <p>Computes in <strong>O(1)</strong> time (average).</p>
 </div><h4 id="method.shift_remove" class="method"><code>pub fn <a href="#method.shift_remove" class="fnname">shift_remove</a>&lt;Q:&nbsp;?<a class="trait" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>&gt;(&amp;mut self, key: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.reference.html">&amp;</a>Q) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;V&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;Q: <a class="trait" href="https://doc.rust-lang.org/nightly/core/hash/trait.Hash.html" title="trait core::hash::Hash">Hash</a> + <a class="trait" href="../../indexmap/trait.Equivalent.html" title="trait indexmap::Equivalent">Equivalent</a>&lt;K&gt;,&nbsp;</span></code><a class="srclink" href="../../src/indexmap/map.rs.html#574-579" title="goto source code">[src]</a></h4><div class="docblock"><p>Remove the key-value pair equivalent to <code>key</code> and return
@@ -195,7 +195,7 @@ the key-value pairs with the result.</p>
 <p>Valid indices are <em>0 &lt;= index &lt; self.len()</em></p>
 <p>Like <code>Vec::swap_remove</code>, the pair is removed by swapping it with the
 last element of the map and popping it off. <strong>This perturbs
-the postion of what used to be the last element!</strong></p>
+the position of what used to be the last element!</strong></p>
 <p>Computes in <strong>O(1)</strong> time (average).</p>
 </div><h4 id="method.shift_remove_index" class="method"><code>pub fn <a href="#method.shift_remove_index" class="fnname">shift_remove_index</a>(&amp;mut self, index: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">(</a>K, V<a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.tuple.html">)</a>&gt;</code><a class="srclink" href="../../src/indexmap/map.rs.html#770-772" title="goto source code">[src]</a></h4><div class="docblock"><p>Remove the key-value pair by index</p>
 <p>Valid indices are <em>0 &lt;= index &lt; self.len()</em></p>
