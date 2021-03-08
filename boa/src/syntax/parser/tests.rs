@@ -4,8 +4,8 @@ use super::Parser;
 use crate::syntax::ast::{
     node::{
         field::GetConstField, ArrowFunctionDecl, Assign, BinOp, Call, FormalParameter,
-        FunctionDecl, Identifier, LetDecl, LetDeclList, New, Node, Return, StatementList, UnaryOp,
-        VarDecl, VarDeclList, If
+        FunctionDecl, Identifier, If, LetDecl, LetDeclList, New, Node, Return, StatementList,
+        UnaryOp, VarDecl, VarDeclList,
     },
     op::{self, CompOp, LogOp, NumOp},
     Const,
@@ -301,13 +301,13 @@ fn empty_statement() {
             if(a) ;
         ",
         vec![
-            Node::Empty
-            ,VarDeclList::from(vec![VarDecl::new(
-                "a",
-                Node::from(Const::from(10)),
-            )])
-            .into(),
-            Node::If(If::new::<_, _, Node, _>(Identifier::from("a"), Node::Empty, None))
+            Node::Empty,
+            VarDeclList::from(vec![VarDecl::new("a", Node::from(Const::from(10)))]).into(),
+            Node::If(If::new::<_, _, Node, _>(
+                Identifier::from("a"),
+                Node::Empty,
+                None,
+            )),
         ],
     );
 }
