@@ -5,7 +5,7 @@ use crate::syntax::ast::{
     node::{
         field::GetConstField, ArrowFunctionDecl, Assign, BinOp, Call, FormalParameter,
         FunctionDecl, Identifier, LetDecl, LetDeclList, New, Node, Return, StatementList, UnaryOp,
-        VarDecl, VarDeclList,
+        VarDecl, VarDeclList, If
     },
     op::{self, CompOp, LogOp, NumOp},
     Const,
@@ -209,7 +209,7 @@ fn assignment_line_terminator() {
     let s = r#"
     let a = 3;
 
-    a = 
+    a =
     5;
     "#;
 
@@ -232,7 +232,7 @@ fn assignment_multiline_terminator() {
     let a = 3;
 
 
-    a = 
+    a =
 
 
     5;
@@ -289,6 +289,25 @@ fn spread_in_arrow_function() {
                 vec![Identifier::from("b").into()].into(),
             )
             .into(),
+        ],
+    );
+}
+
+#[test]
+fn empty_statement() {
+    check_parser(
+        r"
+            ;;var a = 10;
+            if(a) ;
+        ",
+        vec![
+            Node::Empty
+            ,VarDeclList::from(vec![VarDecl::new(
+                "a",
+                Node::from(Const::from(10)),
+            )])
+            .into(),
+            Node::If(If::new::<_, _, Node, _>(Identifier::from("a"), Node::Empty, None))
         ],
     );
 }
