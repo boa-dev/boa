@@ -365,6 +365,7 @@
 <span id="364">364</span>
 <span id="365">365</span>
 <span id="366">366</span>
+<span id="367">367</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
@@ -692,9 +693,10 @@
             <span class="comment">// TODO?: 3.a. PrepareForTailCall</span>
             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">this</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span>[]);
         }
-        <span class="kw">let</span> <span class="ident">arg_list</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">extract_array_properties</span>(<span class="kw-2">&amp;</span><span class="ident">arg_array</span>)<span class="question-mark">?</span>
-            .<span class="ident">map_err</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">arg_array</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">arg_array</span> <span class="op">=</span> <span class="ident">arg_array</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;argList must be null, undefined or an object&quot;</span>)
+        })<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">arg_list</span> <span class="op">=</span> <span class="ident">arg_array</span>.<span class="ident">create_list_from_array_like</span>(<span class="kw-2">&amp;</span>[], <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// TODO?: 5. PrepareForTailCall</span>
         <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">this</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">arg_list</span>)
     }

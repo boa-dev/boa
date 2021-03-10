@@ -99,6 +99,9 @@
 <span id="98"> 98</span>
 <span id="99"> 99</span>
 <span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.</span>
 
@@ -119,6 +122,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">nan</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">number</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">object</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">reflect</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">regexp</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">string</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">symbol</span>;
@@ -141,6 +145,7 @@
     <span class="ident">number</span>::<span class="ident">Number</span>,
     <span class="ident">object</span>::<span class="ident">for_in_iterator</span>::<span class="ident">ForInIterator</span>,
     <span class="ident">object</span>::<span class="ident">Object</span> <span class="kw">as</span> <span class="ident">BuiltInObjectObject</span>,
+    <span class="ident">reflect</span>::<span class="ident">Reflect</span>,
     <span class="ident">regexp</span>::<span class="ident">RegExp</span>,
     <span class="ident">string</span>::<span class="ident">String</span>,
     <span class="ident">symbol</span>::<span class="ident">Symbol</span>,
@@ -188,6 +193,7 @@
         <span class="ident">SyntaxError</span>::<span class="ident">init</span>,
         <span class="ident">EvalError</span>::<span class="ident">init</span>,
         <span class="ident">UriError</span>::<span class="ident">init</span>,
+        <span class="ident">Reflect</span>::<span class="ident">init</span>,
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
         <span class="ident">console</span>::<span class="ident">Console</span>::<span class="ident">init</span>,
     ];
