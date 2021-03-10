@@ -324,9 +324,10 @@ impl BuiltInFunctionObject {
             // TODO?: 3.a. PrepareForTailCall
             return context.call(this, &this_arg, &[]);
         }
-        let arg_list = context
-            .extract_array_properties(&arg_array)?
-            .map_err(|()| arg_array)?;
+        let arg_array = arg_array.as_object().ok_or_else(|| {
+            context.construct_type_error("argList must be null, undefined or an object")
+        })?;
+        let arg_list = arg_array.create_list_from_array_like(&[], context)?;
         // TODO?: 5. PrepareForTailCall
         context.call(this, &this_arg, &arg_list)
     }

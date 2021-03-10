@@ -9,7 +9,7 @@ use crate::{
     },
     class::{Class, ClassBuilder},
     exec::Interpreter,
-    object::{GcObject, Object, ObjectData, PROTOTYPE},
+    object::{GcObject, Object, PROTOTYPE},
     property::{Attribute, DataDescriptor, PropertyKey},
     realm::Realm,
     syntax::{
@@ -25,7 +25,6 @@ use crate::{
     value::{RcString, RcSymbol, Value},
     BoaProfiler, Executable, Result,
 };
-use std::result::Result as StdResult;
 
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;
@@ -559,53 +558,6 @@ impl Context {
         let mut global = self.global_object().clone();
         global.insert_property(name, function, Attribute::all());
         Ok(())
-    }
-
-    /// Converts an array object into a rust vector of values.
-    ///
-    /// This is useful for the spread operator, for any other object an `Err` is returned
-    /// TODO: Not needed for spread of arrays. Check in the future for Map and remove if necessary
-    pub(crate) fn extract_array_properties(
-        &mut self,
-        value: &Value,
-    ) -> Result<StdResult<Vec<Value>, ()>> {
-        if let Value::Object(ref x) = value {
-            // Check if object is array
-            if let ObjectData::Array = x.borrow().data {
-                let length = value.get_field("length", self)?.as_number().unwrap() as i32;
-                let values = (0..length)
-                    .map(|idx| value.get_field(idx, self))
-                    .collect::<Result<Vec<_>>>()?;
-                return Ok(Ok(values));
-            }
-            // Check if object is a Map
-            else if let ObjectData::Map(ref map) = x.borrow().data {
-                let values = map
-                    .iter()
-                    .map(|(key, value)| {
-                        // Construct a new array containing the key-value pair
-                        let array = Value::new_object(self);
-                        array.set_data(ObjectData::Array);
-                        array.as_object().expect("object").set_prototype_instance(
-                            self.realm()
-                                .environment
-                                .get_binding_value("Array")
-                                .expect("Array was not initialized")
-                                .get_field(PROTOTYPE, self)?,
-                        );
-                        array.set_field(0, key, self)?;
-                        array.set_field(1, value, self)?;
-                        array.set_field("length", Value::from(2), self)?;
-                        Ok(array)
-                    })
-                    .collect::<Result<Vec<_>>>()?;
-                return Ok(Ok(values));
-            }
-
-            return Ok(Err(()));
-        }
-
-        Ok(Err(()))
     }
 
     /// <https://tc39.es/ecma262/#sec-hasproperty>

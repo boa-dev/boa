@@ -8,7 +8,7 @@
 use crate::{
     object::{GcObject, Object, ObjectData},
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
-    value::{same_value, Value},
+    value::{same_value, Type, Value},
     BoaProfiler, Context, Result,
 };
 
@@ -559,6 +559,46 @@ impl GcObject {
     /// Returns true if the GcObject is the global for a Realm
     pub fn is_global(&self) -> bool {
         matches!(self.borrow().data, ObjectData::Global)
+    }
+
+    /// It is used to create List value whose elements are provided by the indexed properties of
+    /// self.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createlistfromarraylike
+    pub(crate) fn create_list_from_array_like(
+        &self,
+        element_types: &[Type],
+        context: &mut Context,
+    ) -> Result<Vec<Value>> {
+        let types = if element_types.is_empty() {
+            &[
+                Type::Undefined,
+                Type::Null,
+                Type::Boolean,
+                Type::String,
+                Type::Symbol,
+                Type::Number,
+                Type::BigInt,
+                Type::Symbol,
+            ]
+        } else {
+            element_types
+        };
+        let len = self
+            .get(&"length".into(), self.clone().into(), context)?
+            .to_length(context)?;
+        let mut list = Vec::with_capacity(len);
+        for index in 0..len {
+            let next = self.get(&index.into(), self.clone().into(), context)?;
+            if !types.contains(&next.get_type()) {
+                return Err(context.construct_type_error("bad type"));
+            }
+            list.push(next.clone());
+        }
+        Ok(list)
     }
 }
 

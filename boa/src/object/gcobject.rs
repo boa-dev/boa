@@ -417,7 +417,7 @@ impl GcObject {
         }
     }
 
-    /// Convert the object to a `PropertyDescritptor`
+    /// Convert the object to a `PropertyDescriptor`
     ///
     /// # Panics
     ///
