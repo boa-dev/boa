@@ -89,12 +89,13 @@ jobs:
         with:
           command: test
           args: -v
-      - name: Run cargo-tarpaulin
-        uses: actions-rs/tarpaulin@v0.1
-        with:
-          args: --ignore-tests
-      - name: Upload to codecov.io
-        uses: codecov/codecov-action@v1
+      # Waiting for https://github.com/rust-lang/cargo/pull/9229 to land
+      # - name: Run cargo-tarpaulin
+      #   uses: actions-rs/tarpaulin@v0.1
+      #   with:
+      #     args: --ignore-tests
+      # - name: Upload to codecov.io
+      #   uses: codecov/codecov-action@v1
 
   test_on_windows:
     name: Test Suite on Windows

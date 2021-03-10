@@ -78,162 +78,93 @@ impl<'a> VM<'a> {
 
             let _timer =
                 BoaProfiler::global().start_event(&self.instructions[self.idx].to_string(), "vm");
-            match self.instructions[self.idx] {
-                Instruction::Undefined => self.push(Value::undefined()),
-                Instruction::Null => self.push(Value::null()),
-                Instruction::True => self.push(Value::boolean(true)),
-                Instruction::False => self.push(Value::boolean(false)),
-                Instruction::Zero => self.push(Value::integer(0)),
-                Instruction::One => self.push(Value::integer(1)),
-                Instruction::Int32(i) => self.push(Value::integer(i)),
-                Instruction::Rational(r) => self.push(Value::rational(r)),
-                Instruction::String(index) => {
-                    let value = self.pool[index].clone();
-                    self.push(value)
-                }
-                Instruction::BigInt(index) => {
-                    let value = self.pool[index].clone();
-                    self.push(value)
-                }
-                Instruction::Add => {
+
+            macro_rules! bin_op {
+                ($op:ident) => {{
                     let r = self.pop();
                     let l = self.pop();
-                    let val = l.add(&r, self.ctx)?;
-
-                    self.push(val);
+                    let val = l.$op(&r, self.ctx)?;
+                    Some(val.into())
+                }};
+            }
+            let result = match self.instructions[self.idx] {
+                Instruction::Undefined => Some(Value::undefined()),
+                Instruction::Null => Some(Value::null()),
+                Instruction::True => Some(Value::boolean(true)),
+                Instruction::False => Some(Value::boolean(false)),
+                Instruction::Zero => Some(Value::integer(0)),
+                Instruction::One => Some(Value::integer(1)),
+                Instruction::Int32(i) => Some(Value::integer(i)),
+                Instruction::Rational(r) => Some(Value::rational(r)),
+                Instruction::String(index) => Some(self.pool[index].clone()),
+                Instruction::BigInt(index) => Some(self.pool[index].clone()),
+                Instruction::Add => {
+                    bin_op!(add)
                 }
                 Instruction::Sub => {
-                    let r = self.pop();
-                    let l = self.pop();
-                    let val = l.sub(&r, self.ctx)?;
-
-                    self.push(val);
+                    bin_op!(sub)
                 }
                 Instruction::Mul => {
-                    let r = self.pop();
-                    let l = self.pop();
-                    let val = l.mul(&r, self.ctx)?;
-
-                    self.push(val);
+                    bin_op!(mul)
                 }
                 Instruction::Div => {
-                    let r = self.pop();
-                    let l = self.pop();
-                    let val = l.div(&r, self.ctx)?;
-
-                    self.push(val);
+                    bin_op!(div)
                 }
                 Instruction::Pow => {
-                    let r = self.pop();
-                    let l = self.pop();
-                    let val = l.pow(&r, self.ctx)?;
-
-                    self.push(val);
+                    bin_op!(pow)
                 }
                 Instruction::Mod => {
-                    let r = self.pop();
-                    let l = self.pop();
-                    let val = l.rem(&r, self.ctx)?;
-
-                    self.push(val);
+                    bin_op!(rem)
                 }
                 Instruction::BitAnd => {
-                    let r = self.pop();
-                    let l = self.pop();
-                    let val = l.bitand(&r, self.ctx)?;
-
-                    self.push(val);
+                    bin_op!(bitand)
                 }
                 Instruction::BitOr => {
-                    let r = self.pop();
-                    let l = self.pop();
-                    let val = l.bitor(&r, self.ctx)?;
-
-                    self.push(val);
+                    bin_op!(bitor)
                 }
                 Instruction::BitXor => {
-                    let r = self.pop();
-                    let l = self.pop();
-                    let val = l.bitxor(&r, self.ctx)?;
-
-                    self.push(val);
+                    bin_op!(bitxor)
                 }
                 Instruction::Shl => {
-                    let r = self.pop();
-                    let l = self.pop();
-                    let val = l.shl(&r, self.ctx)?;
-
-                    self.push(val);
+                    bin_op!(shl)
                 }
                 Instruction::Shr => {
-                    let r = self.pop();
-                    let l = self.pop();
-                    let val = l.shr(&r, self.ctx)?;
-
-                    self.push(val);
+                    bin_op!(shr)
                 }
                 Instruction::UShr => {
-                    let r = self.pop();
-                    let l = self.pop();
-                    let val = l.ushr(&r, self.ctx)?;
-
-                    self.push(val);
+                    bin_op!(ushr)
                 }
                 Instruction::Eq => {
                     let r = self.pop();
                     let l = self.pop();
-                    let val = l.equals(&r, self.ctx)?;
-
-                    self.push(val.into());
+                    Some((l.equals(&r, self.ctx)?).into())
                 }
                 Instruction::NotEq => {
                     let r = self.pop();
                     let l = self.pop();
-                    let val = !l.equals(&r, self.ctx)?;
-
-                    self.push(val.into());
+                    Some((!l.equals(&r, self.ctx)?).into())
                 }
                 Instruction::StrictEq => {
                     let r = self.pop();
                     let l = self.pop();
-                    let val = l.strict_equals(&r);
-
-                    self.push(val.into());
+                    Some((l.strict_equals(&r)).into())
                 }
                 Instruction::StrictNotEq => {
                     let r = self.pop();
                     let l = self.pop();
-                    let val = !l.strict_equals(&r);
-
-                    self.push(val.into());
+                    Some((!l.strict_equals(&r)).into())
                 }
                 Instruction::Gt => {
-                    let r = self.pop();
-                    let l = self.pop();
-                    let val = l.ge(&r, self.ctx)?;
-
-                    self.push(val.into());
+                    bin_op!(gt)
                 }
                 Instruction::Ge => {
-                    let r = self.pop();
-                    let l = self.pop();
-                    let val = l.ge(&r, self.ctx)?;
-
-                    self.push(val.into());
+                    bin_op!(ge)
                 }
                 Instruction::Lt => {
-                    let r = self.pop();
-                    let l = self.pop();
-                    let val = l.lt(&r, self.ctx)?;
-
-                    self.push(val.into());
+                    bin_op!(lt)
                 }
                 Instruction::Le => {
-                    let r = self.pop();
-                    let l = self.pop();
-                    let val = l.le(&r, self.ctx)?;
-
-                    self.push(val.into());
+                    bin_op!(le)
                 }
                 Instruction::In => {
                     let r = self.pop();
@@ -246,9 +177,7 @@ impl<'a> VM<'a> {
                         ));
                     }
                     let key = l.to_property_key(self.ctx)?;
-                    let val = self.ctx.has_property(&r, &key);
-
-                    self.push(val.into());
+                    Some(self.ctx.has_property(&r, &key).into())
                 }
                 Instruction::InstanceOf => {
                     let r = self.pop();
@@ -265,24 +194,24 @@ impl<'a> VM<'a> {
                 }
                 Instruction::Void => {
                     let _value = self.pop();
-                    self.push(Value::undefined());
+                    Some(Value::undefined())
                 }
                 Instruction::TypeOf => {
                     let value = self.pop();
-                    self.push(value.get_type().as_str().into());
+                    Some(value.get_type().as_str().into())
                 }
                 Instruction::Pos => {
                     let value = self.pop();
                     let value = value.to_number(self.ctx)?;
-                    self.push(value.into());
+                    Some(value.into())
                 }
                 Instruction::Neg => {
                     let value = self.pop();
-                    self.push(Value::from(!value.to_boolean()));
+                    Some(Value::from(!value.to_boolean()))
                 }
                 Instruction::Not => {
                     let value = self.pop();
-                    self.push((!value.to_boolean()).into());
+                    Some((!value.to_boolean()).into())
                 }
                 Instruction::BitNot => {
                     let target = self.pop();
@@ -293,7 +222,7 @@ impl<'a> VM<'a> {
                         // TODO: this is not spec compliant.
                         !(num as i32)
                     };
-                    self.push(value.into());
+                    Some(value.into())
                 }
                 Instruction::DefVar(name_index) => {
                     let name: String = self.pool[name_index].to_string(self.ctx)?.to_string();
@@ -303,6 +232,8 @@ impl<'a> VM<'a> {
                         .environment
                         .create_mutable_binding(name.to_string(), false, VariableScope::Function)
                         .map_err(|e| e.to_error(self.ctx))?;
+
+                    None
                 }
                 Instruction::DefLet(name_index) => {
                     let name = self.pool[name_index].to_string(self.ctx)?;
@@ -312,6 +243,8 @@ impl<'a> VM<'a> {
                         .environment
                         .create_mutable_binding(name.to_string(), false, VariableScope::Block)
                         .map_err(|e| e.to_error(self.ctx))?;
+
+                    None
                 }
                 Instruction::DefConst(name_index) => {
                     let name = self.pool[name_index].to_string(self.ctx)?;
@@ -321,6 +254,8 @@ impl<'a> VM<'a> {
                         .environment
                         .create_immutable_binding(name.to_string(), false, VariableScope::Block)
                         .map_err(|e| e.to_error(self.ctx))?;
+
+                    None
                 }
                 Instruction::InitLexical(name_index) => {
                     let name = self.pool[name_index].to_string(self.ctx)?;
@@ -331,8 +266,11 @@ impl<'a> VM<'a> {
                         .initialize_binding(&name, value.clone())
                         .map_err(|e| e.to_error(self.ctx))?;
 
-                    self.push(value);
+                    Some(value)
                 }
+            };
+            if let Some(value) = result {
+                self.push(value);
             }
 
             self.idx += 1;
