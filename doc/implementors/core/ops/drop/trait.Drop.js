@@ -10,7 +10,6 @@ implementors["nodrop"] = [{"text":"impl&lt;T&gt; Drop for NoDrop&lt;T&gt;","synt
 implementors["once_cell"] = [{"text":"impl&lt;T&gt; Drop for OnceBox&lt;T&gt;","synthetic":false,"types":[]}];
 implementors["regex_syntax"] = [{"text":"impl Drop for Ast","synthetic":false,"types":[]},{"text":"impl Drop for ClassSet","synthetic":false,"types":[]},{"text":"impl Drop for Hir","synthetic":false,"types":[]}];
 implementors["syn"] = [{"text":"impl&lt;'a&gt; Drop for ParseBuffer&lt;'a&gt;","synthetic":false,"types":[]}];
-implementors["thread_local"] = [{"text":"impl&lt;T:&nbsp;Send&gt; Drop for ThreadLocal&lt;T&gt;","synthetic":false,"types":[]}];
 implementors["tinyvec"] = [{"text":"impl&lt;'p, A:&nbsp;Array, I:&nbsp;Iterator&lt;Item = A::Item&gt;&gt; Drop for ArrayVecSplice&lt;'p, A, I&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'p, 's, T:&nbsp;Default&gt; Drop for SliceVecDrain&lt;'p, 's, T&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'p, A:&nbsp;Array, I:&nbsp;Iterator&lt;Item = A::Item&gt;&gt; Drop for TinyVecSplice&lt;'p, A, I&gt;","synthetic":false,"types":[]}];
 implementors["url"] = [{"text":"impl&lt;'a&gt; Drop for PathSegmentsMut&lt;'a&gt;","synthetic":false,"types":[]},{"text":"impl&lt;'a&gt; Drop for UrlQuery&lt;'a&gt;","synthetic":false,"types":[]}];
 implementors["wasm_bindgen"] = [{"text":"impl&lt;T&gt; Drop for Closure&lt;T&gt; <span class=\"where fmt-newline\">where<br>&nbsp;&nbsp;&nbsp;&nbsp;T: ?Sized,&nbsp;</span>","synthetic":false,"types":[]},{"text":"impl Drop for JsValue","synthetic":false,"types":[]}];

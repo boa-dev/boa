@@ -435,6 +435,11 @@
 <span id="434">434</span>
 <span id="435">435</span>
 <span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Statement and declaration parsing.</span>
 <span class="doccomment">//!</span>
@@ -615,6 +620,11 @@
                 <span class="ident">BlockStatement</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>)
                     .<span class="ident">map</span>(<span class="ident">Node</span>::<span class="ident">from</span>)
+            }
+            <span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">Semicolon</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="comment">// parse the EmptyStatement</span>
+                <span class="ident">cursor</span>.<span class="ident">next</span>().<span class="ident">expect</span>(<span class="string">&quot;semicolon disappeared&quot;</span>);
+                <span class="prelude-val">Ok</span>(<span class="ident">Node</span>::<span class="ident">Empty</span>)
             }
             <span class="ident">TokenKind</span>::<span class="ident">Identifier</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// Labelled Statement check</span>

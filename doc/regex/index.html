@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `regex` crate."><meta name="keywords" content="rust, rustlang, rust-lang, regex"><title>regex - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings"></script><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../regex/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><p class="location">Crate regex</p><div class="block version"><p>Version 1.4.3</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all regex's items</p></a><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></div><p class="location"></p><script>window.sidebarCurrent = {name: "regex", ty: "mod", relpath: "../"};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/regex/lib.rs.html#1-787" title="goto source code">[src]</a></span><span class="in-band">Crate <a class="mod" href="">regex</a></span></h1><div class="docblock"><p>This crate provides a library for parsing, compiling, and executing regular
+<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../regex/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><p class="location">Crate regex</p><div class="block version"><p>Version 1.4.4</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all regex's items</p></a><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></div><p class="location"></p><script>window.sidebarCurrent = {name: "regex", ty: "mod", relpath: "../"};</script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/regex/lib.rs.html#1-785" title="goto source code">[src]</a></span><span class="in-band">Crate <a class="mod" href="">regex</a></span></h1><div class="docblock"><p>This crate provides a library for parsing, compiling, and executing regular
 expressions. Its syntax is similar to Perl-style regular expressions, but lacks
 a few features like look around and backreferences. In exchange, all searches
 execute in linear time with respect to the size of the regular expression and
@@ -196,7 +196,7 @@ match a sequence of numerals, Greek or Cherokee letters:</p>
 <span class="kw">let</span> <span class="ident">mat</span> <span class="op">=</span> <span class="ident">re</span>.<span class="ident">find</span>(<span class="string">&quot;abcΔᎠβⅠᏴγδⅡxyz&quot;</span>).<span class="ident">unwrap</span>();
 <span class="macro">assert_eq</span><span class="macro">!</span>((<span class="ident">mat</span>.<span class="ident">start</span>(), <span class="ident">mat</span>.<span class="ident">end</span>()), (<span class="number">3</span>, <span class="number">23</span>));</pre></div>
 <p>For a more detailed breakdown of Unicode support with respect to
-<a href="http://unicode.org/reports/tr18/">UTS#18</a>,
+<a href="https://unicode.org/reports/tr18/">UTS#18</a>,
 please see the
 <a href="https://github.com/rust-lang/regex/blob/master/UNICODE.md">UNICODE</a>
 document in the root of the regex repository.</p>
@@ -347,7 +347,7 @@ word boundary:</p>
 </pre>
 <h2 id="perl-character-classes-unicode-friendly" class="section-header"><a href="#perl-character-classes-unicode-friendly">Perl character classes (Unicode friendly)</a></h2>
 <p>These classes are based on the definitions provided in
-<a href="http://www.unicode.org/reports/tr18/#Compatibility_Properties">UTS#18</a>:</p>
+<a href="https://www.unicode.org/reports/tr18/#Compatibility_Properties">UTS#18</a>:</p>
 <pre class="rust">
 \d     digit (\p{Nd})
 \D     not digit
@@ -406,11 +406,6 @@ intended to add <code>alloc</code>-only support to regex in the future.</li>
 Enables all performance related features. This feature is enabled by default
 and will always cover all features that improve performance, even if more
 are added in the future.</li>
-<li><strong>perf-cache</strong> -
-Enables the use of very fast thread safe caching for internal match state.
-When this is disabled, caching is still used, but with a slower and simpler
-implementation. Disabling this drops the <code>thread_local</code> and <code>lazy_static</code>
-dependencies.</li>
 <li><strong>perf-dfa</strong> -
 Enables the use of a lazy DFA for matching. The lazy DFA is used to compile
 portions of a regex to a very fast DFA on an as-needed basis. This can
@@ -425,6 +420,11 @@ compile times and binary size.</li>
 Enables the use of literal optimizations for speeding up matches. In some
 cases, literal optimizations can result in speedups of <em>several</em> orders of
 magnitude. Disabling this drops the <code>aho-corasick</code> and <code>memchr</code> dependencies.</li>
+<li><strong>perf-cache</strong> -
+This feature used to enable a faster internal cache at the cost of using
+additional dependencies, but this is no longer an option. A fast internal
+cache is now used unconditionally with no additional dependencies. This may
+change in the future.</li>
 </ul>
 <h3 id="unicode-features" class="section-header"><a href="#unicode-features">Unicode features</a></h3>
 <ul>

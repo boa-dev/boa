@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.4.3/src/exec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>exec.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.4.4/src/exec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>exec.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../regex/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -1638,9 +1638,24 @@
 <span id="1635">1635</span>
 <span id="1636">1636</span>
 <span id="1637">1637</span>
+<span id="1638">1638</span>
+<span id="1639">1639</span>
+<span id="1640">1640</span>
+<span id="1641">1641</span>
+<span id="1642">1642</span>
+<span id="1643">1643</span>
+<span id="1644">1644</span>
+<span id="1645">1645</span>
+<span id="1646">1646</span>
+<span id="1647">1647</span>
+<span id="1648">1648</span>
+<span id="1649">1649</span>
+<span id="1650">1650</span>
+<span id="1651">1651</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">RefCell</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">panic</span>::<span class="ident">AssertUnwindSafe</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>)]</span>
@@ -1650,7 +1665,6 @@
 <span class="kw">use</span> <span class="ident">syntax</span>::<span class="ident">ParserBuilder</span>;
 
 <span class="kw">use</span> <span class="ident">backtrack</span>;
-<span class="kw">use</span> <span class="ident">cache</span>::{<span class="ident">Cached</span>, <span class="ident">CachedGuard</span>};
 <span class="kw">use</span> <span class="ident">compile</span>::<span class="ident">Compiler</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">dfa</span>;
@@ -1658,6 +1672,7 @@
 <span class="kw">use</span> <span class="ident">input</span>::{<span class="ident">ByteInput</span>, <span class="ident">CharInput</span>};
 <span class="kw">use</span> <span class="ident">literal</span>::<span class="ident">LiteralSearcher</span>;
 <span class="kw">use</span> <span class="ident">pikevm</span>;
+<span class="kw">use</span> <span class="ident">pool</span>::{<span class="ident">Pool</span>, <span class="ident">PoolGuard</span>};
 <span class="kw">use</span> <span class="ident">prog</span>::<span class="ident">Program</span>;
 <span class="kw">use</span> <span class="ident">re_builder</span>::<span class="ident">RegexOptions</span>;
 <span class="kw">use</span> <span class="ident">re_bytes</span>;
@@ -1675,8 +1690,8 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Exec</span> {
     <span class="doccomment">/// All read only state.</span>
     <span class="ident">ro</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">ExecReadOnly</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// Caches for the various matching engines.</span>
-    <span class="ident">cache</span>: <span class="ident">Cached</span><span class="op">&lt;</span><span class="ident">ProgramCache</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// A pool of reusable values for the various matching engines.</span>
+    <span class="ident">pool</span>: <span class="ident">Pool</span><span class="op">&lt;</span><span class="ident">ProgramCache</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// `ExecNoSync` is like `Exec`, except it embeds a reference to a cache. This</span>
@@ -1687,7 +1702,7 @@
     <span class="doccomment">/// All read only state.</span>
     <span class="ident">ro</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">ExecReadOnly</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Caches for the various matching engines.</span>
-    <span class="ident">cache</span>: <span class="ident">CachedGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">ProgramCache</span><span class="op">&gt;</span>,
+    <span class="ident">cache</span>: <span class="ident">PoolGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">ProgramCache</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// `ExecNoSyncStr` is like `ExecNoSync`, but matches on &amp;str instead of &amp;[u8].</span>
@@ -1943,7 +1958,8 @@
                 <span class="ident">ac</span>: <span class="prelude-val">None</span>,
                 <span class="ident">match_type</span>: <span class="ident">MatchType</span>::<span class="ident">Nothing</span>,
             });
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Exec</span> { <span class="ident">ro</span>: <span class="ident">ro</span>, <span class="ident">cache</span>: <span class="ident">Cached</span>::<span class="ident">new</span>() });
+            <span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="ident">ExecReadOnly</span>::<span class="ident">new_pool</span>(<span class="kw-2">&amp;</span><span class="ident">ro</span>);
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Exec</span> { <span class="ident">ro</span>: <span class="ident">ro</span>, <span class="ident">pool</span> });
         }
         <span class="kw">let</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nfa</span> <span class="op">=</span> <span class="ident">Compiler</span>::<span class="ident">new</span>()
@@ -1983,7 +1999,8 @@
         <span class="ident">ro</span>.<span class="ident">match_type</span> <span class="op">=</span> <span class="ident">ro</span>.<span class="ident">choose_match_type</span>(<span class="self">self</span>.<span class="ident">match_type</span>);
 
         <span class="kw">let</span> <span class="ident">ro</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="ident">ro</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">Exec</span> { <span class="ident">ro</span>: <span class="ident">ro</span>, <span class="ident">cache</span>: <span class="ident">Cached</span>::<span class="ident">new</span>() })
+        <span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="ident">ExecReadOnly</span>::<span class="ident">new_pool</span>(<span class="kw-2">&amp;</span><span class="ident">ro</span>);
+        <span class="prelude-val">Ok</span>(<span class="ident">Exec</span> { <span class="ident">ro</span>, <span class="ident">pool</span> })
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>)]</span>
@@ -2895,10 +2912,9 @@
     <span class="doccomment">/// Get a searcher that isn&#39;t Sync.</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">searcher</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ExecNoSync</span> {
-        <span class="kw">let</span> <span class="ident">create</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="ident">ProgramCacheInner</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>));
         <span class="ident">ExecNoSync</span> {
             <span class="ident">ro</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>, <span class="comment">// a clone is too expensive here! (and not needed)</span>
-            <span class="ident">cache</span>: <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">get_or</span>(<span class="ident">create</span>),
+            <span class="ident">cache</span>: <span class="self">self</span>.<span class="ident">pool</span>.<span class="ident">get</span>(),
         }
     }
 
@@ -2950,7 +2966,8 @@
 
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Exec</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Exec</span> {
-        <span class="ident">Exec</span> { <span class="ident">ro</span>: <span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">clone</span>(), <span class="ident">cache</span>: <span class="ident">Cached</span>::<span class="ident">new</span>() }
+        <span class="kw">let</span> <span class="ident">pool</span> <span class="op">=</span> <span class="ident">ExecReadOnly</span>::<span class="ident">new_pool</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>);
+        <span class="ident">Exec</span> { <span class="ident">ro</span>: <span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">clone</span>(), <span class="ident">pool</span> }
     }
 }
 
@@ -3083,6 +3100,13 @@
         <span class="kw">let</span> <span class="ident">lcs_len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">suffixes</span>.<span class="ident">lcs</span>().<span class="ident">char_len</span>();
         <span class="ident">lcs_len</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">3</span> <span class="op">&amp;&amp;</span> <span class="ident">lcs_len</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">dfa</span>.<span class="ident">prefixes</span>.<span class="ident">lcp</span>().<span class="ident">char_len</span>()
     }
+
+    <span class="kw">fn</span> <span class="ident">new_pool</span>(<span class="ident">ro</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">ExecReadOnly</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Pool</span><span class="op">&lt;</span><span class="ident">ProgramCache</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">ro</span> <span class="op">=</span> <span class="ident">ro</span>.<span class="ident">clone</span>();
+        <span class="ident">Pool</span>::<span class="ident">new</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
+            <span class="ident">AssertUnwindSafe</span>(<span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="ident">ProgramCacheInner</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">ro</span>)))
+        }))
+    }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
@@ -3141,7 +3165,11 @@
 
 <span class="doccomment">/// `ProgramCache` maintains reusable allocations for each matching engine</span>
 <span class="doccomment">/// available to a particular program.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ProgramCache</span> <span class="op">=</span> <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">ProgramCacheInner</span><span class="op">&gt;</span>;
+<span class="doccomment">///</span>
+<span class="doccomment">/// We declare this as unwind safe since it&#39;s a cache that&#39;s only used for</span>
+<span class="doccomment">/// performance purposes. If a panic occurs, it is (or should be) always safe</span>
+<span class="doccomment">/// to continue using the same regex object.</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ProgramCache</span> <span class="op">=</span> <span class="ident">AssertUnwindSafe</span><span class="op">&lt;</span><span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">ProgramCacheInner</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ProgramCacheInner</span> {

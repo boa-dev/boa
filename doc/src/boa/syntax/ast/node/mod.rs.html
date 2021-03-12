@@ -579,6 +579,20 @@
 <span id="578">578</span>
 <span id="579">579</span>
 <span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `Node` structure, which composes the AST.</span>
 
@@ -778,6 +792,18 @@
 
     <span class="doccomment">/// A &#39;while {...}&#39; node. [More information](./iteration/struct.WhileLoop.html).</span>
     <span class="ident">WhileLoop</span>(<span class="ident">WhileLoop</span>),
+
+    <span class="doccomment">/// A empty node.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Empty statement do nothing, just return undefined.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-EmptyStatement</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/Empty</span>
+    <span class="ident">Empty</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Node</span> {
@@ -856,6 +882,7 @@
             <span class="self">Self</span>::<span class="ident">AsyncFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
             <span class="self">Self</span>::<span class="ident">AsyncFunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
             <span class="self">Self</span>::<span class="ident">AwaitExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="self">Self</span>::<span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;;&quot;</span>),
         }
     }
 }
@@ -920,6 +947,7 @@
             <span class="ident">Node</span>::<span class="ident">Try</span>(<span class="kw-2">ref</span> <span class="ident">try_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">try_node</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node</span>::<span class="ident">Break</span>(<span class="kw-2">ref</span> <span class="ident">break_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">break_node</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node</span>::<span class="ident">Continue</span>(<span class="kw-2">ref</span> <span class="ident">continue_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">continue_node</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node</span>::<span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">Undefined</span>),
         }
     }
 }
