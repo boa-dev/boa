@@ -1519,3 +1519,13 @@ fn test_strict_mode_dup_func_parameters() {
 
     assert!(string.starts_with("Uncaught \"SyntaxError\": "));
 }
+
+#[test]
+fn test_empty_statement() {
+    let src = r#"
+        ;;;let a = 10;;
+        if(a) ;
+        a
+    "#;
+    assert_eq!(&exec(src), "10");
+}
