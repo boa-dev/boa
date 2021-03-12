@@ -29,7 +29,7 @@ use std::{
 pub type Ref<'a, T> = GcCellRef<'a, T>;
 
 /// A wrapper type for a mutably borrowed type T.
-pub type RefMut<'a, T> = GcCellRefMut<'a, T>;
+pub type RefMut<'a, T, U> = GcCellRefMut<'a, T, U>;
 
 /// Garbage collected `Object`.
 #[derive(Trace, Finalize, Clone, Default)]
@@ -75,7 +75,7 @@ impl GcObject {
     /// Panics if the object is currently borrowed.
     #[inline]
     #[track_caller]
-    pub fn borrow_mut(&self) -> RefMut<'_, Object> {
+    pub fn borrow_mut(&self) -> RefMut<'_, Object, Object> {
         self.try_borrow_mut().expect("Object already borrowed")
     }
 
@@ -97,7 +97,7 @@ impl GcObject {
     ///
     /// This is the non-panicking variant of [`borrow_mut`](#method.borrow_mut).
     #[inline]
-    pub fn try_borrow_mut(&self) -> StdResult<RefMut<'_, Object>, BorrowMutError> {
+    pub fn try_borrow_mut(&self) -> StdResult<RefMut<'_, Object, Object>, BorrowMutError> {
         self.0.try_borrow_mut().map_err(|_| BorrowMutError)
     }
 
@@ -546,7 +546,7 @@ impl GcObject {
     /// Panics if the object is currently borrowed.
     #[inline]
     #[track_caller]
-    pub fn downcast_mut<T>(&mut self) -> Option<RefMut<'_, T>>
+    pub fn downcast_mut<T>(&mut self) -> Option<RefMut<'_, Object, T>>
     where
         T: NativeObject,
     {
