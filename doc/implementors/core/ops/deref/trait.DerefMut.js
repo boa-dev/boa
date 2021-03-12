@@ -1,6 +1,6 @@
 (function() {var implementors = {};
 implementors["arrayvec"] = [{"text":"impl&lt;A:&nbsp;Array&lt;Item = u8&gt;&gt; DerefMut for ArrayString&lt;A&gt;","synthetic":false,"types":[]},{"text":"impl&lt;A:&nbsp;Array&gt; DerefMut for ArrayVec&lt;A&gt;","synthetic":false,"types":[]}];
-implementors["gc"] = [{"text":"impl&lt;'a, T:&nbsp;Trace + ?Sized&gt; DerefMut for GcCellRefMut&lt;'a, T&gt;","synthetic":false,"types":[]}];
+implementors["gc"] = [{"text":"impl&lt;'a, T:&nbsp;Trace + ?Sized, U:&nbsp;?Sized&gt; DerefMut for GcCellRefMut&lt;'a, T, U&gt;","synthetic":false,"types":[]}];
 implementors["git2"] = [{"text":"impl DerefMut for Buf","synthetic":false,"types":[]}];
 implementors["nodrop"] = [{"text":"impl&lt;T&gt; DerefMut for NoDrop&lt;T&gt;","synthetic":false,"types":[]}];
 implementors["once_cell"] = [{"text":"impl&lt;T, F:&nbsp;FnOnce() -&gt; T&gt; DerefMut for Lazy&lt;T, F&gt;","synthetic":false,"types":[]},{"text":"impl&lt;T, F:&nbsp;FnOnce() -&gt; T&gt; DerefMut for Lazy&lt;T, F&gt;","synthetic":false,"types":[]}];
