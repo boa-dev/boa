@@ -1,6 +1,6 @@
 use crate::syntax::{
     ast::{
-        node::{AsyncFunctionExpr, ConstDecl, ConstDeclList, Return, StatementList},
+        node::{AsyncFunctionExpr, Declaration, DeclarationList, Return, StatementList},
         Const,
     },
     parser::tests::check_parser,
@@ -11,19 +11,24 @@ use crate::syntax::{
 fn check_async_expression() {
     check_parser(
         "const add = async function() {
-            return 1; 
+            return 1;
         };
         ",
-        vec![ConstDeclList::from(vec![ConstDecl::new(
-            "add",
-            Some(
-                AsyncFunctionExpr::new::<Option<Box<str>>, _, StatementList>(
-                    None,
-                    [],
-                    vec![Return::new::<_, _, Option<Box<str>>>(Const::from(1), None).into()].into(),
+        vec![DeclarationList::Const(
+            vec![Declaration::new(
+                "add",
+                Some(
+                    AsyncFunctionExpr::new::<Option<Box<str>>, _, StatementList>(
+                        None,
+                        [],
+                        vec![Return::new::<_, _, Option<Box<str>>>(Const::from(1), None).into()]
+                            .into(),
+                    )
+                    .into(),
                 ),
-            ),
-        )])
+            )]
+            .into(),
+        )
         .into()],
     );
 }
@@ -33,17 +38,17 @@ fn check_nested_async_expression() {
     check_parser(
         "const a = async function() {
             const b = async function() {
-                return 1; 
+                return 1;
             };
         };
         ",
-        vec![ConstDeclList::from(vec![ConstDecl::new(
+        vec![DeclarationList::Const(vec![Declaration::new(
             "a",
             Some(
                 AsyncFunctionExpr::new::<Option<Box<str>>, _, StatementList>(
                     None,
                     [],
-                    vec![ConstDeclList::from(vec![ConstDecl::new(
+                    vec![DeclarationList::Const(vec![Declaration::new(
                         "b",
                         Some(
                             AsyncFunctionExpr::new::<Option<Box<str>>, _, StatementList>(
@@ -52,14 +57,14 @@ fn check_nested_async_expression() {
                                 vec![Return::new::<_, _, Option<Box<str>>>(Const::from(1), None)
                                     .into()]
                                 .into(),
-                            ),
+                            ).into(),
                         ),
-                    )])
+                    )].into())
                     .into()]
                     .into(),
-                ),
+                ).into(),
             ),
-        )])
+        )].into())
         .into()],
     );
 }

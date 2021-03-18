@@ -11,7 +11,10 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
-            node::{ConstDecl, ConstDeclList, LetDecl, LetDeclList, Node},
+            node::{
+                declaration::{Declaration, DeclarationList},
+                Node,
+            },
             Keyword, Punctuator,
         },
         parser::{
@@ -158,7 +161,7 @@ where
             if self.is_const {
                 if self.const_init_required {
                     if init.is_some() {
-                        const_decls.push(ConstDecl::new(ident, init));
+                        const_decls.push(Declaration::new(ident, init));
                     } else {
                         return Err(ParseError::expected(
                             vec![TokenKind::Punctuator(Punctuator::Assign)],
@@ -167,10 +170,10 @@ where
                         ));
                     }
                 } else {
-                    const_decls.push(ConstDecl::new(ident, init))
+                    const_decls.push(Declaration::new(ident, init))
                 }
             } else {
-                let_decls.push(LetDecl::new(ident, init));
+                let_decls.push(Declaration::new(ident, init));
             }
 
             match cursor.peek_semicolon()? {
@@ -201,9 +204,9 @@ where
         }
 
         if self.is_const {
-            Ok(ConstDeclList::from(const_decls).into())
+            Ok(DeclarationList::Const(const_decls.into()).into())
         } else {
-            Ok(LetDeclList::from(let_decls).into())
+            Ok(DeclarationList::Let(let_decls.into()).into())
         }
     }
 }
