@@ -41,13 +41,14 @@ use super::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser
 use crate::{
     syntax::{
         ast::{node, Keyword, Node, Punctuator},
-        lexer::{Error as LexError, InputElement, TokenKind},
+        lexer::{Error as LexError, InputElement, Position, TokenKind},
         parser::expression::await_expr::AwaitExpression,
     },
     BoaProfiler,
 };
 use labelled_stm::LabelledStatement;
 
+use std::collections::HashSet;
 use std::io::Read;
 
 /// Statement parsing.
@@ -287,6 +288,53 @@ where
 
             // move the cursor forward for any consecutive semicolon.
             while cursor.next_if(Punctuator::Semicolon)?.is_some() {}
+        }
+
+        // Handle any redeclarations
+        // https://tc39.es/ecma262/#sec-block-static-semantics-early-errors
+        {
+            let mut lexically_declared_names: HashSet<&str> = HashSet::new();
+            let mut var_declared_names: HashSet<&str> = HashSet::new();
+
+            // TODO: Use more helpful positions in errors when spans are added to Nodes
+            for item in &items {
+                match item {
+                    Node::LetDeclList(decl_list) | Node::ConstDeclList(decl_list) => {
+                        for decl in decl_list.as_ref() {
+                            // if name in VarDeclaredNames or can't be added to
+                            // LexicallyDeclaredNames, raise an error
+                            if var_declared_names.contains(decl.name())
+                                || !lexically_declared_names.insert(decl.name())
+                            {
+                                return Err(ParseError::lex(LexError::Syntax(
+                                    format!("Redeclaration of variable `{}`", decl.name()).into(),
+                                    match cursor.peek(0)? {
+                                        Some(token) => token.span().end(),
+                                        None => Position::new(1, 1),
+                                    },
+                                )));
+                            }
+                        }
+                    }
+                    Node::VarDeclList(decl_list) => {
+                        for decl in decl_list.as_ref() {
+                            // if name in LexicallyDeclaredNames, raise an error
+                            if lexically_declared_names.contains(decl.name()) {
+                                return Err(ParseError::lex(LexError::Syntax(
+                                    format!("Redeclaration of variable `{}`", decl.name()).into(),
+                                    match cursor.peek(0)? {
+                                        Some(token) => token.span().end(),
+                                        None => Position::new(1, 1),
+                                    },
+                                )));
+                            }
+                            // otherwise, add to VarDeclaredNames
+                            var_declared_names.insert(decl.name());
+                        }
+                    }
+                    _ => (),
+                }
+            }
         }
 
         items.sort_by(Node::hoistable_order);
