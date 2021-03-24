@@ -313,6 +313,7 @@
 <span id="312">312</span>
 <span id="313">313</span>
 <span id="314">314</span>
+<span id="315">315</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Execution module for the test runner.</span>
 
@@ -374,7 +375,8 @@
 
         <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="macro">println</span><span class="macro">!</span>(
-                <span class="string">&quot;Results: total: {}, passed: {}, ignored: {}, failed: {} (panics: {}{}), conformance: {:.2}%&quot;</span>,
+                <span class="string">&quot;Suite {} results: total: {}, passed: {}, ignored: {}, failed: {} (panics: {}{}), conformance: {:.2}%&quot;</span>,
+                <span class="self">self</span>.<span class="ident">name</span>,
                 <span class="ident">total</span>,
                 <span class="ident">passed</span>.<span class="ident">to_string</span>().<span class="ident">green</span>(),
                 <span class="ident">ignored</span>.<span class="ident">to_string</span>().<span class="ident">yellow</span>(),
