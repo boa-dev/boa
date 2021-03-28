@@ -56,7 +56,7 @@ impl BigInt {
     /// Returns `std::f64::INFINITY` if the BigInt is too big.
     #[inline]
     pub fn to_f64(&self) -> f64 {
-        self.0.to_f64().unwrap_or(std::f64::INFINITY)
+        self.0.to_f64().unwrap_or(f64::INFINITY)
     }
 
     #[inline]

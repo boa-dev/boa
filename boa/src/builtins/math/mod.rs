@@ -15,7 +15,6 @@ use crate::{
     builtins::BuiltIn, object::ObjectInitializer, property::Attribute, BoaProfiler, Context,
     Result, Value,
 };
-use std::f64;
 
 #[cfg(test)]
 mod tests;
@@ -36,14 +35,14 @@ impl BuiltIn for Math {
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         let object = ObjectInitializer::new(context)
-            .property("E", f64::consts::E, attribute)
-            .property("LN2", f64::consts::LN_2, attribute)
-            .property("LN10", f64::consts::LN_10, attribute)
-            .property("LOG2E", f64::consts::LOG2_E, attribute)
-            .property("LOG10E", f64::consts::LOG10_E, attribute)
+            .property("E", std::f64::consts::E, attribute)
+            .property("LN2", std::f64::consts::LN_2, attribute)
+            .property("LN10", std::f64::consts::LN_10, attribute)
+            .property("LOG2E", std::f64::consts::LOG2_E, attribute)
+            .property("LOG10E", std::f64::consts::LOG10_E, attribute)
             .property("SQRT1_2", 0.5_f64.sqrt(), attribute)
-            .property("SQRT2", f64::consts::SQRT_2, attribute)
-            .property("PI", f64::consts::PI, attribute)
+            .property("SQRT2", std::f64::consts::SQRT_2, attribute)
+            .property("PI", std::f64::consts::PI, attribute)
             .function(Self::abs, "abs", 1)
             .function(Self::acos, "acos", 1)
             .function(Self::acosh, "acosh", 1)

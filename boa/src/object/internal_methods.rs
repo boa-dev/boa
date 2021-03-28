@@ -363,7 +363,7 @@ impl GcObject {
                     return Ok(false);
                 }
                 if self.ordinary_define_own_property(key, desc) {
-                    if index >= old_len && index < std::u32::MAX {
+                    if index >= old_len && index < u32::MAX {
                         let desc = PropertyDescriptor::Data(DataDescriptor::new(
                             index + 1,
                             old_len_data_desc.attributes(),
