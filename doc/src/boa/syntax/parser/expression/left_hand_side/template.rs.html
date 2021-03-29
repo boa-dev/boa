@@ -151,9 +151,9 @@
 
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
-                <span class="ident">TokenKind</span>::<span class="ident">TemplateMiddle</span> { <span class="ident">raw</span>, <span class="ident">cooked</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">raws</span>.<span class="ident">push</span>(<span class="ident">raw</span>.<span class="ident">clone</span>());
-                    <span class="ident">cookeds</span>.<span class="ident">push</span>(<span class="ident">cooked</span>.<span class="ident">clone</span>());
+                <span class="ident">TokenKind</span>::<span class="ident">TemplateMiddle</span>(<span class="ident">template_string</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">raws</span>.<span class="ident">push</span>(<span class="ident">template_string</span>.<span class="ident">as_raw</span>().<span class="ident">to_owned</span>().<span class="ident">into_boxed_str</span>());
+                    <span class="ident">cookeds</span>.<span class="ident">push</span>(<span class="ident">template_string</span>.<span class="ident">to_owned_cooked</span>().<span class="ident">ok</span>());
                     <span class="ident">exprs</span>.<span class="ident">push</span>(
                         <span class="ident">Expression</span>::<span class="ident">new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>,
                     );
@@ -162,9 +162,9 @@
                         <span class="string">&quot;template literal&quot;</span>,
                     )<span class="question-mark">?</span>;
                 }
-                <span class="ident">TokenKind</span>::<span class="ident">TemplateNoSubstitution</span> { <span class="ident">raw</span>, <span class="ident">cooked</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">raws</span>.<span class="ident">push</span>(<span class="ident">raw</span>.<span class="ident">clone</span>());
-                    <span class="ident">cookeds</span>.<span class="ident">push</span>(<span class="ident">cooked</span>.<span class="ident">clone</span>());
+                <span class="ident">TokenKind</span>::<span class="ident">TemplateNoSubstitution</span>(<span class="ident">template_string</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">raws</span>.<span class="ident">push</span>(<span class="ident">template_string</span>.<span class="ident">as_raw</span>().<span class="ident">to_owned</span>().<span class="ident">into_boxed_str</span>());
+                    <span class="ident">cookeds</span>.<span class="ident">push</span>(<span class="ident">template_string</span>.<span class="ident">to_owned_cooked</span>().<span class="ident">ok</span>());
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Node</span>::<span class="ident">from</span>(<span class="ident">TaggedTemplate</span>::<span class="ident">new</span>(
                         <span class="self">self</span>.<span class="ident">tag</span>, <span class="ident">raws</span>, <span class="ident">cookeds</span>, <span class="ident">exprs</span>,
                     )));
@@ -181,4 +181,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../../../";window.currentCrate = "boa";</script><script src="../../../../../../main.js"></script><script src="../../../../../../source-script.js"></script><script src="../../../../../../source-files.js"></script><script defer src="../../../../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="boa"></div>
+    <script src="../../../../../../main.js"></script><script src="../../../../../../source-script.js"></script><script src="../../../../../../source-files.js"></script><script defer src="../../../../../../search-index.js"></script></body></html>

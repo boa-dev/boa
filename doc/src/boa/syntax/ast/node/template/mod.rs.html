@@ -158,6 +158,14 @@
 <span id="157">157</span>
 <span id="158">158</span>
 <span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Template literal node.</span>
 
@@ -230,12 +238,17 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TaggedTemplate</span> {
     <span class="ident">tag</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
     <span class="ident">raws</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">cookeds</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">cookeds</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">exprs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">TaggedTemplate</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">tag</span>: <span class="ident">Node</span>, <span class="ident">raws</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">cookeds</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">exprs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
+        <span class="ident">tag</span>: <span class="ident">Node</span>,
+        <span class="ident">raws</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">cookeds</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">exprs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">tag</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">tag</span>),
             <span class="ident">raws</span>,
@@ -257,7 +270,11 @@
         }
 
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">cooked</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">cookeds</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="ident">template_object</span>.<span class="ident">set_field</span>(<span class="ident">i</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">cooked</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cooked</span>) <span class="op">=</span> <span class="ident">cooked</span> {
+                <span class="ident">template_object</span>.<span class="ident">set_field</span>(<span class="ident">i</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">cooked</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+            } <span class="kw">else</span> {
+                <span class="ident">template_object</span>.<span class="ident">set_field</span>(<span class="ident">i</span>, <span class="ident">Value</span>::<span class="ident">undefined</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+            }
         }
         <span class="ident">template_object</span>.<span class="ident">set_field</span>(<span class="string">&quot;raw&quot;</span>, <span class="ident">raw_array</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -286,8 +303,7 @@
             ),
         };
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
-        <span class="ident">args</span>.<span class="ident">push</span>(<span class="ident">template_object</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">template_object</span>];
         <span class="kw">for</span> <span class="ident">expr</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">exprs</span>.<span class="ident">iter</span>() {
             <span class="ident">args</span>.<span class="ident">push</span>(<span class="ident">expr</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
         }
@@ -319,4 +335,5 @@
     <span class="ident">Expr</span>(<span class="ident">Node</span>),
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../../../";window.currentCrate = "boa";</script><script src="../../../../../../main.js"></script><script src="../../../../../../source-script.js"></script><script src="../../../../../../source-files.js"></script><script defer src="../../../../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="boa"></div>
+    <script src="../../../../../../main.js"></script><script src="../../../../../../source-script.js"></script><script src="../../../../../../source-files.js"></script><script defer src="../../../../../../search-index.js"></script></body></html>

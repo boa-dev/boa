@@ -103,6 +103,7 @@
 <span id="102">102</span>
 <span id="103">103</span>
 <span id="104">104</span>
+<span id="105">105</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Template literal parsing.</span>
 <span class="doccomment">//!</span>
@@ -168,11 +169,12 @@
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;TemplateLiteral&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elements</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
-        <span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">TemplateElement</span>::<span class="ident">String</span>(<span class="self">self</span>.<span class="ident">first</span>.<span class="ident">into_boxed_str</span>()));
-        <span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">TemplateElement</span>::<span class="ident">Expr</span>(
-            <span class="ident">Expression</span>::<span class="ident">new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>,
-        ));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elements</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[
+            <span class="ident">TemplateElement</span>::<span class="ident">String</span>(<span class="self">self</span>.<span class="ident">first</span>.<span class="ident">into_boxed_str</span>()),
+            <span class="ident">TemplateElement</span>::<span class="ident">Expr</span>(
+                <span class="ident">Expression</span>::<span class="ident">new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>,
+            ),
+        ];
         <span class="ident">cursor</span>.<span class="ident">expect</span>(
             <span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">CloseBlock</span>),
             <span class="string">&quot;template literal&quot;</span>,
@@ -180,10 +182,10 @@
 
         <span class="kw">loop</span> {
             <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">lex_template</span>(<span class="self">self</span>.<span class="ident">start</span>)<span class="question-mark">?</span>.<span class="ident">kind</span>() {
-                <span class="ident">TokenKind</span>::<span class="ident">TemplateMiddle</span> {
-                    <span class="ident">cooked</span>: <span class="ident">template</span>, ..
-                } <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">TemplateElement</span>::<span class="ident">String</span>(<span class="ident">template</span>.<span class="ident">to_owned</span>()));
+                <span class="ident">TokenKind</span>::<span class="ident">TemplateMiddle</span>(<span class="ident">template_string</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">let</span> <span class="ident">cooked</span> <span class="op">=</span> <span class="ident">template_string</span>.<span class="ident">to_owned_cooked</span>().<span class="ident">map_err</span>(<span class="ident">ParseError</span>::<span class="ident">lex</span>)<span class="question-mark">?</span>;
+
+                    <span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">TemplateElement</span>::<span class="ident">String</span>(<span class="ident">cooked</span>));
                     <span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">TemplateElement</span>::<span class="ident">Expr</span>(
                         <span class="ident">Expression</span>::<span class="ident">new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>,
                     ));
@@ -192,10 +194,10 @@
                         <span class="string">&quot;template literal&quot;</span>,
                     )<span class="question-mark">?</span>;
                 }
-                <span class="ident">TokenKind</span>::<span class="ident">TemplateNoSubstitution</span> {
-                    <span class="ident">cooked</span>: <span class="ident">template</span>, ..
-                } <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">TemplateElement</span>::<span class="ident">String</span>(<span class="ident">template</span>.<span class="ident">to_owned</span>()));
+                <span class="ident">TokenKind</span>::<span class="ident">TemplateNoSubstitution</span>(<span class="ident">template_string</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">let</span> <span class="ident">cooked</span> <span class="op">=</span> <span class="ident">template_string</span>.<span class="ident">to_owned_cooked</span>().<span class="ident">map_err</span>(<span class="ident">ParseError</span>::<span class="ident">lex</span>)<span class="question-mark">?</span>;
+
+                    <span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">TemplateElement</span>::<span class="ident">String</span>(<span class="ident">cooked</span>));
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">TemplateLit</span>::<span class="ident">new</span>(<span class="ident">elements</span>));
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
@@ -209,4 +211,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../../../../";window.currentCrate = "boa";</script><script src="../../../../../../../main.js"></script><script src="../../../../../../../source-script.js"></script><script src="../../../../../../../source-files.js"></script><script defer src="../../../../../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../../../../" data-current-crate="boa"></div>
+    <script src="../../../../../../../main.js"></script><script src="../../../../../../../source-script.js"></script><script src="../../../../../../../source-files.js"></script><script defer src="../../../../../../../search-index.js"></script></body></html>

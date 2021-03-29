@@ -161,13 +161,13 @@
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">ArrowFunctionDecl</span> {
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">context</span>.<span class="ident">create_function</span>(
+        <span class="ident">context</span>.<span class="ident">create_function</span>(
             <span class="self">self</span>.<span class="ident">params</span>().<span class="ident">to_vec</span>(),
             <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">to_vec</span>(),
             <span class="ident">FunctionFlags</span>::<span class="ident">CALLABLE</span>
                 <span class="op">|</span> <span class="ident">FunctionFlags</span>::<span class="ident">CONSTRUCTABLE</span>
                 <span class="op">|</span> <span class="ident">FunctionFlags</span>::<span class="ident">LEXICAL_THIS_MODE</span>,
-        )<span class="question-mark">?</span>)
+        )
     }
 }
 
@@ -183,4 +183,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../../../../";window.currentCrate = "boa";</script><script src="../../../../../../../main.js"></script><script src="../../../../../../../source-script.js"></script><script src="../../../../../../../source-files.js"></script><script defer src="../../../../../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../../../../" data-current-crate="boa"></div>
+    <script src="../../../../../../../main.js"></script><script src="../../../../../../../source-script.js"></script><script src="../../../../../../../source-files.js"></script><script defer src="../../../../../../../search-index.js"></script></body></html>

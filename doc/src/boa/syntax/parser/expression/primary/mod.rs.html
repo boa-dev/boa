@@ -151,6 +151,10 @@
 <span id="150">150</span>
 <span id="151">151</span>
 <span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Primary expression parsing.</span>
 <span class="doccomment">//!</span>
@@ -261,8 +265,9 @@
             <span class="ident">TokenKind</span>::<span class="ident">BooleanLiteral</span>(<span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Const</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">boolean</span>).<span class="ident">into</span>()),
             <span class="ident">TokenKind</span>::<span class="ident">NullLiteral</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Const</span>::<span class="ident">Null</span>.<span class="ident">into</span>()),
             <span class="ident">TokenKind</span>::<span class="ident">Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Identifier</span>::<span class="ident">from</span>(<span class="ident">ident</span>.<span class="ident">as_ref</span>()).<span class="ident">into</span>()), <span class="comment">// TODO: IdentifierReference</span>
-            <span class="ident">TokenKind</span>::<span class="ident">StringLiteral</span>(<span class="ident">s</span>) <span class="op">|</span> <span class="ident">TokenKind</span>::<span class="ident">TemplateNoSubstitution</span> { <span class="ident">cooked</span>: <span class="ident">s</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">Const</span>::<span class="ident">from</span>(<span class="ident">s</span>.<span class="ident">as_ref</span>()).<span class="ident">into</span>())
+            <span class="ident">TokenKind</span>::<span class="ident">StringLiteral</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Const</span>::<span class="ident">from</span>(<span class="ident">s</span>.<span class="ident">as_ref</span>()).<span class="ident">into</span>()),
+            <span class="ident">TokenKind</span>::<span class="ident">TemplateNoSubstitution</span>(<span class="ident">template_string</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">Const</span>::<span class="ident">from</span>(<span class="ident">template_string</span>.<span class="ident">to_owned_cooked</span>().<span class="ident">map_err</span>(<span class="ident">ParseError</span>::<span class="ident">lex</span>)<span class="question-mark">?</span>).<span class="ident">into</span>())
             }
             <span class="ident">TokenKind</span>::<span class="ident">NumericLiteral</span>(<span class="ident">Numeric</span>::<span class="ident">Integer</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Const</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">num</span>).<span class="ident">into</span>()),
             <span class="ident">TokenKind</span>::<span class="ident">NumericLiteral</span>(<span class="ident">Numeric</span>::<span class="ident">Rational</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Const</span>::<span class="ident">from</span>(<span class="kw-2">*</span><span class="ident">num</span>).<span class="ident">into</span>()),
@@ -292,11 +297,14 @@
                     <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">unexpected</span>(<span class="ident">tok</span>, <span class="string">&quot;regular expression literal&quot;</span>))
                 }
             }
-            <span class="ident">TokenKind</span>::<span class="ident">TemplateMiddle</span> { <span class="ident">cooked</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TemplateLiteral</span>::<span class="ident">new</span>(
+            <span class="ident">TokenKind</span>::<span class="ident">TemplateMiddle</span>(<span class="ident">template_string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">TemplateLiteral</span>::<span class="ident">new</span>(
                 <span class="self">self</span>.<span class="ident">allow_yield</span>,
                 <span class="self">self</span>.<span class="ident">allow_await</span>,
                 <span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
-                <span class="ident">cooked</span>.<span class="ident">as_ref</span>(),
+                <span class="ident">template_string</span>
+                    .<span class="ident">to_owned_cooked</span>()
+                    .<span class="ident">map_err</span>(<span class="ident">ParseError</span>::<span class="ident">lex</span>)<span class="question-mark">?</span>
+                    .<span class="ident">as_ref</span>(),
             )
             .<span class="ident">parse</span>(<span class="ident">cursor</span>)
             .<span class="ident">map</span>(<span class="ident">Node</span>::<span class="ident">TemplateLit</span>),
@@ -305,4 +313,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../../../";window.currentCrate = "boa";</script><script src="../../../../../../main.js"></script><script src="../../../../../../source-script.js"></script><script src="../../../../../../source-files.js"></script><script defer src="../../../../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="boa"></div>
+    <script src="../../../../../../main.js"></script><script src="../../../../../../source-script.js"></script><script src="../../../../../../source-files.js"></script><script defer src="../../../../../../search-index.js"></script></body></html>

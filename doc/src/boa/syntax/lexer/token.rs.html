@@ -260,30 +260,6 @@
 <span id="259">259</span>
 <span id="260">260</span>
 <span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements all of the [Token]s used in the JavaScript programing language.</span>
 <span class="doccomment">//!</span>
@@ -297,8 +273,8 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::<span class="ident">BigInt</span>,
     <span class="ident">syntax</span>::<span class="ident">ast</span>::{<span class="ident">Keyword</span>, <span class="ident">Punctuator</span>, <span class="ident">Span</span>},
+    <span class="ident">syntax</span>::<span class="ident">lexer</span>::<span class="ident">template</span>::<span class="ident">TemplateString</span>,
 };
-
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>, <span class="ident">Formatter</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
@@ -413,20 +389,10 @@
     <span class="ident">StringLiteral</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>),
 
     <span class="doccomment">/// A part of a template literal without substitution.</span>
-    <span class="ident">TemplateNoSubstitution</span> {
-        <span class="doccomment">/// The string as it has been entered, without processing escape sequences.</span>
-        <span class="ident">raw</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-        <span class="doccomment">/// The raw string with escape sequences processed.</span>
-        <span class="ident">cooked</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    },
+    <span class="ident">TemplateNoSubstitution</span>(<span class="ident">TemplateString</span>),
 
     <span class="doccomment">/// The part of a template literal between substitutions</span>
-    <span class="ident">TemplateMiddle</span> {
-        <span class="doccomment">/// The string as it has been entered, without processing escape sequences.</span>
-        <span class="ident">raw</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-        <span class="doccomment">/// The raw string with escape sequences processed.</span>
-        <span class="ident">cooked</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-    },
+    <span class="ident">TemplateMiddle</span>(<span class="ident">TemplateString</span>),
 
     <span class="doccomment">/// A regular expression, consisting of body and flags.</span>
     <span class="ident">RegularExpressionLiteral</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">RegExpFlags</span>),
@@ -507,26 +473,12 @@
         <span class="self">Self</span>::<span class="ident">StringLiteral</span>(<span class="ident">lit</span>.<span class="ident">into</span>())
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">template_middle</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">raw</span>: <span class="ident">R</span>, <span class="ident">cooked</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">R</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    {
-        <span class="self">Self</span>::<span class="ident">TemplateMiddle</span> {
-            <span class="ident">raw</span>: <span class="ident">raw</span>.<span class="ident">into</span>(),
-            <span class="ident">cooked</span>: <span class="ident">cooked</span>.<span class="ident">into</span>(),
-        }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">template_middle</span>(<span class="ident">template_string</span>: <span class="ident">TemplateString</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>::<span class="ident">TemplateMiddle</span>(<span class="ident">template_string</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">template_no_substitution</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">C</span><span class="op">&gt;</span>(<span class="ident">raw</span>: <span class="ident">R</span>, <span class="ident">cooked</span>: <span class="ident">C</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">R</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-        <span class="ident">C</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    {
-        <span class="self">Self</span>::<span class="ident">TemplateNoSubstitution</span> {
-            <span class="ident">raw</span>: <span class="ident">raw</span>.<span class="ident">into</span>(),
-            <span class="ident">cooked</span>: <span class="ident">cooked</span>.<span class="ident">into</span>(),
-        }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">template_no_substitution</span>(<span class="ident">template_string</span>: <span class="ident">TemplateString</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>::<span class="ident">TemplateNoSubstitution</span>(<span class="ident">template_string</span>)
     }
 
     <span class="doccomment">/// Creates a `RegularExpressionLiteral` token kind.</span>
@@ -562,8 +514,8 @@
             <span class="self">Self</span>::<span class="ident">NumericLiteral</span>(<span class="ident">Numeric</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}n&quot;</span>, <span class="ident">num</span>),
             <span class="self">Self</span>::<span class="ident">Punctuator</span>(<span class="kw-2">ref</span> <span class="ident">punc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">punc</span>),
             <span class="self">Self</span>::<span class="ident">StringLiteral</span>(<span class="kw-2">ref</span> <span class="ident">lit</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">lit</span>),
-            <span class="self">Self</span>::<span class="ident">TemplateNoSubstitution</span> { <span class="kw-2">ref</span> <span class="ident">cooked</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">cooked</span>),
-            <span class="self">Self</span>::<span class="ident">TemplateMiddle</span> { <span class="kw-2">ref</span> <span class="ident">cooked</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">cooked</span>),
+            <span class="self">Self</span>::<span class="ident">TemplateNoSubstitution</span>(<span class="kw-2">ref</span> <span class="ident">ts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">ts</span>.<span class="ident">as_raw</span>()),
+            <span class="self">Self</span>::<span class="ident">TemplateMiddle</span>(<span class="kw-2">ref</span> <span class="ident">ts</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">ts</span>.<span class="ident">as_raw</span>()),
             <span class="self">Self</span>::<span class="ident">RegularExpressionLiteral</span>(<span class="kw-2">ref</span> <span class="ident">body</span>, <span class="kw-2">ref</span> <span class="ident">flags</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;/{}/{}&quot;</span>, <span class="ident">body</span>, <span class="ident">flags</span>),
             <span class="self">Self</span>::<span class="ident">LineTerminator</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;line terminator&quot;</span>),
             <span class="self">Self</span>::<span class="ident">Comment</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;comment&quot;</span>),
@@ -571,4 +523,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../";window.currentCrate = "boa";</script><script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script><script defer src="../../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa"></div>
+    <script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script><script defer src="../../../../search-index.js"></script></body></html>

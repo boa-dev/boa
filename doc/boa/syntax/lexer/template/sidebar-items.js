@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["TemplateLiteral","Template literal lexing."]]});
+initSidebarItems({"struct":[["TemplateLiteral","Template literal lexing."],["TemplateString",""]]});

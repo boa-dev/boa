@@ -291,9 +291,6 @@
 <span id="290">290</span>
 <span id="291">291</span>
 <span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Function definition parsing.</span>
 <span class="doccomment">//!</span>
@@ -566,11 +563,8 @@
                 <span class="ident">TokenKind</span>::<span class="ident">Punctuator</span>(<span class="ident">Punctuator</span>::<span class="ident">CloseBlock</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Vec</span>::<span class="ident">new</span>().<span class="ident">into</span>());
                 }
-                <span class="ident">TokenKind</span>::<span class="ident">StringLiteral</span>(<span class="ident">string</span>)
-                <span class="op">|</span> <span class="ident">TokenKind</span>::<span class="ident">TemplateNoSubstitution</span> { <span class="ident">cooked</span>: <span class="ident">string</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">if</span> <span class="ident">string</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="string">&quot;use strict&quot;</span>.<span class="ident">into</span>() {
-                        <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="bool-val">true</span>);
-                    }
+                <span class="ident">TokenKind</span>::<span class="ident">StringLiteral</span>(<span class="ident">string</span>) <span class="kw">if</span> <span class="ident">string</span>.<span class="ident">as_ref</span>() <span class="op">=</span><span class="op">=</span> <span class="string">&quot;use strict&quot;</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="bool-val">true</span>);
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
             }
@@ -591,4 +585,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><script>window.rootPath = "../../../../../";window.currentCrate = "boa";</script><script src="../../../../../main.js"></script><script src="../../../../../source-script.js"></script><script src="../../../../../source-files.js"></script><script defer src="../../../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa"></div>
+    <script src="../../../../../main.js"></script><script src="../../../../../source-script.js"></script><script src="../../../../../source-files.js"></script><script defer src="../../../../../search-index.js"></script></body></html>

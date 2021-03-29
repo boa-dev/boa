@@ -1,4 +1,4 @@
 (function() {var implementors = {};
-implementors["git2"] = [{"text":"impl&lt;'repo&gt; Read for OdbReader&lt;'repo&gt;","synthetic":false,"types":[]}];
-implementors["rand_core"] = [{"text":"impl Read for dyn RngCore","synthetic":false,"types":[]}];
+implementors["git2"] = [{"text":"impl&lt;'repo&gt; <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/std/io/trait.Read.html\" title=\"trait std::io::Read\">Read</a> for <a class=\"struct\" href=\"git2/struct.OdbReader.html\" title=\"struct git2::OdbReader\">OdbReader</a>&lt;'repo&gt;","synthetic":false,"types":["git2::odb::OdbReader"]}];
+implementors["rand_core"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/std/io/trait.Read.html\" title=\"trait std::io::Read\">Read</a> for dyn <a class=\"trait\" href=\"rand_core/trait.RngCore.html\" title=\"trait rand_core::RngCore\">RngCore</a>","synthetic":false,"types":["rand_core::RngCore"]}];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
