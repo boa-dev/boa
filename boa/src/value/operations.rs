@@ -423,14 +423,14 @@ impl Value {
     #[inline]
     pub fn neg(&self, context: &mut Context) -> Result<Value> {
         Ok(match *self {
-            Self::Symbol(_) | Self::Undefined => Self::rational(NAN),
+            Self::Symbol(_) | Self::Undefined => Self::rational(f64::NAN),
             Self::Object(_) => Self::rational(match self.to_numeric_number(context) {
                 Ok(num) => -num,
-                Err(_) => NAN,
+                Err(_) => f64::NAN,
             }),
             Self::String(ref str) => Self::rational(match f64::from_str(str) {
                 Ok(num) => -num,
-                Err(_) => NAN,
+                Err(_) => f64::NAN,
             }),
             Self::Rational(num) => Self::rational(-num),
             Self::Integer(num) => Self::rational(-f64::from(num)),

@@ -20,7 +20,6 @@ use serde_json::{Number as JSONNumber, Value as JSONValue};
 use std::{
     collections::HashSet,
     convert::TryFrom,
-    f64::NAN,
     fmt::{self, Display},
     str::FromStr,
 };
@@ -92,7 +91,7 @@ impl Value {
     /// Creates a new number with `NaN` value.
     #[inline]
     pub fn nan() -> Self {
-        Self::number(NAN)
+        Self::number(f64::NAN)
     }
 
     /// Creates a new string value.

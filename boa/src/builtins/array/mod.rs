@@ -353,7 +353,7 @@ impl Array {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push
     pub(crate) fn push(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let new_array = Self::add_to_array_object(this, args, context)?;
-        Ok(new_array.get_field("length", context)?)
+        new_array.get_field("length", context)
     }
 
     /// `Array.prototype.pop()`
