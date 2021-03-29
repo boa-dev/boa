@@ -106,7 +106,7 @@ impl GcObject {
         let own_desc = if let Some(desc) = self.get_own_property(&key) {
             desc
         } else if let Some(ref mut parent) = self.get_prototype_of().as_object() {
-            return Ok(parent.set(key, val, receiver, context)?);
+            return parent.set(key, val, receiver, context);
         } else {
             DataDescriptor::new(Value::undefined(), Attribute::all()).into()
         };
@@ -363,7 +363,7 @@ impl GcObject {
                     return Ok(false);
                 }
                 if self.ordinary_define_own_property(key, desc) {
-                    if index >= old_len && index < std::u32::MAX {
+                    if index >= old_len && index < u32::MAX {
                         let desc = PropertyDescriptor::Data(DataDescriptor::new(
                             index + 1,
                             old_len_data_desc.attributes(),

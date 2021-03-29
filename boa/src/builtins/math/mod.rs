@@ -15,7 +15,6 @@ use crate::{
     builtins::BuiltIn, object::ObjectInitializer, property::Attribute, BoaProfiler, Context,
     Result, Value,
 };
-use std::f64;
 
 #[cfg(test)]
 mod tests;
@@ -33,6 +32,7 @@ impl BuiltIn for Math {
 
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+        use std::f64;
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         let object = ObjectInitializer::new(context)

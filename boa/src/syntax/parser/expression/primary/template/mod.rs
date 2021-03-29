@@ -62,11 +62,12 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("TemplateLiteral", "Parsing");
 
-        let mut elements = Vec::new();
-        elements.push(TemplateElement::String(self.first.into_boxed_str()));
-        elements.push(TemplateElement::Expr(
-            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?,
-        ));
+        let mut elements = vec![
+            TemplateElement::String(self.first.into_boxed_str()),
+            TemplateElement::Expr(
+                Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?,
+            ),
+        ];
         cursor.expect(
             TokenKind::Punctuator(Punctuator::CloseBlock),
             "template literal",

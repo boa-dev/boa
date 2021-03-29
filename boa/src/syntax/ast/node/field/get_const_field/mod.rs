@@ -69,7 +69,7 @@ impl Executable for GetConstField {
             obj = Value::Object(obj.to_object(context)?);
         }
 
-        Ok(obj.get_field(self.field(), context)?)
+        obj.get_field(self.field(), context)
     }
 }
 

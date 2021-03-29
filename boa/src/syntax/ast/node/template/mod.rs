@@ -134,8 +134,7 @@ impl Executable for TaggedTemplate {
             ),
         };
 
-        let mut args = Vec::new();
-        args.push(template_object);
+        let mut args = vec![template_object];
         for expr in self.exprs.iter() {
             args.push(expr.run(context)?);
         }
