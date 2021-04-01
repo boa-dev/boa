@@ -1028,7 +1028,6 @@ impl Array {
             // 6.b. Let exists be HasProperty(source, P)
             // 6.c. If exists is true, then
             if source.has_field(source_index) {
-
                 // 6.c.i. Let element be Get(source, P)
                 let mut element = source.get_field(source_index, context)?;
 
@@ -1067,7 +1066,8 @@ impl Array {
                     };
 
                     // 6.c.v.3. Let elementLen be LengthOfArrayLike(element)
-                    let element_len = element.get_field("length", context)?.to_length(context)? as u32;
+                    let element_len =
+                        element.get_field("length", context)?.to_length(context)? as u32;
 
                     // 6.c.v.4. Set targetIndex to FlattenIntoArray(target, element, elementLen, targetIndex, newDepth)
                     target_index = Self::flatten_into_array(
@@ -1086,16 +1086,17 @@ impl Array {
                 } else {
                     // 6.c.vi.1. If targetIndex >= 2^53 - 1, throw a TypeError exception
                     if target_index.to_f64().ok_or(0)? >= Number::MAX_SAFE_INTEGER {
-                        return context.throw_type_error("Target index exceeded max safe integer value");
+                        return context
+                            .throw_type_error("Target index exceeded max safe integer value");
                     }
 
                     // 6.c.vi.2. Perform CreateDataPropertyOrThrow(target, targetIndex, element)
-                    target.set_property(target_index, DataDescriptor::new(element, Attribute::all()));
+                    target
+                        .set_property(target_index, DataDescriptor::new(element, Attribute::all()));
 
                     // 6.c.vi.3. Set targetIndex to targetIndex + 1
                     target_index = target_index.saturating_add(1);
                 }
-
             }
             // 6.d. Set sourceIndex to sourceIndex + 1
             source_index = source_index.saturating_add(1);
