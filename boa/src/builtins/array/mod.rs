@@ -92,8 +92,8 @@ impl BuiltIn for Array {
         .method(Self::every, "every", 1)
         .method(Self::find, "find", 1)
         .method(Self::find_index, "findIndex", 1)
-        .method(Self::flat, "flat", 1)
-        .method(Self::flat_map, "flatMap", 2)
+        .method(Self::flat, "flat", 0)
+        .method(Self::flat_map, "flatMap", 1)
         .method(Self::slice, "slice", 2)
         .method(Self::some, "some", 2)
         .method(Self::reduce, "reduce", 2)
@@ -898,7 +898,7 @@ impl Array {
     ///  - [MDN documentation][mdn]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.flat
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat   
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat
     pub(crate) fn flat(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // 1. Let O be ToObject(this value)
         let this: Value = this.to_object(context)?.into();
@@ -917,10 +917,8 @@ impl Array {
             .unwrap_or(&default_depth)
             .to_integer_or_infinity(context)?
         {
-            IntegerOrInfinity::PositiveInfinity => IntegerOrInfinity::PositiveInfinity,
-            IntegerOrInfinity::NegativeInfinity => IntegerOrInfinity::NegativeInfinity,
             IntegerOrInfinity::Integer(i) if i < 0 => IntegerOrInfinity::Integer(0),
-            IntegerOrInfinity::Integer(i) => IntegerOrInfinity::Integer(i),
+            num => num,
         };
 
         // 5. Let A be ArraySpeciesCreate(O, 0)
@@ -1029,74 +1027,76 @@ impl Array {
             // 6.a. Let P be ToString(sourceIndex)
             // 6.b. Let exists be HasProperty(source, P)
             // 6.c. If exists is true, then
+            if source.has_field(source_index) {
 
-            // 6.c.i. Let element be Get(source, P)
-            let mut element = source.get_field(source_index, context)?;
+                // 6.c.i. Let element be Get(source, P)
+                let mut element = source.get_field(source_index, context)?;
 
-            // 6.c.ii. If mapperFunction is present, then
-            if !mapper_function.is_undefined() {
-                // 6.c.ii.1. Set element to Call(mapperFunction, thisArg, <<element, sourceIndex, source>>)
-                let args = [element, Value::from(source_index), target.clone()];
-                element = context.call(&mapper_function, &this_arg, &args)?;
-            }
-            let element_as_object = element.as_object();
+                // 6.c.ii. If mapperFunction is present, then
+                if !mapper_function.is_undefined() {
+                    // 6.c.ii.1. Set element to Call(mapperFunction, thisArg, <<element, sourceIndex, source>>)
+                    let args = [element, Value::from(source_index), target.clone()];
+                    element = context.call(&mapper_function, &this_arg, &args)?;
+                }
+                let element_as_object = element.as_object();
 
-            // 6.c.iii. Let shouldFlatten be false
-            let mut should_flatten = false;
+                // 6.c.iii. Let shouldFlatten be false
+                let mut should_flatten = false;
 
-            // 6.c.iv. If depth > 0, then
-            let depth_is_positive = match depth {
-                IntegerOrInfinity::PositiveInfinity => true,
-                IntegerOrInfinity::NegativeInfinity => false,
-                IntegerOrInfinity::Integer(i) => i > 0,
-            };
-            if depth_is_positive {
-                // 6.c.iv.1. Set shouldFlatten is IsArray(element)
-                should_flatten = match element_as_object {
-                    Some(obj) => obj.is_array(),
-                    _ => false,
+                // 6.c.iv. If depth > 0, then
+                let depth_is_positive = match depth {
+                    IntegerOrInfinity::PositiveInfinity => true,
+                    IntegerOrInfinity::NegativeInfinity => false,
+                    IntegerOrInfinity::Integer(i) => i > 0,
                 };
-            }
-            // 6.c.v. If shouldFlatten is true
-            if should_flatten {
-                // 6.c.v.1. If depth is +Infinity let newDepth be +Infinity
-                // 6.c.v.2. Else, let newDepth be depth - 1
-                let new_depth = match depth {
-                    IntegerOrInfinity::PositiveInfinity => IntegerOrInfinity::PositiveInfinity,
-                    IntegerOrInfinity::Integer(d) => IntegerOrInfinity::Integer(d - 1),
-                    IntegerOrInfinity::NegativeInfinity => IntegerOrInfinity::NegativeInfinity,
-                };
+                if depth_is_positive {
+                    // 6.c.iv.1. Set shouldFlatten is IsArray(element)
+                    should_flatten = match element_as_object {
+                        Some(obj) => obj.is_array(),
+                        _ => false,
+                    };
+                }
+                // 6.c.v. If shouldFlatten is true
+                if should_flatten {
+                    // 6.c.v.1. If depth is +Infinity let newDepth be +Infinity
+                    // 6.c.v.2. Else, let newDepth be depth - 1
+                    let new_depth = match depth {
+                        IntegerOrInfinity::PositiveInfinity => IntegerOrInfinity::PositiveInfinity,
+                        IntegerOrInfinity::Integer(d) => IntegerOrInfinity::Integer(d - 1),
+                        IntegerOrInfinity::NegativeInfinity => IntegerOrInfinity::NegativeInfinity,
+                    };
 
-                // 6.c.v.3. Let elementLen be LengthOfArrayLike(element)
-                let element_len = element.get_field("length", context)?.to_length(context)? as u32;
+                    // 6.c.v.3. Let elementLen be LengthOfArrayLike(element)
+                    let element_len = element.get_field("length", context)?.to_length(context)? as u32;
 
-                // 6.c.v.4. Set targetIndex to FlattenIntoArray(target, element, elementLen, targetIndex, newDepth)
-                target_index = Self::flatten_into_array(
-                    context,
-                    target,
-                    &element,
-                    element_len,
-                    target_index,
-                    new_depth,
-                    &Value::undefined(),
-                    &Value::undefined(),
-                )?
-                .to_u32(context)?;
+                    // 6.c.v.4. Set targetIndex to FlattenIntoArray(target, element, elementLen, targetIndex, newDepth)
+                    target_index = Self::flatten_into_array(
+                        context,
+                        target,
+                        &element,
+                        element_len,
+                        target_index,
+                        new_depth,
+                        &Value::undefined(),
+                        &Value::undefined(),
+                    )?
+                    .to_u32(context)?;
 
-            // 6.c.vi. Else
-            } else {
-                // 6.c.vi.1. If targetIndex >= 2^53 - 1, throw a TypeError exception
-                if target_index.to_f64().ok_or(0)? >= Number::MAX_SAFE_INTEGER {
-                    return context.throw_type_error("Target index exceeded max safe integer value");
+                // 6.c.vi. Else
+                } else {
+                    // 6.c.vi.1. If targetIndex >= 2^53 - 1, throw a TypeError exception
+                    if target_index.to_f64().ok_or(0)? >= Number::MAX_SAFE_INTEGER {
+                        return context.throw_type_error("Target index exceeded max safe integer value");
+                    }
+
+                    // 6.c.vi.2. Perform CreateDataPropertyOrThrow(target, targetIndex, element)
+                    target.set_property(target_index, DataDescriptor::new(element, Attribute::all()));
+
+                    // 6.c.vi.3. Set targetIndex to targetIndex + 1
+                    target_index = target_index.saturating_add(1);
                 }
 
-                // 6.c.vi.2. Perform CreateDataPropertyOrThrow(target, targetIndex, element)
-                target.set_property(target_index, DataDescriptor::new(element, Attribute::all()));
-
-                // 6.c.vi.3. Set targetIndex to targetIndex + 1
-                target_index = target_index.saturating_add(1);
             }
-
             // 6.d. Set sourceIndex to sourceIndex + 1
             source_index = source_index.saturating_add(1);
         }

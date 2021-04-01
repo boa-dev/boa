@@ -309,6 +309,22 @@ fn flat_map() {
 }
 
 #[test]
+fn flat_map_with_hole() {
+    let mut context = Context::new();
+
+    let code = r#"
+        var arr = [0, 1, 2];
+        delete arr[1];
+        var arr_flattened = arr.flatMap(i => [i * 2]);
+    "#;
+    forward(&mut context, code);
+
+    assert_eq!(forward(&mut context, "arr_flattened[0]"), "0");
+    assert_eq!(forward(&mut context, "arr_flattened[1]"), "4");
+    assert_eq!(forward(&mut context, "arr_flattened.length"), "2");
+}
+
+#[test]
 fn flat_map_not_callable() {
     let mut context = Context::new();
 
