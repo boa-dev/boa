@@ -1,7 +1,9 @@
 [package]
-name = "boa-examples"
-version = "0.1.0"
-authors = ["elasmojs <66966290+elasmojs@users.noreply.github.com>"]
+name = "boa_examples"
+version = "0.11.0"
+authors = ["boa-dev"]
+repository = "https://github.com/boa-dev/boa"
+license = "Unlicense/MIT"
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
