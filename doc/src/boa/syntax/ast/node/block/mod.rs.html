@@ -117,6 +117,11 @@
 <span id="116">116</span>
 <span id="117">117</span>
 <span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Block AST node.</span>
 
@@ -184,7 +189,12 @@
         <span class="comment">// The return value is uninitialized, which means it defaults to Value::Undefined</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">default</span>();
         <span class="kw">for</span> <span class="ident">statement</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">items</span>() {
-            <span class="ident">obj</span> <span class="op">=</span> <span class="ident">statement</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="ident">obj</span> <span class="op">=</span> <span class="ident">statement</span>.<span class="ident">run</span>(<span class="ident">context</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+                <span class="comment">// No matter how control leaves the Block the LexicalEnvironment is always</span>
+                <span class="comment">// restored to its former state.</span>
+                <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">pop</span>();
+                <span class="ident">e</span>
+            })<span class="question-mark">?</span>;
 
             <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">executor</span>().<span class="ident">get_current_state</span>() {
                 <span class="ident">InterpreterState</span>::<span class="ident">Return</span> <span class="op">=</span><span class="op">&gt;</span> {

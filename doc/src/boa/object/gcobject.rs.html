@@ -963,6 +963,11 @@
 <span id="962">962</span>
 <span id="963">963</span>
 <span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
+<span id="968">968</span>
+<span id="969">969</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `GcObject` structure.</span>
 <span class="doccomment">//!</span>
@@ -1271,8 +1276,13 @@
                 <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">run</span>(<span class="ident">context</span>);
 
                 <span class="comment">// local_env gets dropped here, its no longer needed</span>
-                <span class="kw">let</span> <span class="ident">binding</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">get_this_binding</span>();
-                <span class="ident">binding</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">context</span>
+                    .<span class="ident">realm_mut</span>()
+                    .<span class="ident">environment</span>
+                    .<span class="ident">get_this_binding</span>()
+                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>));
+                <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">pop</span>();
+                <span class="ident">result</span>
             }
             <span class="ident">FunctionBody</span>::<span class="ident">BuiltInFunction</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Cannot have a function in construct&quot;</span>),
         }

@@ -391,8 +391,8 @@
         <span class="ident">Value</span>::<span class="ident">undefined</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">get_outer_environment</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">outer_env</span>.<span class="ident">as_ref</span>().<span class="ident">cloned</span>()
+    <span class="kw">fn</span> <span class="ident">get_outer_environment_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Environment</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">outer_env</span>.<span class="ident">as_ref</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">set_outer_environment</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">env</span>: <span class="ident">Environment</span>) {
