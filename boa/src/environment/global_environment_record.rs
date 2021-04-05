@@ -12,7 +12,7 @@ use crate::{
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
         environment_record_trait::EnvironmentRecordTrait,
-        lexical_environment::{Environment, EnvironmentType},
+        lexical_environment::{Environment, EnvironmentType, VariableScope},
         object_environment_record::ObjectEnvironmentRecord,
     },
     gc::{Finalize, Trace},
@@ -120,10 +120,6 @@ impl GlobalEnvironmentRecord {
 }
 
 impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
-    fn get_this_binding(&self) -> Result<Value, ErrorKind> {
-        Ok(self.global_this_binding.clone())
-    }
-
     fn has_binding(&self, name: &str) -> bool {
         if self.declarative_record.has_binding(name) {
             return true;
@@ -216,6 +212,10 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         true
     }
 
+    fn get_this_binding(&self) -> Result<Value, ErrorKind> {
+        Ok(self.global_this_binding.clone())
+    }
+
     fn has_super_binding(&self) -> bool {
         false
     }
@@ -225,6 +225,10 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     }
 
     fn get_outer_environment(&self) -> Option<Environment> {
+        None
+    }
+
+    fn get_outer_environment_ref(&self) -> Option<&Environment> {
         None
     }
 
@@ -239,5 +243,36 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn get_global_object(&self) -> Option<Value> {
         Some(self.global_this_binding.clone())
+    }
+
+    fn recursive_create_mutable_binding(
+        &mut self,
+        name: String,
+        deletion: bool,
+        _scope: VariableScope,
+    ) -> Result<(), ErrorKind> {
+        self.create_mutable_binding(name, deletion, false)
+    }
+
+    fn recursive_create_immutable_binding(
+        &mut self,
+        name: String,
+        deletion: bool,
+        _scope: VariableScope,
+    ) -> Result<(), ErrorKind> {
+        self.create_immutable_binding(name, deletion)
+    }
+
+    fn recursive_set_mutable_binding(
+        &mut self,
+        name: &str,
+        value: Value,
+        strict: bool,
+    ) -> Result<(), ErrorKind> {
+        self.set_mutable_binding(name, value, strict)
+    }
+
+    fn recursive_initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind> {
+        self.initialize_binding(name, value)
     }
 }

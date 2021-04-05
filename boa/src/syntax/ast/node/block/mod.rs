@@ -64,7 +64,12 @@ impl Executable for Block {
         // The return value is uninitialized, which means it defaults to Value::Undefined
         let mut obj = Value::default();
         for statement in self.items() {
-            obj = statement.run(context)?;
+            obj = statement.run(context).map_err(|e| {
+                // No matter how control leaves the Block the LexicalEnvironment is always
+                // restored to its former state.
+                context.realm_mut().environment.pop();
+                e
+            })?;
 
             match context.executor().get_current_state() {
                 InterpreterState::Return => {

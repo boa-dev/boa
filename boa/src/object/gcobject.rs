@@ -305,8 +305,13 @@ impl GcObject {
                 let _ = body.run(context);
 
                 // local_env gets dropped here, its no longer needed
-                let binding = context.realm_mut().environment.get_this_binding();
-                binding.map_err(|e| e.to_error(context))
+                let result = context
+                    .realm_mut()
+                    .environment
+                    .get_this_binding()
+                    .map_err(|e| e.to_error(context));
+                context.realm_mut().environment.pop();
+                result
             }
             FunctionBody::BuiltInFunction(_) => unreachable!("Cannot have a function in construct"),
         }
