@@ -120,10 +120,10 @@
     "@types/webpack-sources" "*"
     source-map "^0.6.0"
 
-"@wasm-tool/wasm-pack-plugin@^1.3.3":
-  version "1.3.3"
-  resolved "https://registry.yarnpkg.com/@wasm-tool/wasm-pack-plugin/-/wasm-pack-plugin-1.3.3.tgz#682b07205929e98ef6766715a3c0594fc41d8482"
-  integrity sha512-CJuluHW6JbUJoNfHj1VGZj11IS4mPK8gMmfW+/EPNViFnrzcHt6a9csG+BTyh0lw4gnzME4/nzAM7ZEiRYTUfw==
+"@wasm-tool/wasm-pack-plugin@^1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@wasm-tool/wasm-pack-plugin/-/wasm-pack-plugin-1.4.0.tgz#752e4a6d8fe35477a3c6cafd2ac6b0351f692848"
+  integrity sha512-zQh0gA7E73dgwhUM9sXX2rsaXsdWUIdK1kMlEhds3oi6ASn+ePxhb/quZweoeo0SjxuETVb0iu+/nxUZ5HxsUQ==
   dependencies:
     chalk "^2.4.1"
     command-exists "^1.2.7"
