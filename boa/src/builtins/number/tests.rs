@@ -137,6 +137,8 @@ fn to_precision() {
         var exact_precision = (123456789).toPrecision(9);
         var over_precision = (123456789).toPrecision(50);
         var neg_precision = (-123456789).toPrecision(4);
+        var neg_exponent = (0.1).toPrecision(4);
+        var ieee754_limits = (1/3).toPrecision(60);
         "#;
 
     eprintln!("{}", forward(&mut context, init));
@@ -148,6 +150,8 @@ fn to_precision() {
     let exact_precision = forward(&mut context, "exact_precision");
     let over_precision = forward(&mut context, "over_precision");
     let neg_precision = forward(&mut context, "neg_precision");
+    let neg_exponent = forward(&mut context, "neg_exponent");
+    let ieee754_limits = forward(&mut context, "ieee754_limits");
 
     assert_eq!(infinity, String::from("\"Infinity\""));
     assert_eq!(default_precision, String::from("\"0\""));
@@ -159,6 +163,11 @@ fn to_precision() {
     assert_eq!(
         over_precision,
         String::from("\"123456789.00000000000000000000000000000000000000000\"")
+    );
+    assert_eq!(neg_exponent, String::from("\"0.100\""));
+    assert_eq!(
+        ieee754_limits,
+        String::from("\"0.33333333333333331482961625624739099293947219848632812500000\"")
     );
 
     let expected = "Uncaught \"RangeError\": \"precision must be an integer at least 1 and no greater than 100\"";
