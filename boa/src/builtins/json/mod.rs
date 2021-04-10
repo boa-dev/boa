@@ -242,12 +242,10 @@ impl Json {
                 &JSONValue::Object(obj_to_return),
                 gap,
             )))
+        } else if let Some(value) = object.to_json(context)? {
+            Ok(Value::from(json_to_pretty_string(&value, gap)))
         } else {
-            if let Some(value) = object.to_json(context)? {
-                Ok(Value::from(json_to_pretty_string(&value, gap)))
-            } else {
-                Ok(Value::undefined())
-            }
+            Ok(Value::undefined())
         }
     }
 }
