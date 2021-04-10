@@ -137,9 +137,6 @@ impl Json {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
     pub(crate) fn stringify(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let object = match args.get(0) {
-            Some(obj) if obj.is_symbol() || obj.is_function() || obj.is_undefined() => {
-                return Ok(Value::undefined())
-            }
             None => return Ok(Value::undefined()),
             Some(obj) => obj,
         };

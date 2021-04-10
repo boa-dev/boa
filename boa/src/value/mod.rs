@@ -222,6 +222,10 @@ impl Value {
             return json_value.to_json(context);
         }
 
+        if self.is_function() {
+            return Ok(None);
+        }
+
         match *self {
             Self::Null => Ok(Some(JSONValue::Null)),
             Self::Boolean(b) => Ok(Some(JSONValue::Bool(b))),
