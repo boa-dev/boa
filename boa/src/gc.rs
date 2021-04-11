@@ -1,4 +1,4 @@
-//! This module represents the main way to interact with the garbacge collector.
+//! This module represents the main way to interact with the garbage collector.
 
 // This is because `rust-gc` unsafe_empty_trace has a `unsafe_`
 // when it should be `empty_trace`.
