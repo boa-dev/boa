@@ -183,9 +183,9 @@ impl From<DeclarationList> for Node {
     }
 }
 
-impl Into<Box<[Declaration]>> for Declaration {
-    fn into(self) -> Box<[Declaration]> {
-        Box::new([self])
+impl From<Declaration> for Box<[Declaration]> {
+    fn from(d: Declaration) -> Self {
+        Box::new([d])
     }
 }
 
