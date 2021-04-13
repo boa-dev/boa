@@ -1,8 +1,8 @@
 use crate::syntax::{
     ast::{
         node::{
-            field::GetConstField, BinOp, Block, Break, Call, DoWhileLoop, Identifier, UnaryOp,
-            VarDecl, VarDeclList, WhileLoop,
+            field::GetConstField, BinOp, Block, Break, Call, Declaration, DeclarationList,
+            DoWhileLoop, Identifier, UnaryOp, WhileLoop,
         },
         op::{self, AssignOp, CompOp},
         Const,
@@ -37,7 +37,8 @@ fn check_do_while_semicolon_insertion() {
         r#"var i = 0;
         do {console.log("hello");} while(i++ < 10) console.log("end");"#,
         vec![
-            VarDeclList::from(vec![VarDecl::new("i", Some(Const::from(0).into()))]).into(),
+            DeclarationList::Var(vec![Declaration::new("i", Some(Const::from(0).into()))].into())
+                .into(),
             DoWhileLoop::new(
                 Block::from(vec![Call::new(
                     GetConstField::new(Identifier::from("console"), "log"),
@@ -68,7 +69,8 @@ fn check_do_while_semicolon_insertion_no_space() {
         r#"var i = 0;
         do {console.log("hello");} while(i++ < 10)console.log("end");"#,
         vec![
-            VarDeclList::from(vec![VarDecl::new("i", Some(Const::from(0).into()))]).into(),
+            DeclarationList::Var(vec![Declaration::new("i", Some(Const::from(0).into()))].into())
+                .into(),
             DoWhileLoop::new(
                 Block::from(vec![Call::new(
                     GetConstField::new(Identifier::from("console"), "log"),
@@ -97,14 +99,14 @@ fn while_spaces() {
     check_parser(
         r#"
 
-        while 
-        
+        while
+
         (
-        
+
         true
-        
+
         )
-        
+
         break;
 
         "#,
@@ -118,14 +120,14 @@ fn do_while_spaces() {
     check_parser(
         r#"
 
-        do 
+        do
 
         {
-            
+
             break;
 
         }
-        
+
         while (true)
 
         "#,
