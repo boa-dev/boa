@@ -191,7 +191,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">syntax</span>::{
         <span class="ident">ast</span>::{
-            <span class="ident">node</span>::{<span class="ident">VarDecl</span>, <span class="ident">VarDeclList</span>},
+            <span class="ident">node</span>::{<span class="ident">Declaration</span>, <span class="ident">DeclarationList</span>},
             <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
         },
         <span class="ident">lexer</span>::<span class="ident">TokenKind</span>,
@@ -240,7 +240,7 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">VarDeclList</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">DeclarationList</span>;
 
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;VariableStatement&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
@@ -294,7 +294,7 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">VarDeclList</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">DeclarationList</span>;
 
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">list</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
@@ -315,7 +315,7 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">VarDeclList</span>::<span class="ident">from</span>(<span class="ident">list</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">DeclarationList</span>::<span class="ident">Var</span>(<span class="ident">list</span>.<span class="ident">into</span>()))
     }
 }
 
@@ -352,7 +352,7 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">VarDecl</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Declaration</span>;
 
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="comment">// TODO: BindingPattern</span>
@@ -369,7 +369,7 @@
             <span class="prelude-val">None</span>
         };
 
-        <span class="prelude-val">Ok</span>(<span class="ident">VarDecl</span>::<span class="ident">new</span>(<span class="ident">name</span>, <span class="ident">init</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">Declaration</span>::<span class="ident">new</span>(<span class="ident">name</span>, <span class="ident">init</span>))
     }
 }
 </pre></div>

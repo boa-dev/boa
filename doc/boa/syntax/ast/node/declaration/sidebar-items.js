@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["arrow_function_decl",""],["async_function_decl","Async Function Declaration."],["async_function_expr","Async Function Expression."],["const_decl_list",""],["function_decl",""],["function_expr",""],["let_decl_list",""],["var_decl_list",""]]});
+initSidebarItems({"enum":[["DeclarationList",""]],"mod":[["arrow_function_decl",""],["async_function_decl","Async Function Declaration."],["async_function_expr","Async Function Expression."],["function_decl",""],["function_expr",""]],"struct":[["Declaration","Individual declaration."]]});

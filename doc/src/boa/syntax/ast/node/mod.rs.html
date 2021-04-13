@@ -625,8 +625,8 @@
     <span class="ident">call</span>::<span class="ident">Call</span>,
     <span class="ident">conditional</span>::{<span class="ident">ConditionalOp</span>, <span class="ident">If</span>},
     <span class="ident">declaration</span>::{
-        <span class="ident">ArrowFunctionDecl</span>, <span class="ident">AsyncFunctionDecl</span>, <span class="ident">AsyncFunctionExpr</span>, <span class="ident">ConstDecl</span>, <span class="ident">ConstDeclList</span>,
-        <span class="ident">FunctionDecl</span>, <span class="ident">FunctionExpr</span>, <span class="ident">LetDecl</span>, <span class="ident">LetDeclList</span>, <span class="ident">VarDecl</span>, <span class="ident">VarDeclList</span>,
+        <span class="ident">ArrowFunctionDecl</span>, <span class="ident">AsyncFunctionDecl</span>, <span class="ident">AsyncFunctionExpr</span>, <span class="ident">Declaration</span>, <span class="ident">DeclarationList</span>,
+        <span class="ident">FunctionDecl</span>, <span class="ident">FunctionExpr</span>,
     },
     <span class="ident">field</span>::{<span class="ident">GetConstField</span>, <span class="ident">GetField</span>},
     <span class="ident">identifier</span>::<span class="ident">Identifier</span>,
@@ -704,8 +704,8 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals</span>
     <span class="ident">Const</span>(<span class="ident">Const</span>),
 
-    <span class="doccomment">/// A constant declaration list. [More information](./declaration/struct.ConstDeclList.html).</span>
-    <span class="ident">ConstDeclList</span>(<span class="ident">ConstDeclList</span>),
+    <span class="doccomment">/// A constant declaration list. [More information](./declaration/enum.DeclarationList.html#variant.Const).</span>
+    <span class="ident">ConstDeclList</span>(<span class="ident">DeclarationList</span>),
 
     <span class="doccomment">/// A continue statement. [More information](./iteration/struct.Continue.html).</span>
     <span class="ident">Continue</span>(<span class="ident">Continue</span>),
@@ -737,8 +737,8 @@
     <span class="doccomment">/// An &#39;if&#39; statement. [More information](./conditional/struct.If.html).</span>
     <span class="ident">If</span>(<span class="ident">If</span>),
 
-    <span class="doccomment">/// A `let` declaration list. [More information](./declaration/struct.LetDeclList.html).</span>
-    <span class="ident">LetDeclList</span>(<span class="ident">LetDeclList</span>),
+    <span class="doccomment">/// A `let` declaration list. [More information](./declaration/enum.DeclarationList.html#variant.Let).</span>
+    <span class="ident">LetDeclList</span>(<span class="ident">DeclarationList</span>),
 
     <span class="doccomment">/// A local identifier node. [More information](./identifier/struct.Identifier.html).</span>
     <span class="ident">Identifier</span>(<span class="ident">Identifier</span>),
@@ -787,8 +787,8 @@
     <span class="doccomment">/// Unary operation node. [More information](./operator/struct.UnaryOp.html)</span>
     <span class="ident">UnaryOp</span>(<span class="ident">UnaryOp</span>),
 
-    <span class="doccomment">/// Array declaration node. [More information](./declaration/struct.VarDeclList.html).</span>
-    <span class="ident">VarDeclList</span>(<span class="ident">VarDeclList</span>),
+    <span class="doccomment">/// Array declaration node. [More information](./declaration/enum.DeclarationList.html#variant.Var).</span>
+    <span class="ident">VarDeclList</span>(<span class="ident">DeclarationList</span>),
 
     <span class="doccomment">/// A &#39;while {...}&#39; node. [More information](./iteration/struct.WhileLoop.html).</span>
     <span class="ident">WhileLoop</span>(<span class="ident">WhileLoop</span>),
