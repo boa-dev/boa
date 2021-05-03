@@ -93,21 +93,21 @@ impl LexicalEnvironment {
 }
 
 impl Context {
-    pub fn push_environment(&mut self, env: Environment) {
+    pub(crate) fn push_environment(&mut self, env: Environment) {
         self.realm.environment.environment_stack.push_back(env);
     }
 
-    pub fn pop_environment(&mut self) -> Option<Environment> {
+    pub(crate) fn pop_environment(&mut self) -> Option<Environment> {
         self.realm.environment.environment_stack.pop_back()
     }
 
-    pub fn get_this_binding(&mut self) -> Result<Value> {
+    pub(crate) fn get_this_binding(&mut self) -> Result<Value> {
         self.get_current_environment()
             .borrow()
             .recursive_get_this_binding(self)
     }
 
-    pub fn create_mutable_binding(
+    pub(crate) fn create_mutable_binding(
         &mut self,
         name: String,
         deletion: bool,
@@ -119,7 +119,7 @@ impl Context {
             .recursive_create_mutable_binding(name, deletion, scope, self)
     }
 
-    pub fn create_immutable_binding(
+    pub(crate) fn create_immutable_binding(
         &mut self,
         name: String,
         deletion: bool,
@@ -131,13 +131,18 @@ impl Context {
             .recursive_create_immutable_binding(name, deletion, scope, self)
     }
 
-    pub fn set_mutable_binding(&mut self, name: &str, value: Value, strict: bool) -> Result<()> {
+    pub(crate) fn set_mutable_binding(
+        &mut self,
+        name: &str,
+        value: Value,
+        strict: bool,
+    ) -> Result<()> {
         self.get_current_environment()
             .borrow_mut()
             .recursive_set_mutable_binding(name, value, strict, self)
     }
 
-    pub fn initialize_binding(&mut self, name: &str, value: Value) -> Result<()> {
+    pub(crate) fn initialize_binding(&mut self, name: &str, value: Value) -> Result<()> {
         self.get_current_environment()
             .borrow_mut()
             .recursive_initialize_binding(name, value, self)
@@ -145,7 +150,7 @@ impl Context {
 
     /// When neededing to clone an environment (linking it with another environnment)
     /// cloning is more suited. The GC will remove the env once nothing is linking to it anymore
-    pub fn get_current_environment(&mut self) -> Environment {
+    pub(crate) fn get_current_environment(&mut self) -> Environment {
         self.realm
             .environment
             .environment_stack
@@ -154,13 +159,13 @@ impl Context {
             .clone()
     }
 
-    pub fn has_binding(&mut self, name: &str) -> bool {
+    pub(crate) fn has_binding(&mut self, name: &str) -> bool {
         self.get_current_environment()
             .borrow()
             .recursive_has_binding(name)
     }
 
-    pub fn get_binding_value(&mut self, name: &str) -> Result<Value> {
+    pub(crate) fn get_binding_value(&mut self, name: &str) -> Result<Value> {
         self.get_current_environment()
             .borrow()
             .recursive_get_binding_value(name, self)
