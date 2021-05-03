@@ -175,7 +175,7 @@ impl GcObject {
                             .initialize_binding("arguments", arguments_obj)
                             .map_err(|e| e.to_error(context))?;
 
-                        context.realm_mut().environment.push(local_env);
+                        context.push_environment(local_env);
 
                         FunctionBody::Ordinary(body.clone())
                     }
@@ -192,7 +192,7 @@ impl GcObject {
             FunctionBody::BuiltInConstructor(func) => func(&Value::undefined(), args, context),
             FunctionBody::Ordinary(body) => {
                 let result = body.run(context);
-                context.realm_mut().environment.pop();
+                context.pop_environment();
 
                 result
             }
@@ -283,7 +283,7 @@ impl GcObject {
                             .initialize_binding("arguments", arguments_obj)
                             .map_err(|e| e.to_error(context))?;
 
-                        context.realm_mut().environment.push(local_env);
+                        context.push_environment(local_env);
 
                         FunctionBody::Ordinary(body.clone())
                     }
@@ -305,12 +305,8 @@ impl GcObject {
                 let _ = body.run(context);
 
                 // local_env gets dropped here, its no longer needed
-                let result = context
-                    .realm_mut()
-                    .environment
-                    .get_this_binding()
-                    .map_err(|e| e.to_error(context));
-                context.realm_mut().environment.pop();
+                let result = context.get_this_binding().map_err(|e| e.to_error(context));
+                context.pop_environment();
                 result
             }
             FunctionBody::BuiltInFunction(_) => unreachable!("Cannot have a function in construct"),

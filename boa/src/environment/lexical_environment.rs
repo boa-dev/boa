@@ -15,7 +15,7 @@ use crate::{
         object_environment_record::ObjectEnvironmentRecord,
     },
     object::GcObject,
-    BoaProfiler, Value,
+    BoaProfiler, Context, Value,
 };
 use gc::{Gc, GcCell};
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -91,13 +91,15 @@ impl LexicalEnvironment {
         lexical_env.environment_stack.push_back(global_env);
         lexical_env
     }
+}
 
-    pub fn push(&mut self, env: Environment) {
-        self.environment_stack.push_back(env);
+impl Context {
+    pub fn push_environment(&mut self, env: Environment) {
+        self.realm.environment.environment_stack.push_back(env);
     }
 
-    pub fn pop(&mut self) -> Option<Environment> {
-        self.environment_stack.pop_back()
+    pub fn pop_environment(&mut self) -> Option<Environment> {
+        self.realm.environment.environment_stack.pop_back()
     }
 
     pub fn get_this_binding(&self) -> Result<Value, ErrorKind> {
@@ -148,7 +150,9 @@ impl LexicalEnvironment {
     /// get_current_environment_ref is used when you only need to borrow the environment
     /// (you only need to add a new variable binding, or you want to fetch a value)
     pub fn get_current_environment_ref(&self) -> &Environment {
-        self.environment_stack
+        self.realm
+            .environment
+            .environment_stack
             .back()
             .expect("Could not get current environment")
     }
@@ -156,7 +160,9 @@ impl LexicalEnvironment {
     /// When neededing to clone an environment (linking it with another environnment)
     /// cloning is more suited. The GC will remove the env once nothing is linking to it anymore
     pub fn get_current_environment(&mut self) -> &mut Environment {
-        self.environment_stack
+        self.realm
+            .environment
+            .environment_stack
             .back_mut()
             .expect("Could not get mutable reference to back object")
     }

@@ -54,9 +54,8 @@ impl Executable for Block {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Block", "exec");
         {
-            let env = &mut context.realm_mut().environment;
-            env.push(new_declarative_environment(Some(
-                env.get_current_environment_ref().clone(),
+            context.push_environment(new_declarative_environment(Some(
+                context.get_current_environment_ref().clone(),
             )));
         }
 
@@ -67,7 +66,7 @@ impl Executable for Block {
             obj = statement.run(context).map_err(|e| {
                 // No matter how control leaves the Block the LexicalEnvironment is always
                 // restored to its former state.
-                context.realm_mut().environment.pop();
+                context.pop_environment();
                 e
             })?;
 
@@ -93,7 +92,7 @@ impl Executable for Block {
         }
 
         // pop the block env
-        let _ = context.realm_mut().environment.pop();
+        let _ = context.pop_environment();
 
         Ok(obj)
     }

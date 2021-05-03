@@ -206,15 +206,11 @@ impl Executable for BinOp {
             op::BinOp::Assign(op) => match self.lhs() {
                 Node::Identifier(ref name) => {
                     let v_a = context
-                        .realm()
-                        .environment
                         .get_binding_value(name.as_ref())
                         .map_err(|e| e.to_error(context))?;
 
                     let value = Self::run_assign(op, v_a, self.rhs(), context)?;
                     context
-                        .realm_mut()
-                        .environment
                         .set_mutable_binding(name.as_ref(), value.clone(), true)
                         .map_err(|e| e.to_error(context))?;
                     Ok(value)

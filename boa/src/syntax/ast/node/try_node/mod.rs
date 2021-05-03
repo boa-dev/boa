@@ -98,20 +98,20 @@ impl Executable for Try {
             |err| {
                 if let Some(catch) = self.catch() {
                     {
-                        let env = &mut context.realm_mut().environment;
-                        env.push(new_declarative_environment(Some(
-                            env.get_current_environment_ref().clone(),
+                        context.push_environment(new_declarative_environment(Some(
+                            context.get_current_environment_ref().clone(),
                         )));
 
                         if let Some(param) = catch.parameter() {
-                            env.create_mutable_binding(
-                                param.to_owned(),
-                                false,
-                                VariableScope::Block,
-                            )
-                            .map_err(|e| e.to_error(context))?;
-                            let env = &mut context.realm_mut().environment;
-                            env.initialize_binding(param, err)
+                            context
+                                .create_mutable_binding(
+                                    param.to_owned(),
+                                    false,
+                                    VariableScope::Block,
+                                )
+                                .map_err(|e| e.to_error(context))?;
+                            context
+                                .initialize_binding(param, err)
                                 .map_err(|e| e.to_error(context))?;
                         }
                     }
@@ -119,7 +119,7 @@ impl Executable for Try {
                     let res = catch.block().run(context);
 
                     // pop the block env
-                    let _ = context.realm_mut().environment.pop();
+                    let _ = context.pop_environment();
 
                     res
                 } else {

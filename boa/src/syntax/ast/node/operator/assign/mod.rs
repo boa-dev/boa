@@ -58,23 +58,20 @@ impl Executable for Assign {
         let val = self.rhs().run(context)?;
         match self.lhs() {
             Node::Identifier(ref name) => {
-                let environment = &mut context.realm_mut().environment;
-
-                if environment.has_binding(name.as_ref()) {
+                if context.has_binding(name.as_ref()) {
                     // Binding already exists
-                    environment
+                    context
                         .set_mutable_binding(name.as_ref(), val.clone(), true)
                         .map_err(|e| e.to_error(context))?;
                 } else {
-                    environment
+                    context
                         .create_mutable_binding(
                             name.as_ref().to_owned(),
                             true,
                             VariableScope::Function,
                         )
                         .map_err(|e| e.to_error(context))?;
-                    let environment = &mut context.realm_mut().environment;
-                    environment
+                    context
                         .initialize_binding(name.as_ref(), val.clone())
                         .map_err(|e| e.to_error(context))?;
                 }

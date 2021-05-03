@@ -102,9 +102,8 @@ impl Executable for ForLoop {
         // Create the block environment.
         let _timer = BoaProfiler::global().start_event("ForLoop", "exec");
         {
-            let env = &mut context.realm_mut().environment;
-            env.push(new_declarative_environment(Some(
-                env.get_current_environment_ref().clone(),
+            context.push_environment(new_declarative_environment(Some(
+                context.get_current_environment_ref().clone(),
             )));
         }
 
@@ -143,7 +142,7 @@ impl Executable for ForLoop {
         }
 
         // pop the block env
-        let _ = context.realm_mut().environment.pop();
+        let _ = context.pop_environment();
 
         Ok(Value::undefined())
     }
