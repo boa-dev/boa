@@ -172,10 +172,6 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         EnvironmentType::Function
     }
 
-    fn get_global_object(&self) -> Option<Value> {
-        self.declarative_record.get_global_object()
-    }
-
     fn recursive_create_mutable_binding(
         &mut self,
         name: String,

@@ -100,12 +100,6 @@ impl LexicalEnvironment {
         self.environment_stack.pop_back()
     }
 
-    pub fn get_global_object(&self) -> Option<Value> {
-        self.get_current_environment_ref()
-            .borrow()
-            .get_global_object()
-    }
-
     pub fn get_this_binding(&self) -> Result<Value, ErrorKind> {
         self.get_current_environment_ref()
             .borrow()

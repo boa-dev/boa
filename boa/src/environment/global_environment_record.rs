@@ -241,10 +241,6 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         EnvironmentType::Global
     }
 
-    fn get_global_object(&self) -> Option<Value> {
-        Some(self.global_this_binding.clone())
-    }
-
     fn recursive_create_mutable_binding(
         &mut self,
         name: String,

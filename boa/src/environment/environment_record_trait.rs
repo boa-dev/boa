@@ -22,7 +22,8 @@ use std::fmt::Debug;
 /// In the ECMAScript specification Environment Records are hierachical and have a base class with abstract methods.
 /// In this implementation we have a trait which represents the behaviour of all `EnvironmentRecord` types.
 pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
-    /// Determine if an Environment Record has a binding for the String value N. Return true if it does and false if it does not.
+    /// Determine if an Environment Record has a binding for the String value N.
+    /// Return true if it does and false if it does not.
     fn has_binding(&self, name: &str) -> bool;
 
     /// Create a new but uninitialized mutable binding in an Environment Record. The String value N is the text of the bound name.
@@ -99,9 +100,6 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
 
     /// Get the type of environment this is
     fn get_environment_type(&self) -> EnvironmentType;
-
-    /// Fetch global variable
-    fn get_global_object(&self) -> Option<Value>;
 
     /// Return the `this` binding from the environment or try to get it from outer environments
     fn recursive_get_this_binding(&self) -> Result<Value, ErrorKind> {

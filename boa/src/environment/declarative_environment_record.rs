@@ -195,11 +195,4 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     fn get_environment_type(&self) -> EnvironmentType {
         EnvironmentType::Declarative
     }
-
-    fn get_global_object(&self) -> Option<Value> {
-        match &self.outer_env {
-            Some(outer) => outer.borrow().get_global_object(),
-            None => None,
-        }
-    }
 }

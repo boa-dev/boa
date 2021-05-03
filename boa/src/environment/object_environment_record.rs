@@ -138,12 +138,4 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     fn get_environment_type(&self) -> EnvironmentType {
         EnvironmentType::Function
     }
-
-    fn get_global_object(&self) -> Option<Value> {
-        if let Some(outer) = &self.outer_env {
-            outer.borrow().get_global_object()
-        } else {
-            None
-        }
-    }
 }
