@@ -34,7 +34,7 @@ pub struct DeclarativeEnvironmentRecordBinding {
 /// declarations contained within its scope.
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct DeclarativeEnvironmentRecord {
-    pub env_rec: FxHashMap<String, DeclarativeEnvironmentRecordBinding>,
+    pub env_rec: FxHashMap<Box<str>, DeclarativeEnvironmentRecordBinding>,
     pub outer_env: Option<Environment>,
 }
 
@@ -65,14 +65,14 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     ) -> Result<()> {
         if !allow_name_reuse {
             assert!(
-                !self.env_rec.contains_key(&name),
+                !self.env_rec.contains_key(name.as_str()),
                 "Identifier {} has already been declared",
                 name
             );
         }
 
         self.env_rec.insert(
-            name,
+            name.into_boxed_str(),
             DeclarativeEnvironmentRecordBinding {
                 value: None,
                 can_delete: deletion,
@@ -90,13 +90,13 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         _context: &mut Context,
     ) -> Result<()> {
         assert!(
-            !self.env_rec.contains_key(&name),
+            !self.env_rec.contains_key(name.as_str()),
             "Identifier {} has already been declared",
             name
         );
 
         self.env_rec.insert(
-            name,
+            name.into_boxed_str(),
             DeclarativeEnvironmentRecordBinding {
                 value: None,
                 can_delete: true,

@@ -60,16 +60,7 @@ impl fmt::Display for EnvironmentError {
     }
 }
 
-impl error::Error for EnvironmentError {
-    fn description(&self) -> &str {
-        &self.details
-    }
-
-    fn cause(&self) -> Option<&dyn error::Error> {
-        // Generic error, underlying cause isn't tracked.
-        None
-    }
-}
+impl error::Error for EnvironmentError {}
 
 impl LexicalEnvironment {
     pub fn new(global: GcObject) -> Self {

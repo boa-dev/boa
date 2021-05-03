@@ -27,7 +27,7 @@ pub struct GlobalEnvironmentRecord {
     pub object_record: ObjectEnvironmentRecord,
     pub global_this_binding: GcObject,
     pub declarative_record: DeclarativeEnvironmentRecord,
-    pub var_names: FxHashSet<String>,
+    pub var_names: FxHashSet<Box<str>>,
 }
 
 impl GlobalEnvironmentRecord {
@@ -119,8 +119,8 @@ impl GlobalEnvironmentRecord {
         }
 
         let var_declared_names = &mut self.var_names;
-        if !var_declared_names.contains(&name) {
-            var_declared_names.insert(name);
+        if !var_declared_names.contains(name.as_str()) {
+            var_declared_names.insert(name.into_boxed_str());
         }
         Ok(())
     }
