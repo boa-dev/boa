@@ -137,9 +137,6 @@ impl Json {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
     pub(crate) fn stringify(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let object = match args.get(0) {
-            Some(obj) if obj.is_symbol() || obj.is_function() || obj.is_undefined() => {
-                return Ok(Value::undefined())
-            }
             None => return Ok(Value::undefined()),
             Some(obj) => obj,
         };
@@ -178,10 +175,11 @@ impl Json {
         let replacer = match args.get(1) {
             Some(replacer) if replacer.is_object() => replacer,
             _ => {
-                return Ok(Value::from(json_to_pretty_string(
-                    &object.to_json(context)?,
-                    gap,
-                )))
+                if let Some(value) = object.to_json(context)? {
+                    return Ok(Value::from(json_to_pretty_string(&value, gap)));
+                } else {
+                    return Ok(Value::undefined());
+                }
             }
         };
 
@@ -208,10 +206,11 @@ impl Json {
                             ),
                         );
                     }
-                    Ok(Value::from(json_to_pretty_string(
-                        &object_to_return.to_json(context)?,
-                        gap,
-                    )))
+                    if let Some(value) = object_to_return.to_json(context)? {
+                        Ok(Value::from(json_to_pretty_string(&value, gap)))
+                    } else {
+                        Ok(Value::undefined())
+                    }
                 })
                 .ok_or_else(Value::undefined)?
         } else if replacer_as_object.is_array() {
@@ -234,19 +233,19 @@ impl Json {
             for field in fields {
                 let v = object.get_field(field.to_string(context)?, context)?;
                 if !v.is_undefined() {
-                    let value = v.to_json(context)?;
-                    obj_to_return.insert(field.to_string(context)?.to_string(), value);
+                    if let Some(value) = v.to_json(context)? {
+                        obj_to_return.insert(field.to_string(context)?.to_string(), value);
+                    }
                 }
             }
             Ok(Value::from(json_to_pretty_string(
                 &JSONValue::Object(obj_to_return),
                 gap,
             )))
+        } else if let Some(value) = object.to_json(context)? {
+            Ok(Value::from(json_to_pretty_string(&value, gap)))
         } else {
-            Ok(Value::from(json_to_pretty_string(
-                &object.to_json(context)?,
-                gap,
-            )))
+            Ok(Value::undefined())
         }
     }
 }

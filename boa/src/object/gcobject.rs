@@ -390,7 +390,7 @@ impl GcObject {
     }
 
     /// Converts an object to JSON, checking for reference cycles and throwing a TypeError if one is found
-    pub(crate) fn to_json(&self, context: &mut Context) -> Result<JSONValue> {
+    pub(crate) fn to_json(&self, context: &mut Context) -> Result<Option<JSONValue>> {
         let rec_limiter = RecursionLimiter::new(self);
         if rec_limiter.live {
             Err(context.construct_type_error("cyclic object value"))
@@ -401,24 +401,24 @@ impl GcObject {
             let this = Value::from(self.clone());
             for key in keys {
                 let value = this.get_field(key, context)?;
-                if value.is_undefined() || value.is_function() || value.is_symbol() {
-                    arr.push(JSONValue::Null);
+                if let Some(value) = value.to_json(context)? {
+                    arr.push(value);
                 } else {
-                    arr.push(value.to_json(context)?);
+                    arr.push(JSONValue::Null);
                 }
             }
-            Ok(JSONValue::Array(arr))
+            Ok(Some(JSONValue::Array(arr)))
         } else {
             let mut new_obj = Map::new();
             let this = Value::from(self.clone());
             for k in self.borrow().keys() {
                 let key = k.clone();
                 let value = this.get_field(k.to_string(), context)?;
-                if !value.is_undefined() && !value.is_function() && !value.is_symbol() {
-                    new_obj.insert(key.to_string(), value.to_json(context)?);
+                if let Some(value) = value.to_json(context)? {
+                    new_obj.insert(key.to_string(), value);
                 }
             }
-            Ok(JSONValue::Object(new_obj))
+            Ok(Some(JSONValue::Object(new_obj)))
         }
     }
 
