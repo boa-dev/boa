@@ -25,16 +25,16 @@ use rustc_hash::{FxHashMap, FxHashSet};
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct GlobalEnvironmentRecord {
     pub object_record: ObjectEnvironmentRecord,
-    pub global_this_binding: Value,
+    pub global_this_binding: GcObject,
     pub declarative_record: DeclarativeEnvironmentRecord,
     pub var_names: FxHashSet<String>,
 }
 
 impl GlobalEnvironmentRecord {
     #[allow(clippy::new_ret_no_self)]
-    pub fn new(global: Value, this_value: Value) -> Environment {
+    pub fn new(global: GcObject, this_value: GcObject) -> Environment {
         let obj_rec = ObjectEnvironmentRecord {
-            bindings: global,
+            bindings: global.into(),
             outer_env: None,
             /// Object Environment Records created for with statements (13.11)
             /// can provide their binding object as an implicit this value for use in function calls.
@@ -256,7 +256,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     }
 
     fn get_this_binding(&self, _context: &mut Context) -> Result<Value> {
-        Ok(self.global_this_binding.clone())
+        Ok(self.global_this_binding.clone().into())
     }
 
     fn has_super_binding(&self) -> bool {

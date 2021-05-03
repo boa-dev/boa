@@ -7,8 +7,8 @@
 
 use super::global_environment_record::GlobalEnvironmentRecord;
 use crate::{
-    environment::environment_record_trait::EnvironmentRecordTrait, BoaProfiler, Context, Result,
-    Value,
+    environment::environment_record_trait::EnvironmentRecordTrait, object::GcObject, BoaProfiler,
+    Context, Result, Value,
 };
 use gc::{Gc, GcCell};
 use std::{collections::VecDeque, error, fmt};
@@ -72,7 +72,7 @@ impl error::Error for EnvironmentError {
 }
 
 impl LexicalEnvironment {
-    pub fn new(global: Value) -> Self {
+    pub fn new(global: GcObject) -> Self {
         let _timer = BoaProfiler::global().start_event("LexicalEnvironment::new", "env");
         let global_env = GlobalEnvironmentRecord::new(global.clone(), global);
         let mut lexical_env = Self {
