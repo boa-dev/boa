@@ -12,8 +12,9 @@ use crate::{
     },
     gc::{Finalize, Trace},
     object::GcObject,
-    Context, Result, Value,
+    BoaProfiler, Context, Result, Value,
 };
+use gc::{Gc, GcCell};
 use rustc_hash::FxHashMap;
 
 /// Declarative Bindings have a few properties for book keeping purposes, such as mutability (const vs let).
@@ -35,6 +36,19 @@ pub struct DeclarativeEnvironmentRecordBinding {
 pub struct DeclarativeEnvironmentRecord {
     pub env_rec: FxHashMap<String, DeclarativeEnvironmentRecordBinding>,
     pub outer_env: Option<Environment>,
+}
+
+impl DeclarativeEnvironmentRecord {
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new(env: Option<Environment>) -> Environment {
+        let _timer = BoaProfiler::global().start_event("new_declarative_environment", "env");
+        let boxed_env = Box::new(DeclarativeEnvironmentRecord {
+            env_rec: FxHashMap::default(),
+            outer_env: env,
+        });
+
+        Gc::new(GcCell::new(boxed_env))
+    }
 }
 
 impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {

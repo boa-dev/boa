@@ -8,6 +8,9 @@
 //! from within the function.
 //! More info: <https://tc39.es/ecma262/#sec-function-environment-records>
 
+use gc::{Gc, GcCell};
+use rustc_hash::FxHashMap;
+
 use crate::{
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
@@ -56,6 +59,32 @@ pub struct FunctionEnvironmentRecord {
 }
 
 impl FunctionEnvironmentRecord {
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new(
+        f: GcObject,
+        this: Option<Value>,
+        outer: Option<Environment>,
+        binding_status: BindingStatus,
+        new_target: Value,
+    ) -> Environment {
+        let mut func_env = FunctionEnvironmentRecord {
+            declarative_record: DeclarativeEnvironmentRecord {
+                env_rec: FxHashMap::default(),
+                outer_env: outer, // this will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
+            },
+            function: f,
+            this_binding_status: binding_status,
+            home_object: Value::undefined(),
+            new_target,
+            this_value: Value::undefined(),
+        };
+        // If a `this` value has been passed, bind it to the environment
+        if let Some(v) = this {
+            func_env.bind_this_value(v).unwrap();
+        }
+        Gc::new(GcCell::new(Box::new(func_env)))
+    }
+
     pub fn bind_this_value(&mut self, value: Value) -> Result<Value> {
         match self.this_binding_status {
             // You can not bind an arrow function, their `this` value comes from the lexical scope above

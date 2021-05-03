@@ -7,9 +7,7 @@ use crate::{
     builtins::function::{
         create_unmapped_arguments_object, BuiltInFunction, Function, NativeFunction,
     },
-    environment::{
-        function_environment_record::BindingStatus, lexical_environment::new_function_environment,
-    },
+    environment::function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
     syntax::ast::node::RcStatementList,
     value::PreferredType,
@@ -135,7 +133,7 @@ impl GcObject {
                     } => {
                         // Create a new Function environment whose parent is set to the scope of the function declaration (self.environment)
                         // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-                        let local_env = new_function_environment(
+                        let local_env = FunctionEnvironmentRecord::new(
                             this_function_object,
                             if flags.is_lexical_this_mode() {
                                 None
@@ -251,7 +249,7 @@ impl GcObject {
 
                         // Create a new Function environment who's parent is set to the scope of the function declaration (self.environment)
                         // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-                        let local_env = new_function_environment(
+                        let local_env = FunctionEnvironmentRecord::new(
                             this_function_object,
                             Some(this),
                             Some(environment.clone()),

@@ -19,7 +19,8 @@ use crate::{
     property::{Attribute, DataDescriptor},
     Context, Result, Value,
 };
-use rustc_hash::FxHashSet;
+use gc::{Gc, GcCell};
+use rustc_hash::{FxHashMap, FxHashSet};
 
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct GlobalEnvironmentRecord {
@@ -30,6 +31,32 @@ pub struct GlobalEnvironmentRecord {
 }
 
 impl GlobalEnvironmentRecord {
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new(global: Value, this_value: Value) -> Environment {
+        let obj_rec = ObjectEnvironmentRecord {
+            bindings: global,
+            outer_env: None,
+            /// Object Environment Records created for with statements (13.11)
+            /// can provide their binding object as an implicit this value for use in function calls.
+            /// The capability is controlled by a withEnvironment Boolean value that is associated
+            /// with each object Environment Record. By default, the value of withEnvironment is false
+            /// for any object Environment Record.
+            with_environment: false,
+        };
+
+        let dcl_rec = DeclarativeEnvironmentRecord {
+            env_rec: FxHashMap::default(),
+            outer_env: None,
+        };
+
+        Gc::new(GcCell::new(Box::new(GlobalEnvironmentRecord {
+            object_record: obj_rec,
+            global_this_binding: this_value,
+            declarative_record: dcl_rec,
+            var_names: FxHashSet::default(),
+        })))
+    }
+
     pub fn has_var_declaration(&self, name: &str) -> bool {
         self.var_names.contains(name)
     }

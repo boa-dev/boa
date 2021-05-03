@@ -1,5 +1,8 @@
 use crate::{
-    environment::lexical_environment::{new_declarative_environment, VariableScope},
+    environment::{
+        declarative_environment_record::DeclarativeEnvironmentRecord,
+        lexical_environment::VariableScope,
+    },
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{Block, Identifier, Node},
@@ -99,7 +102,7 @@ impl Executable for Try {
                 if let Some(catch) = self.catch() {
                     {
                         let env = context.get_current_environment();
-                        context.push_environment(new_declarative_environment(Some(env)));
+                        context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
 
                         if let Some(param) = catch.parameter() {
                             context.create_mutable_binding(

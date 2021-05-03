@@ -1,6 +1,9 @@
 use crate::{
     builtins::{iterable::IteratorRecord, ForInIterator},
-    environment::lexical_environment::{new_declarative_environment, VariableScope},
+    environment::{
+        declarative_environment_record::DeclarativeEnvironmentRecord,
+        lexical_environment::VariableScope,
+    },
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
@@ -94,7 +97,7 @@ impl Executable for ForInLoop {
         loop {
             {
                 let env = context.get_current_environment();
-                context.push_environment(new_declarative_environment(Some(env)));
+                context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
             }
             let iterator_result = iterator.next(context)?;
             if iterator_result.is_done() {

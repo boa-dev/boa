@@ -2,7 +2,7 @@
 
 use super::{Node, StatementList};
 use crate::{
-    environment::lexical_environment::new_declarative_environment,
+    environment::declarative_environment_record::DeclarativeEnvironmentRecord,
     exec::Executable,
     exec::InterpreterState,
     gc::{Finalize, Trace},
@@ -55,7 +55,7 @@ impl Executable for Block {
         let _timer = BoaProfiler::global().start_event("Block", "exec");
         {
             let env = context.get_current_environment();
-            context.push_environment(new_declarative_environment(Some(env)));
+            context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
         }
 
         // https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation

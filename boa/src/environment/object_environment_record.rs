@@ -6,6 +6,8 @@
 //! Property keys that are not strings in the form of an `IdentifierName` are not included in the set of bound identifiers.
 //! More info:  [Object Records](https://tc39.es/ecma262/#sec-object-environment-records)
 
+use gc::{Gc, GcCell};
+
 use crate::{
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
@@ -24,6 +26,22 @@ pub struct ObjectEnvironmentRecord {
     pub bindings: Value,
     pub with_environment: bool,
     pub outer_env: Option<Environment>,
+}
+
+impl ObjectEnvironmentRecord {
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new(object: Value, environment: Option<Environment>) -> Environment {
+        Gc::new(GcCell::new(Box::new(ObjectEnvironmentRecord {
+            bindings: object,
+            outer_env: environment,
+            /// Object Environment Records created for with statements (13.11)
+            /// can provide their binding object as an implicit this value for use in function calls.
+            /// The capability is controlled by a withEnvironment Boolean value that is associated
+            /// with each object Environment Record. By default, the value of withEnvironment is false
+            /// for any object Environment Record.
+            with_environment: false,
+        })))
+    }
 }
 
 impl EnvironmentRecordTrait for ObjectEnvironmentRecord {

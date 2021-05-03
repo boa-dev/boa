@@ -1,5 +1,5 @@
 use crate::{
-    environment::lexical_environment::new_declarative_environment,
+    environment::declarative_environment_record::DeclarativeEnvironmentRecord,
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
@@ -103,7 +103,7 @@ impl Executable for ForLoop {
         let _timer = BoaProfiler::global().start_event("ForLoop", "exec");
         {
             let env = context.get_current_environment();
-            context.push_environment(new_declarative_environment(Some(env)));
+            context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
         }
 
         if let Some(init) = self.init() {
