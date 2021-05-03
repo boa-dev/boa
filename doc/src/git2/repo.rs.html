@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.17/src/repo.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>repo.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.18/src/repo.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>repo.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -3709,6 +3709,239 @@
 <span id="3706">3706</span>
 <span id="3707">3707</span>
 <span id="3708">3708</span>
+<span id="3709">3709</span>
+<span id="3710">3710</span>
+<span id="3711">3711</span>
+<span id="3712">3712</span>
+<span id="3713">3713</span>
+<span id="3714">3714</span>
+<span id="3715">3715</span>
+<span id="3716">3716</span>
+<span id="3717">3717</span>
+<span id="3718">3718</span>
+<span id="3719">3719</span>
+<span id="3720">3720</span>
+<span id="3721">3721</span>
+<span id="3722">3722</span>
+<span id="3723">3723</span>
+<span id="3724">3724</span>
+<span id="3725">3725</span>
+<span id="3726">3726</span>
+<span id="3727">3727</span>
+<span id="3728">3728</span>
+<span id="3729">3729</span>
+<span id="3730">3730</span>
+<span id="3731">3731</span>
+<span id="3732">3732</span>
+<span id="3733">3733</span>
+<span id="3734">3734</span>
+<span id="3735">3735</span>
+<span id="3736">3736</span>
+<span id="3737">3737</span>
+<span id="3738">3738</span>
+<span id="3739">3739</span>
+<span id="3740">3740</span>
+<span id="3741">3741</span>
+<span id="3742">3742</span>
+<span id="3743">3743</span>
+<span id="3744">3744</span>
+<span id="3745">3745</span>
+<span id="3746">3746</span>
+<span id="3747">3747</span>
+<span id="3748">3748</span>
+<span id="3749">3749</span>
+<span id="3750">3750</span>
+<span id="3751">3751</span>
+<span id="3752">3752</span>
+<span id="3753">3753</span>
+<span id="3754">3754</span>
+<span id="3755">3755</span>
+<span id="3756">3756</span>
+<span id="3757">3757</span>
+<span id="3758">3758</span>
+<span id="3759">3759</span>
+<span id="3760">3760</span>
+<span id="3761">3761</span>
+<span id="3762">3762</span>
+<span id="3763">3763</span>
+<span id="3764">3764</span>
+<span id="3765">3765</span>
+<span id="3766">3766</span>
+<span id="3767">3767</span>
+<span id="3768">3768</span>
+<span id="3769">3769</span>
+<span id="3770">3770</span>
+<span id="3771">3771</span>
+<span id="3772">3772</span>
+<span id="3773">3773</span>
+<span id="3774">3774</span>
+<span id="3775">3775</span>
+<span id="3776">3776</span>
+<span id="3777">3777</span>
+<span id="3778">3778</span>
+<span id="3779">3779</span>
+<span id="3780">3780</span>
+<span id="3781">3781</span>
+<span id="3782">3782</span>
+<span id="3783">3783</span>
+<span id="3784">3784</span>
+<span id="3785">3785</span>
+<span id="3786">3786</span>
+<span id="3787">3787</span>
+<span id="3788">3788</span>
+<span id="3789">3789</span>
+<span id="3790">3790</span>
+<span id="3791">3791</span>
+<span id="3792">3792</span>
+<span id="3793">3793</span>
+<span id="3794">3794</span>
+<span id="3795">3795</span>
+<span id="3796">3796</span>
+<span id="3797">3797</span>
+<span id="3798">3798</span>
+<span id="3799">3799</span>
+<span id="3800">3800</span>
+<span id="3801">3801</span>
+<span id="3802">3802</span>
+<span id="3803">3803</span>
+<span id="3804">3804</span>
+<span id="3805">3805</span>
+<span id="3806">3806</span>
+<span id="3807">3807</span>
+<span id="3808">3808</span>
+<span id="3809">3809</span>
+<span id="3810">3810</span>
+<span id="3811">3811</span>
+<span id="3812">3812</span>
+<span id="3813">3813</span>
+<span id="3814">3814</span>
+<span id="3815">3815</span>
+<span id="3816">3816</span>
+<span id="3817">3817</span>
+<span id="3818">3818</span>
+<span id="3819">3819</span>
+<span id="3820">3820</span>
+<span id="3821">3821</span>
+<span id="3822">3822</span>
+<span id="3823">3823</span>
+<span id="3824">3824</span>
+<span id="3825">3825</span>
+<span id="3826">3826</span>
+<span id="3827">3827</span>
+<span id="3828">3828</span>
+<span id="3829">3829</span>
+<span id="3830">3830</span>
+<span id="3831">3831</span>
+<span id="3832">3832</span>
+<span id="3833">3833</span>
+<span id="3834">3834</span>
+<span id="3835">3835</span>
+<span id="3836">3836</span>
+<span id="3837">3837</span>
+<span id="3838">3838</span>
+<span id="3839">3839</span>
+<span id="3840">3840</span>
+<span id="3841">3841</span>
+<span id="3842">3842</span>
+<span id="3843">3843</span>
+<span id="3844">3844</span>
+<span id="3845">3845</span>
+<span id="3846">3846</span>
+<span id="3847">3847</span>
+<span id="3848">3848</span>
+<span id="3849">3849</span>
+<span id="3850">3850</span>
+<span id="3851">3851</span>
+<span id="3852">3852</span>
+<span id="3853">3853</span>
+<span id="3854">3854</span>
+<span id="3855">3855</span>
+<span id="3856">3856</span>
+<span id="3857">3857</span>
+<span id="3858">3858</span>
+<span id="3859">3859</span>
+<span id="3860">3860</span>
+<span id="3861">3861</span>
+<span id="3862">3862</span>
+<span id="3863">3863</span>
+<span id="3864">3864</span>
+<span id="3865">3865</span>
+<span id="3866">3866</span>
+<span id="3867">3867</span>
+<span id="3868">3868</span>
+<span id="3869">3869</span>
+<span id="3870">3870</span>
+<span id="3871">3871</span>
+<span id="3872">3872</span>
+<span id="3873">3873</span>
+<span id="3874">3874</span>
+<span id="3875">3875</span>
+<span id="3876">3876</span>
+<span id="3877">3877</span>
+<span id="3878">3878</span>
+<span id="3879">3879</span>
+<span id="3880">3880</span>
+<span id="3881">3881</span>
+<span id="3882">3882</span>
+<span id="3883">3883</span>
+<span id="3884">3884</span>
+<span id="3885">3885</span>
+<span id="3886">3886</span>
+<span id="3887">3887</span>
+<span id="3888">3888</span>
+<span id="3889">3889</span>
+<span id="3890">3890</span>
+<span id="3891">3891</span>
+<span id="3892">3892</span>
+<span id="3893">3893</span>
+<span id="3894">3894</span>
+<span id="3895">3895</span>
+<span id="3896">3896</span>
+<span id="3897">3897</span>
+<span id="3898">3898</span>
+<span id="3899">3899</span>
+<span id="3900">3900</span>
+<span id="3901">3901</span>
+<span id="3902">3902</span>
+<span id="3903">3903</span>
+<span id="3904">3904</span>
+<span id="3905">3905</span>
+<span id="3906">3906</span>
+<span id="3907">3907</span>
+<span id="3908">3908</span>
+<span id="3909">3909</span>
+<span id="3910">3910</span>
+<span id="3911">3911</span>
+<span id="3912">3912</span>
+<span id="3913">3913</span>
+<span id="3914">3914</span>
+<span id="3915">3915</span>
+<span id="3916">3916</span>
+<span id="3917">3917</span>
+<span id="3918">3918</span>
+<span id="3919">3919</span>
+<span id="3920">3920</span>
+<span id="3921">3921</span>
+<span id="3922">3922</span>
+<span id="3923">3923</span>
+<span id="3924">3924</span>
+<span id="3925">3925</span>
+<span id="3926">3926</span>
+<span id="3927">3927</span>
+<span id="3928">3928</span>
+<span id="3929">3929</span>
+<span id="3930">3930</span>
+<span id="3931">3931</span>
+<span id="3932">3932</span>
+<span id="3933">3933</span>
+<span id="3934">3934</span>
+<span id="3935">3935</span>
+<span id="3936">3936</span>
+<span id="3937">3937</span>
+<span id="3938">3938</span>
+<span id="3939">3939</span>
+<span id="3940">3940</span>
+<span id="3941">3941</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">libc</span>::{<span class="ident">c_char</span>, <span class="ident">c_int</span>, <span class="ident">c_uint</span>, <span class="ident">c_void</span>, <span class="ident">size_t</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">env</span>;
@@ -3723,6 +3956,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">diff</span>::{
     <span class="ident">binary_cb_c</span>, <span class="ident">file_cb_c</span>, <span class="ident">hunk_cb_c</span>, <span class="ident">line_cb_c</span>, <span class="ident">BinaryCb</span>, <span class="ident">DiffCallbacks</span>, <span class="ident">FileCb</span>, <span class="ident">HunkCb</span>, <span class="ident">LineCb</span>,
 };
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">mailmap</span>::<span class="ident">Mailmap</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">oid_array</span>::<span class="ident">OidArray</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">stash</span>::{<span class="ident">stash_cb</span>, <span class="ident">StashApplyOptions</span>, <span class="ident">StashCbData</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">string_array</span>::<span class="ident">StringArray</span>;
@@ -3736,14 +3970,15 @@
     <span class="ident">StashFlags</span>,
 };
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">AnnotatedCommit</span>, <span class="ident">MergeAnalysis</span>, <span class="ident">MergeOptions</span>, <span class="ident">MergePreference</span>, <span class="ident">SubmoduleIgnore</span>, <span class="ident">SubmoduleStatus</span>,
+    <span class="ident">AnnotatedCommit</span>, <span class="ident">MergeAnalysis</span>, <span class="ident">MergeOptions</span>, <span class="ident">MergePreference</span>, <span class="ident">SubmoduleIgnore</span>,
+    <span class="ident">SubmoduleStatus</span>, <span class="ident">SubmoduleUpdate</span>,
 };
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ApplyLocation</span>, <span class="ident">ApplyOptions</span>, <span class="ident">Rebase</span>, <span class="ident">RebaseOptions</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Blame</span>, <span class="ident">BlameOptions</span>, <span class="ident">Reference</span>, <span class="ident">References</span>, <span class="ident">ResetType</span>, <span class="ident">Signature</span>, <span class="ident">Submodule</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Blob</span>, <span class="ident">BlobWriter</span>, <span class="ident">Branch</span>, <span class="ident">BranchType</span>, <span class="ident">Branches</span>, <span class="ident">Commit</span>, <span class="ident">Config</span>, <span class="ident">Index</span>, <span class="ident">Oid</span>, <span class="ident">Tree</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Describe</span>, <span class="ident">IntoCString</span>, <span class="ident">Reflog</span>, <span class="ident">RepositoryInitMode</span>, <span class="ident">RevparseMode</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">DescribeOptions</span>, <span class="ident">Diff</span>, <span class="ident">DiffOptions</span>, <span class="ident">Odb</span>, <span class="ident">PackBuilder</span>, <span class="ident">TreeBuilder</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Note</span>, <span class="ident">Notes</span>, <span class="ident">ObjectType</span>, <span class="ident">Revwalk</span>, <span class="ident">Status</span>, <span class="ident">StatusOptions</span>, <span class="ident">Statuses</span>, <span class="ident">Tag</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Note</span>, <span class="ident">Notes</span>, <span class="ident">ObjectType</span>, <span class="ident">Revwalk</span>, <span class="ident">Status</span>, <span class="ident">StatusOptions</span>, <span class="ident">Statuses</span>, <span class="ident">Tag</span>, <span class="ident">Transaction</span>};
 
 <span class="doccomment">/// An owned git repository, representing all state associated with the</span>
 <span class="doccomment">/// underlying filesystem.</span>
@@ -4664,6 +4899,14 @@
     }
 
     <span class="doccomment">/// Get the value of a git attribute for a path as a string.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This function will return a special string if the attribute is set to a special value.</span>
+    <span class="doccomment">/// Interpreting the special string is discouraged. You should always use</span>
+    <span class="doccomment">/// [`AttrValue::from_string`](crate::AttrValue::from_string) to interpret the return value</span>
+    <span class="doccomment">/// and avoid the special string.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// As such, the return type of this function will probably be changed in the next major version</span>
+    <span class="doccomment">/// to prevent interpreting the returned string without checking whether it&#39;s special.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_attr</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
@@ -4676,6 +4919,14 @@
     }
 
     <span class="doccomment">/// Get the value of a git attribute for a path as a byte slice.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This function will return a special byte slice if the attribute is set to a special value.</span>
+    <span class="doccomment">/// Interpreting the special byte slice is discouraged. You should always use</span>
+    <span class="doccomment">/// [`AttrValue::from_bytes`](crate::AttrValue::from_bytes) to interpret the return value and</span>
+    <span class="doccomment">/// avoid the special string.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// As such, the return type of this function will probably be changed in the next major version</span>
+    <span class="doccomment">/// to prevent interpreting the returned byte slice without checking whether it&#39;s special.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_attr_bytes</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
@@ -5329,6 +5580,62 @@
             <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_submodule_status</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ret</span>, <span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">name</span>, <span class="ident">ignore</span>));
         }
         <span class="prelude-val">Ok</span>(<span class="ident">SubmoduleStatus</span>::<span class="ident">from_bits_truncate</span>(<span class="ident">ret</span> <span class="kw">as</span> <span class="ident">u32</span>))
+    }
+
+    <span class="doccomment">/// Set the ignore rule for the submodule in the configuration</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This does not affect any currently-loaded instances.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">submodule_set_ignore</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">ignore</span>: <span class="ident">SubmoduleIgnore</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">name</span>)<span class="question-mark">?</span>;
+        <span class="kw">unsafe</span> {
+            <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_submodule_set_ignore</span>(<span class="self">self</span>.<span class="ident">raw</span>(), <span class="ident">name</span>, <span class="ident">ignore</span>));
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Set the update rule for the submodule in the configuration</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This setting won&#39;t affect any existing instances.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">submodule_set_update</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">update</span>: <span class="ident">SubmoduleUpdate</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">name</span>)<span class="question-mark">?</span>;
+        <span class="kw">unsafe</span> {
+            <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_submodule_set_update</span>(<span class="self">self</span>.<span class="ident">raw</span>(), <span class="ident">name</span>, <span class="ident">update</span>));
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Set the URL for the submodule in the configuration</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// After calling this, you may wish to call [`Submodule::sync`] to write</span>
+    <span class="doccomment">/// the changes to the checked out submodule repository.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">submodule_set_url</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">url</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">name</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">url</span>)<span class="question-mark">?</span>;
+        <span class="kw">unsafe</span> {
+            <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_submodule_set_url</span>(<span class="self">self</span>.<span class="ident">raw</span>(), <span class="ident">name</span>, <span class="ident">url</span>));
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Set the branch for the submodule in the configuration</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// After calling this, you may wish to call [`Submodule::sync`] to write</span>
+    <span class="doccomment">/// the changes to the checked out submodule repository.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">submodule_set_branch</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">branch_name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">name</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">branch_name</span> <span class="op">=</span> <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">branch_name</span>)<span class="question-mark">?</span>;
+        <span class="kw">unsafe</span> {
+            <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_submodule_set_branch</span>(<span class="self">self</span>.<span class="ident">raw</span>(), <span class="ident">name</span>, <span class="ident">branch_name</span>));
+        }
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Lookup a reference to one of the objects in a repository.</span>
@@ -6592,6 +6899,24 @@
             <span class="prelude-val">Ok</span>(<span class="ident">Binding</span>::<span class="ident">from_raw</span>(<span class="ident">raw</span>))
         }
     }
+
+    <span class="doccomment">/// Create a new transaction</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">transaction</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Transaction</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">ptr</span>::<span class="ident">null_mut</span>();
+        <span class="kw">unsafe</span> {
+            <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_transaction_new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw</span>, <span class="self">self</span>.<span class="ident">raw</span>));
+            <span class="prelude-val">Ok</span>(<span class="ident">Binding</span>::<span class="ident">from_raw</span>(<span class="ident">raw</span>))
+        }
+    }
+
+    <span class="doccomment">/// Gets this repository&#39;s mailmap.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mailmap</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Mailmap</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">ptr</span>::<span class="ident">null_mut</span>();
+        <span class="kw">unsafe</span> {
+            <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_mailmap_from_repository</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ret</span>, <span class="self">self</span>.<span class="ident">raw</span>));
+            <span class="prelude-val">Ok</span>(<span class="ident">Binding</span>::<span class="ident">from_raw</span>(<span class="ident">ret</span>))
+        }
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">Binding</span> <span class="kw">for</span> <span class="ident">Repository</span> {
@@ -6774,7 +7099,9 @@
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">build</span>::<span class="ident">CheckoutBuilder</span>;
     <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">CherrypickOptions</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ObjectType</span>, <span class="ident">Oid</span>, <span class="ident">Repository</span>, <span class="ident">ResetType</span>};
+    <span class="kw">use</span> <span class="kw">crate</span>::{
+        <span class="ident">ObjectType</span>, <span class="ident">Oid</span>, <span class="ident">Repository</span>, <span class="ident">ResetType</span>, <span class="ident">Signature</span>, <span class="ident">SubmoduleIgnore</span>, <span class="ident">SubmoduleUpdate</span>,
+    };
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">OsStr</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
@@ -7416,6 +7743,145 @@
         <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">merge_analysis</span>.<span class="ident">contains</span>(<span class="kw">crate</span>::<span class="ident">MergeAnalysis</span>::<span class="ident">ANALYSIS_FASTFORWARD</span>));
 
         <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">smoke_submodule_set</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw">crate</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> (<span class="ident">td1</span>, <span class="ident">_repo</span>) <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">test</span>::<span class="ident">repo_init</span>();
+        <span class="kw">let</span> (<span class="ident">td2</span>, <span class="kw-2">mut</span> <span class="ident">repo2</span>) <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">test</span>::<span class="ident">repo_init</span>();
+        <span class="kw">let</span> <span class="ident">url</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">test</span>::<span class="ident">path2url</span>(<span class="ident">td1</span>.<span class="ident">path</span>());
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;bar&quot;</span>;
+        {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">repo2</span>.<span class="ident">submodule</span>(<span class="kw-2">&amp;</span><span class="ident">url</span>, <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">name</span>), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+            <span class="ident">fs</span>::<span class="ident">remove_dir_all</span>(<span class="ident">td2</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;bar&quot;</span>)).<span class="ident">unwrap</span>();
+            <span class="ident">Repository</span>::<span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="ident">url</span>, <span class="ident">td2</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;bar&quot;</span>))<span class="question-mark">?</span>;
+            <span class="ident">s</span>.<span class="ident">add_to_index</span>(<span class="bool-val">false</span>)<span class="question-mark">?</span>;
+            <span class="ident">s</span>.<span class="ident">add_finalize</span>()<span class="question-mark">?</span>;
+        }
+
+        <span class="comment">// update strategy</span>
+        <span class="ident">repo2</span>.<span class="ident">submodule_set_update</span>(<span class="ident">name</span>, <span class="ident">SubmoduleUpdate</span>::<span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="macro">matches</span><span class="macro">!</span>(
+            <span class="ident">repo2</span>.<span class="ident">find_submodule</span>(<span class="ident">name</span>)<span class="question-mark">?</span>.<span class="ident">update_strategy</span>(),
+            <span class="ident">SubmoduleUpdate</span>::<span class="prelude-val">None</span>
+        ));
+        <span class="ident">repo2</span>.<span class="ident">submodule_set_update</span>(<span class="ident">name</span>, <span class="ident">SubmoduleUpdate</span>::<span class="ident">Rebase</span>)<span class="question-mark">?</span>;
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="macro">matches</span><span class="macro">!</span>(
+            <span class="ident">repo2</span>.<span class="ident">find_submodule</span>(<span class="ident">name</span>)<span class="question-mark">?</span>.<span class="ident">update_strategy</span>(),
+            <span class="ident">SubmoduleUpdate</span>::<span class="ident">Rebase</span>
+        ));
+
+        <span class="comment">// ignore rule</span>
+        <span class="ident">repo2</span>.<span class="ident">submodule_set_ignore</span>(<span class="ident">name</span>, <span class="ident">SubmoduleIgnore</span>::<span class="ident">Untracked</span>)<span class="question-mark">?</span>;
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="macro">matches</span><span class="macro">!</span>(
+            <span class="ident">repo2</span>.<span class="ident">find_submodule</span>(<span class="ident">name</span>)<span class="question-mark">?</span>.<span class="ident">ignore_rule</span>(),
+            <span class="ident">SubmoduleIgnore</span>::<span class="ident">Untracked</span>
+        ));
+        <span class="ident">repo2</span>.<span class="ident">submodule_set_ignore</span>(<span class="ident">name</span>, <span class="ident">SubmoduleIgnore</span>::<span class="ident">Dirty</span>)<span class="question-mark">?</span>;
+        <span class="macro">assert</span><span class="macro">!</span>(<span class="macro">matches</span><span class="macro">!</span>(
+            <span class="ident">repo2</span>.<span class="ident">find_submodule</span>(<span class="ident">name</span>)<span class="question-mark">?</span>.<span class="ident">ignore_rule</span>(),
+            <span class="ident">SubmoduleIgnore</span>::<span class="ident">Dirty</span>
+        ));
+
+        <span class="comment">// url</span>
+        <span class="ident">repo2</span>.<span class="ident">submodule_set_url</span>(<span class="ident">name</span>, <span class="string">&quot;fake-url&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">repo2</span>.<span class="ident">find_submodule</span>(<span class="ident">name</span>)<span class="question-mark">?</span>.<span class="ident">url</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;fake-url&quot;</span>));
+
+        <span class="comment">// branch</span>
+        <span class="ident">repo2</span>.<span class="ident">submodule_set_branch</span>(<span class="ident">name</span>, <span class="string">&quot;fake-branch&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">repo2</span>.<span class="ident">find_submodule</span>(<span class="ident">name</span>)<span class="question-mark">?</span>.<span class="ident">branch</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;fake-branch&quot;</span>));
+
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">smoke_mailmap_from_repository</span>() {
+        <span class="kw">let</span> (<span class="ident">_td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">test</span>::<span class="ident">repo_init</span>();
+
+        <span class="kw">let</span> <span class="ident">commit</span> <span class="op">=</span> {
+            <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="macro">t</span><span class="macro">!</span>(<span class="ident">repo</span>.<span class="ident">head</span>()).<span class="ident">target</span>().<span class="ident">unwrap</span>();
+            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">repo</span>.<span class="ident">find_commit</span>(<span class="ident">head</span>))
+        };
+
+        <span class="comment">// This is our baseline for HEAD.</span>
+        <span class="kw">let</span> <span class="ident">author</span> <span class="op">=</span> <span class="ident">commit</span>.<span class="ident">author</span>();
+        <span class="kw">let</span> <span class="ident">committer</span> <span class="op">=</span> <span class="ident">commit</span>.<span class="ident">committer</span>();
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">author</span>.<span class="ident">name</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;name&quot;</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">author</span>.<span class="ident">email</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;email&quot;</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">committer</span>.<span class="ident">name</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;name&quot;</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">committer</span>.<span class="ident">email</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;email&quot;</span>));
+
+        <span class="comment">// There is no .mailmap file in the test repo so all signature identities are equal.</span>
+        <span class="kw">let</span> <span class="ident">mailmap</span> <span class="op">=</span> <span class="macro">t</span><span class="macro">!</span>(<span class="ident">repo</span>.<span class="ident">mailmap</span>());
+        <span class="kw">let</span> <span class="ident">mailmapped_author</span> <span class="op">=</span> <span class="macro">t</span><span class="macro">!</span>(<span class="ident">commit</span>.<span class="ident">author_with_mailmap</span>(<span class="kw-2">&amp;</span><span class="ident">mailmap</span>));
+        <span class="kw">let</span> <span class="ident">mailmapped_committer</span> <span class="op">=</span> <span class="macro">t</span><span class="macro">!</span>(<span class="ident">commit</span>.<span class="ident">committer_with_mailmap</span>(<span class="kw-2">&amp;</span><span class="ident">mailmap</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">mailmapped_author</span>.<span class="ident">name</span>(), <span class="ident">author</span>.<span class="ident">name</span>());
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">mailmapped_author</span>.<span class="ident">email</span>(), <span class="ident">author</span>.<span class="ident">email</span>());
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">mailmapped_committer</span>.<span class="ident">name</span>(), <span class="ident">committer</span>.<span class="ident">name</span>());
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">mailmapped_committer</span>.<span class="ident">email</span>(), <span class="ident">committer</span>.<span class="ident">email</span>());
+
+        <span class="kw">let</span> <span class="ident">commit</span> <span class="op">=</span> {
+            <span class="comment">// - Add a .mailmap file to the repository.</span>
+            <span class="comment">// - Commit with a signature identity different from the author&#39;s.</span>
+            <span class="comment">// - Include entries for both author and committer to prove we call</span>
+            <span class="comment">//   the right raw functions.</span>
+            <span class="kw">let</span> <span class="ident">mailmap_file</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;.mailmap&quot;</span>);
+            <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="ident">repo</span>.<span class="ident">workdir</span>().<span class="ident">unwrap</span>()).<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">mailmap_file</span>);
+            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">fs</span>::<span class="ident">write</span>(
+                <span class="ident">p</span>,
+                <span class="string">r#&quot;
+Author Name &lt;author.proper@email&gt; name &lt;email&gt;
+Committer Name &lt;committer.proper@email&gt; &lt;committer@email&gt;&quot;#</span>,
+            ));
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="macro">t</span><span class="macro">!</span>(<span class="ident">repo</span>.<span class="ident">index</span>());
+            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">index</span>.<span class="ident">add_path</span>(<span class="kw-2">&amp;</span><span class="ident">mailmap_file</span>));
+            <span class="kw">let</span> <span class="ident">id_mailmap</span> <span class="op">=</span> <span class="macro">t</span><span class="macro">!</span>(<span class="ident">index</span>.<span class="ident">write_tree</span>());
+            <span class="kw">let</span> <span class="ident">tree_mailmap</span> <span class="op">=</span> <span class="macro">t</span><span class="macro">!</span>(<span class="ident">repo</span>.<span class="ident">find_tree</span>(<span class="ident">id_mailmap</span>));
+
+            <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="macro">t</span><span class="macro">!</span>(<span class="ident">repo</span>.<span class="ident">commit</span>(
+                <span class="prelude-val">Some</span>(<span class="string">&quot;HEAD&quot;</span>),
+                <span class="kw-2">&amp;</span><span class="ident">author</span>,
+                <span class="macro">t</span><span class="macro">!</span>(<span class="kw-2">&amp;</span><span class="ident">Signature</span>::<span class="ident">now</span>(<span class="string">&quot;committer&quot;</span>, <span class="string">&quot;committer@email&quot;</span>)),
+                <span class="string">&quot;Add mailmap&quot;</span>,
+                <span class="kw-2">&amp;</span><span class="ident">tree_mailmap</span>,
+                <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">commit</span>],
+            ));
+            <span class="macro">t</span><span class="macro">!</span>(<span class="ident">repo</span>.<span class="ident">find_commit</span>(<span class="ident">head</span>))
+        };
+
+        <span class="comment">// Sanity check that we&#39;re working with the right commit and that its</span>
+        <span class="comment">// author and committer identities differ.</span>
+        <span class="kw">let</span> <span class="ident">author</span> <span class="op">=</span> <span class="ident">commit</span>.<span class="ident">author</span>();
+        <span class="kw">let</span> <span class="ident">committer</span> <span class="op">=</span> <span class="ident">commit</span>.<span class="ident">committer</span>();
+        <span class="macro">assert_ne</span><span class="macro">!</span>(<span class="ident">author</span>.<span class="ident">name</span>(), <span class="ident">committer</span>.<span class="ident">name</span>());
+        <span class="macro">assert_ne</span><span class="macro">!</span>(<span class="ident">author</span>.<span class="ident">email</span>(), <span class="ident">committer</span>.<span class="ident">email</span>());
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">author</span>.<span class="ident">name</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;name&quot;</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">author</span>.<span class="ident">email</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;email&quot;</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">committer</span>.<span class="ident">name</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;committer&quot;</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">committer</span>.<span class="ident">email</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;committer@email&quot;</span>));
+
+        <span class="comment">// Fetch the newly added .mailmap from the repository.</span>
+        <span class="kw">let</span> <span class="ident">mailmap</span> <span class="op">=</span> <span class="macro">t</span><span class="macro">!</span>(<span class="ident">repo</span>.<span class="ident">mailmap</span>());
+        <span class="kw">let</span> <span class="ident">mailmapped_author</span> <span class="op">=</span> <span class="macro">t</span><span class="macro">!</span>(<span class="ident">commit</span>.<span class="ident">author_with_mailmap</span>(<span class="kw-2">&amp;</span><span class="ident">mailmap</span>));
+        <span class="kw">let</span> <span class="ident">mailmapped_committer</span> <span class="op">=</span> <span class="macro">t</span><span class="macro">!</span>(<span class="ident">commit</span>.<span class="ident">committer_with_mailmap</span>(<span class="kw-2">&amp;</span><span class="ident">mailmap</span>));
+
+        <span class="kw">let</span> <span class="ident">mm_resolve_author</span> <span class="op">=</span> <span class="macro">t</span><span class="macro">!</span>(<span class="ident">mailmap</span>.<span class="ident">resolve_signature</span>(<span class="kw-2">&amp;</span><span class="ident">author</span>));
+        <span class="kw">let</span> <span class="ident">mm_resolve_committer</span> <span class="op">=</span> <span class="macro">t</span><span class="macro">!</span>(<span class="ident">mailmap</span>.<span class="ident">resolve_signature</span>(<span class="kw-2">&amp;</span><span class="ident">committer</span>));
+
+        <span class="comment">// Mailmap Signature lifetime is independent of Commit lifetime.</span>
+        <span class="ident">drop</span>(<span class="ident">author</span>);
+        <span class="ident">drop</span>(<span class="ident">committer</span>);
+        <span class="ident">drop</span>(<span class="ident">commit</span>);
+
+        <span class="comment">// author_with_mailmap() + committer_with_mailmap() work</span>
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">mailmapped_author</span>.<span class="ident">name</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;Author Name&quot;</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">mailmapped_author</span>.<span class="ident">email</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;author.proper@email&quot;</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">mailmapped_committer</span>.<span class="ident">name</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;Committer Name&quot;</span>));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">mailmapped_committer</span>.<span class="ident">email</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;committer.proper@email&quot;</span>));
+
+        <span class="comment">// resolve_signature() works</span>
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">mm_resolve_author</span>.<span class="ident">email</span>(), <span class="ident">mailmapped_author</span>.<span class="ident">email</span>());
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">mm_resolve_committer</span>.<span class="ident">email</span>(), <span class="ident">mailmapped_committer</span>.<span class="ident">email</span>());
     }
 }
 </pre></div>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.17/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.18/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -1487,6 +1487,66 @@
 <span id="1484">1484</span>
 <span id="1485">1485</span>
 <span id="1486">1486</span>
+<span id="1487">1487</span>
+<span id="1488">1488</span>
+<span id="1489">1489</span>
+<span id="1490">1490</span>
+<span id="1491">1491</span>
+<span id="1492">1492</span>
+<span id="1493">1493</span>
+<span id="1494">1494</span>
+<span id="1495">1495</span>
+<span id="1496">1496</span>
+<span id="1497">1497</span>
+<span id="1498">1498</span>
+<span id="1499">1499</span>
+<span id="1500">1500</span>
+<span id="1501">1501</span>
+<span id="1502">1502</span>
+<span id="1503">1503</span>
+<span id="1504">1504</span>
+<span id="1505">1505</span>
+<span id="1506">1506</span>
+<span id="1507">1507</span>
+<span id="1508">1508</span>
+<span id="1509">1509</span>
+<span id="1510">1510</span>
+<span id="1511">1511</span>
+<span id="1512">1512</span>
+<span id="1513">1513</span>
+<span id="1514">1514</span>
+<span id="1515">1515</span>
+<span id="1516">1516</span>
+<span id="1517">1517</span>
+<span id="1518">1518</span>
+<span id="1519">1519</span>
+<span id="1520">1520</span>
+<span id="1521">1521</span>
+<span id="1522">1522</span>
+<span id="1523">1523</span>
+<span id="1524">1524</span>
+<span id="1525">1525</span>
+<span id="1526">1526</span>
+<span id="1527">1527</span>
+<span id="1528">1528</span>
+<span id="1529">1529</span>
+<span id="1530">1530</span>
+<span id="1531">1531</span>
+<span id="1532">1532</span>
+<span id="1533">1533</span>
+<span id="1534">1534</span>
+<span id="1535">1535</span>
+<span id="1536">1536</span>
+<span id="1537">1537</span>
+<span id="1538">1538</span>
+<span id="1539">1539</span>
+<span id="1540">1540</span>
+<span id="1541">1541</span>
+<span id="1542">1542</span>
+<span id="1543">1543</span>
+<span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # libgit2 bindings for Rust</span>
 <span class="doccomment">//!</span>
@@ -1570,6 +1630,7 @@
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Once</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">apply</span>::{<span class="ident">ApplyLocation</span>, <span class="ident">ApplyOptions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">attr</span>::<span class="ident">AttrValue</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">blame</span>::{<span class="ident">Blame</span>, <span class="ident">BlameHunk</span>, <span class="ident">BlameIter</span>, <span class="ident">BlameOptions</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">blob</span>::{<span class="ident">Blob</span>, <span class="ident">BlobWriter</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">branch</span>::{<span class="ident">Branch</span>, <span class="ident">Branches</span>};
@@ -1581,12 +1642,13 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">describe</span>::{<span class="ident">Describe</span>, <span class="ident">DescribeFormatOptions</span>, <span class="ident">DescribeOptions</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">diff</span>::{<span class="ident">Deltas</span>, <span class="ident">Diff</span>, <span class="ident">DiffDelta</span>, <span class="ident">DiffFile</span>, <span class="ident">DiffOptions</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">diff</span>::{<span class="ident">DiffBinary</span>, <span class="ident">DiffBinaryFile</span>, <span class="ident">DiffBinaryKind</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">diff</span>::{<span class="ident">DiffFindOptions</span>, <span class="ident">DiffHunk</span>, <span class="ident">DiffLine</span>, <span class="ident">DiffStats</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">diff</span>::{<span class="ident">DiffFindOptions</span>, <span class="ident">DiffHunk</span>, <span class="ident">DiffLine</span>, <span class="ident">DiffLineType</span>, <span class="ident">DiffStats</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">index</span>::{
     <span class="ident">Index</span>, <span class="ident">IndexConflict</span>, <span class="ident">IndexConflicts</span>, <span class="ident">IndexEntries</span>, <span class="ident">IndexEntry</span>, <span class="ident">IndexMatchedPath</span>,
 };
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">indexer</span>::{<span class="ident">IndexerProgress</span>, <span class="ident">Progress</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">mailmap</span>::<span class="ident">Mailmap</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">mempack</span>::<span class="ident">Mempack</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">merge</span>::{<span class="ident">AnnotatedCommit</span>, <span class="ident">MergeOptions</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">message</span>::{<span class="ident">message_prettify</span>, <span class="ident">DEFAULT_COMMENT_CHAR</span>};
@@ -1618,6 +1680,7 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">submodule</span>::{<span class="ident">Submodule</span>, <span class="ident">SubmoduleUpdateOptions</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">tag</span>::<span class="ident">Tag</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">time</span>::{<span class="ident">IndexTime</span>, <span class="ident">Time</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">transaction</span>::<span class="ident">Transaction</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">tree</span>::{<span class="ident">Tree</span>, <span class="ident">TreeEntry</span>, <span class="ident">TreeIter</span>, <span class="ident">TreeWalkMode</span>, <span class="ident">TreeWalkResult</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">treebuilder</span>::<span class="ident">TreeBuilder</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">IntoCString</span>;
@@ -2123,6 +2186,7 @@
 <span class="kw">mod</span> <span class="ident">test</span>;
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">mod</span> <span class="ident">panic</span>;
+<span class="kw">mod</span> <span class="ident">attr</span>;
 <span class="kw">mod</span> <span class="ident">call</span>;
 <span class="kw">mod</span> <span class="ident">util</span>;
 
@@ -2147,6 +2211,7 @@
 <span class="kw">mod</span> <span class="ident">error</span>;
 <span class="kw">mod</span> <span class="ident">index</span>;
 <span class="kw">mod</span> <span class="ident">indexer</span>;
+<span class="kw">mod</span> <span class="ident">mailmap</span>;
 <span class="kw">mod</span> <span class="ident">mempack</span>;
 <span class="kw">mod</span> <span class="ident">merge</span>;
 <span class="kw">mod</span> <span class="ident">message</span>;
@@ -2175,6 +2240,7 @@
 <span class="kw">mod</span> <span class="ident">tag</span>;
 <span class="kw">mod</span> <span class="ident">tagforeach</span>;
 <span class="kw">mod</span> <span class="ident">time</span>;
+<span class="kw">mod</span> <span class="ident">transaction</span>;
 <span class="kw">mod</span> <span class="ident">tree</span>;
 <span class="kw">mod</span> <span class="ident">treebuilder</span>;
 <span class="kw">mod</span> <span class="ident">worktree</span>;
@@ -2415,6 +2481,34 @@
             <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_LEVEL_APP</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">App</span>,
             <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_HIGHEST_LEVEL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">Highest</span>,
             <span class="ident">n</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;unknown config level: {}&quot;</span>, <span class="ident">n</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">SubmoduleIgnore</span> {
+    <span class="doccomment">/// Converts a [`raw::git_submodule_ignore_t`] to a [`SubmoduleIgnore`]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="ident">raw</span>::<span class="ident">git_submodule_ignore_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">match</span> <span class="ident">raw</span> {
+            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_IGNORE_UNSPECIFIED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleIgnore</span>::<span class="ident">Unspecified</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_IGNORE_NONE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleIgnore</span>::<span class="prelude-val">None</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_IGNORE_UNTRACKED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleIgnore</span>::<span class="ident">Untracked</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_IGNORE_DIRTY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleIgnore</span>::<span class="ident">Dirty</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_IGNORE_ALL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleIgnore</span>::<span class="ident">All</span>,
+            <span class="ident">n</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;unknown submodule ignore rule: {}&quot;</span>, <span class="ident">n</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">SubmoduleUpdate</span> {
+    <span class="doccomment">/// Converts a [`raw::git_submodule_update_t`] to a [`SubmoduleUpdate`]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="ident">raw</span>::<span class="ident">git_submodule_update_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">match</span> <span class="ident">raw</span> {
+            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_UPDATE_CHECKOUT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleUpdate</span>::<span class="ident">Checkout</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_UPDATE_REBASE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleUpdate</span>::<span class="ident">Rebase</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_UPDATE_MERGE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleUpdate</span>::<span class="ident">Merge</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_UPDATE_NONE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleUpdate</span>::<span class="prelude-val">None</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_UPDATE_DEFAULT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleUpdate</span>::<span class="ident">Default</span>,
+            <span class="ident">n</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;unknown submodule update strategy: {}&quot;</span>, <span class="ident">n</span>),
         }
     }
 }
@@ -2661,6 +2755,7 @@
 <span class="doccomment">/// These values represent settings for the `submodule.$name.ignore`</span>
 <span class="doccomment">/// configuration value which says how deeply to look at the working</span>
 <span class="doccomment">/// directory when getting the submodule status.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SubmoduleIgnore</span> {
     <span class="doccomment">/// Use the submodule&#39;s configuration</span>
     <span class="ident">Unspecified</span>,
@@ -2672,6 +2767,31 @@
     <span class="ident">Dirty</span>,
     <span class="doccomment">/// Never dirty</span>
     <span class="ident">All</span>,
+}
+
+<span class="doccomment">/// Submodule update values</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// These values represent settings for the `submodule.$name.update`</span>
+<span class="doccomment">/// configuration value which says how to handle `git submodule update`</span>
+<span class="doccomment">/// for this submodule. The value is usually set in the &quot;.gitmodules&quot;</span>
+<span class="doccomment">/// file and copied to &quot;.git/config&quot; when the submodule is initialized.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SubmoduleUpdate</span> {
+    <span class="doccomment">/// The default; when a submodule is updated, checkout the new detached</span>
+    <span class="doccomment">/// HEAD to the submodule directory.</span>
+    <span class="ident">Checkout</span>,
+    <span class="doccomment">/// Update by rebasing the current checked out branch onto the commit from</span>
+    <span class="doccomment">/// the superproject.</span>
+    <span class="ident">Rebase</span>,
+    <span class="doccomment">/// Update by merging the commit in the superproject into the current</span>
+    <span class="doccomment">/// checkout out branch of the submodule.</span>
+    <span class="ident">Merge</span>,
+    <span class="doccomment">/// Do not update this submodule even when the commit in the superproject</span>
+    <span class="doccomment">/// is updated.</span>
+    <span class="prelude-val">None</span>,
+    <span class="doccomment">/// Not used except as static initializer when we don&#39;t want any particular</span>
+    <span class="doccomment">/// update rule to be specified.</span>
+    <span class="ident">Default</span>,
 }
 
 <span class="macro">bitflags</span><span class="macro">!</span> {

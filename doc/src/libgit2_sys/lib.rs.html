@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libgit2-sys-0.12.18+1.1.0/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libgit2-sys-0.12.19+1.1.0/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../libgit2_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -3947,6 +3947,87 @@
 <span id="3944">3944</span>
 <span id="3945">3945</span>
 <span id="3946">3946</span>
+<span id="3947">3947</span>
+<span id="3948">3948</span>
+<span id="3949">3949</span>
+<span id="3950">3950</span>
+<span id="3951">3951</span>
+<span id="3952">3952</span>
+<span id="3953">3953</span>
+<span id="3954">3954</span>
+<span id="3955">3955</span>
+<span id="3956">3956</span>
+<span id="3957">3957</span>
+<span id="3958">3958</span>
+<span id="3959">3959</span>
+<span id="3960">3960</span>
+<span id="3961">3961</span>
+<span id="3962">3962</span>
+<span id="3963">3963</span>
+<span id="3964">3964</span>
+<span id="3965">3965</span>
+<span id="3966">3966</span>
+<span id="3967">3967</span>
+<span id="3968">3968</span>
+<span id="3969">3969</span>
+<span id="3970">3970</span>
+<span id="3971">3971</span>
+<span id="3972">3972</span>
+<span id="3973">3973</span>
+<span id="3974">3974</span>
+<span id="3975">3975</span>
+<span id="3976">3976</span>
+<span id="3977">3977</span>
+<span id="3978">3978</span>
+<span id="3979">3979</span>
+<span id="3980">3980</span>
+<span id="3981">3981</span>
+<span id="3982">3982</span>
+<span id="3983">3983</span>
+<span id="3984">3984</span>
+<span id="3985">3985</span>
+<span id="3986">3986</span>
+<span id="3987">3987</span>
+<span id="3988">3988</span>
+<span id="3989">3989</span>
+<span id="3990">3990</span>
+<span id="3991">3991</span>
+<span id="3992">3992</span>
+<span id="3993">3993</span>
+<span id="3994">3994</span>
+<span id="3995">3995</span>
+<span id="3996">3996</span>
+<span id="3997">3997</span>
+<span id="3998">3998</span>
+<span id="3999">3999</span>
+<span id="4000">4000</span>
+<span id="4001">4001</span>
+<span id="4002">4002</span>
+<span id="4003">4003</span>
+<span id="4004">4004</span>
+<span id="4005">4005</span>
+<span id="4006">4006</span>
+<span id="4007">4007</span>
+<span id="4008">4008</span>
+<span id="4009">4009</span>
+<span id="4010">4010</span>
+<span id="4011">4011</span>
+<span id="4012">4012</span>
+<span id="4013">4013</span>
+<span id="4014">4014</span>
+<span id="4015">4015</span>
+<span id="4016">4016</span>
+<span id="4017">4017</span>
+<span id="4018">4018</span>
+<span id="4019">4019</span>
+<span id="4020">4020</span>
+<span id="4021">4021</span>
+<span id="4022">4022</span>
+<span id="4023">4023</span>
+<span id="4024">4024</span>
+<span id="4025">4025</span>
+<span id="4026">4026</span>
+<span id="4027">4027</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/libgit2-sys/0.12&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">non_camel_case_types</span>, <span class="ident">unused_extern_crates</span>)]</span>
@@ -4039,6 +4120,8 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">git_odb_stream</span> {}
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">git_odb_object</span> {}
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">git_worktree</span> {}
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">git_transaction</span> {}
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">git_mailmap</span> {}
 
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">git_revspec</span> {
@@ -5195,6 +5278,13 @@
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">GIT_DIFF_FORMAT_EMAIL_NONE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">GIT_DIFF_FORMAT_EMAIL_EXCLUDE_SUBJECT_PATCH_MARKER</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>;
+
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">git_diff_patchid_options</span> {
+    <span class="kw">pub</span> <span class="ident">version</span>: <span class="ident">c_uint</span>,
+}
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">GIT_DIFF_PATCHID_OPTIONS_VERSION</span>: <span class="ident">c_uint</span> <span class="op">=</span> <span class="number">1</span>;
 
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">git_diff_binary</span> {
@@ -6359,6 +6449,7 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_submodule_free</span>(<span class="ident">submodule</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_submodule</span>);
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_submodule_head_id</span>(<span class="ident">submodule</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_submodule</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_oid</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_submodule_ignore</span>(<span class="ident">submodule</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_submodule</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">git_submodule_ignore_t</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_submodule_index_id</span>(<span class="ident">submodule</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_submodule</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_oid</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_submodule_init</span>(<span class="ident">submodule</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_submodule</span>, <span class="ident">overwrite</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_submodule_location</span>(<span class="ident">status</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uint</span>, <span class="ident">submodule</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_submodule</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
@@ -6539,7 +6630,17 @@
 
     <span class="comment">// commit</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_commit_author</span>(<span class="ident">commit</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_commit</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_signature</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_commit_author_with_mailmap</span>(
+        <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_signature</span>,
+        <span class="ident">commit</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_commit</span>,
+        <span class="ident">mailmap</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_mailmap</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_commit_committer</span>(<span class="ident">commit</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_commit</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_signature</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_commit_committer_with_mailmap</span>(
+        <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_signature</span>,
+        <span class="ident">commit</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_commit</span>,
+        <span class="ident">mailmap</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_mailmap</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_commit_free</span>(<span class="ident">commit</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_commit</span>);
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_commit_id</span>(<span class="ident">commit</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_commit</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_oid</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_commit_lookup</span>(
@@ -7384,6 +7485,16 @@
         <span class="ident">version</span>: <span class="ident">c_uint</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
 
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_diff_patchid</span>(
+        <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_oid</span>,
+        <span class="ident">diff</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_diff</span>,
+        <span class="ident">opts</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_diff_patchid_options</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_diff_patchid_options_init</span>(
+        <span class="ident">opts</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_diff_patchid_options</span>,
+        <span class="ident">version</span>: <span class="ident">c_uint</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+
     <span class="comment">// patch</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_patch_from_diff</span>(<span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_patch</span>, <span class="ident">diff</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_diff</span>, <span class="ident">idx</span>: <span class="ident">size_t</span>)
         <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
@@ -7845,6 +7956,57 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_worktree_prune</span>(
         <span class="ident">wt</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_worktree</span>,
         <span class="ident">opts</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_worktree_prune_options</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+
+    <span class="comment">// Ref transactions</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_transaction_new</span>(<span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_transaction</span>, <span class="ident">repo</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_repository</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_transaction_lock_ref</span>(<span class="ident">tx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_transaction</span>, <span class="ident">refname</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_transaction_set_target</span>(
+        <span class="ident">tx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_transaction</span>,
+        <span class="ident">refname</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+        <span class="ident">target</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_oid</span>,
+        <span class="ident">sig</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_signature</span>,
+        <span class="ident">msg</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_transaction_set_symbolic_target</span>(
+        <span class="ident">tx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_transaction</span>,
+        <span class="ident">refname</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+        <span class="ident">target</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+        <span class="ident">sig</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_signature</span>,
+        <span class="ident">msg</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_transaction_set_reflog</span>(
+        <span class="ident">tx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_transaction</span>,
+        <span class="ident">refname</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+        <span class="ident">reflog</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_reflog</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_transaction_remove</span>(<span class="ident">tx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_transaction</span>, <span class="ident">refname</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_transaction_commit</span>(<span class="ident">tx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_transaction</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_transaction_free</span>(<span class="ident">tx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_transaction</span>);
+
+    <span class="comment">// Mailmap</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_mailmap_new</span>(<span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_mailmap</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_mailmap_from_buffer</span>(
+        <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_mailmap</span>,
+        <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+        <span class="ident">len</span>: <span class="ident">size_t</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_mailmap_from_repository</span>(
+        <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_mailmap</span>,
+        <span class="ident">repo</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_repository</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_mailmap_free</span>(<span class="ident">mm</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_mailmap</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_mailmap_resolve_signature</span>(
+        <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_signature</span>,
+        <span class="ident">mm</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_mailmap</span>,
+        <span class="ident">sig</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_signature</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_mailmap_add_entry</span>(
+        <span class="ident">mm</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_mailmap</span>,
+        <span class="ident">real_name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+        <span class="ident">real_email</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+        <span class="ident">replace_name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
+        <span class="ident">replace_email</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
 }
 

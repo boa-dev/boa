@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.17/src/diff.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>diff.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.18/src/diff.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>diff.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -1688,6 +1688,133 @@
 <span id="1685">1685</span>
 <span id="1686">1686</span>
 <span id="1687">1687</span>
+<span id="1688">1688</span>
+<span id="1689">1689</span>
+<span id="1690">1690</span>
+<span id="1691">1691</span>
+<span id="1692">1692</span>
+<span id="1693">1693</span>
+<span id="1694">1694</span>
+<span id="1695">1695</span>
+<span id="1696">1696</span>
+<span id="1697">1697</span>
+<span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
+<span id="1703">1703</span>
+<span id="1704">1704</span>
+<span id="1705">1705</span>
+<span id="1706">1706</span>
+<span id="1707">1707</span>
+<span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
+<span id="1724">1724</span>
+<span id="1725">1725</span>
+<span id="1726">1726</span>
+<span id="1727">1727</span>
+<span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
+<span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
+<span id="1745">1745</span>
+<span id="1746">1746</span>
+<span id="1747">1747</span>
+<span id="1748">1748</span>
+<span id="1749">1749</span>
+<span id="1750">1750</span>
+<span id="1751">1751</span>
+<span id="1752">1752</span>
+<span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
+<span id="1758">1758</span>
+<span id="1759">1759</span>
+<span id="1760">1760</span>
+<span id="1761">1761</span>
+<span id="1762">1762</span>
+<span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
+<span id="1767">1767</span>
+<span id="1768">1768</span>
+<span id="1769">1769</span>
+<span id="1770">1770</span>
+<span id="1771">1771</span>
+<span id="1772">1772</span>
+<span id="1773">1773</span>
+<span id="1774">1774</span>
+<span id="1775">1775</span>
+<span id="1776">1776</span>
+<span id="1777">1777</span>
+<span id="1778">1778</span>
+<span id="1779">1779</span>
+<span id="1780">1780</span>
+<span id="1781">1781</span>
+<span id="1782">1782</span>
+<span id="1783">1783</span>
+<span id="1784">1784</span>
+<span id="1785">1785</span>
+<span id="1786">1786</span>
+<span id="1787">1787</span>
+<span id="1788">1788</span>
+<span id="1789">1789</span>
+<span id="1790">1790</span>
+<span id="1791">1791</span>
+<span id="1792">1792</span>
+<span id="1793">1793</span>
+<span id="1794">1794</span>
+<span id="1795">1795</span>
+<span id="1796">1796</span>
+<span id="1797">1797</span>
+<span id="1798">1798</span>
+<span id="1799">1799</span>
+<span id="1800">1800</span>
+<span id="1801">1801</span>
+<span id="1802">1802</span>
+<span id="1803">1803</span>
+<span id="1804">1804</span>
+<span id="1805">1805</span>
+<span id="1806">1806</span>
+<span id="1807">1807</span>
+<span id="1808">1808</span>
+<span id="1809">1809</span>
+<span id="1810">1810</span>
+<span id="1811">1811</span>
+<span id="1812">1812</span>
+<span id="1813">1813</span>
+<span id="1814">1814</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">libc</span>::{<span class="ident">c_char</span>, <span class="ident">c_int</span>, <span class="ident">c_void</span>, <span class="ident">size_t</span>};
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">CString</span>;
@@ -1747,6 +1874,11 @@
 <span class="doccomment">/// Control behavior of formatting emails</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DiffFormatEmailOptions</span> {
     <span class="ident">raw</span>: <span class="ident">raw</span>::<span class="ident">git_diff_format_email_options</span>,
+}
+
+<span class="doccomment">/// Control behavior of formatting emails</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DiffPatchidOptions</span> {
+    <span class="ident">raw</span>: <span class="ident">raw</span>::<span class="ident">git_diff_patchid_options</span>,
 }
 
 <span class="doccomment">/// An iterator over the diffs in a delta</span>
@@ -1967,6 +2099,21 @@
             <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_diff_format_email</span>(<span class="ident">buf</span>.<span class="ident">raw</span>(), <span class="self">self</span>.<span class="ident">raw</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">raw_opts</span>));
         }
         <span class="prelude-val">Ok</span>(<span class="ident">buf</span>)
+    }
+
+    <span class="doccomment">/// Create an patchid from a diff.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">patchid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">opts</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">DiffPatchidOptions</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Oid</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">git_oid</span> {
+            <span class="ident">id</span>: [<span class="number">0</span>; <span class="ident">raw</span>::<span class="ident">GIT_OID_RAWSZ</span>],
+        };
+        <span class="kw">unsafe</span> {
+            <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_diff_patchid</span>(
+                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">raw</span>,
+                <span class="self">self</span>.<span class="ident">raw</span>,
+                <span class="ident">opts</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">o</span>.<span class="ident">raw</span>)
+            ));
+            <span class="prelude-val">Ok</span>(<span class="ident">Binding</span>::<span class="ident">from_raw</span>(<span class="kw-2">&amp;</span><span class="ident">raw</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>))
+        }
     }
 
     <span class="comment">// TODO: num_deltas_of_type, find_similar</span>
@@ -2622,6 +2769,61 @@
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;diff</span><span class="op">&gt;</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">Deltas</span><span class="op">&lt;</span><span class="lifetime">&#39;diff</span><span class="op">&gt;</span> {}
 
+<span class="doccomment">/// Line origin constants.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DiffLineType</span> {
+    <span class="doccomment">/// These values will be sent to `git_diff_line_cb` along with the line</span>
+    <span class="ident">Context</span>,
+    <span class="doccomment">///</span>
+    <span class="ident">Addition</span>,
+    <span class="doccomment">///</span>
+    <span class="ident">Deletion</span>,
+    <span class="doccomment">/// Both files have no LF at end</span>
+    <span class="ident">ContextEOFNL</span>,
+    <span class="doccomment">/// Old has no LF at end, new does</span>
+    <span class="ident">AddEOFNL</span>,
+    <span class="doccomment">/// Old has LF at end, new does not</span>
+    <span class="ident">DeleteEOFNL</span>,
+    <span class="doccomment">/// The following values will only be sent to a `git_diff_line_cb` when</span>
+    <span class="doccomment">/// the content of a diff is being formatted through `git_diff_print`.</span>
+    <span class="ident">FileHeader</span>,
+    <span class="doccomment">///</span>
+    <span class="ident">HunkHeader</span>,
+    <span class="doccomment">/// For &quot;Binary files x and y differ&quot;</span>
+    <span class="ident">Binary</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">Binding</span> <span class="kw">for</span> <span class="ident">DiffLineType</span> {
+    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">git_diff_line_t</span>;
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="ident">raw</span>::<span class="ident">git_diff_line_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">match</span> <span class="ident">raw</span> {
+            <span class="ident">raw</span>::<span class="ident">GIT_DIFF_LINE_CONTEXT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DiffLineType</span>::<span class="ident">Context</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_DIFF_LINE_ADDITION</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DiffLineType</span>::<span class="ident">Addition</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_DIFF_LINE_DELETION</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DiffLineType</span>::<span class="ident">Deletion</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_DIFF_LINE_CONTEXT_EOFNL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DiffLineType</span>::<span class="ident">ContextEOFNL</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_DIFF_LINE_ADD_EOFNL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DiffLineType</span>::<span class="ident">AddEOFNL</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_DIFF_LINE_DEL_EOFNL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DiffLineType</span>::<span class="ident">DeleteEOFNL</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_DIFF_LINE_FILE_HDR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DiffLineType</span>::<span class="ident">FileHeader</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_DIFF_LINE_HUNK_HDR</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DiffLineType</span>::<span class="ident">HunkHeader</span>,
+            <span class="ident">raw</span>::<span class="ident">GIT_DIFF_LINE_BINARY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DiffLineType</span>::<span class="ident">Binary</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Unknown git diff line type&quot;</span>),
+        }
+    }
+    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">git_diff_line_t</span> {
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+            <span class="ident">DiffLineType</span>::<span class="ident">Context</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_DIFF_LINE_CONTEXT</span>,
+            <span class="ident">DiffLineType</span>::<span class="ident">Addition</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_DIFF_LINE_ADDITION</span>,
+            <span class="ident">DiffLineType</span>::<span class="ident">Deletion</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_DIFF_LINE_DELETION</span>,
+            <span class="ident">DiffLineType</span>::<span class="ident">ContextEOFNL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_DIFF_LINE_CONTEXT_EOFNL</span>,
+            <span class="ident">DiffLineType</span>::<span class="ident">AddEOFNL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_DIFF_LINE_ADD_EOFNL</span>,
+            <span class="ident">DiffLineType</span>::<span class="ident">DeleteEOFNL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_DIFF_LINE_DEL_EOFNL</span>,
+            <span class="ident">DiffLineType</span>::<span class="ident">FileHeader</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_DIFF_LINE_FILE_HDR</span>,
+            <span class="ident">DiffLineType</span>::<span class="ident">HunkHeader</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_DIFF_LINE_HUNK_HDR</span>,
+            <span class="ident">DiffLineType</span>::<span class="ident">Binary</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_DIFF_LINE_BINARY</span>,
+        }
+    }
+}
+
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">DiffLine</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Line number in old file or `None` for added line</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">old_lineno</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
@@ -2657,6 +2859,12 @@
                 (<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">raw</span>).<span class="ident">content_len</span> <span class="kw">as</span> <span class="ident">usize</span>,
             )
         }
+    }
+
+    <span class="doccomment">/// origin of this `DiffLine`.</span>
+    <span class="doccomment">///</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">origin_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DiffLineType</span> {
+        <span class="kw">unsafe</span> { <span class="ident">Binding</span>::<span class="ident">from_raw</span>((<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">raw</span>).<span class="ident">origin</span> <span class="kw">as</span> <span class="ident">raw</span>::<span class="ident">git_diff_line_t</span>) }
     }
 
     <span class="doccomment">/// Sigil showing the origin of this `DiffLine`.</span>
@@ -3124,9 +3332,29 @@
     }
 }
 
+<span class="kw">impl</span> <span class="ident">DiffPatchidOptions</span> {
+    <span class="doccomment">/// Creates a new set of patchid options,</span>
+    <span class="doccomment">/// initialized to the default values</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opts</span> <span class="op">=</span> <span class="ident">DiffPatchidOptions</span> {
+            <span class="ident">raw</span>: <span class="kw">unsafe</span> { <span class="ident">mem</span>::<span class="ident">zeroed</span>() },
+        };
+        <span class="macro">assert_eq</span><span class="macro">!</span>(
+            <span class="kw">unsafe</span> {
+                <span class="ident">raw</span>::<span class="ident">git_diff_patchid_options_init</span>(
+                    <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">opts</span>.<span class="ident">raw</span>,
+                    <span class="ident">raw</span>::<span class="ident">GIT_DIFF_PATCHID_OPTIONS_VERSION</span>,
+                )
+            },
+            <span class="number">0</span>
+        );
+        <span class="ident">opts</span>
+    }
+}
+
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">DiffOptions</span>, <span class="ident">Signature</span>, <span class="ident">Time</span>};
+    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">DiffLineType</span>, <span class="ident">DiffOptions</span>, <span class="ident">Oid</span>, <span class="ident">Signature</span>, <span class="ident">Time</span>};
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">borrow</span>::<span class="ident">Borrow</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
     <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>;
@@ -3141,6 +3369,8 @@
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">stats</span>.<span class="ident">insertions</span>(), <span class="number">0</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">stats</span>.<span class="ident">deletions</span>(), <span class="number">0</span>);
         <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">stats</span>.<span class="ident">files_changed</span>(), <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">patchid</span> <span class="op">=</span> <span class="ident">diff</span>.<span class="ident">patchid</span>(<span class="prelude-val">None</span>).<span class="ident">unwrap</span>();
+        <span class="macro">assert_ne</span><span class="macro">!</span>(<span class="ident">patchid</span>, <span class="ident">Oid</span>::<span class="ident">zero</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -3374,6 +3604,30 @@
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">line</span>) <span class="op">=</span> <span class="ident">remaining_lines</span>.<span class="ident">next</span>() {
             <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">line</span>.<span class="ident">trim</span>(), <span class="string">&quot;&quot;</span>)
         }
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">foreach_diff_line_origin_value</span>() {
+        <span class="kw">let</span> <span class="ident">foo_path</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="string">&quot;foo&quot;</span>);
+        <span class="kw">let</span> (<span class="ident">td</span>, <span class="ident">repo</span>) <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">test</span>::<span class="ident">repo_init</span>();
+        <span class="macro">t</span><span class="macro">!</span>(<span class="macro">t</span><span class="macro">!</span>(<span class="ident">File</span>::<span class="ident">create</span>(<span class="kw-2">&amp;</span><span class="ident">td</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="ident">foo_path</span>))).<span class="ident">write_all</span>(<span class="string">b&quot;bar\n&quot;</span>));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="macro">t</span><span class="macro">!</span>(<span class="ident">repo</span>.<span class="ident">index</span>());
+        <span class="macro">t</span><span class="macro">!</span>(<span class="ident">index</span>.<span class="ident">add_path</span>(<span class="ident">foo_path</span>));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opts</span> <span class="op">=</span> <span class="ident">DiffOptions</span>::<span class="ident">new</span>();
+        <span class="ident">opts</span>.<span class="ident">include_untracked</span>(<span class="bool-val">true</span>);
+        <span class="kw">let</span> <span class="ident">diff</span> <span class="op">=</span> <span class="macro">t</span><span class="macro">!</span>(<span class="ident">repo</span>.<span class="ident">diff_tree_to_index</span>(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">index</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">opts</span>)));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">origin_values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">DiffLineType</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+        <span class="macro">t</span><span class="macro">!</span>(<span class="ident">diff</span>.<span class="ident">foreach</span>(
+            <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">_file</span>, <span class="ident">_progress</span><span class="op">|</span> { <span class="bool-val">true</span> },
+            <span class="prelude-val">None</span>,
+            <span class="prelude-val">None</span>,
+            <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">_file</span>, <span class="ident">_hunk</span>, <span class="ident">line</span><span class="op">|</span> {
+                <span class="ident">origin_values</span>.<span class="ident">push</span>(<span class="ident">line</span>.<span class="ident">origin_value</span>());
+                <span class="bool-val">true</span>
+            })
+        ));
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">origin_values</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">origin_values</span>[<span class="number">0</span>], <span class="ident">DiffLineType</span>::<span class="ident">Addition</span>);
     }
 }
 </pre></div>

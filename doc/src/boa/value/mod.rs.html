@@ -1013,6 +1013,8 @@
 <span id="1012">1012</span>
 <span id="1013">1013</span>
 <span id="1014">1014</span>
+<span id="1015">1015</span>
+<span id="1016">1016</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -1231,35 +1233,37 @@
     }
 
     <span class="doccomment">/// Converts the `Value` to `JSON`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_json</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JSONValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_json</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JSONValue</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">to_json</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_field</span>(<span class="string">&quot;toJSON&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">to_json</span>.<span class="ident">is_function</span>() {
             <span class="kw">let</span> <span class="ident">json_value</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">to_json</span>, <span class="self">self</span>, <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>;
             <span class="kw">return</span> <span class="ident">json_value</span>.<span class="ident">to_json</span>(<span class="ident">context</span>);
         }
 
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_function</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+        }
+
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="self">Self</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JSONValue</span>::<span class="ident">Null</span>),
-            <span class="self">Self</span>::<span class="ident">Boolean</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JSONValue</span>::<span class="ident">Bool</span>(<span class="ident">b</span>)),
+            <span class="self">Self</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">JSONValue</span>::<span class="ident">Null</span>)),
+            <span class="self">Self</span>::<span class="ident">Boolean</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">JSONValue</span>::<span class="ident">Bool</span>(<span class="ident">b</span>))),
             <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>.<span class="ident">to_json</span>(<span class="ident">context</span>),
-            <span class="self">Self</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">str</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JSONValue</span>::<span class="ident">String</span>(<span class="ident">str</span>.<span class="ident">to_string</span>())),
+            <span class="self">Self</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">str</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">JSONValue</span>::<span class="ident">String</span>(<span class="ident">str</span>.<span class="ident">to_string</span>()))),
             <span class="self">Self</span>::<span class="ident">Rational</span>(<span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">num</span>.<span class="ident">is_finite</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">JSONValue</span>::<span class="ident">Number</span>(
+                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">JSONValue</span>::<span class="ident">Number</span>(
                         <span class="ident">JSONNumber</span>::<span class="ident">from_str</span>(<span class="kw-2">&amp;</span><span class="ident">Number</span>::<span class="ident">to_native_string</span>(<span class="ident">num</span>))
                             .<span class="ident">expect</span>(<span class="string">&quot;invalid number found&quot;</span>),
-                    ))
+                    )))
                 } <span class="kw">else</span> {
-                    <span class="prelude-val">Ok</span>(<span class="ident">JSONValue</span>::<span class="ident">Null</span>)
+                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">JSONValue</span>::<span class="ident">Null</span>))
                 }
             }
-            <span class="self">Self</span>::<span class="ident">Integer</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JSONValue</span>::<span class="ident">Number</span>(<span class="ident">JSONNumber</span>::<span class="ident">from</span>(<span class="ident">val</span>))),
+            <span class="self">Self</span>::<span class="ident">Integer</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">JSONValue</span>::<span class="ident">Number</span>(<span class="ident">JSONNumber</span>::<span class="ident">from</span>(<span class="ident">val</span>)))),
             <span class="self">Self</span>::<span class="ident">BigInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;BigInt value can&#39;t be serialized in JSON&quot;</span>))
             }
-            <span class="self">Self</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Symbols and Undefined JSON Values depend on parent type&quot;</span>);
-            }
+            <span class="self">Self</span>::<span class="ident">Symbol</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="self">Self</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
         }
     }
 
