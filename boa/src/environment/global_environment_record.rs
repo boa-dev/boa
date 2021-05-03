@@ -7,7 +7,6 @@
 //! that occur within a Script.
 //! More info:  <https://tc39.es/ecma262/#sec-global-environment-records>
 
-use super::ErrorKind;
 use crate::{
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
@@ -17,7 +16,7 @@ use crate::{
     },
     gc::{Finalize, Trace},
     property::{Attribute, DataDescriptor},
-    Value,
+    Context, Result, Value,
 };
 use rustc_hash::FxHashSet;
 
@@ -80,14 +79,15 @@ impl GlobalEnvironmentRecord {
         &mut self,
         name: String,
         deletion: bool,
-    ) -> Result<(), ErrorKind> {
+        context: &mut Context,
+    ) -> Result<()> {
         let obj_rec = &mut self.object_record;
         let global_object = &obj_rec.bindings;
         let has_property = global_object.has_field(name.as_str());
         let extensible = global_object.is_extensible();
         if !has_property && extensible {
-            obj_rec.create_mutable_binding(name.clone(), deletion, false)?;
-            obj_rec.initialize_binding(&name, Value::undefined())?;
+            obj_rec.create_mutable_binding(name.clone(), deletion, false, context)?;
+            obj_rec.initialize_binding(&name, Value::undefined(), context)?;
         }
 
         let var_declared_names = &mut self.var_names;
@@ -132,40 +132,51 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         name: String,
         deletion: bool,
         allow_name_reuse: bool,
-    ) -> Result<(), ErrorKind> {
+        context: &mut Context,
+    ) -> Result<()> {
         if !allow_name_reuse && self.declarative_record.has_binding(&name) {
-            return Err(ErrorKind::new_type_error(format!(
-                "Binding already exists for {}",
-                name
-            )));
+            return Err(
+                context.construct_type_error(format!("Binding already exists for {}", name))
+            );
         }
 
         self.declarative_record
-            .create_mutable_binding(name, deletion, allow_name_reuse)
+            .create_mutable_binding(name, deletion, allow_name_reuse, context)
     }
 
-    fn create_immutable_binding(&mut self, name: String, strict: bool) -> Result<(), ErrorKind> {
+    fn create_immutable_binding(
+        &mut self,
+        name: String,
+        strict: bool,
+        context: &mut Context,
+    ) -> Result<()> {
         if self.declarative_record.has_binding(&name) {
-            return Err(ErrorKind::new_type_error(format!(
-                "Binding already exists for {}",
-                name
-            )));
+            return Err(
+                context.construct_type_error(format!("Binding already exists for {}", name))
+            );
         }
 
         self.declarative_record
-            .create_immutable_binding(name, strict)
+            .create_immutable_binding(name, strict, context)
     }
 
-    fn initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind> {
+    fn initialize_binding(
+        &mut self,
+        name: &str,
+        value: Value,
+        context: &mut Context,
+    ) -> Result<()> {
         if self.declarative_record.has_binding(&name) {
-            return self.declarative_record.initialize_binding(name, value);
+            return self
+                .declarative_record
+                .initialize_binding(name, value, context);
         }
 
         assert!(
             self.object_record.has_binding(name),
             "Binding must be in object_record"
         );
-        self.object_record.initialize_binding(name, value)
+        self.object_record.initialize_binding(name, value, context)
     }
 
     fn set_mutable_binding(
@@ -173,20 +184,24 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         name: &str,
         value: Value,
         strict: bool,
-    ) -> Result<(), ErrorKind> {
+        context: &mut Context,
+    ) -> Result<()> {
         if self.declarative_record.has_binding(&name) {
             return self
                 .declarative_record
-                .set_mutable_binding(name, value, strict);
+                .set_mutable_binding(name, value, strict, context);
         }
-        self.object_record.set_mutable_binding(name, value, strict)
+        self.object_record
+            .set_mutable_binding(name, value, strict, context)
     }
 
-    fn get_binding_value(&self, name: &str, strict: bool) -> Result<Value, ErrorKind> {
+    fn get_binding_value(&self, name: &str, strict: bool, context: &mut Context) -> Result<Value> {
         if self.declarative_record.has_binding(&name) {
-            return self.declarative_record.get_binding_value(name, strict);
+            return self
+                .declarative_record
+                .get_binding_value(name, strict, context);
         }
-        self.object_record.get_binding_value(name, strict)
+        self.object_record.get_binding_value(name, strict, context)
     }
 
     fn delete_binding(&mut self, name: &str) -> bool {
@@ -212,7 +227,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         true
     }
 
-    fn get_this_binding(&self) -> Result<Value, ErrorKind> {
+    fn get_this_binding(&self, _context: &mut Context) -> Result<Value> {
         Ok(self.global_this_binding.clone())
     }
 
@@ -246,8 +261,9 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         name: String,
         deletion: bool,
         _scope: VariableScope,
-    ) -> Result<(), ErrorKind> {
-        self.create_mutable_binding(name, deletion, false)
+        context: &mut Context,
+    ) -> Result<()> {
+        self.create_mutable_binding(name, deletion, false, context)
     }
 
     fn recursive_create_immutable_binding(
@@ -255,8 +271,9 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         name: String,
         deletion: bool,
         _scope: VariableScope,
-    ) -> Result<(), ErrorKind> {
-        self.create_immutable_binding(name, deletion)
+        context: &mut Context,
+    ) -> Result<()> {
+        self.create_immutable_binding(name, deletion, context)
     }
 
     fn recursive_set_mutable_binding(
@@ -264,11 +281,17 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         name: &str,
         value: Value,
         strict: bool,
-    ) -> Result<(), ErrorKind> {
-        self.set_mutable_binding(name, value, strict)
+        context: &mut Context,
+    ) -> Result<()> {
+        self.set_mutable_binding(name, value, strict, context)
     }
 
-    fn recursive_initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind> {
-        self.initialize_binding(name, value)
+    fn recursive_initialize_binding(
+        &mut self,
+        name: &str,
+        value: Value,
+        context: &mut Context,
+    ) -> Result<()> {
+        self.initialize_binding(name, value, context)
     }
 }

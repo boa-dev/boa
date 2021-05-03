@@ -342,7 +342,7 @@ impl Executable for Node {
             Node::Spread(ref spread) => spread.run(context),
             Node::This => {
                 // Will either return `this` binding or undefined
-                context.get_this_binding().map_err(|e| e.to_error(context))
+                context.get_this_binding()
             }
             Node::Try(ref try_node) => try_node.run(context),
             Node::Break(ref break_node) => break_node.run(context),

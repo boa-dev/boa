@@ -8,7 +8,6 @@
 //! from within the function.
 //! More info: <https://tc39.es/ecma262/#sec-function-environment-records>
 
-use super::ErrorKind;
 use crate::{
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
@@ -17,7 +16,7 @@ use crate::{
     },
     gc::{empty_trace, Finalize, Trace},
     object::GcObject,
-    Value,
+    Context, Result, Value,
 };
 
 /// Different binding status for `this`.
@@ -57,17 +56,17 @@ pub struct FunctionEnvironmentRecord {
 }
 
 impl FunctionEnvironmentRecord {
-    pub fn bind_this_value(&mut self, value: Value) -> Result<Value, ErrorKind> {
+    pub fn bind_this_value(&mut self, value: Value) -> Result<Value> {
         match self.this_binding_status {
             // You can not bind an arrow function, their `this` value comes from the lexical scope above
             BindingStatus::Lexical => {
                 panic!("Cannot bind to an arrow function!");
             }
             // You can not bind a function twice
-            BindingStatus::Initialized => Err(ErrorKind::new_reference_error(
-                "Cannot bind to an initialised function!",
-            )),
-
+            BindingStatus::Initialized => {
+                todo!();
+                // context.throw_reference_error("Cannot bind to an initialised function!")
+            }
             BindingStatus::Uninitialized => {
                 self.this_value = value.clone();
                 self.this_binding_status = BindingStatus::Initialized;
@@ -99,18 +98,30 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         name: String,
         deletion: bool,
         allow_name_reuse: bool,
-    ) -> Result<(), ErrorKind> {
+        context: &mut Context,
+    ) -> Result<()> {
         self.declarative_record
-            .create_mutable_binding(name, deletion, allow_name_reuse)
+            .create_mutable_binding(name, deletion, allow_name_reuse, context)
     }
 
-    fn create_immutable_binding(&mut self, name: String, strict: bool) -> Result<(), ErrorKind> {
+    fn create_immutable_binding(
+        &mut self,
+        name: String,
+        strict: bool,
+        context: &mut Context,
+    ) -> Result<()> {
         self.declarative_record
-            .create_immutable_binding(name, strict)
+            .create_immutable_binding(name, strict, context)
     }
 
-    fn initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind> {
-        self.declarative_record.initialize_binding(name, value)
+    fn initialize_binding(
+        &mut self,
+        name: &str,
+        value: Value,
+        context: &mut Context,
+    ) -> Result<()> {
+        self.declarative_record
+            .initialize_binding(name, value, context)
     }
 
     fn set_mutable_binding(
@@ -118,13 +129,15 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         name: &str,
         value: Value,
         strict: bool,
-    ) -> Result<(), ErrorKind> {
+        context: &mut Context,
+    ) -> Result<()> {
         self.declarative_record
-            .set_mutable_binding(name, value, strict)
+            .set_mutable_binding(name, value, strict, context)
     }
 
-    fn get_binding_value(&self, name: &str, _strict: bool) -> Result<Value, ErrorKind> {
-        self.declarative_record.get_binding_value(name, _strict)
+    fn get_binding_value(&self, name: &str, strict: bool, context: &mut Context) -> Result<Value> {
+        self.declarative_record
+            .get_binding_value(name, strict, context)
     }
 
     fn delete_binding(&mut self, name: &str) -> bool {
@@ -135,15 +148,14 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         !matches!(self.this_binding_status, BindingStatus::Lexical)
     }
 
-    fn get_this_binding(&self) -> Result<Value, ErrorKind> {
+    fn get_this_binding(&self, context: &mut Context) -> Result<Value> {
         match self.this_binding_status {
             BindingStatus::Lexical => {
                 panic!("There is no this for a lexical function record");
             }
-            BindingStatus::Uninitialized => Err(ErrorKind::new_reference_error(
-                "Uninitialised binding for this function",
-            )),
-
+            BindingStatus::Uninitialized => {
+                context.throw_reference_error("Uninitialised binding for this function")
+            }
             BindingStatus::Initialized => Ok(self.this_value.clone()),
         }
     }
@@ -177,8 +189,9 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         name: String,
         deletion: bool,
         _scope: VariableScope,
-    ) -> Result<(), ErrorKind> {
-        self.create_mutable_binding(name, deletion, false)
+        context: &mut Context,
+    ) -> Result<()> {
+        self.create_mutable_binding(name, deletion, false, context)
     }
 
     fn recursive_create_immutable_binding(
@@ -186,7 +199,8 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         name: String,
         deletion: bool,
         _scope: VariableScope,
-    ) -> Result<(), ErrorKind> {
-        self.create_immutable_binding(name, deletion)
+        context: &mut Context,
+    ) -> Result<()> {
+        self.create_immutable_binding(name, deletion, context)
     }
 }

@@ -93,9 +93,8 @@ impl Executable for ForInLoop {
 
         loop {
             {
-                context.push_environment(new_declarative_environment(Some(
-                    context.get_current_environment_ref().clone(),
-                )));
+                let env = context.get_current_environment();
+                context.push_environment(new_declarative_environment(Some(env)));
             }
             let iterator_result = iterator.next(context)?;
             if iterator_result.is_done() {
@@ -108,20 +107,14 @@ impl Executable for ForInLoop {
                 Node::Identifier(ref name) => {
                     if context.has_binding(name.as_ref()) {
                         // Binding already exists
-                        context
-                            .set_mutable_binding(name.as_ref(), next_result.clone(), true)
-                            .map_err(|e| e.to_error(context))?;
+                        context.set_mutable_binding(name.as_ref(), next_result.clone(), true)?;
                     } else {
-                        context
-                            .create_mutable_binding(
-                                name.as_ref().to_owned(),
-                                true,
-                                VariableScope::Function,
-                            )
-                            .map_err(|e| e.to_error(context))?;
-                        context
-                            .initialize_binding(name.as_ref(), next_result.clone())
-                            .map_err(|e| e.to_error(context))?;
+                        context.create_mutable_binding(
+                            name.as_ref().to_owned(),
+                            true,
+                            VariableScope::Function,
+                        )?;
+                        context.initialize_binding(name.as_ref(), next_result.clone())?;
                     }
                 }
                 Node::VarDeclList(ref list) => match list.as_ref() {
@@ -131,20 +124,14 @@ impl Executable for ForInLoop {
                         }
 
                         if context.has_binding(var.name()) {
-                            context
-                                .set_mutable_binding(var.name(), next_result, true)
-                                .map_err(|e| e.to_error(context))?;
+                            context.set_mutable_binding(var.name(), next_result, true)?;
                         } else {
-                            context
-                                .create_mutable_binding(
-                                    var.name().to_owned(),
-                                    false,
-                                    VariableScope::Function,
-                                )
-                                .map_err(|e| e.to_error(context))?;
-                            context
-                                .initialize_binding(var.name(), next_result)
-                                .map_err(|e| e.to_error(context))?;
+                            context.create_mutable_binding(
+                                var.name().to_owned(),
+                                false,
+                                VariableScope::Function,
+                            )?;
+                            context.initialize_binding(var.name(), next_result)?;
                         }
                     }
                     _ => {
@@ -159,16 +146,12 @@ impl Executable for ForInLoop {
                             return context.throw_syntax_error("a declaration in the head of a for-in loop can't have an initializer");
                         }
 
-                        context
-                            .create_mutable_binding(
-                                var.name().to_owned(),
-                                false,
-                                VariableScope::Block,
-                            )
-                            .map_err(|e| e.to_error(context))?;
-                        context
-                            .initialize_binding(var.name(), next_result)
-                            .map_err(|e| e.to_error(context))?;
+                        context.create_mutable_binding(
+                            var.name().to_owned(),
+                            false,
+                            VariableScope::Block,
+                        )?;
+                        context.initialize_binding(var.name(), next_result)?;
                     }
                     _ => {
                         return context.throw_syntax_error(
@@ -182,16 +165,12 @@ impl Executable for ForInLoop {
                             return context.throw_syntax_error("a declaration in the head of a for-in loop can't have an initializer");
                         }
 
-                        context
-                            .create_immutable_binding(
-                                var.name().to_owned(),
-                                false,
-                                VariableScope::Block,
-                            )
-                            .map_err(|e| e.to_error(context))?;
-                        context
-                            .initialize_binding(var.name(), next_result)
-                            .map_err(|e| e.to_error(context))?;
+                        context.create_immutable_binding(
+                            var.name().to_owned(),
+                            false,
+                            VariableScope::Block,
+                        )?;
+                        context.initialize_binding(var.name(), next_result)?;
                     }
                     _ => {
                         return context.throw_syntax_error(

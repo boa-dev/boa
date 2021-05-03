@@ -102,9 +102,8 @@ impl Executable for ForLoop {
         // Create the block environment.
         let _timer = BoaProfiler::global().start_event("ForLoop", "exec");
         {
-            context.push_environment(new_declarative_environment(Some(
-                context.get_current_environment_ref().clone(),
-            )));
+            let env = context.get_current_environment();
+            context.push_environment(new_declarative_environment(Some(env)));
         }
 
         if let Some(init) = self.init() {

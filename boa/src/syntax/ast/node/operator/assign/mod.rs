@@ -60,20 +60,14 @@ impl Executable for Assign {
             Node::Identifier(ref name) => {
                 if context.has_binding(name.as_ref()) {
                     // Binding already exists
-                    context
-                        .set_mutable_binding(name.as_ref(), val.clone(), true)
-                        .map_err(|e| e.to_error(context))?;
+                    context.set_mutable_binding(name.as_ref(), val.clone(), true)?;
                 } else {
-                    context
-                        .create_mutable_binding(
-                            name.as_ref().to_owned(),
-                            true,
-                            VariableScope::Function,
-                        )
-                        .map_err(|e| e.to_error(context))?;
-                    context
-                        .initialize_binding(name.as_ref(), val.clone())
-                        .map_err(|e| e.to_error(context))?;
+                    context.create_mutable_binding(
+                        name.as_ref().to_owned(),
+                        true,
+                        VariableScope::Function,
+                    )?;
+                    context.initialize_binding(name.as_ref(), val.clone())?;
                 }
             }
             Node::GetConstField(ref get_const_field) => {

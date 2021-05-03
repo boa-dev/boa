@@ -8,12 +8,12 @@
 //!
 //! There are 5 Environment record kinds. They all have methods in common, these are implemented as a the `EnvironmentRecordTrait`
 //!
-use super::ErrorKind;
+
 use crate::environment::lexical_environment::VariableScope;
 use crate::{
     environment::lexical_environment::{Environment, EnvironmentType},
     gc::{Finalize, Trace},
-    Value,
+    Context, Result, Value,
 };
 use std::fmt::Debug;
 
@@ -38,18 +38,25 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         name: String,
         deletion: bool,
         allow_name_reuse: bool,
-    ) -> Result<(), ErrorKind>;
+        context: &mut Context,
+    ) -> Result<()>;
 
     /// Create a new but uninitialized immutable binding in an Environment Record.
     /// The String value N is the text of the bound name.
     /// If strict is true then attempts to set it after it has been initialized will always throw an exception,
     /// regardless of the strict mode setting of operations that reference that binding.
-    fn create_immutable_binding(&mut self, name: String, strict: bool) -> Result<(), ErrorKind>;
+    fn create_immutable_binding(
+        &mut self,
+        name: String,
+        strict: bool,
+        context: &mut Context,
+    ) -> Result<()>;
 
     /// Set the value of an already existing but uninitialized binding in an Environment Record.
     /// The String value N is the text of the bound name.
     /// V is the value for the binding and is a value of any ECMAScript language type.
-    fn initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind>;
+    fn initialize_binding(&mut self, name: &str, value: Value, context: &mut Context)
+        -> Result<()>;
 
     /// Set the value of an already existing mutable binding in an Environment Record.
     /// The String value `name` is the text of the bound name.
@@ -60,13 +67,14 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         name: &str,
         value: Value,
         strict: bool,
-    ) -> Result<(), ErrorKind>;
+        context: &mut Context,
+    ) -> Result<()>;
 
     /// Returns the value of an already existing binding from an Environment Record.
     /// The String value N is the text of the bound name.
     /// S is used to identify references originating in strict mode code or that
     /// otherwise require strict mode reference semantics.
-    fn get_binding_value(&self, name: &str, strict: bool) -> Result<Value, ErrorKind>;
+    fn get_binding_value(&self, name: &str, strict: bool, context: &mut Context) -> Result<Value>;
 
     /// Delete a binding from an Environment Record.
     /// The String value name is the text of the bound name.
@@ -79,7 +87,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     fn has_this_binding(&self) -> bool;
 
     /// Return the `this` binding from the environment
-    fn get_this_binding(&self) -> Result<Value, ErrorKind>;
+    fn get_this_binding(&self, context: &mut Context) -> Result<Value>;
 
     /// Determine if an Environment Record establishes a super method binding.
     /// Return true if it does and false if it does not.
@@ -102,12 +110,12 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     fn get_environment_type(&self) -> EnvironmentType;
 
     /// Return the `this` binding from the environment or try to get it from outer environments
-    fn recursive_get_this_binding(&self) -> Result<Value, ErrorKind> {
+    fn recursive_get_this_binding(&self, context: &mut Context) -> Result<Value> {
         if self.has_this_binding() {
-            self.get_this_binding()
+            self.get_this_binding(context)
         } else {
             match self.get_outer_environment_ref() {
-                Some(outer) => outer.borrow().recursive_get_this_binding(),
+                Some(outer) => outer.borrow().recursive_get_this_binding(context),
                 None => Ok(Value::Undefined),
             }
         }
@@ -119,14 +127,15 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         name: String,
         deletion: bool,
         scope: VariableScope,
-    ) -> Result<(), ErrorKind> {
+        context: &mut Context,
+    ) -> Result<()> {
         match scope {
-            VariableScope::Block => self.create_mutable_binding(name, deletion, false),
+            VariableScope::Block => self.create_mutable_binding(name, deletion, false, context),
             VariableScope::Function => self
                 .get_outer_environment_ref()
                 .expect("No function or global environment")
                 .borrow_mut()
-                .recursive_create_mutable_binding(name, deletion, scope),
+                .recursive_create_mutable_binding(name, deletion, scope, context),
         }
     }
 
@@ -136,14 +145,15 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         name: String,
         deletion: bool,
         scope: VariableScope,
-    ) -> Result<(), ErrorKind> {
+        context: &mut Context,
+    ) -> Result<()> {
         match scope {
-            VariableScope::Block => self.create_immutable_binding(name, deletion),
+            VariableScope::Block => self.create_immutable_binding(name, deletion, context),
             VariableScope::Function => self
                 .get_outer_environment_ref()
                 .expect("No function or global environment")
                 .borrow_mut()
-                .recursive_create_immutable_binding(name, deletion, scope),
+                .recursive_create_immutable_binding(name, deletion, scope, context),
         }
     }
 
@@ -153,26 +163,32 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         name: &str,
         value: Value,
         strict: bool,
-    ) -> Result<(), ErrorKind> {
+        context: &mut Context,
+    ) -> Result<()> {
         if self.has_binding(name) {
-            self.set_mutable_binding(name, value, strict)
+            self.set_mutable_binding(name, value, strict, context)
         } else {
             self.get_outer_environment_ref()
                 .expect("Environment stack underflow")
                 .borrow_mut()
-                .recursive_set_mutable_binding(name, value, strict)
+                .recursive_set_mutable_binding(name, value, strict, context)
         }
     }
 
     /// Initialize binding while handling outer environments
-    fn recursive_initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind> {
+    fn recursive_initialize_binding(
+        &mut self,
+        name: &str,
+        value: Value,
+        context: &mut Context,
+    ) -> Result<()> {
         if self.has_binding(name) {
-            self.initialize_binding(name, value)
+            self.initialize_binding(name, value, context)
         } else {
             self.get_outer_environment_ref()
                 .expect("Environment stack underflow")
                 .borrow_mut()
-                .recursive_initialize_binding(name, value)
+                .recursive_initialize_binding(name, value, context)
         }
     }
 
@@ -186,16 +202,13 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     }
 
     /// Retrieve binding from current or any outer environment
-    fn recursive_get_binding_value(&self, name: &str) -> Result<Value, ErrorKind> {
+    fn recursive_get_binding_value(&self, name: &str, context: &mut Context) -> Result<Value> {
         if self.has_binding(name) {
-            self.get_binding_value(name, false)
+            self.get_binding_value(name, false, context)
         } else {
             match self.get_outer_environment_ref() {
-                Some(outer) => outer.borrow().recursive_get_binding_value(name),
-                None => Err(ErrorKind::new_reference_error(format!(
-                    "{} is not defined",
-                    name
-                ))),
+                Some(outer) => outer.borrow().recursive_get_binding_value(name, context),
+                None => context.throw_reference_error(format!("{} is not defined", name)),
             }
         }
     }

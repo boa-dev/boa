@@ -5,7 +5,6 @@
 //! The following operations are used to operate upon lexical environments
 //! This is the entrypoint to lexical environments.
 
-use super::ErrorKind;
 use crate::{
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
@@ -15,7 +14,7 @@ use crate::{
         object_environment_record::ObjectEnvironmentRecord,
     },
     object::GcObject,
-    BoaProfiler, Context, Value,
+    BoaProfiler, Context, Result, Value,
 };
 use gc::{Gc, GcCell};
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -102,10 +101,10 @@ impl Context {
         self.realm.environment.environment_stack.pop_back()
     }
 
-    pub fn get_this_binding(&self) -> Result<Value, ErrorKind> {
-        self.get_current_environment_ref()
+    pub fn get_this_binding(&mut self) -> Result<Value> {
+        self.get_current_environment()
             .borrow()
-            .recursive_get_this_binding()
+            .recursive_get_this_binding(self)
     }
 
     pub fn create_mutable_binding(
@@ -113,10 +112,11 @@ impl Context {
         name: String,
         deletion: bool,
         scope: VariableScope,
-    ) -> Result<(), ErrorKind> {
+    ) -> Result<()> {
         self.get_current_environment()
+            .clone()
             .borrow_mut()
-            .recursive_create_mutable_binding(name, deletion, scope)
+            .recursive_create_mutable_binding(name, deletion, scope, self)
     }
 
     pub fn create_immutable_binding(
@@ -124,59 +124,46 @@ impl Context {
         name: String,
         deletion: bool,
         scope: VariableScope,
-    ) -> Result<(), ErrorKind> {
+    ) -> Result<()> {
         self.get_current_environment()
+            .clone()
             .borrow_mut()
-            .recursive_create_immutable_binding(name, deletion, scope)
+            .recursive_create_immutable_binding(name, deletion, scope, self)
     }
 
-    pub fn set_mutable_binding(
-        &mut self,
-        name: &str,
-        value: Value,
-        strict: bool,
-    ) -> Result<(), ErrorKind> {
+    pub fn set_mutable_binding(&mut self, name: &str, value: Value, strict: bool) -> Result<()> {
         self.get_current_environment()
             .borrow_mut()
-            .recursive_set_mutable_binding(name, value, strict)
+            .recursive_set_mutable_binding(name, value, strict, self)
     }
 
-    pub fn initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind> {
+    pub fn initialize_binding(&mut self, name: &str, value: Value) -> Result<()> {
         self.get_current_environment()
             .borrow_mut()
-            .recursive_initialize_binding(name, value)
-    }
-
-    /// get_current_environment_ref is used when you only need to borrow the environment
-    /// (you only need to add a new variable binding, or you want to fetch a value)
-    pub fn get_current_environment_ref(&self) -> &Environment {
-        self.realm
-            .environment
-            .environment_stack
-            .back()
-            .expect("Could not get current environment")
+            .recursive_initialize_binding(name, value, self)
     }
 
     /// When neededing to clone an environment (linking it with another environnment)
     /// cloning is more suited. The GC will remove the env once nothing is linking to it anymore
-    pub fn get_current_environment(&mut self) -> &mut Environment {
+    pub fn get_current_environment(&mut self) -> Environment {
         self.realm
             .environment
             .environment_stack
             .back_mut()
             .expect("Could not get mutable reference to back object")
+            .clone()
     }
 
-    pub fn has_binding(&self, name: &str) -> bool {
-        self.get_current_environment_ref()
+    pub fn has_binding(&mut self, name: &str) -> bool {
+        self.get_current_environment()
             .borrow()
             .recursive_has_binding(name)
     }
 
-    pub fn get_binding_value(&self, name: &str) -> Result<Value, ErrorKind> {
-        self.get_current_environment_ref()
+    pub fn get_binding_value(&mut self, name: &str) -> Result<Value> {
+        self.get_current_environment()
             .borrow()
-            .recursive_get_binding_value(name)
+            .recursive_get_binding_value(name, self)
     }
 }
 

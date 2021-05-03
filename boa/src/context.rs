@@ -564,8 +564,7 @@ impl Context {
     pub(crate) fn set_value(&mut self, node: &Node, value: Value) -> Result<Value> {
         match node {
             Node::Identifier(ref name) => {
-                self.set_mutable_binding(name.as_ref(), value.clone(), true)
-                    .map_err(|e| e.to_error(self))?;
+                self.set_mutable_binding(name.as_ref(), value.clone(), true)?;
                 Ok(value)
             }
             Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node

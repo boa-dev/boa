@@ -161,19 +161,23 @@ impl GcObject {
                             }
 
                             let value = args.get(i).cloned().unwrap_or_else(Value::undefined);
-                            function.add_arguments_to_environment(param, value, &local_env);
+                            function
+                                .add_arguments_to_environment(param, value, &local_env, context);
                         }
 
                         // Add arguments object
                         let arguments_obj = create_unmapped_arguments_object(args);
-                        local_env
-                            .borrow_mut()
-                            .create_mutable_binding("arguments".to_string(), false, true)
-                            .map_err(|e| e.to_error(context))?;
-                        local_env
-                            .borrow_mut()
-                            .initialize_binding("arguments", arguments_obj)
-                            .map_err(|e| e.to_error(context))?;
+                        local_env.borrow_mut().create_mutable_binding(
+                            "arguments".to_string(),
+                            false,
+                            true,
+                            context,
+                        )?;
+                        local_env.borrow_mut().initialize_binding(
+                            "arguments",
+                            arguments_obj,
+                            context,
+                        )?;
 
                         context.push_environment(local_env);
 
@@ -269,20 +273,23 @@ impl GcObject {
                             }
 
                             let value = args.get(i).cloned().unwrap_or_else(Value::undefined);
-                            function.add_arguments_to_environment(param, value, &local_env);
+                            function
+                                .add_arguments_to_environment(param, value, &local_env, context);
                         }
 
                         // Add arguments object
                         let arguments_obj = create_unmapped_arguments_object(args);
-                        local_env
-                            .borrow_mut()
-                            .create_mutable_binding("arguments".to_string(), false, true)
-                            .map_err(|e| e.to_error(context))?;
-                        local_env
-                            .borrow_mut()
-                            .initialize_binding("arguments", arguments_obj)
-                            .map_err(|e| e.to_error(context))?;
-
+                        local_env.borrow_mut().create_mutable_binding(
+                            "arguments".to_string(),
+                            false,
+                            true,
+                            context,
+                        )?;
+                        local_env.borrow_mut().initialize_binding(
+                            "arguments",
+                            arguments_obj,
+                            context,
+                        )?;
                         context.push_environment(local_env);
 
                         FunctionBody::Ordinary(body.clone())
@@ -305,7 +312,7 @@ impl GcObject {
                 let _ = body.run(context);
 
                 // local_env gets dropped here, its no longer needed
-                let result = context.get_this_binding().map_err(|e| e.to_error(context));
+                let result = context.get_this_binding();
                 context.pop_environment();
                 result
             }
