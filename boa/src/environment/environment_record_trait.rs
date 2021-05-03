@@ -9,7 +9,7 @@
 //! There are 5 Environment record kinds. They all have methods in common, these are implemented as a the `EnvironmentRecordTrait`
 //!
 
-use crate::environment::lexical_environment::VariableScope;
+use crate::{environment::lexical_environment::VariableScope, object::GcObject};
 use crate::{
     environment::lexical_environment::{Environment, EnvironmentType},
     gc::{Finalize, Trace},
@@ -94,8 +94,8 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     fn has_super_binding(&self) -> bool;
 
     /// If this Environment Record is associated with a with statement, return the with object.
-    /// Otherwise, return undefined.
-    fn with_base_object(&self) -> Value;
+    /// Otherwise, return None.
+    fn with_base_object(&self) -> Option<GcObject>;
 
     /// Get the next environment up
     fn get_outer_environment_ref(&self) -> Option<&Environment>;

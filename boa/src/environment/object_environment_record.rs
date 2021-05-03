@@ -12,6 +12,7 @@ use crate::{
         lexical_environment::{Environment, EnvironmentType},
     },
     gc::{Finalize, Trace},
+    object::GcObject,
     property::PropertyDescriptor,
     property::{Attribute, DataDescriptor},
     Context, Result, Value,
@@ -19,6 +20,7 @@ use crate::{
 
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct ObjectEnvironmentRecord {
+    // TODO: bindings should be an object.
     pub bindings: Value,
     pub with_environment: bool,
     pub outer_env: Option<Environment>,
@@ -125,14 +127,14 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         false
     }
 
-    fn with_base_object(&self) -> Value {
+    fn with_base_object(&self) -> Option<GcObject> {
         // Object Environment Records return undefined as their
         // WithBaseObject unless their withEnvironment flag is true.
         if self.with_environment {
-            return self.bindings.clone();
+            return Some(self.bindings.as_object().unwrap());
         }
 
-        Value::undefined()
+        None
     }
 
     fn get_outer_environment_ref(&self) -> Option<&Environment> {

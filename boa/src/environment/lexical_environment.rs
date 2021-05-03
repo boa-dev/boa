@@ -114,7 +114,6 @@ impl Context {
         scope: VariableScope,
     ) -> Result<()> {
         self.get_current_environment()
-            .clone()
             .borrow_mut()
             .recursive_create_mutable_binding(name, deletion, scope, self)
     }
@@ -126,7 +125,6 @@ impl Context {
         scope: VariableScope,
     ) -> Result<()> {
         self.get_current_environment()
-            .clone()
             .borrow_mut()
             .recursive_create_immutable_binding(name, deletion, scope, self)
     }

@@ -168,8 +168,8 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         }
     }
 
-    fn with_base_object(&self) -> Value {
-        Value::undefined()
+    fn with_base_object(&self) -> Option<GcObject> {
+        None
     }
 
     fn get_outer_environment_ref(&self) -> Option<&Environment> {

@@ -11,6 +11,7 @@ use crate::{
         lexical_environment::{Environment, EnvironmentType},
     },
     gc::{Finalize, Trace},
+    object::GcObject,
     Context, Result, Value,
 };
 use rustc_hash::FxHashMap;
@@ -184,8 +185,8 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         false
     }
 
-    fn with_base_object(&self) -> Value {
-        Value::undefined()
+    fn with_base_object(&self) -> Option<GcObject> {
+        None
     }
 
     fn get_outer_environment_ref(&self) -> Option<&Environment> {

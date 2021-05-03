@@ -15,6 +15,7 @@ use crate::{
         object_environment_record::ObjectEnvironmentRecord,
     },
     gc::{Finalize, Trace},
+    object::GcObject,
     property::{Attribute, DataDescriptor},
     Context, Result, Value,
 };
@@ -235,8 +236,8 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         false
     }
 
-    fn with_base_object(&self) -> Value {
-        Value::undefined()
+    fn with_base_object(&self) -> Option<GcObject> {
+        None
     }
 
     fn get_outer_environment(&self) -> Option<Environment> {
