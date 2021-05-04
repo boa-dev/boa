@@ -34,6 +34,8 @@ impl BuiltIn for Math {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
         use std::f64;
 
+        let to_string_tag = context.well_known_symbols().to_string_tag_symbol();
+
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         let object = ObjectInitializer::new(context)
             .property("E", f64::consts::E, attribute)
@@ -44,6 +46,11 @@ impl BuiltIn for Math {
             .property("SQRT1_2", 0.5_f64.sqrt(), attribute)
             .property("SQRT2", f64::consts::SQRT_2, attribute)
             .property("PI", f64::consts::PI, attribute)
+            .property(
+                to_string_tag,
+                "Math",
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .function(Self::abs, "abs", 1)
             .function(Self::acos, "acos", 1)
             .function(Self::acosh, "acosh", 1)
