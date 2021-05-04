@@ -21,7 +21,7 @@ mod tests;
 use crate::{
     builtins::BuiltIn,
     gc::{Finalize, Trace},
-    object::ConstructorBuilder,
+    object::{ConstructorBuilder, FunctionBuilder},
     property::Attribute,
     value::{RcString, RcSymbol, Value},
     BoaProfiler, Context, Result,
@@ -241,6 +241,8 @@ impl BuiltIn for Symbol {
     }
 
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
+
         // https://tc39.es/ecma262/#sec-well-known-symbols
         let well_known_symbols = context.well_known_symbols();
 
@@ -258,9 +260,14 @@ impl BuiltIn for Symbol {
         let symbol_to_string_tag = well_known_symbols.to_string_tag_symbol();
         let symbol_unscopables = well_known_symbols.unscopables_symbol();
 
-        let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
-
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
+
+        let get_description = FunctionBuilder::new(context, Self::get_description)
+            .name("get description")
+            .constructable(false)
+            .callable(true)
+            .build();
+
         let symbol_object = ConstructorBuilder::with_standard_object(
             context,
             Self::constructor,
@@ -282,6 +289,12 @@ impl BuiltIn for Symbol {
         .static_property("toStringTag", symbol_to_string_tag, attribute)
         .static_property("unscopables", symbol_unscopables, attribute)
         .method(Self::to_string, "toString", 0)
+        .accessor(
+            "description",
+            Some(get_description),
+            None,
+            Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
+        )
         .callable(true)
         .constructable(false)
         .build();
@@ -350,7 +363,7 @@ impl Symbol {
     ///
     /// This method returns a string representing the specified `Symbol` object.
     ///
-    /// /// More information:
+    /// More information:
     /// - [MDN documentation][mdn]
     /// - [ECMAScript reference][spec]
     ///
@@ -361,5 +374,28 @@ impl Symbol {
         let symbol = Self::this_symbol_value(this, context)?;
         let description = symbol.description().unwrap_or("");
         Ok(Value::from(format!("Symbol({})", description)))
+    }
+
+    /// `get Symbol.prototype.description`
+    ///
+    /// This accessor returns the description of the `Symbol` object.
+    ///
+    /// More information:
+    /// - [MDN documentation][mdn]
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.description
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/description
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn get_description(
+        this: &Value,
+        _: &[Value],
+        context: &mut Context,
+    ) -> Result<Value> {
+        if let Some(ref description) = Self::this_symbol_value(this, context)?.description {
+            Ok(description.clone().into())
+        } else {
+            Ok(Value::undefined())
+        }
     }
 }
