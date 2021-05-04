@@ -297,6 +297,7 @@ impl<R> Lexer<R> {
 pub(crate) enum InputElement {
     Div,
     RegExp,
+    #[allow(dead_code)]
     RegExpOrTemplateTail,
     TemplateTail,
 }
