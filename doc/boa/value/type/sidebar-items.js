@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Type","Possible types of values as defined at https://tc39.es/ecma262/#sec-typeof-operator. Note that an object which implements call is referred to here as 'Function'."]]});
+initSidebarItems({"enum":[["Type","Possible types of values as defined at https://tc39.es/ecma262/#sec-typeof-operator. Note that an object which implements call is referred to here as ‘Function’."]]});

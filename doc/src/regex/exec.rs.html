@@ -1,7 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.4.6/src/exec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>exec.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.5.4/src/exec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>exec.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../regex/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../regex/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1656,9 +1656,6 @@
 <span id="1653">1653</span>
 <span id="1654">1654</span>
 <span id="1655">1655</span>
-<span id="1656">1656</span>
-<span id="1657">1657</span>
-<span id="1658">1658</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::<span class="ident">RefCell</span>;
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
@@ -1667,26 +1664,26 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">aho_corasick</span>::{<span class="ident">AhoCorasick</span>, <span class="ident">AhoCorasickBuilder</span>, <span class="ident">MatchKind</span>};
-<span class="kw">use</span> <span class="ident">syntax</span>::<span class="ident">hir</span>::<span class="ident">literal</span>::<span class="ident">Literals</span>;
-<span class="kw">use</span> <span class="ident">syntax</span>::<span class="ident">hir</span>::<span class="ident">Hir</span>;
-<span class="kw">use</span> <span class="ident">syntax</span>::<span class="ident">ParserBuilder</span>;
+<span class="kw">use</span> <span class="ident">regex_syntax</span>::<span class="ident">hir</span>::<span class="ident">literal</span>::<span class="ident">Literals</span>;
+<span class="kw">use</span> <span class="ident">regex_syntax</span>::<span class="ident">hir</span>::<span class="ident">Hir</span>;
+<span class="kw">use</span> <span class="ident">regex_syntax</span>::<span class="ident">ParserBuilder</span>;
 
-<span class="kw">use</span> <span class="ident">backtrack</span>;
-<span class="kw">use</span> <span class="ident">compile</span>::<span class="ident">Compiler</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">backtrack</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">compile</span>::<span class="ident">Compiler</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-dfa&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">dfa</span>;
-<span class="kw">use</span> <span class="ident">error</span>::<span class="ident">Error</span>;
-<span class="kw">use</span> <span class="ident">input</span>::{<span class="ident">ByteInput</span>, <span class="ident">CharInput</span>};
-<span class="kw">use</span> <span class="ident">literal</span>::<span class="ident">LiteralSearcher</span>;
-<span class="kw">use</span> <span class="ident">pikevm</span>;
-<span class="kw">use</span> <span class="ident">pool</span>::{<span class="ident">Pool</span>, <span class="ident">PoolGuard</span>};
-<span class="kw">use</span> <span class="ident">prog</span>::<span class="ident">Program</span>;
-<span class="kw">use</span> <span class="ident">re_builder</span>::<span class="ident">RegexOptions</span>;
-<span class="kw">use</span> <span class="ident">re_bytes</span>;
-<span class="kw">use</span> <span class="ident">re_set</span>;
-<span class="kw">use</span> <span class="ident">re_trait</span>::{<span class="ident">Locations</span>, <span class="ident">RegularExpression</span>, <span class="ident">Slot</span>};
-<span class="kw">use</span> <span class="ident">re_unicode</span>;
-<span class="kw">use</span> <span class="ident">utf8</span>::<span class="ident">next_utf8</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">dfa</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">input</span>::{<span class="ident">ByteInput</span>, <span class="ident">CharInput</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">literal</span>::<span class="ident">LiteralSearcher</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">pikevm</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">pool</span>::{<span class="ident">Pool</span>, <span class="ident">PoolGuard</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prog</span>::<span class="ident">Program</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">re_builder</span>::<span class="ident">RegexOptions</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">re_bytes</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">re_set</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">re_trait</span>::{<span class="ident">Locations</span>, <span class="ident">RegularExpression</span>, <span class="ident">Slot</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">re_unicode</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">utf8</span>::<span class="ident">next_utf8</span>;
 
 <span class="doccomment">/// `Exec` manages the execution of a regular expression.</span>
 <span class="doccomment">///</span>
@@ -1802,7 +1799,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Note that when compiling 2 or more regular expressions, capture groups</span>
     <span class="doccomment">/// are completely unsupported. (This means both `find` and `captures`</span>
-    <span class="doccomment">/// wont work.)</span>
+    <span class="doccomment">/// won&#39;t work.)</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_many</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">res</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
@@ -2035,9 +2032,6 @@
             <span class="ident">AhoCorasickBuilder</span>::<span class="ident">new</span>()
                 .<span class="ident">match_kind</span>(<span class="ident">MatchKind</span>::<span class="ident">LeftmostFirst</span>)
                 .<span class="ident">auto_configure</span>(<span class="kw-2">&amp;</span><span class="ident">lits</span>)
-                <span class="comment">// We always want this to reduce size, regardless</span>
-                <span class="comment">// of what auto-configure does.</span>
-                .<span class="ident">byte_classes</span>(<span class="bool-val">true</span>)
                 .<span class="ident">build_with_size</span>::<span class="op">&lt;</span><span class="ident">u32</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">lits</span>)
                 <span class="comment">// This should never happen because we&#39;d long exceed the</span>
                 <span class="comment">// compilation limit for regexes first.</span>
@@ -2401,7 +2395,7 @@
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">start</span>: <span class="ident">usize</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">dfa</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">dfa</span>::<span class="prelude-ty">Result</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">dfa</span>::<span class="prelude-ty">Result</span>::<span class="kw-2">*</span>;
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">dfa</span>::<span class="ident">Fsm</span>::<span class="ident">forward</span>(
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">dfa</span>,
             <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">value</span>(),
@@ -2441,7 +2435,7 @@
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">start</span>: <span class="ident">usize</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">dfa</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">dfa</span>::<span class="prelude-ty">Result</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">dfa</span>::<span class="prelude-ty">Result</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="ident">dfa</span>::<span class="ident">Fsm</span>::<span class="ident">reverse</span>(
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">dfa_reverse</span>,
             <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">value</span>(),
@@ -2497,7 +2491,7 @@
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">original_start</span>: <span class="ident">usize</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">dfa</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">dfa</span>::<span class="prelude-ty">Result</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">dfa</span>::<span class="prelude-ty">Result</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">lcs</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ro</span>.<span class="ident">suffixes</span>.<span class="ident">lcs</span>();
         <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">lcs</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>);
@@ -2542,7 +2536,7 @@
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">start</span>: <span class="ident">usize</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">dfa</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">dfa</span>::<span class="prelude-ty">Result</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">dfa</span>::<span class="prelude-ty">Result</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">match_start</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">exec_dfa_reverse_suffix</span>(<span class="ident">text</span>, <span class="ident">start</span>) {
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="self">self</span>.<span class="ident">find_dfa_forward</span>(<span class="ident">text</span>, <span class="ident">start</span>),
@@ -2925,7 +2919,7 @@
 <span class="kw">impl</span> <span class="ident">Exec</span> {
     <span class="doccomment">/// Get a searcher that isn&#39;t Sync.</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">searcher</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ExecNoSync</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">searcher</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ExecNoSync</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="ident">ExecNoSync</span> {
             <span class="ident">ro</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ro</span>, <span class="comment">// a clone is too expensive here! (and not needed)</span>
             <span class="ident">cache</span>: <span class="self">self</span>.<span class="ident">pool</span>.<span class="ident">get</span>(),
@@ -2934,7 +2928,7 @@
 
     <span class="doccomment">/// Get a searcher that isn&#39;t Sync and can match on &amp;str.</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-inline&quot;</span>, <span class="ident">inline</span>(<span class="ident">always</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">searcher_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ExecNoSyncStr</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">searcher_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ExecNoSyncStr</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="ident">ExecNoSyncStr</span>(<span class="self">self</span>.<span class="ident">searcher</span>())
     }
 
@@ -3212,7 +3206,7 @@
 <span class="doccomment">/// literals, and if so, returns them. Otherwise, this returns None.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>)]</span>
 <span class="kw">fn</span> <span class="ident">alternation_literals</span>(<span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">use</span> <span class="ident">syntax</span>::<span class="ident">hir</span>::{<span class="ident">HirKind</span>, <span class="ident">Literal</span>};
+    <span class="kw">use</span> <span class="ident">regex_syntax</span>::<span class="ident">hir</span>::{<span class="ident">HirKind</span>, <span class="ident">Literal</span>};
 
     <span class="comment">// This is pretty hacky, but basically, if `is_alternation_literal` is</span>
     <span class="comment">// true, then we can make several assumptions about the structure of our</span>
@@ -3264,7 +3258,7 @@
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">uppercut_s_backtracking_bytes_default_bytes_mismatch</span>() {
-        <span class="kw">use</span> <span class="ident">internal</span>::<span class="ident">ExecBuilder</span>;
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">internal</span>::<span class="ident">ExecBuilder</span>;
 
         <span class="kw">let</span> <span class="ident">backtrack_bytes_re</span> <span class="op">=</span> <span class="ident">ExecBuilder</span>::<span class="ident">new</span>(<span class="string">&quot;^S&quot;</span>)
             .<span class="ident">bounded_backtracking</span>()
@@ -3292,7 +3286,7 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">unicode_lit_star_backtracking_utf8bytes_default_utf8bytes_mismatch</span>() {
-        <span class="kw">use</span> <span class="ident">internal</span>::<span class="ident">ExecBuilder</span>;
+        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">internal</span>::<span class="ident">ExecBuilder</span>;
 
         <span class="kw">let</span> <span class="ident">backtrack_bytes_re</span> <span class="op">=</span> <span class="ident">ExecBuilder</span>::<span class="ident">new</span>(<span class="string">r&quot;^(?u:\*)&quot;</span>)
             .<span class="ident">bounded_backtracking</span>()
@@ -3319,5 +3313,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-search-js="../../search-index.js"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

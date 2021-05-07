@@ -1,7 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `structopt` crate."><meta name="keywords" content="rust, rustlang, rust-lang, structopt"><title>structopt - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings"></script><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="This crate defines the `StructOpt` trait and its custom derive."><meta name="keywords" content="rust, rustlang, rust-lang, structopt"><title>structopt - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings"></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../structopt/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><p class="location">Crate structopt</p><div class="block version"><p>Version 0.3.21</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all structopt's items</p></a><div class="block items"><ul><li><a href="#reexports">Re-exports</a></li><li><a href="#traits">Traits</a></li></ul></div><p class="location"></p><div id="sidebar-vars" data-name="structopt" data-ty="mod" data-relpath="../"></div></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="">structopt</a></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/structopt/lib.rs.html#9-1181" title="goto source code">[src]</a></span></h1><div class="docblock"><p>This crate defines the <code>StructOpt</code> trait and its custom derive.</p>
+<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../structopt/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><p class="location">Crate structopt</p><div class="block version"><p>Version 0.3.21</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all structopt's items</p></a><div class="block items"><ul><li><a href="#reexports">Re-exports</a></li><li><a href="#traits">Traits</a></li></ul></div><p class="location"></p><div id="sidebar-vars" data-name="structopt" data-ty="mod" data-relpath="../"></div></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="">structopt</a></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/structopt/lib.rs.html#9-1181" title="goto source code">[src]</a></span></h1><div class="docblock"><p>This crate defines the <code>StructOpt</code> trait and its custom derive.</p>
 <h2 id="features" class="section-header"><a href="#features">Features</a></h2>
 <p>If you want to disable all the <code>clap</code> features (colors,
 suggestions, ..) add <code>default-features = false</code> to the <code>structopt</code>
@@ -47,7 +47,7 @@ paw = &quot;1.0&quot;
 <li><a href="#custom-string-parsers">Custom string parsers</a></li>
 </ul>
 <h2 id="how-to-derivestructopt" class="section-header"><a href="#how-to-derivestructopt">How to <code>derive(StructOpt)</code></a></h2>
-<p>First, let's look at the example:</p>
+<p>First, let’s look at the example:</p>
 
 <div class='information'><div class='tooltip should_panic'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered should_panic">
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
@@ -92,14 +92,14 @@ and the various <code>structopt</code> attributes are simply
 used for additional parameters.</p>
 <p>First, define a struct, whatever its name. This structure
 corresponds to a <code>clap::App</code>, its fields correspond to <code>clap::Arg</code>
-(unless they're <a href="#subcommands">subcommands</a>),
+(unless they’re <a href="#subcommands">subcommands</a>),
 and you can adjust these apps and args by <code>#[structopt(...)]</code> <a href="#attributes">attributes</a>.</p>
 <p><strong>Note:</strong></p>
 <hr />
 <p>Keep in mind that <code>StructOpt</code> trait is more than just <code>from_args</code> method.
 It has a number of additional features, including access to underlying
 <code>clap::App</code> via <code>StructOpt::clap()</code>. See the
-<a href="trait.StructOpt.html">trait's reference documentation</a>.</p>
+<a href="trait.StructOpt.html">trait’s reference documentation</a>.</p>
 <hr />
 <h2 id="attributes" class="section-header"><a href="#attributes">Attributes</a></h2>
 <p>You can control the way <code>structopt</code> translates your struct into an actual
@@ -107,7 +107,7 @@ It has a number of additional features, including access to underlying
 <p>The attributes fall into two categories:</p>
 <ul>
 <li>
-<p><code>structopt</code>'s own <a href="#magical-methods">magical methods</a>.</p>
+<p><code>structopt</code>’s own <a href="#magical-methods">magical methods</a>.</p>
 <p>They are used by <code>structopt</code> itself. They come mostly in
 <code>attr = [&quot;whatever&quot;]</code> form, but some <code>attr(args...)</code> also exist.</p>
 </li>
@@ -163,7 +163,7 @@ single-arg methods. These forms are identical otherwise.</p>
 it will be translated into a mere method call.</p>
 <p><strong>Note:</strong></p>
 <hr />
-<p>&quot;Raw methods&quot; are direct replacement for pre-0.3 structopt's
+<p>“Raw methods” are direct replacement for pre-0.3 structopt’s
 <code>#[structopt(raw(...))]</code> attributes, any time you would have used a <code>raw()</code> attribute
 in 0.2 you should use raw method in 0.3.</p>
 <p>Unfortunately, old raw attributes collide with <code>clap::Arg::raw</code> method. To explicitly
@@ -173,8 +173,8 @@ literals (this method is supposed to be called only with <code>true</code> anywa
 <h2 id="magical-methods" class="section-header"><a href="#magical-methods">Magical methods</a></h2>
 <p>They are the reason why <code>structopt</code> is so easy to use and convenient in most cases.
 Many of them have defaults, some of them get used even if not mentioned.</p>
-<p>Methods may be used on &quot;top level&quot; (on top of a <code>struct</code>, <code>enum</code> or <code>enum</code> variant)
-and/or on &quot;field-level&quot; (on top of a <code>struct</code> field or <em>inside</em> of an enum variant).
+<p>Methods may be used on “top level” (on top of a <code>struct</code>, <code>enum</code> or <code>enum</code> variant)
+and/or on “field-level” (on top of a <code>struct</code> field or <em>inside</em> of an enum variant).
 Top level (non-magical) methods correspond to <code>App::method</code> calls, field-level methods
 are <code>Arg::method</code> calls.</p>
 
@@ -290,7 +290,7 @@ but only when <code>about</code> explicitly mentioned.</p>
 </li>
 </ul>
 <h2 id="type-magic" class="section-header"><a href="#type-magic">Type magic</a></h2>
-<p>One of major things that makes <code>structopt</code> so awesome is it's type magic.
+<p>One of major things that makes <code>structopt</code> so awesome is it’s type magic.
 Do you want optional positional argument? Use <code>Option&lt;T&gt;</code>! Or perhaps optional argument
 that optionally takes value (<code>[--opt=[val]]</code>)? Use <code>Option&lt;Option&lt;T&gt;&gt;</code>!</p>
 <p>Here is the table of types and <code>clap</code> methods they correspond to:</p>
@@ -346,7 +346,7 @@ annotate the field with explicit <a href="#custom-string-parsers"><code>#[struct
 the field name.  The generated casing style can be modified using
 the <code>rename_all</code> attribute. See the <code>rename_all</code> example for more.</p>
 <p>For short arguments, <code>short</code> will use the first letter of the
-field name by default, but just like the long option it's also
+field name by default, but just like the long option it’s also
 possible to use a custom letter through <code>short = $LETTER</code>.</p>
 <p>If an argument is renamed using <code>name = $NAME</code> any following call to
 <code>short</code> or <code>long</code> will use the new name.</p>
@@ -420,9 +420,9 @@ gives us some <code>Self</code> value. We need to map <code>Self</code> to <code
 <h2 id="help-messages" class="section-header"><a href="#help-messages">Help messages</a></h2>
 <p>In clap, help messages for the whole binary can be specified
 via <a href="https://docs.rs/clap/2/clap/struct.App.html#method.about"><code>App::about</code></a> and <a href="https://docs.rs/clap/2/clap/struct.App.html#method.long_about"><code>App::long_about</code></a> while help messages
-for individual arguments can be specified via <a href="https://docs.rs/clap/2/clap/struct.Arg.html#method.help"><code>Arg::help</code></a> and <a href="https://docs.rs/clap/2/clap/struct.Arg.html#method.long_help"><code>Arg::long_help</code></a>&quot;.</p>
+for individual arguments can be specified via <a href="https://docs.rs/clap/2/clap/struct.Arg.html#method.help"><code>Arg::help</code></a> and <a href="https://docs.rs/clap/2/clap/struct.Arg.html#method.long_help"><code>Arg::long_help</code></a>“.</p>
 <p><code>long_*</code> variants are used when user calls the program with
-<code>--help</code> and &quot;short&quot; variants are used with <code>-h</code> flag. In <code>structopt</code>,
+<code>--help</code> and “short” variants are used with <code>-h</code> flag. In <code>structopt</code>,
 you can use them via <a href="#raw-methods">raw methods</a>, for example:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered">
@@ -451,14 +451,14 @@ you can use them via <a href="#raw-methods">raw methods</a>, for example:</p>
 <hr />
 <p>Raw methods have priority over doc comments!</p>
 <p><strong>Top level doc comments always generate <code>App::about/long_about</code> calls!</strong>
-If you really want to use the <code>App::help/long_help</code> methods (you likely don't),
+If you really want to use the <code>App::help/long_help</code> methods (you likely don’t),
 use a raw method to override the <code>App::about</code> call generated from the doc comment.</p>
 <hr />
 <h3 id="long_help-and---help" class="section-header"><a href="#long_help-and---help"><code>long_help</code> and <code>--help</code></a></h3>
 <p>A message passed to <a href="https://docs.rs/clap/2/clap/struct.App.html#method.long_about"><code>App::long_about</code></a> or <a href="https://docs.rs/clap/2/clap/struct.Arg.html#method.long_help"><code>Arg::long_help</code></a> will be displayed whenever
 your program is called with <code>--help</code> instead of <code>-h</code>. Of course, you can
 use them via raw methods as described <a href="#help-messages">above</a>.</p>
-<p>The more convenient way is to use a so-called &quot;long&quot; doc comment:</p>
+<p>The more convenient way is to use a so-called “long” doc comment:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered">
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
@@ -482,7 +482,7 @@ use them via raw methods as described <a href="#help-messages">above</a>.</p>
 <li>A blank line (whitespace only)</li>
 <li>Detailed description, all the rest</li>
 </ul>
-<p>In other words, &quot;long&quot; doc comment consists of two or more paragraphs,
+<p>In other words, “long” doc comment consists of two or more paragraphs,
 with the first being a summary and the rest being the detailed description.</p>
 <p><strong>A long comment will result in two method calls</strong>, <code>help(&lt;summary&gt;)</code> and
 <code>long_help(&lt;whole comment&gt;)</code>, so clap will display the summary with <code>-h</code>
@@ -499,14 +499,14 @@ and the whole help message on <code>--help</code> (see below).</p>
 <span class="comment">// args...</span></pre></div>
 <h3 id="-h-vs---help-aka-help-vs-long_help" class="section-header"><a href="#-h-vs---help-aka-help-vs-long_help"><code>-h</code> vs <code>--help</code> (A.K.A <code>help()</code> vs <code>long_help()</code>)</a></h3>
 <p>The <code>-h</code> flag is not the same as <code>--help</code>.</p>
-<p>-h corresponds to <code>Arg::help/App::about</code> and requests short &quot;summary&quot; messages
-while --help corresponds to <code>Arg::long_help/App::long_about</code> and requests more
+<p>-h corresponds to <code>Arg::help/App::about</code> and requests short “summary” messages
+while –help corresponds to <code>Arg::long_help/App::long_about</code> and requests more
 detailed, descriptive messages.</p>
 <p>It is entirely up to <code>clap</code> what happens if you used only one of
-<a href="https://docs.rs/clap/2/clap/struct.Arg.html#method.help"><code>Arg::help</code></a>/<a href="https://docs.rs/clap/2/clap/struct.Arg.html#method.long_help"><code>Arg::long_help</code></a>, see <code>clap</code>'s documentation for these methods.</p>
+<a href="https://docs.rs/clap/2/clap/struct.Arg.html#method.help"><code>Arg::help</code></a>/<a href="https://docs.rs/clap/2/clap/struct.Arg.html#method.long_help"><code>Arg::long_help</code></a>, see <code>clap</code>’s documentation for these methods.</p>
 <p>As of clap v2.33, if only a short message (<a href="https://docs.rs/clap/2/clap/struct.Arg.html#method.help"><code>Arg::help</code></a>) or only
 a long (<a href="https://docs.rs/clap/2/clap/struct.Arg.html#method.long_help"><code>Arg::long_help</code></a>) message is provided, clap will use it
-for both -h and --help. The same logic applies to <code>about/long_about</code>.</p>
+for both -h and –help. The same logic applies to <code>about/long_about</code>.</p>
 <h3 id="doc-comment-preprocessing-and-structoptverbatim_doc_comment" class="section-header"><a href="#doc-comment-preprocessing-and-structoptverbatim_doc_comment">Doc comment preprocessing and <code>#[structopt(verbatim_doc_comment)]</code></a></h3>
 <p><code>structopt</code> applies some preprocessing to doc comments to ease the most common uses:</p>
 <ul>
@@ -529,11 +529,11 @@ to be re-wrapped to the terminal width.</p>
 remove the trailing period (i.e. strip trailing periods but not trailing ellipses).</p>
 </li>
 </ul>
-<p>Sometimes you don't want this preprocessing to apply, for example the comment contains
+<p>Sometimes you don’t want this preprocessing to apply, for example the comment contains
 some ASCII art or markdown tables, you would need to preserve LFs along with
 blank lines and the leading/trailing whitespace. You can ask <code>structopt</code> to preserve them
 via <code>#[structopt(verbatim_doc_comment)]</code> attribute.</p>
-<p><strong>This attribute must be applied to each field separately</strong>, there's no global switch.</p>
+<p><strong>This attribute must be applied to each field separately</strong>, there’s no global switch.</p>
 <p><strong>Important:</strong></p>
 <hr />
 <p>Keep in mind that <code>structopt</code> will <em>still</em> remove one leading space from each
@@ -588,10 +588,10 @@ having structopt emit the actual secret values:</p>
   <span class="ident">secret_value</span>: <span class="ident">String</span>
 }</pre></div>
 <h3 id="auto-deriving-environment-variables" class="section-header"><a href="#auto-deriving-environment-variables">Auto-deriving environment variables</a></h3>
-<p>Environment variables tend to be called after the corresponding <code>struct</code>'s field,
-as in example above. The field is <code>secret_value</code> and the env var is &quot;SECRET_VALUE&quot;;
+<p>Environment variables tend to be called after the corresponding <code>struct</code>’s field,
+as in example above. The field is <code>secret_value</code> and the env var is “SECRET_VALUE”;
 the name is the same, except casing is different.</p>
-<p>It's pretty tedious and error-prone to type the same name twice,
+<p>It’s pretty tedious and error-prone to type the same name twice,
 so you can ask <code>structopt</code> to do that for you.</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered">
@@ -602,7 +602,7 @@ so you can ask <code>structopt</code> to do that for you.</p>
   <span class="ident">secret_value</span>: <span class="ident">String</span>
 }</pre></div>
 <p>It works just like <code>#[structopt(short/long)]</code>: if <code>env</code> is not set to some concrete
-value the value will be derived from the field's name. This is controlled by
+value the value will be derived from the field’s name. This is controlled by
 <code>#[structopt(rename_all_env)]</code>.</p>
 <p><code>rename_all_env</code> works exactly as <code>rename_all</code> (including overriding)
 except default casing is <code>SCREAMING_SNAKE_CASE</code> instead of <code>kebab-case</code>.</p>
@@ -612,7 +612,7 @@ a command line option and <code>clap</code> should know nothing about it. You ca
 <code>structopt</code> to skip the field entirely via <code>#[structopt(skip = value)]</code>
 (<code>value</code> must implement <code>Into&lt;FieldType&gt;</code>)
 or <code>#[structopt(skip)]</code> if you want assign the field with <code>Default::default()</code>
-(obviously, the field's type must implement <code>Default</code>).</p>
+(obviously, the field’s type must implement <code>Default</code>).</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered">
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">StructOpt</span>)]</span>
@@ -636,7 +636,7 @@ or <code>#[structopt(skip)]</code> if you want assign the field with <code>Defau
 }</pre></div>
 <h2 id="subcommands" class="section-header"><a href="#subcommands">Subcommands</a></h2>
 <p>Some applications, especially large ones, split their functionality
-through the use of &quot;subcommands&quot;. Each of these act somewhat like a separate
+through the use of “subcommands”. Each of these act somewhat like a separate
 command, but is part of the larger group.
 One example is <code>git</code>, which has subcommands such as <code>add</code>, <code>commit</code>,
 and <code>clone</code>, to mention just a few.</p>
@@ -752,7 +752,7 @@ commands:</p>
 <p>Sometimes you want to support not only the set of well-known subcommands
 but you also want to allow other, user-driven subcommands. <code>clap</code> supports
 this via <a href="https://docs.rs/clap/2.32.0/clap/enum.AppSettings.html#variant.AllowExternalSubcommands"><code>AppSettings::AllowExternalSubcommands</code></a>.</p>
-<p><code>structopt</code> provides it's own dedicated syntax for that:</p>
+<p><code>structopt</code> provides it’s own dedicated syntax for that:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered">
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">StructOpt</span>)]</span>
@@ -896,5 +896,5 @@ side-effect-free.</p>
 </div><h2 id="reexports" class="section-header"><a href="#reexports">Re-exports</a></h2>
 <table><tr><td><code>pub use <a class="mod" href="../clap/index.html" title="mod clap">clap</a>;</code></td></tr></table><h2 id="traits" class="section-header"><a href="#traits">Traits</a></h2>
 <table><tr class="module-item"><td><a class="trait" href="trait.StructOpt.html" title="structopt::StructOpt trait">StructOpt</a></td><td class="docblock-short"><p>A struct that is converted from command line arguments.</p>
-</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="structopt"></div>
-    <script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="structopt" data-search-js="../search-index.js"></div>
+    <script src="../main.js"></script></body></html>

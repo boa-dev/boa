@@ -1,7 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.88/src/unix/linux_like/linux/gnu/b64/x86_64/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../../../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.94/src/unix/linux_like/linux/gnu/b64/x86_64/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../../../../../storage.js"></script><script src="../../../../../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../../../../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../../../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../../../../../../libc/index.html'><div class='logo-container rust-logo'><img src='../../../../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../../../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../../../../../../../settings.html"><img src="../../../../../../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<link rel="alternate icon" type="image/png" href="../../../../../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../../../../../libc/index.html'><div class='logo-container rust-logo'><img src='../../../../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../../../../../../../../settings.html"><img src="../../../../../../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -871,92 +871,6 @@
 <span id="868">868</span>
 <span id="869">869</span>
 <span id="870">870</span>
-<span id="871">871</span>
-<span id="872">872</span>
-<span id="873">873</span>
-<span id="874">874</span>
-<span id="875">875</span>
-<span id="876">876</span>
-<span id="877">877</span>
-<span id="878">878</span>
-<span id="879">879</span>
-<span id="880">880</span>
-<span id="881">881</span>
-<span id="882">882</span>
-<span id="883">883</span>
-<span id="884">884</span>
-<span id="885">885</span>
-<span id="886">886</span>
-<span id="887">887</span>
-<span id="888">888</span>
-<span id="889">889</span>
-<span id="890">890</span>
-<span id="891">891</span>
-<span id="892">892</span>
-<span id="893">893</span>
-<span id="894">894</span>
-<span id="895">895</span>
-<span id="896">896</span>
-<span id="897">897</span>
-<span id="898">898</span>
-<span id="899">899</span>
-<span id="900">900</span>
-<span id="901">901</span>
-<span id="902">902</span>
-<span id="903">903</span>
-<span id="904">904</span>
-<span id="905">905</span>
-<span id="906">906</span>
-<span id="907">907</span>
-<span id="908">908</span>
-<span id="909">909</span>
-<span id="910">910</span>
-<span id="911">911</span>
-<span id="912">912</span>
-<span id="913">913</span>
-<span id="914">914</span>
-<span id="915">915</span>
-<span id="916">916</span>
-<span id="917">917</span>
-<span id="918">918</span>
-<span id="919">919</span>
-<span id="920">920</span>
-<span id="921">921</span>
-<span id="922">922</span>
-<span id="923">923</span>
-<span id="924">924</span>
-<span id="925">925</span>
-<span id="926">926</span>
-<span id="927">927</span>
-<span id="928">928</span>
-<span id="929">929</span>
-<span id="930">930</span>
-<span id="931">931</span>
-<span id="932">932</span>
-<span id="933">933</span>
-<span id="934">934</span>
-<span id="935">935</span>
-<span id="936">936</span>
-<span id="937">937</span>
-<span id="938">938</span>
-<span id="939">939</span>
-<span id="940">940</span>
-<span id="941">941</span>
-<span id="942">942</span>
-<span id="943">943</span>
-<span id="944">944</span>
-<span id="945">945</span>
-<span id="946">946</span>
-<span id="947">947</span>
-<span id="948">948</span>
-<span id="949">949</span>
-<span id="950">950</span>
-<span id="951">951</span>
-<span id="952">952</span>
-<span id="953">953</span>
-<span id="954">954</span>
-<span id="955">955</span>
-<span id="956">956</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! x86_64-specific definitions for 64-bit linux-like values</span>
 
@@ -1475,80 +1389,6 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EHWPOISON</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">133</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ERFKILL</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">132</span>;
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SOL_SOCKET</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
-
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_REUSEADDR</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">2</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_TYPE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">3</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_ERROR</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">4</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_DONTROUTE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">5</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_BROADCAST</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">6</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_SNDBUF</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">7</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_RCVBUF</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">8</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_SNDBUFFORCE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">32</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_RCVBUFFORCE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">33</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_KEEPALIVE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">9</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_OOBINLINE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">10</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_NO_CHECK</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">11</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_PRIORITY</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">12</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_LINGER</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">13</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_BSDCOMPAT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">14</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_REUSEPORT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">15</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_PASSCRED</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">16</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_PEERCRED</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">17</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_RCVLOWAT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">18</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_SNDLOWAT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">19</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_RCVTIMEO</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">20</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_SNDTIMEO</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">21</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_SECURITY_AUTHENTICATION</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">22</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_SECURITY_ENCRYPTION_TRANSPORT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">23</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_SECURITY_ENCRYPTION_NETWORK</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">24</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_BINDTODEVICE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">25</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_ATTACH_FILTER</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">26</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_DETACH_FILTER</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">27</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_GET_FILTER</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="ident">SO_ATTACH_FILTER</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_PEERNAME</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">28</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_TIMESTAMP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">29</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_ACCEPTCONN</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">30</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_PEERSEC</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">31</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_PASSSEC</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">34</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_TIMESTAMPNS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">35</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SCM_TIMESTAMPNS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="ident">SO_TIMESTAMPNS</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_MARK</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">36</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_PROTOCOL</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">38</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_DOMAIN</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">39</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_RXQ_OVFL</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">40</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_WIFI_STATUS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">41</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SCM_WIFI_STATUS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="ident">SO_WIFI_STATUS</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_PEEK_OFF</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">42</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_NOFCS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">43</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_LOCK_FILTER</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">44</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_SELECT_ERR_QUEUE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">45</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_BUSY_POLL</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">46</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_MAX_PACING_RATE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">47</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_BPF_EXTENSIONS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">48</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_INCOMING_CPU</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">49</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_ATTACH_BPF</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">50</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_DETACH_BPF</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="ident">SO_DETACH_FILTER</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_ATTACH_REUSEPORT_CBPF</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">51</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_ATTACH_REUSEPORT_EBPF</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">52</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_CNX_ADVICE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">53</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SCM_TIMESTAMPING_OPT_STATS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">54</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_MEMINFO</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">55</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_INCOMING_NAPI_ID</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">56</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_COOKIE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">57</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SCM_TIMESTAMPING_PKTINFO</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">58</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_PEERGROUPS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">59</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_ZEROCOPY</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">60</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_TXTIME</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">61</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SCM_TXTIME</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="ident">SO_TXTIME</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_BINDTOIFINDEX</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">62</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_TIMESTAMP_NEW</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">63</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_TIMESTAMPNS_NEW</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">64</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_TIMESTAMPING_NEW</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">65</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_RCVTIMEO_NEW</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">66</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_SNDTIMEO_NEW</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">67</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SO_DETACH_REUSEPORT_BPF</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">68</span>;
-
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SOCK_STREAM</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SOCK_DGRAM</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">2</span>;
 
@@ -1880,22 +1720,10 @@
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getcontext</span>(<span class="ident">ucp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ucontext_t</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">setcontext</span>(<span class="ident">ucp</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ucontext_t</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">makecontext</span>(
-        <span class="ident">ucp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ucontext_t</span>,
-        <span class="ident">func</span>: <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(),
-        <span class="ident">argc</span>: ::<span class="ident">c_int</span>,
-        ...
-    );
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swapcontext</span>(
-        <span class="ident">uocp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ucontext_t</span>,
-        <span class="ident">ucp</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ucontext_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">makecontext</span>(<span class="ident">ucp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ucontext_t</span>, <span class="ident">func</span>: <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(), <span class="ident">argc</span>: ::<span class="ident">c_int</span>, ...);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swapcontext</span>(<span class="ident">uocp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ucontext_t</span>, <span class="ident">ucp</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">ucontext_t</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iopl</span>(<span class="ident">level</span>: ::<span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ioperm</span>(
-        <span class="ident">from</span>: ::<span class="ident">c_ulong</span>,
-        <span class="ident">num</span>: ::<span class="ident">c_ulong</span>,
-        <span class="ident">turn_on</span>: ::<span class="ident">c_int</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ioperm</span>(<span class="ident">from</span>: ::<span class="ident">c_ulong</span>, <span class="ident">num</span>: ::<span class="ident">c_ulong</span>, <span class="ident">turn_on</span>: ::<span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
 }
 
 <span class="macro">cfg_if</span><span class="macro">!</span> {
@@ -1915,5 +1743,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../../../../../" data-current-crate="libc"></div>
-    <script src="../../../../../../../../main.js"></script><script src="../../../../../../../../source-script.js"></script><script src="../../../../../../../../source-files.js"></script><script defer src="../../../../../../../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../../../../../" data-current-crate="libc" data-search-js="../../../../../../../../search-index.js"></div>
+    <script src="../../../../../../../../main.js"></script><script src="../../../../../../../../source-script.js"></script><script src="../../../../../../../../source-files.js"></script></body></html>

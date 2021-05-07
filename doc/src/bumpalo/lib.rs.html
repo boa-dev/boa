@@ -1,7 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bumpalo-3.4.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bumpalo-3.6.1/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../bumpalo/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../bumpalo/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
 <span id="4">   4</span>
@@ -1332,6 +1332,568 @@
 <span id="1329">1329</span>
 <span id="1330">1330</span>
 <span id="1331">1331</span>
+<span id="1332">1332</span>
+<span id="1333">1333</span>
+<span id="1334">1334</span>
+<span id="1335">1335</span>
+<span id="1336">1336</span>
+<span id="1337">1337</span>
+<span id="1338">1338</span>
+<span id="1339">1339</span>
+<span id="1340">1340</span>
+<span id="1341">1341</span>
+<span id="1342">1342</span>
+<span id="1343">1343</span>
+<span id="1344">1344</span>
+<span id="1345">1345</span>
+<span id="1346">1346</span>
+<span id="1347">1347</span>
+<span id="1348">1348</span>
+<span id="1349">1349</span>
+<span id="1350">1350</span>
+<span id="1351">1351</span>
+<span id="1352">1352</span>
+<span id="1353">1353</span>
+<span id="1354">1354</span>
+<span id="1355">1355</span>
+<span id="1356">1356</span>
+<span id="1357">1357</span>
+<span id="1358">1358</span>
+<span id="1359">1359</span>
+<span id="1360">1360</span>
+<span id="1361">1361</span>
+<span id="1362">1362</span>
+<span id="1363">1363</span>
+<span id="1364">1364</span>
+<span id="1365">1365</span>
+<span id="1366">1366</span>
+<span id="1367">1367</span>
+<span id="1368">1368</span>
+<span id="1369">1369</span>
+<span id="1370">1370</span>
+<span id="1371">1371</span>
+<span id="1372">1372</span>
+<span id="1373">1373</span>
+<span id="1374">1374</span>
+<span id="1375">1375</span>
+<span id="1376">1376</span>
+<span id="1377">1377</span>
+<span id="1378">1378</span>
+<span id="1379">1379</span>
+<span id="1380">1380</span>
+<span id="1381">1381</span>
+<span id="1382">1382</span>
+<span id="1383">1383</span>
+<span id="1384">1384</span>
+<span id="1385">1385</span>
+<span id="1386">1386</span>
+<span id="1387">1387</span>
+<span id="1388">1388</span>
+<span id="1389">1389</span>
+<span id="1390">1390</span>
+<span id="1391">1391</span>
+<span id="1392">1392</span>
+<span id="1393">1393</span>
+<span id="1394">1394</span>
+<span id="1395">1395</span>
+<span id="1396">1396</span>
+<span id="1397">1397</span>
+<span id="1398">1398</span>
+<span id="1399">1399</span>
+<span id="1400">1400</span>
+<span id="1401">1401</span>
+<span id="1402">1402</span>
+<span id="1403">1403</span>
+<span id="1404">1404</span>
+<span id="1405">1405</span>
+<span id="1406">1406</span>
+<span id="1407">1407</span>
+<span id="1408">1408</span>
+<span id="1409">1409</span>
+<span id="1410">1410</span>
+<span id="1411">1411</span>
+<span id="1412">1412</span>
+<span id="1413">1413</span>
+<span id="1414">1414</span>
+<span id="1415">1415</span>
+<span id="1416">1416</span>
+<span id="1417">1417</span>
+<span id="1418">1418</span>
+<span id="1419">1419</span>
+<span id="1420">1420</span>
+<span id="1421">1421</span>
+<span id="1422">1422</span>
+<span id="1423">1423</span>
+<span id="1424">1424</span>
+<span id="1425">1425</span>
+<span id="1426">1426</span>
+<span id="1427">1427</span>
+<span id="1428">1428</span>
+<span id="1429">1429</span>
+<span id="1430">1430</span>
+<span id="1431">1431</span>
+<span id="1432">1432</span>
+<span id="1433">1433</span>
+<span id="1434">1434</span>
+<span id="1435">1435</span>
+<span id="1436">1436</span>
+<span id="1437">1437</span>
+<span id="1438">1438</span>
+<span id="1439">1439</span>
+<span id="1440">1440</span>
+<span id="1441">1441</span>
+<span id="1442">1442</span>
+<span id="1443">1443</span>
+<span id="1444">1444</span>
+<span id="1445">1445</span>
+<span id="1446">1446</span>
+<span id="1447">1447</span>
+<span id="1448">1448</span>
+<span id="1449">1449</span>
+<span id="1450">1450</span>
+<span id="1451">1451</span>
+<span id="1452">1452</span>
+<span id="1453">1453</span>
+<span id="1454">1454</span>
+<span id="1455">1455</span>
+<span id="1456">1456</span>
+<span id="1457">1457</span>
+<span id="1458">1458</span>
+<span id="1459">1459</span>
+<span id="1460">1460</span>
+<span id="1461">1461</span>
+<span id="1462">1462</span>
+<span id="1463">1463</span>
+<span id="1464">1464</span>
+<span id="1465">1465</span>
+<span id="1466">1466</span>
+<span id="1467">1467</span>
+<span id="1468">1468</span>
+<span id="1469">1469</span>
+<span id="1470">1470</span>
+<span id="1471">1471</span>
+<span id="1472">1472</span>
+<span id="1473">1473</span>
+<span id="1474">1474</span>
+<span id="1475">1475</span>
+<span id="1476">1476</span>
+<span id="1477">1477</span>
+<span id="1478">1478</span>
+<span id="1479">1479</span>
+<span id="1480">1480</span>
+<span id="1481">1481</span>
+<span id="1482">1482</span>
+<span id="1483">1483</span>
+<span id="1484">1484</span>
+<span id="1485">1485</span>
+<span id="1486">1486</span>
+<span id="1487">1487</span>
+<span id="1488">1488</span>
+<span id="1489">1489</span>
+<span id="1490">1490</span>
+<span id="1491">1491</span>
+<span id="1492">1492</span>
+<span id="1493">1493</span>
+<span id="1494">1494</span>
+<span id="1495">1495</span>
+<span id="1496">1496</span>
+<span id="1497">1497</span>
+<span id="1498">1498</span>
+<span id="1499">1499</span>
+<span id="1500">1500</span>
+<span id="1501">1501</span>
+<span id="1502">1502</span>
+<span id="1503">1503</span>
+<span id="1504">1504</span>
+<span id="1505">1505</span>
+<span id="1506">1506</span>
+<span id="1507">1507</span>
+<span id="1508">1508</span>
+<span id="1509">1509</span>
+<span id="1510">1510</span>
+<span id="1511">1511</span>
+<span id="1512">1512</span>
+<span id="1513">1513</span>
+<span id="1514">1514</span>
+<span id="1515">1515</span>
+<span id="1516">1516</span>
+<span id="1517">1517</span>
+<span id="1518">1518</span>
+<span id="1519">1519</span>
+<span id="1520">1520</span>
+<span id="1521">1521</span>
+<span id="1522">1522</span>
+<span id="1523">1523</span>
+<span id="1524">1524</span>
+<span id="1525">1525</span>
+<span id="1526">1526</span>
+<span id="1527">1527</span>
+<span id="1528">1528</span>
+<span id="1529">1529</span>
+<span id="1530">1530</span>
+<span id="1531">1531</span>
+<span id="1532">1532</span>
+<span id="1533">1533</span>
+<span id="1534">1534</span>
+<span id="1535">1535</span>
+<span id="1536">1536</span>
+<span id="1537">1537</span>
+<span id="1538">1538</span>
+<span id="1539">1539</span>
+<span id="1540">1540</span>
+<span id="1541">1541</span>
+<span id="1542">1542</span>
+<span id="1543">1543</span>
+<span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
+<span id="1581">1581</span>
+<span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
+<span id="1587">1587</span>
+<span id="1588">1588</span>
+<span id="1589">1589</span>
+<span id="1590">1590</span>
+<span id="1591">1591</span>
+<span id="1592">1592</span>
+<span id="1593">1593</span>
+<span id="1594">1594</span>
+<span id="1595">1595</span>
+<span id="1596">1596</span>
+<span id="1597">1597</span>
+<span id="1598">1598</span>
+<span id="1599">1599</span>
+<span id="1600">1600</span>
+<span id="1601">1601</span>
+<span id="1602">1602</span>
+<span id="1603">1603</span>
+<span id="1604">1604</span>
+<span id="1605">1605</span>
+<span id="1606">1606</span>
+<span id="1607">1607</span>
+<span id="1608">1608</span>
+<span id="1609">1609</span>
+<span id="1610">1610</span>
+<span id="1611">1611</span>
+<span id="1612">1612</span>
+<span id="1613">1613</span>
+<span id="1614">1614</span>
+<span id="1615">1615</span>
+<span id="1616">1616</span>
+<span id="1617">1617</span>
+<span id="1618">1618</span>
+<span id="1619">1619</span>
+<span id="1620">1620</span>
+<span id="1621">1621</span>
+<span id="1622">1622</span>
+<span id="1623">1623</span>
+<span id="1624">1624</span>
+<span id="1625">1625</span>
+<span id="1626">1626</span>
+<span id="1627">1627</span>
+<span id="1628">1628</span>
+<span id="1629">1629</span>
+<span id="1630">1630</span>
+<span id="1631">1631</span>
+<span id="1632">1632</span>
+<span id="1633">1633</span>
+<span id="1634">1634</span>
+<span id="1635">1635</span>
+<span id="1636">1636</span>
+<span id="1637">1637</span>
+<span id="1638">1638</span>
+<span id="1639">1639</span>
+<span id="1640">1640</span>
+<span id="1641">1641</span>
+<span id="1642">1642</span>
+<span id="1643">1643</span>
+<span id="1644">1644</span>
+<span id="1645">1645</span>
+<span id="1646">1646</span>
+<span id="1647">1647</span>
+<span id="1648">1648</span>
+<span id="1649">1649</span>
+<span id="1650">1650</span>
+<span id="1651">1651</span>
+<span id="1652">1652</span>
+<span id="1653">1653</span>
+<span id="1654">1654</span>
+<span id="1655">1655</span>
+<span id="1656">1656</span>
+<span id="1657">1657</span>
+<span id="1658">1658</span>
+<span id="1659">1659</span>
+<span id="1660">1660</span>
+<span id="1661">1661</span>
+<span id="1662">1662</span>
+<span id="1663">1663</span>
+<span id="1664">1664</span>
+<span id="1665">1665</span>
+<span id="1666">1666</span>
+<span id="1667">1667</span>
+<span id="1668">1668</span>
+<span id="1669">1669</span>
+<span id="1670">1670</span>
+<span id="1671">1671</span>
+<span id="1672">1672</span>
+<span id="1673">1673</span>
+<span id="1674">1674</span>
+<span id="1675">1675</span>
+<span id="1676">1676</span>
+<span id="1677">1677</span>
+<span id="1678">1678</span>
+<span id="1679">1679</span>
+<span id="1680">1680</span>
+<span id="1681">1681</span>
+<span id="1682">1682</span>
+<span id="1683">1683</span>
+<span id="1684">1684</span>
+<span id="1685">1685</span>
+<span id="1686">1686</span>
+<span id="1687">1687</span>
+<span id="1688">1688</span>
+<span id="1689">1689</span>
+<span id="1690">1690</span>
+<span id="1691">1691</span>
+<span id="1692">1692</span>
+<span id="1693">1693</span>
+<span id="1694">1694</span>
+<span id="1695">1695</span>
+<span id="1696">1696</span>
+<span id="1697">1697</span>
+<span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
+<span id="1703">1703</span>
+<span id="1704">1704</span>
+<span id="1705">1705</span>
+<span id="1706">1706</span>
+<span id="1707">1707</span>
+<span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
+<span id="1724">1724</span>
+<span id="1725">1725</span>
+<span id="1726">1726</span>
+<span id="1727">1727</span>
+<span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
+<span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
+<span id="1745">1745</span>
+<span id="1746">1746</span>
+<span id="1747">1747</span>
+<span id="1748">1748</span>
+<span id="1749">1749</span>
+<span id="1750">1750</span>
+<span id="1751">1751</span>
+<span id="1752">1752</span>
+<span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
+<span id="1758">1758</span>
+<span id="1759">1759</span>
+<span id="1760">1760</span>
+<span id="1761">1761</span>
+<span id="1762">1762</span>
+<span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
+<span id="1767">1767</span>
+<span id="1768">1768</span>
+<span id="1769">1769</span>
+<span id="1770">1770</span>
+<span id="1771">1771</span>
+<span id="1772">1772</span>
+<span id="1773">1773</span>
+<span id="1774">1774</span>
+<span id="1775">1775</span>
+<span id="1776">1776</span>
+<span id="1777">1777</span>
+<span id="1778">1778</span>
+<span id="1779">1779</span>
+<span id="1780">1780</span>
+<span id="1781">1781</span>
+<span id="1782">1782</span>
+<span id="1783">1783</span>
+<span id="1784">1784</span>
+<span id="1785">1785</span>
+<span id="1786">1786</span>
+<span id="1787">1787</span>
+<span id="1788">1788</span>
+<span id="1789">1789</span>
+<span id="1790">1790</span>
+<span id="1791">1791</span>
+<span id="1792">1792</span>
+<span id="1793">1793</span>
+<span id="1794">1794</span>
+<span id="1795">1795</span>
+<span id="1796">1796</span>
+<span id="1797">1797</span>
+<span id="1798">1798</span>
+<span id="1799">1799</span>
+<span id="1800">1800</span>
+<span id="1801">1801</span>
+<span id="1802">1802</span>
+<span id="1803">1803</span>
+<span id="1804">1804</span>
+<span id="1805">1805</span>
+<span id="1806">1806</span>
+<span id="1807">1807</span>
+<span id="1808">1808</span>
+<span id="1809">1809</span>
+<span id="1810">1810</span>
+<span id="1811">1811</span>
+<span id="1812">1812</span>
+<span id="1813">1813</span>
+<span id="1814">1814</span>
+<span id="1815">1815</span>
+<span id="1816">1816</span>
+<span id="1817">1817</span>
+<span id="1818">1818</span>
+<span id="1819">1819</span>
+<span id="1820">1820</span>
+<span id="1821">1821</span>
+<span id="1822">1822</span>
+<span id="1823">1823</span>
+<span id="1824">1824</span>
+<span id="1825">1825</span>
+<span id="1826">1826</span>
+<span id="1827">1827</span>
+<span id="1828">1828</span>
+<span id="1829">1829</span>
+<span id="1830">1830</span>
+<span id="1831">1831</span>
+<span id="1832">1832</span>
+<span id="1833">1833</span>
+<span id="1834">1834</span>
+<span id="1835">1835</span>
+<span id="1836">1836</span>
+<span id="1837">1837</span>
+<span id="1838">1838</span>
+<span id="1839">1839</span>
+<span id="1840">1840</span>
+<span id="1841">1841</span>
+<span id="1842">1842</span>
+<span id="1843">1843</span>
+<span id="1844">1844</span>
+<span id="1845">1845</span>
+<span id="1846">1846</span>
+<span id="1847">1847</span>
+<span id="1848">1848</span>
+<span id="1849">1849</span>
+<span id="1850">1850</span>
+<span id="1851">1851</span>
+<span id="1852">1852</span>
+<span id="1853">1853</span>
+<span id="1854">1854</span>
+<span id="1855">1855</span>
+<span id="1856">1856</span>
+<span id="1857">1857</span>
+<span id="1858">1858</span>
+<span id="1859">1859</span>
+<span id="1860">1860</span>
+<span id="1861">1861</span>
+<span id="1862">1862</span>
+<span id="1863">1863</span>
+<span id="1864">1864</span>
+<span id="1865">1865</span>
+<span id="1866">1866</span>
+<span id="1867">1867</span>
+<span id="1868">1868</span>
+<span id="1869">1869</span>
+<span id="1870">1870</span>
+<span id="1871">1871</span>
+<span id="1872">1872</span>
+<span id="1873">1873</span>
+<span id="1874">1874</span>
+<span id="1875">1875</span>
+<span id="1876">1876</span>
+<span id="1877">1877</span>
+<span id="1878">1878</span>
+<span id="1879">1879</span>
+<span id="1880">1880</span>
+<span id="1881">1881</span>
+<span id="1882">1882</span>
+<span id="1883">1883</span>
+<span id="1884">1884</span>
+<span id="1885">1885</span>
+<span id="1886">1886</span>
+<span id="1887">1887</span>
+<span id="1888">1888</span>
+<span id="1889">1889</span>
+<span id="1890">1890</span>
+<span id="1891">1891</span>
+<span id="1892">1892</span>
+<span id="1893">1893</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/*!
 
@@ -1340,7 +1902,7 @@
 [![](https://docs.rs/bumpalo/badge.svg)](https://docs.rs/bumpalo/)
 [![](https://img.shields.io/crates/v/bumpalo.svg)](https://crates.io/crates/bumpalo)
 [![](https://img.shields.io/crates/d/bumpalo.svg)](https://crates.io/crates/bumpalo)
-[![Build Status](https://dev.azure.com/fitzgen/bumpalo/_apis/build/status/fitzgen.bumpalo?branchName=master)](https://dev.azure.com/fitzgen/bumpalo/_build/latest?definitionId=2&amp;branchName=master)
+[![Build Status](https://github.com/fitzgen/bumpalo/workflows/Rust/badge.svg)](https://github.com/fitzgen/bumpalo/actions?query=workflow%3ARust)
 
 ![](https://github.com/fitzgen/bumpalo/raw/master/bumpalo.png)
 
@@ -1401,7 +1963,9 @@ let scooter = bump.alloc(Doggo {
     scritches_required: true,
 });
 
+// Exclusive, mutable references to the just-allocated value are returned.
 assert!(scooter.scritches_required);
+scooter.age += 1;
 ```
 
 ## Collections
@@ -1434,6 +1998,9 @@ for i in 0..100 {
 Eventually [all `std` collection types will be parameterized by an
 allocator](https://github.com/rust-lang/rust/issues/42774) and we can remove
 this `collections` module and use the `std` versions.
+
+For unstable, nightly-only support for custom allocators in `std`, see the
+`allocator_api` section below.
 
 ## `bumpalo::boxed::Box`
 
@@ -1482,11 +2049,78 @@ assert_eq!(NUM_DROPPED.load(Ordering::SeqCst), 1);
 
 Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
 
+## Thread support
+
+The `Bump` is `!Send`, which makes it hard to use in certain situations around threads ‒ for
+example in `rayon`.
+
+The [`bumpalo-herd`](https://crates.io/crates/bumpalo-herd) crate provides a pool of `Bump`
+allocators for use in such situations.
+
+## Nightly Rust `feature(allocator_api)` Support
+
+The unstable, nightly-only Rust `allocator_api` feature defines an `Allocator`
+trait and exposes custom allocators for `std` types. Bumpalo has a matching
+`allocator_api` cargo feature to enable implementing `Allocator` and using
+`Bump` with `std` collections. Note that, as `feature(allocator_api)` is
+unstable and only in nightly Rust, Bumpalo&#39;s matching `allocator_api` cargo
+feature should be considered unstable, and will not follow the semver
+conventions that the rest of the crate does.
+
+First, enable the `allocator_api` feature in your `Cargo.toml`:
+
+```toml
+[dependencies]
+bumpalo = { version = &quot;3.4.0&quot;, features = [&quot;allocator_api&quot;] }
+```
+
+Next, enable the `allocator_api` nightly Rust feature in your `src/lib.rs` or `src/main.rs`:
+
+```rust
+# #[cfg(feature = &quot;allocator_api&quot;)]
+# {
+#![feature(allocator_api)]
+# }
+```
+
+Finally, use `std` collections with `Bump`, so that their internal heap
+allocations are made within the given bump arena:
+
+```
+# #![cfg_attr(feature = &quot;allocator_api&quot;, feature(allocator_api))]
+# #[cfg(feature = &quot;allocator_api&quot;)]
+# {
+#![feature(allocator_api)]
+use bumpalo::Bump;
+
+// Create a new bump arena.
+let bump = Bump::new();
+
+// Create a `Vec` whose elements are allocated within the bump arena.
+let mut v = Vec::new_in(&amp;bump);
+v.push(0);
+v.push(1);
+v.push(2);
+# }
+```
+
+### Minimum Supported Rust Version (MSRV)
+
+This crate is guaranteed to compile on stable Rust 1.44 and up. It might compile
+with older versions but that may change in any new patch release.
+
+We reserve the right to increment the MSRV on minor releases, however we will strive
+to only do it deliberately and for good reasons.
+
  */</span>
 
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_debug_implementations</span>)]</span>
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="attribute">#![<span class="ident">no_std</span>]</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;allocator_api&quot;</span>,
+    <span class="ident">feature</span>(<span class="ident">allocator_api</span>, <span class="ident">nonnull_slice_from_raw_parts</span>)
+)]</span>
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">pub</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span> <span class="kw">as</span> <span class="ident">core_alloc</span>;
@@ -1499,6 +2133,7 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
 <span class="kw">mod</span> <span class="ident">alloc</span>;
 
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">cell</span>::<span class="ident">Cell</span>;
+<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>::<span class="ident">Display</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">iter</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">mem</span>;
@@ -1506,6 +2141,34 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">slice</span>;
 <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">str</span>;
 <span class="kw">use</span> <span class="ident">core_alloc</span>::<span class="ident">alloc</span>::{<span class="ident">alloc</span>, <span class="ident">dealloc</span>, <span class="ident">Layout</span>};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;allocator_api&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">core_alloc</span>::<span class="ident">alloc</span>::{<span class="ident">AllocError</span>, <span class="ident">Allocator</span>};
+
+<span class="doccomment">/// An error returned from [`Bump::try_alloc_try_with`].</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AllocOrInitError</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Indicates that the initial allocation failed.</span>
+    <span class="ident">Alloc</span>(<span class="ident">alloc</span>::<span class="ident">AllocErr</span>),
+    <span class="doccomment">/// Indicates that the initializer failed with the contained error after</span>
+    <span class="doccomment">/// allocation.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// It is possible but not guaranteed that the allocated memory has been</span>
+    <span class="doccomment">/// released back to the allocator at this point.</span>
+    <span class="ident">Init</span>(<span class="ident">E</span>),
+}
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">alloc</span>::<span class="ident">AllocErr</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AllocOrInitError</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">alloc</span>::<span class="ident">AllocErr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span>::<span class="ident">Alloc</span>(<span class="ident">e</span>)
+    }
+}
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Display</span><span class="op">&gt;</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">AllocOrInitError</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">core</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">AllocOrInitError</span>::<span class="ident">Alloc</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">err</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident">AllocOrInitError</span>::<span class="ident">Init</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;initialization failed: {}&quot;</span>, <span class="ident">err</span>),
+        }
+    }
+}
 
 <span class="doccomment">/// An arena to bump allocate into.</span>
 <span class="doccomment">///</span>
@@ -1525,14 +2188,19 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
 <span class="doccomment">/// then if you allocate that type with a `Bump`, you need to find a new way to</span>
 <span class="doccomment">/// clean up after it yourself.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Potential solutions are</span>
+<span class="doccomment">/// Potential solutions are:</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// * calling [`drop_in_place`][drop_in_place] or using</span>
-<span class="doccomment">///   [`std::mem::ManuallyDrop`][manuallydrop] to manually drop these types,</span>
-<span class="doccomment">/// * using [`bumpalo::collections::Vec`] instead of [`std::vec::Vec`]</span>
-<span class="doccomment">/// * using [`bumpalo::boxed::Box::new_in`] instead of [`Bump::alloc`],</span>
-<span class="doccomment">///   that will drop wrapped values similarly to [`std::boxed::Box`].</span>
-<span class="doccomment">/// * simply avoiding allocating these problematic types within a `Bump`.</span>
+<span class="doccomment">/// * Using [`bumpalo::boxed::Box::new_in`] instead of [`Bump::alloc`], that</span>
+<span class="doccomment">///   will drop wrapped values similarly to [`std::boxed::Box`]. Note that this</span>
+<span class="doccomment">///   requires enabling the `&quot;boxed&quot;` Cargo feature for this crate. **This is</span>
+<span class="doccomment">///   often the easiest solution.**</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// * Calling [`drop_in_place`][drop_in_place] or using</span>
+<span class="doccomment">///   [`std::mem::ManuallyDrop`][manuallydrop] to manually drop these types.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// * Using [`bumpalo::collections::Vec`] instead of [`std::vec::Vec`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// * Avoiding allocating these problematic types within a `Bump`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Note that not calling `Drop` is memory safe! Destructors are never</span>
 <span class="doccomment">/// guaranteed to run in Rust, you can&#39;t rely on them for enforcing memory</span>
@@ -1562,6 +2230,135 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
 <span class="doccomment">/// let mut s = bump.alloc(&quot;bumpalo&quot;);</span>
 <span class="doccomment">/// *s = &quot;the bump allocator; and also is a buffalo&quot;;</span>
 <span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ## Allocation Methods Come in Many Flavors</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// There are various allocation methods on `Bump`, the simplest being</span>
+<span class="doccomment">/// [`alloc`][Bump::alloc]. The others exist to satisfy some combination of</span>
+<span class="doccomment">/// fallible allocation and initialization. The allocation methods are</span>
+<span class="doccomment">/// summarized in the following table:</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// &lt;table&gt;</span>
+<span class="doccomment">///   &lt;thead&gt;</span>
+<span class="doccomment">///     &lt;tr&gt;</span>
+<span class="doccomment">///       &lt;th&gt;&lt;/th&gt;</span>
+<span class="doccomment">///       &lt;th&gt;Infallible Allocation&lt;/th&gt;</span>
+<span class="doccomment">///       &lt;th&gt;Fallible Allocation&lt;/th&gt;</span>
+<span class="doccomment">///     &lt;/tr&gt;</span>
+<span class="doccomment">///   &lt;/thead&gt;</span>
+<span class="doccomment">///     &lt;tr&gt;</span>
+<span class="doccomment">///       &lt;th&gt;By Value&lt;/th&gt;</span>
+<span class="doccomment">///       &lt;td&gt;&lt;a href=&quot;#method.alloc&quot;&gt;&lt;code&gt;alloc&lt;/code&gt;&lt;/a&gt;&lt;/td&gt;</span>
+<span class="doccomment">///       &lt;td&gt;&lt;a href=&quot;#method.try_alloc&quot;&gt;&lt;code&gt;try_alloc&lt;/code&gt;&lt;/a&gt;&lt;/td&gt;</span>
+<span class="doccomment">///     &lt;/tr&gt;</span>
+<span class="doccomment">///     &lt;tr&gt;</span>
+<span class="doccomment">///       &lt;th&gt;Infallible Initializer Function&lt;/th&gt;</span>
+<span class="doccomment">///       &lt;td&gt;&lt;a href=&quot;#method.alloc_with&quot;&gt;&lt;code&gt;alloc_with&lt;/code&gt;&lt;/a&gt;&lt;/td&gt;</span>
+<span class="doccomment">///       &lt;td&gt;&lt;a href=&quot;#method.try_alloc_with&quot;&gt;&lt;code&gt;try_alloc_with&lt;/code&gt;&lt;/a&gt;&lt;/td&gt;</span>
+<span class="doccomment">///     &lt;/tr&gt;</span>
+<span class="doccomment">///     &lt;tr&gt;</span>
+<span class="doccomment">///       &lt;th&gt;Fallible Initializer Function&lt;/th&gt;</span>
+<span class="doccomment">///       &lt;td&gt;&lt;a href=&quot;#method.alloc_try_with&quot;&gt;&lt;code&gt;alloc_try_with&lt;/code&gt;&lt;/a&gt;&lt;/td&gt;</span>
+<span class="doccomment">///       &lt;td&gt;&lt;a href=&quot;#method.try_alloc_try_with&quot;&gt;&lt;code&gt;try_alloc_try_with&lt;/code&gt;&lt;/a&gt;&lt;/td&gt;</span>
+<span class="doccomment">///     &lt;/tr&gt;</span>
+<span class="doccomment">///   &lt;tbody&gt;</span>
+<span class="doccomment">///   &lt;/tbody&gt;</span>
+<span class="doccomment">/// &lt;/table&gt;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ### Fallible Allocation: The `try_alloc_` Method Prefix</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// These allocation methods let you recover from out-of-memory (OOM)</span>
+<span class="doccomment">/// scenarioes, rather than raising a panic on OOM.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use bumpalo::Bump;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let bump = Bump::new();</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// match bump.try_alloc(MyStruct {</span>
+<span class="doccomment">///     // ...</span>
+<span class="doccomment">/// }) {</span>
+<span class="doccomment">///     Ok(my_struct) =&gt; {</span>
+<span class="doccomment">///         // Allocation succeeded.</span>
+<span class="doccomment">///     }</span>
+<span class="doccomment">///     Err(e) =&gt; {</span>
+<span class="doccomment">///         // Out of memory.</span>
+<span class="doccomment">///     }</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// struct MyStruct {</span>
+<span class="doccomment">///     // ...</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ### Initializer Functions: The `_with` Method Suffix</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Calling one of the generic `…alloc(x)` methods is essentially equivalent to</span>
+<span class="doccomment">/// the matching [`…alloc_with(|| x)`](?search=alloc_with). However if you use</span>
+<span class="doccomment">/// `…alloc_with`, then the closure will not be invoked until after allocating</span>
+<span class="doccomment">/// space for storing `x` on the heap.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This can be useful in certain edge-cases related to compiler optimizations.</span>
+<span class="doccomment">/// When evaluating for example `bump.alloc(x)`, semantically `x` is first put</span>
+<span class="doccomment">/// on the stack and then moved onto the heap. In some cases, the compiler is</span>
+<span class="doccomment">/// able to optimize this into constructing `x` directly on the heap, however</span>
+<span class="doccomment">/// in many cases it does not.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The `*alloc_with` functions try to help the compiler be smarter. In most</span>
+<span class="doccomment">/// cases doing for example `bump.try_alloc_with(|| x)` on release mode will be</span>
+<span class="doccomment">/// enough to help the compiler realize that this optimization is valid and</span>
+<span class="doccomment">/// to construct `x` directly onto the heap.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// #### Warning</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// These functions critically depend on compiler optimizations to achieve their</span>
+<span class="doccomment">/// desired effect. This means that it is not an effective tool when compiling</span>
+<span class="doccomment">/// without optimizations on.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Even when optimizations are on, these functions do not **guarantee** that</span>
+<span class="doccomment">/// the value is constructed on the heap. To the best of our knowledge no such</span>
+<span class="doccomment">/// guarantee can be made in stable Rust as of 1.44.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ### Fallible Initialization: The `_try_with` Method Suffix</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The generic [`…alloc_try_with(|| x)`](?search=_try_with) methods behave</span>
+<span class="doccomment">/// like the purely `_with` suffixed methods explained above. However, they</span>
+<span class="doccomment">/// allow for fallible initialization by accepting a closure that returns a</span>
+<span class="doccomment">/// [`Result`] and will attempt to undo the initial allocation if this closure</span>
+<span class="doccomment">/// returns [`Err`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// #### Warning</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// If the inner closure returns [`Ok`], space for the entire [`Result`] remains</span>
+<span class="doccomment">/// allocated inside `self`. This can be a problem especially if the [`Err`]</span>
+<span class="doccomment">/// variant is larger, but even otherwise there may be overhead for the</span>
+<span class="doccomment">/// [`Result`]&#39;s discriminant.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// &lt;p&gt;&lt;details&gt;&lt;summary&gt;Undoing the allocation in the &lt;code&gt;Err&lt;/code&gt; case</span>
+<span class="doccomment">/// always fails if &lt;code&gt;f&lt;/code&gt; successfully made any additional allocations</span>
+<span class="doccomment">/// in &lt;code&gt;self&lt;/code&gt;.&lt;/summary&gt;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// For example, the following will always leak also space for the [`Result`]</span>
+<span class="doccomment">/// into this `Bump`, even though the inner reference isn&#39;t kept and the [`Err`]</span>
+<span class="doccomment">/// payload is returned semantically by value:</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```rust</span>
+<span class="doccomment">/// let bump = bumpalo::Bump::new();</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let r: Result&lt;&amp;mut [u8; 1000], ()&gt; = bump.alloc_try_with(|| {</span>
+<span class="doccomment">///     let _ = bump.alloc(0_u8);</span>
+<span class="doccomment">///     Err(())</span>
+<span class="doccomment">/// });</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// assert!(r.is_err());</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">///&lt;/details&gt;&lt;/p&gt;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Since [`Err`] payloads are first placed on the heap and then moved to the</span>
+<span class="doccomment">/// stack, `bump.…alloc_try_with(|| x)?` is likely to execute more slowly than</span>
+<span class="doccomment">/// the matching `bump.…alloc(x?)` in case of initialization failure. If this</span>
+<span class="doccomment">/// happens frequently, using the plain un-suffixed method may perform better.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Bump</span> {
     <span class="comment">// The current chunk we are bump allocating within.</span>
@@ -1652,27 +2449,6 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
 <span class="comment">// than the goal. We need to make room for the footer, and we also need</span>
 <span class="comment">// take the alignment into account.</span>
 <span class="kw">const</span> <span class="ident">DEFAULT_CHUNK_SIZE_WITHOUT_FOOTER</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">FIRST_ALLOCATION_GOAL</span> <span class="op">-</span> <span class="ident">OVERHEAD</span>;
-
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">layout_for_array</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Layout</span><span class="op">&gt;</span> {
-    <span class="comment">// TODO: use Layout::array once the rust feature `alloc_layout_extra`</span>
-    <span class="comment">// gets stabilized</span>
-    <span class="comment">//</span>
-    <span class="comment">// According to https://doc.rust-lang.org/reference/type-layout.html#size-and-alignment</span>
-    <span class="comment">// the size of a value is always a multiple of it&#39;s alignment. But that does not seem to match</span>
-    <span class="comment">// with https://doc.rust-lang.org/std/alloc/struct.Layout.html#method.from_size_align</span>
-    <span class="comment">//</span>
-    <span class="comment">// Let&#39;s be on the safe size and round up to the padding in any case.</span>
-    <span class="comment">//</span>
-    <span class="comment">// An interesting question is whether there needs to be padding at the end of</span>
-    <span class="comment">// the last object in the array. Again, we take the safe approach and include it.</span>
-
-    <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">new</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
-    <span class="kw">let</span> <span class="ident">size_rounded_up</span> <span class="op">=</span> <span class="ident">round_up_to</span>(<span class="ident">layout</span>.<span class="ident">size</span>(), <span class="ident">layout</span>.<span class="ident">align</span>())<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">total_size</span> <span class="op">=</span> <span class="ident">len</span>.<span class="ident">checked_mul</span>(<span class="ident">size_rounded_up</span>)<span class="question-mark">?</span>;
-
-    <span class="ident">Layout</span>::<span class="ident">from_size_align</span>(<span class="ident">total_size</span>, <span class="ident">layout</span>.<span class="ident">align</span>()).<span class="ident">ok</span>()
-}
 
 <span class="doccomment">/// Wrapper around `Layout::from_size_align` that adds debug assertions.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1898,7 +2674,7 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Panics</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if reserving space for `T` would cause an overflow.</span>
+    <span class="doccomment">/// Panics if reserving space for `T` fails.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Example</span>
     <span class="doccomment">///</span>
@@ -1913,38 +2689,37 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
         <span class="self">self</span>.<span class="ident">alloc_with</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">val</span>)
     }
 
+    <span class="doccomment">/// Try to allocate an object in this `Bump` and return an exclusive</span>
+    <span class="doccomment">/// reference to it.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Errors</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Errors if reserving space for `T` fails.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// let bump = bumpalo::Bump::new();</span>
+    <span class="doccomment">/// let x = bump.try_alloc(&quot;hello&quot;);</span>
+    <span class="doccomment">/// assert_eq!(x, Ok(&amp;mut&quot;hello&quot;));</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mut_from_ref</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_alloc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">val</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident">alloc</span>::<span class="ident">AllocErr</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">try_alloc_with</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">val</span>)
+    }
+
     <span class="doccomment">/// Pre-allocate space for an object in this `Bump`, initializes it using</span>
     <span class="doccomment">/// the closure, then returns an exclusive reference to it.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Calling `bump.alloc(x)` is essentially equivalent to calling</span>
-    <span class="doccomment">/// `bump.alloc_with(|| x)`. However if you use `alloc_with`, then the</span>
-    <span class="doccomment">/// closure will not be invoked until after allocating space for storing</span>
-    <span class="doccomment">/// `x` on the heap.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This can be useful in certain edge-cases related to compiler</span>
-    <span class="doccomment">/// optimizations. When evaluating `bump.alloc(x)`, semantically `x` is</span>
-    <span class="doccomment">/// first put on the stack and then moved onto the heap. In some cases,</span>
-    <span class="doccomment">/// the compiler is able to optimize this into constructing `x` directly</span>
-    <span class="doccomment">/// on the heap, however in many cases it does not.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// The function `alloc_with` tries to help the compiler be smarter. In</span>
-    <span class="doccomment">/// most cases doing `bump.alloc_with(|| x)` on release mode will be</span>
-    <span class="doccomment">/// enough to help the compiler to realize this optimization is valid</span>
-    <span class="doccomment">/// and construct `x` directly onto the heap.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ## Warning</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This function critically depends on compiler optimizations to achieve</span>
-    <span class="doccomment">/// its desired effect. This means that it is not an effective tool when</span>
-    <span class="doccomment">/// compiling without optimizations on.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Even when optimizations are on, this function does not **guarantee**</span>
-    <span class="doccomment">/// that the value is constructed on the heap. To the best of our</span>
-    <span class="doccomment">/// knowledge no such guarantee can be made in stable Rust as of 1.33.</span>
+    <span class="doccomment">/// See [The `_with` Method Suffix](#the-_with-method-suffix) for a</span>
+    <span class="doccomment">/// discussion on the differences between the `_with` suffixed methods and</span>
+    <span class="doccomment">/// those methods without it, their performance characteristics, and when</span>
+    <span class="doccomment">/// you might or might not choose a `_with` suffixed method.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Panics</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if reserving space for `T` would cause an overflow.</span>
+    <span class="doccomment">/// Panics if reserving space for `T` fails.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Example</span>
     <span class="doccomment">///</span>
@@ -1987,12 +2762,277 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
         }
     }
 
+    <span class="doccomment">/// Tries to pre-allocate space for an object in this `Bump`, initializes</span>
+    <span class="doccomment">/// it using the closure, then returns an exclusive reference to it.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// See [The `_with` Method Suffix](#the-_with-method-suffix) for a</span>
+    <span class="doccomment">/// discussion on the differences between the `_with` suffixed methods and</span>
+    <span class="doccomment">/// those methods without it, their performance characteristics, and when</span>
+    <span class="doccomment">/// you might or might not choose a `_with` suffixed method.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Errors</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Errors if reserving space for `T` fails.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// let bump = bumpalo::Bump::new();</span>
+    <span class="doccomment">/// let x = bump.try_alloc_with(|| &quot;hello&quot;);</span>
+    <span class="doccomment">/// assert_eq!(x, Ok(&amp;mut &quot;hello&quot;));</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mut_from_ref</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_alloc_with</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident">alloc</span>::<span class="ident">AllocErr</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>,
+    {
+        <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
+        <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">inner_writer</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident">f</span>: <span class="ident">F</span>)
+        <span class="kw">where</span>
+            <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>,
+        {
+            <span class="comment">// This function is translated as:</span>
+            <span class="comment">// - allocate space for a T on the stack</span>
+            <span class="comment">// - call f() with the return value being put onto this stack space</span>
+            <span class="comment">// - memcpy from the stack to the heap</span>
+            <span class="comment">//</span>
+            <span class="comment">// Ideally we want LLVM to always realize that doing a stack</span>
+            <span class="comment">// allocation is unnecessary and optimize the code so it writes</span>
+            <span class="comment">// directly into the heap instead. It seems we get it to realize</span>
+            <span class="comment">// this most consistently if we put this critical line into it&#39;s</span>
+            <span class="comment">// own function instead of inlining it into the surrounding code.</span>
+            <span class="ident">ptr</span>::<span class="ident">write</span>(<span class="ident">ptr</span>, <span class="ident">f</span>())
+        }
+
+        <span class="comment">//SAFETY: Self-contained:</span>
+        <span class="comment">// `p` is allocated for `T` and then a `T` is written.</span>
+        <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">new</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
+        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_alloc_layout</span>(<span class="ident">layout</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span>;
+
+        <span class="kw">unsafe</span> {
+            <span class="ident">inner_writer</span>(<span class="ident">p</span>, <span class="ident">f</span>);
+            <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">p</span>)
+        }
+    }
+
+    <span class="doccomment">/// Pre-allocates space for a [`Result`] in this `Bump`, initializes it using</span>
+    <span class="doccomment">/// the closure, then returns an exclusive reference to its `T` if [`Ok`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Iff the allocation fails, the closure is not run.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Iff [`Err`], an allocator rewind is *attempted* and the `E` instance is</span>
+    <span class="doccomment">/// moved out of the allocator to be consumed or dropped as normal.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// See [The `_with` Method Suffix](#the-_with-method-suffix) for a</span>
+    <span class="doccomment">/// discussion on the differences between the `_with` suffixed methods and</span>
+    <span class="doccomment">/// those methods without it, their performance characteristics, and when</span>
+    <span class="doccomment">/// you might or might not choose a `_with` suffixed method.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// For caveats specific to fallible initialization, see</span>
+    <span class="doccomment">/// [The `_try_with` Method Suffix](#the-_try_with-method-suffix).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Errors</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Iff the allocation succeeds but `f` fails, that error is forwarded by value.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Panics</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Panics if reserving space for `Result&lt;T, E&gt;` fails.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// let bump = bumpalo::Bump::new();</span>
+    <span class="doccomment">/// let x = bump.alloc_try_with(|| Ok(&quot;hello&quot;))?;</span>
+    <span class="doccomment">/// assert_eq!(*x, &quot;hello&quot;);</span>
+    <span class="doccomment">/// # Result::&lt;_, ()&gt;::Ok(())</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mut_from_ref</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alloc_try_with</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">let</span> <span class="ident">rewind_footer</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
+        <span class="kw">let</span> <span class="ident">rewind_ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">rewind_footer</span>.<span class="ident">as_ref</span>() }.<span class="ident">ptr</span>.<span class="ident">get</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_result_ptr</span> <span class="op">=</span> <span class="ident">NonNull</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">alloc_with</span>(<span class="ident">f</span>));
+        <span class="kw">let</span> <span class="ident">inner_result_address</span> <span class="op">=</span> <span class="ident">inner_result_ptr</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="ident">inner_result_ptr</span>.<span class="ident">as_mut</span>() } {
+            <span class="prelude-val">Ok</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> {
+                <span class="comment">//SAFETY:</span>
+                <span class="comment">// The `&amp;mut Result&lt;T, E&gt;` returned by `alloc_with` may be</span>
+                <span class="comment">// lifetime-limited by `E`, but the derived `&amp;mut T` still has</span>
+                <span class="comment">// the same validity as in `alloc_with` since the error variant</span>
+                <span class="comment">// is already ruled out here.</span>
+
+                <span class="comment">// We could conditionally truncate the allocation here, but</span>
+                <span class="comment">// since it grows backwards, it seems unlikely that we&#39;d get</span>
+                <span class="comment">// any more than the `Result`&#39;s discriminant this way, if</span>
+                <span class="comment">// anything at all.</span>
+                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="ident">t</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>)
+            }),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> {
+                <span class="comment">// If this result was the last allocation in this arena, we can</span>
+                <span class="comment">// reclaim its space. In fact, sometimes we can do even better</span>
+                <span class="comment">// than simply calling `dealloc` on the result pointer: we can</span>
+                <span class="comment">// reclaim any alignment padding we might have added (which</span>
+                <span class="comment">// `dealloc` cannot do) if we didn&#39;t allocate a new chunk for</span>
+                <span class="comment">// this result.</span>
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_last_allocation</span>(<span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">inner_result_address</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>)) {
+                    <span class="kw">let</span> <span class="ident">current_footer_p</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
+                    <span class="kw">let</span> <span class="ident">current_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">current_footer_p</span>.<span class="ident">as_ref</span>().<span class="ident">ptr</span>;
+                    <span class="kw">if</span> <span class="ident">current_footer_p</span> <span class="op">=</span><span class="op">=</span> <span class="ident">rewind_footer</span> {
+                        <span class="comment">// It&#39;s still the same chunk, so reset the bump pointer</span>
+                        <span class="comment">// to its original value upon entry to this method</span>
+                        <span class="comment">// (reclaiming any alignment padding we may have</span>
+                        <span class="comment">// added).</span>
+                        <span class="ident">current_ptr</span>.<span class="ident">set</span>(<span class="ident">rewind_ptr</span>);
+                    } <span class="kw">else</span> {
+                        <span class="comment">// We allocated a new chunk for this result.</span>
+                        <span class="comment">//</span>
+                        <span class="comment">// We know the result is the only allocation in this</span>
+                        <span class="comment">// chunk: Any additional allocations since the start of</span>
+                        <span class="comment">// this method could only have happened when running</span>
+                        <span class="comment">// the initializer function, which is called *after*</span>
+                        <span class="comment">// reserving space for this result. Therefore, since we</span>
+                        <span class="comment">// already determined via the check above that this</span>
+                        <span class="comment">// result was the last allocation, there must not have</span>
+                        <span class="comment">// been any other allocations, and this result is the</span>
+                        <span class="comment">// only allocation in this chunk.</span>
+                        <span class="comment">//</span>
+                        <span class="comment">// Because this is the only allocation in this chunk,</span>
+                        <span class="comment">// we can reset the chunk&#39;s bump finger to the start of</span>
+                        <span class="comment">// the chunk.</span>
+                        <span class="ident">current_ptr</span>.<span class="ident">set</span>(<span class="ident">current_footer_p</span>.<span class="ident">as_ref</span>().<span class="ident">data</span>);
+                    }
+                }
+                <span class="comment">//SAFETY:</span>
+                <span class="comment">// As we received `E` semantically by value from `f`, we can</span>
+                <span class="comment">// just copy that value here as long as we avoid a double-drop</span>
+                <span class="comment">// (which can&#39;t happen as any specific references to the `E`&#39;s</span>
+                <span class="comment">// data in `self` are destroyed when this function returns).</span>
+                <span class="comment">//</span>
+                <span class="comment">// The order between this and the deallocation doesn&#39;t matter</span>
+                <span class="comment">// because `Self: !Sync`.</span>
+                <span class="prelude-val">Err</span>(<span class="ident">ptr</span>::<span class="ident">read</span>(<span class="ident">e</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>))
+            },
+        }
+    }
+
+    <span class="doccomment">/// Tries to pre-allocates space for a [`Result`] in this `Bump`,</span>
+    <span class="doccomment">/// initializes it using the closure, then returns an exclusive reference</span>
+    <span class="doccomment">/// to its `T` if all [`Ok`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Iff the allocation fails, the closure is not run.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Iff the closure returns [`Err`], an allocator rewind is *attempted* and</span>
+    <span class="doccomment">/// the `E` instance is moved out of the allocator to be consumed or dropped</span>
+    <span class="doccomment">/// as normal.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// See [The `_with` Method Suffix](#the-_with-method-suffix) for a</span>
+    <span class="doccomment">/// discussion on the differences between the `_with` suffixed methods and</span>
+    <span class="doccomment">/// those methods without it, their performance characteristics, and when</span>
+    <span class="doccomment">/// you might or might not choose a `_with` suffixed method.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// For caveats specific to fallible initialization, see</span>
+    <span class="doccomment">/// [The `_try_with` Method Suffix](#the-_try_with-method-suffix).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Errors</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Errors with the [`Alloc`](`AllocOrInitError::Alloc`) variant iff</span>
+    <span class="doccomment">/// reserving space for `Result&lt;T, E&gt;` fails.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Iff the allocation succeeds but `f` fails, that error is forwarded by</span>
+    <span class="doccomment">/// value inside the [`Init`](`AllocOrInitError::Init`) variant.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// let bump = bumpalo::Bump::new();</span>
+    <span class="doccomment">/// let x = bump.try_alloc_try_with(|| Ok(&quot;hello&quot;))?;</span>
+    <span class="doccomment">/// assert_eq!(*x, &quot;hello&quot;);</span>
+    <span class="doccomment">/// # Result::&lt;_, bumpalo::AllocOrInitError&lt;()&gt;&gt;::Ok(())</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mut_from_ref</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_alloc_try_with</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident">AllocOrInitError</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">let</span> <span class="ident">rewind_footer</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
+        <span class="kw">let</span> <span class="ident">rewind_ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">rewind_footer</span>.<span class="ident">as_ref</span>() }.<span class="ident">ptr</span>.<span class="ident">get</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_result_ptr</span> <span class="op">=</span> <span class="ident">NonNull</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">try_alloc_with</span>(<span class="ident">f</span>)<span class="question-mark">?</span>);
+        <span class="kw">let</span> <span class="ident">inner_result_address</span> <span class="op">=</span> <span class="ident">inner_result_ptr</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="ident">inner_result_ptr</span>.<span class="ident">as_mut</span>() } {
+            <span class="prelude-val">Ok</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> {
+                <span class="comment">//SAFETY:</span>
+                <span class="comment">// The `&amp;mut Result&lt;T, E&gt;` returned by `alloc_with` may be</span>
+                <span class="comment">// lifetime-limited by `E`, but the derived `&amp;mut T` still has</span>
+                <span class="comment">// the same validity as in `alloc_with` since the error variant</span>
+                <span class="comment">// is already ruled out here.</span>
+
+                <span class="comment">// We could conditionally truncate the allocation here, but</span>
+                <span class="comment">// since it grows backwards, it seems unlikely that we&#39;d get</span>
+                <span class="comment">// any more than the `Result`&#39;s discriminant this way, if</span>
+                <span class="comment">// anything at all.</span>
+                <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span>(<span class="ident">t</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>)
+            }),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> {
+                <span class="comment">// If this result was the last allocation in this arena, we can</span>
+                <span class="comment">// reclaim its space. In fact, sometimes we can do even better</span>
+                <span class="comment">// than simply calling `dealloc` on the result pointer: we can</span>
+                <span class="comment">// reclaim any alignment padding we might have added (which</span>
+                <span class="comment">// `dealloc` cannot do) if we didn&#39;t allocate a new chunk for</span>
+                <span class="comment">// this result.</span>
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_last_allocation</span>(<span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">inner_result_address</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>)) {
+                    <span class="kw">let</span> <span class="ident">current_footer_p</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
+                    <span class="kw">let</span> <span class="ident">current_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">current_footer_p</span>.<span class="ident">as_ref</span>().<span class="ident">ptr</span>;
+                    <span class="kw">if</span> <span class="ident">current_footer_p</span> <span class="op">=</span><span class="op">=</span> <span class="ident">rewind_footer</span> {
+                        <span class="comment">// It&#39;s still the same chunk, so reset the bump pointer</span>
+                        <span class="comment">// to its original value upon entry to this method</span>
+                        <span class="comment">// (reclaiming any alignment padding we may have</span>
+                        <span class="comment">// added).</span>
+                        <span class="ident">current_ptr</span>.<span class="ident">set</span>(<span class="ident">rewind_ptr</span>);
+                    } <span class="kw">else</span> {
+                        <span class="comment">// We allocated a new chunk for this result.</span>
+                        <span class="comment">//</span>
+                        <span class="comment">// We know the result is the only allocation in this</span>
+                        <span class="comment">// chunk: Any additional allocations since the start of</span>
+                        <span class="comment">// this method could only have happened when running</span>
+                        <span class="comment">// the initializer function, which is called *after*</span>
+                        <span class="comment">// reserving space for this result. Therefore, since we</span>
+                        <span class="comment">// already determined via the check above that this</span>
+                        <span class="comment">// result was the last allocation, there must not have</span>
+                        <span class="comment">// been any other allocations, and this result is the</span>
+                        <span class="comment">// only allocation in this chunk.</span>
+                        <span class="comment">//</span>
+                        <span class="comment">// Because this is the only allocation in this chunk,</span>
+                        <span class="comment">// we can reset the chunk&#39;s bump finger to the start of</span>
+                        <span class="comment">// the chunk.</span>
+                        <span class="ident">current_ptr</span>.<span class="ident">set</span>(<span class="ident">current_footer_p</span>.<span class="ident">as_ref</span>().<span class="ident">data</span>);
+                    }
+                }
+                <span class="comment">//SAFETY:</span>
+                <span class="comment">// As we received `E` semantically by value from `f`, we can</span>
+                <span class="comment">// just copy that value here as long as we avoid a double-drop</span>
+                <span class="comment">// (which can&#39;t happen as any specific references to the `E`&#39;s</span>
+                <span class="comment">// data in `self` are destroyed when this function returns).</span>
+                <span class="comment">//</span>
+                <span class="comment">// The order between this and the deallocation doesn&#39;t matter</span>
+                <span class="comment">// because `Self: !Sync`.</span>
+                <span class="prelude-val">Err</span>(<span class="ident">AllocOrInitError</span>::<span class="ident">Init</span>(<span class="ident">ptr</span>::<span class="ident">read</span>(<span class="ident">e</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>)))
+            },
+        }
+    }
+
     <span class="doccomment">/// `Copy` a slice into this `Bump` and return an exclusive reference to</span>
     <span class="doccomment">/// the copy.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Panics</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if reserving space for the slice would cause an overflow.</span>
+    <span class="doccomment">/// Panics if reserving space for the slice fails.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Example</span>
     <span class="doccomment">///</span>
@@ -2021,7 +3061,7 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Panics</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if reserving space for the slice would cause an overflow.</span>
+    <span class="doccomment">/// Panics if reserving space for the slice fails.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Example</span>
     <span class="doccomment">///</span>
@@ -2063,7 +3103,7 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Panics</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if reserving space for the string would cause an overflow.</span>
+    <span class="doccomment">/// Panics if reserving space for the string fails.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Example</span>
     <span class="doccomment">///</span>
@@ -2090,7 +3130,7 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Panics</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if reserving space for the slice would cause an overflow.</span>
+    <span class="doccomment">/// Panics if reserving space for the slice fails.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Example</span>
     <span class="doccomment">///</span>
@@ -2105,7 +3145,7 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>,
     {
-        <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">layout_for_array</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">len</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">oom</span>());
+        <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">array</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">len</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">oom</span>());
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">alloc_layout</span>(<span class="ident">layout</span>).<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
 
         <span class="kw">unsafe</span> {
@@ -2126,7 +3166,7 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Panics</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if reserving space for the slice would cause an overflow.</span>
+    <span class="doccomment">/// Panics if reserving space for the slice fails.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Example</span>
     <span class="doccomment">///</span>
@@ -2148,7 +3188,7 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Panics</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if reserving space for the slice would cause an overflow.</span>
+    <span class="doccomment">/// Panics if reserving space for the slice fails.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Example</span>
     <span class="doccomment">///</span>
@@ -2173,7 +3213,7 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Panics</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if reserving space for the slice would cause an overflow, or if the supplied</span>
+    <span class="doccomment">/// Panics if reserving space for the slice fails, or if the supplied</span>
     <span class="doccomment">/// iterator returns fewer elements than it promised.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Example</span>
@@ -2203,7 +3243,7 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Panics</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if reserving space for the slice would cause an overflow.</span>
+    <span class="doccomment">/// Panics if reserving space for the slice fails.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ## Example</span>
     <span class="doccomment">///</span>
@@ -2223,6 +3263,10 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
     <span class="doccomment">/// The returned pointer points at uninitialized memory, and should be</span>
     <span class="doccomment">/// initialized with</span>
     <span class="doccomment">/// [`std::ptr::write`](https://doc.rust-lang.org/std/ptr/fn.write.html).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Panics if reserving space matching `layout` fails.</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alloc_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">try_alloc_layout</span>(<span class="ident">layout</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">oom</span>())
@@ -2234,6 +3278,10 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
     <span class="doccomment">/// The returned pointer points at uninitialized memory, and should be</span>
     <span class="doccomment">/// initialized with</span>
     <span class="doccomment">/// [`std::ptr::write`](https://doc.rust-lang.org/std/ptr/fn.write.html).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Errors</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Errors if reserving space matching `layout` fails.</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_alloc_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">alloc</span>::<span class="ident">AllocErr</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_alloc_layout_fast</span>(<span class="ident">layout</span>) {
@@ -2424,7 +3472,8 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
         }
     }
 
-    <span class="doccomment">/// Calculates the number of bytes currently allocated across all chunks.</span>
+    <span class="doccomment">/// Calculates the number of bytes currently allocated across all chunks in</span>
+    <span class="doccomment">/// this bump arena.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If you allocate types of different alignments or types with</span>
     <span class="doccomment">/// larger-than-typical alignment in the same arena, some padding</span>
@@ -2465,6 +3514,73 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
         <span class="kw">let</span> <span class="ident">footer</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
         <span class="kw">let</span> <span class="ident">footer</span> <span class="op">=</span> <span class="ident">footer</span>.<span class="ident">as_ref</span>();
         <span class="ident">footer</span>.<span class="ident">ptr</span>.<span class="ident">get</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">ptr</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">dealloc</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) {
+        <span class="comment">// If the pointer is the last allocation we made, we can reuse the bytes,</span>
+        <span class="comment">// otherwise they are simply leaked -- at least until somebody calls reset().</span>
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_last_allocation</span>(<span class="ident">ptr</span>) {
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>().<span class="ident">add</span>(<span class="ident">layout</span>.<span class="ident">size</span>()));
+            <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>().<span class="ident">as_ref</span>().<span class="ident">ptr</span>.<span class="ident">set</span>(<span class="ident">ptr</span>);
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">shrink</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+        <span class="ident">layout</span>: <span class="ident">Layout</span>,
+        <span class="ident">new_size</span>: <span class="ident">usize</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">alloc</span>::<span class="ident">AllocErr</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">old_size</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">size</span>();
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_last_allocation</span>(<span class="ident">ptr</span>)
+                <span class="comment">// Only reclaim the excess space (which requires a copy) if it</span>
+                <span class="comment">// is worth it: we are actually going to recover &quot;enough&quot; space</span>
+                <span class="comment">// and we can do a non-overlapping copy.</span>
+                <span class="op">&amp;&amp;</span> <span class="ident">new_size</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">old_size</span> <span class="op">/</span> <span class="number">2</span>
+        {
+            <span class="kw">let</span> <span class="ident">delta</span> <span class="op">=</span> <span class="ident">old_size</span> <span class="op">-</span> <span class="ident">new_size</span>;
+            <span class="kw">let</span> <span class="ident">footer</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
+            <span class="kw">let</span> <span class="ident">footer</span> <span class="op">=</span> <span class="ident">footer</span>.<span class="ident">as_ref</span>();
+            <span class="ident">footer</span>
+                .<span class="ident">ptr</span>
+                .<span class="ident">set</span>(<span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">footer</span>.<span class="ident">ptr</span>.<span class="ident">get</span>().<span class="ident">as_ptr</span>().<span class="ident">add</span>(<span class="ident">delta</span>)));
+            <span class="kw">let</span> <span class="ident">new_ptr</span> <span class="op">=</span> <span class="ident">footer</span>.<span class="ident">ptr</span>.<span class="ident">get</span>();
+            <span class="comment">// NB: we know it is non-overlapping because of the size check</span>
+            <span class="comment">// in the `if` condition.</span>
+            <span class="ident">ptr</span>::<span class="ident">copy_nonoverlapping</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">new_ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">new_size</span>);
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">new_ptr</span>);
+        } <span class="kw">else</span> {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ptr</span>);
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">grow</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+        <span class="ident">layout</span>: <span class="ident">Layout</span>,
+        <span class="ident">new_size</span>: <span class="ident">usize</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">alloc</span>::<span class="ident">AllocErr</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">old_size</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">size</span>();
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_last_allocation</span>(<span class="ident">ptr</span>) {
+            <span class="comment">// Try to allocate the delta size within this same block so we can</span>
+            <span class="comment">// reuse the currently allocated space.</span>
+            <span class="kw">let</span> <span class="ident">delta</span> <span class="op">=</span> <span class="ident">new_size</span> <span class="op">-</span> <span class="ident">old_size</span>;
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span>
+                <span class="self">self</span>.<span class="ident">try_alloc_layout_fast</span>(<span class="ident">layout_from_size_align</span>(<span class="ident">delta</span>, <span class="ident">layout</span>.<span class="ident">align</span>()))
+            {
+                <span class="ident">ptr</span>::<span class="ident">copy</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">p</span>.<span class="ident">as_ptr</span>(), <span class="ident">old_size</span>);
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">p</span>);
+            }
+        }
+
+        <span class="comment">// Fallback: do a fresh allocation and copy the existing data into it.</span>
+        <span class="kw">let</span> <span class="ident">new_layout</span> <span class="op">=</span> <span class="ident">layout_from_size_align</span>(<span class="ident">new_size</span>, <span class="ident">layout</span>.<span class="ident">align</span>());
+        <span class="kw">let</span> <span class="ident">new_ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_alloc_layout</span>(<span class="ident">new_layout</span>)<span class="question-mark">?</span>;
+        <span class="ident">ptr</span>::<span class="ident">copy_nonoverlapping</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">new_ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">old_size</span>);
+        <span class="prelude-val">Ok</span>(<span class="ident">new_ptr</span>)
     }
 }
 
@@ -2523,12 +3639,7 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">dealloc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) {
-        <span class="comment">// If the pointer is the last allocation we made, we can reuse the bytes,</span>
-        <span class="comment">// otherwise they are simply leaked -- at least until somebody calls reset().</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_last_allocation</span>(<span class="ident">ptr</span>) {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>().<span class="ident">add</span>(<span class="ident">layout</span>.<span class="ident">size</span>()));
-            <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>().<span class="ident">as_ref</span>().<span class="ident">ptr</span>.<span class="ident">set</span>(<span class="ident">ptr</span>);
-        }
+        <span class="ident">Bump</span>::<span class="ident">dealloc</span>(<span class="self">self</span>, <span class="ident">ptr</span>, <span class="ident">layout</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -2541,49 +3652,62 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
         <span class="kw">let</span> <span class="ident">old_size</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">size</span>();
 
         <span class="kw">if</span> <span class="ident">old_size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="self">self</span>.<span class="ident">alloc</span>(<span class="ident">layout</span>);
+            <span class="kw">return</span> <span class="self">self</span>.<span class="ident">try_alloc_layout</span>(<span class="ident">layout</span>);
         }
 
         <span class="kw">if</span> <span class="ident">new_size</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">old_size</span> {
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_last_allocation</span>(<span class="ident">ptr</span>)
-                <span class="comment">// Only reclaim the excess space (which requires a copy) if it</span>
-                <span class="comment">// is worth it: we are actually going to recover &quot;enough&quot; space</span>
-                <span class="comment">// and we can do a non-overlapping copy.</span>
-                <span class="op">&amp;&amp;</span> <span class="ident">new_size</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">old_size</span> <span class="op">/</span> <span class="number">2</span>
-            {
-                <span class="kw">let</span> <span class="ident">delta</span> <span class="op">=</span> <span class="ident">old_size</span> <span class="op">-</span> <span class="ident">new_size</span>;
-                <span class="kw">let</span> <span class="ident">footer</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
-                <span class="kw">let</span> <span class="ident">footer</span> <span class="op">=</span> <span class="ident">footer</span>.<span class="ident">as_ref</span>();
-                <span class="ident">footer</span>
-                    .<span class="ident">ptr</span>
-                    .<span class="ident">set</span>(<span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">footer</span>.<span class="ident">ptr</span>.<span class="ident">get</span>().<span class="ident">as_ptr</span>().<span class="ident">add</span>(<span class="ident">delta</span>)));
-                <span class="kw">let</span> <span class="ident">new_ptr</span> <span class="op">=</span> <span class="ident">footer</span>.<span class="ident">ptr</span>.<span class="ident">get</span>();
-                <span class="comment">// NB: we know it is non-overlapping because of the size check</span>
-                <span class="comment">// in the `if` condition.</span>
-                <span class="ident">ptr</span>::<span class="ident">copy_nonoverlapping</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">new_ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">new_size</span>);
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">new_ptr</span>);
-            } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ptr</span>);
-            }
+            <span class="self">self</span>.<span class="ident">shrink</span>(<span class="ident">ptr</span>, <span class="ident">layout</span>, <span class="ident">new_size</span>)
+        } <span class="kw">else</span> {
+            <span class="self">self</span>.<span class="ident">grow</span>(<span class="ident">ptr</span>, <span class="ident">layout</span>, <span class="ident">new_size</span>)
         }
+    }
+}
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_last_allocation</span>(<span class="ident">ptr</span>) {
-            <span class="comment">// Try to allocate the delta size within this same block so we can</span>
-            <span class="comment">// reuse the currently allocated space.</span>
-            <span class="kw">let</span> <span class="ident">delta</span> <span class="op">=</span> <span class="ident">new_size</span> <span class="op">-</span> <span class="ident">old_size</span>;
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span>
-                <span class="self">self</span>.<span class="ident">try_alloc_layout_fast</span>(<span class="ident">layout_from_size_align</span>(<span class="ident">delta</span>, <span class="ident">layout</span>.<span class="ident">align</span>()))
-            {
-                <span class="ident">ptr</span>::<span class="ident">copy</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">p</span>.<span class="ident">as_ptr</span>(), <span class="ident">old_size</span>);
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">p</span>);
-            }
-        }
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;allocator_api&quot;</span>)]</span>
+<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Allocator</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Bump</span> {
+    <span class="kw">fn</span> <span class="ident">allocate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>, <span class="ident">AllocError</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">try_alloc_layout</span>(<span class="ident">layout</span>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">NonNull</span>::<span class="ident">slice_from_raw_parts</span>(<span class="ident">p</span>, <span class="ident">layout</span>.<span class="ident">size</span>()))
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">AllocError</span>)
+    }
 
-        <span class="comment">// Fallback: do a fresh allocation and copy the existing data into it.</span>
-        <span class="kw">let</span> <span class="ident">new_layout</span> <span class="op">=</span> <span class="ident">layout_from_size_align</span>(<span class="ident">new_size</span>, <span class="ident">layout</span>.<span class="ident">align</span>());
-        <span class="kw">let</span> <span class="ident">new_ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_alloc_layout</span>(<span class="ident">new_layout</span>)<span class="question-mark">?</span>;
-        <span class="ident">ptr</span>::<span class="ident">copy_nonoverlapping</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">new_ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">old_size</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">new_ptr</span>)
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">deallocate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) {
+        <span class="ident">Bump</span>::<span class="ident">dealloc</span>(<span class="self">self</span>, <span class="ident">ptr</span>, <span class="ident">layout</span>)
+    }
+
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">shrink</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+        <span class="ident">old_layout</span>: <span class="ident">Layout</span>,
+        <span class="ident">new_layout</span>: <span class="ident">Layout</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>, <span class="ident">AllocError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">new_size</span> <span class="op">=</span> <span class="ident">new_layout</span>.<span class="ident">size</span>();
+        <span class="ident">Bump</span>::<span class="ident">shrink</span>(<span class="self">self</span>, <span class="ident">ptr</span>, <span class="ident">old_layout</span>, <span class="ident">new_size</span>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">NonNull</span>::<span class="ident">slice_from_raw_parts</span>(<span class="ident">p</span>, <span class="ident">new_size</span>))
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">AllocError</span>)
+    }
+
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">grow</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+        <span class="ident">old_layout</span>: <span class="ident">Layout</span>,
+        <span class="ident">new_layout</span>: <span class="ident">Layout</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>, <span class="ident">AllocError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">new_size</span> <span class="op">=</span> <span class="ident">new_layout</span>.<span class="ident">size</span>();
+        <span class="ident">Bump</span>::<span class="ident">grow</span>(<span class="self">self</span>, <span class="ident">ptr</span>, <span class="ident">old_layout</span>, <span class="ident">new_size</span>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">NonNull</span>::<span class="ident">slice_from_raw_parts</span>(<span class="ident">p</span>, <span class="ident">new_size</span>))
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">AllocError</span>)
+    }
+
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">grow_zeroed</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+        <span class="ident">old_layout</span>: <span class="ident">Layout</span>,
+        <span class="ident">new_layout</span>: <span class="ident">Layout</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>, <span class="ident">AllocError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">grow</span>(<span class="ident">ptr</span>, <span class="ident">old_layout</span>, <span class="ident">new_layout</span>)<span class="question-mark">?</span>;
+        <span class="ident">ptr</span>.<span class="ident">as_mut</span>()[<span class="ident">old_layout</span>.<span class="ident">size</span>()..].<span class="ident">fill</span>(<span class="number">0</span>);
+        <span class="prelude-val">Ok</span>(<span class="ident">ptr</span>)
     }
 }
 
@@ -2665,5 +3789,5 @@ Bumpalo is a `no_std` crate. It depends only on the `alloc` and `core` crates.
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="bumpalo"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script><script defer src="../../search-index.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="bumpalo" data-search-js="../../search-index.js"></div>
+    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

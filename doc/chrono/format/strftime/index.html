@@ -1,7 +1,7 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `strftime` mod in crate `chrono`."><meta name="keywords" content="rust, rustlang, rust-lang, strftime"><title>chrono::format::strftime - Rust</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="`strftime`/`strptime`-inspired date and time formatting syntax."><meta name="keywords" content="rust, rustlang, rust-lang, strftime"><title>chrono::format::strftime - Rust</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../../../chrono/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a><p class="location">Module strftime</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#structs">Structs</a></li></ul></div><p class="location"><a href="../../index.html">chrono</a>::<wbr><a href="../index.html">format</a></p><div id="sidebar-vars" data-name="strftime" data-ty="mod" data-relpath="../"></div><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Module <a href="../../index.html">chrono</a>::<wbr><a href="../index.html">format</a>::<wbr><a class="mod" href="">strftime</a></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../../../src/chrono/format/strftime.rs.html#4-649" title="goto source code">[src]</a></span></h1><div class="docblock"><p><code>strftime</code>/<code>strptime</code>-inspired date and time formatting syntax.</p>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../chrono/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a><p class="location">Module strftime</p><div class="sidebar-elems"><div class="block items"><ul><li><a href="#structs">Structs</a></li></ul></div><p class="location"><a href="../../index.html">chrono</a>::<wbr><a href="../index.html">format</a></p><div id="sidebar-vars" data-name="strftime" data-ty="mod" data-relpath="../"></div><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Module <a href="../../index.html">chrono</a>::<wbr><a href="../index.html">format</a>::<wbr><a class="mod" href="">strftime</a></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../../../src/chrono/format/strftime.rs.html#4-649" title="goto source code">[src]</a></span></h1><div class="docblock"><p><code>strftime</code>/<code>strptime</code>-inspired date and time formatting syntax.</p>
 <h2 id="specifiers" class="section-header"><a href="#specifiers">Specifiers</a></h2>
 <p>The following specifiers are available both to formatting and parsing.</p>
 <table><thead><tr><th>Spec.</th><th>Example</th><th>Description</th></tr></thead><tbody>
@@ -10,44 +10,44 @@
 <tr><td><code>%C</code></td><td><code>20</code></td><td>The proleptic Gregorian year divided by 100, zero-padded to 2 digits. <sup id="fnref2"><a href="#fn2">2</a></sup></td></tr>
 <tr><td><code>%y</code></td><td><code>01</code></td><td>The proleptic Gregorian year modulo 100, zero-padded to 2 digits. <sup id="fnref2"><a href="#fn2">2</a></sup></td></tr>
 <tr><td></td><td></td><td></td></tr>
-<tr><td><code>%m</code></td><td><code>07</code></td><td>Month number (01--12), zero-padded to 2 digits.</td></tr>
+<tr><td><code>%m</code></td><td><code>07</code></td><td>Month number (01–12), zero-padded to 2 digits.</td></tr>
 <tr><td><code>%b</code></td><td><code>Jul</code></td><td>Abbreviated month name. Always 3 letters.</td></tr>
 <tr><td><code>%B</code></td><td><code>July</code></td><td>Full month name. Also accepts corresponding abbreviation in parsing.</td></tr>
 <tr><td><code>%h</code></td><td><code>Jul</code></td><td>Same as <code>%b</code>.</td></tr>
 <tr><td></td><td></td><td></td></tr>
-<tr><td><code>%d</code></td><td><code>08</code></td><td>Day number (01--31), zero-padded to 2 digits.</td></tr>
+<tr><td><code>%d</code></td><td><code>08</code></td><td>Day number (01–31), zero-padded to 2 digits.</td></tr>
 <tr><td><code>%e</code></td><td><code> 8</code></td><td>Same as <code>%d</code> but space-padded. Same as <code>%_d</code>.</td></tr>
 <tr><td></td><td></td><td></td></tr>
 <tr><td><code>%a</code></td><td><code>Sun</code></td><td>Abbreviated weekday name. Always 3 letters.</td></tr>
 <tr><td><code>%A</code></td><td><code>Sunday</code></td><td>Full weekday name. Also accepts corresponding abbreviation in parsing.</td></tr>
-<tr><td><code>%w</code></td><td><code>0</code></td><td>Sunday = 0, Monday = 1, ..., Saturday = 6.</td></tr>
-<tr><td><code>%u</code></td><td><code>7</code></td><td>Monday = 1, Tuesday = 2, ..., Sunday = 7. (ISO 8601)</td></tr>
+<tr><td><code>%w</code></td><td><code>0</code></td><td>Sunday = 0, Monday = 1, …, Saturday = 6.</td></tr>
+<tr><td><code>%u</code></td><td><code>7</code></td><td>Monday = 1, Tuesday = 2, …, Sunday = 7. (ISO 8601)</td></tr>
 <tr><td></td><td></td><td></td></tr>
-<tr><td><code>%U</code></td><td><code>28</code></td><td>Week number starting with Sunday (00--53), zero-padded to 2 digits. <sup id="fnref3"><a href="#fn3">3</a></sup></td></tr>
+<tr><td><code>%U</code></td><td><code>28</code></td><td>Week number starting with Sunday (00–53), zero-padded to 2 digits. <sup id="fnref3"><a href="#fn3">3</a></sup></td></tr>
 <tr><td><code>%W</code></td><td><code>27</code></td><td>Same as <code>%U</code>, but week 1 starts with the first Monday in that year instead.</td></tr>
 <tr><td></td><td></td><td></td></tr>
 <tr><td><code>%G</code></td><td><code>2001</code></td><td>Same as <code>%Y</code> but uses the year number in ISO 8601 week date. <sup id="fnref4"><a href="#fn4">4</a></sup></td></tr>
 <tr><td><code>%g</code></td><td><code>01</code></td><td>Same as <code>%y</code> but uses the year number in ISO 8601 week date. <sup id="fnref4"><a href="#fn4">4</a></sup></td></tr>
-<tr><td><code>%V</code></td><td><code>27</code></td><td>Same as <code>%U</code> but uses the week number in ISO 8601 week date (01--53). <sup id="fnref4"><a href="#fn4">4</a></sup></td></tr>
+<tr><td><code>%V</code></td><td><code>27</code></td><td>Same as <code>%U</code> but uses the week number in ISO 8601 week date (01–53). <sup id="fnref4"><a href="#fn4">4</a></sup></td></tr>
 <tr><td></td><td></td><td></td></tr>
-<tr><td><code>%j</code></td><td><code>189</code></td><td>Day of the year (001--366), zero-padded to 3 digits.</td></tr>
+<tr><td><code>%j</code></td><td><code>189</code></td><td>Day of the year (001–366), zero-padded to 3 digits.</td></tr>
 <tr><td></td><td></td><td></td></tr>
 <tr><td><code>%D</code></td><td><code>07/08/01</code></td><td>Month-day-year format. Same as <code>%m/%d/%y</code>.</td></tr>
-<tr><td><code>%x</code></td><td><code>07/08/01</code></td><td>Locale's date representation (e.g., 12/31/99).</td></tr>
+<tr><td><code>%x</code></td><td><code>07/08/01</code></td><td>Locale’s date representation (e.g., 12/31/99).</td></tr>
 <tr><td><code>%F</code></td><td><code>2001-07-08</code></td><td>Year-month-day format (ISO 8601). Same as <code>%Y-%m-%d</code>.</td></tr>
 <tr><td><code>%v</code></td><td><code> 8-Jul-2001</code></td><td>Day-month-year format. Same as <code>%e-%b-%Y</code>.</td></tr>
 <tr><td></td><td></td><td></td></tr>
 <tr><td></td><td></td><td><strong>TIME SPECIFIERS:</strong></td></tr>
-<tr><td><code>%H</code></td><td><code>00</code></td><td>Hour number (00--23), zero-padded to 2 digits.</td></tr>
+<tr><td><code>%H</code></td><td><code>00</code></td><td>Hour number (00–23), zero-padded to 2 digits.</td></tr>
 <tr><td><code>%k</code></td><td><code> 0</code></td><td>Same as <code>%H</code> but space-padded. Same as <code>%_H</code>.</td></tr>
-<tr><td><code>%I</code></td><td><code>12</code></td><td>Hour number in 12-hour clocks (01--12), zero-padded to 2 digits.</td></tr>
+<tr><td><code>%I</code></td><td><code>12</code></td><td>Hour number in 12-hour clocks (01–12), zero-padded to 2 digits.</td></tr>
 <tr><td><code>%l</code></td><td><code>12</code></td><td>Same as <code>%I</code> but space-padded. Same as <code>%_I</code>.</td></tr>
 <tr><td></td><td></td><td></td></tr>
 <tr><td><code>%P</code></td><td><code>am</code></td><td><code>am</code> or <code>pm</code> in 12-hour clocks.</td></tr>
 <tr><td><code>%p</code></td><td><code>AM</code></td><td><code>AM</code> or <code>PM</code> in 12-hour clocks.</td></tr>
 <tr><td></td><td></td><td></td></tr>
-<tr><td><code>%M</code></td><td><code>34</code></td><td>Minute number (00--59), zero-padded to 2 digits.</td></tr>
-<tr><td><code>%S</code></td><td><code>60</code></td><td>Second number (00--60), zero-padded to 2 digits. <sup id="fnref5"><a href="#fn5">5</a></sup></td></tr>
+<tr><td><code>%M</code></td><td><code>34</code></td><td>Minute number (00–59), zero-padded to 2 digits.</td></tr>
+<tr><td><code>%S</code></td><td><code>60</code></td><td>Second number (00–60), zero-padded to 2 digits. <sup id="fnref5"><a href="#fn5">5</a></sup></td></tr>
 <tr><td><code>%f</code></td><td><code>026490000</code></td><td>The fractional seconds (in nanoseconds) since last whole second. <sup id="fnref6"><a href="#fn6">6</a></sup></td></tr>
 <tr><td><code>%.f</code></td><td><code>.026490</code></td><td>Similar to <code>.%f</code> but left-aligned. These all consume the leading dot. <sup id="fnref6"><a href="#fn6">6</a></sup></td></tr>
 <tr><td><code>%.3f</code></td><td><code>.026</code></td><td>Similar to <code>.%f</code> but left-aligned but fixed to a length of 3. <sup id="fnref6"><a href="#fn6">6</a></sup></td></tr>
@@ -59,7 +59,7 @@
 <tr><td></td><td></td><td></td></tr>
 <tr><td><code>%R</code></td><td><code>00:34</code></td><td>Hour-minute format. Same as <code>%H:%M</code>.</td></tr>
 <tr><td><code>%T</code></td><td><code>00:34:60</code></td><td>Hour-minute-second format. Same as <code>%H:%M:%S</code>.</td></tr>
-<tr><td><code>%X</code></td><td><code>00:34:60</code></td><td>Locale's time representation (e.g., 23:13:48).</td></tr>
+<tr><td><code>%X</code></td><td><code>00:34:60</code></td><td>Locale’s time representation (e.g., 23:13:48).</td></tr>
 <tr><td><code>%r</code></td><td><code>12:34:60 AM</code></td><td>Hour-minute-second format in 12-hour clocks. Same as <code>%I:%M:%S %p</code>.</td></tr>
 <tr><td></td><td></td><td></td></tr>
 <tr><td></td><td></td><td><strong>TIME ZONE SPECIFIERS:</strong></td></tr>
@@ -69,7 +69,7 @@
 <tr><td><code>%#z</code></td><td><code>+09</code></td><td><em>Parsing only:</em> Same as <code>%z</code> but allows minutes to be missing or present.</td></tr>
 <tr><td></td><td></td><td></td></tr>
 <tr><td></td><td></td><td><strong>DATE &amp; TIME SPECIFIERS:</strong></td></tr>
-<tr><td><code>%c</code></td><td><code>Sun Jul  8 00:34:60 2001</code></td><td>Locale's date and time (e.g., Thu Mar  3 23:05:25 2005).</td></tr>
+<tr><td><code>%c</code></td><td><code>Sun Jul  8 00:34:60 2001</code></td><td>Locale’s date and time (e.g., Thu Mar  3 23:05:25 2005).</td></tr>
 <tr><td><code>%+</code></td><td><code>2001-07-08T00:34:60.026490+09:30</code></td><td>ISO 8601 / RFC 3339 date &amp; time format. <sup id="fnref8"><a href="#fn8">8</a></sup></td></tr>
 <tr><td></td><td></td><td></td></tr>
 <tr><td><code>%s</code></td><td><code>994518299</code></td><td>UNIX timestamp, the number of seconds since 1970-01-01 00:00 UTC. <sup id="fnref9"><a href="#fn9">9</a></sup></td></tr>
@@ -136,12 +136,12 @@ digits for seconds and colons in the time zone offset.
 <br>
 <br>
 The typical <code>strftime</code> implementations have different (and locale-dependent)
-formats for this specifier. While Chrono's format for <code>%+</code> is far more
+formats for this specifier. While Chrono’s format for <code>%+</code> is far more
 stable, it is best to avoid this specifier if you want to control the exact
 output.&nbsp;<a href="#fnref8" rev="footnote">↩</a></p></li><li id="fn9"><p><code>%s</code>:
 This is not padded and can be negative.
 For the purpose of Chrono, it only accounts for non-leap seconds
 so it slightly differs from ISO C <code>strftime</code> behavior.&nbsp;<a href="#fnref9" rev="footnote">↩</a></p></li></ol></div></div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
 <table><tr class="module-item"><td><a class="struct" href="struct.StrftimeItems.html" title="chrono::format::strftime::StrftimeItems struct">StrftimeItems</a></td><td class="docblock-short"><p>Parsing iterator for <code>strftime</code>-like format strings.</p>
-</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="chrono"></div>
-    <script src="../../../main.js"></script><script defer src="../../../search-index.js"></script></body></html>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="chrono" data-search-js="../../../search-index.js"></div>
+    <script src="../../../main.js"></script></body></html>

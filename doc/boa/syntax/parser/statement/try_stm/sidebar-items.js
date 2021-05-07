@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["catch",""],["finally",""]],"struct":[["TryStatement","Try...catch statement parsing"]]});
+initSidebarItems({"mod":[["catch",""],["finally",""]],"struct":[["TryStatement","Try…catch statement parsing"]]});

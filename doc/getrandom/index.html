@@ -1,5 +1,5 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="API documentation for the Rust `getrandom` crate."><meta name="keywords" content="rust, rustlang, rust-lang, getrandom"><title>getrandom - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings"></script><script src="../storage.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu">&#9776;</div><a href='../getrandom/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a><p class="location">Crate getrandom</p><div class="block version"><p>Version 0.2.2</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all getrandom's items</p></a><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#functions">Functions</a></li></ul></div><p class="location"></p><div id="sidebar-vars" data-name="getrandom" data-ty="mod" data-relpath="../"></div></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../brush.svg" width="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="">getrandom</a></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/getrandom/lib.rs.html#9-236" title="goto source code">[src]</a></span></h1><div class="docblock"><p>Interface to the operating system's random number generator.</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Interface to the operating system’s random number generator."><meta name="keywords" content="rust, rustlang, rust-lang, getrandom"><title>getrandom - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings"></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../getrandom/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a><p class="location">Crate getrandom</p><div class="block version"><p>Version 0.2.2</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all getrandom's items</p></a><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#functions">Functions</a></li></ul></div><p class="location"></p><div id="sidebar-vars" data-name="getrandom" data-ty="mod" data-relpath="../"></div></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="">getrandom</a></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/getrandom/lib.rs.html#9-236" title="goto source code">[src]</a></span></h1><div class="docblock"><p>Interface to the operating system’s random number generator.</p>
 <h1 id="supported-targets" class="section-header"><a href="#supported-targets">Supported targets</a></h1><table><thead><tr><th>Target</th><th>Target Triple</th><th>Implementation</th></tr></thead><tbody>
 <tr><td>Linux, Android</td><td><code>*‑linux‑*</code></td><td><a href="http://man7.org/linux/man-pages/man2/getrandom.2.html"><code>getrandom</code></a> system call if available, otherwise <a href="http://man7.org/linux/man-pages/man4/urandom.4.html"><code>/dev/urandom</code></a> after successfully polling <code>/dev/random</code></td></tr>
 <tr><td>Windows</td><td><code>*‑windows‑*</code></td><td><a href="https://docs.microsoft.com/en-us/windows/win32/api/bcrypt/nf-bcrypt-bcryptgenrandom"><code>BCryptGenRandom</code></a></td></tr>
@@ -26,7 +26,7 @@ interface and respect maximum buffer sizes.</p>
 <p>Pull Requests that add support for new targets to <code>getrandom</code> are always welcome.</p>
 <h2 id="unsupported-targets" class="section-header"><a href="#unsupported-targets">Unsupported targets</a></h2>
 <p>By default, <code>getrandom</code> will not compile on unsupported targets, but certain
-features allow a user to select a &quot;fallback&quot; implementation if no supported
+features allow a user to select a “fallback” implementation if no supported
 implementation exists.</p>
 <p>All of the below mechanisms only affect unsupported
 targets. Supported targets will <em>always</em> use their supported implementations.
@@ -52,7 +52,7 @@ and Node.js environments are supported, invoking the methods
 <p>This feature has no effect on targets other than <code>wasm32-unknown-unknown</code>.</p>
 <h3 id="custom-implementations" class="section-header"><a href="#custom-implementations">Custom implementations</a></h3>
 <p>The [<code>register_custom_getrandom!</code>] macro allows a user to mark their own
-function as the backing implementation for <a href="../getrandom/fn.getrandom.html" title="getrandom"><code>getrandom</code></a>. See the macro's
+function as the backing implementation for <a href="../getrandom/fn.getrandom.html" title="getrandom"><code>getrandom</code></a>. See the macro’s
 documentation for more information about writing and registering your own
 custom implementations.</p>
 <p>Note that registering a custom implementation only has an effect on targets
@@ -62,24 +62,24 @@ implementations even if a function is registered.</p>
 <h3 id="indirect-dependencies" class="section-header"><a href="#indirect-dependencies">Indirect Dependencies</a></h3>
 <p>If <code>getrandom</code> is not a direct dependency of your crate, you can still
 enable any of the above fallback behaviors by enabling the relevant
-feature in your root crate's <code>Cargo.toml</code>:</p>
+feature in your root crate’s <code>Cargo.toml</code>:</p>
 <pre><code class="language-toml">[dependencies]
 getrandom = { version = &quot;0.2&quot;, features = [&quot;js&quot;] }
 </code></pre>
 <h2 id="early-boot" class="section-header"><a href="#early-boot">Early boot</a></h2>
 <p>Sometimes, early in the boot process, the OS has not collected enough
 entropy to securely seed its RNG. This is especially common on virtual
-machines, where standard &quot;random&quot; events are hard to come by.</p>
+machines, where standard “random” events are hard to come by.</p>
 <p>Some operating system interfaces always block until the RNG is securely
 seeded. This can take anywhere from a few seconds to more than a minute.
 A few (Linux, NetBSD and Solaris) offer a choice between blocking and
 getting an error; in these cases, we always choose to block.</p>
 <p>On Linux (when the <code>getrandom</code> system call is not available), reading from
-<code>/dev/urandom</code> never blocks, even when the OS hasn't collected enough
+<code>/dev/urandom</code> never blocks, even when the OS hasn’t collected enough
 entropy yet. To avoid returning low-entropy bytes, we first poll
 <code>/dev/random</code> and only switch to <code>/dev/urandom</code> once this has succeeded.</p>
 <h2 id="error-handling" class="section-header"><a href="#error-handling">Error handling</a></h2>
-<p>We always choose failure over returning insecure &quot;random&quot; bytes. In general,
+<p>We always choose failure over returning insecure “random” bytes. In general,
 on supported platforms, failure is highly unlikely, though not impossible.
 If an error does occur, then it is likely that it will occur on every call to
 <code>getrandom</code>, hence after the first successful call one can be reasonably
@@ -87,7 +87,7 @@ confident that no errors will occur.</p>
 </div><h2 id="structs" class="section-header"><a href="#structs">Structs</a></h2>
 <table><tr class="module-item"><td><a class="struct" href="struct.Error.html" title="getrandom::Error struct">Error</a></td><td class="docblock-short"><p>A small and <code>no_std</code> compatible error type</p>
 </td></tr></table><h2 id="functions" class="section-header"><a href="#functions">Functions</a></h2>
-<table><tr class="module-item"><td><a class="fn" href="fn.getrandom.html" title="getrandom::getrandom fn">getrandom</a></td><td class="docblock-short"><p>Fill <code>dest</code> with random bytes from the system's preferred random number
+<table><tr class="module-item"><td><a class="fn" href="fn.getrandom.html" title="getrandom::getrandom fn">getrandom</a></td><td class="docblock-short"><p>Fill <code>dest</code> with random bytes from the system’s preferred random number
 source.</p>
-</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="getrandom"></div>
-    <script src="../main.js"></script><script defer src="../search-index.js"></script></body></html>
+</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="getrandom" data-search-js="../search-index.js"></div>
+    <script src="../main.js"></script></body></html>

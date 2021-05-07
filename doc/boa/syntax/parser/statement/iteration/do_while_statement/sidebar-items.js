@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["DoWhileStatement","Do...while statement parsing"]]});
+initSidebarItems({"struct":[["DoWhileStatement","Do…while statement parsing"]]});
