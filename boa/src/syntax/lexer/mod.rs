@@ -155,7 +155,7 @@ impl<R> Lexer<R> {
                                 ))
                             }
                         }
-                        InputElement::RegExp | InputElement::RegExpOrTemplateTail => {
+                        InputElement::RegExp => {
                             // Can be a regular expression.
                             RegexLiteral.lex(&mut self.cursor, start)
                         }
@@ -297,7 +297,6 @@ impl<R> Lexer<R> {
 pub(crate) enum InputElement {
     Div,
     RegExp,
-    RegExpOrTemplateTail,
     TemplateTail,
 }
 
