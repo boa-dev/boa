@@ -695,6 +695,13 @@
 <span id="694">694</span>
 <span id="695">695</span>
 <span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Math` object.</span>
 <span class="doccomment">//!</span>
@@ -732,6 +739,8 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="string">&quot;init&quot;</span>);
         <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">f64</span>;
 
+        <span class="kw">let</span> <span class="ident">to_string_tag</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">well_known_symbols</span>().<span class="ident">to_string_tag_symbol</span>();
+
         <span class="kw">let</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">Attribute</span>::<span class="ident">READONLY</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">PERMANENT</span>;
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">ObjectInitializer</span>::<span class="ident">new</span>(<span class="ident">context</span>)
             .<span class="ident">property</span>(<span class="string">&quot;E&quot;</span>, <span class="ident">f64</span>::<span class="ident">consts</span>::<span class="ident">E</span>, <span class="ident">attribute</span>)
@@ -742,6 +751,11 @@
             .<span class="ident">property</span>(<span class="string">&quot;SQRT1_2&quot;</span>, <span class="number">0.5_f64</span>.<span class="ident">sqrt</span>(), <span class="ident">attribute</span>)
             .<span class="ident">property</span>(<span class="string">&quot;SQRT2&quot;</span>, <span class="ident">f64</span>::<span class="ident">consts</span>::<span class="ident">SQRT_2</span>, <span class="ident">attribute</span>)
             .<span class="ident">property</span>(<span class="string">&quot;PI&quot;</span>, <span class="ident">f64</span>::<span class="ident">consts</span>::<span class="ident">PI</span>, <span class="ident">attribute</span>)
+            .<span class="ident">property</span>(
+                <span class="ident">to_string_tag</span>,
+                <span class="string">&quot;Math&quot;</span>,
+                <span class="ident">Attribute</span>::<span class="ident">READONLY</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
+            )
             .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">abs</span>, <span class="string">&quot;abs&quot;</span>, <span class="number">1</span>)
             .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">acos</span>, <span class="string">&quot;acos&quot;</span>, <span class="number">1</span>)
             .<span class="ident">function</span>(<span class="self">Self</span>::<span class="ident">acosh</span>, <span class="string">&quot;acosh&quot;</span>, <span class="number">1</span>)
