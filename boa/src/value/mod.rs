@@ -13,6 +13,7 @@ use crate::{
     },
     object::{GcObject, Object, ObjectData},
     property::{Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
+    symbol::RcSymbol,
     BoaProfiler, Context, Result,
 };
 use gc::{Finalize, Trace};
@@ -31,7 +32,6 @@ mod hash;
 mod operations;
 mod rcbigint;
 mod rcstring;
-mod rcsymbol;
 mod r#type;
 
 pub use conversions::*;
@@ -42,7 +42,6 @@ pub use operations::*;
 pub use r#type::Type;
 pub use rcbigint::RcBigInt;
 pub use rcstring::RcString;
-pub use rcsymbol::RcSymbol;
 
 /// A Javascript value
 #[derive(Trace, Finalize, Debug, Clone)]

@@ -1,6 +1,6 @@
 use crate::{
-    builtins::Symbol,
     gc::{empty_trace, Finalize, Trace},
+    symbol::Symbol,
 };
 
 use std::{
