@@ -42,7 +42,7 @@ measureme = { version = "9.1.1", optional = true }
 once_cell = { version = "1.7.2", optional = true }
 
 [dev-dependencies]
-criterion = "0.3.3"
+criterion = "0.3.4"
 float-cmp = "0.8.0"
 
 [target.x86_64-unknown-linux-gnu.dev-dependencies]

@@ -1018,7 +1018,7 @@ impl Array {
                 }
             })
             .collect::<Result<Vec<Option<Value>>>>()?;
-        let values = values.into_iter().filter_map(|v| v).collect::<Vec<_>>();
+        let values = values.into_iter().flatten().collect::<Vec<_>>();
 
         Self::construct_array(&new, &values, context)
     }
