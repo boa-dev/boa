@@ -386,7 +386,6 @@ impl Symbol {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.description
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/description
-    #[allow(clippy::wrong_self_convention)]
     pub(crate) fn get_description(
         this: &Value,
         _: &[Value],
