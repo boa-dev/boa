@@ -5,13 +5,13 @@ use crate::{
         self,
         function::{Function, FunctionFlags, NativeFunction},
         iterable::IteratorPrototypes,
-        symbol::{Symbol, WellKnownSymbols},
     },
     class::{Class, ClassBuilder},
     exec::Interpreter,
     object::{GcObject, Object, PROTOTYPE},
     property::{Attribute, DataDescriptor, PropertyKey},
     realm::Realm,
+    symbol::{RcSymbol, Symbol, WellKnownSymbols},
     syntax::{
         ast::{
             node::{
@@ -22,7 +22,7 @@ use crate::{
         },
         Parser,
     },
-    value::{RcString, RcSymbol, Value},
+    value::{RcString, Value},
     BoaProfiler, Executable, Result,
 };
 
