@@ -291,7 +291,7 @@ impl RegExp {
         ))
     }
 
-    /// `RegExp.prototype.global`
+    /// `get RegExp.prototype.global`
     ///
     /// The `global` property indicates whether or not the "`g`" flag is used with the regular expression.
     ///
@@ -305,7 +305,7 @@ impl RegExp {
         Self::regexp_has_flag(this, 'g', context)
     }
 
-    /// `RegExp.prototype.ignoreCase`
+    /// `get RegExp.prototype.ignoreCase`
     ///
     /// The `ignoreCase` property indicates whether or not the "`i`" flag is used with the regular expression.
     ///
@@ -323,7 +323,7 @@ impl RegExp {
         Self::regexp_has_flag(this, 'i', context)
     }
 
-    /// `RegExp.prototype.multiline`
+    /// `get RegExp.prototype.multiline`
     ///
     /// The multiline property indicates whether or not the "m" flag is used with the regular expression.
     ///
@@ -337,7 +337,7 @@ impl RegExp {
         Self::regexp_has_flag(this, 'm', context)
     }
 
-    /// `RegExp.prototype.dotAll`
+    /// `get RegExp.prototype.dotAll`
     ///
     /// The `dotAll` property indicates whether or not the "`s`" flag is used with the regular expression.
     ///
@@ -351,7 +351,7 @@ impl RegExp {
         Self::regexp_has_flag(this, 's', context)
     }
 
-    /// `RegExp.prototype.unicode`
+    /// `get RegExp.prototype.unicode`
     ///
     /// The unicode property indicates whether or not the "`u`" flag is used with a regular expression.
     /// unicode is a read-only property of an individual regular expression instance.
@@ -366,9 +366,10 @@ impl RegExp {
         Self::regexp_has_flag(this, 'u', context)
     }
 
-    /// `RegExp.prototype.sticky`
+    /// `get RegExp.prototype.sticky`
     ///
-    /// The `flags` property returns a string consisting of the [`flags`][flags] of the current regular expression object.
+    /// This flag indicates that it matches only from the index indicated by the `lastIndex` property
+    /// of this regular expression in the target string (and does not attempt to match from any later indexes).
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -380,7 +381,7 @@ impl RegExp {
         Self::regexp_has_flag(this, 'y', context)
     }
 
-    /// `RegExp.prototype.flags`
+    /// `get RegExp.prototype.flags`
     ///
     /// The `flags` property returns a string consisting of the [`flags`][flags] of the current regular expression object.
     ///
