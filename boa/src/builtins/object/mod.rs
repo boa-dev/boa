@@ -465,6 +465,17 @@ impl Object {
         Ok(object.has_own_property(key).into())
     }
 
+    /// `Object.prototype.propertyIsEnumerable( property )`
+    ///
+    /// This method returns a Boolean indicating whether the specified property is
+    /// enumerable and is the object's own property.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.propertyisenumerable
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/propertyIsEnumerable
     pub fn property_is_enumerable(
         this: &Value,
         args: &[Value],
@@ -483,6 +494,17 @@ impl Object {
         }))
     }
 
+    /// `Object.assign( target, ...sources )`
+    ///
+    /// This method copies all enumerable own properties from one or more
+    /// source objects to a target object. It returns the target object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.assign
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
     pub fn assign(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let mut to = args
             .get(0)
