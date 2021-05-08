@@ -15,15 +15,16 @@
 //! [section]: https://tc39.es/ecma262/#sec-property-attributes
 
 use crate::{
-    gc::{Finalize, Trace},
+    gc::{empty_trace, Finalize, Trace},
     object::GcObject,
     symbol::RcSymbol,
     value::{RcString, Value},
 };
-use std::{convert::TryFrom, fmt};
+use std::{cell::RefCell, convert::TryFrom, fmt, marker::PhantomData};
 
 mod attribute;
 pub use attribute::Attribute;
+use rustc_hash::FxHashMap;
 
 /// A data descriptor is a property that has a value, which may or may not be writable.
 ///
@@ -297,6 +298,100 @@ impl PropertyDescriptor {
     }
 }
 
+#[derive(Debug)]
+struct Table {
+    names: FxHashMap<&'static str, u32>,
+    indexes: Vec<&'static str>,
+}
+
+impl Table {
+    fn new() -> Self {
+        Self {
+            names: Default::default(),
+            indexes: Default::default(),
+        }
+    }
+}
+
+impl Drop for Table {
+    fn drop(&mut self) {
+        for s in self.indexes.iter_mut() {
+            unsafe {
+                let _ = Box::from_raw((*s) as *const _ as *mut str);
+            }
+        }
+    }
+}
+
+thread_local! {
+    static TABLE: RefCell<Table> = RefCell::new(Table::new());
+}
+
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, PartialOrd, Ord)]
+pub struct Name {
+    value: u32,
+    _marker: PhantomData<*mut str>,
+}
+
+impl Name {
+    #[inline]
+    pub fn new<S>(string: S) -> Name
+    where
+        S: AsRef<str>,
+    {
+        let string = string.as_ref();
+        TABLE.with(|table| {
+            let mut table = table.borrow_mut();
+
+            if let Some(value) = table.names.get(string).cloned() {
+                return Name {
+                    value,
+                    _marker: PhantomData,
+                };
+            }
+
+            let string: &'static str = Box::leak(Box::<str>::from(string));
+            let id = table.indexes.len() as u32;
+            table.indexes.push(string);
+            table.names.insert(string, id);
+
+            Name {
+                value: id,
+                _marker: PhantomData,
+            }
+        })
+    }
+
+    #[inline]
+    pub fn as_str(&self) -> &str {
+        TABLE.with(|table| {
+            let table = table.borrow();
+
+            table.indexes[self.value as usize]
+        })
+    }
+}
+
+impl AsRef<str> for Name {
+    #[inline]
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl Finalize for Name {}
+
+unsafe impl Trace for Name {
+    empty_trace!();
+}
+
+impl fmt::Display for Name {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.as_str().fmt(f)
+    }
+}
+
 /// This abstracts away the need for IsPropertyKey by transforming the PropertyKey
 /// values into an enum with both valid types: String and Symbol
 ///
@@ -306,9 +401,16 @@ impl PropertyDescriptor {
 /// [spec]: https://tc39.es/ecma262/#sec-ispropertykey
 #[derive(Trace, Finalize, Debug, Clone)]
 pub enum PropertyKey {
-    String(RcString),
+    String(Name),
     Symbol(RcSymbol),
     Index(u32),
+}
+
+impl From<Name> for PropertyKey {
+    #[inline]
+    fn from(name: Name) -> Self {
+        PropertyKey::String(name)
+    }
 }
 
 impl From<RcString> for PropertyKey {
@@ -317,7 +419,7 @@ impl From<RcString> for PropertyKey {
         if let Ok(index) = string.parse() {
             PropertyKey::Index(index)
         } else {
-            PropertyKey::String(string)
+            PropertyKey::String(Name::new(string))
         }
     }
 }
@@ -328,7 +430,7 @@ impl From<&str> for PropertyKey {
         if let Ok(index) = string.parse() {
             PropertyKey::Index(index)
         } else {
-            PropertyKey::String(string.into())
+            PropertyKey::String(Name::new(string))
         }
     }
 }
@@ -339,7 +441,7 @@ impl From<String> for PropertyKey {
         if let Ok(index) = string.parse() {
             PropertyKey::Index(index)
         } else {
-            PropertyKey::String(string.into())
+            PropertyKey::String(Name::new(string))
         }
     }
 }
@@ -350,7 +452,7 @@ impl From<Box<str>> for PropertyKey {
         if let Ok(index) = string.parse() {
             PropertyKey::Index(index)
         } else {
-            PropertyKey::String(string.into())
+            PropertyKey::String(Name::new(string))
         }
     }
 }
@@ -377,7 +479,7 @@ impl From<&PropertyKey> for Value {
     #[inline]
     fn from(property_key: &PropertyKey) -> Value {
         match property_key {
-            PropertyKey::String(ref string) => string.clone().into(),
+            PropertyKey::String(ref string) => string.as_str().into(),
             PropertyKey::Symbol(ref symbol) => symbol.clone().into(),
             PropertyKey::Index(index) => {
                 if let Ok(integer) = i32::try_from(*index) {
@@ -394,7 +496,7 @@ impl From<PropertyKey> for Value {
     #[inline]
     fn from(property_key: PropertyKey) -> Value {
         match property_key {
-            PropertyKey::String(ref string) => string.clone().into(),
+            PropertyKey::String(ref string) => string.as_str().into(),
             PropertyKey::Symbol(ref symbol) => symbol.clone().into(),
             PropertyKey::Index(index) => {
                 if let Ok(integer) = i32::try_from(index) {
@@ -430,7 +532,7 @@ impl From<usize> for PropertyKey {
         if let Ok(index) = u32::try_from(value) {
             PropertyKey::Index(index)
         } else {
-            PropertyKey::String(RcString::from(value.to_string()))
+            PropertyKey::String(Name::new(value.to_string()))
         }
     }
 }
@@ -440,7 +542,7 @@ impl From<isize> for PropertyKey {
         if let Ok(index) = u32::try_from(value) {
             PropertyKey::Index(index)
         } else {
-            PropertyKey::String(RcString::from(value.to_string()))
+            PropertyKey::String(Name::new(value.to_string()))
         }
     }
 }
@@ -450,7 +552,7 @@ impl From<i32> for PropertyKey {
         if let Ok(index) = u32::try_from(value) {
             PropertyKey::Index(index)
         } else {
-            PropertyKey::String(RcString::from(value.to_string()))
+            PropertyKey::String(Name::new(value.to_string()))
         }
     }
 }
@@ -462,14 +564,14 @@ impl From<f64> for PropertyKey {
             return PropertyKey::Index(index);
         }
 
-        PropertyKey::String(ryu_js::Buffer::new().format(value).into())
+        PropertyKey::String(Name::new(ryu_js::Buffer::new().format(value)))
     }
 }
 
 impl PartialEq<&str> for PropertyKey {
     fn eq(&self, other: &&str) -> bool {
         match self {
-            PropertyKey::String(ref string) => string == other,
+            PropertyKey::String(ref string) => string.as_str() == *other,
             _ => false,
         }
     }

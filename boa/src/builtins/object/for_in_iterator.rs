@@ -74,7 +74,7 @@ impl ForInIterator {
                         for k in keys {
                             match k {
                                 PropertyKey::String(ref k) => {
-                                    iterator.remaining_keys.push_back(k.clone());
+                                    iterator.remaining_keys.push_back(k.as_str().into());
                                 }
                                 PropertyKey::Index(i) => {
                                     iterator.remaining_keys.push_back(i.to_string().into());

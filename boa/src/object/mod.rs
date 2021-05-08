@@ -11,7 +11,9 @@ use crate::{
     },
     context::StandardConstructor,
     gc::{Finalize, Trace},
-    property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
+    property::{
+        AccessorDescriptor, Attribute, DataDescriptor, Name, PropertyDescriptor, PropertyKey,
+    },
     symbol::RcSymbol,
     value::{same_value, RcBigInt, RcString, Value},
     BoaProfiler, Context,
@@ -67,7 +69,7 @@ pub struct Object {
     pub data: ObjectData,
     indexed_properties: FxHashMap<u32, PropertyDescriptor>,
     /// Properties
-    string_properties: FxHashMap<RcString, PropertyDescriptor>,
+    string_properties: FxHashMap<Name, PropertyDescriptor>,
     /// Symbol Properties
     symbol_properties: FxHashMap<RcSymbol, PropertyDescriptor>,
     /// Instance prototype `__proto__`.

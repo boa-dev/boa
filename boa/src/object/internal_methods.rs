@@ -278,7 +278,7 @@ impl GcObject {
     {
         let key = key.into();
         match key {
-            PropertyKey::String(ref s) if s == "length" => {
+            PropertyKey::String(ref s) if s.as_str() == "length" => {
                 match desc {
                     PropertyDescriptor::Accessor(_) => {
                         return Ok(self.ordinary_define_own_property("length", desc))
@@ -613,9 +613,7 @@ impl Object {
         let property = property.into();
         match key.into() {
             PropertyKey::Index(index) => self.indexed_properties.insert(index, property),
-            PropertyKey::String(ref string) => {
-                self.string_properties.insert(string.clone(), property)
-            }
+            PropertyKey::String(ref string) => self.string_properties.insert(*string, property),
             PropertyKey::Symbol(ref symbol) => {
                 self.symbol_properties.insert(symbol.clone(), property)
             }

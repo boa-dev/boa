@@ -659,8 +659,8 @@ impl Value {
                 ));
                 // Make sure the correct length is set on our new string object
                 object.insert_property(
-                    PropertyKey::String("length".into()),
-                    Value::from(string.encode_utf16().count()),
+                    "length",
+                    string.encode_utf16().count(),
                     Attribute::NON_ENUMERABLE,
                 );
                 Ok(object)

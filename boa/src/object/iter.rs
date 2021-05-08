@@ -1,5 +1,8 @@
-use super::{Object, PropertyDescriptor, PropertyKey};
-use crate::{symbol::RcSymbol, value::RcString};
+use crate::{
+    object::{Object, PropertyDescriptor, PropertyKey},
+    property::Name,
+    symbol::RcSymbol,
+};
 use std::{collections::hash_map, iter::FusedIterator};
 
 impl Object {
@@ -109,7 +112,7 @@ impl Object {
 #[derive(Debug, Clone)]
 pub struct Iter<'a> {
     indexed_properties: hash_map::Iter<'a, u32, PropertyDescriptor>,
-    string_properties: hash_map::Iter<'a, RcString, PropertyDescriptor>,
+    string_properties: hash_map::Iter<'a, Name, PropertyDescriptor>,
     symbol_properties: hash_map::Iter<'a, RcSymbol, PropertyDescriptor>,
 }
 
@@ -342,10 +345,10 @@ impl FusedIterator for IndexPropertyValues<'_> {}
 
 /// An iterator over the `String` property entries of an `Object`
 #[derive(Debug, Clone)]
-pub struct StringProperties<'a>(hash_map::Iter<'a, RcString, PropertyDescriptor>);
+pub struct StringProperties<'a>(hash_map::Iter<'a, Name, PropertyDescriptor>);
 
 impl<'a> Iterator for StringProperties<'a> {
-    type Item = (&'a RcString, &'a PropertyDescriptor);
+    type Item = (&'a Name, &'a PropertyDescriptor);
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
@@ -369,10 +372,10 @@ impl FusedIterator for StringProperties<'_> {}
 
 /// An iterator over the string keys (`RcString`) of an `Object`.
 #[derive(Debug, Clone)]
-pub struct StringPropertyKeys<'a>(hash_map::Keys<'a, RcString, PropertyDescriptor>);
+pub struct StringPropertyKeys<'a>(hash_map::Keys<'a, Name, PropertyDescriptor>);
 
 impl<'a> Iterator for StringPropertyKeys<'a> {
-    type Item = &'a RcString;
+    type Item = &'a Name;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
@@ -396,7 +399,7 @@ impl FusedIterator for StringPropertyKeys<'_> {}
 
 /// An iterator over the string values (`Property`) of an `Object`.
 #[derive(Debug, Clone)]
-pub struct StringPropertyValues<'a>(hash_map::Values<'a, RcString, PropertyDescriptor>);
+pub struct StringPropertyValues<'a>(hash_map::Values<'a, Name, PropertyDescriptor>);
 
 impl<'a> Iterator for StringPropertyValues<'a> {
     type Item = &'a PropertyDescriptor;
