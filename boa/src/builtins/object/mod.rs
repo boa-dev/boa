@@ -60,6 +60,7 @@ impl BuiltIn for Object {
         .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
         .static_method(Self::define_property, "defineProperty", 3)
         .static_method(Self::define_properties, "defineProperties", 2)
+        .static_method(Self::assign, "assign", 2)
         .static_method(Self::is, "is", 2)
         .static_method(
             Self::get_own_property_descriptor,
@@ -480,5 +481,34 @@ impl Object {
         Ok(own_property.map_or(Value::from(false), |own_prop| {
             Value::from(own_prop.enumerable())
         }))
+    }
+
+    pub fn assign(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let mut to = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_object(context)?;
+
+        if args.len() == 1 {
+            return Ok(to.into());
+        }
+
+        for source in &args[1..] {
+            if !source.is_null_or_undefined() {
+                let from = source.to_object(context).unwrap();
+                let keys = from.own_property_keys();
+                for key in keys {
+                    if let Some(desc) = from.get_own_property(&key) {
+                        if desc.enumerable() {
+                            let property = from.get(&key, from.clone().into(), context)?;
+                            to.set(key, property, to.clone().into(), context)?;
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(to.into())
     }
 }
