@@ -474,6 +474,7 @@
 <span id="473">473</span>
 <span id="474">474</span>
 <span id="475">475</span>
+<span id="476">476</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the Property Descriptor.</span>
 <span class="doccomment">//!</span>
@@ -494,7 +495,8 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">object</span>::<span class="ident">GcObject</span>,
-    <span class="ident">value</span>::{<span class="ident">RcString</span>, <span class="ident">RcSymbol</span>, <span class="ident">Value</span>},
+    <span class="ident">symbol</span>::<span class="ident">RcSymbol</span>,
+    <span class="ident">value</span>::{<span class="ident">RcString</span>, <span class="ident">Value</span>},
 };
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert</span>::<span class="ident">TryFrom</span>, <span class="ident">fmt</span>};
 

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Symbol",""],["WellKnownSymbols","A structure that contains the JavaScript well known symbols."]]});
+initSidebarItems({"struct":[["Symbol",""]]});

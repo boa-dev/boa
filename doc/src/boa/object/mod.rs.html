@@ -1137,6 +1137,7 @@
 <span id="1136">1136</span>
 <span id="1137">1137</span>
 <span id="1138">1138</span>
+<span id="1139">1139</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
@@ -1152,7 +1153,8 @@
     <span class="ident">context</span>::<span class="ident">StandardConstructor</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">property</span>::{<span class="ident">AccessorDescriptor</span>, <span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
-    <span class="ident">value</span>::{<span class="ident">same_value</span>, <span class="ident">RcBigInt</span>, <span class="ident">RcString</span>, <span class="ident">RcSymbol</span>, <span class="ident">Value</span>},
+    <span class="ident">symbol</span>::<span class="ident">RcSymbol</span>,
+    <span class="ident">value</span>::{<span class="ident">same_value</span>, <span class="ident">RcBigInt</span>, <span class="ident">RcString</span>, <span class="ident">Value</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>,
 };
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;

@@ -1014,7 +1014,6 @@
 <span id="1013">1013</span>
 <span id="1014">1014</span>
 <span id="1015">1015</span>
-<span id="1016">1016</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -1031,6 +1030,7 @@
     },
     <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
+    <span class="ident">symbol</span>::<span class="ident">RcSymbol</span>,
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>,
 };
 <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
@@ -1049,7 +1049,6 @@
 <span class="kw">mod</span> <span class="ident">operations</span>;
 <span class="kw">mod</span> <span class="ident">rcbigint</span>;
 <span class="kw">mod</span> <span class="ident">rcstring</span>;
-<span class="kw">mod</span> <span class="ident">rcsymbol</span>;
 <span class="kw">mod</span> <span class="ident">r#type</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">conversions</span>::<span class="kw-2">*</span>;
@@ -1060,7 +1059,6 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">r#type</span>::<span class="ident">Type</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">rcbigint</span>::<span class="ident">RcBigInt</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">rcstring</span>::<span class="ident">RcString</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">rcsymbol</span>::<span class="ident">RcSymbol</span>;
 
 <span class="doccomment">/// A Javascript value</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
