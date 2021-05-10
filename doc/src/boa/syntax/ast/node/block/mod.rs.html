@@ -120,14 +120,12 @@
 <span id="119">119</span>
 <span id="120">120</span>
 <span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Block AST node.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Node</span>, <span class="ident">StatementList</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">environment</span>::<span class="ident">lexical_environment</span>::<span class="ident">new_declarative_environment</span>,
+    <span class="ident">environment</span>::<span class="ident">declarative_environment_record</span>::<span class="ident">DeclarativeEnvironmentRecord</span>,
     <span class="ident">exec</span>::<span class="ident">Executable</span>,
     <span class="ident">exec</span>::<span class="ident">InterpreterState</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
@@ -179,10 +177,8 @@
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Block&quot;</span>, <span class="string">&quot;exec&quot;</span>);
         {
-            <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>;
-            <span class="ident">env</span>.<span class="ident">push</span>(<span class="ident">new_declarative_environment</span>(<span class="prelude-val">Some</span>(
-                <span class="ident">env</span>.<span class="ident">get_current_environment_ref</span>().<span class="ident">clone</span>(),
-            )));
+            <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">get_current_environment</span>();
+            <span class="ident">context</span>.<span class="ident">push_environment</span>(<span class="ident">DeclarativeEnvironmentRecord</span>::<span class="ident">new</span>(<span class="prelude-val">Some</span>(<span class="ident">env</span>)));
         }
 
         <span class="comment">// https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation</span>
@@ -192,7 +188,7 @@
             <span class="ident">obj</span> <span class="op">=</span> <span class="ident">statement</span>.<span class="ident">run</span>(<span class="ident">context</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
                 <span class="comment">// No matter how control leaves the Block the LexicalEnvironment is always</span>
                 <span class="comment">// restored to its former state.</span>
-                <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">pop</span>();
+                <span class="ident">context</span>.<span class="ident">pop_environment</span>();
                 <span class="ident">e</span>
             })<span class="question-mark">?</span>;
 
@@ -218,7 +214,7 @@
         }
 
         <span class="comment">// pop the block env</span>
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">pop</span>();
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">pop_environment</span>();
 
         <span class="prelude-val">Ok</span>(<span class="ident">obj</span>)
     }

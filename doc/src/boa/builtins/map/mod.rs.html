@@ -425,11 +425,6 @@
 <span id="424">424</span>
 <span id="425">425</span>
 <span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mutable_key_type</span>)]</span>
 
@@ -512,12 +507,7 @@
         }
         <span class="kw">let</span> <span class="ident">map_prototype</span> <span class="op">=</span> <span class="ident">context</span>
             .<span class="ident">global_object</span>()
-            .<span class="ident">clone</span>()
-            .<span class="ident">get</span>(
-                <span class="kw-2">&amp;</span><span class="string">&quot;Map&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>().<span class="ident">into</span>(),
-                <span class="ident">context</span>,
-            )<span class="question-mark">?</span>
+            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="string">&quot;Map&quot;</span>.<span class="ident">into</span>(), <span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
             .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
             .<span class="ident">as_object</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;&#39;Map&#39; global property should be an object&quot;</span>);

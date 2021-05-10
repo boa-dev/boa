@@ -122,11 +122,6 @@
 <span id="121">121</span>
 <span id="122">122</span>
 <span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
-<span id="127">127</span>
-<span id="128">128</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::<span class="ident">function</span>::<span class="ident">FunctionFlags</span>,
@@ -225,21 +220,16 @@
         <span class="comment">// Set the name and assign it in the current environment</span>
         <span class="ident">val</span>.<span class="ident">set_field</span>(<span class="string">&quot;name&quot;</span>, <span class="self">self</span>.<span class="ident">name</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">environment</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>;
-        <span class="kw">if</span> <span class="ident">environment</span>.<span class="ident">has_binding</span>(<span class="self">self</span>.<span class="ident">name</span>()) {
-            <span class="ident">environment</span>
-                .<span class="ident">set_mutable_binding</span>(<span class="self">self</span>.<span class="ident">name</span>(), <span class="ident">val</span>, <span class="bool-val">true</span>)
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">has_binding</span>(<span class="self">self</span>.<span class="ident">name</span>()) {
+            <span class="ident">context</span>.<span class="ident">set_mutable_binding</span>(<span class="self">self</span>.<span class="ident">name</span>(), <span class="ident">val</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
         } <span class="kw">else</span> {
-            <span class="ident">environment</span>
-                .<span class="ident">create_mutable_binding</span>(<span class="self">self</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(), <span class="bool-val">false</span>, <span class="ident">VariableScope</span>::<span class="ident">Function</span>)
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
+            <span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(
+                <span class="self">self</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(),
+                <span class="bool-val">false</span>,
+                <span class="ident">VariableScope</span>::<span class="ident">Function</span>,
+            )<span class="question-mark">?</span>;
 
-            <span class="ident">context</span>
-                .<span class="ident">realm_mut</span>()
-                .<span class="ident">environment</span>
-                .<span class="ident">initialize_binding</span>(<span class="self">self</span>.<span class="ident">name</span>(), <span class="ident">val</span>)
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
+            <span class="ident">context</span>.<span class="ident">initialize_binding</span>(<span class="self">self</span>.<span class="ident">name</span>(), <span class="ident">val</span>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>())
     }

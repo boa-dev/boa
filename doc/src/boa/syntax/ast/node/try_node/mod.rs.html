@@ -227,11 +227,12 @@
 <span id="226">226</span>
 <span id="227">227</span>
 <span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">environment</span>::<span class="ident">lexical_environment</span>::{<span class="ident">new_declarative_environment</span>, <span class="ident">VariableScope</span>},
+    <span class="ident">environment</span>::{
+        <span class="ident">declarative_environment_record</span>::<span class="ident">DeclarativeEnvironmentRecord</span>,
+        <span class="ident">lexical_environment</span>::<span class="ident">VariableScope</span>,
+    },
     <span class="ident">exec</span>::<span class="ident">Executable</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::{<span class="ident">Block</span>, <span class="ident">Identifier</span>, <span class="ident">Node</span>},
@@ -330,28 +331,23 @@
             <span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">catch</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">catch</span>() {
                     {
-                        <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>;
-                        <span class="ident">env</span>.<span class="ident">push</span>(<span class="ident">new_declarative_environment</span>(<span class="prelude-val">Some</span>(
-                            <span class="ident">env</span>.<span class="ident">get_current_environment_ref</span>().<span class="ident">clone</span>(),
-                        )));
+                        <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">get_current_environment</span>();
+                        <span class="ident">context</span>.<span class="ident">push_environment</span>(<span class="ident">DeclarativeEnvironmentRecord</span>::<span class="ident">new</span>(<span class="prelude-val">Some</span>(<span class="ident">env</span>)));
 
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">param</span>) <span class="op">=</span> <span class="ident">catch</span>.<span class="ident">parameter</span>() {
-                            <span class="ident">env</span>.<span class="ident">create_mutable_binding</span>(
+                            <span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(
                                 <span class="ident">param</span>.<span class="ident">to_owned</span>(),
                                 <span class="bool-val">false</span>,
                                 <span class="ident">VariableScope</span>::<span class="ident">Block</span>,
-                            )
-                            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
-                            <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>;
-                            <span class="ident">env</span>.<span class="ident">initialize_binding</span>(<span class="ident">param</span>, <span class="ident">err</span>)
-                                .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))<span class="question-mark">?</span>;
+                            )<span class="question-mark">?</span>;
+                            <span class="ident">context</span>.<span class="ident">initialize_binding</span>(<span class="ident">param</span>, <span class="ident">err</span>)<span class="question-mark">?</span>;
                         }
                     }
 
                     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">catch</span>.<span class="ident">block</span>().<span class="ident">run</span>(<span class="ident">context</span>);
 
                     <span class="comment">// pop the block env</span>
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm_mut</span>().<span class="ident">environment</span>.<span class="ident">pop</span>();
+                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">pop_environment</span>();
 
                     <span class="ident">res</span>
                 } <span class="kw">else</span> {

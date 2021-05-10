@@ -203,6 +203,17 @@
 <span id="202">202</span>
 <span id="203">203</span>
 <span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Environment Records</span>
 <span class="doccomment">//!</span>
@@ -214,12 +225,12 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! There are 5 Environment record kinds. They all have methods in common, these are implemented as a the `EnvironmentRecordTrait`</span>
 <span class="doccomment">//!</span>
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">ErrorKind</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">environment</span>::<span class="ident">lexical_environment</span>::<span class="ident">VariableScope</span>;
+
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">environment</span>::<span class="ident">lexical_environment</span>::<span class="ident">VariableScope</span>, <span class="ident">object</span>::<span class="ident">GcObject</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">environment</span>::<span class="ident">lexical_environment</span>::{<span class="ident">Environment</span>, <span class="ident">EnvironmentType</span>},
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
-    <span class="ident">Value</span>,
+    <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
 <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>;
 
@@ -228,7 +239,8 @@
 <span class="doccomment">/// In the ECMAScript specification Environment Records are hierachical and have a base class with abstract methods.</span>
 <span class="doccomment">/// In this implementation we have a trait which represents the behaviour of all `EnvironmentRecord` types.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">EnvironmentRecordTrait</span>: <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Trace</span> <span class="op">+</span> <span class="ident">Finalize</span> {
-    <span class="doccomment">/// Determine if an Environment Record has a binding for the String value N. Return true if it does and false if it does not.</span>
+    <span class="doccomment">/// Determine if an Environment Record has a binding for the String value N.</span>
+    <span class="doccomment">/// Return true if it does and false if it does not.</span>
     <span class="kw">fn</span> <span class="ident">has_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 
     <span class="doccomment">/// Create a new but uninitialized mutable binding in an Environment Record. The String value N is the text of the bound name.</span>
@@ -243,18 +255,25 @@
         <span class="ident">name</span>: <span class="ident">String</span>,
         <span class="ident">deletion</span>: <span class="ident">bool</span>,
         <span class="ident">allow_name_reuse</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span>;
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 
     <span class="doccomment">/// Create a new but uninitialized immutable binding in an Environment Record.</span>
     <span class="doccomment">/// The String value N is the text of the bound name.</span>
     <span class="doccomment">/// If strict is true then attempts to set it after it has been initialized will always throw an exception,</span>
     <span class="doccomment">/// regardless of the strict mode setting of operations that reference that binding.</span>
-    <span class="kw">fn</span> <span class="ident">create_immutable_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">String</span>, <span class="ident">strict</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">create_immutable_binding</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">name</span>: <span class="ident">String</span>,
+        <span class="ident">strict</span>: <span class="ident">bool</span>,
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 
     <span class="doccomment">/// Set the value of an already existing but uninitialized binding in an Environment Record.</span>
     <span class="doccomment">/// The String value N is the text of the bound name.</span>
     <span class="doccomment">/// V is the value for the binding and is a value of any ECMAScript language type.</span>
-    <span class="kw">fn</span> <span class="ident">initialize_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">value</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">initialize_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">value</span>: <span class="ident">Value</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>)
+        <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 
     <span class="doccomment">/// Set the value of an already existing mutable binding in an Environment Record.</span>
     <span class="doccomment">/// The String value `name` is the text of the bound name.</span>
@@ -265,13 +284,14 @@
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">value</span>: <span class="ident">Value</span>,
         <span class="ident">strict</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span>;
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 
     <span class="doccomment">/// Returns the value of an already existing binding from an Environment Record.</span>
     <span class="doccomment">/// The String value N is the text of the bound name.</span>
     <span class="doccomment">/// S is used to identify references originating in strict mode code or that</span>
     <span class="doccomment">/// otherwise require strict mode reference semantics.</span>
-    <span class="kw">fn</span> <span class="ident">get_binding_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">strict</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span>, <span class="ident">ErrorKind</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">get_binding_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">strict</span>: <span class="ident">bool</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Delete a binding from an Environment Record.</span>
     <span class="doccomment">/// The String value name is the text of the bound name.</span>
@@ -284,15 +304,15 @@
     <span class="kw">fn</span> <span class="ident">has_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 
     <span class="doccomment">/// Return the `this` binding from the environment</span>
-    <span class="kw">fn</span> <span class="ident">get_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span>, <span class="ident">ErrorKind</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">get_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Determine if an Environment Record establishes a super method binding.</span>
     <span class="doccomment">/// Return true if it does and false if it does not.</span>
     <span class="kw">fn</span> <span class="ident">has_super_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>;
 
     <span class="doccomment">/// If this Environment Record is associated with a with statement, return the with object.</span>
-    <span class="doccomment">/// Otherwise, return undefined.</span>
-    <span class="kw">fn</span> <span class="ident">with_base_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span>;
+    <span class="doccomment">/// Otherwise, return None.</span>
+    <span class="kw">fn</span> <span class="ident">with_base_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Get the next environment up</span>
     <span class="kw">fn</span> <span class="ident">get_outer_environment_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Environment</span><span class="op">&gt;</span>;
@@ -306,16 +326,13 @@
     <span class="doccomment">/// Get the type of environment this is</span>
     <span class="kw">fn</span> <span class="ident">get_environment_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EnvironmentType</span>;
 
-    <span class="doccomment">/// Fetch global variable</span>
-    <span class="kw">fn</span> <span class="ident">get_global_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>;
-
     <span class="doccomment">/// Return the `this` binding from the environment or try to get it from outer environments</span>
-    <span class="kw">fn</span> <span class="ident">recursive_get_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span>, <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">recursive_get_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_this_binding</span>() {
-            <span class="self">self</span>.<span class="ident">get_this_binding</span>()
+            <span class="self">self</span>.<span class="ident">get_this_binding</span>(<span class="ident">context</span>)
         } <span class="kw">else</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_outer_environment_ref</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">outer</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">outer</span>.<span class="ident">borrow</span>().<span class="ident">recursive_get_this_binding</span>(),
+                <span class="prelude-val">Some</span>(<span class="ident">outer</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">outer</span>.<span class="ident">borrow</span>().<span class="ident">recursive_get_this_binding</span>(<span class="ident">context</span>),
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">Undefined</span>),
             }
         }
@@ -327,14 +344,15 @@
         <span class="ident">name</span>: <span class="ident">String</span>,
         <span class="ident">deletion</span>: <span class="ident">bool</span>,
         <span class="ident">scope</span>: <span class="ident">VariableScope</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">scope</span> {
-            <span class="ident">VariableScope</span>::<span class="ident">Block</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="bool-val">false</span>),
+            <span class="ident">VariableScope</span>::<span class="ident">Block</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="bool-val">false</span>, <span class="ident">context</span>),
             <span class="ident">VariableScope</span>::<span class="ident">Function</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
                 .<span class="ident">get_outer_environment_ref</span>()
                 .<span class="ident">expect</span>(<span class="string">&quot;No function or global environment&quot;</span>)
                 .<span class="ident">borrow_mut</span>()
-                .<span class="ident">recursive_create_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="ident">scope</span>),
+                .<span class="ident">recursive_create_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="ident">scope</span>, <span class="ident">context</span>),
         }
     }
 
@@ -344,14 +362,15 @@
         <span class="ident">name</span>: <span class="ident">String</span>,
         <span class="ident">deletion</span>: <span class="ident">bool</span>,
         <span class="ident">scope</span>: <span class="ident">VariableScope</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">scope</span> {
-            <span class="ident">VariableScope</span>::<span class="ident">Block</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">create_immutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>),
+            <span class="ident">VariableScope</span>::<span class="ident">Block</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">create_immutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="ident">context</span>),
             <span class="ident">VariableScope</span>::<span class="ident">Function</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
                 .<span class="ident">get_outer_environment_ref</span>()
                 .<span class="ident">expect</span>(<span class="string">&quot;No function or global environment&quot;</span>)
                 .<span class="ident">borrow_mut</span>()
-                .<span class="ident">recursive_create_immutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="ident">scope</span>),
+                .<span class="ident">recursive_create_immutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="ident">scope</span>, <span class="ident">context</span>),
         }
     }
 
@@ -361,26 +380,32 @@
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">value</span>: <span class="ident">Value</span>,
         <span class="ident">strict</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_binding</span>(<span class="ident">name</span>) {
-            <span class="self">self</span>.<span class="ident">set_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">value</span>, <span class="ident">strict</span>)
+            <span class="self">self</span>.<span class="ident">set_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">value</span>, <span class="ident">strict</span>, <span class="ident">context</span>)
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">get_outer_environment_ref</span>()
                 .<span class="ident">expect</span>(<span class="string">&quot;Environment stack underflow&quot;</span>)
                 .<span class="ident">borrow_mut</span>()
-                .<span class="ident">recursive_set_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">value</span>, <span class="ident">strict</span>)
+                .<span class="ident">recursive_set_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">value</span>, <span class="ident">strict</span>, <span class="ident">context</span>)
         }
     }
 
     <span class="doccomment">/// Initialize binding while handling outer environments</span>
-    <span class="kw">fn</span> <span class="ident">recursive_initialize_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">value</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">recursive_initialize_binding</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">value</span>: <span class="ident">Value</span>,
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_binding</span>(<span class="ident">name</span>) {
-            <span class="self">self</span>.<span class="ident">initialize_binding</span>(<span class="ident">name</span>, <span class="ident">value</span>)
+            <span class="self">self</span>.<span class="ident">initialize_binding</span>(<span class="ident">name</span>, <span class="ident">value</span>, <span class="ident">context</span>)
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">get_outer_environment_ref</span>()
                 .<span class="ident">expect</span>(<span class="string">&quot;Environment stack underflow&quot;</span>)
                 .<span class="ident">borrow_mut</span>()
-                .<span class="ident">recursive_initialize_binding</span>(<span class="ident">name</span>, <span class="ident">value</span>)
+                .<span class="ident">recursive_initialize_binding</span>(<span class="ident">name</span>, <span class="ident">value</span>, <span class="ident">context</span>)
         }
     }
 
@@ -394,16 +419,13 @@
     }
 
     <span class="doccomment">/// Retrieve binding from current or any outer environment</span>
-    <span class="kw">fn</span> <span class="ident">recursive_get_binding_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span>, <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">recursive_get_binding_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_binding</span>(<span class="ident">name</span>) {
-            <span class="self">self</span>.<span class="ident">get_binding_value</span>(<span class="ident">name</span>, <span class="bool-val">false</span>)
+            <span class="self">self</span>.<span class="ident">get_binding_value</span>(<span class="ident">name</span>, <span class="bool-val">false</span>, <span class="ident">context</span>)
         } <span class="kw">else</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_outer_environment_ref</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">outer</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">outer</span>.<span class="ident">borrow</span>().<span class="ident">recursive_get_binding_value</span>(<span class="ident">name</span>),
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">new_reference_error</span>(<span class="macro">format</span><span class="macro">!</span>(
-                    <span class="string">&quot;{} is not defined&quot;</span>,
-                    <span class="ident">name</span>
-                ))),
+                <span class="prelude-val">Some</span>(<span class="ident">outer</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">outer</span>.<span class="ident">borrow</span>().<span class="ident">recursive_get_binding_value</span>(<span class="ident">name</span>, <span class="ident">context</span>),
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">context</span>.<span class="ident">throw_reference_error</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} is not defined&quot;</span>, <span class="ident">name</span>)),
             }
         }
     }

@@ -589,10 +589,6 @@
 <span id="588">588</span>
 <span id="589">589</span>
 <span id="590">590</span>
-<span id="591">591</span>
-<span id="592">592</span>
-<span id="593">593</span>
-<span id="594">594</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `Node` structure, which composes the AST.</span>
 
@@ -938,11 +934,7 @@
             <span class="ident">Node</span>::<span class="ident">Spread</span>(<span class="kw-2">ref</span> <span class="ident">spread</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">spread</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node</span>::<span class="ident">This</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// Will either return `this` binding or undefined</span>
-                <span class="ident">context</span>
-                    .<span class="ident">realm</span>()
-                    .<span class="ident">environment</span>
-                    .<span class="ident">get_this_binding</span>()
-                    .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_error</span>(<span class="ident">context</span>))
+                <span class="ident">context</span>.<span class="ident">get_this_binding</span>()
             }
             <span class="ident">Node</span>::<span class="ident">Try</span>(<span class="kw-2">ref</span> <span class="ident">try_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">try_node</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node</span>::<span class="ident">Break</span>(<span class="kw-2">ref</span> <span class="ident">break_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">break_node</span>.<span class="ident">run</span>(<span class="ident">context</span>),

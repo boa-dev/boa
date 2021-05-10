@@ -204,6 +204,18 @@
 <span id="203">203</span>
 <span id="204">204</span>
 <span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Declarative Records</span>
 <span class="doccomment">//!</span>
@@ -212,15 +224,16 @@
 <span class="doccomment">//! A declarative Environment Record binds the set of identifiers defined by the declarations contained within its scope.</span>
 <span class="doccomment">//! More info:  [ECMA-262 sec-declarative-environment-records](https://tc39.es/ecma262/#sec-declarative-environment-records)</span>
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">ErrorKind</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">environment</span>::{
         <span class="ident">environment_record_trait</span>::<span class="ident">EnvironmentRecordTrait</span>,
         <span class="ident">lexical_environment</span>::{<span class="ident">Environment</span>, <span class="ident">EnvironmentType</span>},
     },
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
-    <span class="ident">Value</span>,
+    <span class="ident">object</span>::<span class="ident">GcObject</span>,
+    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
+<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Gc</span>, <span class="ident">GcCell</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::<span class="ident">FxHashMap</span>;
 
 <span class="doccomment">/// Declarative Bindings have a few properties for book keeping purposes, such as mutability (const vs let).</span>
@@ -240,8 +253,21 @@
 <span class="doccomment">/// declarations contained within its scope.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DeclarativeEnvironmentRecord</span> {
-    <span class="kw">pub</span> <span class="ident">env_rec</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">DeclarativeEnvironmentRecordBinding</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">env_rec</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">DeclarativeEnvironmentRecordBinding</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">outer_env</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">DeclarativeEnvironmentRecord</span> {
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">new_ret_no_self</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">env</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Environment</span> {
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;new_declarative_environment&quot;</span>, <span class="string">&quot;env&quot;</span>);
+        <span class="kw">let</span> <span class="ident">boxed_env</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">DeclarativeEnvironmentRecord</span> {
+            <span class="ident">env_rec</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
+            <span class="ident">outer_env</span>: <span class="ident">env</span>,
+        });
+
+        <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">GcCell</span>::<span class="ident">new</span>(<span class="ident">boxed_env</span>))
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">EnvironmentRecordTrait</span> <span class="kw">for</span> <span class="ident">DeclarativeEnvironmentRecord</span> {
@@ -254,17 +280,18 @@
         <span class="ident">name</span>: <span class="ident">String</span>,
         <span class="ident">deletion</span>: <span class="ident">bool</span>,
         <span class="ident">allow_name_reuse</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
+        <span class="ident">_context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="ident">allow_name_reuse</span> {
             <span class="macro">assert</span><span class="macro">!</span>(
-                <span class="op">!</span><span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>),
+                <span class="op">!</span><span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">contains_key</span>(<span class="ident">name</span>.<span class="ident">as_str</span>()),
                 <span class="string">&quot;Identifier {} has already been declared&quot;</span>,
                 <span class="ident">name</span>
             );
         }
 
         <span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">insert</span>(
-            <span class="ident">name</span>,
+            <span class="ident">name</span>.<span class="ident">into_boxed_str</span>(),
             <span class="ident">DeclarativeEnvironmentRecordBinding</span> {
                 <span class="ident">value</span>: <span class="prelude-val">None</span>,
                 <span class="ident">can_delete</span>: <span class="ident">deletion</span>,
@@ -275,15 +302,20 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">create_immutable_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">String</span>, <span class="ident">strict</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">create_immutable_binding</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">name</span>: <span class="ident">String</span>,
+        <span class="ident">strict</span>: <span class="ident">bool</span>,
+        <span class="ident">_context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">assert</span><span class="macro">!</span>(
-            <span class="op">!</span><span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>),
+            <span class="op">!</span><span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">contains_key</span>(<span class="ident">name</span>.<span class="ident">as_str</span>()),
             <span class="string">&quot;Identifier {} has already been declared&quot;</span>,
             <span class="ident">name</span>
         );
 
         <span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">insert</span>(
-            <span class="ident">name</span>,
+            <span class="ident">name</span>.<span class="ident">into_boxed_str</span>(),
             <span class="ident">DeclarativeEnvironmentRecordBinding</span> {
                 <span class="ident">value</span>: <span class="prelude-val">None</span>,
                 <span class="ident">can_delete</span>: <span class="bool-val">true</span>,
@@ -294,7 +326,12 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">initialize_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">value</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">initialize_binding</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+        <span class="ident">value</span>: <span class="ident">Value</span>,
+        <span class="ident">_context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">record</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">get_mut</span>(<span class="ident">name</span>) {
             <span class="kw">if</span> <span class="ident">record</span>.<span class="ident">value</span>.<span class="ident">is_none</span>() {
                 <span class="ident">record</span>.<span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>);
@@ -310,17 +347,15 @@
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">value</span>: <span class="ident">Value</span>,
         <span class="kw-2">mut</span> <span class="ident">strict</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">get</span>(<span class="ident">name</span>).<span class="ident">is_none</span>() {
             <span class="kw">if</span> <span class="ident">strict</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">new_reference_error</span>(<span class="macro">format</span><span class="macro">!</span>(
-                    <span class="string">&quot;{} not found&quot;</span>,
-                    <span class="ident">name</span>
-                )));
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_reference_error</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} not found&quot;</span>, <span class="ident">name</span>)));
             }
 
-            <span class="self">self</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>.<span class="ident">to_owned</span>(), <span class="bool-val">true</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-            <span class="self">self</span>.<span class="ident">initialize_binding</span>(<span class="ident">name</span>, <span class="ident">value</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>.<span class="ident">to_owned</span>(), <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">initialize_binding</span>(<span class="ident">name</span>, <span class="ident">value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
         }
 
@@ -329,15 +364,14 @@
             <span class="ident">strict</span> <span class="op">=</span> <span class="bool-val">true</span>
         }
         <span class="kw">if</span> <span class="ident">record</span>.<span class="ident">value</span>.<span class="ident">is_none</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">new_reference_error</span>(<span class="macro">format</span><span class="macro">!</span>(
-                <span class="string">&quot;{} has not been initialized&quot;</span>,
-                <span class="ident">name</span>
-            )));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(
+                <span class="ident">context</span>.<span class="ident">construct_reference_error</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} has not been initialized&quot;</span>, <span class="ident">name</span>))
+            );
         }
         <span class="kw">if</span> <span class="ident">record</span>.<span class="ident">mutable</span> {
             <span class="ident">record</span>.<span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>);
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">strict</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">new_type_error</span>(<span class="macro">format</span><span class="macro">!</span>(
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_reference_error</span>(<span class="macro">format</span><span class="macro">!</span>(
                 <span class="string">&quot;Cannot mutate an immutable binding {}&quot;</span>,
                 <span class="ident">name</span>
             )));
@@ -346,15 +380,12 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">get_binding_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">_strict</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span>, <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_binding_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">_strict</span>: <span class="ident">bool</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">binding</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">env_rec</span>.<span class="ident">get</span>(<span class="ident">name</span>) {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">val</span>) <span class="op">=</span> <span class="ident">binding</span>.<span class="ident">value</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">val</span>.<span class="ident">clone</span>())
             } <span class="kw">else</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">ErrorKind</span>::<span class="ident">new_reference_error</span>(<span class="macro">format</span><span class="macro">!</span>(
-                    <span class="string">&quot;{} is an uninitialized binding&quot;</span>,
-                    <span class="ident">name</span>
-                )))
+                <span class="ident">context</span>.<span class="ident">throw_reference_error</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} is an uninitialized binding&quot;</span>, <span class="ident">name</span>))
             }
         } <span class="kw">else</span> {
             <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Cannot get binding value for {}&quot;</span>, <span class="ident">name</span>);
@@ -379,7 +410,7 @@
         <span class="bool-val">false</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">get_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span>, <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>())
     }
 
@@ -387,8 +418,8 @@
         <span class="bool-val">false</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">with_base_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-        <span class="ident">Value</span>::<span class="ident">undefined</span>()
+    <span class="kw">fn</span> <span class="ident">with_base_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span> {
+        <span class="prelude-val">None</span>
     }
 
     <span class="kw">fn</span> <span class="ident">get_outer_environment_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Environment</span><span class="op">&gt;</span> {
@@ -401,13 +432,6 @@
 
     <span class="kw">fn</span> <span class="ident">get_environment_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EnvironmentType</span> {
         <span class="ident">EnvironmentType</span>::<span class="ident">Declarative</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">get_global_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">outer_env</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">outer</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">outer</span>.<span class="ident">borrow</span>().<span class="ident">get_global_object</span>(),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-        }
     }
 }
 </pre></div>

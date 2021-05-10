@@ -250,105 +250,6 @@
 <span id="249">249</span>
 <span id="250">250</span>
 <span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
-<span id="304">304</span>
-<span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
-<span id="319">319</span>
-<span id="320">320</span>
-<span id="321">321</span>
-<span id="322">322</span>
-<span id="323">323</span>
-<span id="324">324</span>
-<span id="325">325</span>
-<span id="326">326</span>
-<span id="327">327</span>
-<span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
-<span id="335">335</span>
-<span id="336">336</span>
-<span id="337">337</span>
-<span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
-<span id="342">342</span>
-<span id="343">343</span>
-<span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
-<span id="347">347</span>
-<span id="348">348</span>
-<span id="349">349</span>
-<span id="350">350</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Lexical Environment</span>
 <span class="doccomment">//!</span>
@@ -357,20 +258,12 @@
 <span class="doccomment">//! The following operations are used to operate upon lexical environments</span>
 <span class="doccomment">//! This is the entrypoint to lexical environments.</span>
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">ErrorKind</span>;
+<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">global_environment_record</span>::<span class="ident">GlobalEnvironmentRecord</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">environment</span>::{
-        <span class="ident">declarative_environment_record</span>::<span class="ident">DeclarativeEnvironmentRecord</span>,
-        <span class="ident">environment_record_trait</span>::<span class="ident">EnvironmentRecordTrait</span>,
-        <span class="ident">function_environment_record</span>::{<span class="ident">BindingStatus</span>, <span class="ident">FunctionEnvironmentRecord</span>},
-        <span class="ident">global_environment_record</span>::<span class="ident">GlobalEnvironmentRecord</span>,
-        <span class="ident">object_environment_record</span>::<span class="ident">ObjectEnvironmentRecord</span>,
-    },
-    <span class="ident">object</span>::<span class="ident">GcObject</span>,
-    <span class="ident">BoaProfiler</span>, <span class="ident">Value</span>,
+    <span class="ident">environment</span>::<span class="ident">environment_record_trait</span>::<span class="ident">EnvironmentRecordTrait</span>, <span class="ident">object</span>::<span class="ident">GcObject</span>, <span class="ident">BoaProfiler</span>,
+    <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
 <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Gc</span>, <span class="ident">GcCell</span>};
-<span class="kw">use</span> <span class="ident">rustc_hash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections</span>::<span class="ident">VecDeque</span>, <span class="ident">error</span>, <span class="ident">fmt</span>};
 
 <span class="doccomment">/// Environments are wrapped in a Box and then in a GC wrapper</span>
@@ -420,21 +313,12 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">for</span> <span class="ident">EnvironmentError</span> {
-    <span class="kw">fn</span> <span class="ident">description</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">details</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">cause</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">error</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="comment">// Generic error, underlying cause isn&#39;t tracked.</span>
-        <span class="prelude-val">None</span>
-    }
-}
+<span class="kw">impl</span> <span class="ident">error</span>::<span class="ident">Error</span> <span class="kw">for</span> <span class="ident">EnvironmentError</span> {}
 
 <span class="kw">impl</span> <span class="ident">LexicalEnvironment</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">global</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">global</span>: <span class="ident">GcObject</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;LexicalEnvironment::new&quot;</span>, <span class="string">&quot;env&quot;</span>);
-        <span class="kw">let</span> <span class="ident">global_env</span> <span class="op">=</span> <span class="ident">new_global_environment</span>(<span class="ident">global</span>.<span class="ident">clone</span>(), <span class="ident">global</span>);
+        <span class="kw">let</span> <span class="ident">global_env</span> <span class="op">=</span> <span class="ident">GlobalEnvironmentRecord</span>::<span class="ident">new</span>(<span class="ident">global</span>.<span class="ident">clone</span>(), <span class="ident">global</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lexical_env</span> <span class="op">=</span> <span class="self">Self</span> {
             <span class="ident">environment_stack</span>: <span class="ident">VecDeque</span>::<span class="ident">new</span>(),
         };
@@ -443,166 +327,84 @@
         <span class="ident">lexical_env</span>.<span class="ident">environment_stack</span>.<span class="ident">push_back</span>(<span class="ident">global_env</span>);
         <span class="ident">lexical_env</span>
     }
+}
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">env</span>: <span class="ident">Environment</span>) {
-        <span class="self">self</span>.<span class="ident">environment_stack</span>.<span class="ident">push_back</span>(<span class="ident">env</span>);
+<span class="kw">impl</span> <span class="ident">Context</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push_environment</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">env</span>: <span class="ident">Environment</span>) {
+        <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">environment_stack</span>.<span class="ident">push_back</span>(<span class="ident">env</span>);
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">environment_stack</span>.<span class="ident">pop_back</span>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pop_environment</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environment</span>.<span class="ident">environment_stack</span>.<span class="ident">pop_back</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_global_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_current_environment_ref</span>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_this_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">get_current_environment</span>()
             .<span class="ident">borrow</span>()
-            .<span class="ident">get_global_object</span>()
+            .<span class="ident">recursive_get_this_binding</span>(<span class="self">self</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span>, <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_current_environment_ref</span>()
-            .<span class="ident">borrow</span>()
-            .<span class="ident">recursive_get_this_binding</span>()
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_mutable_binding</span>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_mutable_binding</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">name</span>: <span class="ident">String</span>,
         <span class="ident">deletion</span>: <span class="ident">bool</span>,
         <span class="ident">scope</span>: <span class="ident">VariableScope</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">get_current_environment</span>()
             .<span class="ident">borrow_mut</span>()
-            .<span class="ident">recursive_create_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="ident">scope</span>)
+            .<span class="ident">recursive_create_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="ident">scope</span>, <span class="self">self</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_immutable_binding</span>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_immutable_binding</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">name</span>: <span class="ident">String</span>,
         <span class="ident">deletion</span>: <span class="ident">bool</span>,
         <span class="ident">scope</span>: <span class="ident">VariableScope</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">get_current_environment</span>()
             .<span class="ident">borrow_mut</span>()
-            .<span class="ident">recursive_create_immutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="ident">scope</span>)
+            .<span class="ident">recursive_create_immutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="ident">scope</span>, <span class="self">self</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_mutable_binding</span>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_mutable_binding</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">value</span>: <span class="ident">Value</span>,
         <span class="ident">strict</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">get_current_environment</span>()
             .<span class="ident">borrow_mut</span>()
-            .<span class="ident">recursive_set_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">value</span>, <span class="ident">strict</span>)
+            .<span class="ident">recursive_set_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">value</span>, <span class="ident">strict</span>, <span class="self">self</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">initialize_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">value</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">initialize_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">value</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">get_current_environment</span>()
             .<span class="ident">borrow_mut</span>()
-            .<span class="ident">recursive_initialize_binding</span>(<span class="ident">name</span>, <span class="ident">value</span>)
-    }
-
-    <span class="doccomment">/// get_current_environment_ref is used when you only need to borrow the environment</span>
-    <span class="doccomment">/// (you only need to add a new variable binding, or you want to fetch a value)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_current_environment_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">Environment</span> {
-        <span class="self">self</span>.<span class="ident">environment_stack</span>
-            .<span class="ident">back</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;Could not get current environment&quot;</span>)
+            .<span class="ident">recursive_initialize_binding</span>(<span class="ident">name</span>, <span class="ident">value</span>, <span class="self">self</span>)
     }
 
     <span class="doccomment">/// When neededing to clone an environment (linking it with another environnment)</span>
     <span class="doccomment">/// cloning is more suited. The GC will remove the env once nothing is linking to it anymore</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_current_environment</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Environment</span> {
-        <span class="self">self</span>.<span class="ident">environment_stack</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_current_environment</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Environment</span> {
+        <span class="self">self</span>.<span class="ident">realm</span>
+            .<span class="ident">environment</span>
+            .<span class="ident">environment_stack</span>
             .<span class="ident">back_mut</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;Could not get mutable reference to back object&quot;</span>)
+            .<span class="ident">clone</span>()
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">get_current_environment_ref</span>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">has_binding</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">get_current_environment</span>()
             .<span class="ident">borrow</span>()
             .<span class="ident">recursive_has_binding</span>(<span class="ident">name</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_binding_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span>, <span class="ident">ErrorKind</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_current_environment_ref</span>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_binding_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">get_current_environment</span>()
             .<span class="ident">borrow</span>()
-            .<span class="ident">recursive_get_binding_value</span>(<span class="ident">name</span>)
+            .<span class="ident">recursive_get_binding_value</span>(<span class="ident">name</span>, <span class="self">self</span>)
     }
-}
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_declarative_environment</span>(<span class="ident">env</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Environment</span> {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;new_declarative_environment&quot;</span>, <span class="string">&quot;env&quot;</span>);
-    <span class="kw">let</span> <span class="ident">boxed_env</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">DeclarativeEnvironmentRecord</span> {
-        <span class="ident">env_rec</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
-        <span class="ident">outer_env</span>: <span class="ident">env</span>,
-    });
-
-    <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">GcCell</span>::<span class="ident">new</span>(<span class="ident">boxed_env</span>))
-}
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_function_environment</span>(
-    <span class="ident">f</span>: <span class="ident">GcObject</span>,
-    <span class="ident">this</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>,
-    <span class="ident">outer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span>,
-    <span class="ident">binding_status</span>: <span class="ident">BindingStatus</span>,
-    <span class="ident">new_target</span>: <span class="ident">Value</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Environment</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">func_env</span> <span class="op">=</span> <span class="ident">FunctionEnvironmentRecord</span> {
-        <span class="ident">declarative_record</span>: <span class="ident">DeclarativeEnvironmentRecord</span> {
-            <span class="ident">env_rec</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
-            <span class="ident">outer_env</span>: <span class="ident">outer</span>, <span class="comment">// this will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects</span>
-        },
-        <span class="ident">function</span>: <span class="ident">f</span>,
-        <span class="ident">this_binding_status</span>: <span class="ident">binding_status</span>,
-        <span class="ident">home_object</span>: <span class="ident">Value</span>::<span class="ident">undefined</span>(),
-        <span class="ident">new_target</span>,
-        <span class="ident">this_value</span>: <span class="ident">Value</span>::<span class="ident">undefined</span>(),
-    };
-    <span class="comment">// If a `this` value has been passed, bind it to the environment</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">this</span> {
-        <span class="ident">func_env</span>.<span class="ident">bind_this_value</span>(<span class="ident">v</span>).<span class="ident">unwrap</span>();
-    }
-    <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">GcCell</span>::<span class="ident">new</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">func_env</span>)))
-}
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_object_environment</span>(<span class="ident">object</span>: <span class="ident">Value</span>, <span class="ident">environment</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Environment</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Environment</span> {
-    <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">GcCell</span>::<span class="ident">new</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">ObjectEnvironmentRecord</span> {
-        <span class="ident">bindings</span>: <span class="ident">object</span>,
-        <span class="ident">outer_env</span>: <span class="ident">environment</span>,
-        <span class="doccomment">/// Object Environment Records created for with statements (13.11)</span>
-        <span class="doccomment">/// can provide their binding object as an implicit this value for use in function calls.</span>
-        <span class="doccomment">/// The capability is controlled by a withEnvironment Boolean value that is associated</span>
-        <span class="doccomment">/// with each object Environment Record. By default, the value of withEnvironment is false</span>
-        <span class="doccomment">/// for any object Environment Record.</span>
-        <span class="ident">with_environment</span>: <span class="bool-val">false</span>,
-    })))
-}
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_global_environment</span>(<span class="ident">global</span>: <span class="ident">Value</span>, <span class="ident">this_value</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Environment</span> {
-    <span class="kw">let</span> <span class="ident">obj_rec</span> <span class="op">=</span> <span class="ident">ObjectEnvironmentRecord</span> {
-        <span class="ident">bindings</span>: <span class="ident">global</span>,
-        <span class="ident">outer_env</span>: <span class="prelude-val">None</span>,
-        <span class="doccomment">/// Object Environment Records created for with statements (13.11)</span>
-        <span class="doccomment">/// can provide their binding object as an implicit this value for use in function calls.</span>
-        <span class="doccomment">/// The capability is controlled by a withEnvironment Boolean value that is associated</span>
-        <span class="doccomment">/// with each object Environment Record. By default, the value of withEnvironment is false</span>
-        <span class="doccomment">/// for any object Environment Record.</span>
-        <span class="ident">with_environment</span>: <span class="bool-val">false</span>,
-    };
-
-    <span class="kw">let</span> <span class="ident">dcl_rec</span> <span class="op">=</span> <span class="ident">DeclarativeEnvironmentRecord</span> {
-        <span class="ident">env_rec</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
-        <span class="ident">outer_env</span>: <span class="prelude-val">None</span>,
-    };
-
-    <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">GcCell</span>::<span class="ident">new</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">GlobalEnvironmentRecord</span> {
-        <span class="ident">object_record</span>: <span class="ident">obj_rec</span>,
-        <span class="ident">global_this_binding</span>: <span class="ident">this_value</span>,
-        <span class="ident">declarative_record</span>: <span class="ident">dcl_rec</span>,
-        <span class="ident">var_names</span>: <span class="ident">FxHashSet</span>::<span class="ident">default</span>(),
-    })))
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>

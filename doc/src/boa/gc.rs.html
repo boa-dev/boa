@@ -9,7 +9,6 @@
 <span id="8"> 8</span>
 <span id="9"> 9</span>
 <span id="10">10</span>
-<span id="11">11</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module represents the main way to interact with the garbage collector.</span>
 
@@ -17,7 +16,6 @@
 <span class="comment">// when it should be `empty_trace`.</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">unsafe_removed_from_name</span>)]</span>
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">object</span>::<span class="ident">GcObject</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">gc</span>::{
     <span class="ident">custom_trace</span>, <span class="ident">force_collect</span>, <span class="ident">unsafe_empty_trace</span> <span class="kw">as</span> <span class="ident">empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">GcCellRef</span> <span class="kw">as</span> <span class="ident">Ref</span>,
     <span class="ident">GcCellRefMut</span> <span class="kw">as</span> <span class="ident">RefMut</span>, <span class="ident">Trace</span>,
