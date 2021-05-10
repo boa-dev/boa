@@ -95,21 +95,16 @@ impl Executable for FunctionDecl {
         // Set the name and assign it in the current environment
         val.set_field("name", self.name(), context)?;
 
-        let environment = &mut context.realm_mut().environment;
-        if environment.has_binding(self.name()) {
-            environment
-                .set_mutable_binding(self.name(), val, true)
-                .map_err(|e| e.to_error(context))?;
+        if context.has_binding(self.name()) {
+            context.set_mutable_binding(self.name(), val, true)?;
         } else {
-            environment
-                .create_mutable_binding(self.name().to_owned(), false, VariableScope::Function)
-                .map_err(|e| e.to_error(context))?;
+            context.create_mutable_binding(
+                self.name().to_owned(),
+                false,
+                VariableScope::Function,
+            )?;
 
-            context
-                .realm_mut()
-                .environment
-                .initialize_binding(self.name(), val)
-                .map_err(|e| e.to_error(context))?;
+            context.initialize_binding(self.name(), val)?;
         }
         Ok(Value::undefined())
     }

@@ -210,7 +210,7 @@ impl StandardObjects {
 #[derive(Debug)]
 pub struct Context {
     /// realm holds both the global object and the environment
-    realm: Realm,
+    pub(crate) realm: Realm,
 
     /// The current executor.
     executor: Interpreter,
@@ -268,16 +268,6 @@ impl Context {
     #[inline]
     pub fn new() -> Self {
         Default::default()
-    }
-
-    #[inline]
-    pub fn realm(&self) -> &Realm {
-        &self.realm
-    }
-
-    #[inline]
-    pub fn realm_mut(&mut self) -> &mut Realm {
-        &mut self.realm
     }
 
     #[inline]
@@ -340,8 +330,8 @@ impl Context {
 
     /// Return the global object.
     #[inline]
-    pub fn global_object(&self) -> &GcObject {
-        &self.realm().global_object
+    pub fn global_object(&self) -> GcObject {
+        self.realm.global_object.clone()
     }
 
     /// Constructs a `RangeError` with the specified message.
@@ -503,7 +493,7 @@ impl Context {
             flags,
             body: RcStatementList::from(body.into()),
             params,
-            environment: self.realm.environment.get_current_environment().clone(),
+            environment: self.get_current_environment().clone(),
         };
 
         let new_func = Object::function(func, function_prototype);
@@ -555,7 +545,7 @@ impl Context {
         body: NativeFunction,
     ) -> Result<()> {
         let function = self.create_builtin_function(name, length, body)?;
-        let mut global = self.global_object().clone();
+        let mut global = self.global_object();
         global.insert_property(name, function, Attribute::all());
         Ok(())
     }
@@ -574,10 +564,7 @@ impl Context {
     pub(crate) fn set_value(&mut self, node: &Node, value: Value) -> Result<Value> {
         match node {
             Node::Identifier(ref name) => {
-                self.realm
-                    .environment
-                    .set_mutable_binding(name.as_ref(), value.clone(), true)
-                    .map_err(|e| e.to_error(self))?;
+                self.set_mutable_binding(name.as_ref(), value.clone(), true)?;
                 Ok(value)
             }
             Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node
@@ -616,7 +603,7 @@ impl Context {
 
         let class = class_builder.build();
         let property = DataDescriptor::new(class, T::ATTRIBUTE);
-        self.global_object().clone().insert(T::NAME, property);
+        self.global_object().insert(T::NAME, property);
         Ok(())
     }
 
@@ -643,7 +630,7 @@ impl Context {
         V: Into<Value>,
     {
         let property = DataDescriptor::new(value, attribute);
-        self.global_object().clone().insert(key, property);
+        self.global_object().insert(key, property);
     }
 
     /// Evaluates the given code.

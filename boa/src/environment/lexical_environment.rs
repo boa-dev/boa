@@ -5,20 +5,12 @@
 //! The following operations are used to operate upon lexical environments
 //! This is the entrypoint to lexical environments.
 
-use super::ErrorKind;
+use super::global_environment_record::GlobalEnvironmentRecord;
 use crate::{
-    environment::{
-        declarative_environment_record::DeclarativeEnvironmentRecord,
-        environment_record_trait::EnvironmentRecordTrait,
-        function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
-        global_environment_record::GlobalEnvironmentRecord,
-        object_environment_record::ObjectEnvironmentRecord,
-    },
-    object::GcObject,
-    BoaProfiler, Value,
+    environment::environment_record_trait::EnvironmentRecordTrait, object::GcObject, BoaProfiler,
+    Context, Result, Value,
 };
 use gc::{Gc, GcCell};
-use rustc_hash::{FxHashMap, FxHashSet};
 use std::{collections::VecDeque, error, fmt};
 
 /// Environments are wrapped in a Box and then in a GC wrapper
@@ -68,21 +60,12 @@ impl fmt::Display for EnvironmentError {
     }
 }
 
-impl error::Error for EnvironmentError {
-    fn description(&self) -> &str {
-        &self.details
-    }
-
-    fn cause(&self) -> Option<&dyn error::Error> {
-        // Generic error, underlying cause isn't tracked.
-        None
-    }
-}
+impl error::Error for EnvironmentError {}
 
 impl LexicalEnvironment {
-    pub fn new(global: Value) -> Self {
+    pub fn new(global: GcObject) -> Self {
         let _timer = BoaProfiler::global().start_event("LexicalEnvironment::new", "env");
-        let global_env = new_global_environment(global.clone(), global);
+        let global_env = GlobalEnvironmentRecord::new(global.clone(), global);
         let mut lexical_env = Self {
             environment_stack: VecDeque::new(),
         };
@@ -91,166 +74,84 @@ impl LexicalEnvironment {
         lexical_env.environment_stack.push_back(global_env);
         lexical_env
     }
+}
 
-    pub fn push(&mut self, env: Environment) {
-        self.environment_stack.push_back(env);
+impl Context {
+    pub(crate) fn push_environment(&mut self, env: Environment) {
+        self.realm.environment.environment_stack.push_back(env);
     }
 
-    pub fn pop(&mut self) -> Option<Environment> {
-        self.environment_stack.pop_back()
+    pub(crate) fn pop_environment(&mut self) -> Option<Environment> {
+        self.realm.environment.environment_stack.pop_back()
     }
 
-    pub fn get_global_object(&self) -> Option<Value> {
-        self.get_current_environment_ref()
+    pub(crate) fn get_this_binding(&mut self) -> Result<Value> {
+        self.get_current_environment()
             .borrow()
-            .get_global_object()
+            .recursive_get_this_binding(self)
     }
 
-    pub fn get_this_binding(&self) -> Result<Value, ErrorKind> {
-        self.get_current_environment_ref()
-            .borrow()
-            .recursive_get_this_binding()
-    }
-
-    pub fn create_mutable_binding(
+    pub(crate) fn create_mutable_binding(
         &mut self,
         name: String,
         deletion: bool,
         scope: VariableScope,
-    ) -> Result<(), ErrorKind> {
+    ) -> Result<()> {
         self.get_current_environment()
             .borrow_mut()
-            .recursive_create_mutable_binding(name, deletion, scope)
+            .recursive_create_mutable_binding(name, deletion, scope, self)
     }
 
-    pub fn create_immutable_binding(
+    pub(crate) fn create_immutable_binding(
         &mut self,
         name: String,
         deletion: bool,
         scope: VariableScope,
-    ) -> Result<(), ErrorKind> {
+    ) -> Result<()> {
         self.get_current_environment()
             .borrow_mut()
-            .recursive_create_immutable_binding(name, deletion, scope)
+            .recursive_create_immutable_binding(name, deletion, scope, self)
     }
 
-    pub fn set_mutable_binding(
+    pub(crate) fn set_mutable_binding(
         &mut self,
         name: &str,
         value: Value,
         strict: bool,
-    ) -> Result<(), ErrorKind> {
+    ) -> Result<()> {
         self.get_current_environment()
             .borrow_mut()
-            .recursive_set_mutable_binding(name, value, strict)
+            .recursive_set_mutable_binding(name, value, strict, self)
     }
 
-    pub fn initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind> {
+    pub(crate) fn initialize_binding(&mut self, name: &str, value: Value) -> Result<()> {
         self.get_current_environment()
             .borrow_mut()
-            .recursive_initialize_binding(name, value)
-    }
-
-    /// get_current_environment_ref is used when you only need to borrow the environment
-    /// (you only need to add a new variable binding, or you want to fetch a value)
-    pub fn get_current_environment_ref(&self) -> &Environment {
-        self.environment_stack
-            .back()
-            .expect("Could not get current environment")
+            .recursive_initialize_binding(name, value, self)
     }
 
     /// When neededing to clone an environment (linking it with another environnment)
     /// cloning is more suited. The GC will remove the env once nothing is linking to it anymore
-    pub fn get_current_environment(&mut self) -> &mut Environment {
-        self.environment_stack
+    pub(crate) fn get_current_environment(&mut self) -> Environment {
+        self.realm
+            .environment
+            .environment_stack
             .back_mut()
             .expect("Could not get mutable reference to back object")
+            .clone()
     }
 
-    pub fn has_binding(&self, name: &str) -> bool {
-        self.get_current_environment_ref()
+    pub(crate) fn has_binding(&mut self, name: &str) -> bool {
+        self.get_current_environment()
             .borrow()
             .recursive_has_binding(name)
     }
 
-    pub fn get_binding_value(&self, name: &str) -> Result<Value, ErrorKind> {
-        self.get_current_environment_ref()
+    pub(crate) fn get_binding_value(&mut self, name: &str) -> Result<Value> {
+        self.get_current_environment()
             .borrow()
-            .recursive_get_binding_value(name)
+            .recursive_get_binding_value(name, self)
     }
-}
-
-pub fn new_declarative_environment(env: Option<Environment>) -> Environment {
-    let _timer = BoaProfiler::global().start_event("new_declarative_environment", "env");
-    let boxed_env = Box::new(DeclarativeEnvironmentRecord {
-        env_rec: FxHashMap::default(),
-        outer_env: env,
-    });
-
-    Gc::new(GcCell::new(boxed_env))
-}
-
-pub fn new_function_environment(
-    f: GcObject,
-    this: Option<Value>,
-    outer: Option<Environment>,
-    binding_status: BindingStatus,
-    new_target: Value,
-) -> Environment {
-    let mut func_env = FunctionEnvironmentRecord {
-        declarative_record: DeclarativeEnvironmentRecord {
-            env_rec: FxHashMap::default(),
-            outer_env: outer, // this will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
-        },
-        function: f,
-        this_binding_status: binding_status,
-        home_object: Value::undefined(),
-        new_target,
-        this_value: Value::undefined(),
-    };
-    // If a `this` value has been passed, bind it to the environment
-    if let Some(v) = this {
-        func_env.bind_this_value(v).unwrap();
-    }
-    Gc::new(GcCell::new(Box::new(func_env)))
-}
-
-pub fn new_object_environment(object: Value, environment: Option<Environment>) -> Environment {
-    Gc::new(GcCell::new(Box::new(ObjectEnvironmentRecord {
-        bindings: object,
-        outer_env: environment,
-        /// Object Environment Records created for with statements (13.11)
-        /// can provide their binding object as an implicit this value for use in function calls.
-        /// The capability is controlled by a withEnvironment Boolean value that is associated
-        /// with each object Environment Record. By default, the value of withEnvironment is false
-        /// for any object Environment Record.
-        with_environment: false,
-    })))
-}
-
-pub fn new_global_environment(global: Value, this_value: Value) -> Environment {
-    let obj_rec = ObjectEnvironmentRecord {
-        bindings: global,
-        outer_env: None,
-        /// Object Environment Records created for with statements (13.11)
-        /// can provide their binding object as an implicit this value for use in function calls.
-        /// The capability is controlled by a withEnvironment Boolean value that is associated
-        /// with each object Environment Record. By default, the value of withEnvironment is false
-        /// for any object Environment Record.
-        with_environment: false,
-    };
-
-    let dcl_rec = DeclarativeEnvironmentRecord {
-        env_rec: FxHashMap::default(),
-        outer_env: None,
-    };
-
-    Gc::new(GcCell::new(Box::new(GlobalEnvironmentRecord {
-        object_record: obj_rec,
-        global_this_binding: this_value,
-        declarative_record: dcl_rec,
-        var_names: FxHashSet::default(),
-    })))
 }
 
 #[cfg(test)]

@@ -93,7 +93,7 @@ pub fn init(context: &mut Context) {
         console::Console::init,
     ];
 
-    let global_object = context.global_object().clone();
+    let global_object = context.global_object();
 
     for init in &globals {
         let (name, value, attribute) = init(context);

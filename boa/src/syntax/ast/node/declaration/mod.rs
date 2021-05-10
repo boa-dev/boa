@@ -101,33 +101,31 @@ impl Executable for DeclarationList {
                 None => Value::undefined(),
             };
 
-            let environment = &mut context.realm_mut().environment;
-
-            if self.is_var() && environment.has_binding(decl.name()) {
+            if self.is_var() && context.has_binding(decl.name()) {
                 if decl.init().is_some() {
-                    environment
-                        .set_mutable_binding(decl.name(), val, true)
-                        .map_err(|e| e.to_error(context))?;
+                    context.set_mutable_binding(decl.name(), val, true)?;
                 }
                 continue;
             }
             match &self {
-                Const(_) => environment
-                    .create_immutable_binding(decl.name().to_owned(), false, VariableScope::Block)
-                    .map_err(|e| e.to_error(context))?,
-                Let(_) => environment
-                    .create_mutable_binding(decl.name().to_owned(), false, VariableScope::Block)
-                    .map_err(|e| e.to_error(context))?,
-                Var(_) => environment
-                    .create_mutable_binding(decl.name().to_owned(), false, VariableScope::Function)
-                    .map_err(|e| e.to_error(context))?,
+                Const(_) => context.create_immutable_binding(
+                    decl.name().to_owned(),
+                    false,
+                    VariableScope::Block,
+                )?,
+                Let(_) => context.create_mutable_binding(
+                    decl.name().to_owned(),
+                    false,
+                    VariableScope::Block,
+                )?,
+                Var(_) => context.create_mutable_binding(
+                    decl.name().to_owned(),
+                    false,
+                    VariableScope::Function,
+                )?,
             }
 
-            context
-                .realm_mut()
-                .environment
-                .initialize_binding(decl.name(), val)
-                .map_err(|e| e.to_error(context))?;
+            context.initialize_binding(decl.name(), val)?;
         }
 
         Ok(Value::undefined())

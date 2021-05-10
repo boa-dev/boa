@@ -128,10 +128,7 @@ impl Executable for TaggedTemplate {
                     obj.get_field(field.to_property_key(context)?, context)?,
                 )
             }
-            _ => (
-                context.global_object().clone().into(),
-                self.tag.run(context)?,
-            ),
+            _ => (context.global_object().into(), self.tag.run(context)?),
         };
 
         let mut args = vec![template_object];
