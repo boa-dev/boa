@@ -80,7 +80,7 @@ pub fn create_iter_result_object(context: &mut Context, value: Value, done: bool
 
 /// Get an iterator record
 pub fn get_iterator(context: &mut Context, iterable: Value) -> Result<IteratorRecord> {
-    let iterator_function = iterable.get_field(WellKnownSymbols::iterator_symbol(), context)?;
+    let iterator_function = iterable.get_field(WellKnownSymbols::iterator(), context)?;
     if iterator_function.is_null_or_undefined() {
         return Err(context.construct_type_error("Not an iterable"));
     }
@@ -101,7 +101,7 @@ pub fn get_iterator(context: &mut Context, iterable: Value) -> Result<IteratorRe
 fn create_iterator_prototype(context: &mut Context) -> GcObject {
     let _timer = BoaProfiler::global().start_event("Iterator Prototype", "init");
 
-    let symbol_iterator = WellKnownSymbols::iterator_symbol();
+    let symbol_iterator = WellKnownSymbols::iterator();
     let iterator_prototype = ObjectInitializer::new(context)
         .function(
             |v, _, _| Ok(v.clone()),

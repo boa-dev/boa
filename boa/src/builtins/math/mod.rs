@@ -34,7 +34,7 @@ impl BuiltIn for Math {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
         use std::f64;
 
-        let to_string_tag = WellKnownSymbols::to_string_tag_symbol();
+        let to_string_tag = WellKnownSymbols::to_string_tag();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         let object = ObjectInitializer::new(context)

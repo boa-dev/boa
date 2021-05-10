@@ -127,7 +127,7 @@ impl ArrayIterator {
         make_builtin_fn(Self::next, "next", &array_iterator, 0, context);
         array_iterator.set_prototype_instance(iterator_prototype);
 
-        let to_string_tag = WellKnownSymbols::to_string_tag_symbol();
+        let to_string_tag = WellKnownSymbols::to_string_tag();
         let to_string_tag_property = DataDescriptor::new("Array Iterator", Attribute::CONFIGURABLE);
         array_iterator.insert(to_string_tag, to_string_tag_property);
         array_iterator

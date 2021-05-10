@@ -43,7 +43,7 @@ impl BuiltIn for Array {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let symbol_iterator = WellKnownSymbols::iterator_symbol();
+        let symbol_iterator = WellKnownSymbols::iterator();
 
         let values_function = FunctionBuilder::new(context, Self::values)
             .name("values")

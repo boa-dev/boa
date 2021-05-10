@@ -154,7 +154,7 @@ impl Executable for BinOp {
                     }
                     CompOp::InstanceOf => {
                         if let Some(object) = y.as_object() {
-                            let key = WellKnownSymbols::has_instance_symbol();
+                            let key = WellKnownSymbols::has_instance();
 
                             match object.get_method(context, key)? {
                                 Some(instance_of_handler) => {

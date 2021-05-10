@@ -433,7 +433,7 @@ impl Object {
             };
 
             let tag = o.get(
-                &WellKnownSymbols::to_string_tag_symbol().into(),
+                &WellKnownSymbols::to_string_tag().into(),
                 o.clone().into(),
                 context,
             )?;

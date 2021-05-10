@@ -520,7 +520,7 @@ impl Value {
         // 2. If Type(input) is Object, then
         if let Value::Object(obj) = self {
             if let Some(exotic_to_prim) =
-                obj.get_method(context, WellKnownSymbols::to_primitive_symbol())?
+                obj.get_method(context, WellKnownSymbols::to_primitive())?
             {
                 let hint = match preferred_type {
                     PreferredType::String => "string",

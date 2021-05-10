@@ -29,7 +29,7 @@ impl BuiltIn for Map {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let iterator_symbol = WellKnownSymbols::iterator_symbol();
+        let iterator_symbol = WellKnownSymbols::iterator();
 
         let entries_function = FunctionBuilder::new(context, Self::entries)
             .name("entries")

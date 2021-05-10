@@ -31,7 +31,7 @@ pub use rcsymbol::RcSymbol;
 /// ```
 ///# use boa::symbol::WellKnownSymbols;
 ///
-/// let iterator = WellKnownSymbols::iterator_symbol();
+/// let iterator = WellKnownSymbols::iterator();
 /// assert_eq!(iterator.description(), Some("Symbol.iterator"));
 /// ```
 /// This is equivalent to `let iterator = Symbol.iterator` in JavaScript.
@@ -117,7 +117,7 @@ impl WellKnownSymbols {
     /// A method that returns the default AsyncIterator for an object.
     /// Called by the semantics of the `for-await-of` statement.
     #[inline]
-    pub fn async_iterator_symbol() -> RcSymbol {
+    pub fn async_iterator() -> RcSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.async_iterator.clone())
     }
 
@@ -127,7 +127,7 @@ impl WellKnownSymbols {
     /// recognizes an object as one of the `constructor`'s instances.
     /// Called by the semantics of the instanceof operator.
     #[inline]
-    pub fn has_instance_symbol() -> RcSymbol {
+    pub fn has_instance() -> RcSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.has_instance.clone())
     }
 
@@ -137,7 +137,7 @@ impl WellKnownSymbols {
     /// an object should be flattened to its array elements
     /// by `Array.prototype.concat`.
     #[inline]
-    pub fn is_concat_spreadable_symbol() -> RcSymbol {
+    pub fn is_concat_spreadable() -> RcSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.is_concat_spreadable.clone())
     }
 
@@ -146,7 +146,7 @@ impl WellKnownSymbols {
     /// A method that returns the default Iterator for an object.
     /// Called by the semantics of the `for-of` statement.
     #[inline]
-    pub fn iterator_symbol() -> RcSymbol {
+    pub fn iterator() -> RcSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.iterator.clone())
     }
 
@@ -155,7 +155,7 @@ impl WellKnownSymbols {
     /// A regular expression method that matches the regular expression
     /// against a string. Called by the `String.prototype.match` method.
     #[inline]
-    pub fn match_symbol() -> RcSymbol {
+    pub fn match_() -> RcSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.match_.clone())
     }
 
@@ -165,7 +165,7 @@ impl WellKnownSymbols {
     /// matches of the regular expression against a string.
     /// Called by the `String.prototype.matchAll` method.
     #[inline]
-    pub fn match_all_symbol() -> RcSymbol {
+    pub fn match_all() -> RcSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.match_all.clone())
     }
 
@@ -174,7 +174,7 @@ impl WellKnownSymbols {
     /// A regular expression method that replaces matched substrings
     /// of a string. Called by the `String.prototype.replace` method.
     #[inline]
-    pub fn replace_symbol() -> RcSymbol {
+    pub fn replace() -> RcSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.replace.clone())
     }
 
@@ -184,7 +184,7 @@ impl WellKnownSymbols {
     /// string that matches the regular expression.
     /// Called by the `String.prototype.search` method.
     #[inline]
-    pub fn search_symbol() -> RcSymbol {
+    pub fn search() -> RcSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.search.clone())
     }
 
@@ -193,7 +193,7 @@ impl WellKnownSymbols {
     /// A function valued property that is the `constructor` function
     /// that is used to create derived objects.
     #[inline]
-    pub fn species_symbol() -> RcSymbol {
+    pub fn species() -> RcSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.species.clone())
     }
 
@@ -203,7 +203,7 @@ impl WellKnownSymbols {
     /// that match the regular expression.
     /// Called by the `String.prototype.split` method.
     #[inline]
-    pub fn split_symbol() -> RcSymbol {
+    pub fn split() -> RcSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.split.clone())
     }
 
@@ -212,7 +212,7 @@ impl WellKnownSymbols {
     /// A method that converts an object to a corresponding primitive value.
     /// Called by the `ToPrimitive` (`Value::to_primitve`) abstract operation.
     #[inline]
-    pub fn to_primitive_symbol() -> RcSymbol {
+    pub fn to_primitive() -> RcSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.to_primitive.clone())
     }
 
@@ -222,7 +222,7 @@ impl WellKnownSymbols {
     /// string description of an object.
     /// Accessed by the built-in method `Object.prototype.toString`.
     #[inline]
-    pub fn to_string_tag_symbol() -> RcSymbol {
+    pub fn to_string_tag() -> RcSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.to_string_tag.clone())
     }
 
@@ -231,7 +231,7 @@ impl WellKnownSymbols {
     /// An object valued property whose own and inherited property names are property
     /// names that are excluded from the `with` environment bindings of the associated object.
     #[inline]
-    pub fn unscopables_symbol() -> RcSymbol {
+    pub fn unscopables() -> RcSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.unscopables.clone())
     }
 }

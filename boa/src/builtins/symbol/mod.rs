@@ -40,19 +40,19 @@ impl BuiltIn for Symbol {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let symbol_async_iterator = WellKnownSymbols::async_iterator_symbol();
-        let symbol_has_instance = WellKnownSymbols::has_instance_symbol();
-        let symbol_is_concat_spreadable = WellKnownSymbols::is_concat_spreadable_symbol();
-        let symbol_iterator = WellKnownSymbols::iterator_symbol();
-        let symbol_match = WellKnownSymbols::match_symbol();
-        let symbol_match_all = WellKnownSymbols::match_all_symbol();
-        let symbol_replace = WellKnownSymbols::replace_symbol();
-        let symbol_search = WellKnownSymbols::search_symbol();
-        let symbol_species = WellKnownSymbols::species_symbol();
-        let symbol_split = WellKnownSymbols::split_symbol();
-        let symbol_to_primitive = WellKnownSymbols::to_primitive_symbol();
-        let symbol_to_string_tag = WellKnownSymbols::to_string_tag_symbol();
-        let symbol_unscopables = WellKnownSymbols::unscopables_symbol();
+        let symbol_async_iterator = WellKnownSymbols::async_iterator();
+        let symbol_has_instance = WellKnownSymbols::has_instance();
+        let symbol_is_concat_spreadable = WellKnownSymbols::is_concat_spreadable();
+        let symbol_iterator = WellKnownSymbols::iterator();
+        let symbol_match = WellKnownSymbols::match_();
+        let symbol_match_all = WellKnownSymbols::match_all();
+        let symbol_replace = WellKnownSymbols::replace();
+        let symbol_search = WellKnownSymbols::search();
+        let symbol_species = WellKnownSymbols::species();
+        let symbol_split = WellKnownSymbols::split();
+        let symbol_to_primitive = WellKnownSymbols::to_primitive();
+        let symbol_to_string_tag = WellKnownSymbols::to_string_tag();
+        let symbol_unscopables = WellKnownSymbols::unscopables();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 

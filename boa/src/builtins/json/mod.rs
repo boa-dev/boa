@@ -41,7 +41,7 @@ impl BuiltIn for Json {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let to_string_tag = WellKnownSymbols::to_string_tag_symbol();
+        let to_string_tag = WellKnownSymbols::to_string_tag();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
