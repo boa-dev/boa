@@ -21,7 +21,10 @@ use crate::{
     gc::{Finalize, Trace},
     value::RcString,
 };
-use std::cell::Cell;
+use std::{
+    cell::Cell,
+    hash::{Hash, Hasher},
+};
 
 pub use rcsymbol::RcSymbol;
 
@@ -236,7 +239,7 @@ impl WellKnownSymbols {
     }
 }
 
-#[derive(Debug, Finalize, Trace, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Finalize, Trace, Clone, Eq, PartialOrd, Ord)]
 pub struct Symbol {
     pub(crate) hash: u64,
     pub(crate) description: Option<RcString>,
@@ -247,6 +250,8 @@ impl Symbol {
         Self { hash, description }
     }
 
+    /// Create a new symbol.
+    #[inline]
     pub fn new(description: Option<RcString>) -> Self {
         let hash = SYMBOL_HASH_COUNT.with(|count| {
             let hash = count.get();
@@ -266,5 +271,19 @@ impl Symbol {
     #[inline]
     pub fn hash(&self) -> u64 {
         self.hash
+    }
+}
+
+impl PartialEq for Symbol {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        self.hash == other.hash
+    }
+}
+
+impl Hash for Symbol {
+    #[inline]
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.hash.hash(state);
     }
 }
