@@ -21,10 +21,20 @@ use crate::{
     gc::{Finalize, Trace},
     value::RcString,
 };
+use std::cell::Cell;
 
 pub use rcsymbol::RcSymbol;
 
 /// A structure that contains the JavaScript well known symbols.
+///
+/// # Examples
+/// ```
+///# use boa::symbol::WellKnownSymbols;
+///
+/// let iterator = WellKnownSymbols::iterator_symbol();
+/// assert_eq!(iterator.description(), Some("Symbol.iterator"));
+/// ```
+/// This is equivalent to `let iterator = Symbol.iterator` in JavaScript.
 #[derive(Debug, Clone)]
 pub struct WellKnownSymbols {
     async_iterator: RcSymbol,
@@ -42,56 +52,64 @@ pub struct WellKnownSymbols {
     unscopables: RcSymbol,
 }
 
+const RESERVED_SYMBOL_HASHES: u64 = 128;
+
+thread_local! {
+    /// Cached well known symbols
+    static WELL_KNOW_SYMBOLS: WellKnownSymbols = WellKnownSymbols::new();
+
+    /// Symbol hash.
+    ///
+    /// For now this is an incremented u64 number.
+    static SYMBOL_HASH_COUNT: Cell<u64> = Cell::new(RESERVED_SYMBOL_HASHES);
+}
+
 impl WellKnownSymbols {
-    pub(crate) fn new() -> (Self, u64) {
+    fn new() -> Self {
         let mut count = 0;
 
-        let async_iterator = Symbol::new(count, Some("Symbol.asyncIterator".into())).into();
+        let async_iterator = Symbol::with_hash(count, Some("Symbol.asyncIterator".into())).into();
         count += 1;
-        let has_instance = Symbol::new(count, Some("Symbol.hasInstance".into())).into();
+        let has_instance = Symbol::with_hash(count, Some("Symbol.hasInstance".into())).into();
         count += 1;
         let is_concat_spreadable =
-            Symbol::new(count, Some("Symbol.isConcatSpreadable".into())).into();
+            Symbol::with_hash(count, Some("Symbol.isConcatSpreadable".into())).into();
         count += 1;
-        let iterator = Symbol::new(count, Some("Symbol.iterator".into())).into();
+        let iterator = Symbol::with_hash(count, Some("Symbol.iterator".into())).into();
         count += 1;
-        let match_ = Symbol::new(count, Some("Symbol.match".into())).into();
+        let match_ = Symbol::with_hash(count, Some("Symbol.match".into())).into();
         count += 1;
-        let match_all = Symbol::new(count, Some("Symbol.matchAll".into())).into();
+        let match_all = Symbol::with_hash(count, Some("Symbol.matchAll".into())).into();
         count += 1;
-        let replace = Symbol::new(count, Some("Symbol.replace".into())).into();
+        let replace = Symbol::with_hash(count, Some("Symbol.replace".into())).into();
         count += 1;
-        let search = Symbol::new(count, Some("Symbol.search".into())).into();
+        let search = Symbol::with_hash(count, Some("Symbol.search".into())).into();
         count += 1;
-        let species = Symbol::new(count, Some("Symbol.species".into())).into();
+        let species = Symbol::with_hash(count, Some("Symbol.species".into())).into();
         count += 1;
-        let split = Symbol::new(count, Some("Symbol.split".into())).into();
+        let split = Symbol::with_hash(count, Some("Symbol.split".into())).into();
         count += 1;
-        let to_primitive = Symbol::new(count, Some("Symbol.toPrimitive".into())).into();
+        let to_primitive = Symbol::with_hash(count, Some("Symbol.toPrimitive".into())).into();
         count += 1;
-        let to_string_tag = Symbol::new(count, Some("Symbol.toStringTag".into())).into();
+        let to_string_tag = Symbol::with_hash(count, Some("Symbol.toStringTag".into())).into();
         count += 1;
-        let unscopables = Symbol::new(count, Some("Symbol.unscopables".into())).into();
-        count += 1;
+        let unscopables = Symbol::with_hash(count, Some("Symbol.unscopables".into())).into();
 
-        (
-            Self {
-                async_iterator,
-                has_instance,
-                is_concat_spreadable,
-                iterator,
-                match_,
-                match_all,
-                replace,
-                search,
-                species,
-                split,
-                to_primitive,
-                to_string_tag,
-                unscopables,
-            },
-            count,
-        )
+        Self {
+            async_iterator,
+            has_instance,
+            is_concat_spreadable,
+            iterator,
+            match_,
+            match_all,
+            replace,
+            search,
+            species,
+            split,
+            to_primitive,
+            to_string_tag,
+            unscopables,
+        }
     }
 
     /// The `Symbol.asyncIterator` well known symbol.
@@ -99,8 +117,8 @@ impl WellKnownSymbols {
     /// A method that returns the default AsyncIterator for an object.
     /// Called by the semantics of the `for-await-of` statement.
     #[inline]
-    pub fn async_iterator_symbol(&self) -> RcSymbol {
-        self.async_iterator.clone()
+    pub fn async_iterator_symbol() -> RcSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.async_iterator.clone())
     }
 
     /// The `Symbol.hasInstance` well known symbol.
@@ -109,8 +127,8 @@ impl WellKnownSymbols {
     /// recognizes an object as one of the `constructor`'s instances.
     /// Called by the semantics of the instanceof operator.
     #[inline]
-    pub fn has_instance_symbol(&self) -> RcSymbol {
-        self.has_instance.clone()
+    pub fn has_instance_symbol() -> RcSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.has_instance.clone())
     }
 
     /// The `Symbol.isConcatSpreadable` well known symbol.
@@ -119,8 +137,8 @@ impl WellKnownSymbols {
     /// an object should be flattened to its array elements
     /// by `Array.prototype.concat`.
     #[inline]
-    pub fn is_concat_spreadable_symbol(&self) -> RcSymbol {
-        self.is_concat_spreadable.clone()
+    pub fn is_concat_spreadable_symbol() -> RcSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.is_concat_spreadable.clone())
     }
 
     /// The `Symbol.iterator` well known symbol.
@@ -128,8 +146,8 @@ impl WellKnownSymbols {
     /// A method that returns the default Iterator for an object.
     /// Called by the semantics of the `for-of` statement.
     #[inline]
-    pub fn iterator_symbol(&self) -> RcSymbol {
-        self.iterator.clone()
+    pub fn iterator_symbol() -> RcSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.iterator.clone())
     }
 
     /// The `Symbol.match` well known symbol.
@@ -137,8 +155,8 @@ impl WellKnownSymbols {
     /// A regular expression method that matches the regular expression
     /// against a string. Called by the `String.prototype.match` method.
     #[inline]
-    pub fn match_symbol(&self) -> RcSymbol {
-        self.match_.clone()
+    pub fn match_symbol() -> RcSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.match_.clone())
     }
 
     /// The `Symbol.matchAll` well known symbol.
@@ -147,8 +165,8 @@ impl WellKnownSymbols {
     /// matches of the regular expression against a string.
     /// Called by the `String.prototype.matchAll` method.
     #[inline]
-    pub fn match_all_symbol(&self) -> RcSymbol {
-        self.match_all.clone()
+    pub fn match_all_symbol() -> RcSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.match_all.clone())
     }
 
     /// The `Symbol.replace` well known symbol.
@@ -156,8 +174,8 @@ impl WellKnownSymbols {
     /// A regular expression method that replaces matched substrings
     /// of a string. Called by the `String.prototype.replace` method.
     #[inline]
-    pub fn replace_symbol(&self) -> RcSymbol {
-        self.replace.clone()
+    pub fn replace_symbol() -> RcSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.replace.clone())
     }
 
     /// The `Symbol.search` well known symbol.
@@ -166,8 +184,8 @@ impl WellKnownSymbols {
     /// string that matches the regular expression.
     /// Called by the `String.prototype.search` method.
     #[inline]
-    pub fn search_symbol(&self) -> RcSymbol {
-        self.search.clone()
+    pub fn search_symbol() -> RcSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.search.clone())
     }
 
     /// The `Symbol.species` well known symbol.
@@ -175,8 +193,8 @@ impl WellKnownSymbols {
     /// A function valued property that is the `constructor` function
     /// that is used to create derived objects.
     #[inline]
-    pub fn species_symbol(&self) -> RcSymbol {
-        self.species.clone()
+    pub fn species_symbol() -> RcSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.species.clone())
     }
 
     /// The `Symbol.split` well known symbol.
@@ -185,8 +203,8 @@ impl WellKnownSymbols {
     /// that match the regular expression.
     /// Called by the `String.prototype.split` method.
     #[inline]
-    pub fn split_symbol(&self) -> RcSymbol {
-        self.split.clone()
+    pub fn split_symbol() -> RcSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.split.clone())
     }
 
     /// The `Symbol.toPrimitive` well known symbol.
@@ -194,8 +212,8 @@ impl WellKnownSymbols {
     /// A method that converts an object to a corresponding primitive value.
     /// Called by the `ToPrimitive` (`Value::to_primitve`) abstract operation.
     #[inline]
-    pub fn to_primitive_symbol(&self) -> RcSymbol {
-        self.to_primitive.clone()
+    pub fn to_primitive_symbol() -> RcSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.to_primitive.clone())
     }
 
     /// The `Symbol.toStringTag` well known symbol.
@@ -204,8 +222,8 @@ impl WellKnownSymbols {
     /// string description of an object.
     /// Accessed by the built-in method `Object.prototype.toString`.
     #[inline]
-    pub fn to_string_tag_symbol(&self) -> RcSymbol {
-        self.to_string_tag.clone()
+    pub fn to_string_tag_symbol() -> RcSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.to_string_tag.clone())
     }
 
     /// The `Symbol.unscopables` well known symbol.
@@ -213,8 +231,8 @@ impl WellKnownSymbols {
     /// An object valued property whose own and inherited property names are property
     /// names that are excluded from the `with` environment bindings of the associated object.
     #[inline]
-    pub fn unscopables_symbol(&self) -> RcSymbol {
-        self.unscopables.clone()
+    pub fn unscopables_symbol() -> RcSymbol {
+        WELL_KNOW_SYMBOLS.with(|symbols| symbols.unscopables.clone())
     }
 }
 
@@ -225,7 +243,16 @@ pub struct Symbol {
 }
 
 impl Symbol {
-    pub(crate) fn new(hash: u64, description: Option<RcString>) -> Self {
+    fn with_hash(hash: u64, description: Option<RcString>) -> Self {
+        Self { hash, description }
+    }
+
+    pub fn new(description: Option<RcString>) -> Self {
+        let hash = SYMBOL_HASH_COUNT.with(|count| {
+            let hash = count.get();
+            count.set(hash + 1);
+            hash
+        });
         Self { hash, description }
     }
 

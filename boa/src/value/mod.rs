@@ -13,7 +13,7 @@ use crate::{
     },
     object::{GcObject, Object, ObjectData},
     property::{Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
-    symbol::RcSymbol,
+    symbol::{RcSymbol, WellKnownSymbols},
     BoaProfiler, Context, Result,
 };
 use gc::{Finalize, Trace};
@@ -520,7 +520,7 @@ impl Value {
         // 2. If Type(input) is Object, then
         if let Value::Object(obj) = self {
             if let Some(exotic_to_prim) =
-                obj.get_method(context, context.well_known_symbols().to_primitive_symbol())?
+                obj.get_method(context, WellKnownSymbols::to_primitive_symbol())?
             {
                 let hint = match preferred_type {
                     PreferredType::String => "string",

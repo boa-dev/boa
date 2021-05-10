@@ -21,6 +21,7 @@ use crate::{
     property::Attribute,
     property::DataDescriptor,
     property::PropertyDescriptor,
+    symbol::WellKnownSymbols,
     value::{same_value, Type, Value},
     BoaProfiler, Context, Result,
 };
@@ -432,7 +433,7 @@ impl Object {
             };
 
             let tag = o.get(
-                &context.well_known_symbols().to_string_tag_symbol().into(),
+                &WellKnownSymbols::to_string_tag_symbol().into(),
                 o.clone().into(),
                 context,
             )?;

@@ -12,8 +12,8 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math
 
 use crate::{
-    builtins::BuiltIn, object::ObjectInitializer, property::Attribute, BoaProfiler, Context,
-    Result, Value,
+    builtins::BuiltIn, object::ObjectInitializer, property::Attribute, symbol::WellKnownSymbols,
+    BoaProfiler, Context, Result, Value,
 };
 
 #[cfg(test)]
@@ -34,7 +34,7 @@ impl BuiltIn for Math {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
         use std::f64;
 
-        let to_string_tag = context.well_known_symbols().to_string_tag_symbol();
+        let to_string_tag = WellKnownSymbols::to_string_tag_symbol();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         let object = ObjectInitializer::new(context)

@@ -19,6 +19,7 @@ use crate::{
     gc::GcObject,
     object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
     property::{Attribute, DataDescriptor},
+    symbol::WellKnownSymbols,
     value::{same_value_zero, IntegerOrInfinity, Value},
     BoaProfiler, Context, Result,
 };
@@ -42,7 +43,7 @@ impl BuiltIn for Array {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let symbol_iterator = context.well_known_symbols().iterator_symbol();
+        let symbol_iterator = WellKnownSymbols::iterator_symbol();
 
         let values_function = FunctionBuilder::new(context, Self::values)
             .name("values")

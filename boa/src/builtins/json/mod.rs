@@ -13,7 +13,6 @@
 //! [json]: https://www.json.org/json-en.html
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
-use crate::object::Object;
 use crate::{
     builtins::BuiltIn,
     object::ObjectInitializer,
@@ -21,6 +20,7 @@ use crate::{
     value::IntegerOrInfinity,
     BoaProfiler, Context, Result, Value,
 };
+use crate::{object::Object, symbol::WellKnownSymbols};
 use serde::Serialize;
 use serde_json::{self, ser::PrettyFormatter, Serializer, Value as JSONValue};
 
@@ -41,7 +41,7 @@ impl BuiltIn for Json {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let to_string_tag = context.well_known_symbols().to_string_tag_symbol();
+        let to_string_tag = WellKnownSymbols::to_string_tag_symbol();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
