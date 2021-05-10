@@ -55,6 +55,10 @@ pub struct WellKnownSymbols {
     unscopables: RcSymbol,
 }
 
+/// Reserved number of symbols.
+///
+/// This is where the well known symbol live
+/// and internal engine symbols.
 const RESERVED_SYMBOL_HASHES: u64 = 128;
 
 thread_local! {
@@ -68,6 +72,7 @@ thread_local! {
 }
 
 impl WellKnownSymbols {
+    /// Create the well known symbols.
     fn new() -> Self {
         let mut count = 0;
 
@@ -246,6 +251,7 @@ pub struct Symbol {
 }
 
 impl Symbol {
+    /// Create a new symbol with a specified hash and description.
     fn with_hash(hash: u64, description: Option<RcString>) -> Self {
         Self { hash, description }
     }
@@ -268,6 +274,8 @@ impl Symbol {
     }
 
     /// Returns the `Symbol`s hash.
+    ///
+    /// The hash is guaranteed to be unique.
     #[inline]
     pub fn hash(&self) -> u64 {
         self.hash
