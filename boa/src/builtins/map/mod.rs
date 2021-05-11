@@ -74,7 +74,8 @@ impl Map {
         context: &mut Context,
     ) -> Result<Value> {
         if new_target.is_undefined() {
-            return context.throw_type_error("Constructor Map requires 'new'");
+            return context
+                .throw_type_error("calling a builtin Map constructor without new is forbidden");
         }
         let map_prototype = context
             .global_object()

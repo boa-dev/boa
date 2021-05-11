@@ -95,18 +95,14 @@ impl Set {
     ) -> Result<Value> {
         // 1
         if new_target.is_undefined() {
-            return context.throw_type_error("Constructor Set requires 'new'");
+            return context
+                .throw_type_error("calling a builtin Set constructor without new is forbidden");
         }
 
         // 2
         let set_prototype = context
             .global_object()
-            .clone()
-            .get(
-                &"Set".into(),
-                context.global_object().clone().into(),
-                context,
-            )?
+            .get(&"Set".into(), context.global_object().into(), context)?
             .get_field(PROTOTYPE, context)?
             .as_object()
             .expect("'Set' global property should be an object");
@@ -304,7 +300,7 @@ impl Set {
         let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
         // TODO: if condition should also check that we are not in strict mode
         let this_arg = if this_arg.is_undefined() {
-            Value::Object(context.global_object().clone())
+            Value::Object(context.global_object())
         } else {
             this_arg
         };
@@ -315,11 +311,8 @@ impl Set {
             let arguments = if let Value::Object(ref object) = this {
                 let object = object.borrow();
                 if let Some(set) = object.as_set_ref() {
-                    if let Some(value) = set.get_index(index) {
-                        Some([value.clone(), value.clone(), this.clone()])
-                    } else {
-                        None
-                    }
+                    set.get_index(index)
+                        .map(|value| [value.clone(), value.clone(), this.clone()])
                 } else {
                     return context.throw_type_error("'this' is not a Set");
                 }

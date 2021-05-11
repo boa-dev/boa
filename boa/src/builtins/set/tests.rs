@@ -243,6 +243,6 @@ fn not_a_function() {
     ";
     assert_eq!(
         forward(&mut context, init),
-        "\"TypeError: Constructor Set requires 'new'\""
+        "\"TypeError: calling a builtin Set constructor without new is forbidden\""
     );
 }
