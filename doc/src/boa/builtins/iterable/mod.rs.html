@@ -169,6 +169,7 @@
     <span class="ident">builtins</span>::<span class="ident">MapIterator</span>,
     <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">ObjectInitializer</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>},
+    <span class="ident">symbol</span>::<span class="ident">WellKnownSymbols</span>,
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
 
@@ -243,8 +244,7 @@
 
 <span class="doccomment">/// Get an iterator record</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_iterator</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">iterable</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IteratorRecord</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">iterator_function</span> <span class="op">=</span>
-        <span class="ident">iterable</span>.<span class="ident">get_field</span>(<span class="ident">context</span>.<span class="ident">well_known_symbols</span>().<span class="ident">iterator_symbol</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">iterator_function</span> <span class="op">=</span> <span class="ident">iterable</span>.<span class="ident">get_field</span>(<span class="ident">WellKnownSymbols</span>::<span class="ident">iterator</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">iterator_function</span>.<span class="ident">is_null_or_undefined</span>() {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Not an iterable&quot;</span>));
     }
@@ -265,7 +265,7 @@
 <span class="kw">fn</span> <span class="ident">create_iterator_prototype</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
     <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Iterator Prototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
-    <span class="kw">let</span> <span class="ident">symbol_iterator</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">well_known_symbols</span>().<span class="ident">iterator_symbol</span>();
+    <span class="kw">let</span> <span class="ident">symbol_iterator</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">iterator</span>();
     <span class="kw">let</span> <span class="ident">iterator_prototype</span> <span class="op">=</span> <span class="ident">ObjectInitializer</span>::<span class="ident">new</span>(<span class="ident">context</span>)
         .<span class="ident">function</span>(
             <span class="op">|</span><span class="ident">v</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>.<span class="ident">clone</span>()),

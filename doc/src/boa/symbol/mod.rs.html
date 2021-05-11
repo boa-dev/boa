@@ -242,6 +242,60 @@
 <span id="241">241</span>
 <span id="242">242</span>
 <span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Symbol` object.</span>
 <span class="doccomment">//!</span>
@@ -266,10 +320,23 @@
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">value</span>::<span class="ident">RcString</span>,
 };
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">cell</span>::<span class="ident">Cell</span>,
+    <span class="ident">hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>},
+};
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">rcsymbol</span>::<span class="ident">RcSymbol</span>;
 
 <span class="doccomment">/// A structure that contains the JavaScript well known symbols.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Examples</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///# use boa::symbol::WellKnownSymbols;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let iterator = WellKnownSymbols::iterator();</span>
+<span class="doccomment">/// assert_eq!(iterator.description(), Some(&quot;Symbol.iterator&quot;));</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// This is equivalent to `let iterator = Symbol.iterator` in JavaScript.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WellKnownSymbols</span> {
     <span class="ident">async_iterator</span>: <span class="ident">RcSymbol</span>,
@@ -287,56 +354,69 @@
     <span class="ident">unscopables</span>: <span class="ident">RcSymbol</span>,
 }
 
+<span class="doccomment">/// Reserved number of symbols.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This is where the well known symbol live</span>
+<span class="doccomment">/// and internal engine symbols.</span>
+<span class="kw">const</span> <span class="ident">RESERVED_SYMBOL_HASHES</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">128</span>;
+
+<span class="macro">thread_local</span><span class="macro">!</span> {
+    <span class="doccomment">/// Cached well known symbols</span>
+    <span class="kw">static</span> <span class="ident">WELL_KNOW_SYMBOLS</span>: <span class="ident">WellKnownSymbols</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">new</span>();
+
+    <span class="doccomment">/// Symbol hash.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// For now this is an incremented u64 number.</span>
+    <span class="kw">static</span> <span class="ident">SYMBOL_HASH_COUNT</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Cell</span>::<span class="ident">new</span>(<span class="ident">RESERVED_SYMBOL_HASHES</span>);
+}
+
 <span class="kw">impl</span> <span class="ident">WellKnownSymbols</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="ident">u64</span>) {
+    <span class="doccomment">/// Create the well known symbols.</span>
+    <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
 
-        <span class="kw">let</span> <span class="ident">async_iterator</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.asyncIterator&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">async_iterator</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.asyncIterator&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
         <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">has_instance</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.hasInstance&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">has_instance</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.hasInstance&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
         <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">is_concat_spreadable</span> <span class="op">=</span>
-            <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.isConcatSpreadable&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
+            <span class="ident">Symbol</span>::<span class="ident">with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.isConcatSpreadable&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
         <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.iterator&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.iterator&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
         <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">match_</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.match&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">match_</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.match&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
         <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">match_all</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.matchAll&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">match_all</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.matchAll&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
         <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">replace</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.replace&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">replace</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.replace&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
         <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">search</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.search&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">search</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.search&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
         <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">species</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.species&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">species</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.species&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
         <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">split</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.split&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">split</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.split&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
         <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">to_primitive</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.toPrimitive&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">to_primitive</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.toPrimitive&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
         <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">to_string_tag</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.toStringTag&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">to_string_tag</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.toStringTag&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
         <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">unscopables</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">new</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.unscopables&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
-        <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="kw">let</span> <span class="ident">unscopables</span> <span class="op">=</span> <span class="ident">Symbol</span>::<span class="ident">with_hash</span>(<span class="ident">count</span>, <span class="prelude-val">Some</span>(<span class="string">&quot;Symbol.unscopables&quot;</span>.<span class="ident">into</span>())).<span class="ident">into</span>();
 
-        (
-            <span class="self">Self</span> {
-                <span class="ident">async_iterator</span>,
-                <span class="ident">has_instance</span>,
-                <span class="ident">is_concat_spreadable</span>,
-                <span class="ident">iterator</span>,
-                <span class="ident">match_</span>,
-                <span class="ident">match_all</span>,
-                <span class="ident">replace</span>,
-                <span class="ident">search</span>,
-                <span class="ident">species</span>,
-                <span class="ident">split</span>,
-                <span class="ident">to_primitive</span>,
-                <span class="ident">to_string_tag</span>,
-                <span class="ident">unscopables</span>,
-            },
-            <span class="ident">count</span>,
-        )
+        <span class="self">Self</span> {
+            <span class="ident">async_iterator</span>,
+            <span class="ident">has_instance</span>,
+            <span class="ident">is_concat_spreadable</span>,
+            <span class="ident">iterator</span>,
+            <span class="ident">match_</span>,
+            <span class="ident">match_all</span>,
+            <span class="ident">replace</span>,
+            <span class="ident">search</span>,
+            <span class="ident">species</span>,
+            <span class="ident">split</span>,
+            <span class="ident">to_primitive</span>,
+            <span class="ident">to_string_tag</span>,
+            <span class="ident">unscopables</span>,
+        }
     }
 
     <span class="doccomment">/// The `Symbol.asyncIterator` well known symbol.</span>
@@ -344,8 +424,8 @@
     <span class="doccomment">/// A method that returns the default AsyncIterator for an object.</span>
     <span class="doccomment">/// Called by the semantics of the `for-await-of` statement.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">async_iterator_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
-        <span class="self">self</span>.<span class="ident">async_iterator</span>.<span class="ident">clone</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">async_iterator</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">async_iterator</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// The `Symbol.hasInstance` well known symbol.</span>
@@ -354,8 +434,8 @@
     <span class="doccomment">/// recognizes an object as one of the `constructor`&#39;s instances.</span>
     <span class="doccomment">/// Called by the semantics of the instanceof operator.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_instance_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
-        <span class="self">self</span>.<span class="ident">has_instance</span>.<span class="ident">clone</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_instance</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">has_instance</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// The `Symbol.isConcatSpreadable` well known symbol.</span>
@@ -364,8 +444,8 @@
     <span class="doccomment">/// an object should be flattened to its array elements</span>
     <span class="doccomment">/// by `Array.prototype.concat`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_concat_spreadable_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
-        <span class="self">self</span>.<span class="ident">is_concat_spreadable</span>.<span class="ident">clone</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_concat_spreadable</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">is_concat_spreadable</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// The `Symbol.iterator` well known symbol.</span>
@@ -373,8 +453,8 @@
     <span class="doccomment">/// A method that returns the default Iterator for an object.</span>
     <span class="doccomment">/// Called by the semantics of the `for-of` statement.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iterator_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
-        <span class="self">self</span>.<span class="ident">iterator</span>.<span class="ident">clone</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iterator</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">iterator</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// The `Symbol.match` well known symbol.</span>
@@ -382,8 +462,8 @@
     <span class="doccomment">/// A regular expression method that matches the regular expression</span>
     <span class="doccomment">/// against a string. Called by the `String.prototype.match` method.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
-        <span class="self">self</span>.<span class="ident">match_</span>.<span class="ident">clone</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">match_</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// The `Symbol.matchAll` well known symbol.</span>
@@ -392,8 +472,8 @@
     <span class="doccomment">/// matches of the regular expression against a string.</span>
     <span class="doccomment">/// Called by the `String.prototype.matchAll` method.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_all_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
-        <span class="self">self</span>.<span class="ident">match_all</span>.<span class="ident">clone</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_all</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">match_all</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// The `Symbol.replace` well known symbol.</span>
@@ -401,8 +481,8 @@
     <span class="doccomment">/// A regular expression method that replaces matched substrings</span>
     <span class="doccomment">/// of a string. Called by the `String.prototype.replace` method.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
-        <span class="self">self</span>.<span class="ident">replace</span>.<span class="ident">clone</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">replace</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// The `Symbol.search` well known symbol.</span>
@@ -411,8 +491,8 @@
     <span class="doccomment">/// string that matches the regular expression.</span>
     <span class="doccomment">/// Called by the `String.prototype.search` method.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">search_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
-        <span class="self">self</span>.<span class="ident">search</span>.<span class="ident">clone</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">search</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">search</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// The `Symbol.species` well known symbol.</span>
@@ -420,8 +500,8 @@
     <span class="doccomment">/// A function valued property that is the `constructor` function</span>
     <span class="doccomment">/// that is used to create derived objects.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">species_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
-        <span class="self">self</span>.<span class="ident">species</span>.<span class="ident">clone</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">species</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">species</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// The `Symbol.split` well known symbol.</span>
@@ -430,8 +510,8 @@
     <span class="doccomment">/// that match the regular expression.</span>
     <span class="doccomment">/// Called by the `String.prototype.split` method.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
-        <span class="self">self</span>.<span class="ident">split</span>.<span class="ident">clone</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">split</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// The `Symbol.toPrimitive` well known symbol.</span>
@@ -439,8 +519,8 @@
     <span class="doccomment">/// A method that converts an object to a corresponding primitive value.</span>
     <span class="doccomment">/// Called by the `ToPrimitive` (`Value::to_primitve`) abstract operation.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_primitive_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
-        <span class="self">self</span>.<span class="ident">to_primitive</span>.<span class="ident">clone</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_primitive</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">to_primitive</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// The `Symbol.toStringTag` well known symbol.</span>
@@ -449,8 +529,8 @@
     <span class="doccomment">/// string description of an object.</span>
     <span class="doccomment">/// Accessed by the built-in method `Object.prototype.toString`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string_tag_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
-        <span class="self">self</span>.<span class="ident">to_string_tag</span>.<span class="ident">clone</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string_tag</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">to_string_tag</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// The `Symbol.unscopables` well known symbol.</span>
@@ -458,19 +538,31 @@
     <span class="doccomment">/// An object valued property whose own and inherited property names are property</span>
     <span class="doccomment">/// names that are excluded from the `with` environment bindings of the associated object.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unscopables_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
-        <span class="self">self</span>.<span class="ident">unscopables</span>.<span class="ident">clone</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unscopables</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">RcSymbol</span> {
+        <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">unscopables</span>.<span class="ident">clone</span>())
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Symbol</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">hash</span>: <span class="ident">u64</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">description</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RcString</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Symbol</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">hash</span>: <span class="ident">u64</span>, <span class="ident">description</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RcString</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="doccomment">/// Create a new symbol with a specified hash and description.</span>
+    <span class="kw">fn</span> <span class="ident">with_hash</span>(<span class="ident">hash</span>: <span class="ident">u64</span>, <span class="ident">description</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RcString</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span> { <span class="ident">hash</span>, <span class="ident">description</span> }
+    }
+
+    <span class="doccomment">/// Create a new symbol.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">description</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RcString</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">SYMBOL_HASH_COUNT</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">count</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">count</span>.<span class="ident">get</span>();
+            <span class="ident">count</span>.<span class="ident">set</span>(<span class="ident">hash</span> <span class="op">+</span> <span class="number">1</span>);
+            <span class="ident">hash</span>
+        });
         <span class="self">Self</span> { <span class="ident">hash</span>, <span class="ident">description</span> }
     }
 
@@ -481,9 +573,25 @@
     }
 
     <span class="doccomment">/// Returns the `Symbol`s hash.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The hash is guaranteed to be unique.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
         <span class="self">self</span>.<span class="ident">hash</span>
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Symbol</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">hash</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">hash</span>
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Symbol</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) {
+        <span class="self">self</span>.<span class="ident">hash</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
     }
 }
 </pre></div>

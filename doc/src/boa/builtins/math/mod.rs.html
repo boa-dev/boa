@@ -717,8 +717,8 @@
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::<span class="ident">BuiltIn</span>, <span class="ident">object</span>::<span class="ident">ObjectInitializer</span>, <span class="ident">property</span>::<span class="ident">Attribute</span>, <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>,
-    <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
+    <span class="ident">builtins</span>::<span class="ident">BuiltIn</span>, <span class="ident">object</span>::<span class="ident">ObjectInitializer</span>, <span class="ident">property</span>::<span class="ident">Attribute</span>, <span class="ident">symbol</span>::<span class="ident">WellKnownSymbols</span>,
+    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -739,7 +739,7 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="string">&quot;init&quot;</span>);
         <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">f64</span>;
 
-        <span class="kw">let</span> <span class="ident">to_string_tag</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">well_known_symbols</span>().<span class="ident">to_string_tag_symbol</span>();
+        <span class="kw">let</span> <span class="ident">to_string_tag</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">to_string_tag</span>();
 
         <span class="kw">let</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">Attribute</span>::<span class="ident">READONLY</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">PERMANENT</span>;
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">ObjectInitializer</span>::<span class="ident">new</span>(<span class="ident">context</span>)

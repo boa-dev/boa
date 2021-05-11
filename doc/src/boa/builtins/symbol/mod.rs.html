@@ -183,9 +183,6 @@
 <span id="182">182</span>
 <span id="183">183</span>
 <span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Symbol` object.</span>
 <span class="doccomment">//!</span>
@@ -211,7 +208,7 @@
     <span class="ident">builtins</span>::<span class="ident">BuiltIn</span>,
     <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>},
     <span class="ident">property</span>::<span class="ident">Attribute</span>,
-    <span class="ident">symbol</span>::<span class="ident">RcSymbol</span>,
+    <span class="ident">symbol</span>::{<span class="ident">RcSymbol</span>, <span class="ident">WellKnownSymbols</span>},
     <span class="ident">value</span>::<span class="ident">Value</span>,
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>,
 };
@@ -229,22 +226,19 @@
     <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">Value</span>, <span class="ident">Attribute</span>) {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="string">&quot;init&quot;</span>);
 
-        <span class="comment">// https://tc39.es/ecma262/#sec-well-known-symbols</span>
-        <span class="kw">let</span> <span class="ident">well_known_symbols</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">well_known_symbols</span>();
-
-        <span class="kw">let</span> <span class="ident">symbol_async_iterator</span> <span class="op">=</span> <span class="ident">well_known_symbols</span>.<span class="ident">async_iterator_symbol</span>();
-        <span class="kw">let</span> <span class="ident">symbol_has_instance</span> <span class="op">=</span> <span class="ident">well_known_symbols</span>.<span class="ident">has_instance_symbol</span>();
-        <span class="kw">let</span> <span class="ident">symbol_is_concat_spreadable</span> <span class="op">=</span> <span class="ident">well_known_symbols</span>.<span class="ident">is_concat_spreadable_symbol</span>();
-        <span class="kw">let</span> <span class="ident">symbol_iterator</span> <span class="op">=</span> <span class="ident">well_known_symbols</span>.<span class="ident">iterator_symbol</span>();
-        <span class="kw">let</span> <span class="ident">symbol_match</span> <span class="op">=</span> <span class="ident">well_known_symbols</span>.<span class="ident">match_symbol</span>();
-        <span class="kw">let</span> <span class="ident">symbol_match_all</span> <span class="op">=</span> <span class="ident">well_known_symbols</span>.<span class="ident">match_all_symbol</span>();
-        <span class="kw">let</span> <span class="ident">symbol_replace</span> <span class="op">=</span> <span class="ident">well_known_symbols</span>.<span class="ident">replace_symbol</span>();
-        <span class="kw">let</span> <span class="ident">symbol_search</span> <span class="op">=</span> <span class="ident">well_known_symbols</span>.<span class="ident">search_symbol</span>();
-        <span class="kw">let</span> <span class="ident">symbol_species</span> <span class="op">=</span> <span class="ident">well_known_symbols</span>.<span class="ident">species_symbol</span>();
-        <span class="kw">let</span> <span class="ident">symbol_split</span> <span class="op">=</span> <span class="ident">well_known_symbols</span>.<span class="ident">split_symbol</span>();
-        <span class="kw">let</span> <span class="ident">symbol_to_primitive</span> <span class="op">=</span> <span class="ident">well_known_symbols</span>.<span class="ident">to_primitive_symbol</span>();
-        <span class="kw">let</span> <span class="ident">symbol_to_string_tag</span> <span class="op">=</span> <span class="ident">well_known_symbols</span>.<span class="ident">to_string_tag_symbol</span>();
-        <span class="kw">let</span> <span class="ident">symbol_unscopables</span> <span class="op">=</span> <span class="ident">well_known_symbols</span>.<span class="ident">unscopables_symbol</span>();
+        <span class="kw">let</span> <span class="ident">symbol_async_iterator</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">async_iterator</span>();
+        <span class="kw">let</span> <span class="ident">symbol_has_instance</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">has_instance</span>();
+        <span class="kw">let</span> <span class="ident">symbol_is_concat_spreadable</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">is_concat_spreadable</span>();
+        <span class="kw">let</span> <span class="ident">symbol_iterator</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">iterator</span>();
+        <span class="kw">let</span> <span class="ident">symbol_match</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">match_</span>();
+        <span class="kw">let</span> <span class="ident">symbol_match_all</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">match_all</span>();
+        <span class="kw">let</span> <span class="ident">symbol_replace</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">replace</span>();
+        <span class="kw">let</span> <span class="ident">symbol_search</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">search</span>();
+        <span class="kw">let</span> <span class="ident">symbol_species</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">species</span>();
+        <span class="kw">let</span> <span class="ident">symbol_split</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">split</span>();
+        <span class="kw">let</span> <span class="ident">symbol_to_primitive</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">to_primitive</span>();
+        <span class="kw">let</span> <span class="ident">symbol_to_string_tag</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">to_string_tag</span>();
+        <span class="kw">let</span> <span class="ident">symbol_unscopables</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">unscopables</span>();
 
         <span class="kw">let</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">Attribute</span>::<span class="ident">READONLY</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">PERMANENT</span>;
 

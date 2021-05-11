@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["rcsymbol",""]],"struct":[["RcSymbol",""],["Symbol",""],["WellKnownSymbols","A structure that contains the JavaScript well known symbols."]]});
+initSidebarItems({"constant":[["RESERVED_SYMBOL_HASHES","Reserved number of symbols."],["SYMBOL_HASH_COUNT","Symbol hash."],["WELL_KNOW_SYMBOLS","Cached well known symbols"]],"mod":[["rcsymbol",""]],"struct":[["RcSymbol",""],["Symbol",""],["WellKnownSymbols","A structure that contains the JavaScript well known symbols."]]});
