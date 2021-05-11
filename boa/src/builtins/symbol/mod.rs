@@ -22,7 +22,7 @@ use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, FunctionBuilder},
     property::Attribute,
-    symbol::RcSymbol,
+    symbol::{RcSymbol, WellKnownSymbols},
     value::Value,
     BoaProfiler, Context, Result,
 };
@@ -40,22 +40,19 @@ impl BuiltIn for Symbol {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        // https://tc39.es/ecma262/#sec-well-known-symbols
-        let well_known_symbols = context.well_known_symbols();
-
-        let symbol_async_iterator = well_known_symbols.async_iterator_symbol();
-        let symbol_has_instance = well_known_symbols.has_instance_symbol();
-        let symbol_is_concat_spreadable = well_known_symbols.is_concat_spreadable_symbol();
-        let symbol_iterator = well_known_symbols.iterator_symbol();
-        let symbol_match = well_known_symbols.match_symbol();
-        let symbol_match_all = well_known_symbols.match_all_symbol();
-        let symbol_replace = well_known_symbols.replace_symbol();
-        let symbol_search = well_known_symbols.search_symbol();
-        let symbol_species = well_known_symbols.species_symbol();
-        let symbol_split = well_known_symbols.split_symbol();
-        let symbol_to_primitive = well_known_symbols.to_primitive_symbol();
-        let symbol_to_string_tag = well_known_symbols.to_string_tag_symbol();
-        let symbol_unscopables = well_known_symbols.unscopables_symbol();
+        let symbol_async_iterator = WellKnownSymbols::async_iterator();
+        let symbol_has_instance = WellKnownSymbols::has_instance();
+        let symbol_is_concat_spreadable = WellKnownSymbols::is_concat_spreadable();
+        let symbol_iterator = WellKnownSymbols::iterator();
+        let symbol_match = WellKnownSymbols::match_();
+        let symbol_match_all = WellKnownSymbols::match_all();
+        let symbol_replace = WellKnownSymbols::replace();
+        let symbol_search = WellKnownSymbols::search();
+        let symbol_species = WellKnownSymbols::species();
+        let symbol_split = WellKnownSymbols::split();
+        let symbol_to_primitive = WellKnownSymbols::to_primitive();
+        let symbol_to_string_tag = WellKnownSymbols::to_string_tag();
+        let symbol_unscopables = WellKnownSymbols::unscopables();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 

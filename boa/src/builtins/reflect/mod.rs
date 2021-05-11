@@ -14,6 +14,7 @@ use crate::{
     builtins::{self, BuiltIn},
     object::{Object, ObjectData, ObjectInitializer},
     property::{Attribute, DataDescriptor},
+    symbol::WellKnownSymbols,
     BoaProfiler, Context, Result, Value,
 };
 
@@ -34,7 +35,7 @@ impl BuiltIn for Reflect {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let to_string_tag = context.well_known_symbols().to_string_tag_symbol();
+        let to_string_tag = WellKnownSymbols::to_string_tag();
 
         let object = ObjectInitializer::new(context)
             .function(Self::apply, "apply", 3)

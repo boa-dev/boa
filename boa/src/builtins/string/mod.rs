@@ -20,6 +20,7 @@ use crate::{
     builtins::{string::string_iterator::StringIterator, Array, BuiltIn, RegExp},
     object::{ConstructorBuilder, Object, ObjectData},
     property::Attribute,
+    symbol::WellKnownSymbols,
     value::{RcString, Value},
     BoaProfiler, Context, Result,
 };
@@ -94,7 +95,7 @@ impl BuiltIn for String {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let symbol_iterator = context.well_known_symbols().iterator_symbol();
+        let symbol_iterator = WellKnownSymbols::iterator();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         let string_object = ConstructorBuilder::with_standard_object(
@@ -1215,7 +1216,7 @@ impl String {
         if let Some(result) = separator
             .and_then(|separator| separator.as_object())
             .and_then(|separator| {
-                let key = context.well_known_symbols().split_symbol();
+                let key = WellKnownSymbols::split();
 
                 match separator.get_method(context, key) {
                     Ok(splitter) => splitter.map(|splitter| {

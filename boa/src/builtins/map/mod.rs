@@ -4,6 +4,7 @@ use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
     property::{Attribute, DataDescriptor},
+    symbol::WellKnownSymbols,
     BoaProfiler, Context, Result, Value,
 };
 use ordered_map::OrderedMap;
@@ -28,7 +29,7 @@ impl BuiltIn for Map {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let iterator_symbol = context.well_known_symbols().iterator_symbol();
+        let iterator_symbol = WellKnownSymbols::iterator();
 
         let entries_function = FunctionBuilder::new(context, Self::entries)
             .name("entries")
