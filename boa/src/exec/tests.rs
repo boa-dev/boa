@@ -992,7 +992,7 @@ fn to_int32() {
         ($from:expr => $to:expr) => {
             assert_eq!(Value::from($from).to_i32(&mut context).unwrap(), $to);
         };
-    };
+    }
 
     check_to_int32!(f64::NAN => 0);
     check_to_int32!(f64::NEG_INFINITY => 0);
@@ -1518,4 +1518,14 @@ fn test_strict_mode_dup_func_parameters() {
     let string = dbg!(forward(&mut context, scenario));
 
     assert!(string.starts_with("Uncaught \"SyntaxError\": "));
+}
+
+#[test]
+fn test_empty_statement() {
+    let src = r#"
+        ;;;let a = 10;;
+        if(a) ;
+        a
+    "#;
+    assert_eq!(&exec(src), "10");
 }

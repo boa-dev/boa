@@ -17,7 +17,8 @@
 use crate::{
     gc::{Finalize, Trace},
     object::GcObject,
-    value::{RcString, RcSymbol, Value},
+    symbol::RcSymbol,
+    value::{RcString, Value},
 };
 use std::{convert::TryFrom, fmt};
 

@@ -5,13 +5,13 @@ use crate::{
         self,
         function::{Function, FunctionFlags, NativeFunction},
         iterable::IteratorPrototypes,
-        symbol::{Symbol, WellKnownSymbols},
     },
     class::{Class, ClassBuilder},
     exec::Interpreter,
-    object::{GcObject, Object, ObjectData, PROTOTYPE},
+    object::{GcObject, Object, PROTOTYPE},
     property::{Attribute, DataDescriptor, PropertyKey},
     realm::Realm,
+    symbol::{RcSymbol, Symbol, WellKnownSymbols},
     syntax::{
         ast::{
             node::{
@@ -22,10 +22,9 @@ use crate::{
         },
         Parser,
     },
-    value::{RcString, RcSymbol, Value},
+    value::{RcString, Value},
     BoaProfiler, Executable, Result,
 };
-use std::result::Result as StdResult;
 
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;
@@ -211,7 +210,7 @@ impl StandardObjects {
 #[derive(Debug)]
 pub struct Context {
     /// realm holds both the global object and the environment
-    realm: Realm,
+    pub(crate) realm: Realm,
 
     /// The current executor.
     executor: Interpreter,
@@ -269,16 +268,6 @@ impl Context {
     #[inline]
     pub fn new() -> Self {
         Default::default()
-    }
-
-    #[inline]
-    pub fn realm(&self) -> &Realm {
-        &self.realm
-    }
-
-    #[inline]
-    pub fn realm_mut(&mut self) -> &mut Realm {
-        &mut self.realm
     }
 
     #[inline]
@@ -341,8 +330,8 @@ impl Context {
 
     /// Return the global object.
     #[inline]
-    pub fn global_object(&self) -> &GcObject {
-        &self.realm().global_object
+    pub fn global_object(&self) -> GcObject {
+        self.realm.global_object.clone()
     }
 
     /// Constructs a `RangeError` with the specified message.
@@ -504,7 +493,7 @@ impl Context {
             flags,
             body: RcStatementList::from(body.into()),
             params,
-            environment: self.realm.environment.get_current_environment().clone(),
+            environment: self.get_current_environment().clone(),
         };
 
         let new_func = Object::function(func, function_prototype);
@@ -556,56 +545,9 @@ impl Context {
         body: NativeFunction,
     ) -> Result<()> {
         let function = self.create_builtin_function(name, length, body)?;
-        let mut global = self.global_object().clone();
+        let mut global = self.global_object();
         global.insert_property(name, function, Attribute::all());
         Ok(())
-    }
-
-    /// Converts an array object into a rust vector of values.
-    ///
-    /// This is useful for the spread operator, for any other object an `Err` is returned
-    /// TODO: Not needed for spread of arrays. Check in the future for Map and remove if necessary
-    pub(crate) fn extract_array_properties(
-        &mut self,
-        value: &Value,
-    ) -> Result<StdResult<Vec<Value>, ()>> {
-        if let Value::Object(ref x) = value {
-            // Check if object is array
-            if let ObjectData::Array = x.borrow().data {
-                let length = value.get_field("length", self)?.as_number().unwrap() as i32;
-                let values = (0..length)
-                    .map(|idx| value.get_field(idx, self))
-                    .collect::<Result<Vec<_>>>()?;
-                return Ok(Ok(values));
-            }
-            // Check if object is a Map
-            else if let ObjectData::Map(ref map) = x.borrow().data {
-                let values = map
-                    .iter()
-                    .map(|(key, value)| {
-                        // Construct a new array containing the key-value pair
-                        let array = Value::new_object(self);
-                        array.set_data(ObjectData::Array);
-                        array.as_object().expect("object").set_prototype_instance(
-                            self.realm()
-                                .environment
-                                .get_binding_value("Array")
-                                .expect("Array was not initialized")
-                                .get_field(PROTOTYPE, self)?,
-                        );
-                        array.set_field(0, key, self)?;
-                        array.set_field(1, value, self)?;
-                        array.set_field("length", Value::from(2), self)?;
-                        Ok(array)
-                    })
-                    .collect::<Result<Vec<_>>>()?;
-                return Ok(Ok(values));
-            }
-
-            return Ok(Err(()));
-        }
-
-        Ok(Err(()))
     }
 
     /// <https://tc39.es/ecma262/#sec-hasproperty>
@@ -622,10 +564,7 @@ impl Context {
     pub(crate) fn set_value(&mut self, node: &Node, value: Value) -> Result<Value> {
         match node {
             Node::Identifier(ref name) => {
-                self.realm
-                    .environment
-                    .set_mutable_binding(name.as_ref(), value.clone(), true)
-                    .map_err(|e| e.to_error(self))?;
+                self.set_mutable_binding(name.as_ref(), value.clone(), true)?;
                 Ok(value)
             }
             Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node
@@ -664,7 +603,7 @@ impl Context {
 
         let class = class_builder.build();
         let property = DataDescriptor::new(class, T::ATTRIBUTE);
-        self.global_object().clone().insert(T::NAME, property);
+        self.global_object().insert(T::NAME, property);
         Ok(())
     }
 
@@ -691,7 +630,7 @@ impl Context {
         V: Into<Value>,
     {
         let property = DataDescriptor::new(value, attribute);
-        self.global_object().clone().insert(key, property);
+        self.global_object().insert(key, property);
     }
 
     /// Evaluates the given code.

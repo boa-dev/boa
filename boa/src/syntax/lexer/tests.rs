@@ -6,6 +6,7 @@ use super::token::Numeric;
 use super::*;
 use super::{Error, Position};
 use crate::syntax::ast::Keyword;
+use crate::syntax::lexer::template::TemplateString;
 use std::str;
 
 fn span(start: (u32, u32), end: (u32, u32)) -> Span {
@@ -136,7 +137,10 @@ fn check_template_literal_simple() {
 
     assert_eq!(
         lexer.next().unwrap().unwrap().kind(),
-        &TokenKind::template_no_substitution("I'm a template literal", "I'm a template literal")
+        &TokenKind::template_no_substitution(TemplateString::new(
+            "I'm a template literal",
+            Position::new(1, 1)
+        ))
     );
 }
 

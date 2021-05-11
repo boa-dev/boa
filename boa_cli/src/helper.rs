@@ -34,6 +34,7 @@ const IDENTIFIER_COLOR: Color = Color::TrueColor {
     b: 214,
 };
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Completer, Helper, Hinter)]
 pub(crate) struct RLHelper {
     highlighter: LineHighlighter,

@@ -3,9 +3,8 @@
 use super::Parser;
 use crate::syntax::ast::{
     node::{
-        field::GetConstField, ArrowFunctionDecl, Assign, BinOp, Call, FormalParameter,
-        FunctionDecl, Identifier, LetDecl, LetDeclList, New, Node, Return, StatementList, UnaryOp,
-        VarDecl, VarDeclList,
+        field::GetConstField, ArrowFunctionDecl, Assign, BinOp, Call, Declaration, DeclarationList,
+        FormalParameter, FunctionDecl, Identifier, If, New, Node, Return, StatementList, UnaryOp,
     },
     op::{self, CompOp, LogOp, NumOp},
     Const,
@@ -74,10 +73,13 @@ fn hoisting() {
                 vec![Return::new(Const::from(10), None).into()],
             )
             .into(),
-            VarDeclList::from(vec![VarDecl::new(
-                "a",
-                Node::from(Call::new(Identifier::from("hello"), vec![])),
-            )])
+            DeclarationList::Var(
+                vec![Declaration::new(
+                    "a",
+                    Node::from(Call::new(Identifier::from("hello"), vec![])),
+                )]
+                .into(),
+            )
             .into(),
             UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::from("a")).into(),
         ],
@@ -92,7 +94,7 @@ fn hoisting() {
         vec![
             Assign::new(Identifier::from("a"), Const::from(10)).into(),
             UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::from("a")).into(),
-            VarDeclList::from(vec![VarDecl::new("a", None)]).into(),
+            DeclarationList::Var(vec![Declaration::new("a", None)].into()).into(),
         ],
     );
 }
@@ -141,15 +143,21 @@ fn comment_semi_colon_insertion() {
     check_parser(
         s,
         vec![
-            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
-                "a",
-                Some(Const::Int(10).into()),
-            )])
+            DeclarationList::Let(
+                vec![Declaration::new::<&str, Option<Node>>(
+                    "a",
+                    Some(Const::Int(10).into()),
+                )]
+                .into(),
+            )
             .into(),
-            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
-                "b",
-                Some(Const::Int(20).into()),
-            )])
+            DeclarationList::Let(
+                vec![Declaration::new::<&str, Option<Node>>(
+                    "b",
+                    Some(Const::Int(20).into()),
+                )]
+                .into(),
+            )
             .into(),
         ],
     );
@@ -167,15 +175,21 @@ fn multiline_comment_semi_colon_insertion() {
     check_parser(
         s,
         vec![
-            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
-                "a",
-                Some(Const::Int(10).into()),
-            )])
+            DeclarationList::Let(
+                vec![Declaration::new::<&str, Option<Node>>(
+                    "a",
+                    Some(Const::Int(10).into()),
+                )]
+                .into(),
+            )
             .into(),
-            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
-                "b",
-                Some(Const::Int(20).into()),
-            )])
+            DeclarationList::Let(
+                vec![Declaration::new::<&str, Option<Node>>(
+                    "b",
+                    Some(Const::Int(20).into()),
+                )]
+                .into(),
+            )
             .into(),
         ],
     );
@@ -190,15 +204,21 @@ fn multiline_comment_no_lineterminator() {
     check_parser(
         s,
         vec![
-            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
-                "a",
-                Some(Const::Int(10).into()),
-            )])
+            DeclarationList::Let(
+                vec![Declaration::new::<&str, Option<Node>>(
+                    "a",
+                    Some(Const::Int(10).into()),
+                )]
+                .into(),
+            )
             .into(),
-            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
-                "b",
-                Some(Const::Int(20).into()),
-            )])
+            DeclarationList::Let(
+                vec![Declaration::new::<&str, Option<Node>>(
+                    "b",
+                    Some(Const::Int(20).into()),
+                )]
+                .into(),
+            )
             .into(),
         ],
     );
@@ -209,17 +229,20 @@ fn assignment_line_terminator() {
     let s = r#"
     let a = 3;
 
-    a = 
+    a =
     5;
     "#;
 
     check_parser(
         s,
         vec![
-            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
-                "a",
-                Some(Const::Int(3).into()),
-            )])
+            DeclarationList::Let(
+                vec![Declaration::new::<&str, Option<Node>>(
+                    "a",
+                    Some(Const::Int(3).into()),
+                )]
+                .into(),
+            )
             .into(),
             Assign::new(Identifier::from("a"), Const::from(5)).into(),
         ],
@@ -232,7 +255,7 @@ fn assignment_multiline_terminator() {
     let a = 3;
 
 
-    a = 
+    a =
 
 
     5;
@@ -241,10 +264,13 @@ fn assignment_multiline_terminator() {
     check_parser(
         s,
         vec![
-            LetDeclList::from(vec![LetDecl::new::<&str, Option<Node>>(
-                "a",
-                Some(Const::Int(3).into()),
-            )])
+            DeclarationList::Let(
+                vec![Declaration::new::<&str, Option<Node>>(
+                    "a",
+                    Some(Const::Int(3).into()),
+                )]
+                .into(),
+            )
             .into(),
             Assign::new(Identifier::from("a"), Const::from(5)).into(),
         ],
@@ -289,6 +315,26 @@ fn spread_in_arrow_function() {
                 vec![Identifier::from("b").into()].into(),
             )
             .into(),
+        ],
+    );
+}
+
+#[test]
+fn empty_statement() {
+    check_parser(
+        r"
+            ;;var a = 10;
+            if(a) ;
+        ",
+        vec![
+            Node::Empty,
+            DeclarationList::Var(vec![Declaration::new("a", Node::from(Const::from(10)))].into())
+                .into(),
+            Node::If(If::new::<_, _, Node, _>(
+                Identifier::from("a"),
+                Node::Empty,
+                None,
+            )),
         ],
     );
 }

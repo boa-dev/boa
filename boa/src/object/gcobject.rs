@@ -7,9 +7,7 @@ use crate::{
     builtins::function::{
         create_unmapped_arguments_object, BuiltInFunction, Function, NativeFunction,
     },
-    environment::{
-        function_environment_record::BindingStatus, lexical_environment::new_function_environment,
-    },
+    environment::function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
     syntax::ast::node::RcStatementList,
     value::PreferredType,
@@ -29,7 +27,7 @@ use std::{
 pub type Ref<'a, T> = GcCellRef<'a, T>;
 
 /// A wrapper type for a mutably borrowed type T.
-pub type RefMut<'a, T> = GcCellRefMut<'a, T>;
+pub type RefMut<'a, T, U> = GcCellRefMut<'a, T, U>;
 
 /// Garbage collected `Object`.
 #[derive(Trace, Finalize, Clone, Default)]
@@ -75,7 +73,7 @@ impl GcObject {
     /// Panics if the object is currently borrowed.
     #[inline]
     #[track_caller]
-    pub fn borrow_mut(&self) -> RefMut<'_, Object> {
+    pub fn borrow_mut(&self) -> RefMut<'_, Object, Object> {
         self.try_borrow_mut().expect("Object already borrowed")
     }
 
@@ -97,7 +95,7 @@ impl GcObject {
     ///
     /// This is the non-panicking variant of [`borrow_mut`](#method.borrow_mut).
     #[inline]
-    pub fn try_borrow_mut(&self) -> StdResult<RefMut<'_, Object>, BorrowMutError> {
+    pub fn try_borrow_mut(&self) -> StdResult<RefMut<'_, Object, Object>, BorrowMutError> {
         self.0.try_borrow_mut().map_err(|_| BorrowMutError)
     }
 
@@ -135,7 +133,7 @@ impl GcObject {
                     } => {
                         // Create a new Function environment whose parent is set to the scope of the function declaration (self.environment)
                         // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-                        let local_env = new_function_environment(
+                        let local_env = FunctionEnvironmentRecord::new(
                             this_function_object,
                             if flags.is_lexical_this_mode() {
                                 None
@@ -161,21 +159,25 @@ impl GcObject {
                             }
 
                             let value = args.get(i).cloned().unwrap_or_else(Value::undefined);
-                            function.add_arguments_to_environment(param, value, &local_env);
+                            function
+                                .add_arguments_to_environment(param, value, &local_env, context);
                         }
 
                         // Add arguments object
                         let arguments_obj = create_unmapped_arguments_object(args);
-                        local_env
-                            .borrow_mut()
-                            .create_mutable_binding("arguments".to_string(), false, true)
-                            .map_err(|e| e.to_error(context))?;
-                        local_env
-                            .borrow_mut()
-                            .initialize_binding("arguments", arguments_obj)
-                            .map_err(|e| e.to_error(context))?;
+                        local_env.borrow_mut().create_mutable_binding(
+                            "arguments".to_string(),
+                            false,
+                            true,
+                            context,
+                        )?;
+                        local_env.borrow_mut().initialize_binding(
+                            "arguments",
+                            arguments_obj,
+                            context,
+                        )?;
 
-                        context.realm_mut().environment.push(local_env);
+                        context.push_environment(local_env);
 
                         FunctionBody::Ordinary(body.clone())
                     }
@@ -192,7 +194,7 @@ impl GcObject {
             FunctionBody::BuiltInConstructor(func) => func(&Value::undefined(), args, context),
             FunctionBody::Ordinary(body) => {
                 let result = body.run(context);
-                context.realm_mut().environment.pop();
+                context.pop_environment();
 
                 result
             }
@@ -247,7 +249,7 @@ impl GcObject {
 
                         // Create a new Function environment who's parent is set to the scope of the function declaration (self.environment)
                         // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-                        let local_env = new_function_environment(
+                        let local_env = FunctionEnvironmentRecord::new(
                             this_function_object,
                             Some(this),
                             Some(environment.clone()),
@@ -269,21 +271,24 @@ impl GcObject {
                             }
 
                             let value = args.get(i).cloned().unwrap_or_else(Value::undefined);
-                            function.add_arguments_to_environment(param, value, &local_env);
+                            function
+                                .add_arguments_to_environment(param, value, &local_env, context);
                         }
 
                         // Add arguments object
                         let arguments_obj = create_unmapped_arguments_object(args);
-                        local_env
-                            .borrow_mut()
-                            .create_mutable_binding("arguments".to_string(), false, true)
-                            .map_err(|e| e.to_error(context))?;
-                        local_env
-                            .borrow_mut()
-                            .initialize_binding("arguments", arguments_obj)
-                            .map_err(|e| e.to_error(context))?;
-
-                        context.realm_mut().environment.push(local_env);
+                        local_env.borrow_mut().create_mutable_binding(
+                            "arguments".to_string(),
+                            false,
+                            true,
+                            context,
+                        )?;
+                        local_env.borrow_mut().initialize_binding(
+                            "arguments",
+                            arguments_obj,
+                            context,
+                        )?;
+                        context.push_environment(local_env);
 
                         FunctionBody::Ordinary(body.clone())
                     }
@@ -305,8 +310,9 @@ impl GcObject {
                 let _ = body.run(context);
 
                 // local_env gets dropped here, its no longer needed
-                let binding = context.realm_mut().environment.get_this_binding();
-                binding.map_err(|e| e.to_error(context))
+                let result = context.get_this_binding();
+                context.pop_environment();
+                result
             }
             FunctionBody::BuiltInFunction(_) => unreachable!("Cannot have a function in construct"),
         }
@@ -385,7 +391,7 @@ impl GcObject {
     }
 
     /// Converts an object to JSON, checking for reference cycles and throwing a TypeError if one is found
-    pub(crate) fn to_json(&self, context: &mut Context) -> Result<JSONValue> {
+    pub(crate) fn to_json(&self, context: &mut Context) -> Result<Option<JSONValue>> {
         let rec_limiter = RecursionLimiter::new(self);
         if rec_limiter.live {
             Err(context.construct_type_error("cyclic object value"))
@@ -396,28 +402,28 @@ impl GcObject {
             let this = Value::from(self.clone());
             for key in keys {
                 let value = this.get_field(key, context)?;
-                if value.is_undefined() || value.is_function() || value.is_symbol() {
-                    arr.push(JSONValue::Null);
+                if let Some(value) = value.to_json(context)? {
+                    arr.push(value);
                 } else {
-                    arr.push(value.to_json(context)?);
+                    arr.push(JSONValue::Null);
                 }
             }
-            Ok(JSONValue::Array(arr))
+            Ok(Some(JSONValue::Array(arr)))
         } else {
             let mut new_obj = Map::new();
             let this = Value::from(self.clone());
             for k in self.borrow().keys() {
                 let key = k.clone();
                 let value = this.get_field(k.to_string(), context)?;
-                if !value.is_undefined() && !value.is_function() && !value.is_symbol() {
-                    new_obj.insert(key.to_string(), value.to_json(context)?);
+                if let Some(value) = value.to_json(context)? {
+                    new_obj.insert(key.to_string(), value);
                 }
             }
-            Ok(JSONValue::Object(new_obj))
+            Ok(Some(JSONValue::Object(new_obj)))
         }
     }
 
-    /// Convert the object to a `PropertyDescritptor`
+    /// Convert the object to a `PropertyDescriptor`
     ///
     /// # Panics
     ///
@@ -546,7 +552,7 @@ impl GcObject {
     /// Panics if the object is currently borrowed.
     #[inline]
     #[track_caller]
-    pub fn downcast_mut<T>(&mut self) -> Option<RefMut<'_, T>>
+    pub fn downcast_mut<T>(&mut self) -> Option<RefMut<'_, Object, T>>
     where
         T: NativeObject,
     {

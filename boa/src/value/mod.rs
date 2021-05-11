@@ -13,6 +13,7 @@ use crate::{
     },
     object::{GcObject, Object, ObjectData},
     property::{Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
+    symbol::RcSymbol,
     BoaProfiler, Context, Result,
 };
 use gc::{Finalize, Trace};
@@ -20,7 +21,6 @@ use serde_json::{Number as JSONNumber, Value as JSONValue};
 use std::{
     collections::HashSet,
     convert::TryFrom,
-    f64::NAN,
     fmt::{self, Display},
     str::FromStr,
 };
@@ -32,7 +32,6 @@ mod hash;
 mod operations;
 mod rcbigint;
 mod rcstring;
-mod rcsymbol;
 mod r#type;
 
 pub use conversions::*;
@@ -43,7 +42,6 @@ pub use operations::*;
 pub use r#type::Type;
 pub use rcbigint::RcBigInt;
 pub use rcstring::RcString;
-pub use rcsymbol::RcSymbol;
 
 /// A Javascript value
 #[derive(Trace, Finalize, Debug, Clone)]
@@ -92,7 +90,7 @@ impl Value {
     /// Creates a new number with `NaN` value.
     #[inline]
     pub fn nan() -> Self {
-        Self::number(NAN)
+        Self::number(f64::NAN)
     }
 
     /// Creates a new string value.
@@ -216,35 +214,37 @@ impl Value {
     }
 
     /// Converts the `Value` to `JSON`.
-    pub fn to_json(&self, context: &mut Context) -> Result<JSONValue> {
+    pub fn to_json(&self, context: &mut Context) -> Result<Option<JSONValue>> {
         let to_json = self.get_field("toJSON", context)?;
         if to_json.is_function() {
             let json_value = context.call(&to_json, self, &[])?;
             return json_value.to_json(context);
         }
 
+        if self.is_function() {
+            return Ok(None);
+        }
+
         match *self {
-            Self::Null => Ok(JSONValue::Null),
-            Self::Boolean(b) => Ok(JSONValue::Bool(b)),
+            Self::Null => Ok(Some(JSONValue::Null)),
+            Self::Boolean(b) => Ok(Some(JSONValue::Bool(b))),
             Self::Object(ref obj) => obj.to_json(context),
-            Self::String(ref str) => Ok(JSONValue::String(str.to_string())),
+            Self::String(ref str) => Ok(Some(JSONValue::String(str.to_string()))),
             Self::Rational(num) => {
                 if num.is_finite() {
-                    Ok(JSONValue::Number(
+                    Ok(Some(JSONValue::Number(
                         JSONNumber::from_str(&Number::to_native_string(num))
                             .expect("invalid number found"),
-                    ))
+                    )))
                 } else {
-                    Ok(JSONValue::Null)
+                    Ok(Some(JSONValue::Null))
                 }
             }
-            Self::Integer(val) => Ok(JSONValue::Number(JSONNumber::from(val))),
+            Self::Integer(val) => Ok(Some(JSONValue::Number(JSONNumber::from(val)))),
             Self::BigInt(_) => {
                 Err(context.construct_type_error("BigInt value can't be serialized in JSON"))
             }
-            Self::Symbol(_) | Self::Undefined => {
-                unreachable!("Symbols and Undefined JSON Values depend on parent type");
-            }
+            Self::Symbol(_) | Self::Undefined => Ok(None),
         }
     }
 

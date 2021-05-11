@@ -6,7 +6,7 @@
     unused_lifetimes,
     unreachable_pub,
     trivial_numeric_casts,
-    rustdoc,
+    rustdoc::all,
     missing_debug_implementations,
     missing_copy_implementations,
     deprecated_in_future,

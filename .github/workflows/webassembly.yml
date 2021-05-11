@@ -33,7 +33,7 @@ jobs:
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - name: Cache yarn build
-        uses: actions/cache@v2.1.4
+        uses: actions/cache@v2.1.5
         with:
           path: |
             node_modules

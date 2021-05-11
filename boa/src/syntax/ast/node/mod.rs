@@ -29,8 +29,8 @@ pub use self::{
     call::Call,
     conditional::{ConditionalOp, If},
     declaration::{
-        ArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, ConstDecl, ConstDeclList,
-        FunctionDecl, FunctionExpr, LetDecl, LetDeclList, VarDecl, VarDeclList,
+        ArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList,
+        FunctionDecl, FunctionExpr,
     },
     field::{GetConstField, GetField},
     identifier::Identifier,
@@ -108,8 +108,8 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
     Const(Const),
 
-    /// A constant declaration list. [More information](./declaration/struct.ConstDeclList.html).
-    ConstDeclList(ConstDeclList),
+    /// A constant declaration list. [More information](./declaration/enum.DeclarationList.html#variant.Const).
+    ConstDeclList(DeclarationList),
 
     /// A continue statement. [More information](./iteration/struct.Continue.html).
     Continue(Continue),
@@ -141,8 +141,8 @@ pub enum Node {
     /// An 'if' statement. [More information](./conditional/struct.If.html).
     If(If),
 
-    /// A `let` declaration list. [More information](./declaration/struct.LetDeclList.html).
-    LetDeclList(LetDeclList),
+    /// A `let` declaration list. [More information](./declaration/enum.DeclarationList.html#variant.Let).
+    LetDeclList(DeclarationList),
 
     /// A local identifier node. [More information](./identifier/struct.Identifier.html).
     Identifier(Identifier),
@@ -191,11 +191,23 @@ pub enum Node {
     /// Unary operation node. [More information](./operator/struct.UnaryOp.html)
     UnaryOp(UnaryOp),
 
-    /// Array declaration node. [More information](./declaration/struct.VarDeclList.html).
-    VarDeclList(VarDeclList),
+    /// Array declaration node. [More information](./declaration/enum.DeclarationList.html#variant.Var).
+    VarDeclList(DeclarationList),
 
     /// A 'while {...}' node. [More information](./iteration/struct.WhileLoop.html).
     WhileLoop(WhileLoop),
+
+    /// A empty node.
+    ///
+    /// Empty statement do nothing, just return undefined.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-EmptyStatement
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/Empty
+    Empty,
 }
 
 impl Display for Node {
@@ -274,6 +286,7 @@ impl Node {
             Self::AsyncFunctionDecl(ref decl) => decl.display(f, indentation),
             Self::AsyncFunctionExpr(ref expr) => expr.display(f, indentation),
             Self::AwaitExpr(ref expr) => expr.display(f, indentation),
+            Self::Empty => write!(f, ";"),
         }
     }
 }
@@ -329,15 +342,12 @@ impl Executable for Node {
             Node::Spread(ref spread) => spread.run(context),
             Node::This => {
                 // Will either return `this` binding or undefined
-                context
-                    .realm()
-                    .environment
-                    .get_this_binding()
-                    .map_err(|e| e.to_error(context))
+                context.get_this_binding()
             }
             Node::Try(ref try_node) => try_node.run(context),
             Node::Break(ref break_node) => break_node.run(context),
             Node::Continue(ref continue_node) => continue_node.run(context),
+            Node::Empty => Ok(Value::Undefined),
         }
     }
 }

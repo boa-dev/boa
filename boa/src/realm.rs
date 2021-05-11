@@ -4,7 +4,6 @@
 //!
 //! A realm is represented in this implementation as a Realm struct with the fields specified from the spec.
 
-use crate::object::{GcObject, Object, ObjectData};
 use crate::{
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
@@ -12,7 +11,8 @@ use crate::{
         lexical_environment::LexicalEnvironment,
         object_environment_record::ObjectEnvironmentRecord,
     },
-    BoaProfiler, Value,
+    object::{GcObject, Object, ObjectData},
+    BoaProfiler,
 };
 use gc::{Gc, GcCell};
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -41,12 +41,12 @@ impl Realm {
         let gc_global = GcObject::new(global);
 
         // We need to clone the global here because its referenced from separate places (only pointer is cloned)
-        let global_env = new_global_environment(gc_global.clone(), gc_global.clone().into());
+        let global_env = new_global_environment(gc_global.clone(), gc_global.clone());
 
         Self {
             global_object: gc_global.clone(),
             global_env,
-            environment: LexicalEnvironment::new(gc_global.into()),
+            environment: LexicalEnvironment::new(gc_global),
         }
     }
 }
@@ -54,10 +54,10 @@ impl Realm {
 // Similar to new_global_environment in lexical_environment, except we need to return a GlobalEnvirionment
 fn new_global_environment(
     global: GcObject,
-    this_value: Value,
+    this_value: GcObject,
 ) -> Gc<GcCell<GlobalEnvironmentRecord>> {
     let obj_rec = ObjectEnvironmentRecord {
-        bindings: Value::Object(global),
+        bindings: global.into(),
         outer_env: None,
         /// Object Environment Records created for with statements (13.11)
         /// can provide their binding object as an implicit this value for use in function calls.

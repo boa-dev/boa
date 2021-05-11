@@ -14,7 +14,8 @@ use crate::{
     context::StandardConstructor,
     gc::{Finalize, Trace},
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
-    value::{same_value, RcBigInt, RcString, RcSymbol, Value},
+    symbol::RcSymbol,
+    value::{same_value, RcBigInt, RcString, Value},
     BoaProfiler, Context,
 };
 use rustc_hash::FxHashMap;

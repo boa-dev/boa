@@ -250,7 +250,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
             diff_format(panic_diff),
         );
         println!(
-            "| Conformance | {:.2} | {:.2} | {} |",
+            "| Conformance | {:.2}% | {:.2}% | {} |",
             base_conformance,
             new_conformance,
             format!(

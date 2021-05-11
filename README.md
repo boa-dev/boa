@@ -83,7 +83,7 @@ See [Profiling](./docs/profiling.md)
 
 ```
 USAGE:
-    boa_cli [OPTIONS] [FILE]...
+    boa [OPTIONS] [FILE]...
 
 FLAGS:
     -h, --help       Prints help information

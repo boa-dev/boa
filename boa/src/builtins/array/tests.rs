@@ -232,6 +232,115 @@ fn find_index() {
 }
 
 #[test]
+fn flat() {
+    let mut context = Context::new();
+
+    let code = r#"
+        var depth1 = ['a', ['b', 'c']];
+        var flat_depth1 = depth1.flat();
+
+        var depth2 = ['a', ['b', ['c'], 'd']];
+        var flat_depth2 = depth2.flat(2);
+        "#;
+    forward(&mut context, code);
+
+    assert_eq!(forward(&mut context, "flat_depth1[0]"), "\"a\"");
+    assert_eq!(forward(&mut context, "flat_depth1[1]"), "\"b\"");
+    assert_eq!(forward(&mut context, "flat_depth1[2]"), "\"c\"");
+    assert_eq!(forward(&mut context, "flat_depth1.length"), "3");
+
+    assert_eq!(forward(&mut context, "flat_depth2[0]"), "\"a\"");
+    assert_eq!(forward(&mut context, "flat_depth2[1]"), "\"b\"");
+    assert_eq!(forward(&mut context, "flat_depth2[2]"), "\"c\"");
+    assert_eq!(forward(&mut context, "flat_depth2[3]"), "\"d\"");
+    assert_eq!(forward(&mut context, "flat_depth2.length"), "4");
+}
+
+#[test]
+fn flat_empty() {
+    let mut context = Context::new();
+
+    let code = r#"
+        var empty = [[]];
+        var flat_empty = empty.flat();
+        "#;
+    forward(&mut context, code);
+
+    assert_eq!(forward(&mut context, "flat_empty.length"), "0");
+}
+
+#[test]
+fn flat_infinity() {
+    let mut context = Context::new();
+
+    let code = r#"
+        var arr = [[[[[['a']]]]]];
+        var flat_arr = arr.flat(Infinity)
+        "#;
+    forward(&mut context, code);
+
+    assert_eq!(forward(&mut context, "flat_arr[0]"), "\"a\"");
+    assert_eq!(forward(&mut context, "flat_arr.length"), "1");
+}
+
+#[test]
+fn flat_map() {
+    let mut context = Context::new();
+
+    let code = r#"
+        var double = [1, 2, 3];
+        var double_flatmap = double.flatMap(i => [i * 2]);
+
+        var sentence = ["it's Sunny", "in Cali"];
+        var flat_split_sentence = sentence.flatMap(x => x.split(" "));
+    "#;
+    forward(&mut context, code);
+
+    assert_eq!(forward(&mut context, "double_flatmap[0]"), "2");
+    assert_eq!(forward(&mut context, "double_flatmap[1]"), "4");
+    assert_eq!(forward(&mut context, "double_flatmap[2]"), "6");
+    assert_eq!(forward(&mut context, "double_flatmap.length"), "3");
+
+    assert_eq!(forward(&mut context, "flat_split_sentence[0]"), "\"it's\"");
+    assert_eq!(forward(&mut context, "flat_split_sentence[1]"), "\"Sunny\"");
+    assert_eq!(forward(&mut context, "flat_split_sentence[2]"), "\"in\"");
+    assert_eq!(forward(&mut context, "flat_split_sentence[3]"), "\"Cali\"");
+    assert_eq!(forward(&mut context, "flat_split_sentence.length"), "4");
+}
+
+#[test]
+fn flat_map_with_hole() {
+    let mut context = Context::new();
+
+    let code = r#"
+        var arr = [0, 1, 2];
+        delete arr[1];
+        var arr_flattened = arr.flatMap(i => [i * 2]);
+    "#;
+    forward(&mut context, code);
+
+    assert_eq!(forward(&mut context, "arr_flattened[0]"), "0");
+    assert_eq!(forward(&mut context, "arr_flattened[1]"), "4");
+    assert_eq!(forward(&mut context, "arr_flattened.length"), "2");
+}
+
+#[test]
+fn flat_map_not_callable() {
+    let mut context = Context::new();
+
+    let code = r#"
+        try {
+            var array = [1,2,3];
+            array.flatMap("not a function");
+        } catch (err) {
+            err.name === "TypeError"
+        }
+    "#;
+
+    assert_eq!(forward(&mut context, code), "true");
+}
+
+#[test]
 fn push() {
     let mut context = Context::new();
     let init = r#"
