@@ -14,6 +14,7 @@ use crate::{
     builtins::{iterable::get_iterator, BuiltIn},
     object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
     property::Attribute,
+    symbol::WellKnownSymbols,
     BoaProfiler, Context, Result, Value,
 };
 use ordered_set::OrderedSet;
@@ -38,7 +39,7 @@ impl BuiltIn for Set {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let species = context.well_known_symbols().species_symbol();
+        let species = WellKnownSymbols::species();
 
         let species_getter = FunctionBuilder::new(context, Self::species_getter)
             .callable(true)
@@ -52,9 +53,9 @@ impl BuiltIn for Set {
             .name("get size")
             .build();
 
-        let iterator_symbol = context.well_known_symbols().iterator_symbol();
+        let iterator_symbol = WellKnownSymbols::iterator();
 
-        let to_string_tag = context.well_known_symbols().to_string_tag_symbol();
+        let to_string_tag = WellKnownSymbols::to_string_tag();
 
         let values_function = FunctionBuilder::new(context, Self::values)
             .name("values")
