@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2.3.4
       - name: Check code formatting
         run: npx prettier --check .
 
@@ -24,7 +24,7 @@ jobs:
     env:
       WASM_PACK_PATH: ~/.cargo/bin/wasm-pack
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.3.4
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
