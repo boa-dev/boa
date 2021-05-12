@@ -31,6 +31,7 @@ pub struct SetIterator {
 impl SetIterator {
     pub(crate) const NAME: &'static str = "SetIterator";
 
+    /// Constructs a new `SetIterator`, that will iterate over `set`, starting at index 0
     fn new(set: Value, kind: SetIterationKind) -> Self {
         SetIterator {
             iterated_set: set,

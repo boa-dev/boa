@@ -29,6 +29,7 @@ pub struct MapIterator {
 impl MapIterator {
     pub(crate) const NAME: &'static str = "MapIterator";
 
+    /// Constructs a new `MapIterator`, that will iterate over `map`, starting at index 0
     fn new(map: Value, kind: MapIterationKind) -> Self {
         MapIterator {
             iterated_map: map,
