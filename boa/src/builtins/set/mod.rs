@@ -1,3 +1,15 @@
+//! This module implements the global `Set` objest.
+//!
+//! The JavaScript `Set` class is a global object that is used in the construction of sets; which
+//! are high-level, collections of values.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-set-objects
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
+
 use crate::{
     builtins::{iterable::get_iterator, BuiltIn},
     object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},

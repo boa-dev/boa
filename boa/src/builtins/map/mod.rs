@@ -1,3 +1,15 @@
+//! This module implements the global `Map` objest.
+//!
+//! The JavaScript `Map` class is a global object that is used in the construction of maps; which
+//! are high-level, key-value stores.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-map-objects
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
+
 #![allow(clippy::mutable_key_type)]
 
 use crate::{
