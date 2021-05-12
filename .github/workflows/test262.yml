@@ -20,7 +20,7 @@ jobs:
           submodules: true
           path: boa
       - name: Install the Rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
           override: true
