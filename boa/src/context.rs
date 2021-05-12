@@ -11,7 +11,7 @@ use crate::{
     object::{GcObject, Object, PROTOTYPE},
     property::{Attribute, DataDescriptor, PropertyKey},
     realm::Realm,
-    symbol::{RcSymbol, Symbol, WellKnownSymbols},
+    symbol::{RcSymbol, Symbol},
     syntax::{
         ast::{
             node::{
@@ -215,17 +215,9 @@ pub struct Context {
     /// The current executor.
     executor: Interpreter,
 
-    /// Symbol hash.
-    ///
-    /// For now this is an incremented u64 number.
-    symbol_count: u64,
-
     /// console object state.
     #[cfg(feature = "console")]
     console: Console,
-
-    /// Cached well known symbols
-    well_known_symbols: WellKnownSymbols,
 
     /// Cached iterator prototypes.
     iterator_prototypes: IteratorPrototypes,
@@ -241,14 +233,11 @@ impl Default for Context {
     fn default() -> Self {
         let realm = Realm::create();
         let executor = Interpreter::new();
-        let (well_known_symbols, symbol_count) = WellKnownSymbols::new();
         let mut context = Self {
             realm,
             executor,
-            symbol_count,
             #[cfg(feature = "console")]
             console: Console::default(),
-            well_known_symbols,
             iterator_prototypes: IteratorPrototypes::default(),
             standard_objects: Default::default(),
             trace: false,
@@ -296,20 +285,10 @@ impl Context {
         builtins::init(self);
     }
 
-    /// Generates a new `Symbol` internal hash.
-    ///
-    /// This currently is an incremented value.
-    #[inline]
-    fn generate_hash(&mut self) -> u64 {
-        let hash = self.symbol_count;
-        self.symbol_count += 1;
-        hash
-    }
-
     /// Construct a new `Symbol` with an optional description.
     #[inline]
     pub fn construct_symbol(&mut self, description: Option<RcString>) -> RcSymbol {
-        RcSymbol::from(Symbol::new(self.generate_hash(), description))
+        RcSymbol::from(Symbol::new(description))
     }
 
     /// Construct an empty object.
@@ -707,22 +686,6 @@ impl Context {
         BoaProfiler::global().drop();
 
         result
-    }
-
-    /// Returns a structure that contains the JavaScript well known symbols.
-    ///
-    /// # Examples
-    /// ```
-    ///# use boa::Context;
-    /// let mut context = Context::new();
-    ///
-    /// let iterator = context.well_known_symbols().iterator_symbol();
-    /// assert_eq!(iterator.description(), Some("Symbol.iterator"));
-    /// ```
-    /// This is equivalent to `let iterator = Symbol.iterator` in JavaScript.
-    #[inline]
-    pub fn well_known_symbols(&self) -> &WellKnownSymbols {
-        &self.well_known_symbols
     }
 
     /// Return the cached iterator prototypes.

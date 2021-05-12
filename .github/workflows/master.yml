@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
           override: true
@@ -34,7 +34,7 @@ jobs:
           if [ -d target/doc_upload ]; then rm -rf target/doc_upload; fi
           mkdir target/doc_upload && mv target/doc target/doc_upload/doc
       - name: Upload documentation
-        uses: crazy-max/ghaction-github-pages@v2
+        uses: crazy-max/ghaction-github-pages@v2.3.0
         with:
           target_branch: gh-pages
           keep_history: true

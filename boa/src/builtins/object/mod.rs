@@ -21,6 +21,7 @@ use crate::{
     property::Attribute,
     property::DataDescriptor,
     property::PropertyDescriptor,
+    symbol::WellKnownSymbols,
     value::{same_value, Type, Value},
     BoaProfiler, Context, Result,
 };
@@ -60,6 +61,7 @@ impl BuiltIn for Object {
         .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
         .static_method(Self::define_property, "defineProperty", 3)
         .static_method(Self::define_properties, "defineProperties", 2)
+        .static_method(Self::assign, "assign", 2)
         .static_method(Self::is, "is", 2)
         .static_method(
             Self::get_own_property_descriptor,
@@ -432,7 +434,7 @@ impl Object {
             };
 
             let tag = o.get(
-                &context.well_known_symbols().to_string_tag_symbol().into(),
+                &WellKnownSymbols::to_string_tag().into(),
                 o.clone().into(),
                 context,
             )?;
@@ -464,6 +466,17 @@ impl Object {
         Ok(object.has_own_property(key).into())
     }
 
+    /// `Object.prototype.propertyIsEnumerable( property )`
+    ///
+    /// This method returns a Boolean indicating whether the specified property is
+    /// enumerable and is the object's own property.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.propertyisenumerable
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/propertyIsEnumerable
     pub fn property_is_enumerable(
         this: &Value,
         args: &[Value],
@@ -480,5 +493,45 @@ impl Object {
         Ok(own_property.map_or(Value::from(false), |own_prop| {
             Value::from(own_prop.enumerable())
         }))
+    }
+
+    /// `Object.assign( target, ...sources )`
+    ///
+    /// This method copies all enumerable own properties from one or more
+    /// source objects to a target object. It returns the target object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.assign
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
+    pub fn assign(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let mut to = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_object(context)?;
+
+        if args.len() == 1 {
+            return Ok(to.into());
+        }
+
+        for source in &args[1..] {
+            if !source.is_null_or_undefined() {
+                let from = source.to_object(context).unwrap();
+                let keys = from.own_property_keys();
+                for key in keys {
+                    if let Some(desc) = from.get_own_property(&key) {
+                        if desc.enumerable() {
+                            let property = from.get(&key, from.clone().into(), context)?;
+                            to.set(key, property, to.clone().into(), context)?;
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(to.into())
     }
 }

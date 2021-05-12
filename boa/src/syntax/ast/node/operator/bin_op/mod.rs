@@ -1,6 +1,7 @@
 use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
+    symbol::WellKnownSymbols,
     syntax::ast::{
         node::Node,
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
@@ -153,7 +154,7 @@ impl Executable for BinOp {
                     }
                     CompOp::InstanceOf => {
                         if let Some(object) = y.as_object() {
-                            let key = context.well_known_symbols().has_instance_symbol();
+                            let key = WellKnownSymbols::has_instance();
 
                             match object.get_method(context, key)? {
                                 Some(instance_of_handler) => {
