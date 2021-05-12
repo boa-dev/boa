@@ -50,7 +50,7 @@ impl BuiltIn for Map {
             )
             .property(
                 to_string_tag,
-                "Math",
+                "Map",
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
