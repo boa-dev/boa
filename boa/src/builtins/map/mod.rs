@@ -29,6 +29,8 @@ impl BuiltIn for Map {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
+        let to_string_tag = WellKnownSymbols::to_string_tag();
+
         let iterator_symbol = WellKnownSymbols::iterator();
 
         let entries_function = FunctionBuilder::new(context, Self::entries)
@@ -45,6 +47,11 @@ impl BuiltIn for Map {
                 "entries",
                 entries_function.clone(),
                 Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
+            .property(
+                to_string_tag,
+                "Math",
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .property(
                 iterator_symbol,
