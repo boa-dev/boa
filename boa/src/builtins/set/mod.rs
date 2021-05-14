@@ -64,34 +64,38 @@ impl BuiltIn for Set {
             .constructable(false)
             .build();
 
-        let set_object = ConstructorBuilder::new(context, Self::constructor)
-            .name(Self::NAME)
-            .length(Self::LENGTH)
-            .static_accessor(species, Some(species_getter), None, Attribute::CONFIGURABLE)
-            .method(Self::add, "add", 1)
-            .method(Self::clear, "clear", 0)
-            .method(Self::delete, "delete", 1)
-            .method(Self::entries, "entries", 0)
-            .method(Self::for_each, "forEach", 1)
-            .method(Self::has, "has", 1)
-            .property(
-                "keys",
-                values_function.clone(),
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .accessor("size", Some(size_getter), None, Attribute::CONFIGURABLE)
-            .property(
-                "values",
-                values_function.clone(),
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .property(
-                iterator_symbol,
-                values_function,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .property(to_string_tag, "Set", Attribute::CONFIGURABLE)
-            .build();
+        let set_object = ConstructorBuilder::with_standard_object(
+            context,
+            Self::constructor,
+            context.standard_objects().set_object().clone(),
+        )
+        .name(Self::NAME)
+        .length(Self::LENGTH)
+        .static_accessor(species, Some(species_getter), None, Attribute::CONFIGURABLE)
+        .method(Self::add, "add", 1)
+        .method(Self::clear, "clear", 0)
+        .method(Self::delete, "delete", 1)
+        .method(Self::entries, "entries", 0)
+        .method(Self::for_each, "forEach", 1)
+        .method(Self::has, "has", 1)
+        .property(
+            "keys",
+            values_function.clone(),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .accessor("size", Some(size_getter), None, Attribute::CONFIGURABLE)
+        .property(
+            "values",
+            values_function.clone(),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            iterator_symbol,
+            values_function,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(to_string_tag, "Set", Attribute::CONFIGURABLE)
+        .build();
 
         (Self::NAME, set_object.into(), Self::attribute())
     }
@@ -113,12 +117,7 @@ impl Set {
         }
 
         // 2
-        let set_prototype = context
-            .global_object()
-            .get(&"Set".into(), context.global_object().into(), context)?
-            .get_field(PROTOTYPE, context)?
-            .as_object()
-            .expect("'Set' global property should be an object");
+        let set_prototype = context.standard_objects().set_object().prototype();
         let prototype = new_target
             .as_object()
             .and_then(|obj| {

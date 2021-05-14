@@ -50,28 +50,32 @@ impl BuiltIn for Map {
             .constructable(false)
             .build();
 
-        let map_object = ConstructorBuilder::new(context, Self::constructor)
-            .name(Self::NAME)
-            .length(Self::LENGTH)
-            .property(
-                "entries",
-                entries_function.clone(),
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .property(
-                iterator_symbol,
-                entries_function,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .method(Self::keys, "keys", 0)
-            .method(Self::set, "set", 2)
-            .method(Self::delete, "delete", 1)
-            .method(Self::get, "get", 1)
-            .method(Self::clear, "clear", 0)
-            .method(Self::has, "has", 1)
-            .method(Self::for_each, "forEach", 1)
-            .method(Self::values, "values", 0)
-            .build();
+        let map_object = ConstructorBuilder::with_standard_object(
+            context,
+            Self::constructor,
+            context.standard_objects().map_object().clone(),
+        )
+        .name(Self::NAME)
+        .length(Self::LENGTH)
+        .property(
+            "entries",
+            entries_function.clone(),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            iterator_symbol,
+            entries_function,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .method(Self::keys, "keys", 0)
+        .method(Self::set, "set", 2)
+        .method(Self::delete, "delete", 1)
+        .method(Self::get, "get", 1)
+        .method(Self::clear, "clear", 0)
+        .method(Self::has, "has", 1)
+        .method(Self::for_each, "forEach", 1)
+        .method(Self::values, "values", 0)
+        .build();
 
         (Self::NAME, map_object.into(), Self::attribute())
     }
@@ -90,12 +94,7 @@ impl Map {
             return context
                 .throw_type_error("calling a builtin Map constructor without new is forbidden");
         }
-        let map_prototype = context
-            .global_object()
-            .get(&"Map".into(), context.global_object().into(), context)?
-            .get_field(PROTOTYPE, context)?
-            .as_object()
-            .expect("'Map' global property should be an object");
+        let map_prototype = context.standard_objects().map_object().prototype();
         let prototype = new_target
             .as_object()
             .and_then(|obj| {
