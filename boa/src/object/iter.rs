@@ -1,5 +1,5 @@
 use super::{Object, PropertyDescriptor, PropertyKey};
-use crate::value::{RcString, RcSymbol};
+use crate::{symbol::RcSymbol, value::RcString};
 use std::{collections::hash_map, iter::FusedIterator};
 
 impl Object {

@@ -992,7 +992,7 @@ fn to_int32() {
         ($from:expr => $to:expr) => {
             assert_eq!(Value::from($from).to_i32(&mut context).unwrap(), $to);
         };
-    };
+    }
 
     check_to_int32!(f64::NAN => 0);
     check_to_int32!(f64::NEG_INFINITY => 0);

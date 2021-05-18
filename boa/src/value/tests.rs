@@ -58,7 +58,7 @@ fn number_is_true() {
     assert_eq!(Value::from(0.0).to_boolean(), false);
     assert_eq!(Value::from(-0.0).to_boolean(), false);
     assert_eq!(Value::from(-1.0).to_boolean(), true);
-    assert_eq!(Value::from(NAN).to_boolean(), false);
+    assert_eq!(Value::from(f64::NAN).to_boolean(), false);
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
@@ -569,7 +569,7 @@ fn to_integer_or_infinity() {
         Ok(IntegerOrInfinity::Integer(0))
     );
     assert_eq!(
-        Value::from(NAN).to_integer_or_infinity(&mut context),
+        Value::from(f64::NAN).to_integer_or_infinity(&mut context),
         Ok(IntegerOrInfinity::Integer(0))
     );
     assert_eq!(

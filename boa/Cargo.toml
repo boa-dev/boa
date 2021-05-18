@@ -22,8 +22,8 @@ console = []
 
 [dependencies]
 boa_unicode = { path = "../boa_unicode", version = "0.11.0" }
-gc = { version = "0.4.0", features = ["derive"] }
-serde = { version = "1.0.124", features = ["derive"] }
+gc = { version = "0.4.1", features = ["derive"] }
+serde = { version = "1.0.126", features = ["derive"] }
 serde_json = "1.0.64"
 rand = "0.8.3"
 num-traits = "0.2.14"
@@ -38,11 +38,11 @@ chrono = "0.4.19"
 fast-float = "0.2.0"
 
 # Optional Dependencies
-measureme = { version = "9.1.0", optional = true }
+measureme = { version = "9.1.1", optional = true }
 once_cell = { version = "1.7.2", optional = true }
 
 [dev-dependencies]
-criterion = "0.3.3"
+criterion = "0.3.4"
 float-cmp = "0.8.0"
 
 [target.x86_64-unknown-linux-gnu.dev-dependencies]

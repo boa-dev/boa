@@ -5,13 +5,13 @@ use crate::{
         self,
         function::{Function, FunctionFlags, NativeFunction},
         iterable::IteratorPrototypes,
-        symbol::{Symbol, WellKnownSymbols},
     },
     class::{Class, ClassBuilder},
     exec::Interpreter,
     object::{GcObject, Object, PROTOTYPE},
     property::{Attribute, DataDescriptor, PropertyKey},
     realm::Realm,
+    symbol::{RcSymbol, Symbol},
     syntax::{
         ast::{
             node::{
@@ -22,7 +22,7 @@ use crate::{
         },
         Parser,
     },
-    value::{RcString, RcSymbol, Value},
+    value::{RcString, Value},
     BoaProfiler, Executable, Result,
 };
 
@@ -210,22 +210,14 @@ impl StandardObjects {
 #[derive(Debug)]
 pub struct Context {
     /// realm holds both the global object and the environment
-    realm: Realm,
+    pub(crate) realm: Realm,
 
     /// The current executor.
     executor: Interpreter,
 
-    /// Symbol hash.
-    ///
-    /// For now this is an incremented u64 number.
-    symbol_count: u64,
-
     /// console object state.
     #[cfg(feature = "console")]
     console: Console,
-
-    /// Cached well known symbols
-    well_known_symbols: WellKnownSymbols,
 
     /// Cached iterator prototypes.
     iterator_prototypes: IteratorPrototypes,
@@ -241,14 +233,11 @@ impl Default for Context {
     fn default() -> Self {
         let realm = Realm::create();
         let executor = Interpreter::new();
-        let (well_known_symbols, symbol_count) = WellKnownSymbols::new();
         let mut context = Self {
             realm,
             executor,
-            symbol_count,
             #[cfg(feature = "console")]
             console: Console::default(),
-            well_known_symbols,
             iterator_prototypes: IteratorPrototypes::default(),
             standard_objects: Default::default(),
             trace: false,
@@ -268,16 +257,6 @@ impl Context {
     #[inline]
     pub fn new() -> Self {
         Default::default()
-    }
-
-    #[inline]
-    pub fn realm(&self) -> &Realm {
-        &self.realm
-    }
-
-    #[inline]
-    pub fn realm_mut(&mut self) -> &mut Realm {
-        &mut self.realm
     }
 
     #[inline]
@@ -306,20 +285,10 @@ impl Context {
         builtins::init(self);
     }
 
-    /// Generates a new `Symbol` internal hash.
-    ///
-    /// This currently is an incremented value.
-    #[inline]
-    fn generate_hash(&mut self) -> u64 {
-        let hash = self.symbol_count;
-        self.symbol_count += 1;
-        hash
-    }
-
     /// Construct a new `Symbol` with an optional description.
     #[inline]
     pub fn construct_symbol(&mut self, description: Option<RcString>) -> RcSymbol {
-        RcSymbol::from(Symbol::new(self.generate_hash(), description))
+        RcSymbol::from(Symbol::new(description))
     }
 
     /// Construct an empty object.
@@ -340,8 +309,8 @@ impl Context {
 
     /// Return the global object.
     #[inline]
-    pub fn global_object(&self) -> &GcObject {
-        &self.realm().global_object
+    pub fn global_object(&self) -> GcObject {
+        self.realm.global_object.clone()
     }
 
     /// Constructs a `RangeError` with the specified message.
@@ -503,7 +472,7 @@ impl Context {
             flags,
             body: RcStatementList::from(body.into()),
             params,
-            environment: self.realm.environment.get_current_environment().clone(),
+            environment: self.get_current_environment().clone(),
         };
 
         let new_func = Object::function(func, function_prototype);
@@ -555,7 +524,7 @@ impl Context {
         body: NativeFunction,
     ) -> Result<()> {
         let function = self.create_builtin_function(name, length, body)?;
-        let mut global = self.global_object().clone();
+        let mut global = self.global_object();
         global.insert_property(name, function, Attribute::all());
         Ok(())
     }
@@ -574,10 +543,7 @@ impl Context {
     pub(crate) fn set_value(&mut self, node: &Node, value: Value) -> Result<Value> {
         match node {
             Node::Identifier(ref name) => {
-                self.realm
-                    .environment
-                    .set_mutable_binding(name.as_ref(), value.clone(), true)
-                    .map_err(|e| e.to_error(self))?;
+                self.set_mutable_binding(name.as_ref(), value.clone(), true)?;
                 Ok(value)
             }
             Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node
@@ -616,7 +582,7 @@ impl Context {
 
         let class = class_builder.build();
         let property = DataDescriptor::new(class, T::ATTRIBUTE);
-        self.global_object().clone().insert(T::NAME, property);
+        self.global_object().insert(T::NAME, property);
         Ok(())
     }
 
@@ -643,7 +609,7 @@ impl Context {
         V: Into<Value>,
     {
         let property = DataDescriptor::new(value, attribute);
-        self.global_object().clone().insert(key, property);
+        self.global_object().insert(key, property);
     }
 
     /// Evaluates the given code.
@@ -720,22 +686,6 @@ impl Context {
         BoaProfiler::global().drop();
 
         result
-    }
-
-    /// Returns a structure that contains the JavaScript well known symbols.
-    ///
-    /// # Examples
-    /// ```
-    ///# use boa::Context;
-    /// let mut context = Context::new();
-    ///
-    /// let iterator = context.well_known_symbols().iterator_symbol();
-    /// assert_eq!(iterator.description(), Some("Symbol.iterator"));
-    /// ```
-    /// This is equivalent to `let iterator = Symbol.iterator` in JavaScript.
-    #[inline]
-    pub fn well_known_symbols(&self) -> &WellKnownSymbols {
-        &self.well_known_symbols
     }
 
     /// Return the cached iterator prototypes.

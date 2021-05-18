@@ -2,7 +2,7 @@
 
 use super::{Node, StatementList};
 use crate::{
-    environment::lexical_environment::new_declarative_environment,
+    environment::declarative_environment_record::DeclarativeEnvironmentRecord,
     exec::Executable,
     exec::InterpreterState,
     gc::{Finalize, Trace},
@@ -54,17 +54,20 @@ impl Executable for Block {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Block", "exec");
         {
-            let env = &mut context.realm_mut().environment;
-            env.push(new_declarative_environment(Some(
-                env.get_current_environment_ref().clone(),
-            )));
+            let env = context.get_current_environment();
+            context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
         }
 
         // https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation
         // The return value is uninitialized, which means it defaults to Value::Undefined
         let mut obj = Value::default();
         for statement in self.items() {
-            obj = statement.run(context)?;
+            obj = statement.run(context).map_err(|e| {
+                // No matter how control leaves the Block the LexicalEnvironment is always
+                // restored to its former state.
+                context.pop_environment();
+                e
+            })?;
 
             match context.executor().get_current_state() {
                 InterpreterState::Return => {
@@ -88,7 +91,7 @@ impl Executable for Block {
         }
 
         // pop the block env
-        let _ = context.realm_mut().environment.pop();
+        let _ = context.pop_environment();
 
         Ok(obj)
     }

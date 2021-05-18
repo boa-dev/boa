@@ -20,6 +20,7 @@ use crate::{
     builtins::{string::string_iterator::StringIterator, Array, BuiltIn, RegExp},
     object::{ConstructorBuilder, Object, ObjectData},
     property::Attribute,
+    symbol::WellKnownSymbols,
     value::{RcString, Value},
     BoaProfiler, Context, Result,
 };
@@ -27,7 +28,6 @@ use regress::Regex;
 use std::{
     char::{decode_utf16, from_u32},
     cmp::{max, min},
-    f64::NAN,
     string::String as StdString,
 };
 
@@ -95,7 +95,7 @@ impl BuiltIn for String {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let symbol_iterator = context.well_known_symbols().iterator_symbol();
+        let symbol_iterator = WellKnownSymbols::iterator();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         let string_object = ConstructorBuilder::with_standard_object(
@@ -335,7 +335,7 @@ impl String {
 
         // Fast path returning NaN when pos is obviously out of range
         if pos < 0 || pos >= primitive_val.len() as i32 {
-            return Ok(Value::from(NAN));
+            return Ok(Value::from(f64::NAN));
         }
 
         // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
@@ -344,7 +344,7 @@ impl String {
         if let Some(utf16_val) = primitive_val.encode_utf16().nth(pos as usize) {
             Ok(Value::from(f64::from(utf16_val)))
         } else {
-            Ok(Value::from(NAN))
+            Ok(Value::from(f64::NAN))
         }
     }
 
@@ -1167,7 +1167,7 @@ impl String {
         // the number of code units from start to the end of the string,
         // which should always be smaller or equals to both +infinity and i32::max_value
         let end = if args.len() < 2 {
-            i32::max_value()
+            i32::MAX
         } else {
             args.get(1)
                 .expect("Could not get argument")
@@ -1216,7 +1216,7 @@ impl String {
         if let Some(result) = separator
             .and_then(|separator| separator.as_object())
             .and_then(|separator| {
-                let key = context.well_known_symbols().split_symbol();
+                let key = WellKnownSymbols::split();
 
                 match separator.get_method(context, key) {
                     Ok(splitter) => splitter.map(|splitter| {
@@ -1245,7 +1245,7 @@ impl String {
             .get(1)
             .map(|arg| arg.to_integer(context).map(|limit| limit as usize))
             .transpose()?
-            .unwrap_or(std::u32::MAX as usize);
+            .unwrap_or(u32::MAX as usize);
 
         let values: Vec<Value> = match separator {
             None if limit == 0 => vec![],

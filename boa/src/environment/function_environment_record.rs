@@ -8,18 +8,19 @@
 //! from within the function.
 //! More info: <https://tc39.es/ecma262/#sec-function-environment-records>
 
-use super::ErrorKind;
+use gc::{Gc, GcCell};
+use rustc_hash::FxHashMap;
+
 use crate::{
     environment::{
-        declarative_environment_record::DeclarativeEnvironmentRecordBinding,
+        declarative_environment_record::DeclarativeEnvironmentRecord,
         environment_record_trait::EnvironmentRecordTrait,
-        lexical_environment::{Environment, EnvironmentType},
+        lexical_environment::{Environment, EnvironmentType, VariableScope},
     },
     gc::{empty_trace, Finalize, Trace},
     object::GcObject,
-    Value,
+    Context, Result, Value,
 };
-use rustc_hash::FxHashMap;
 
 /// Different binding status for `this`.
 /// Usually set on a function environment record
@@ -40,7 +41,7 @@ unsafe impl Trace for BindingStatus {
 /// <https://tc39.es/ecma262/#table-16>
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct FunctionEnvironmentRecord {
-    pub env_rec: FxHashMap<String, DeclarativeEnvironmentRecordBinding>,
+    pub declarative_record: DeclarativeEnvironmentRecord,
     /// This is the this value used for this invocation of the function.
     pub this_value: Value,
     /// If the value is "lexical", this is an ArrowFunction and does not have a local this value.
@@ -55,23 +56,46 @@ pub struct FunctionEnvironmentRecord {
     /// `[[NewTarget]]` is the value of the `[[Construct]]` newTarget parameter.
     /// Otherwise, its value is undefined.
     pub new_target: Value,
-    /// Reference to the outer environment to help with the scope chain
-    /// Option type is needed as some environments can be created before we know what the outer env is
-    pub outer_env: Option<Environment>,
 }
 
 impl FunctionEnvironmentRecord {
-    pub fn bind_this_value(&mut self, value: Value) -> Result<Value, ErrorKind> {
+    #[allow(clippy::new_ret_no_self)]
+    pub fn new(
+        f: GcObject,
+        this: Option<Value>,
+        outer: Option<Environment>,
+        binding_status: BindingStatus,
+        new_target: Value,
+    ) -> Environment {
+        let mut func_env = FunctionEnvironmentRecord {
+            declarative_record: DeclarativeEnvironmentRecord {
+                env_rec: FxHashMap::default(),
+                outer_env: outer, // this will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
+            },
+            function: f,
+            this_binding_status: binding_status,
+            home_object: Value::undefined(),
+            new_target,
+            this_value: Value::undefined(),
+        };
+        // If a `this` value has been passed, bind it to the environment
+        if let Some(v) = this {
+            func_env.bind_this_value(v).unwrap();
+        }
+        Gc::new(GcCell::new(Box::new(func_env)))
+    }
+
+    pub fn bind_this_value(&mut self, value: Value) -> Result<Value> {
         match self.this_binding_status {
             // You can not bind an arrow function, their `this` value comes from the lexical scope above
             BindingStatus::Lexical => {
                 panic!("Cannot bind to an arrow function!");
             }
             // You can not bind a function twice
-            BindingStatus::Initialized => Err(ErrorKind::new_reference_error(
-                "Cannot bind to an initialised function!",
-            )),
-
+            BindingStatus::Initialized => {
+                todo!();
+                // context.throw_reference_error("Cannot bind to an initialised function!")
+            }
             BindingStatus::Uninitialized => {
                 self.this_value = value.clone();
                 self.this_binding_status = BindingStatus::Initialized;
@@ -95,7 +119,7 @@ impl FunctionEnvironmentRecord {
 
 impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     fn has_binding(&self, name: &str) -> bool {
-        self.env_rec.contains_key(name)
+        self.declarative_record.has_binding(name)
     }
 
     fn create_mutable_binding(
@@ -103,137 +127,65 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         name: String,
         deletion: bool,
         allow_name_reuse: bool,
-    ) -> Result<(), ErrorKind> {
-        if !allow_name_reuse {
-            assert!(
-                !self.env_rec.contains_key(&name),
-                "Identifier {} has already been declared",
-                name
-            );
-        }
-
-        self.env_rec.insert(
-            name,
-            DeclarativeEnvironmentRecordBinding {
-                value: None,
-                can_delete: deletion,
-                mutable: true,
-                strict: false,
-            },
-        );
-        Ok(())
+        context: &mut Context,
+    ) -> Result<()> {
+        self.declarative_record
+            .create_mutable_binding(name, deletion, allow_name_reuse, context)
     }
 
-    fn get_this_binding(&self) -> Result<Value, ErrorKind> {
-        match self.this_binding_status {
-            BindingStatus::Lexical => {
-                panic!("There is no this for a lexical function record");
-            }
-            BindingStatus::Uninitialized => Err(ErrorKind::new_reference_error(
-                "Uninitialised binding for this function",
-            )),
-
-            BindingStatus::Initialized => Ok(self.this_value.clone()),
-        }
+    fn create_immutable_binding(
+        &mut self,
+        name: String,
+        strict: bool,
+        context: &mut Context,
+    ) -> Result<()> {
+        self.declarative_record
+            .create_immutable_binding(name, strict, context)
     }
 
-    fn create_immutable_binding(&mut self, name: String, strict: bool) -> Result<(), ErrorKind> {
-        assert!(
-            !self.env_rec.contains_key(&name),
-            "Identifier {} has already been declared",
-            name
-        );
-
-        self.env_rec.insert(
-            name,
-            DeclarativeEnvironmentRecordBinding {
-                value: None,
-                can_delete: true,
-                mutable: false,
-                strict,
-            },
-        );
-        Ok(())
+    fn initialize_binding(
+        &mut self,
+        name: &str,
+        value: Value,
+        context: &mut Context,
+    ) -> Result<()> {
+        self.declarative_record
+            .initialize_binding(name, value, context)
     }
 
-    fn initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind> {
-        if let Some(ref mut record) = self.env_rec.get_mut(name) {
-            if record.value.is_none() {
-                record.value = Some(value);
-                return Ok(());
-            }
-        }
-        panic!("record must have binding for {}", name)
-    }
-
-    #[allow(clippy::else_if_without_else)]
     fn set_mutable_binding(
         &mut self,
         name: &str,
         value: Value,
-        mut strict: bool,
-    ) -> Result<(), ErrorKind> {
-        if self.env_rec.get(name).is_none() {
-            if strict {
-                return Err(ErrorKind::new_reference_error(format!(
-                    "{} not found",
-                    name
-                )));
-            }
-
-            self.create_mutable_binding(name.to_owned(), true, false)?;
-            self.initialize_binding(name, value)?;
-            return Ok(());
-        }
-
-        let record: &mut DeclarativeEnvironmentRecordBinding = self.env_rec.get_mut(name).unwrap();
-        if record.strict {
-            strict = true
-        }
-        if record.value.is_none() {
-            return Err(ErrorKind::new_reference_error(format!(
-                "{} has not been initialized",
-                name
-            )));
-        }
-        if record.mutable {
-            record.value = Some(value);
-        } else if strict {
-            return Err(ErrorKind::new_type_error(format!(
-                "Cannot mutate an immutable binding {}",
-                name
-            )));
-        }
-
-        Ok(())
+        strict: bool,
+        context: &mut Context,
+    ) -> Result<()> {
+        self.declarative_record
+            .set_mutable_binding(name, value, strict, context)
     }
 
-    fn get_binding_value(&self, name: &str, _strict: bool) -> Result<Value, ErrorKind> {
-        if let Some(binding) = self.env_rec.get(name) {
-            if let Some(ref val) = binding.value {
-                Ok(val.clone())
-            } else {
-                Err(ErrorKind::new_reference_error(format!(
-                    "{} is an uninitialized binding",
-                    name
-                )))
-            }
-        } else {
-            panic!("Cannot get binding value for {}", name);
-        }
+    fn get_binding_value(&self, name: &str, strict: bool, context: &mut Context) -> Result<Value> {
+        self.declarative_record
+            .get_binding_value(name, strict, context)
     }
 
     fn delete_binding(&mut self, name: &str) -> bool {
-        match self.env_rec.get(name) {
-            Some(binding) => {
-                if binding.can_delete {
-                    self.env_rec.remove(name);
-                    true
-                } else {
-                    false
-                }
+        self.declarative_record.delete_binding(name)
+    }
+
+    fn has_this_binding(&self) -> bool {
+        !matches!(self.this_binding_status, BindingStatus::Lexical)
+    }
+
+    fn get_this_binding(&self, context: &mut Context) -> Result<Value> {
+        match self.this_binding_status {
+            BindingStatus::Lexical => {
+                panic!("There is no this for a lexical function record");
             }
-            None => panic!("env_rec has no binding for {}", name),
+            BindingStatus::Uninitialized => {
+                context.throw_reference_error("Uninitialised binding for this function")
+            }
+            BindingStatus::Initialized => Ok(self.this_value.clone()),
         }
     }
 
@@ -245,33 +197,39 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         }
     }
 
-    fn has_this_binding(&self) -> bool {
-        !matches!(self.this_binding_status, BindingStatus::Lexical)
+    fn with_base_object(&self) -> Option<GcObject> {
+        None
     }
 
-    fn with_base_object(&self) -> Value {
-        Value::undefined()
-    }
-
-    fn get_outer_environment(&self) -> Option<Environment> {
-        match &self.outer_env {
-            Some(outer) => Some(outer.clone()),
-            None => None,
-        }
+    fn get_outer_environment_ref(&self) -> Option<&Environment> {
+        self.declarative_record.get_outer_environment_ref()
     }
 
     fn set_outer_environment(&mut self, env: Environment) {
-        self.outer_env = Some(env);
+        self.declarative_record.set_outer_environment(env)
     }
 
     fn get_environment_type(&self) -> EnvironmentType {
         EnvironmentType::Function
     }
 
-    fn get_global_object(&self) -> Option<Value> {
-        match &self.outer_env {
-            Some(ref outer) => outer.borrow().get_global_object(),
-            None => None,
-        }
+    fn recursive_create_mutable_binding(
+        &mut self,
+        name: String,
+        deletion: bool,
+        _scope: VariableScope,
+        context: &mut Context,
+    ) -> Result<()> {
+        self.create_mutable_binding(name, deletion, false, context)
+    }
+
+    fn recursive_create_immutable_binding(
+        &mut self,
+        name: String,
+        deletion: bool,
+        _scope: VariableScope,
+        context: &mut Context,
+    ) -> Result<()> {
+        self.create_immutable_binding(name, deletion, context)
     }
 }

@@ -13,14 +13,14 @@ jobs:
     name: Check on Linux
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v2.3.4
+      - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
           override: true
           profile: minimal
       - name: Cache cargo
-        uses: actions/cache@v2.1.4
+        uses: actions/cache@v2.1.5
         with:
           path: |
             target
@@ -36,14 +36,14 @@ jobs:
     name: Check on Windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v2.3.4
+      - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
           override: true
           profile: minimal
       - name: Cache cargo build
-        uses: actions/cache@v2.1.4
+        uses: actions/cache@v2.1.5
         with:
           path: target
           key: ${{ runner.os }}-cargo-check-${{ hashFiles('**/Cargo.lock') }}
@@ -56,8 +56,8 @@ jobs:
     name: Check on MacOS
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v2.3.4
+      - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
           override: true
@@ -71,14 +71,14 @@ jobs:
     name: Test Suite on Linux
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v2.3.4
+      - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
           override: true
           profile: minimal
       - name: Cache cargo
-        uses: actions/cache@v2.1.4
+        uses: actions/cache@v2.1.5
         with:
           path: |
             target
@@ -101,14 +101,14 @@ jobs:
     name: Test Suite on Windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v2.3.4
+      - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
           override: true
           profile: minimal
       - name: Cache cargo
-        uses: actions/cache@v2.1.4
+        uses: actions/cache@v2.1.5
         with:
           path: target
           key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
@@ -121,8 +121,8 @@ jobs:
     name: Test Suite on MacOS
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v2.3.4
+      - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
           override: true
@@ -136,8 +136,8 @@ jobs:
     name: Rustfmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v2.3.4
+      - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
           override: true
@@ -152,15 +152,15 @@ jobs:
     name: Clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v2.3.4
+      - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
           override: true
           profile: minimal
           components: clippy
       - name: Cache cargo
-        uses: actions/cache@v2.1.4
+        uses: actions/cache@v2.1.5
         with:
           path: |
             target
@@ -176,14 +176,14 @@ jobs:
     name: Documentation check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v2.3.4
+      - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
           override: true
           profile: minimal
       - name: Cache cargo
-        uses: actions/cache@v2.1.4
+        uses: actions/cache@v2.1.5
         with:
           path: |
             target

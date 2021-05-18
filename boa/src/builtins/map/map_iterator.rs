@@ -2,6 +2,7 @@ use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, Value},
     object::{GcObject, ObjectData},
     property::{Attribute, DataDescriptor},
+    symbol::WellKnownSymbols,
     BoaProfiler, Context, Result,
 };
 use gc::{Finalize, Trace};
@@ -146,7 +147,7 @@ impl MapIterator {
         make_builtin_fn(Self::next, "next", &map_iterator, 0, context);
         map_iterator.set_prototype_instance(iterator_prototype);
 
-        let to_string_tag = context.well_known_symbols().to_string_tag_symbol();
+        let to_string_tag = WellKnownSymbols::to_string_tag();
         let to_string_tag_property = DataDescriptor::new("Map Iterator", Attribute::CONFIGURABLE);
         map_iterator.insert(to_string_tag, to_string_tag_property);
         map_iterator
