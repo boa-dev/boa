@@ -284,6 +284,15 @@
 <span id="283">283</span>
 <span id="284">284</span>
 <span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
@@ -427,16 +436,7 @@
                     }
                 }
                 <span class="ident">ObjectData</span>::<span class="ident">Map</span>(<span class="kw-2">ref</span> <span class="ident">map</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">v</span>
-                        .<span class="ident">get_own_property</span>(<span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>::<span class="ident">from</span>(<span class="string">&quot;size&quot;</span>))
-                        <span class="comment">// TODO: do this in a better way &quot;unwrap&quot;</span>
-                        .<span class="ident">unwrap</span>()
-                        <span class="comment">// FIXME: handle accessor descriptors</span>
-                        .<span class="ident">as_data_descriptor</span>()
-                        .<span class="ident">unwrap</span>()
-                        .<span class="ident">value</span>()
-                        .<span class="ident">as_number</span>()
-                        .<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
+                    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">len</span>();
                     <span class="kw">if</span> <span class="ident">size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
                         <span class="kw">return</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Map(0)&quot;</span>);
                     }
@@ -454,6 +454,24 @@
                         <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Map {{ {} }}&quot;</span>, <span class="ident">mappings</span>)
                     } <span class="kw">else</span> {
                         <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Map({})&quot;</span>, <span class="ident">size</span>)
+                    }
+                }
+                <span class="ident">ObjectData</span>::<span class="ident">Set</span>(<span class="kw-2">ref</span> <span class="ident">set</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">set</span>.<span class="ident">size</span>();
+
+                    <span class="kw">if</span> <span class="ident">size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                        <span class="kw">return</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Set(0)&quot;</span>);
+                    }
+
+                    <span class="kw">if</span> <span class="ident">print_children</span> {
+                        <span class="kw">let</span> <span class="ident">entries</span> <span class="op">=</span> <span class="ident">set</span>
+                            .<span class="ident">iter</span>()
+                            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">log_string_from</span>(<span class="ident">value</span>, <span class="ident">print_internals</span>, <span class="bool-val">false</span>))
+                            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+                            .<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>);
+                        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Set {{ {} }}&quot;</span>, <span class="ident">entries</span>)
+                    } <span class="kw">else</span> {
+                        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Set({})&quot;</span>, <span class="ident">size</span>)
                     }
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">display_obj</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>, <span class="ident">print_internals</span>),

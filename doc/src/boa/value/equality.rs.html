@@ -196,6 +196,7 @@
 <span id="195">195</span>
 <span id="196">196</span>
 <span id="197">197</span>
+<span id="198">198</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins</span>::<span class="ident">Number</span>, <span class="ident">Context</span>};
@@ -391,6 +392,7 @@
         (<span class="ident">Value</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Value</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="ident">y</span>,
         (<span class="ident">Value</span>::<span class="ident">Boolean</span>(<span class="ident">x</span>), <span class="ident">Value</span>::<span class="ident">Boolean</span>(<span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="ident">y</span>,
         (<span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">GcObject</span>::<span class="ident">equals</span>(<span class="ident">x</span>, <span class="ident">y</span>),
+        (<span class="ident">Value</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Value</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="ident">y</span>,
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
     }
 }

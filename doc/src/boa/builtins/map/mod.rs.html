@@ -433,7 +433,30 @@
 <span id="432">432</span>
 <span id="433">433</span>
 <span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
 </pre><div class="example-wrap"><pre class="rust ">
+<span class="doccomment">//! This module implements the global `Map` objest.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The JavaScript `Map` class is a global object that is used in the construction of maps; which</span>
+<span class="doccomment">//! are high-level, key-value stores.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! More information:</span>
+<span class="doccomment">//!  - [ECMAScript reference][spec]</span>
+<span class="doccomment">//!  - [MDN documentation][mdn]</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-map-objects</span>
+<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map</span>
+
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mutable_key_type</span>)]</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -476,41 +499,44 @@
             .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
-        <span class="kw">let</span> <span class="ident">map_object</span> <span class="op">=</span> <span class="ident">ConstructorBuilder</span>::<span class="ident">new</span>(<span class="ident">context</span>, <span class="self">Self</span>::<span class="ident">constructor</span>)
-            .<span class="ident">name</span>(<span class="self">Self</span>::<span class="ident">NAME</span>)
-            .<span class="ident">length</span>(<span class="self">Self</span>::<span class="ident">LENGTH</span>)
-            .<span class="ident">property</span>(
-                <span class="string">&quot;entries&quot;</span>,
-                <span class="ident">entries_function</span>.<span class="ident">clone</span>(),
-                <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
-            )
-            .<span class="ident">property</span>(
-                <span class="ident">to_string_tag</span>,
-                <span class="string">&quot;Map&quot;</span>,
-                <span class="ident">Attribute</span>::<span class="ident">READONLY</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
-            )
-            .<span class="ident">property</span>(
-                <span class="ident">iterator_symbol</span>,
-                <span class="ident">entries_function</span>,
-                <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
-            )
-            .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">keys</span>, <span class="string">&quot;keys&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">set</span>, <span class="string">&quot;set&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">delete</span>, <span class="string">&quot;delete&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">get</span>, <span class="string">&quot;get&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">clear</span>, <span class="string">&quot;clear&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">has</span>, <span class="string">&quot;has&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">for_each</span>, <span class="string">&quot;forEach&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">values</span>, <span class="string">&quot;values&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">callable</span>(<span class="bool-val">false</span>)
-            .<span class="ident">build</span>();
+        <span class="kw">let</span> <span class="ident">map_object</span> <span class="op">=</span> <span class="ident">ConstructorBuilder</span>::<span class="ident">with_standard_object</span>(
+            <span class="ident">context</span>,
+            <span class="self">Self</span>::<span class="ident">constructor</span>,
+            <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">map_object</span>().<span class="ident">clone</span>(),
+        )
+        .<span class="ident">name</span>(<span class="self">Self</span>::<span class="ident">NAME</span>)
+        .<span class="ident">length</span>(<span class="self">Self</span>::<span class="ident">LENGTH</span>)
+        .<span class="ident">property</span>(
+            <span class="string">&quot;entries&quot;</span>,
+            <span class="ident">entries_function</span>.<span class="ident">clone</span>(),
+            <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
+        )
+        .<span class="ident">property</span>(
+            <span class="ident">to_string_tag</span>,
+            <span class="string">&quot;Map&quot;</span>,
+            <span class="ident">Attribute</span>::<span class="ident">READONLY</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
+        )
+        .<span class="ident">property</span>(
+            <span class="ident">iterator_symbol</span>,
+            <span class="ident">entries_function</span>,
+            <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
+        )
+        .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">keys</span>, <span class="string">&quot;keys&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">set</span>, <span class="string">&quot;set&quot;</span>, <span class="number">2</span>)
+        .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">delete</span>, <span class="string">&quot;delete&quot;</span>, <span class="number">1</span>)
+        .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">get</span>, <span class="string">&quot;get&quot;</span>, <span class="number">1</span>)
+        .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">clear</span>, <span class="string">&quot;clear&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">has</span>, <span class="string">&quot;has&quot;</span>, <span class="number">1</span>)
+        .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">for_each</span>, <span class="string">&quot;forEach&quot;</span>, <span class="number">1</span>)
+        .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">values</span>, <span class="string">&quot;values&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">build</span>();
 
         (<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="ident">map_object</span>.<span class="ident">into</span>(), <span class="self">Self</span>::<span class="ident">attribute</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Map</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
 
     <span class="doccomment">/// Create a new map</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">constructor</span>(
@@ -519,14 +545,10 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">new_target</span>.<span class="ident">is_undefined</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Map requires new&quot;</span>);
+            <span class="kw">return</span> <span class="ident">context</span>
+                .<span class="ident">throw_type_error</span>(<span class="string">&quot;calling a builtin Map constructor without new is forbidden&quot;</span>);
         }
-        <span class="kw">let</span> <span class="ident">map_prototype</span> <span class="op">=</span> <span class="ident">context</span>
-            .<span class="ident">global_object</span>()
-            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="string">&quot;Map&quot;</span>.<span class="ident">into</span>(), <span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
-            .<span class="ident">get_field</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;&#39;Map&#39; global property should be an object&quot;</span>);
+        <span class="kw">let</span> <span class="ident">map_prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">map_object</span>().<span class="ident">prototype</span>();
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">new_target</span>
             .<span class="ident">as_object</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> {

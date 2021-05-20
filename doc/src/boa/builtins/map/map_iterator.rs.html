@@ -154,6 +154,7 @@
 <span id="153">153</span>
 <span id="154">154</span>
 <span id="155">155</span>
+<span id="156">156</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">function</span>::<span class="ident">make_builtin_fn</span>, <span class="ident">iterable</span>::<span class="ident">create_iter_result_object</span>, <span class="ident">Array</span>, <span class="ident">Value</span>},
@@ -187,6 +188,7 @@
 <span class="kw">impl</span> <span class="ident">MapIterator</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;MapIterator&quot;</span>;
 
+    <span class="doccomment">/// Constructs a new `MapIterator`, that will iterate over `map`, starting at index 0</span>
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">map</span>: <span class="ident">Value</span>, <span class="ident">kind</span>: <span class="ident">MapIterationKind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">MapIterator</span> {
             <span class="ident">iterated_map</span>: <span class="ident">map</span>,

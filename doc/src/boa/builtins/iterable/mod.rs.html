@@ -161,12 +161,55 @@
 <span id="160">160</span>
 <span id="161">161</span>
 <span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::<span class="ident">string</span>::<span class="ident">string_iterator</span>::<span class="ident">StringIterator</span>,
     <span class="ident">builtins</span>::<span class="ident">ArrayIterator</span>,
     <span class="ident">builtins</span>::<span class="ident">ForInIterator</span>,
     <span class="ident">builtins</span>::<span class="ident">MapIterator</span>,
+    <span class="ident">builtins</span>::<span class="ident">SetIterator</span>,
     <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">ObjectInitializer</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>},
     <span class="ident">symbol</span>::<span class="ident">WellKnownSymbols</span>,
@@ -177,6 +220,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IteratorPrototypes</span> {
     <span class="ident">iterator_prototype</span>: <span class="ident">GcObject</span>,
     <span class="ident">array_iterator</span>: <span class="ident">GcObject</span>,
+    <span class="ident">set_iterator</span>: <span class="ident">GcObject</span>,
     <span class="ident">string_iterator</span>: <span class="ident">GcObject</span>,
     <span class="ident">map_iterator</span>: <span class="ident">GcObject</span>,
     <span class="ident">for_in_iterator</span>: <span class="ident">GcObject</span>,
@@ -190,6 +234,7 @@
                 <span class="ident">context</span>,
                 <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
             ),
+            <span class="ident">set_iterator</span>: <span class="ident">SetIterator</span>::<span class="ident">create_prototype</span>(<span class="ident">context</span>, <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>()),
             <span class="ident">string_iterator</span>: <span class="ident">StringIterator</span>::<span class="ident">create_prototype</span>(
                 <span class="ident">context</span>,
                 <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
@@ -211,6 +256,11 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iterator_prototype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
         <span class="self">self</span>.<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>()
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
+        <span class="self">self</span>.<span class="ident">set_iterator</span>.<span class="ident">clone</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -302,6 +352,40 @@
 
         <span class="kw">let</span> <span class="ident">next_result</span> <span class="op">=</span> <span class="ident">next</span>.<span class="ident">get_field</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">IteratorResult</span>::<span class="ident">new</span>(<span class="ident">next_result</span>, <span class="ident">done</span>))
+    }
+
+    <span class="doccomment">/// Cleanup the iterator</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMA reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">///  [spec]: https://tc39.es/ecma262/#sec-iteratorclose</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">completion</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iterator_object</span>.<span class="ident">get_field</span>(<span class="string">&quot;return&quot;</span>, <span class="ident">context</span>);
+
+        <span class="comment">// 5</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">inner_value</span>) <span class="op">=</span> <span class="ident">inner_result</span> {
+            <span class="comment">// b</span>
+            <span class="kw">if</span> <span class="ident">inner_value</span>.<span class="ident">is_undefined</span>() {
+                <span class="kw">return</span> <span class="ident">completion</span>;
+            }
+            <span class="comment">// c</span>
+            <span class="ident">inner_result</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">inner_value</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">iterator_object</span>, <span class="kw-2">&amp;</span>[]);
+        }
+
+        <span class="comment">// 6</span>
+        <span class="kw">let</span> <span class="ident">completion</span> <span class="op">=</span> <span class="ident">completion</span><span class="question-mark">?</span>;
+
+        <span class="comment">// 7</span>
+        <span class="kw">let</span> <span class="ident">inner_result</span> <span class="op">=</span> <span class="ident">inner_result</span><span class="question-mark">?</span>;
+
+        <span class="comment">// 8</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">inner_result</span>.<span class="ident">is_object</span>() {
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;`return` method of iterator didn&#39;t return an Object&quot;</span>);
+        }
+
+        <span class="comment">// 9</span>
+        <span class="prelude-val">Ok</span>(<span class="ident">completion</span>)
     }
 }
 

@@ -102,6 +102,10 @@
 <span id="101">101</span>
 <span id="102">102</span>
 <span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.</span>
 
@@ -124,6 +128,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">object</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">reflect</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">regexp</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">set</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">string</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">symbol</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">undefined</span>;
@@ -147,6 +152,8 @@
     <span class="ident">object</span>::<span class="ident">Object</span> <span class="kw">as</span> <span class="ident">BuiltInObjectObject</span>,
     <span class="ident">reflect</span>::<span class="ident">Reflect</span>,
     <span class="ident">regexp</span>::<span class="ident">RegExp</span>,
+    <span class="ident">set</span>::<span class="ident">set_iterator</span>::<span class="ident">SetIterator</span>,
+    <span class="ident">set</span>::<span class="ident">Set</span>,
     <span class="ident">string</span>::<span class="ident">String</span>,
     <span class="ident">symbol</span>::<span class="ident">Symbol</span>,
     <span class="ident">undefined</span>::<span class="ident">Undefined</span>,
@@ -183,6 +190,7 @@
         <span class="ident">Date</span>::<span class="ident">init</span>,
         <span class="ident">Map</span>::<span class="ident">init</span>,
         <span class="ident">Number</span>::<span class="ident">init</span>,
+        <span class="ident">Set</span>::<span class="ident">init</span>,
         <span class="ident">String</span>::<span class="ident">init</span>,
         <span class="ident">RegExp</span>::<span class="ident">init</span>,
         <span class="ident">Symbol</span>::<span class="ident">init</span>,
