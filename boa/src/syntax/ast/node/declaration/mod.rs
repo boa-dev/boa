@@ -107,6 +107,7 @@ impl Executable for DeclarationList {
                 }
                 continue;
             }
+
             match &self {
                 Const(_) => context.create_immutable_binding(
                     decl.name().to_owned(),
