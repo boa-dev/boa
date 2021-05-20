@@ -96,6 +96,8 @@ pub struct StandardObjects {
     syntax_error: StandardConstructor,
     eval_error: StandardConstructor,
     uri_error: StandardConstructor,
+    map: StandardConstructor,
+    set: StandardConstructor,
 }
 
 impl Default for StandardObjects {
@@ -117,6 +119,8 @@ impl Default for StandardObjects {
             syntax_error: StandardConstructor::default(),
             eval_error: StandardConstructor::default(),
             uri_error: StandardConstructor::default(),
+            map: StandardConstructor::default(),
+            set: StandardConstructor::default(),
         }
     }
 }
@@ -197,8 +201,19 @@ impl StandardObjects {
         &self.eval_error
     }
 
+    #[inline]
     pub fn uri_error_object(&self) -> &StandardConstructor {
         &self.uri_error
+    }
+
+    #[inline]
+    pub fn map_object(&self) -> &StandardConstructor {
+        &self.map
+    }
+
+    #[inline]
+    pub fn set_object(&self) -> &StandardConstructor {
+        &self.set
     }
 }
 

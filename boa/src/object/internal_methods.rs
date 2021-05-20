@@ -211,7 +211,35 @@ impl GcObject {
         }
 
         match (&current, &desc) {
+            (
+                PropertyDescriptor::Data(current),
+                PropertyDescriptor::Accessor(AccessorDescriptor { get, set, .. }),
+            ) => {
+                // 6. b
+                if !current.configurable() {
+                    return false;
+                }
+
+                let current =
+                    AccessorDescriptor::new(get.clone(), set.clone(), current.attributes());
+                self.insert(key, current);
+                return true;
+            }
+            (
+                PropertyDescriptor::Accessor(current),
+                PropertyDescriptor::Data(DataDescriptor { value, .. }),
+            ) => {
+                // 6. c
+                if !current.configurable() {
+                    return false;
+                }
+
+                let current = DataDescriptor::new(value, current.attributes());
+                self.insert(key, current);
+                return true;
+            }
             (PropertyDescriptor::Data(current), PropertyDescriptor::Data(desc)) => {
+                // 7.
                 if !current.configurable() && !current.writable() {
                     if desc.writable() {
                         return false;
@@ -222,25 +250,8 @@ impl GcObject {
                     }
                 }
             }
-            (PropertyDescriptor::Data(current), PropertyDescriptor::Accessor(_)) => {
-                if !current.configurable() {
-                    return false;
-                }
-
-                let current = AccessorDescriptor::new(None, None, current.attributes());
-                self.insert(key, current);
-                return true;
-            }
-            (PropertyDescriptor::Accessor(current), PropertyDescriptor::Data(_)) => {
-                if !current.configurable() {
-                    return false;
-                }
-
-                let current = DataDescriptor::new(Value::undefined(), current.attributes());
-                self.insert(key, current);
-                return true;
-            }
             (PropertyDescriptor::Accessor(current), PropertyDescriptor::Accessor(desc)) => {
+                // 8.
                 if !current.configurable() {
                     if let (Some(current_get), Some(desc_get)) = (current.getter(), desc.getter()) {
                         if !GcObject::equals(&current_get, &desc_get) {
