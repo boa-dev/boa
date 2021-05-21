@@ -20,7 +20,7 @@ use crate::{
     object::{ConstructorBuilder, FunctionBuilder, GcObject, ObjectData, PROTOTYPE},
     property::{Attribute, DataDescriptor},
     symbol::WellKnownSymbols,
-    value::{same_value_zero, IntegerOrInfinity, Value},
+    value::{IntegerOrInfinity, Value},
     BoaProfiler, Context, Result,
 };
 use num_traits::*;
@@ -1154,7 +1154,7 @@ impl Array {
         for idx in 0..length {
             let check_element = this.get_field(idx, context)?.clone();
 
-            if same_value_zero(&check_element, &search_element) {
+            if Value::same_value_zero(&check_element, &search_element) {
                 return Ok(Value::from(true));
             }
         }
