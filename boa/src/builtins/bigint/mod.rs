@@ -17,6 +17,7 @@ use crate::{
     gc::{empty_trace, Finalize, Trace},
     object::{ConstructorBuilder, ObjectData},
     property::Attribute,
+    symbol::WellKnownSymbols,
     value::{RcBigInt, Value},
     BoaProfiler, Context, Result,
 };
@@ -50,6 +51,8 @@ impl BuiltIn for BigInt {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
+        let to_string_tag = WellKnownSymbols::to_string_tag();
+
         let bigint_object = ConstructorBuilder::with_standard_object(
             context,
             Self::constructor,
@@ -63,6 +66,11 @@ impl BuiltIn for BigInt {
         .static_method(Self::as_uint_n, "asUintN", 2)
         .callable(true)
         .constructable(false)
+        .property(
+            to_string_tag,
+            "BigInt",
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
         .build();
 
         (Self::NAME, bigint_object.into(), Self::attribute())
