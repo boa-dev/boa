@@ -30,10 +30,7 @@ use crate::{
 use crate::builtins::console::Console;
 
 #[cfg(feature = "vm")]
-use crate::vm::{
-    compilation::{CodeGen, Compiler},
-    VM,
-};
+use crate::vm::Vm;
 
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
 #[derive(Debug, Clone)]
@@ -685,13 +682,12 @@ impl Context {
             Err(e) => return self.throw_syntax_error(e),
         };
 
-        let mut compiler = Compiler::default();
-        statement_list.compile(&mut compiler);
-
-        let mut vm = VM::new(compiler, self);
-        // Generate Bytecode and place it into instruction_stack
-        // Interpret the Bytecode
+        let mut compiler = crate::bytecompiler::ByteCompiler::default();
+        compiler.compile_statement_list(&statement_list, true);
+        let code_block = compiler.finish();
+        let mut vm = Vm::new(code_block, self);
         let result = vm.run();
+
         // The main_timer needs to be dropped before the BoaProfiler is.
         drop(main_timer);
         BoaProfiler::global().drop();

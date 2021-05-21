@@ -46,6 +46,7 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 #[allow(clippy::unnecessary_wraps)]
 pub mod builtins;
 pub mod class;
+pub mod context;
 pub mod environment;
 pub mod exec;
 pub mod gc;
@@ -58,10 +59,11 @@ pub mod symbol;
 #[allow(clippy::upper_case_acronyms)]
 pub mod syntax;
 pub mod value;
+
+#[cfg(feature = "vm")]
+pub mod bytecompiler;
 #[cfg(feature = "vm")]
 pub mod vm;
-
-pub mod context;
 
 use std::result::Result as StdResult;
 

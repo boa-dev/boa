@@ -12,9 +12,6 @@ use std::fmt;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "vm")]
-use crate::vm::{compilation::CodeGen, Compiler, Instruction};
-
 #[cfg(test)]
 mod tests;
 
@@ -86,20 +83,6 @@ impl Object {
             }
         }
         write!(f, "{}}}", "    ".repeat(indent))
-    }
-}
-
-#[cfg(feature = "vm")]
-impl CodeGen for Object {
-    fn compile(&self, compiler: &mut Compiler) {
-        let _timer = BoaProfiler::global().start_event("object", "codeGen");
-        // Is it a new empty object?
-        if self.properties.len() == 0 {
-            compiler.add_instruction(Instruction::NewObject);
-            return;
-        }
-
-        unimplemented!()
     }
 }
 
