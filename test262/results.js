@@ -88,7 +88,7 @@
 
     container.append(
       $('<a class="card-link" href="#"></a>')
-        .append($('<i class="bi bi-info-square"></i>'))
+        .append($('<i class="bi-info-square"></i>'))
         .click(() => {
           let data = latest[tag];
           showData(data);
@@ -110,39 +110,39 @@
         let failedTests = totalTests - passedTests - ignoredTests;
 
         infoContainer.append(
-          $('<div class="card"></div>').append(
-            $('<div class="progress progress-bar-stripped"></div>')
-              .append(
-                $('<div class="progress-bar bg-success"></div>')
-                  .attr("aria-valuenow", passedTests)
-                  .attr("aria-valuemax", totalTests)
-                  .attr("aria-valuemin", 0)
-                  .css(
-                    "width",
-                    `${Math.round((passedTests / totalTests) * 10000) / 100}%`
-                  )
-              )
-              .append(
-                $('<div class="progress-bar bg-warning"></div>')
-                  .attr("aria-valuenow", ignoredTests)
-                  .attr("aria-valuemax", totalTests)
-                  .attr("aria-valuemin", 0)
-                  .css(
-                    "width",
-                    `${Math.round((ignoredTests / totalTests) * 10000) / 100}%`
-                  )
-              )
-              .append(
-                $('<div class="progress-bar bg-danger"></div>')
-                  .attr("aria-valuenow", failedTests)
-                  .attr("aria-valuemax", totalTests)
-                  .attr("aria-valuemin", 0)
-                  .css(
-                    "width",
-                    `${Math.round((failedTests / totalTests) * 10000) / 100}%`
-                  )
+          $('<div class="progress g-0"></div>').append(
+            $('<div class="progress-bar progress-bar-striped bg-success"></div>')
+              .attr("aria-valuenow", passedTests)
+              .attr("aria-valuemax", totalTests)
+              .attr("aria-valuemin", 0)
+              .attr("role", "progressbar")
+              .css(
+                "width",
+                `${Math.round((passedTests / totalTests) * 10000) / 100}%`
               )
           )
+            .append(
+              $('<div class="progress-bar progress-bar-striped bg-warning"></div>')
+                .attr("aria-valuenow", ignoredTests)
+                .attr("aria-valuemax", totalTests)
+                .attr("aria-valuemin", 0)
+                .attr("role", "progressbar")
+                .css(
+                  "width",
+                  `${Math.round((ignoredTests / totalTests) * 10000) / 100}%`
+                )
+            )
+            .append(
+              $('<div class="progress-bar progress-bar-striped bg-danger"></div>')
+                .attr("aria-valuenow", failedTests)
+                .attr("aria-valuemax", totalTests)
+                .attr("aria-valuemin", 0)
+                .attr("role", "progressbar")
+                .css(
+                  "width",
+                  `${Math.round((failedTests / totalTests) * 10000) / 100}%`
+                )
+            )
         );
 
         for (let suite of data.r.s) {
@@ -156,38 +156,37 @@
 
     // Adds a suite representation to an element.
     function addSuite(elm, suite, parentID, namespace, upstream) {
-      let li = $('<div class="card"></div>');
+      let li = $('<div class="card g-0"></div>');
 
       let newID = parentID + suite.n;
       let headerID = newID + "header";
       let header = $(
-        `<div id="${headerID}" class="card-header col-md-12"></div>`
+        `<div id="${headerID}" class="card-header col-md-12 d-grid"></div>`
       );
 
       // Add overal information:
       let info = $(
-        '<button type="button" aria-expanded="false" data-toggle="collapse" class="btn btn-light btn-block text-left"></button>'
+        '<button type="button" aria-expanded="false" data-bs-toggle="collapse" class="btn btn-light text-start"></button>'
       );
 
       let name = $('<span class="name"></span>').text(suite.n);
       info.append(name);
 
-      let dataHTML = ` <span class="passed-tests">${formatter.format(
+      let dataHTML = ` <span class="text-success">${formatter.format(
         suite.o
       )}</span>`;
-      dataHTML += ` / <span class="ignored-tests">${formatter.format(
+      dataHTML += ` / <span class="text-warning">${formatter.format(
         suite.i
       )}</span>`;
-      dataHTML += ` / <span class="failed-tests">${formatter.format(
+      dataHTML += ` / <span class="text-danger">${formatter.format(
         suite.c - suite.o - suite.i
-      )}${
-        suite.p !== 0
-          ? ` (${formatter.format(
-              suite.p
-            )} <i class="bi bi-exclamation-triangle"></i>)`
-          : ""
-      }</span>`;
-      dataHTML += ` / <span class="total-tests">${formatter.format(
+      )}${suite.p !== 0
+        ? ` (${formatter.format(
+          suite.p
+        )} <i class="bi-exclamation-triangle"></i>)`
+        : ""
+        }</span>`;
+      dataHTML += ` / <span>${formatter.format(
         suite.c
       )}</span>`;
       info.append($('<span class="data-overview"></span>').html(dataHTML));
@@ -197,13 +196,13 @@
 
       // Add sub-suites
       let inner = $(
-        `<div id="${newID}" data-parent="#${parentID}" class="collapse" aria-labelledby="${headerID}"></div>`
+        `<div id="${newID}" data-bs-parent="#${parentID}" class="collapse" aria-labelledby="${headerID}"></div>`
       );
 
       let innerInner = $('<div class="card-body accordion"></div>');
 
       if (typeof suite.t !== "undefined" && suite.t.length !== 0) {
-        let grid = $('<div class="card-body"></div>').append(
+        let grid = $('<div class="row card-body"></div>').append(
           $("<h3>Direct tests:</h3>")
         );
         for (let innerTest of suite.t) {
@@ -230,7 +229,7 @@
 
           if (innerTest.r === "P") {
             testCard.append(
-              $("<i></i>").addClass("bi").addClass("bi-exclamation-triangle")
+              $('<i class="bi-exclamation-triangle"></i>')
             );
           } else {
             testCard.addClass("embed-responsive-1by1");
@@ -254,7 +253,7 @@
         }
       }
 
-      info.attr("aria-controls", newID).attr("data-target", "#" + newID);
+      info.attr("aria-controls", newID).attr("data-bs-target", "#" + newID);
       inner.append(innerInner);
       li.append(inner);
 
@@ -273,42 +272,40 @@
       )
       .append(
         $('<li class="list-group-item"></li>').html(
-          `Total tests: <span class="total-tests">${formatter.format(
+          `Total tests: <span>${formatter.format(
             latest.t
           )}</span>`
         )
       )
       .append(
         $('<li class="list-group-item"></li>').html(
-          `Passed tests: <span class="passed-tests">${formatter.format(
+          `Passed tests: <span class="text-success">${formatter.format(
             latest.o
           )}</span>`
         )
       )
       .append(
         $('<li class="list-group-item"></li>').html(
-          `Ignored tests: <span class="ignored-tests">${formatter.format(
+          `Ignored tests: <span class="text-warning">${formatter.format(
             latest.i
           )}</span>`
         )
       )
       .append(
         $('<li class="list-group-item"></li>').html(
-          `Failed tests: <span class="failed-tests">${formatter.format(
+          `Failed tests: <span class="text-danger">${formatter.format(
             latest.t - latest.o - latest.i
-          )}${
-            latest.p !== 0
-              ? ` (${formatter.format(
-                  latest.p
-                )} <i class="bi bi-exclamation-triangle"></i>)`
-              : ""
+          )}${latest.p !== 0
+            ? ` (${formatter.format(
+              latest.p
+            )} <i class="bi-exclamation-triangle"></i>)`
+            : ""
           }</span>`
         )
       )
       .append(
         $('<li class="list-group-item"></li>').html(
-          `Conformance: <b>${
-            Math.round((10000 * latest.o) / latest.t) / 100
+          `Conformance: <b>${Math.round((10000 * latest.o) / latest.t) / 100
           }%</b>`
         )
       );
@@ -338,6 +335,7 @@
               backgroundColor: "#1fcb4a",
               borderColor: "#0f6524",
               borderWidth: 1,
+              fill: true,
             },
             {
               label: "Ignored",
@@ -345,6 +343,7 @@
               backgroundColor: "#dfa800",
               borderColor: "#6f5400",
               borderWidth: 1,
+              fill: true,
             },
             {
               label: "Panics",
@@ -352,6 +351,7 @@
               backgroundColor: "#a30000",
               borderColor: "#510000",
               borderWidth: 1,
+              fill: true,
             },
             {
               label: "Failed",
@@ -359,6 +359,7 @@
               backgroundColor: "#ff4848",
               borderColor: "#a30000",
               borderWidth: 1,
+              fill: true,
             },
           ],
         },
@@ -375,31 +376,33 @@
           tooltips: {
             mode: "index",
           },
-          hover: {
-            mode: "nearest",
+          interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
           },
           scales: {
-            xAxes: [
-              {
+            x: {
+              display: false,
+              title: {
                 display: false,
+              }
+            },
+            y:
+            {
+              stacked: true,
+              title: {
+                display: true,
+                text: "Tests",
               },
-            ],
-            yAxes: [
-              {
-                stacked: true,
-                scaleLabel: {
-                  display: true,
-                  labelString: "Tests",
-                },
-              },
-            ],
+            },
           },
         },
       });
     });
 
     return $('<a class="card-link" href="#""></a>')
-      .append($('<i class="bi bi-graph-up"></i>'))
+      .append($('<i class="bi-graph-up"></i>'))
       .click(() => {
         $("#graph-modal").modal("show");
       });
