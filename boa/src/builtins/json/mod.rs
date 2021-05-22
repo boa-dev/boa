@@ -46,7 +46,7 @@ impl BuiltIn for Json {
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
         let json_object = ObjectInitializer::new(context)
-            .property(to_string_tag, "JSON", attribute)
+            .property(to_string_tag, Self::NAME, attribute)
             .function(Self::parse, "parse", 2)
             .function(Self::stringify, "stringify", 3)
             .build();

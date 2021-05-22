@@ -42,7 +42,6 @@ impl BuiltIn for Map {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
-
         let iterator_symbol = WellKnownSymbols::iterator();
 
         let entries_function = FunctionBuilder::new(context, Self::entries)
@@ -66,7 +65,7 @@ impl BuiltIn for Map {
         )
         .property(
             to_string_tag,
-            "Map",
+            Self::NAME,
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .property(

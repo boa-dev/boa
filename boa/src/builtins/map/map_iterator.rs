@@ -149,7 +149,10 @@ impl MapIterator {
         map_iterator.set_prototype_instance(iterator_prototype);
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
-        let to_string_tag_property = DataDescriptor::new("Map Iterator", Attribute::CONFIGURABLE);
+        let to_string_tag_property = DataDescriptor::new(
+            "Map Iterator",
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
         map_iterator.insert(to_string_tag, to_string_tag_property);
         map_iterator
     }

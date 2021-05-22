@@ -94,7 +94,11 @@ impl BuiltIn for Set {
             values_function,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
-        .property(to_string_tag, "Set", Attribute::CONFIGURABLE)
+        .property(
+            to_string_tag,
+            Self::NAME,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
         .build();
 
         (Self::NAME, set_object.into(), Self::attribute())
