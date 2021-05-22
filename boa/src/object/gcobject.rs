@@ -221,13 +221,11 @@ impl GcObject {
                                 has_parameter_expressions || param.init().is_some();
 
                             let value = match args.get(i).cloned() {
-                                None | Some(Value::Undefined) => {
-                                    if let Some(init) = param.init() {
-                                        init.run(context).unwrap_or(Value::Undefined)
-                                    } else {
-                                        Value::Undefined
-                                    }
-                                }
+                                None | Some(Value::Undefined) => param
+                                    .init()
+                                    .map(|init| init.run(context).ok())
+                                    .flatten()
+                                    .unwrap_or_default(),
                                 Some(value) => value,
                             };
 
@@ -274,7 +272,6 @@ impl GcObject {
             FunctionBody::BuiltInFunction(_) if construct => {
                 unreachable!("Cannot have a function in construct")
             }
-
             FunctionBody::BuiltInConstructor(function) => {
                 function(&Value::undefined(), args, context)
             }
