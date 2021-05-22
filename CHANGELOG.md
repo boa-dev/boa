@@ -1,6 +1,6 @@
 # CHANGELOG
 
-# [0.12.0 (YYYY-MM-DD) - `Set`, accessors, `@@toStringTag` and more compliance](https://github.com/boa-dev/boa/compare/v0.11.0...v0.12.0)
+# [0.12.0 (YYYY-MM-DD) - `Set`, accessors, `@@toStringTag` and panic reduction](https://github.com/boa-dev/boa/compare/v0.11.0...v0.12.0)
 
 Feature Enhancements:
 
