@@ -569,7 +569,7 @@ fn to_integer_or_infinity() {
         Ok(IntegerOrInfinity::Integer(0))
     );
     assert_eq!(
-        Value::fnan().to_integer_or_infinity(&mut context),
+        Value::nan().to_integer_or_infinity(&mut context),
         Ok(IntegerOrInfinity::Integer(0))
     );
     assert_eq!(
