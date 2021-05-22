@@ -110,19 +110,24 @@
         let failedTests = totalTests - passedTests - ignoredTests;
 
         infoContainer.append(
-          $('<div class="progress g-0"></div>').append(
-            $('<div class="progress-bar progress-bar-striped bg-success"></div>')
-              .attr("aria-valuenow", passedTests)
-              .attr("aria-valuemax", totalTests)
-              .attr("aria-valuemin", 0)
-              .attr("role", "progressbar")
-              .css(
-                "width",
-                `${Math.round((passedTests / totalTests) * 10000) / 100}%`
-              )
-          )
+          $('<div class="progress g-0"></div>')
             .append(
-              $('<div class="progress-bar progress-bar-striped bg-warning"></div>')
+              $(
+                '<div class="progress-bar progress-bar-striped bg-success"></div>'
+              )
+                .attr("aria-valuenow", passedTests)
+                .attr("aria-valuemax", totalTests)
+                .attr("aria-valuemin", 0)
+                .attr("role", "progressbar")
+                .css(
+                  "width",
+                  `${Math.round((passedTests / totalTests) * 10000) / 100}%`
+                )
+            )
+            .append(
+              $(
+                '<div class="progress-bar progress-bar-striped bg-warning"></div>'
+              )
                 .attr("aria-valuenow", ignoredTests)
                 .attr("aria-valuemax", totalTests)
                 .attr("aria-valuemin", 0)
@@ -133,7 +138,9 @@
                 )
             )
             .append(
-              $('<div class="progress-bar progress-bar-striped bg-danger"></div>')
+              $(
+                '<div class="progress-bar progress-bar-striped bg-danger"></div>'
+              )
                 .attr("aria-valuenow", failedTests)
                 .attr("aria-valuemax", totalTests)
                 .attr("aria-valuemin", 0)
@@ -180,15 +187,14 @@
       )}</span>`;
       dataHTML += ` / <span class="text-danger">${formatter.format(
         suite.c - suite.o - suite.i
-      )}${suite.p !== 0
-        ? ` (${formatter.format(
-          suite.p
-        )} <i class="bi-exclamation-triangle"></i>)`
-        : ""
-        }</span>`;
-      dataHTML += ` / <span>${formatter.format(
-        suite.c
-      )}</span>`;
+      )}${
+        suite.p !== 0
+          ? ` (${formatter.format(
+              suite.p
+            )} <i class="bi-exclamation-triangle"></i>)`
+          : ""
+      }</span>`;
+      dataHTML += ` / <span>${formatter.format(suite.c)}</span>`;
       info.append($('<span class="data-overview"></span>').html(dataHTML));
 
       header.append(info);
@@ -228,9 +234,7 @@
           });
 
           if (innerTest.r === "P") {
-            testCard.append(
-              $('<i class="bi-exclamation-triangle"></i>')
-            );
+            testCard.append($('<i class="bi-exclamation-triangle"></i>'));
           } else {
             testCard.addClass("embed-responsive-1by1");
           }
@@ -272,9 +276,7 @@
       )
       .append(
         $('<li class="list-group-item"></li>').html(
-          `Total tests: <span>${formatter.format(
-            latest.t
-          )}</span>`
+          `Total tests: <span>${formatter.format(latest.t)}</span>`
         )
       )
       .append(
@@ -295,17 +297,19 @@
         $('<li class="list-group-item"></li>').html(
           `Failed tests: <span class="text-danger">${formatter.format(
             latest.t - latest.o - latest.i
-          )}${latest.p !== 0
-            ? ` (${formatter.format(
-              latest.p
-            )} <i class="bi-exclamation-triangle"></i>)`
-            : ""
+          )}${
+            latest.p !== 0
+              ? ` (${formatter.format(
+                  latest.p
+                )} <i class="bi-exclamation-triangle"></i>)`
+              : ""
           }</span>`
         )
       )
       .append(
         $('<li class="list-group-item"></li>').html(
-          `Conformance: <b>${Math.round((10000 * latest.o) / latest.t) / 100
+          `Conformance: <b>${
+            Math.round((10000 * latest.o) / latest.t) / 100
           }%</b>`
         )
       );
@@ -377,19 +381,18 @@
             mode: "index",
           },
           interaction: {
-            mode: 'nearest',
-            axis: 'x',
-            intersect: false
+            mode: "nearest",
+            axis: "x",
+            intersect: false,
           },
           scales: {
             x: {
               display: false,
               title: {
                 display: false,
-              }
+              },
             },
-            y:
-            {
+            y: {
               stacked: true,
               title: {
                 display: true,
