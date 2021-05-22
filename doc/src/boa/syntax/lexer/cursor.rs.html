@@ -517,6 +517,8 @@
 <span id="516">516</span>
 <span id="517">517</span>
 <span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Module implementing the lexer cursor. This is used for managing the input byte stream.</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">profiler</span>::<span class="ident">BoaProfiler</span>, <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">Position</span>};
@@ -650,6 +652,7 @@
     <span class="doccomment">/// predicate on the ascii char</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The buffer is not incremented.</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">next_is_char_pred</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pred</span>: <span class="kw-2">&amp;</span><span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>
     <span class="kw">where</span>
@@ -711,6 +714,7 @@
     <span class="doccomment">/// It also stops when there is no next character.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Note that all characters up until the stop character are added to the buffer, including the character right before.</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">take_while_char_pred</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">pred</span>: <span class="kw-2">&amp;</span><span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>,

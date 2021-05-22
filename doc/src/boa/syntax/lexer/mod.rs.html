@@ -306,6 +306,9 @@
 <span id="305">305</span>
 <span id="306">306</span>
 <span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! A lexical analyzer for JavaScript source code.</span>
 <span class="doccomment">//!</span>
@@ -555,11 +558,14 @@
                 <span class="string">&#39;=&#39;</span> <span class="op">|</span> <span class="string">&#39;*&#39;</span> <span class="op">|</span> <span class="string">&#39;+&#39;</span> <span class="op">|</span> <span class="string">&#39;-&#39;</span> <span class="op">|</span> <span class="string">&#39;%&#39;</span> <span class="op">|</span> <span class="string">&#39;|&#39;</span> <span class="op">|</span> <span class="string">&#39;&amp;&#39;</span> <span class="op">|</span> <span class="string">&#39;^&#39;</span> <span class="op">|</span> <span class="string">&#39;&lt;&#39;</span> <span class="op">|</span> <span class="string">&#39;&gt;&#39;</span> <span class="op">|</span> <span class="string">&#39;!&#39;</span> <span class="op">|</span> <span class="string">&#39;~&#39;</span> <span class="op">|</span> <span class="string">&#39;?&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">Operator</span>::<span class="ident">new</span>(<span class="ident">next_ch</span> <span class="kw">as</span> <span class="ident">u8</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>)
                 }
-                <span class="kw">_</span> <span class="kw">if</span> <span class="ident">c</span>.<span class="ident">is_digit</span>(<span class="number">10</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">NumberLiteral</span>::<span class="ident">new</span>(<span class="ident">next_ch</span> <span class="kw">as</span> <span class="ident">u8</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>)
+                <span class="string">&#39;\\&#39;</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">b&#39;u&#39;</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">Identifier</span>::<span class="ident">new</span>(<span class="ident">c</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>)
                 }
                 <span class="kw">_</span> <span class="kw">if</span> <span class="ident">Identifier</span>::<span class="ident">is_identifier_start</span>(<span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">Identifier</span>::<span class="ident">new</span>(<span class="ident">c</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>)
+                }
+                <span class="kw">_</span> <span class="kw">if</span> <span class="ident">c</span>.<span class="ident">is_digit</span>(<span class="number">10</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">NumberLiteral</span>::<span class="ident">new</span>(<span class="ident">next_ch</span> <span class="kw">as</span> <span class="ident">u8</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>)
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">details</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(

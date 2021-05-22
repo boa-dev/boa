@@ -585,6 +585,42 @@
 <span id="584">584</span>
 <span id="585">585</span>
 <span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `Keyword` structure, which represents reserved words of the JavaScript language.</span>
 <span class="doccomment">//!</span>
@@ -787,6 +823,16 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/extends</span>
     <span class="ident">Extends</span>,
 
+    <span class="doccomment">/// The `false` keyword.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-BooleanLiteral</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean</span>
+    <span class="ident">False</span>,
+
     <span class="doccomment">/// The `finally` keyword.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
@@ -889,6 +935,16 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/new</span>
     <span class="ident">New</span>,
 
+    <span class="doccomment">/// The `null` keyword.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-NullLiteral</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/null</span>
+    <span class="ident">Null</span>,
+
     <span class="doccomment">/// The `of` keyword.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
@@ -956,6 +1012,16 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions</span>
     <span class="ident">Throw</span>,
+
+    <span class="doccomment">/// The `true` keyword</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-BooleanLiteral</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean</span>
+    <span class="ident">True</span>,
 
     <span class="doccomment">/// The `try` keyword.</span>
     <span class="doccomment">///</span>
@@ -1067,6 +1133,7 @@
             <span class="self">Self</span>::<span class="ident">Enum</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;enum&quot;</span>,
             <span class="self">Self</span>::<span class="ident">Extends</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;extends&quot;</span>,
             <span class="self">Self</span>::<span class="ident">Export</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;export&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">False</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;false&quot;</span>,
             <span class="self">Self</span>::<span class="ident">Finally</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;finally&quot;</span>,
             <span class="self">Self</span>::<span class="ident">For</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;for&quot;</span>,
             <span class="self">Self</span>::<span class="ident">Function</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;function&quot;</span>,
@@ -1076,12 +1143,14 @@
             <span class="self">Self</span>::<span class="ident">Import</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;import&quot;</span>,
             <span class="self">Self</span>::<span class="ident">Let</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;let&quot;</span>,
             <span class="self">Self</span>::<span class="ident">New</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;new&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;null&quot;</span>,
             <span class="self">Self</span>::<span class="ident">Of</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;of&quot;</span>,
             <span class="self">Self</span>::<span class="ident">Return</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;return&quot;</span>,
             <span class="self">Self</span>::<span class="ident">Super</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;super&quot;</span>,
             <span class="self">Self</span>::<span class="ident">Switch</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;switch&quot;</span>,
             <span class="self">Self</span>::<span class="ident">This</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;this&quot;</span>,
             <span class="self">Self</span>::<span class="ident">Throw</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;throw&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">True</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;true&quot;</span>,
             <span class="self">Self</span>::<span class="ident">Try</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;try&quot;</span>,
             <span class="self">Self</span>::<span class="ident">TypeOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;typeof&quot;</span>,
             <span class="self">Self</span>::<span class="ident">Var</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;var&quot;</span>,
@@ -1140,6 +1209,7 @@
             <span class="string">&quot;enum&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Enum</span>),
             <span class="string">&quot;extends&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Extends</span>),
             <span class="string">&quot;export&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Export</span>),
+            <span class="string">&quot;false&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">False</span>),
             <span class="string">&quot;finally&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Finally</span>),
             <span class="string">&quot;for&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">For</span>),
             <span class="string">&quot;function&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Function</span>),
@@ -1149,12 +1219,14 @@
             <span class="string">&quot;import&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Import</span>),
             <span class="string">&quot;let&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Let</span>),
             <span class="string">&quot;new&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">New</span>),
+            <span class="string">&quot;null&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Null</span>),
             <span class="string">&quot;of&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Of</span>),
             <span class="string">&quot;return&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Return</span>),
             <span class="string">&quot;super&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Super</span>),
             <span class="string">&quot;switch&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Switch</span>),
             <span class="string">&quot;this&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">This</span>),
             <span class="string">&quot;throw&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Throw</span>),
+            <span class="string">&quot;true&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">True</span>),
             <span class="string">&quot;try&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Try</span>),
             <span class="string">&quot;typeof&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">TypeOf</span>),
             <span class="string">&quot;var&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">Var</span>),
