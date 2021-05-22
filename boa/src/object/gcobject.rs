@@ -242,10 +242,10 @@ impl GcObject {
                             // https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
                             let second_env = FunctionEnvironmentRecord::new(
                                 this_function_object,
-                                if flags.is_lexical_this_mode() {
-                                    None
+                                if construct || !flags.is_lexical_this_mode() {
+                                    Some(this)
                                 } else {
-                                    Some(this.clone())
+                                    None
                                 },
                                 Some(local_env),
                                 // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
