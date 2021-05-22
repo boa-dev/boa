@@ -73,7 +73,7 @@ fn check_multi_line_comment() {
 
 #[test]
 fn check_identifier() {
-    let s = "x x1 _x $x __ $$ Ѐ ЀЀ x\u{200C}\u{200D}";
+    let s = "x x1 _x $x __ $$ Ѐ ЀЀ x\u{200C}\u{200D} \\u0078 \\u0078\\u0078 \\u{0078}x\\u{0078}";
     let mut lexer = Lexer::new(s.as_bytes());
 
     let expected = [
@@ -86,6 +86,9 @@ fn check_identifier() {
         TokenKind::identifier("Ѐ"),
         TokenKind::identifier("ЀЀ"),
         TokenKind::identifier("x\u{200C}\u{200D}"),
+        TokenKind::identifier("x"),
+        TokenKind::identifier("xx"),
+        TokenKind::identifier("xxx"),
     ];
 
     expect_tokens(&mut lexer, &expected);
