@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["same_value","The internal comparison abstract operation SameValue(x, y), where x and y are ECMAScript language values, produces true or false."],["same_value_non_numeric",""],["same_value_zero","The internal comparison abstract operation `SameValueZero(x, y)`, where `x` and `y` are ECMAScript language values, produces `true` or `false`."],["string_to_bigint","This function takes a string and conversts it to BigInt type."]]});
+initSidebarItems({"fn":[["string_to_bigint","This function takes a string and conversts it to BigInt type."]]});

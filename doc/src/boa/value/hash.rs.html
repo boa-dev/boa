@@ -60,7 +60,7 @@
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">Value</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="ident">same_value_zero</span>(<span class="self">self</span>, <span class="ident">other</span>)
+        <span class="self">Self</span>::<span class="ident">same_value_zero</span>(<span class="self">self</span>, <span class="ident">other</span>)
     }
 }
 
