@@ -125,7 +125,7 @@ impl Reflect {
         };
 
         let args = args_list.create_list_from_array_like(&[], context)?;
-        target.construct(&args, new_target, context)
+        target.construct(&args, &new_target, context)
     }
 
     /// Defines a property on an object.

@@ -105,21 +105,40 @@ impl GcObject {
         std::ptr::eq(lhs.as_ref(), rhs.as_ref())
     }
 
-    /// Call this object.
+    /// Internal implementation of [`call`](#method.call) and [`construct`](#method.construct).
     ///
     /// # Panics
     ///
     /// Panics if the object is currently mutably borrowed.
-    // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-    // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
+    ///
+    /// <https://tc39.es/ecma262/#sec-prepareforordinarycall>
+    /// <https://tc39.es/ecma262/#sec-ordinarycallbindthis>
+    /// <https://tc39.es/ecma262/#sec-runtime-semantics-evaluatebody>
+    /// <https://tc39.es/ecma262/#sec-ordinarycallevaluatebody>
     #[track_caller]
-    pub fn call(&self, this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    fn call_construct(
+        &self,
+        this_target: &Value,
+        args: &[Value],
+        context: &mut Context,
+        construct: bool,
+    ) -> Result<Value> {
         let this_function_object = self.clone();
-        let f_body = if let Some(function) = self.borrow().as_function() {
-            if function.is_callable() {
+        let mut has_parameter_expressions = false;
+
+        let body = if let Some(function) = self.borrow().as_function() {
+            if construct && !function.is_constructable() {
+                let name = self
+                    .get(&"name".into(), self.clone().into(), context)?
+                    .display()
+                    .to_string();
+                return context.throw_type_error(format!("{} is not a constructor", name));
+            } else if !construct && !function.is_callable() {
+                return context.throw_type_error("function object is not callable");
+            } else {
                 match function {
                     Function::BuiltIn(BuiltInFunction(function), flags) => {
-                        if flags.is_constructable() {
+                        if flags.is_constructable() || construct {
                             FunctionBody::BuiltInConstructor(*function)
                         } else {
                             FunctionBody::BuiltInFunction(*function)
@@ -131,14 +150,38 @@ impl GcObject {
                         environment,
                         flags,
                     } => {
+                        let this = if construct {
+                            // If the prototype of the constructor is not an object, then use the default object
+                            // prototype as prototype for the new object
+                            // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
+                            // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
+                            let proto = this_target.as_object().unwrap().get(
+                                &PROTOTYPE.into(),
+                                this_target.clone(),
+                                context,
+                            )?;
+                            let proto = if proto.is_object() {
+                                proto
+                            } else {
+                                context
+                                    .standard_objects()
+                                    .object_object()
+                                    .prototype()
+                                    .into()
+                            };
+                            Value::from(Object::create(proto))
+                        } else {
+                            this_target.clone()
+                        };
+
                         // Create a new Function environment whose parent is set to the scope of the function declaration (self.environment)
                         // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
                         let local_env = FunctionEnvironmentRecord::new(
-                            this_function_object,
-                            if flags.is_lexical_this_mode() {
-                                None
-                            } else {
+                            this_function_object.clone(),
+                            if construct || !flags.is_lexical_this_mode() {
                                 Some(this.clone())
+                            } else {
+                                None
                             },
                             Some(environment.clone()),
                             // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
@@ -149,19 +192,6 @@ impl GcObject {
                             },
                             Value::undefined(),
                         );
-
-                        // Add argument bindings to the function environment
-                        for (i, param) in params.iter().enumerate() {
-                            // Rest Parameters
-                            if param.is_rest_param() {
-                                function.add_rest_param(param, i, args, context, &local_env);
-                                break;
-                            }
-
-                            let value = args.get(i).cloned().unwrap_or_else(Value::undefined);
-                            function
-                                .add_arguments_to_environment(param, value, &local_env, context);
-                        }
 
                         // Add arguments object
                         let arguments_obj = create_unmapped_arguments_object(args);
@@ -176,29 +206,107 @@ impl GcObject {
                             arguments_obj,
                             context,
                         )?;
+                        // push the environment first so that it will be used by default parameters
+                        context.push_environment(local_env.clone());
 
-                        context.push_environment(local_env);
+                        // Add argument bindings to the function environment
+                        for (i, param) in params.iter().enumerate() {
+                            // Rest Parameters
+                            if param.is_rest_param() {
+                                function.add_rest_param(param, i, args, context, &local_env);
+                                break;
+                            }
+
+                            has_parameter_expressions =
+                                has_parameter_expressions || param.init().is_some();
+
+                            let value = match args.get(i).cloned() {
+                                None | Some(Value::Undefined) => {
+                                    if let Some(init) = param.init() {
+                                        init.run(context).unwrap_or(Value::Undefined)
+                                    } else {
+                                        Value::Undefined
+                                    }
+                                }
+                                Some(value) => value,
+                            };
+
+                            function
+                                .add_arguments_to_environment(param, value, &local_env, context);
+                        }
+
+                        if has_parameter_expressions {
+                            // Create a second environment when default parameter expressions are used
+                            // This prevents variables declared in the function body from being
+                            // used in default parameter initializers.
+                            // https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
+                            let second_env = FunctionEnvironmentRecord::new(
+                                this_function_object,
+                                if flags.is_lexical_this_mode() {
+                                    None
+                                } else {
+                                    Some(this.clone())
+                                },
+                                Some(local_env),
+                                // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
+                                if flags.is_lexical_this_mode() {
+                                    BindingStatus::Lexical
+                                } else {
+                                    BindingStatus::Uninitialized
+                                },
+                                Value::undefined(),
+                            );
+                            context.push_environment(second_env);
+                        }
 
                         FunctionBody::Ordinary(body.clone())
                     }
                 }
-            } else {
-                return context.throw_type_error("function object is not callable");
             }
         } else {
             return context.throw_type_error("not a function");
         };
 
-        match f_body {
-            FunctionBody::BuiltInFunction(func) => func(this, args, context),
-            FunctionBody::BuiltInConstructor(func) => func(&Value::undefined(), args, context),
+        match body {
+            FunctionBody::BuiltInConstructor(function) if construct => {
+                function(&this_target, args, context)
+            }
+            FunctionBody::BuiltInFunction(_) if construct => {
+                unreachable!("Cannot have a function in construct")
+            }
+
+            FunctionBody::BuiltInConstructor(function) => {
+                function(&Value::undefined(), args, context)
+            }
+            FunctionBody::BuiltInFunction(function) => function(this_target, args, context),
             FunctionBody::Ordinary(body) => {
                 let result = body.run(context);
+                let this = context.get_this_binding();
+
+                if has_parameter_expressions {
+                    context.pop_environment();
+                }
                 context.pop_environment();
 
-                result
+                if construct {
+                    this
+                } else {
+                    result
+                }
             }
         }
+    }
+
+    /// Call this object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
+    // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
+    #[track_caller]
+    pub fn call(&self, this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        self.call_construct(this, args, context, false)
     }
 
     /// Construct an instance of this object with the specified arguments.
@@ -211,111 +319,10 @@ impl GcObject {
     pub fn construct(
         &self,
         args: &[Value],
-        new_target: Value,
+        new_target: &Value,
         context: &mut Context,
     ) -> Result<Value> {
-        let this_function_object = self.clone();
-        let body = if let Some(function) = self.borrow().as_function() {
-            if function.is_constructable() {
-                match function {
-                    Function::BuiltIn(BuiltInFunction(function), _) => {
-                        FunctionBody::BuiltInConstructor(*function)
-                    }
-                    Function::Ordinary {
-                        body,
-                        params,
-                        environment,
-                        flags,
-                    } => {
-                        // If the prototype of the constructor is not an object, then use the default object
-                        // prototype as prototype for the new object
-                        // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
-                        // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
-                        let proto = new_target.as_object().unwrap().get(
-                            &PROTOTYPE.into(),
-                            new_target.clone(),
-                            context,
-                        )?;
-                        let proto = if proto.is_object() {
-                            proto
-                        } else {
-                            context
-                                .standard_objects()
-                                .object_object()
-                                .prototype()
-                                .into()
-                        };
-                        let this = Value::from(Object::create(proto));
-
-                        // Create a new Function environment who's parent is set to the scope of the function declaration (self.environment)
-                        // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-                        let local_env = FunctionEnvironmentRecord::new(
-                            this_function_object,
-                            Some(this),
-                            Some(environment.clone()),
-                            // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
-                            if flags.is_lexical_this_mode() {
-                                BindingStatus::Lexical
-                            } else {
-                                BindingStatus::Uninitialized
-                            },
-                            new_target.clone(),
-                        );
-
-                        // Add argument bindings to the function environment
-                        for (i, param) in params.iter().enumerate() {
-                            // Rest Parameters
-                            if param.is_rest_param() {
-                                function.add_rest_param(param, i, args, context, &local_env);
-                                break;
-                            }
-
-                            let value = args.get(i).cloned().unwrap_or_else(Value::undefined);
-                            function
-                                .add_arguments_to_environment(param, value, &local_env, context);
-                        }
-
-                        // Add arguments object
-                        let arguments_obj = create_unmapped_arguments_object(args);
-                        local_env.borrow_mut().create_mutable_binding(
-                            "arguments".to_string(),
-                            false,
-                            true,
-                            context,
-                        )?;
-                        local_env.borrow_mut().initialize_binding(
-                            "arguments",
-                            arguments_obj,
-                            context,
-                        )?;
-                        context.push_environment(local_env);
-
-                        FunctionBody::Ordinary(body.clone())
-                    }
-                }
-            } else {
-                let name = self
-                    .get(&"name".into(), self.clone().into(), context)?
-                    .display()
-                    .to_string();
-                return context.throw_type_error(format!("{} is not a constructor", name));
-            }
-        } else {
-            return context.throw_type_error("not a function");
-        };
-
-        match body {
-            FunctionBody::BuiltInConstructor(function) => function(&new_target, args, context),
-            FunctionBody::Ordinary(body) => {
-                let _ = body.run(context);
-
-                // local_env gets dropped here, its no longer needed
-                let result = context.get_this_binding();
-                context.pop_environment();
-                result
-            }
-            FunctionBody::BuiltInFunction(_) => unreachable!("Cannot have a function in construct"),
-        }
+        self.call_construct(new_target, args, context, true)
     }
 
     /// Converts an object to a primitive.
