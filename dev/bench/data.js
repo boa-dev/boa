@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1621675893530,
+  "lastUpdate": 1621676124978,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -148089,6 +148089,342 @@ window.BENCHMARK_DATA = {
             "name": "Mini js (Parser)",
             "value": 31.565,
             "range": "+/- 0.010",
+            "unit": "us"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "halidodat@gmail.com",
+            "name": "Halid Odat",
+            "username": "HalidOdat"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0dcf182ad9a2c4ecac5a2cb4de2b00889dc75528",
+          "message": "Make `same_value` and `same_value_zero` static methods. (#1271)",
+          "timestamp": "2021-05-22T11:15:09+02:00",
+          "tree_id": "68eb1643011ba7587a64409d08be2e80a257d1e1",
+          "url": "https://github.com/boa-dev/boa/commit/0dcf182ad9a2c4ecac5a2cb4de2b00889dc75528"
+        },
+        "date": 1621676095252,
+        "tool": "criterion",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 432.42,
+            "range": "+/- 4.640",
+            "unit": "ns"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 3.7879,
+            "range": "+/- 0.043",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 24.765,
+            "range": "+/- 0.398",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 901.34,
+            "range": "+/- 9.750",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 7.0523,
+            "range": "+/- 0.140",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 2.8386,
+            "range": "+/- 0.050",
+            "unit": "ms"
+          },
+          {
+            "name": "Array pop (Execution)",
+            "value": 910.79,
+            "range": "+/- 12.180",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 4.9326,
+            "range": "+/- 0.100",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 5.1933,
+            "range": "+/- 0.085",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 5.7199,
+            "range": "+/- 0.098",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 10.527,
+            "range": "+/- 0.160",
+            "unit": "us"
+          },
+          {
+            "name": "RegExp (Execution)",
+            "value": 10.712,
+            "range": "+/- 0.232",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 12.048,
+            "range": "+/- 0.148",
+            "unit": "us"
+          },
+          {
+            "name": "RegExp (Execution) #2",
+            "value": 12.298,
+            "range": "+/- 0.268",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 5.9619,
+            "range": "+/- 0.128",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 7.3044,
+            "range": "+/- 0.157",
+            "unit": "us"
+          },
+          {
+            "name": "String copy (Execution)",
+            "value": 4.5668,
+            "range": "+/- 0.129",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 4.6415,
+            "range": "+/- 0.083",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 5.9952,
+            "range": "+/- 0.145",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 8.2598,
+            "range": "+/- 0.117",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 368.55,
+            "range": "+/- 7.660",
+            "unit": "ns"
+          },
+          {
+            "name": "Clean js (Execution)",
+            "value": 743.21,
+            "range": "+/- 15.700",
+            "unit": "us"
+          },
+          {
+            "name": "Mini js (Execution)",
+            "value": 653.16,
+            "range": "+/- 10.580",
+            "unit": "us"
+          },
+          {
+            "name": "Symbols (Full)",
+            "value": 302.11,
+            "range": "+/- 5.880",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Full)",
+            "value": 336,
+            "range": "+/- 5.230",
+            "unit": "us"
+          },
+          {
+            "name": "Fibonacci (Full)",
+            "value": 1.2142,
+            "range": "+/- 0.021",
+            "unit": "ms"
+          },
+          {
+            "name": "Array access (Full)",
+            "value": 330.46,
+            "range": "+/- 7.060",
+            "unit": "us"
+          },
+          {
+            "name": "Array creation (Full)",
+            "value": 3.1205,
+            "range": "+/- 0.037",
+            "unit": "ms"
+          },
+          {
+            "name": "Array pop (Full)",
+            "value": 1.4345,
+            "range": "+/- 0.027",
+            "unit": "ms"
+          },
+          {
+            "name": "Object Creation (Full)",
+            "value": 319.12,
+            "range": "+/- 6.670",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 325.3,
+            "range": "+/- 7.150",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 322.95,
+            "range": "+/- 5.790",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 325.22,
+            "range": "+/- 5.400",
+            "unit": "us"
+          },
+          {
+            "name": "RegExp (Full)",
+            "value": 333.01,
+            "range": "+/- 6.070",
+            "unit": "us"
+          },
+          {
+            "name": "RegExp Literal (Full)",
+            "value": 336.16,
+            "range": "+/- 10.870",
+            "unit": "us"
+          },
+          {
+            "name": "RegExp (Full) #2",
+            "value": 338.68,
+            "range": "+/- 7.180",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 313.24,
+            "range": "+/- 4.300",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 326.24,
+            "range": "+/- 4.540",
+            "unit": "us"
+          },
+          {
+            "name": "String copy (Full)",
+            "value": 307.89,
+            "range": "+/- 4.020",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 311.62,
+            "range": "+/- 4.600",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 318.29,
+            "range": "+/- 5.730",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 321.35,
+            "range": "+/- 5.270",
+            "unit": "us"
+          },
+          {
+            "name": "",
+            "value": 296.74,
+            "range": "+/- 3.880",
+            "unit": "us"
+          },
+          {
+            "name": "Clean js (Full)",
+            "value": 1.0402,
+            "range": "+/- 0.024",
+            "unit": "ms"
+          },
+          {
+            "name": "Mini js (Full)",
+            "value": 972.11,
+            "range": "+/- 13.140",
+            "unit": "us"
+          },
+          {
+            "name": "Expression (Parser)",
+            "value": 7.323,
+            "range": "+/- 0.099",
+            "unit": "us"
+          },
+          {
+            "name": "Hello World (Parser)",
+            "value": 4.0603,
+            "range": "+/- 0.061",
+            "unit": "us"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 20.305,
+            "range": "+/- 0.222",
+            "unit": "us"
+          },
+          {
+            "name": "Long file (Parser)",
+            "value": 791.32,
+            "range": "+/- 6.530",
+            "unit": "ns"
+          },
+          {
+            "name": "Goal Symbols (Parser)",
+            "value": 14.333,
+            "range": "+/- 0.195",
+            "unit": "us"
+          },
+          {
+            "name": "Clean js (Parser)",
+            "value": 42.93,
+            "range": "+/- 0.786",
+            "unit": "us"
+          },
+          {
+            "name": "Mini js (Parser)",
+            "value": 37.369,
+            "range": "+/- 0.841",
             "unit": "us"
           }
         ]
