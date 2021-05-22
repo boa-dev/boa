@@ -15,7 +15,7 @@ use crate::{
     gc::{Finalize, Trace},
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
     symbol::RcSymbol,
-    value::{same_value, RcBigInt, RcString, Value},
+    value::{RcBigInt, RcString, Value},
     BoaProfiler, Context,
 };
 use rustc_hash::FxHashMap;
@@ -534,7 +534,7 @@ impl Object {
         } else {
             // If target is non-extensible, [[SetPrototypeOf]] must return false
             // unless V is the SameValue as the target's observed [[GetPrototypeOf]] value.
-            same_value(&prototype, &self.prototype)
+            Value::same_value(&prototype, &self.prototype)
         }
     }
 

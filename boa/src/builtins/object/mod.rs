@@ -22,7 +22,7 @@ use crate::{
     property::DataDescriptor,
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
-    value::{same_value, Type, Value},
+    value::{Type, Value},
     BoaProfiler, Context, Result,
 };
 
@@ -261,7 +261,7 @@ impl Object {
         let x = args.get(0).cloned().unwrap_or_else(Value::undefined);
         let y = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        Ok(same_value(&x, &y).into())
+        Ok(Value::same_value(&x, &y).into())
     }
 
     /// Get the `prototype` of an object.
@@ -351,7 +351,7 @@ impl Object {
             if v.is_null() {
                 return Ok(Value::Boolean(false));
             }
-            if same_value(&o, &v) {
+            if Value::same_value(&o, &v) {
                 return Ok(Value::Boolean(true));
             }
         }

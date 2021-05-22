@@ -5,7 +5,7 @@ use std::hash::{Hash, Hasher};
 
 impl PartialEq for Value {
     fn eq(&self, other: &Self) -> bool {
-        same_value_zero(self, other)
+        Self::same_value_zero(self, other)
     }
 }
 

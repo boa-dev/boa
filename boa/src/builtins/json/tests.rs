@@ -1,4 +1,4 @@
-use crate::{forward, forward_val, value::same_value, Context, Value};
+use crate::{forward, forward_val, Context, Value};
 
 #[test]
 fn json_sanity() {
@@ -426,10 +426,13 @@ fn json_parse_sets_prototypes() {
     let global_array_prototype: Value =
         context.standard_objects().array_object().prototype().into();
     assert_eq!(
-        same_value(&object_prototype, &global_object_prototype),
+        Value::same_value(&object_prototype, &global_object_prototype),
         true
     );
-    assert_eq!(same_value(&array_prototype, &global_array_prototype), true);
+    assert_eq!(
+        Value::same_value(&array_prototype, &global_array_prototype),
+        true
+    );
 }
 
 #[test]

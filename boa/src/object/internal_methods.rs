@@ -8,7 +8,7 @@
 use crate::{
     object::{GcObject, Object, ObjectData},
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
-    value::{same_value, Type, Value},
+    value::{Type, Value},
     BoaProfiler, Context, Result,
 };
 
@@ -245,7 +245,7 @@ impl GcObject {
                         return false;
                     }
 
-                    if !same_value(&desc.value(), &current.value()) {
+                    if !Value::same_value(&desc.value(), &current.value()) {
                         return false;
                     }
                 }
@@ -468,7 +468,7 @@ impl GcObject {
     pub fn set_prototype_of(&mut self, val: Value) -> bool {
         debug_assert!(val.is_object() || val.is_null());
         let current = self.get_prototype_of();
-        if same_value(&current, &val) {
+        if Value::same_value(&current, &val) {
             return true;
         }
         if !self.is_extensible() {
@@ -479,7 +479,7 @@ impl GcObject {
         while !done {
             if p.is_null() {
                 done = true
-            } else if same_value(&Value::from(self.clone()), &p) {
+            } else if Value::same_value(&Value::from(self.clone()), &p) {
                 return false;
             } else {
                 let prototype = p
