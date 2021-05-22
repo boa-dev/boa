@@ -8,7 +8,7 @@ use crate::{
     },
     class::{Class, ClassBuilder},
     exec::Interpreter,
-    object::{GcObject, Object, PROTOTYPE},
+    object::{FunctionBuilder, GcObject, Object, PROTOTYPE},
     property::{Attribute, DataDescriptor, PropertyKey},
     realm::Realm,
     symbol::{RcSymbol, Symbol},
@@ -503,34 +503,18 @@ impl Context {
         Ok(val)
     }
 
-    /// Create a new builin function.
-    pub fn create_builtin_function(
-        &mut self,
-        name: &str,
-        length: usize,
-        body: NativeFunction,
-    ) -> Result<GcObject> {
-        let function_prototype: Value = self.standard_objects().object_object().prototype().into();
-
-        // Every new function has a prototype property pre-made
-        let proto = Value::new_object(self);
-        let mut function = GcObject::new(Object::function(
-            Function::BuiltIn(body.into(), FunctionFlags::CALLABLE),
-            function_prototype,
-        ));
-        function.set(PROTOTYPE.into(), proto, function.clone().into(), self)?;
-        function.set(
-            "length".into(),
-            length.into(),
-            function.clone().into(),
-            self,
-        )?;
-        function.set("name".into(), name.into(), function.clone().into(), self)?;
-
-        Ok(function)
-    }
-
     /// Register a global function.
+    ///
+    /// The function will be both `callable` and `constructable` (call with `new`).
+    ///
+    /// The function will be bound to the global object with `writable`, `non-enumerable`
+    /// and `configurable` attributes. The same as when you create a function in JavaScript.
+    ///
+    /// # Note
+    ///
+    /// If you want to make a function only `callable` or `constructable`, or wish to bind it differently
+    /// to the global object, you can create the function object with [`FunctionBuilder`](crate::object::FunctionBuilder).
+    /// And bind it to the global object with [`Context::register_global_property`](Context::register_global_property) method.
     #[inline]
     pub fn register_global_function(
         &mut self,
@@ -538,9 +522,18 @@ impl Context {
         length: usize,
         body: NativeFunction,
     ) -> Result<()> {
-        let function = self.create_builtin_function(name, length, body)?;
-        let mut global = self.global_object();
-        global.insert_property(name, function, Attribute::all());
+        let function = FunctionBuilder::new(self, body)
+            .name(name)
+            .length(length)
+            .callable(true)
+            .constructable(true)
+            .build();
+
+        self.global_object().insert_property(
+            name,
+            function,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
         Ok(())
     }
 
