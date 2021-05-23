@@ -302,6 +302,7 @@ impl GcObject {
     // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
     #[track_caller]
+    #[inline]
     pub fn call(&self, this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         self.call_construct(this, args, context, false)
     }
@@ -313,6 +314,7 @@ impl GcObject {
     /// Panics if the object is currently mutably borrowed.
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
     #[track_caller]
+    #[inline]
     pub fn construct(
         &self,
         args: &[Value],
