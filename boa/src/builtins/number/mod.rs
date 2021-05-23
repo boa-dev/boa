@@ -392,8 +392,8 @@ impl Number {
 
         // 1 & 6
         let mut this_num = Self::this_number_value(this, context)?;
-        // 2 & 4
-        if precision_var == Value::undefined() || !this_num.is_finite() {
+        // 2
+        if precision_var == Value::undefined() {
             return Self::to_string(this, &[], context);
         }
 
@@ -409,10 +409,15 @@ impl Number {
         };
         let precision_i32 = precision as i32;
 
+        // 4
+        if !this_num.is_finite() {
+            return Self::to_string(this, &[], context);
+        }
+
         // 7
         let mut prefix = String::new(); // spec: 's'
         let mut suffix: String; // spec: 'm'
-        let exponent: i32; // spec: 'e'
+        let mut exponent: i32; // spec: 'e'
 
         // 8
         if this_num < 0.0 {
