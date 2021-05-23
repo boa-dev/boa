@@ -5,14 +5,14 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="../assets/favicon.png" />
     <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css"
       rel="stylesheet"
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
-      integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z"
+      integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x"
       crossorigin="anonymous"
     />
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css"
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
@@ -22,18 +22,6 @@
 
       .logo {
         width: 5em;
-      }
-
-      .passed-tests {
-        color: #1fcb4a;
-      }
-
-      .failed-tests {
-        color: #ff4848;
-      }
-
-      .ignored-tests {
-        color: #dfa800;
       }
 
       .card:not(.test) {
@@ -56,7 +44,6 @@
         margin: 0.5em;
         line-height: 1.5em;
         cursor: pointer;
-        display: inline-block;
       }
 
       .card.test i {
@@ -109,12 +96,10 @@
               </h5>
               <button
                 type="button"
-                class="close"
-                data-dismiss="modal"
+                class="btn-close"
+                data-bs-dismiss="modal"
                 aria-label="Close"
-              >
-                <span aria-hidden="true">&times;</span>
-              </button>
+              ></button>
             </div>
             <div class="modal-body"></div>
           </div>
@@ -122,18 +107,18 @@
       </div>
     </div>
     <script
-      src="https://code.jquery.com/jquery-3.5.1.min.js"
-      integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+      src="https://code.jquery.com/jquery-3.6.0.min.js"
+      integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
       crossorigin="anonymous"
     ></script>
     <script
-      src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"
-      integrity="sha384-LtrjvnR4Twt/qOuYxE721u19sVFLVSA4hf/rRt6PrZTmiPltdZcI7q7PXQBYTKyf"
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
       crossorigin="anonymous"
     ></script>
     <script
-      src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"
-      integrity="sha256-t9UJPrESBeG2ojKTIcFLPGF7nHi2vEc7f5A2KpH/UBU="
+      src="https://cdn.jsdelivr.net/npm/chart.js@3.2.1/dist/chart.min.js"
+      integrity="sha256-uVEHWRIr846/vAdLJeybWxjPNStREzOlqLMXjW/Saeo="
       crossorigin="anonymous"
     ></script>
     <script src="./results.js"></script>
