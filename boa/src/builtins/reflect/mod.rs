@@ -57,7 +57,7 @@ impl BuiltIn for Reflect {
             .function(Self::set_prototype_of, "setPrototypeOf", 3)
             .property(
                 to_string_tag,
-                Reflect::NAME,
+                Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .build();

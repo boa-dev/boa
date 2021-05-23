@@ -68,7 +68,7 @@ impl BuiltIn for BigInt {
         .constructable(false)
         .property(
             to_string_tag,
-            "BigInt",
+            Self::NAME,
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .build();

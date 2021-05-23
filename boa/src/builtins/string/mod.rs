@@ -335,7 +335,7 @@ impl String {
 
         // Fast path returning NaN when pos is obviously out of range
         if pos < 0 || pos >= primitive_val.len() as i32 {
-            return Ok(Value::from(f64::NAN));
+            return Ok(Value::nan());
         }
 
         // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
@@ -344,7 +344,7 @@ impl String {
         if let Some(utf16_val) = primitive_val.encode_utf16().nth(pos as usize) {
             Ok(Value::from(f64::from(utf16_val)))
         } else {
-            Ok(Value::from(f64::NAN))
+            Ok(Value::nan())
         }
     }
 

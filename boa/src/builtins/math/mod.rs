@@ -48,7 +48,7 @@ impl BuiltIn for Math {
             .property("PI", f64::consts::PI, attribute)
             .property(
                 to_string_tag,
-                "Math",
+                Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .function(Self::abs, "abs", 1)
