@@ -150,6 +150,9 @@
 <span id="149">149</span>
 <span id="150">150</span>
 <span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::<span class="ident">function</span>::<span class="ident">make_builtin_fn</span>,
@@ -297,7 +300,10 @@
         <span class="ident">set_iterator</span>.<span class="ident">set_prototype_instance</span>(<span class="ident">iterator_prototype</span>);
 
         <span class="kw">let</span> <span class="ident">to_string_tag</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">to_string_tag</span>();
-        <span class="kw">let</span> <span class="ident">to_string_tag_property</span> <span class="op">=</span> <span class="ident">DataDescriptor</span>::<span class="ident">new</span>(<span class="string">&quot;Set Iterator&quot;</span>, <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>);
+        <span class="kw">let</span> <span class="ident">to_string_tag_property</span> <span class="op">=</span> <span class="ident">DataDescriptor</span>::<span class="ident">new</span>(
+            <span class="string">&quot;Set Iterator&quot;</span>,
+            <span class="ident">Attribute</span>::<span class="ident">READONLY</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
+        );
         <span class="ident">set_iterator</span>.<span class="ident">insert</span>(<span class="ident">to_string_tag</span>, <span class="ident">to_string_tag_property</span>);
         <span class="ident">set_iterator</span>
     }

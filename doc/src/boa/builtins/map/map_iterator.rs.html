@@ -155,6 +155,9 @@
 <span id="154">154</span>
 <span id="155">155</span>
 <span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">function</span>::<span class="ident">make_builtin_fn</span>, <span class="ident">iterable</span>::<span class="ident">create_iter_result_object</span>, <span class="ident">Array</span>, <span class="ident">Value</span>},
@@ -307,7 +310,10 @@
         <span class="ident">map_iterator</span>.<span class="ident">set_prototype_instance</span>(<span class="ident">iterator_prototype</span>);
 
         <span class="kw">let</span> <span class="ident">to_string_tag</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">to_string_tag</span>();
-        <span class="kw">let</span> <span class="ident">to_string_tag_property</span> <span class="op">=</span> <span class="ident">DataDescriptor</span>::<span class="ident">new</span>(<span class="string">&quot;Map Iterator&quot;</span>, <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>);
+        <span class="kw">let</span> <span class="ident">to_string_tag_property</span> <span class="op">=</span> <span class="ident">DataDescriptor</span>::<span class="ident">new</span>(
+            <span class="string">&quot;Map Iterator&quot;</span>,
+            <span class="ident">Attribute</span>::<span class="ident">READONLY</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
+        );
         <span class="ident">map_iterator</span>.<span class="ident">insert</span>(<span class="ident">to_string_tag</span>, <span class="ident">to_string_tag_property</span>);
         <span class="ident">map_iterator</span>
     }

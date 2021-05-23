@@ -443,7 +443,6 @@
 <span id="442">442</span>
 <span id="443">443</span>
 <span id="444">444</span>
-<span id="445">445</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Map` objest.</span>
 <span class="doccomment">//!</span>
@@ -489,7 +488,6 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">to_string_tag</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">to_string_tag</span>();
-
         <span class="kw">let</span> <span class="ident">iterator_symbol</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">iterator</span>();
 
         <span class="kw">let</span> <span class="ident">entries_function</span> <span class="op">=</span> <span class="ident">FunctionBuilder</span>::<span class="ident">new</span>(<span class="ident">context</span>, <span class="self">Self</span>::<span class="ident">entries</span>)
@@ -513,7 +511,7 @@
         )
         .<span class="ident">property</span>(
             <span class="ident">to_string_tag</span>,
-            <span class="string">&quot;Map&quot;</span>,
+            <span class="self">Self</span>::<span class="ident">NAME</span>,
             <span class="ident">Attribute</span>::<span class="ident">READONLY</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
         )
         .<span class="ident">property</span>(

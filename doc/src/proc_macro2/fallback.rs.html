@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro2-1.0.26/src/fallback.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fallback.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro2-1.0.27/src/fallback.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fallback.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../proc_macro2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -904,6 +904,26 @@
 <span id="901">901</span>
 <span id="902">902</span>
 <span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">parse</span>::{<span class="self">self</span>, <span class="ident">Cursor</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Delimiter</span>, <span class="ident">Spacing</span>, <span class="ident">TokenTree</span>};
@@ -949,6 +969,12 @@
 <span class="kw">impl</span> <span class="ident">LexError</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
         <span class="self">self</span>.<span class="ident">span</span>
+    }
+
+    <span class="kw">fn</span> <span class="ident">call_site</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">LexError</span> {
+            <span class="ident">span</span>: <span class="ident">Span</span>::<span class="ident">call_site</span>(),
+        }
     }
 }
 
@@ -1791,6 +1817,20 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subspan</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">RangeBounds</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_range</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
         <span class="prelude-val">None</span>
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">Literal</span> {
+    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">LexError</span>;
+
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">repr</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">get_cursor</span>(<span class="ident">repr</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="ident">_rest</span>, <span class="ident">literal</span>)) <span class="op">=</span> <span class="ident">parse</span>::<span class="ident">literal</span>(<span class="ident">cursor</span>) {
+            <span class="kw">if</span> <span class="ident">literal</span>.<span class="ident">text</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">repr</span>.<span class="ident">len</span>() {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">literal</span>);
+            }
+        }
+        <span class="prelude-val">Err</span>(<span class="ident">LexError</span>::<span class="ident">call_site</span>())
     }
 }
 
