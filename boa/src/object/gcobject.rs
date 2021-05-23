@@ -193,19 +193,41 @@ impl GcObject {
                             Value::undefined(),
                         );
 
-                        // Add arguments object
-                        let arguments_obj = create_unmapped_arguments_object(args);
-                        local_env.borrow_mut().create_mutable_binding(
-                            "arguments".to_string(),
-                            false,
-                            true,
-                            context,
-                        )?;
-                        local_env.borrow_mut().initialize_binding(
-                            "arguments",
-                            arguments_obj,
-                            context,
-                        )?;
+                        let mut arguments_in_parameter_names = false;
+
+                        for param in params.iter() {
+                            has_parameter_expressions =
+                                has_parameter_expressions || param.init().is_some();
+                            arguments_in_parameter_names =
+                                arguments_in_parameter_names || param.name() == "arguments";
+                        }
+
+                        // An arguments object is not added in the following situations:
+                        // - In arrow functions (10.2.11.16)
+                        // - If parameter list contains `arguments` (10.2.11.17)
+                        // - If there are no default parameters and lexical names or function names contain `arguments` (10.2.11.18)
+                        //
+                        // https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
+                        if !flags.is_lexical_this_mode()
+                            && !arguments_in_parameter_names
+                            && (has_parameter_expressions
+                                || (!body.lexically_declared_names().contains("arguments")
+                                    && !body.function_declared_names().contains("arguments")))
+                        {
+                            // Add arguments object
+                            let arguments_obj = create_unmapped_arguments_object(args);
+                            local_env.borrow_mut().create_mutable_binding(
+                                "arguments".to_string(),
+                                false,
+                                true,
+                                context,
+                            )?;
+                            local_env.borrow_mut().initialize_binding(
+                                "arguments",
+                                arguments_obj,
+                                context,
+                            )?;
+                        }
                         // push the environment first so that it will be used by default parameters
                         context.push_environment(local_env.clone());
 
@@ -216,9 +238,6 @@ impl GcObject {
                                 function.add_rest_param(param, i, args, context, &local_env);
                                 break;
                             }
-
-                            has_parameter_expressions =
-                                has_parameter_expressions || param.init().is_some();
 
                             let value = match args.get(i).cloned() {
                                 None | Some(Value::Undefined) => param
@@ -268,9 +287,6 @@ impl GcObject {
         match body {
             FunctionBody::BuiltInConstructor(function) if construct => {
                 function(&this_target, args, context)
-            }
-            FunctionBody::BuiltInFunction(_) if construct => {
-                unreachable!("Cannot have a function in construct")
             }
             FunctionBody::BuiltInConstructor(function) => {
                 function(&Value::undefined(), args, context)
