@@ -388,17 +388,24 @@ impl Number {
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        let precision_var = args.get(0).cloned().unwrap_or_default();
+        let precision = args.get(0).cloned().unwrap_or_default();
 
         // 1 & 6
         let mut this_num = Self::this_number_value(this, context)?;
         // 2
-        if precision_var == Value::undefined() {
+        if precision == Value::undefined() {
             return Self::to_string(this, &[], context);
         }
 
         // 3
-        let precision = match precision_var.to_integer_or_infinity(context)? {
+        let precision = precision.to_integer_or_infinity(context)?;
+
+        // 4
+        if !this_num.is_finite() {
+            return Self::to_string(this, &[], context);
+        }
+
+        let precision = match precision {
             IntegerOrInfinity::Integer(x) if (1..=100).contains(&x) => x as usize,
             _ => {
                 // 5
@@ -408,11 +415,6 @@ impl Number {
             }
         };
         let precision_i32 = precision as i32;
-
-        // 4
-        if !this_num.is_finite() {
-            return Self::to_string(this, &[], context);
-        }
 
         // 7
         let mut prefix = String::new(); // spec: 's'
