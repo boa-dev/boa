@@ -164,10 +164,10 @@ fn to_precision() {
         over_precision,
         String::from("\"123456789.00000000000000000000000000000000000000000\"")
     );
-    assert_eq!(neg_exponent, String::from("\"0.100\""));
+    assert_eq!(neg_exponent, String::from("\"0.1000\""));
     assert_eq!(
         ieee754_limits,
-        String::from("\"0.33333333333333331482961625624739099293947219848632812500000\"")
+        String::from("\"0.333333333333333314829616256247390992939472198486328125000000\"")
     );
 
     let expected = "Uncaught \"RangeError\": \"precision must be an integer at least 1 and no greater than 100\"";

@@ -318,47 +318,57 @@ impl Number {
     ///   represented by these digits is rounded using string
     ///   manipulation.
     /// - Else, zeroes are appended to the string.
+    /// - Additionnally, sometimes the exponent was wrongly computed and
+    ///   while up-rounding we find that we need an extra digit. When this
+    ///   happens, we return true so that the calling context can adjust
+    ///   the exponent. The string is kept at an exact length of `precision`.
     ///
     /// When this procedure returns, `digits` is exactly `precision` long.
     ///
-    fn round_to_precision(digits: &mut String, precision: usize) {
+    fn round_to_precision(digits: &mut String, precision: usize) -> bool {
         if digits.len() > precision {
             let to_round = digits.split_off(precision);
             let mut digit = digits.pop().unwrap() as u8;
-
-            for c in to_round.chars() {
-                match c {
-                    c if c < '4' => break,
-                    c if c > '4' => {
-                        digit += 1;
-                        break;
-                    }
-                    _ => {}
+            if let Some(first) = to_round.chars().next() {
+                if first > '4' {
+                    digit += 1;
                 }
             }
 
             if digit as char == ':' {
-                // need to propagate the incrementation backward
+                // ':' is '9' + 1
+                // need to propagate the increment backward
                 let mut replacement = String::from("0");
+                let mut propagated = false;
                 for c in digits.chars().rev() {
-                    let d = match c {
-                        '0'..='8' => (c as u8 + 1) as char,
-                        _ => '0',
+                    let d = match (c, propagated) {
+                        ('0'..='8', false) => (c as u8 + 1) as char,
+                        (_, false) => '0',
+                        (_, true) => c,
                     };
                     replacement.push(d);
                     if d != '0' {
-                        break;
+                        propagated = true;
                     }
                 }
-                let _trash = digits.split_off(digits.len() + 1 - replacement.len());
+                digits.clear();
+                let replacement = if !propagated {
+                    digits.push('1');
+                    &replacement.as_str()[1..]
+                } else {
+                    replacement.as_str()
+                };
                 for c in replacement.chars().rev() {
                     digits.push(c)
                 }
+                !propagated
             } else {
                 digits.push(digit as char);
+                false
             }
         } else {
             digits.push_str(&"0".repeat(precision - digits.len()));
+            false
         }
     }
 
@@ -430,7 +440,9 @@ impl Number {
                 suffix.remove(n);
             }
             // impl: having exactly `precision` digits in `suffix`
-            Self::round_to_precision(&mut suffix, precision);
+            if Self::round_to_precision(&mut suffix, precision) {
+                exponent += 1;
+            }
 
             // c: switching to scientific notation
             let great_exp = exponent >= precision_i32;
@@ -466,8 +478,6 @@ impl Number {
             prefix.push('0');
             prefix.push('.');
             prefix.push_str(&"0".repeat(-e_inc as usize));
-            // we have one too many precision in `suffix`
-            Self::round_to_precision(&mut suffix, precision - 1);
         }
 
         // 14
