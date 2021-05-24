@@ -62,6 +62,7 @@ impl Executable for New {
                     let next_value = next.value();
                     v_args.push(next_value.clone());
                 }
+                panic!();
                 break; // after spread we don't accept any new arguments
             } else {
                 v_args.push(arg.run(context)?);
