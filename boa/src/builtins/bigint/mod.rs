@@ -42,7 +42,7 @@ mod tests;
 pub struct BigInt(num_bigint::BigInt);
 
 impl BuiltIn for BigInt {
-    const NAME: &'static str = "BigInt";
+    const NAME: &'static str = "BigInt2";
 
     fn attribute() -> Attribute {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
