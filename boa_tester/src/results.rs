@@ -428,8 +428,6 @@ fn compute_result_diff(
                 (TestOutcomeResult::Panic, _) => final_diff.panic_fixes.push(test_name),
                 _ => {}
             }
-
-            todo!("check difference");
         }
     }
 
