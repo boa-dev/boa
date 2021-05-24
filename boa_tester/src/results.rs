@@ -406,14 +406,19 @@ fn compute_result_diff(
         if let Some(new_test) = new_result
             .tests
             .iter()
-            .find(|new_test| new_test.name == base_test.name)
+            .find(|new_test| new_test.strict == base_test.strict && new_test.name == base_test.name)
         {
             let test_name = format!(
-                "test262/test/{}/{}.js (previously {:?})",
+                "test/{}/{}.js {}(previously {:?})",
                 base.strip_prefix("../gh-pages/test262/refs/heads/master/latest.json")
                     .expect("error removing prefix")
                     .display(),
                 new_test.name,
+                if base_test.strict {
+                    "[strict mode] "
+                } else {
+                    ""
+                },
                 base_test.result
             )
             .into_boxed_str();
