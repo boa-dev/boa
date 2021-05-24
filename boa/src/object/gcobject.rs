@@ -202,10 +202,10 @@ impl GcObject {
                                 arguments_in_parameter_names || param.name() == "arguments";
                         }
 
-                        // An arguments object is not added in the following situations:
-                        // - In arrow functions (10.2.11.16)
-                        // - If parameter list contains `arguments` (10.2.11.17)
-                        // - If there are no default parameters and lexical names or function names contain `arguments` (10.2.11.18)
+                        // An arguments object is added when all of the following conditions are met
+                        // - If not in an arrow function (10.2.11.16)
+                        // - If the parameter list does not contain `arguments` (10.2.11.17)
+                        // - If there are default parameters or if lexical names and function names do not contain `arguments` (10.2.11.18)
                         //
                         // https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
                         if !flags.is_lexical_this_mode()
