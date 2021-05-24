@@ -1061,6 +1061,42 @@
 <span id="1060">1060</span>
 <span id="1061">1061</span>
 <span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
@@ -1382,28 +1418,57 @@
     <span class="doccomment">///   represented by these digits is rounded using string</span>
     <span class="doccomment">///   manipulation.</span>
     <span class="doccomment">/// - Else, zeroes are appended to the string.</span>
+    <span class="doccomment">/// - Additionnally, sometimes the exponent was wrongly computed and</span>
+    <span class="doccomment">///   while up-rounding we find that we need an extra digit. When this</span>
+    <span class="doccomment">///   happens, we return true so that the calling context can adjust</span>
+    <span class="doccomment">///   the exponent. The string is kept at an exact length of `precision`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// When this procedure returns, `digits` is exactly `precision` long.</span>
     <span class="doccomment">///</span>
-    <span class="kw">fn</span> <span class="ident">round_to_precision</span>(<span class="ident">digits</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span>, <span class="ident">precision</span>: <span class="ident">usize</span>) {
+    <span class="kw">fn</span> <span class="ident">round_to_precision</span>(<span class="ident">digits</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span>, <span class="ident">precision</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="ident">digits</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">precision</span> {
             <span class="kw">let</span> <span class="ident">to_round</span> <span class="op">=</span> <span class="ident">digits</span>.<span class="ident">split_off</span>(<span class="ident">precision</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">digit</span> <span class="op">=</span> <span class="ident">digits</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>;
-
-            <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">to_round</span>.<span class="ident">chars</span>() {
-                <span class="kw">match</span> <span class="ident">c</span> {
-                    <span class="ident">c</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">&lt;</span> <span class="string">&#39;4&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
-                    <span class="ident">c</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">&gt;</span> <span class="string">&#39;4&#39;</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="ident">digit</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                        <span class="kw">break</span>;
-                    }
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">first</span>) <span class="op">=</span> <span class="ident">to_round</span>.<span class="ident">chars</span>().<span class="ident">next</span>() {
+                <span class="kw">if</span> <span class="ident">first</span> <span class="op">&gt;</span> <span class="string">&#39;4&#39;</span> {
+                    <span class="ident">digit</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 }
             }
 
-            <span class="ident">digits</span>.<span class="ident">push</span>(<span class="ident">digit</span> <span class="kw">as</span> <span class="ident">char</span>);
+            <span class="kw">if</span> <span class="ident">digit</span> <span class="kw">as</span> <span class="ident">char</span> <span class="op">=</span><span class="op">=</span> <span class="string">&#39;:&#39;</span> {
+                <span class="comment">// &#39;:&#39; is &#39;9&#39; + 1</span>
+                <span class="comment">// need to propagate the increment backward</span>
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">replacement</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;0&quot;</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">propagated</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">digits</span>.<span class="ident">chars</span>().<span class="ident">rev</span>() {
+                    <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">c</span>, <span class="ident">propagated</span>) {
+                        (<span class="string">&#39;0&#39;</span>..<span class="op">=</span><span class="string">&#39;8&#39;</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">c</span> <span class="kw">as</span> <span class="ident">u8</span> <span class="op">+</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">char</span>,
+                        (<span class="kw">_</span>, <span class="bool-val">false</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&#39;0&#39;</span>,
+                        (<span class="kw">_</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">c</span>,
+                    };
+                    <span class="ident">replacement</span>.<span class="ident">push</span>(<span class="ident">d</span>);
+                    <span class="kw">if</span> <span class="ident">d</span> <span class="op">!</span><span class="op">=</span> <span class="string">&#39;0&#39;</span> {
+                        <span class="ident">propagated</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                    }
+                }
+                <span class="ident">digits</span>.<span class="ident">clear</span>();
+                <span class="kw">let</span> <span class="ident">replacement</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">propagated</span> {
+                    <span class="ident">digits</span>.<span class="ident">push</span>(<span class="string">&#39;1&#39;</span>);
+                    <span class="kw-2">&amp;</span><span class="ident">replacement</span>.<span class="ident">as_str</span>()[<span class="number">1</span>..]
+                } <span class="kw">else</span> {
+                    <span class="ident">replacement</span>.<span class="ident">as_str</span>()
+                };
+                <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">replacement</span>.<span class="ident">chars</span>().<span class="ident">rev</span>() {
+                    <span class="ident">digits</span>.<span class="ident">push</span>(<span class="ident">c</span>)
+                }
+                <span class="op">!</span><span class="ident">propagated</span>
+            } <span class="kw">else</span> {
+                <span class="ident">digits</span>.<span class="ident">push</span>(<span class="ident">digit</span> <span class="kw">as</span> <span class="ident">char</span>);
+                <span class="bool-val">false</span>
+            }
         } <span class="kw">else</span> {
             <span class="ident">digits</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="string">&quot;0&quot;</span>.<span class="ident">repeat</span>(<span class="ident">precision</span> <span class="op">-</span> <span class="ident">digits</span>.<span class="ident">len</span>()));
+            <span class="bool-val">false</span>
         }
     }
 
@@ -1423,17 +1488,24 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">precision_var</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">precision</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
 
         <span class="comment">// 1 &amp; 6</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">this_number_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="comment">// 2 &amp; 4</span>
-        <span class="kw">if</span> <span class="ident">precision_var</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Value</span>::<span class="ident">undefined</span>() <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">this_num</span>.<span class="ident">is_finite</span>() {
+        <span class="comment">// 2</span>
+        <span class="kw">if</span> <span class="ident">precision</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Value</span>::<span class="ident">undefined</span>() {
             <span class="kw">return</span> <span class="self">Self</span>::<span class="ident">to_string</span>(<span class="ident">this</span>, <span class="kw-2">&amp;</span>[], <span class="ident">context</span>);
         }
 
         <span class="comment">// 3</span>
-        <span class="kw">let</span> <span class="ident">precision</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">precision_var</span>.<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
+        <span class="kw">let</span> <span class="ident">precision</span> <span class="op">=</span> <span class="ident">precision</span>.<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 4</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">this_num</span>.<span class="ident">is_finite</span>() {
+            <span class="kw">return</span> <span class="self">Self</span>::<span class="ident">to_string</span>(<span class="ident">this</span>, <span class="kw-2">&amp;</span>[], <span class="ident">context</span>);
+        }
+
+        <span class="kw">let</span> <span class="ident">precision</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">precision</span> {
             <span class="ident">IntegerOrInfinity</span>::<span class="ident">Integer</span>(<span class="ident">x</span>) <span class="kw">if</span> (<span class="number">1</span>..<span class="op">=</span><span class="number">100</span>).<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span> <span class="kw">as</span> <span class="ident">usize</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// 5</span>
@@ -1447,7 +1519,7 @@
         <span class="comment">// 7</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prefix</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>(); <span class="comment">// spec: &#39;s&#39;</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">suffix</span>: <span class="ident">String</span>; <span class="comment">// spec: &#39;m&#39;</span>
-        <span class="kw">let</span> <span class="ident">exponent</span>: <span class="ident">i32</span>; <span class="comment">// spec: &#39;e&#39;</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exponent</span>: <span class="ident">i32</span>; <span class="comment">// spec: &#39;e&#39;</span>
 
         <span class="comment">// 8</span>
         <span class="kw">if</span> <span class="ident">this_num</span> <span class="op">&lt;</span> <span class="number">0.0</span> {
@@ -1463,10 +1535,8 @@
         } <span class="kw">else</span> {
             <span class="comment">// Due to f64 limitations, this part differs a bit from the spec,</span>
             <span class="comment">// but has the same effect. It manipulates the string constructed</span>
-            <span class="comment">// by ryu-js: digits with an optional dot between two of them.</span>
-
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">ryu_js</span>::<span class="ident">Buffer</span>::<span class="ident">new</span>();
-            <span class="ident">suffix</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">format</span>(<span class="ident">this_num</span>).<span class="ident">to_string</span>();
+            <span class="comment">// by `format`: digits with an optional dot between two of them.</span>
+            <span class="ident">suffix</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:.100}&quot;</span>, <span class="ident">this_num</span>);
 
             <span class="comment">// a: getting an exponent</span>
             <span class="ident">exponent</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">flt_str_to_exp</span>(<span class="kw-2">&amp;</span><span class="ident">suffix</span>);
@@ -1477,7 +1547,9 @@
                 <span class="ident">suffix</span>.<span class="ident">remove</span>(<span class="ident">n</span>);
             }
             <span class="comment">// impl: having exactly `precision` digits in `suffix`</span>
-            <span class="self">Self</span>::<span class="ident">round_to_precision</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">suffix</span>, <span class="ident">precision</span>);
+            <span class="kw">if</span> <span class="self">Self</span>::<span class="ident">round_to_precision</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">suffix</span>, <span class="ident">precision</span>) {
+                <span class="ident">exponent</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            }
 
             <span class="comment">// c: switching to scientific notation</span>
             <span class="kw">let</span> <span class="ident">great_exp</span> <span class="op">=</span> <span class="ident">exponent</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">precision_i32</span>;
