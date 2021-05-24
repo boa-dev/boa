@@ -75,7 +75,7 @@ jobs:
           body-includes: Test262 conformance changes
 
       - name: Update comment
-        if: github.event_name == 'pull_request' && steps.previous-comment.outputs.comment-id
+        # if: github.event_name == 'pull_request' && steps.previous-comment.outputs.comment-id
         uses: peter-evans/create-or-update-comment@v1.4.5
         continue-on-error: true
         with:
@@ -84,7 +84,7 @@ jobs:
           edit-mode: replace
 
       - name: Write a new comment
-        if: github.event_name == 'pull_request' && !steps.previous-comment.outputs.comment-id
+        # if: github.event_name == 'pull_request' && !steps.previous-comment.outputs.comment-id
         uses: peter-evans/create-or-update-comment@v1.4.5
         continue-on-error: true
         with:
