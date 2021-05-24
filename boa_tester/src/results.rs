@@ -409,8 +409,10 @@ fn compute_result_diff(
             .find(|new_test| new_test.name == base_test.name)
         {
             let test_name = format!(
-                "{}/{}.js (previously {:?})",
-                base.display(),
+                "test262/test/{}/{}.js (previously {:?})",
+                base.strip_prefix("../gh-pages/test262/refs/heads/master/latest.json")
+                    .expect("error removing prefix")
+                    .display(),
                 new_test.name,
                 base_test.result
             )
