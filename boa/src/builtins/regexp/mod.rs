@@ -466,6 +466,7 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.test
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test
     pub(crate) fn test(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        // 22.2.5.2.2.4 really says to use "toLength" and not "toIndex"
         let mut last_index = this.get_field("lastIndex", context)?.to_length(context)?;
         let result = if let Some(object) = this.as_object() {
             // 3. Let string be ? ToString(S).
@@ -520,6 +521,7 @@ impl RegExp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec
     pub(crate) fn exec(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // 4. Return ? RegExpBuiltinExec(R, S).
+        // 22.2.5.2.2.4 really says to use "toLength" and not "toIndex"
         let mut last_index = this.get_field("lastIndex", context)?.to_length(context)?;
         let result = if let Some(object) = this.as_object() {
             let object = object.borrow();
