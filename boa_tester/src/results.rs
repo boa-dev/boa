@@ -274,42 +274,46 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
 
         if !test_diff.fixed.is_empty() {
             println!();
-            println!("#### Fixed tests:");
+            println!("<details><summary>**Fixed tests:**</summary>");
             println!("```");
             for test in test_diff.fixed {
                 println!("{}", test);
             }
             println!("```");
+            println!("</details>");
         }
 
         if !test_diff.broken.is_empty() {
             println!();
-            println!("#### Broken tests:");
+            println!("<details><summary>**Broken tests:**</summary>");
             println!("```");
             for test in test_diff.broken {
                 println!("{}", test);
             }
             println!("```");
+            println!("</details>");
         }
 
         if !test_diff.new_panics.is_empty() {
             println!();
-            println!("#### New panics:");
+            println!("<details><summary>**New panics:**</summary>");
             println!("```");
             for test in test_diff.new_panics {
                 println!("{}", test);
             }
             println!("```");
+            println!("</details>");
         }
 
         if !test_diff.panic_fixes.is_empty() {
             println!();
-            println!("#### Fixed panics:");
+            println!("<details><summary>**Fixed panics:**</summary>");
             println!("```");
             for test in test_diff.panic_fixes {
                 println!("{}", test);
             }
             println!("```");
+            println!("</details>");
         }
     } else {
         println!("Test262 conformance changes:");
