@@ -1591,6 +1591,71 @@
 <span id="1590">1590</span>
 <span id="1591">1591</span>
 <span id="1592">1592</span>
+<span id="1593">1593</span>
+<span id="1594">1594</span>
+<span id="1595">1595</span>
+<span id="1596">1596</span>
+<span id="1597">1597</span>
+<span id="1598">1598</span>
+<span id="1599">1599</span>
+<span id="1600">1600</span>
+<span id="1601">1601</span>
+<span id="1602">1602</span>
+<span id="1603">1603</span>
+<span id="1604">1604</span>
+<span id="1605">1605</span>
+<span id="1606">1606</span>
+<span id="1607">1607</span>
+<span id="1608">1608</span>
+<span id="1609">1609</span>
+<span id="1610">1610</span>
+<span id="1611">1611</span>
+<span id="1612">1612</span>
+<span id="1613">1613</span>
+<span id="1614">1614</span>
+<span id="1615">1615</span>
+<span id="1616">1616</span>
+<span id="1617">1617</span>
+<span id="1618">1618</span>
+<span id="1619">1619</span>
+<span id="1620">1620</span>
+<span id="1621">1621</span>
+<span id="1622">1622</span>
+<span id="1623">1623</span>
+<span id="1624">1624</span>
+<span id="1625">1625</span>
+<span id="1626">1626</span>
+<span id="1627">1627</span>
+<span id="1628">1628</span>
+<span id="1629">1629</span>
+<span id="1630">1630</span>
+<span id="1631">1631</span>
+<span id="1632">1632</span>
+<span id="1633">1633</span>
+<span id="1634">1634</span>
+<span id="1635">1635</span>
+<span id="1636">1636</span>
+<span id="1637">1637</span>
+<span id="1638">1638</span>
+<span id="1639">1639</span>
+<span id="1640">1640</span>
+<span id="1641">1641</span>
+<span id="1642">1642</span>
+<span id="1643">1643</span>
+<span id="1644">1644</span>
+<span id="1645">1645</span>
+<span id="1646">1646</span>
+<span id="1647">1647</span>
+<span id="1648">1648</span>
+<span id="1649">1649</span>
+<span id="1650">1650</span>
+<span id="1651">1651</span>
+<span id="1652">1652</span>
+<span id="1653">1653</span>
+<span id="1654">1654</span>
+<span id="1655">1655</span>
+<span id="1656">1656</span>
+<span id="1657">1657</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -1854,6 +1919,51 @@
             <span class="ident">array_obj_ptr</span>.<span class="ident">set_property</span>(<span class="ident">n</span>, <span class="ident">DataDescriptor</span>::<span class="ident">new</span>(<span class="ident">value</span>, <span class="ident">Attribute</span>::<span class="ident">all</span>()));
         }
         <span class="prelude-val">Ok</span>(<span class="ident">array_obj_ptr</span>)
+    }
+
+    <span class="doccomment">/// Utility function used to specify the creation of a new Array object using a constructor</span>
+    <span class="doccomment">/// function that is derived from original_array.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// see: &lt;https://tc39.es/ecma262/#sec-arrayspeciescreate&gt;</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">array_species_create</span>(
+        <span class="ident">original_array</span>: <span class="kw-2">&amp;</span><span class="ident">GcObject</span>,
+        <span class="ident">length</span>: <span class="ident">u32</span>,
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">original_array</span>.<span class="ident">is_array</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">array_create</span>(<span class="ident">length</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>));
+        }
+        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">original_array</span>.<span class="ident">get</span>(
+            <span class="kw-2">&amp;</span><span class="string">&quot;constructor&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">original_array</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+            <span class="ident">context</span>,
+        )<span class="question-mark">?</span>;
+        <span class="comment">// Step 4 is ignored, as there are no different realms for now</span>
+        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">c</span>.<span class="ident">as_object</span>() {
+            <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">get</span>(
+                <span class="kw-2">&amp;</span><span class="ident">WellKnownSymbols</span>::<span class="ident">species</span>().<span class="ident">into</span>(),
+                <span class="ident">c</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+                <span class="ident">context</span>,
+            )<span class="question-mark">?</span>;
+            <span class="kw">if</span> <span class="ident">c</span>.<span class="ident">is_null_or_undefined</span>() {
+                <span class="ident">Value</span>::<span class="ident">undefined</span>()
+            } <span class="kw">else</span> {
+                <span class="ident">c</span>
+            }
+        } <span class="kw">else</span> {
+            <span class="ident">c</span>
+        };
+        <span class="kw">if</span> <span class="ident">c</span>.<span class="ident">is_undefined</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">array_create</span>(<span class="ident">length</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>));
+        }
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">c</span>.<span class="ident">as_object</span>() {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">c</span>.<span class="ident">is_constructable</span>() {
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Symbol.species must be a constructor&quot;</span>);
+            }
+            <span class="ident">c</span>.<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">length</span>)], <span class="ident">c</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)
+        } <span class="kw">else</span> {
+            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Symbol.species must be a constructor&quot;</span>)
+        }
     }
 
     <span class="doccomment">/// Utility function which takes an existing array object and puts additional</span>
@@ -2805,37 +2915,57 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.filter</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">filter</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
-                <span class="string">&quot;missing argument 0 when calling function Array.prototype.filter&quot;</span>,
-            ));
-        }
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">o</span>
+            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="string">&quot;length&quot;</span>.<span class="ident">into</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">o</span>.<span class="ident">clone</span>()), <span class="ident">context</span>)<span class="question-mark">?</span>
+            .<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
+        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">0</span>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">to_object</span>(<span class="ident">context</span>))
+            .<span class="ident">transpose</span>()<span class="question-mark">?</span>
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">context</span>.<span class="ident">construct_type_error</span>(
+                    <span class="string">&quot;missing argument 0 when calling function Array.prototype.filter&quot;</span>,
+                )
+            })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">this_val</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
 
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">callback</span>.<span class="ident">is_callable</span>() {
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;the callback must be callable&quot;</span>);
+        }
 
-        <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">new_array</span>(<span class="ident">context</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">array_species_create</span>(<span class="kw-2">&amp;</span><span class="ident">o</span>, <span class="number">0</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+            .<span class="ident">as_object</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;array_species_create must create an object&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">length</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">idx</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">idx</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">to</span> <span class="op">=</span> <span class="number">0u32</span>;
+        <span class="kw">for</span> <span class="ident">idx</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">length</span> {
+            <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">idx</span>.<span class="ident">into</span>()) {
+                <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">idx</span>.<span class="ident">into</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">o</span>.<span class="ident">clone</span>()), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
-                <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> [<span class="ident">element</span>.<span class="ident">clone</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">idx</span>), <span class="ident">new</span>.<span class="ident">clone</span>()];
+                <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> [<span class="ident">element</span>.<span class="ident">clone</span>(), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">idx</span>), <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">o</span>.<span class="ident">clone</span>())];
 
-                <span class="kw">let</span> <span class="ident">callback_result</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">this_val</span>, <span class="kw-2">&amp;</span><span class="ident">args</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">callback_result</span> <span class="op">=</span> <span class="ident">callback</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">this_val</span>, <span class="kw-2">&amp;</span><span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
                 <span class="kw">if</span> <span class="ident">callback_result</span>.<span class="ident">to_boolean</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">element</span>))
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
+                    <span class="kw">if</span> <span class="op">!</span><span class="ident">a</span>.<span class="ident">define_own_property</span>(
+                        <span class="ident">to</span>,
+                        <span class="ident">DataDescriptor</span>::<span class="ident">new</span>(
+                            <span class="ident">element</span>,
+                            <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
+                        )
+                        .<span class="ident">into</span>(),
+                        <span class="ident">context</span>,
+                    )<span class="question-mark">?</span> {
+                        <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot set property in array&quot;</span>);
+                    }
+                    <span class="ident">to</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 }
-            })
-            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">values</span>.<span class="ident">into_iter</span>().<span class="ident">flatten</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+            }
+        }
 
-        <span class="self">Self</span>::<span class="ident">construct_array</span>(<span class="kw-2">&amp;</span><span class="ident">new</span>, <span class="kw-2">&amp;</span><span class="ident">values</span>, <span class="ident">context</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Array.prototype.some ( callbackfn [ , thisArg ] )</span>
