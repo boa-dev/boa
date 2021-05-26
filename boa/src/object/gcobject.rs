@@ -412,7 +412,8 @@ impl GcObject {
         } else {
             let mut new_obj = Map::new();
             let this = Value::from(self.clone());
-            for k in self.borrow().keys() {
+            let keys: Vec<PropertyKey> = self.borrow().keys().collect();
+            for k in keys {
                 let key = k.clone();
                 let value = this.get_field(k.to_string(), context)?;
                 if let Some(value) = value.to_json(context)? {

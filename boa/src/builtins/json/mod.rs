@@ -42,13 +42,12 @@ impl BuiltIn for Json {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
-
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
         let json_object = ObjectInitializer::new(context)
-            .property(to_string_tag, Self::NAME, attribute)
             .function(Self::parse, "parse", 2)
             .function(Self::stringify, "stringify", 3)
+            .property(to_string_tag, Self::NAME, attribute)
             .build();
 
         (Self::NAME, json_object.into(), Self::attribute())

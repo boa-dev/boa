@@ -262,6 +262,51 @@ impl Array {
         Ok(array_obj_ptr)
     }
 
+    /// Utility function used to specify the creation of a new Array object using a constructor
+    /// function that is derived from original_array.
+    ///
+    /// see: <https://tc39.es/ecma262/#sec-arrayspeciescreate>
+    pub(crate) fn array_species_create(
+        original_array: &GcObject,
+        length: u32,
+        context: &mut Context,
+    ) -> Result<Value> {
+        if !original_array.is_array() {
+            return Ok(Self::array_create(length, None, context));
+        }
+        let c = original_array.get(
+            &"constructor".into(),
+            original_array.clone().into(),
+            context,
+        )?;
+        // Step 4 is ignored, as there are no different realms for now
+        let c = if let Some(c) = c.as_object() {
+            let c = c.get(
+                &WellKnownSymbols::species().into(),
+                c.clone().into(),
+                context,
+            )?;
+            if c.is_null_or_undefined() {
+                Value::undefined()
+            } else {
+                c
+            }
+        } else {
+            c
+        };
+        if c.is_undefined() {
+            return Ok(Self::array_create(length, None, context));
+        }
+        if let Some(c) = c.as_object() {
+            if !c.is_constructable() {
+                return context.throw_type_error("Symbol.species must be a constructor");
+            }
+            c.construct(&[Value::from(length)], c.clone().into(), context)
+        } else {
+            context.throw_type_error("Symbol.species must be a constructor")
+        }
+    }
+
     /// Utility function which takes an existing array object and puts additional
     /// values on the end, correctly rewriting the length
     pub(crate) fn add_to_array_object(
@@ -1211,37 +1256,57 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.filter
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter
     pub(crate) fn filter(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        if args.is_empty() {
-            return Err(Value::from(
-                "missing argument 0 when calling function Array.prototype.filter",
-            ));
-        }
+        let o = this.to_object(context)?;
+        let length = o
+            .get(&"length".into(), Value::from(o.clone()), context)?
+            .to_length(context)?;
 
-        let callback = args.get(0).cloned().unwrap_or_else(Value::undefined);
+        let callback = args
+            .get(0)
+            .map(|a| a.to_object(context))
+            .transpose()?
+            .ok_or_else(|| {
+                context.construct_type_error(
+                    "missing argument 0 when calling function Array.prototype.filter",
+                )
+            })?;
         let this_val = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = this.get_field("length", context)?.to_length(context)?;
+        if !callback.is_callable() {
+            return context.throw_type_error("the callback must be callable");
+        }
 
-        let new = Self::new_array(context);
+        let mut a = Self::array_species_create(&o, 0, context)?
+            .as_object()
+            .expect("array_species_create must create an object");
 
-        let values = (0..length)
-            .map(|idx| {
-                let element = this.get_field(idx, context)?;
+        let mut to = 0u32;
+        for idx in 0..length {
+            if o.has_property(&idx.into()) {
+                let element = o.get(&idx.into(), Value::from(o.clone()), context)?;
 
-                let args = [element.clone(), Value::from(idx), new.clone()];
+                let args = [element.clone(), Value::from(idx), Value::from(o.clone())];
 
-                let callback_result = context.call(&callback, &this_val, &args)?;
+                let callback_result = callback.call(&this_val, &args, context)?;
 
                 if callback_result.to_boolean() {
-                    Ok(Some(element))
-                } else {
-                    Ok(None)
+                    if !a.define_own_property(
+                        to,
+                        DataDescriptor::new(
+                            element,
+                            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+                        )
+                        .into(),
+                        context,
+                    )? {
+                        return context.throw_type_error("cannot set property in array");
+                    }
+                    to += 1;
                 }
-            })
-            .collect::<Result<Vec<Option<Value>>>>()?;
-        let values = values.into_iter().flatten().collect::<Vec<_>>();
+            }
+        }
 
-        Self::construct_array(&new, &values, context)
+        Ok(a.into())
     }
 
     /// Array.prototype.some ( callbackfn [ , thisArg ] )
