@@ -72,6 +72,16 @@ impl StatementList {
         set
     }
 
+    pub fn function_declared_names(&self) -> HashSet<&str> {
+        let mut set = HashSet::new();
+        for stmt in self.items() {
+            if let Node::FunctionDecl(decl) = stmt {
+                set.insert(decl.name());
+            }
+        }
+        set
+    }
+
     pub fn var_declared_names(&self) -> HashSet<&str> {
         let mut set = HashSet::new();
         for stmt in self.items() {
