@@ -174,6 +174,16 @@
 <span id="173">173</span>
 <span id="174">174</span>
 <span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Statement list node.</span>
 
@@ -244,6 +254,16 @@
                         <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;Redeclaration of {}&quot;</span>, <span class="ident">decl</span>.<span class="ident">name</span>());
                     }
                 }
+            }
+        }
+        <span class="ident">set</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">function_declared_names</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+        <span class="kw">for</span> <span class="ident">stmt</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">items</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node</span>::<span class="ident">FunctionDecl</span>(<span class="ident">decl</span>) <span class="op">=</span> <span class="ident">stmt</span> {
+                <span class="ident">set</span>.<span class="ident">insert</span>(<span class="ident">decl</span>.<span class="ident">name</span>());
             }
         }
         <span class="ident">set</span>
