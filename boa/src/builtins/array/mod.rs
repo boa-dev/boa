@@ -301,7 +301,7 @@ impl Array {
             if !c.is_constructable() {
                 return context.throw_type_error("Symbol.species must be a constructor");
             }
-            c.construct(&[Value::from(length)], c.clone().into(), context)
+            c.construct(&[Value::from(length)], &c.clone().into(), context)
         } else {
             context.throw_type_error("Symbol.species must be a constructor")
         }
