@@ -98,7 +98,7 @@ impl Context {
         scope: VariableScope,
     ) -> Result<()> {
         self.get_current_environment()
-            .borrow_mut()
+            .borrow()
             .recursive_create_mutable_binding(name, deletion, scope, self)
     }
 
@@ -109,7 +109,7 @@ impl Context {
         scope: VariableScope,
     ) -> Result<()> {
         self.get_current_environment()
-            .borrow_mut()
+            .borrow()
             .recursive_create_immutable_binding(name, deletion, scope, self)
     }
 
@@ -120,13 +120,13 @@ impl Context {
         strict: bool,
     ) -> Result<()> {
         self.get_current_environment()
-            .borrow_mut()
+            .borrow()
             .recursive_set_mutable_binding(name, value, strict, self)
     }
 
     pub(crate) fn initialize_binding(&mut self, name: &str, value: Value) -> Result<()> {
         self.get_current_environment()
-            .borrow_mut()
+            .borrow()
             .recursive_initialize_binding(name, value, self)
     }
 

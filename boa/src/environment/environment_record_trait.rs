@@ -34,7 +34,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// Most variable names cannot be reused, but functions in JavaScript are allowed to have multiple
     /// paraments with the same name.
     fn create_mutable_binding(
-        &mut self,
+        &self,
         name: String,
         deletion: bool,
         allow_name_reuse: bool,
@@ -46,7 +46,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// If strict is true then attempts to set it after it has been initialized will always throw an exception,
     /// regardless of the strict mode setting of operations that reference that binding.
     fn create_immutable_binding(
-        &mut self,
+        &self,
         name: String,
         strict: bool,
         context: &mut Context,
@@ -55,15 +55,14 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// Set the value of an already existing but uninitialized binding in an Environment Record.
     /// The String value N is the text of the bound name.
     /// V is the value for the binding and is a value of any ECMAScript language type.
-    fn initialize_binding(&mut self, name: &str, value: Value, context: &mut Context)
-        -> Result<()>;
+    fn initialize_binding(&self, name: &str, value: Value, context: &mut Context) -> Result<()>;
 
     /// Set the value of an already existing mutable binding in an Environment Record.
     /// The String value `name` is the text of the bound name.
     /// value is the `value` for the binding and may be a value of any ECMAScript language type. S is a Boolean flag.
     /// If `strict` is true and the binding cannot be set throw a TypeError exception.
     fn set_mutable_binding(
-        &mut self,
+        &self,
         name: &str,
         value: Value,
         strict: bool,
@@ -80,7 +79,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// The String value name is the text of the bound name.
     /// If a binding for name exists, remove the binding and return true.
     /// If the binding exists but cannot be removed return false. If the binding does not exist return true.
-    fn delete_binding(&mut self, name: &str) -> bool;
+    fn delete_binding(&self, name: &str) -> bool;
 
     /// Determine if an Environment Record establishes a this binding.
     /// Return true if it does and false if it does not.
@@ -123,7 +122,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
 
     /// Create mutable binding while handling outer environments
     fn recursive_create_mutable_binding(
-        &mut self,
+        &self,
         name: String,
         deletion: bool,
         scope: VariableScope,
@@ -134,14 +133,14 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
             VariableScope::Function => self
                 .get_outer_environment_ref()
                 .expect("No function or global environment")
-                .borrow_mut()
+                .borrow()
                 .recursive_create_mutable_binding(name, deletion, scope, context),
         }
     }
 
     /// Create immutable binding while handling outer environments
     fn recursive_create_immutable_binding(
-        &mut self,
+        &self,
         name: String,
         deletion: bool,
         scope: VariableScope,
@@ -152,14 +151,14 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
             VariableScope::Function => self
                 .get_outer_environment_ref()
                 .expect("No function or global environment")
-                .borrow_mut()
+                .borrow()
                 .recursive_create_immutable_binding(name, deletion, scope, context),
         }
     }
 
     /// Set mutable binding while handling outer environments
     fn recursive_set_mutable_binding(
-        &mut self,
+        &self,
         name: &str,
         value: Value,
         strict: bool,
@@ -170,14 +169,14 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         } else {
             self.get_outer_environment_ref()
                 .expect("Environment stack underflow")
-                .borrow_mut()
+                .borrow()
                 .recursive_set_mutable_binding(name, value, strict, context)
         }
     }
 
     /// Initialize binding while handling outer environments
     fn recursive_initialize_binding(
-        &mut self,
+        &self,
         name: &str,
         value: Value,
         context: &mut Context,
@@ -187,7 +186,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         } else {
             self.get_outer_environment_ref()
                 .expect("Environment stack underflow")
-                .borrow_mut()
+                .borrow()
                 .recursive_initialize_binding(name, value, context)
         }
     }

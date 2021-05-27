@@ -9,7 +9,6 @@
 //! More info: <https://tc39.es/ecma262/#sec-function-environment-records>
 
 use gc::{Gc, GcCell};
-use rustc_hash::FxHashMap;
 
 use crate::{
     environment::{
@@ -68,10 +67,9 @@ impl FunctionEnvironmentRecord {
         new_target: Value,
     ) -> Environment {
         let mut func_env = FunctionEnvironmentRecord {
-            declarative_record: DeclarativeEnvironmentRecord {
-                env_rec: FxHashMap::default(),
-                outer_env: outer, // this will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
-            },
+            declarative_record: DeclarativeEnvironmentRecord::new_declarative_environment_record(
+                outer,
+            ), // the outer environment will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
             function: f,
             this_binding_status: binding_status,
             home_object: Value::undefined(),
@@ -123,7 +121,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     }
 
     fn create_mutable_binding(
-        &mut self,
+        &self,
         name: String,
         deletion: bool,
         allow_name_reuse: bool,
@@ -134,7 +132,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     }
 
     fn create_immutable_binding(
-        &mut self,
+        &self,
         name: String,
         strict: bool,
         context: &mut Context,
@@ -143,18 +141,13 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
             .create_immutable_binding(name, strict, context)
     }
 
-    fn initialize_binding(
-        &mut self,
-        name: &str,
-        value: Value,
-        context: &mut Context,
-    ) -> Result<()> {
+    fn initialize_binding(&self, name: &str, value: Value, context: &mut Context) -> Result<()> {
         self.declarative_record
             .initialize_binding(name, value, context)
     }
 
     fn set_mutable_binding(
-        &mut self,
+        &self,
         name: &str,
         value: Value,
         strict: bool,
@@ -169,7 +162,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
             .get_binding_value(name, strict, context)
     }
 
-    fn delete_binding(&mut self, name: &str) -> bool {
+    fn delete_binding(&self, name: &str) -> bool {
         self.declarative_record.delete_binding(name)
     }
 
@@ -214,7 +207,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     }
 
     fn recursive_create_mutable_binding(
-        &mut self,
+        &self,
         name: String,
         deletion: bool,
         _scope: VariableScope,
@@ -224,7 +217,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     }
 
     fn recursive_create_immutable_binding(
-        &mut self,
+        &self,
         name: String,
         deletion: bool,
         _scope: VariableScope,

@@ -6,16 +6,12 @@
 
 use crate::{
     environment::{
-        declarative_environment_record::DeclarativeEnvironmentRecord,
-        global_environment_record::GlobalEnvironmentRecord,
-        lexical_environment::LexicalEnvironment,
-        object_environment_record::ObjectEnvironmentRecord,
+        global_environment_record::GlobalEnvironmentRecord, lexical_environment::LexicalEnvironment,
     },
     object::{GcObject, Object, ObjectData},
     BoaProfiler,
 };
 use gc::{Gc, GcCell};
-use rustc_hash::{FxHashMap, FxHashSet};
 
 /// Representation of a Realm.
 ///
@@ -41,41 +37,15 @@ impl Realm {
         let gc_global = GcObject::new(global);
 
         // We need to clone the global here because its referenced from separate places (only pointer is cloned)
-        let global_env = new_global_environment(gc_global.clone(), gc_global.clone());
+        let global_env = GlobalEnvironmentRecord::new_global_environment_record(
+            gc_global.clone(),
+            gc_global.clone(),
+        );
 
         Self {
             global_object: gc_global.clone(),
-            global_env,
+            global_env: Gc::new(GcCell::new(global_env)),
             environment: LexicalEnvironment::new(gc_global),
         }
     }
-}
-
-// Similar to new_global_environment in lexical_environment, except we need to return a GlobalEnvirionment
-fn new_global_environment(
-    global: GcObject,
-    this_value: GcObject,
-) -> Gc<GcCell<GlobalEnvironmentRecord>> {
-    let obj_rec = ObjectEnvironmentRecord {
-        bindings: global.into(),
-        outer_env: None,
-        /// Object Environment Records created for with statements (13.11)
-        /// can provide their binding object as an implicit this value for use in function calls.
-        /// The capability is controlled by a withEnvironment Boolean value that is associated
-        /// with each object Environment Record. By default, the value of withEnvironment is false
-        /// for any object Environment Record.
-        with_environment: false,
-    };
-
-    let dcl_rec = DeclarativeEnvironmentRecord {
-        env_rec: FxHashMap::default(),
-        outer_env: None,
-    };
-
-    Gc::new(GcCell::new(GlobalEnvironmentRecord {
-        object_record: obj_rec,
-        global_this_binding: this_value,
-        declarative_record: dcl_rec,
-        var_names: FxHashSet::default(),
-    }))
 }

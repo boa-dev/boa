@@ -57,7 +57,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     }
 
     fn create_mutable_binding(
-        &mut self,
+        &self,
         name: String,
         deletion: bool,
         _allow_name_reuse: bool,
@@ -65,7 +65,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     ) -> Result<()> {
         // TODO: could save time here and not bother generating a new undefined object,
         // only for it to be replace with the real value later. We could just add the name to a Vector instead
-        let bindings = &mut self.bindings;
+        let bindings = &self.bindings;
         let mut prop = DataDescriptor::new(
             Value::undefined(),
             Attribute::WRITABLE | Attribute::ENUMERABLE,
@@ -77,7 +77,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     }
 
     fn create_immutable_binding(
-        &mut self,
+        &self,
         _name: String,
         _strict: bool,
         _context: &mut Context,
@@ -85,12 +85,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         Ok(())
     }
 
-    fn initialize_binding(
-        &mut self,
-        name: &str,
-        value: Value,
-        context: &mut Context,
-    ) -> Result<()> {
+    fn initialize_binding(&self, name: &str, value: Value, context: &mut Context) -> Result<()> {
         // We should never need to check if a binding has been created,
         // As all calls to create_mutable_binding are followed by initialized binding
         // The below is just a check.
@@ -99,7 +94,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     }
 
     fn set_mutable_binding(
-        &mut self,
+        &self,
         name: &str,
         value: Value,
         strict: bool,
@@ -128,7 +123,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         }
     }
 
-    fn delete_binding(&mut self, name: &str) -> bool {
+    fn delete_binding(&self, name: &str) -> bool {
         self.bindings.remove_property(name);
         true
     }
