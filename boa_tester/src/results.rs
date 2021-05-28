@@ -274,7 +274,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
 
         if !test_diff.fixed.is_empty() {
             println!();
-            println!("<details><summary>**Fixed tests:**</summary>");
+            println!("<details><summary><b>Fixed tests:</b></summary>");
             println!("```");
             for test in test_diff.fixed {
                 println!("{}", test);
@@ -285,7 +285,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
 
         if !test_diff.broken.is_empty() {
             println!();
-            println!("<details><summary>**Broken tests:**</summary>");
+            println!("<details><summary><b>Broken tests:</b></summary>");
             println!("```");
             for test in test_diff.broken {
                 println!("{}", test);
@@ -296,7 +296,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
 
         if !test_diff.new_panics.is_empty() {
             println!();
-            println!("<details><summary>**New panics:**</summary>");
+            println!("<details><summary><b>New panics:</b></summary>");
             println!("```");
             for test in test_diff.new_panics {
                 println!("{}", test);
@@ -307,7 +307,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
 
         if !test_diff.panic_fixes.is_empty() {
             println!();
-            println!("<details><summary>**Fixed panics:**</summary>");
+            println!("<details><summary><b>Fixed panics:</b></summary>");
             println!("```");
             for test in test_diff.panic_fixes {
                 println!("{}", test);
