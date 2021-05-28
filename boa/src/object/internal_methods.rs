@@ -12,6 +12,8 @@ use crate::{
     BoaProfiler, Context, Result,
 };
 
+use std::char::from_u32;
+
 impl GcObject {
     /// Check if object has property.
     ///
@@ -390,6 +392,70 @@ impl GcObject {
         }
     }
 
+    /// Gets own property of 'Object'
+    ///
+    #[inline]
+    pub fn get_own_property(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
+        let _timer = BoaProfiler::global().start_event("Object::get_own_property", "object");
+
+        let object = self.borrow();
+        match object.data {
+            ObjectData::String(_) => self.string_exotic_get_own_property(key),
+            _ => self.ordinary_get_own_property(key),
+        }
+    }
+
+    /// StringGetOwnProperty abstract operation
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-stringgetownproperty
+    #[inline]
+    pub fn string_get_own_property(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
+        let object = self.borrow();
+
+        match key {
+            PropertyKey::Index(index) => {
+                let string = object.as_string().unwrap();
+                let pos = *index as usize;
+
+                if pos >= string.len() {
+                    return None;
+                }
+
+                let char = if let Some(utf16_val) = string.encode_utf16().nth(pos) {
+                    Value::from(from_u32(utf16_val as u32).unwrap())
+                } else {
+                    return None;
+                };
+
+                let desc =
+                    PropertyDescriptor::from(DataDescriptor::new(char, Attribute::ENUMERABLE));
+
+                Some(desc)
+            }
+            _ => None,
+        }
+    }
+
+    /// Gets own property of 'String' exotic object
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-getownproperty-p
+    #[inline]
+    pub fn string_exotic_get_own_property(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
+        let desc = self.ordinary_get_own_property(key);
+
+        if let Some(_) = desc {
+            desc
+        } else {
+            self.string_get_own_property(key)
+        }
+    }
+
     /// The specification returns a Property Descriptor or Undefined.
     ///
     /// These are 2 separate types and we can't do that here.
@@ -399,9 +465,7 @@ impl GcObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
     #[inline]
-    pub fn get_own_property(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
-        let _timer = BoaProfiler::global().start_event("Object::get_own_property", "object");
-
+    pub fn ordinary_get_own_property(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         let object = self.borrow();
         let property = match key {
             PropertyKey::Index(index) => object.indexed_properties.get(&index),
