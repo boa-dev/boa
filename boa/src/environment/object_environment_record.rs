@@ -30,8 +30,8 @@ pub struct ObjectEnvironmentRecord {
 
 impl ObjectEnvironmentRecord {
     #[allow(clippy::new_ret_no_self)]
-    pub fn new(object: Value, environment: Option<Environment>) -> Environment {
-        Gc::new(GcCell::new(Box::new(ObjectEnvironmentRecord {
+    pub fn new(object: Value, environment: Option<Environment>) -> ObjectEnvironmentRecord {
+        ObjectEnvironmentRecord {
             bindings: object,
             outer_env: environment,
             /// Object Environment Records created for with statements (13.11)
@@ -40,7 +40,7 @@ impl ObjectEnvironmentRecord {
             /// with each object Environment Record. By default, the value of withEnvironment is false
             /// for any object Environment Record.
             with_environment: false,
-        })))
+        }
     }
 }
 
@@ -160,5 +160,11 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
 
     fn get_environment_type(&self) -> EnvironmentType {
         EnvironmentType::Function
+    }
+}
+
+impl From<ObjectEnvironmentRecord> for Environment {
+    fn from(env: ObjectEnvironmentRecord) -> Environment {
+        Gc::new(GcCell::new(Box::new(env)))
     }
 }

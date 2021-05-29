@@ -58,18 +58,15 @@ pub struct FunctionEnvironmentRecord {
 }
 
 impl FunctionEnvironmentRecord {
-    #[allow(clippy::new_ret_no_self)]
     pub fn new(
         f: GcObject,
         this: Option<Value>,
         outer: Option<Environment>,
         binding_status: BindingStatus,
         new_target: Value,
-    ) -> Environment {
+    ) -> FunctionEnvironmentRecord {
         let mut func_env = FunctionEnvironmentRecord {
-            declarative_record: DeclarativeEnvironmentRecord::new_declarative_environment_record(
-                outer,
-            ), // the outer environment will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
+            declarative_record: DeclarativeEnvironmentRecord::new(outer), // the outer environment will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
             function: f,
             this_binding_status: binding_status,
             home_object: Value::undefined(),
@@ -80,7 +77,7 @@ impl FunctionEnvironmentRecord {
         if let Some(v) = this {
             func_env.bind_this_value(v).unwrap();
         }
-        Gc::new(GcCell::new(Box::new(func_env)))
+        func_env
     }
 
     pub fn bind_this_value(&mut self, value: Value) -> Result<Value> {
@@ -224,5 +221,11 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         context: &mut Context,
     ) -> Result<()> {
         self.create_immutable_binding(name, deletion, context)
+    }
+}
+
+impl From<FunctionEnvironmentRecord> for Environment {
+    fn from(env: FunctionEnvironmentRecord) -> Environment {
+        Gc::new(GcCell::new(Box::new(env)))
     }
 }

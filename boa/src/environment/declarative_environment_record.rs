@@ -39,22 +39,12 @@ pub struct DeclarativeEnvironmentRecord {
 }
 
 impl DeclarativeEnvironmentRecord {
-    pub fn new_declarative_environment_record(
-        env: Option<Environment>,
-    ) -> DeclarativeEnvironmentRecord {
+    pub fn new(env: Option<Environment>) -> DeclarativeEnvironmentRecord {
+        let _timer = BoaProfiler::global().start_event("new_declarative_environment", "env");
         DeclarativeEnvironmentRecord {
             env_rec: GcCell::new(FxHashMap::default()),
             outer_env: env,
         }
-    }
-
-    #[allow(clippy::new_ret_no_self)]
-    pub fn new(env: Option<Environment>) -> Environment {
-        let _timer = BoaProfiler::global().start_event("new_declarative_environment", "env");
-
-        Gc::new(GcCell::new(Box::new(
-            Self::new_declarative_environment_record(env),
-        )))
     }
 }
 
@@ -221,5 +211,11 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
 
     fn get_environment_type(&self) -> EnvironmentType {
         EnvironmentType::Declarative
+    }
+}
+
+impl From<DeclarativeEnvironmentRecord> for Environment {
+    fn from(env: DeclarativeEnvironmentRecord) -> Environment {
+        Gc::new(GcCell::new(Box::new(env)))
     }
 }

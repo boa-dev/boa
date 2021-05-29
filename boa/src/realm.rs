@@ -37,10 +37,7 @@ impl Realm {
         let gc_global = GcObject::new(global);
 
         // We need to clone the global here because its referenced from separate places (only pointer is cloned)
-        let global_env = GlobalEnvironmentRecord::new_global_environment_record(
-            gc_global.clone(),
-            gc_global.clone(),
-        );
+        let global_env = GlobalEnvironmentRecord::new(gc_global.clone(), gc_global.clone());
 
         Self {
             global_object: gc_global.clone(),

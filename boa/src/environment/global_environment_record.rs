@@ -31,10 +31,7 @@ pub struct GlobalEnvironmentRecord {
 }
 
 impl GlobalEnvironmentRecord {
-    pub fn new_global_environment_record(
-        global: GcObject,
-        this_value: GcObject,
-    ) -> GlobalEnvironmentRecord {
+    pub fn new(global: GcObject, this_value: GcObject) -> GlobalEnvironmentRecord {
         let obj_rec = ObjectEnvironmentRecord {
             bindings: global.into(),
             outer_env: None,
@@ -46,7 +43,7 @@ impl GlobalEnvironmentRecord {
             with_environment: false,
         };
 
-        let dcl_rec = DeclarativeEnvironmentRecord::new_declarative_environment_record(None);
+        let dcl_rec = DeclarativeEnvironmentRecord::new(None);
 
         GlobalEnvironmentRecord {
             object_record: obj_rec,
@@ -54,13 +51,6 @@ impl GlobalEnvironmentRecord {
             declarative_record: dcl_rec,
             var_names: GcCell::new(FxHashSet::default()),
         }
-    }
-
-    #[allow(clippy::new_ret_no_self)]
-    pub fn new(global: GcObject, this_value: GcObject) -> Environment {
-        Gc::new(GcCell::new(Box::new(Self::new_global_environment_record(
-            global, this_value,
-        ))))
     }
 
     pub fn has_var_declaration(&self, name: &str) -> bool {
@@ -322,5 +312,11 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         context: &mut Context,
     ) -> Result<()> {
         self.initialize_binding(name, value, context)
+    }
+}
+
+impl From<GlobalEnvironmentRecord> for Environment {
+    fn from(env: GlobalEnvironmentRecord) -> Environment {
+        Gc::new(GcCell::new(Box::new(env)))
     }
 }

@@ -71,14 +71,17 @@ impl LexicalEnvironment {
         };
 
         // lexical_env.push(global_env);
-        lexical_env.environment_stack.push_back(global_env);
+        lexical_env.environment_stack.push_back(global_env.into());
         lexical_env
     }
 }
 
 impl Context {
-    pub(crate) fn push_environment(&mut self, env: Environment) {
-        self.realm.environment.environment_stack.push_back(env);
+    pub(crate) fn push_environment<T: Into<Environment>>(&mut self, env: T) {
+        self.realm
+            .environment
+            .environment_stack
+            .push_back(env.into());
     }
 
     pub(crate) fn pop_environment(&mut self) -> Option<Environment> {
