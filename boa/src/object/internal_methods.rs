@@ -430,7 +430,7 @@ impl GcObject {
 
                 let desc = PropertyDescriptor::from(DataDescriptor::new(
                     result_str,
-                    Attribute::ENUMERABLE,
+                    Attribute::READONLY | Attribute::ENUMERABLE | Attribute::PERMANENT,
                 ));
 
                 Some(desc)
