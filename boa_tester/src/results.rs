@@ -202,6 +202,8 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
     let new_conformance = (new_passed as f64 / new_total as f64) * 100_f64;
     let conformance_diff = new_conformance - base_conformance;
 
+    let test_diff = compute_result_diff(base, &base_results.results, &new_results.results);
+
     if markdown {
         use num_format::{Locale, ToFormattedString};
 
@@ -269,6 +271,50 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
                 },
             ),
         );
+
+        if !test_diff.fixed.is_empty() {
+            println!();
+            println!("<details><summary><b>Fixed tests:</b></summary>");
+            println!("```");
+            for test in test_diff.fixed {
+                println!("{}", test);
+            }
+            println!("```");
+            println!("</details>");
+        }
+
+        if !test_diff.broken.is_empty() {
+            println!();
+            println!("<details><summary><b>Broken tests:</b></summary>");
+            println!("```");
+            for test in test_diff.broken {
+                println!("{}", test);
+            }
+            println!("```");
+            println!("</details>");
+        }
+
+        if !test_diff.new_panics.is_empty() {
+            println!();
+            println!("<details><summary><b>New panics:</b></summary>");
+            println!("```");
+            for test in test_diff.new_panics {
+                println!("{}", test);
+            }
+            println!("```");
+            println!("</details>");
+        }
+
+        if !test_diff.panic_fixes.is_empty() {
+            println!();
+            println!("<details><summary><b>Fixed panics:</b></summary>");
+            println!("```");
+            for test in test_diff.panic_fixes {
+                println!("{}", test);
+            }
+            println!("```");
+            println!("</details>");
+        }
     } else {
         println!("Test262 conformance changes:");
         println!("| Test result | master |    PR   | difference |");
@@ -296,5 +342,118 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
             new_panics,
             base_panics - new_panics
         );
+
+        if !test_diff.fixed.is_empty() {
+            println!();
+            println!("Fixed tests:");
+            for test in test_diff.fixed {
+                println!("{}", test);
+            }
+        }
+
+        if !test_diff.broken.is_empty() {
+            println!();
+            println!("Broken tests:");
+            for test in test_diff.broken {
+                println!("{}", test);
+            }
+        }
+
+        if !test_diff.new_panics.is_empty() {
+            println!();
+            println!("New panics:");
+            for test in test_diff.new_panics {
+                println!("{}", test);
+            }
+        }
+
+        if !test_diff.panic_fixes.is_empty() {
+            println!();
+            println!("Fixed panics:");
+            for test in test_diff.panic_fixes {
+                println!("{}", test);
+            }
+        }
     }
+}
+
+/// Test differences.
+#[derive(Debug, Clone, Default)]
+struct ResultDiff {
+    fixed: Vec<Box<str>>,
+    broken: Vec<Box<str>>,
+    new_panics: Vec<Box<str>>,
+    panic_fixes: Vec<Box<str>>,
+}
+
+impl ResultDiff {
+    /// Extends the diff with new results.
+    fn extend(&mut self, new: Self) {
+        self.fixed.extend(new.fixed);
+        self.broken.extend(new.broken);
+        self.new_panics.extend(new.new_panics);
+        self.panic_fixes.extend(new.panic_fixes);
+    }
+}
+
+/// Compares a base and a new result and returns the list of differences.
+fn compute_result_diff(
+    base: &Path,
+    base_result: &SuiteResult,
+    new_result: &SuiteResult,
+) -> ResultDiff {
+    use super::TestOutcomeResult;
+
+    let mut final_diff = ResultDiff::default();
+
+    for base_test in &base_result.tests {
+        if let Some(new_test) = new_result
+            .tests
+            .iter()
+            .find(|new_test| new_test.strict == base_test.strict && new_test.name == base_test.name)
+        {
+            let test_name = format!(
+                "test/{}/{}.js {}(previously {:?})",
+                base.strip_prefix("../gh-pages/test262/refs/heads/master/latest.json")
+                    .expect("error removing prefix")
+                    .display(),
+                new_test.name,
+                if base_test.strict {
+                    "[strict mode] "
+                } else {
+                    ""
+                },
+                base_test.result
+            )
+            .into_boxed_str();
+
+            match (base_test.result, new_test.result) {
+                (TestOutcomeResult::Passed, TestOutcomeResult::Passed)
+                | (TestOutcomeResult::Ignored, TestOutcomeResult::Ignored)
+                | (TestOutcomeResult::Failed, TestOutcomeResult::Failed)
+                | (TestOutcomeResult::Panic, TestOutcomeResult::Panic) => {}
+
+                (_, TestOutcomeResult::Passed) => final_diff.fixed.push(test_name),
+                (_, TestOutcomeResult::Failed) => final_diff.broken.push(test_name),
+                (_, TestOutcomeResult::Panic) => final_diff.new_panics.push(test_name),
+                (TestOutcomeResult::Panic, _) => final_diff.panic_fixes.push(test_name),
+                _ => {}
+            }
+        }
+    }
+
+    for base_suite in &base_result.suites {
+        if let Some(new_suite) = new_result
+            .suites
+            .iter()
+            .find(|new_suite| new_suite.name == base_suite.name)
+        {
+            let new_base = base.join(new_suite.name.as_ref());
+            let diff = compute_result_diff(new_base.as_path(), base_suite, new_suite);
+
+            final_diff.extend(diff)
+        }
+    }
+
+    final_diff
 }
