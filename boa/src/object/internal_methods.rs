@@ -423,7 +423,12 @@ impl GcObject {
                 }
 
                 let result_str = if let Some(utf16_val) = string.encode_utf16().nth(pos) {
-                    Value::from(char::from_u32(u32::from(utf16_val)).expect("invalid u32 character"))
+                    let chr_option = char::from_u32(u32::from(utf16_val));
+
+                    match chr_option {
+                        Some(chr) => Value::from(chr),
+                        None => Value::from(format!("\\u{:x}", utf16_val)),
+                    }
                 } else {
                     return None;
                 };

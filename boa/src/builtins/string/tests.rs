@@ -1102,4 +1102,5 @@ fn string_get_property() {
     assert_eq!(forward(&mut context, "'abc'[2]"), "\"c\"");
     assert_eq!(forward(&mut context, "'abc'[3]"), "undefined");
     assert_eq!(forward(&mut context, "'abc'['foo']"), "undefined");
+    assert_eq!(forward(&mut context, "'😀'[0]"), "\"\\ud83d\"");
 }
