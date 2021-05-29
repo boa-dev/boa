@@ -93,7 +93,7 @@ impl BuiltIn for Symbol {
         .constructable(false)
         .property(
             symbol_to_string_tag,
-            "Symbol",
+            Self::NAME,
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .build();
