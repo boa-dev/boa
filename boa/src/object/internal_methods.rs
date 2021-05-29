@@ -449,7 +449,7 @@ impl GcObject {
     pub fn string_exotic_get_own_property(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         let desc = self.ordinary_get_own_property(key);
 
-        if let Some(_) = desc {
+        if desc.is_some() {
             desc
         } else {
             self.string_get_own_property(key)
