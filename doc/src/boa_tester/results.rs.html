@@ -736,7 +736,7 @@
         <span class="kw">if</span> <span class="op">!</span><span class="ident">test_diff</span>.<span class="ident">fixed</span>.<span class="ident">is_empty</span>() {
             <span class="macro">println</span><span class="macro">!</span>();
             <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;&lt;details&gt;&lt;summary&gt;&lt;b&gt;Fixed tests:&lt;/b&gt;&lt;/summary&gt;&quot;</span>);
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;```&quot;</span>);
+            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;\n```&quot;</span>);
             <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">fixed</span> {
                 <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">test</span>);
             }
@@ -747,7 +747,7 @@
         <span class="kw">if</span> <span class="op">!</span><span class="ident">test_diff</span>.<span class="ident">broken</span>.<span class="ident">is_empty</span>() {
             <span class="macro">println</span><span class="macro">!</span>();
             <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;&lt;details&gt;&lt;summary&gt;&lt;b&gt;Broken tests:&lt;/b&gt;&lt;/summary&gt;&quot;</span>);
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;```&quot;</span>);
+            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;\n```&quot;</span>);
             <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">broken</span> {
                 <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">test</span>);
             }
@@ -758,7 +758,7 @@
         <span class="kw">if</span> <span class="op">!</span><span class="ident">test_diff</span>.<span class="ident">new_panics</span>.<span class="ident">is_empty</span>() {
             <span class="macro">println</span><span class="macro">!</span>();
             <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;&lt;details&gt;&lt;summary&gt;&lt;b&gt;New panics:&lt;/b&gt;&lt;/summary&gt;&quot;</span>);
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;```&quot;</span>);
+            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;\n```&quot;</span>);
             <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">new_panics</span> {
                 <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">test</span>);
             }
@@ -769,7 +769,7 @@
         <span class="kw">if</span> <span class="op">!</span><span class="ident">test_diff</span>.<span class="ident">panic_fixes</span>.<span class="ident">is_empty</span>() {
             <span class="macro">println</span><span class="macro">!</span>();
             <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;&lt;details&gt;&lt;summary&gt;&lt;b&gt;Fixed panics:&lt;/b&gt;&lt;/summary&gt;&quot;</span>);
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;```&quot;</span>);
+            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;\n```&quot;</span>);
             <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">panic_fixes</span> {
                 <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">test</span>);
             }
