@@ -12,8 +12,6 @@ use crate::{
     BoaProfiler, Context, Result,
 };
 
-use std::char::from_u32;
-
 impl GcObject {
     /// Check if object has property.
     ///
@@ -425,7 +423,7 @@ impl GcObject {
                 }
 
                 let result_str = if let Some(utf16_val) = string.encode_utf16().nth(pos) {
-                    Value::from(from_u32(utf16_val as u32).unwrap())
+                    Value::from(char::from_u32(utf16_val as u32).unwrap())
                 } else {
                     return None;
                 };
