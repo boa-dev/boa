@@ -183,6 +183,11 @@
 <span id="182">182</span>
 <span id="183">183</span>
 <span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Symbol` object.</span>
 <span class="doccomment">//!</span>
@@ -266,7 +271,7 @@
         .<span class="ident">static_property</span>(<span class="string">&quot;species&quot;</span>, <span class="ident">symbol_species</span>, <span class="ident">attribute</span>)
         .<span class="ident">static_property</span>(<span class="string">&quot;split&quot;</span>, <span class="ident">symbol_split</span>, <span class="ident">attribute</span>)
         .<span class="ident">static_property</span>(<span class="string">&quot;toPrimitive&quot;</span>, <span class="ident">symbol_to_primitive</span>, <span class="ident">attribute</span>)
-        .<span class="ident">static_property</span>(<span class="string">&quot;toStringTag&quot;</span>, <span class="ident">symbol_to_string_tag</span>, <span class="ident">attribute</span>)
+        .<span class="ident">static_property</span>(<span class="string">&quot;toStringTag&quot;</span>, <span class="ident">symbol_to_string_tag</span>.<span class="ident">clone</span>(), <span class="ident">attribute</span>)
         .<span class="ident">static_property</span>(<span class="string">&quot;unscopables&quot;</span>, <span class="ident">symbol_unscopables</span>, <span class="ident">attribute</span>)
         .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
         .<span class="ident">accessor</span>(
@@ -277,6 +282,11 @@
         )
         .<span class="ident">callable</span>(<span class="bool-val">true</span>)
         .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
+        .<span class="ident">property</span>(
+            <span class="ident">symbol_to_string_tag</span>,
+            <span class="self">Self</span>::<span class="ident">NAME</span>,
+            <span class="ident">Attribute</span>::<span class="ident">READONLY</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
+        )
         .<span class="ident">build</span>();
 
         (<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="ident">symbol_object</span>.<span class="ident">into</span>(), <span class="self">Self</span>::<span class="ident">attribute</span>())
