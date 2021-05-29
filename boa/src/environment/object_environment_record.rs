@@ -29,7 +29,6 @@ pub struct ObjectEnvironmentRecord {
 }
 
 impl ObjectEnvironmentRecord {
-    #[allow(clippy::new_ret_no_self)]
     pub fn new(object: Value, environment: Option<Environment>) -> ObjectEnvironmentRecord {
         ObjectEnvironmentRecord {
             bindings: object,
