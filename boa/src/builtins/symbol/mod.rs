@@ -80,7 +80,7 @@ impl BuiltIn for Symbol {
         .static_property("species", symbol_species, attribute)
         .static_property("split", symbol_split, attribute)
         .static_property("toPrimitive", symbol_to_primitive, attribute)
-        .static_property("toStringTag", symbol_to_string_tag, attribute)
+        .static_property("toStringTag", symbol_to_string_tag.clone(), attribute)
         .static_property("unscopables", symbol_unscopables, attribute)
         .method(Self::to_string, "toString", 0)
         .accessor(
@@ -91,6 +91,11 @@ impl BuiltIn for Symbol {
         )
         .callable(true)
         .constructable(false)
+        .property(
+            symbol_to_string_tag,
+            "Symbol",
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
         .build();
 
         (Self::NAME, symbol_object.into(), Self::attribute())
