@@ -424,14 +424,16 @@ impl GcObject {
                     return None;
                 }
 
-                let char = if let Some(utf16_val) = string.encode_utf16().nth(pos) {
+                let result_str = if let Some(utf16_val) = string.encode_utf16().nth(pos) {
                     Value::from(from_u32(utf16_val as u32).unwrap())
                 } else {
                     return None;
                 };
 
-                let desc =
-                    PropertyDescriptor::from(DataDescriptor::new(char, Attribute::ENUMERABLE));
+                let desc = PropertyDescriptor::from(DataDescriptor::new(
+                    result_str,
+                    Attribute::ENUMERABLE,
+                ));
 
                 Some(desc)
             }
