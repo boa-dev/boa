@@ -423,7 +423,7 @@ impl GcObject {
                 }
 
                 let result_str = if let Some(utf16_val) = string.encode_utf16().nth(pos) {
-                    Value::from(char::from_u32(utf16_val as u32).unwrap())
+                    Value::from(char::from_u32(u32::from(utf16_val)).expect("invalid u32 character"))
                 } else {
                     return None;
                 };
