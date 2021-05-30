@@ -103,15 +103,6 @@ pub(super) fn read_harness(test262_path: &Path) -> io::Result<Harness> {
 
 /// Reads a test suite in the given path.
 pub(super) fn read_suite(path: &Path) -> io::Result<TestSuite> {
-    use once_cell::sync::Lazy;
-    use regex::Regex;
-
-    /// Regular expression to retrieve the metadata of a test.
-    static FIXTURE_REGEX: Lazy<Regex> = Lazy::new(|| {
-        Regex::new(r#".*_FIXTURE.js(on)?"#)
-            .expect("could not compile fixture retrieval regular expression")
-    });
-
     let name = path
         .file_name()
         .ok_or_else(|| {
@@ -137,7 +128,7 @@ pub(super) fn read_suite(path: &Path) -> io::Result<TestSuite> {
 
         if entry.file_type()?.is_dir() {
             suites.push(read_suite(entry.path().as_path())?);
-        } else if FIXTURE_REGEX.is_match(&entry.file_name().to_string_lossy()) {
+        } else if entry.file_name().to_string_lossy().contains("_FIXTURE") {
             continue;
         } else if IGNORED.contains_file(&entry.file_name().to_string_lossy()) {
             let mut test = Test::default();
