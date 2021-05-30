@@ -428,15 +428,13 @@ fn compute_result_diff(
             .into_boxed_str();
 
             match (base_test.result, new_test.result) {
-                (TestOutcomeResult::Passed, TestOutcomeResult::Passed)
-                | (TestOutcomeResult::Ignored, TestOutcomeResult::Ignored)
-                | (TestOutcomeResult::Failed, TestOutcomeResult::Failed)
-                | (TestOutcomeResult::Panic, TestOutcomeResult::Panic) => {}
+                (a, b) if a == b => {}
 
                 (_, TestOutcomeResult::Passed) => final_diff.fixed.push(test_name),
+                (TestOutcomeResult::Panic, _) => final_diff.panic_fixes.push(test_name),
                 (_, TestOutcomeResult::Failed) => final_diff.broken.push(test_name),
                 (_, TestOutcomeResult::Panic) => final_diff.new_panics.push(test_name),
-                (TestOutcomeResult::Panic, _) => final_diff.panic_fixes.push(test_name),
+
                 _ => {}
             }
         }
