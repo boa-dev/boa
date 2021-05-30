@@ -103,6 +103,15 @@ pub(super) fn read_harness(test262_path: &Path) -> io::Result<Harness> {
 
 /// Reads a test suite in the given path.
 pub(super) fn read_suite(path: &Path) -> io::Result<TestSuite> {
+    use once_cell::sync::Lazy;
+    use regex::Regex;
+
+    /// Regular expression to retrieve the metadata of a test.
+    static FIXTURE_REGEX: Lazy<Regex> = Lazy::new(|| {
+        Regex::new(r#".*_FIXTURE.js(on)?"#)
+            .expect("could not compile fixture retrieval regular expression")
+    });
+
     let name = path
         .file_name()
         .ok_or_else(|| {
@@ -128,7 +137,7 @@ pub(super) fn read_suite(path: &Path) -> io::Result<TestSuite> {
 
         if entry.file_type()?.is_dir() {
             suites.push(read_suite(entry.path().as_path())?);
-        } else if entry.file_name().to_string_lossy().ends_with("_FIXTURE.js") {
+        } else if FIXTURE_REGEX.is_match(&entry.file_name().to_string_lossy()) {
             continue;
         } else if IGNORED.contains_file(&entry.file_name().to_string_lossy()) {
             let mut test = Test::default();
@@ -165,13 +174,13 @@ pub(super) fn read_test(path: &Path) -> io::Result<Test> {
         })?;
 
     let content = fs::read_to_string(path)?;
-    let metadata = read_metadata(&content)?;
+    let metadata = read_metadata(&content, path)?;
 
     Ok(Test::new(name, content, metadata))
 }
 
 /// Reads the metadata from the input test code.
-fn read_metadata(code: &str) -> io::Result<MetaData> {
+fn read_metadata(code: &str, test: &Path) -> io::Result<MetaData> {
     use once_cell::sync::Lazy;
     use regex::Regex;
 
@@ -183,9 +192,19 @@ fn read_metadata(code: &str) -> io::Result<MetaData> {
 
     let yaml = META_REGEX
         .captures(code)
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "no metadata found"))?
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("no metadata found for test {}", test.display()),
+            )
+        })?
         .get(1)
-        .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidData, "no metadata found"))?
+        .ok_or_else(|| {
+            io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("no metadata found for test {}", test.display()),
+            )
+        })?
         .as_str()
         .replace('\r', "\n");
 
