@@ -1093,3 +1093,14 @@ fn unicode_iter() {
     assert_eq!(forward(&mut context, "next.value"), "undefined");
     assert_eq!(forward(&mut context, "next.done"), "true");
 }
+
+#[test]
+fn string_get_property() {
+    let mut context = Context::new();
+    assert_eq!(forward(&mut context, "'abc'[-1]"), "undefined");
+    assert_eq!(forward(&mut context, "'abc'[1]"), "\"b\"");
+    assert_eq!(forward(&mut context, "'abc'[2]"), "\"c\"");
+    assert_eq!(forward(&mut context, "'abc'[3]"), "undefined");
+    assert_eq!(forward(&mut context, "'abc'['foo']"), "undefined");
+    assert_eq!(forward(&mut context, "'😀'[0]"), "\"\\ud83d\"");
+}
