@@ -1,5 +1,8 @@
 //! Execution module for the test runner.
 
+mod js262;
+
+use self::js262::init_262;
 use super::{
     Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult,
     TestSuite, IGNORED,
@@ -272,7 +275,9 @@ impl Test {
                     e.display()
                 )
             })?;
-        // TODO: add the $262 object.
+
+        // add the $262 object.
+        init_262(&mut context);
 
         if strict {
             context
