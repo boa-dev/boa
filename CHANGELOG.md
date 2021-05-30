@@ -1,6 +1,6 @@
 # CHANGELOG
 
-# [0.12.0 (YYYY-MM-DD) - `Set`, accessors, `@@toStringTag` and panic reduction](https://github.com/boa-dev/boa/compare/v0.11.0...v0.12.0)
+# [0.12.0 (YYYY-MM-DD) - `Set`, accessors, `@@toStringTag` and no more panics](https://github.com/boa-dev/boa/compare/v0.11.0...v0.12.0)
 
 Feature Enhancements:
 
@@ -20,6 +20,9 @@ Feature Enhancements:
 - [FEATURE #1111](https://github.com/boa-dev/boa/pull/1111): Implement `Set` builtin object (@RageKnify)
 - [FEATURE #1265](https://github.com/boa-dev/boa/pull/1265): Implement `BigInt.prototype[ @@toStringTag ]` (@n14littl)
 - [FEATURE #1102](https://github.com/boa-dev/boa/pull/1102): Support Unicode escape in identifier names (@jevancc)
+- [FEATURE #1273](https://github.com/boa-dev/boa/pull/1273): Add default parameter support (@0x7D2B)
+- [FEATURE #1292](https://github.com/boa-dev/boa/pull/1292): Implement `symbol.prototype[ @@ToStringTag ]` (@moadmmh)
+- [FEATURE #1291](https://github.com/boa-dev/boa/pull/1291): Support `GetOwnProperty` for `string` exotic object (@jarkonik)
 
 Bug Fixes:
 
@@ -36,6 +39,13 @@ Bug Fixes:
 - [BUG #1223](https://github.com/boa-dev/boa/pull/1223): Update cli name in Readme (@sphinxc0re)
 - [BUG #1175](https://github.com/boa-dev/boa/pull/1175): Handle early errors for declarations in `StatementList` (@0x7D2B)
 - [BUG #1270](https://github.com/boa-dev/boa/pull/1270): Fix `Context::register_global_function()` (@HalidOdat)
+- [BUG #1135](https://github.com/boa-dev/boa/pull/1135): Fix of instructions.rs comment, to_precision impl and rfc changes (@NathanRoyer)
+- [BUG #1272](https://github.com/boa-dev/boa/pull/1272): Fix `Array.prototype.filter` (@tofpie & @Razican)
+- [BUG #1280](https://github.com/boa-dev/boa/pull/1280): Fix slice index panic in `add_rest_param` (@0x7D2B)
+- [BUG #1284](https://github.com/boa-dev/boa/pull/1284): Fix `GcObject` `to_json` mutable borrow panic (@0x7D2B)
+- [BUG #1283](https://github.com/boa-dev/boa/pull/1283): Fix panic in regex execution (@0x7D2B)
+- [BUG #1286](https://github.com/boa-dev/boa/pull/1286): Fix construct usage (@0x7D2B)
+- [BUG #1288](https://github.com/boa-dev/boa/pull/1288): Fixed `Math.hypot.length` bug (@moadmmh)
 
 Internal Improvements:
 
@@ -50,6 +60,10 @@ Internal Improvements:
 - [INTERNAL #1234](https://github.com/boa-dev/boa/pull/1234): Separate `Symbol` builtin (@HalidOdat)
 - [INTERNAL #1131](https://github.com/boa-dev/boa/pull/1131): Make environment methods take `&mut Context` (@HalidOdat)
 - [INTERNAL #1271](https://github.com/boa-dev/boa/pull/1271): Make `same_value` and `same_value_zero` static methods (@HalidOdat)
+- [INTERNAL #1276](https://github.com/boa-dev/boa/pull/1276): Cleanup (@Razican)
+- [INTERNAL #1279](https://github.com/boa-dev/boa/pull/1279): Add test comparison to Test262 result compare (@Razican)
+- [INTERNAL #1293](https://github.com/boa-dev/boa/pull/1293): Fix test262 comment formatting (@0x7D2B)
+- [INTERNAL #1294](https://github.com/boa-dev/boa/pull/1294): Don't consider panic fixes as "new failures" (@Razican)
 
 # [0.11.0 (2021-01-14) - Faster Parsing & Better compliance](https://github.com/boa-dev/boa/compare/v0.10.0...v0.11.0)
 
