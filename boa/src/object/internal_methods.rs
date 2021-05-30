@@ -422,16 +422,10 @@ impl GcObject {
                     return None;
                 }
 
-                let result_str = if let Some(utf16_val) = string.encode_utf16().nth(pos) {
-                    let chr_option = char::from_u32(u32::from(utf16_val));
-
-                    match chr_option {
-                        Some(chr) => Value::from(chr),
-                        None => Value::from(format!("\\u{:x}", utf16_val)),
-                    }
-                } else {
-                    return None;
-                };
+                let result_str = string.encode_utf16().nth(pos).map(|utf16_val| {
+                    char::from_u32(u32::from(utf16_val))
+                        .map_or_else(|| Value::from(format!("\\u{:x}", utf16_val)), Value::from)
+                })?;
 
                 let desc = PropertyDescriptor::from(DataDescriptor::new(
                     result_str,
