@@ -27,7 +27,7 @@ serde = { version = "1.0.126", features = ["derive"] }
 serde_json = "1.0.64"
 rand = "0.8.3"
 num-traits = "0.2.14"
-regress = "0.2.0"
+regress = "0.3.0"
 rustc-hash = "1.1.0"
 num-bigint = { version = "0.4.0", features = ["serde"] }
 num-integer = "0.1.44"
