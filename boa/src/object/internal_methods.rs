@@ -593,7 +593,7 @@ impl GcObject {
     /// If a field was already in the object with the same name that a `Some` is returned
     /// with that field, otherwise None is returned.
     #[inline]
-    pub(crate) fn insert_property<K, V>(
+    pub fn insert_property<K, V>(
         &mut self,
         key: K,
         value: V,
@@ -711,7 +711,7 @@ impl Object {
     /// If a field was already in the object with the same name that a `Some` is returned
     /// with that field, otherwise None is retuned.
     #[inline]
-    pub(crate) fn insert_property<K, V>(
+    pub fn insert_property<K, V>(
         &mut self,
         key: K,
         value: V,

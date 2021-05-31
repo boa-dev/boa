@@ -1,8 +1,8 @@
 //! Execution module for the test runner.
 
+mod agent;
 mod js262;
 
-use self::js262::init_262;
 use super::{
     Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult,
     TestSuite, IGNORED,
@@ -263,7 +263,6 @@ impl Test {
     /// Sets the environment up to run the test.
     fn set_up_env(&self, harness: &Harness, strict: bool) -> Result<Context, String> {
         // Create new Realm
-        // TODO: in parallel.
         let mut context = Context::new();
 
         // Register the print() function.
@@ -277,7 +276,8 @@ impl Test {
             })?;
 
         // add the $262 object.
-        init_262(&mut context);
+        let agent = agent::init(&mut context);
+        let _ = js262::init(&mut context, agent);
 
         if strict {
             context

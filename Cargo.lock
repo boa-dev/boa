@@ -99,6 +99,7 @@ dependencies = [
  "bitflags",
  "colored",
  "fxhash",
+ "gc",
  "git2",
  "hex",
  "num-format",
