@@ -1086,12 +1086,11 @@ checksum = "f497285884f3fcff424ffc933e56d7cbca511def0c9831a7f9b5f6153e3cc89b"
 
 [[package]]
 name = "regress"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ade8c280902120cc06e8694a76a5aa846e875df975da904d5a1a025fa7a5b4e"
+checksum = "f2a15e49468dd69419fec19290daec1c88859ff7098688b8ecdb7ecdaa88f2dc"
 dependencies = [
  "memchr",
- "structopt",
 ]
 
 [[package]]
