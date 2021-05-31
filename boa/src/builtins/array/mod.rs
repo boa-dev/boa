@@ -102,6 +102,7 @@ impl BuiltIn for Array {
         .method(Self::entries, "entries", 0)
         // Static Methods
         .static_method(Self::is_array, "isArray", 1)
+        .static_method(Self::of, "of", 0)
         .build();
 
         (Self::NAME, array.into(), Self::attribute())
@@ -346,6 +347,36 @@ impl Array {
             Some(object) => Ok(Value::from(object.borrow().is_array())),
             None => Ok(Value::from(false)),
         }
+    }
+
+    /// `Array.of(...arguments)`
+    ///
+    /// The Array.of method creates a new Array instance from a variable number of arguments,
+    /// regardless of the number or type of arguments.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.of
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/of
+    pub(crate) fn of(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let array = match this.as_object() {
+            Some(object) if object.is_constructable() => {
+                object.construct(&[args.len().into()], this, context)?
+            }
+            _ => Array::array_create(args.len() as u32, None, context),
+        };
+
+        // add properties
+        for (i, value) in args.iter().enumerate() {
+            array.set_property(i, DataDescriptor::new(value, Attribute::all()));
+        }
+
+        // set length
+        array.set_field("length", args.len(), context)?;
+
+        Ok(array)
     }
 
     /// `Array.prototype.concat(...arguments)`
