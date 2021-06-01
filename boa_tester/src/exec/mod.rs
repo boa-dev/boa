@@ -1,6 +1,5 @@
 //! Execution module for the test runner.
 
-mod agent;
 mod js262;
 
 use super::{
@@ -276,8 +275,7 @@ impl Test {
             })?;
 
         // add the $262 object.
-        let agent = agent::init(&mut context);
-        let _ = js262::init(&mut context, agent);
+        let _ = js262::init(&mut context);
 
         if strict {
             context

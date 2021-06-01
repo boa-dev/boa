@@ -6,14 +6,14 @@ use boa::{
 };
 
 /// Initializes the object in the context.
-pub(super) fn init(context: &mut Context, agent: GcObject) -> GcObject {
+pub(super) fn init(context: &mut Context) -> GcObject {
     let global_obj = context.global_object();
 
     let obj = ObjectInitializer::new(context)
         .function(create_realm, "createRealm", 0)
         .function(eval_script, "evalScript", 1)
         .property("global", global_obj, Attribute::default())
-        .property("agent", agent, Attribute::default())
+        // .property("agent", agent, Attribute::default())
         .build();
 
     context.register_global_property("$262", obj.clone(), Attribute::default());
@@ -31,8 +31,7 @@ fn create_realm(_this: &Value, _: &[Value], _context: &mut Context) -> Result<Va
     let mut context = Context::new();
 
     // add the $262 object.
-    let agent = super::agent::init(&mut context);
-    let js_262 = init(&mut context, agent);
+    let js_262 = init(&mut context);
 
     Ok(Value::from(js_262))
 }
