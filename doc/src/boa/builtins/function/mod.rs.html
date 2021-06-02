@@ -364,10 +364,6 @@
 <span id="363">363</span>
 <span id="364">364</span>
 <span id="365">365</span>
-<span id="366">366</span>
-<span id="367">367</span>
-<span id="368">368</span>
-<span id="369">369</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
@@ -496,14 +492,12 @@
 
         <span class="comment">// Create binding</span>
         <span class="ident">local_env</span>
-            .<span class="ident">borrow_mut</span>()
             <span class="comment">// Function parameters can share names in JavaScript...</span>
             .<span class="ident">create_mutable_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(), <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;Failed to create binding for rest param&quot;</span>);
 
         <span class="comment">// Set Binding to value</span>
         <span class="ident">local_env</span>
-            .<span class="ident">borrow_mut</span>()
             .<span class="ident">initialize_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>(), <span class="ident">array</span>, <span class="ident">context</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;Failed to initialize rest param&quot;</span>);
     }
@@ -518,13 +512,11 @@
     ) {
         <span class="comment">// Create binding</span>
         <span class="ident">local_env</span>
-            .<span class="ident">borrow_mut</span>()
             .<span class="ident">create_mutable_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>().<span class="ident">to_owned</span>(), <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;Failed to create binding&quot;</span>);
 
         <span class="comment">// Set Binding to value</span>
         <span class="ident">local_env</span>
-            .<span class="ident">borrow_mut</span>()
             .<span class="ident">initialize_binding</span>(<span class="ident">param</span>.<span class="ident">name</span>(), <span class="ident">value</span>, <span class="ident">context</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;Failed to intialize binding&quot;</span>);
     }

@@ -992,6 +992,10 @@
 <span id="991">991</span>
 <span id="992">992</span>
 <span id="993">993</span>
+<span id="994">994</span>
+<span id="995">995</span>
+<span id="996">996</span>
+<span id="997">997</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `GcObject` structure.</span>
 <span class="doccomment">//!</span>
@@ -1002,7 +1006,11 @@
     <span class="ident">builtins</span>::<span class="ident">function</span>::{
         <span class="ident">create_unmapped_arguments_object</span>, <span class="ident">BuiltInFunction</span>, <span class="ident">Function</span>, <span class="ident">NativeFunction</span>,
     },
-    <span class="ident">environment</span>::<span class="ident">function_environment_record</span>::{<span class="ident">BindingStatus</span>, <span class="ident">FunctionEnvironmentRecord</span>},
+    <span class="ident">environment</span>::{
+        <span class="ident">environment_record_trait</span>::<span class="ident">EnvironmentRecordTrait</span>,
+        <span class="ident">function_environment_record</span>::{<span class="ident">BindingStatus</span>, <span class="ident">FunctionEnvironmentRecord</span>},
+        <span class="ident">lexical_environment</span>::<span class="ident">Environment</span>,
+    },
     <span class="ident">property</span>::{<span class="ident">AccessorDescriptor</span>, <span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">syntax</span>::<span class="ident">ast</span>::<span class="ident">node</span>::<span class="ident">RcStatementList</span>,
     <span class="ident">value</span>::<span class="ident">PreferredType</span>,
@@ -1211,19 +1219,19 @@
                         {
                             <span class="comment">// Add arguments object</span>
                             <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span> <span class="ident">create_unmapped_arguments_object</span>(<span class="ident">args</span>);
-                            <span class="ident">local_env</span>.<span class="ident">borrow_mut</span>().<span class="ident">create_mutable_binding</span>(
+                            <span class="ident">local_env</span>.<span class="ident">create_mutable_binding</span>(
                                 <span class="string">&quot;arguments&quot;</span>.<span class="ident">to_string</span>(),
                                 <span class="bool-val">false</span>,
                                 <span class="bool-val">true</span>,
                                 <span class="ident">context</span>,
                             )<span class="question-mark">?</span>;
-                            <span class="ident">local_env</span>.<span class="ident">borrow_mut</span>().<span class="ident">initialize_binding</span>(
-                                <span class="string">&quot;arguments&quot;</span>,
-                                <span class="ident">arguments_obj</span>,
-                                <span class="ident">context</span>,
-                            )<span class="question-mark">?</span>;
+                            <span class="ident">local_env</span>.<span class="ident">initialize_binding</span>(<span class="string">&quot;arguments&quot;</span>, <span class="ident">arguments_obj</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                         }
-                        <span class="comment">// push the environment first so that it will be used by default parameters</span>
+
+                        <span class="comment">// Turn local_env into Environment so it can be cloned</span>
+                        <span class="kw">let</span> <span class="ident">local_env</span>: <span class="ident">Environment</span> <span class="op">=</span> <span class="ident">local_env</span>.<span class="ident">into</span>();
+
+                        <span class="comment">// Push the environment first so that it will be used by default parameters</span>
                         <span class="ident">context</span>.<span class="ident">push_environment</span>(<span class="ident">local_env</span>.<span class="ident">clone</span>());
 
                         <span class="comment">// Add argument bindings to the function environment</span>

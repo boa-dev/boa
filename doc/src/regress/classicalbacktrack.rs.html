@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regress-0.2.0/src/classicalbacktrack.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>classicalbacktrack.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regress-0.3.0/src/classicalbacktrack.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>classicalbacktrack.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../regress/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
@@ -934,99 +934,154 @@
 <span id="931">931</span>
 <span id="932">932</span>
 <span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
+<span id="952">952</span>
+<span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
+<span id="956">956</span>
+<span id="957">957</span>
+<span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
+<span id="968">968</span>
+<span id="969">969</span>
+<span id="970">970</span>
+<span id="971">971</span>
+<span id="972">972</span>
+<span id="973">973</span>
+<span id="974">974</span>
+<span id="975">975</span>
+<span id="976">976</span>
+<span id="977">977</span>
+<span id="978">978</span>
+<span id="979">979</span>
+<span id="980">980</span>
+<span id="981">981</span>
+<span id="982">982</span>
+<span id="983">983</span>
+<span id="984">984</span>
+<span id="985">985</span>
+<span id="986">986</span>
+<span id="987">987</span>
+<span id="988">988</span>
+<span id="989">989</span>
+<span id="990">990</span>
+<span id="991">991</span>
+<span id="992">992</span>
+<span id="993">993</span>
+<span id="994">994</span>
+<span id="995">995</span>
+<span id="996">996</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Classical backtracking execution engine</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">api</span>::<span class="ident">Match</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">bytesearch</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">cursor</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">cursor</span>::{<span class="ident">Cursor</span>, <span class="ident">Cursorable</span>, <span class="ident">Forward</span>, <span class="ident">Position</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">cursor</span>::{<span class="ident">Backward</span>, <span class="ident">Direction</span>, <span class="ident">Forward</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">exec</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">indexing</span>::{<span class="ident">AsciiInput</span>, <span class="ident">ElementType</span>, <span class="ident">InputIndexer</span>, <span class="ident">Utf8Input</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">insn</span>::{<span class="ident">CompiledRegex</span>, <span class="ident">Insn</span>, <span class="ident">LoopFields</span>, <span class="ident">StartPredicate</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">matchers</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">matchers</span>::<span class="ident">CharProperties</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">position</span>::<span class="ident">PositionType</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">scm</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">scm</span>::<span class="ident">SingleCharMatcher</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::{<span class="ident">CaptureGroupID</span>, <span class="ident">GroupData</span>, <span class="ident">LoopData</span>, <span class="ident">IP</span>, <span class="ident">MAX_CAPTURE_GROUPS</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">DebugCheckIndex</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">hint</span>::<span class="ident">unreachable_unchecked</span>;
+<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Range</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">BacktrackInsn</span> {
+<span class="kw">enum</span> <span class="ident">BacktrackInsn</span><span class="op">&lt;</span><span class="ident">Input</span>: <span class="ident">InputIndexer</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Nothing more to backtrack.</span>
     <span class="doccomment">/// This &quot;backstops&quot; our stack.</span>
     <span class="ident">Exhausted</span>,
 
     <span class="doccomment">/// Restore the IP and position.</span>
-    <span class="ident">SetPosition</span> {
-        <span class="ident">ip</span>: <span class="ident">IP</span>,
-        <span class="ident">pos</span>: <span class="ident">Position</span>,
-    },
+    <span class="ident">SetPosition</span> { <span class="ident">ip</span>: <span class="ident">IP</span>, <span class="ident">pos</span>: <span class="ident">Input</span>::<span class="ident">Position</span> },
 
     <span class="ident">SetLoopData</span> {
         <span class="ident">id</span>: <span class="ident">u32</span>,
-        <span class="ident">data</span>: <span class="ident">LoopData</span>,
+        <span class="ident">data</span>: <span class="ident">LoopData</span><span class="op">&lt;</span><span class="ident">Input</span>::<span class="ident">Position</span><span class="op">&gt;</span>,
     },
 
     <span class="ident">SetCaptureGroup</span> {
         <span class="ident">id</span>: <span class="ident">CaptureGroupID</span>,
-        <span class="ident">data</span>: <span class="ident">GroupData</span>,
+        <span class="ident">data</span>: <span class="ident">GroupData</span><span class="op">&lt;</span><span class="ident">Input</span>::<span class="ident">Position</span><span class="op">&gt;</span>,
     },
 
     <span class="ident">EnterNonGreedyLoop</span> {
         <span class="comment">// The IP of the loop.</span>
         <span class="comment">// This is guaranteed to point to an EnterLoopInsn.</span>
         <span class="ident">ip</span>: <span class="ident">IP</span>,
-        <span class="ident">data</span>: <span class="ident">LoopData</span>,
+        <span class="ident">data</span>: <span class="ident">LoopData</span><span class="op">&lt;</span><span class="ident">Input</span>::<span class="ident">Position</span><span class="op">&gt;</span>,
     },
 
     <span class="ident">GreedyLoop1Char</span> {
         <span class="ident">continuation</span>: <span class="ident">IP</span>,
-        <span class="ident">min</span>: <span class="ident">Position</span>,
-        <span class="ident">max</span>: <span class="ident">Position</span>,
+        <span class="ident">min</span>: <span class="ident">Input</span>::<span class="ident">Position</span>,
+        <span class="ident">max</span>: <span class="ident">Input</span>::<span class="ident">Position</span>,
     },
 
     <span class="ident">NonGreedyLoop1Char</span> {
         <span class="ident">continuation</span>: <span class="ident">IP</span>,
-        <span class="ident">min</span>: <span class="ident">Position</span>,
-        <span class="ident">max</span>: <span class="ident">Position</span>,
+        <span class="ident">min</span>: <span class="ident">Input</span>::<span class="ident">Position</span>,
+        <span class="ident">max</span>: <span class="ident">Input</span>::<span class="ident">Position</span>,
     },
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">struct</span> <span class="ident">State</span> {
-    <span class="ident">loops</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LoopData</span><span class="op">&gt;</span>,
-    <span class="ident">groups</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">GroupData</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">State</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">re</span>: <span class="kw-2">&amp;</span><span class="ident">CompiledRegex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">State</span> {
-        <span class="ident">State</span> {
-            <span class="ident">loops</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">LoopData</span>::<span class="ident">new</span>(); <span class="ident">re</span>.<span class="ident">loops</span> <span class="kw">as</span> <span class="ident">usize</span>],
-            <span class="ident">groups</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">GroupData</span>::<span class="ident">new</span>(); <span class="ident">re</span>.<span class="ident">groups</span> <span class="kw">as</span> <span class="ident">usize</span>],
-        }
-    }
+<span class="kw">struct</span> <span class="ident">State</span><span class="op">&lt;</span><span class="ident">Position</span>: <span class="ident">PositionType</span><span class="op">&gt;</span> {
+    <span class="ident">loops</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LoopData</span><span class="op">&lt;</span><span class="ident">Position</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">groups</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">GroupData</span><span class="op">&lt;</span><span class="ident">Position</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">MatchAttempter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">struct</span> <span class="ident">MatchAttempter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Input</span>: <span class="ident">InputIndexer</span><span class="op">&gt;</span> {
     <span class="ident">re</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompiledRegex</span>,
-    <span class="ident">bts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BacktrackInsn</span><span class="op">&gt;</span>,
-    <span class="ident">s</span>: <span class="ident">State</span>,
+    <span class="ident">bts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BacktrackInsn</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">s</span>: <span class="ident">State</span><span class="op">&lt;</span><span class="ident">Input</span>::<span class="ident">Position</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">MatchAttempter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">re</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompiledRegex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Input</span>: <span class="ident">InputIndexer</span><span class="op">&gt;</span> <span class="ident">MatchAttempter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Input</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">re</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">CompiledRegex</span>, <span class="ident">entry</span>: <span class="ident">Input</span>::<span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">re</span>,
             <span class="ident">bts</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">BacktrackInsn</span>::<span class="ident">Exhausted</span>],
-            <span class="ident">s</span>: <span class="ident">State</span>::<span class="ident">new</span>(<span class="ident">re</span>),
+            <span class="ident">s</span>: <span class="ident">State</span> {
+                <span class="ident">loops</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">LoopData</span>::<span class="ident">new</span>(<span class="ident">entry</span>); <span class="ident">re</span>.<span class="ident">loops</span> <span class="kw">as</span> <span class="ident">usize</span>],
+                <span class="ident">groups</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">GroupData</span>::<span class="ident">new</span>(); <span class="ident">re</span>.<span class="ident">groups</span> <span class="kw">as</span> <span class="ident">usize</span>],
+            },
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">push_backtrack</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bt</span>: <span class="ident">BacktrackInsn</span>) {
+    <span class="kw">fn</span> <span class="ident">push_backtrack</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bt</span>: <span class="ident">BacktrackInsn</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span>) {
         <span class="self">self</span>.<span class="ident">bts</span>.<span class="ident">push</span>(<span class="ident">bt</span>)
     }
 
@@ -1042,10 +1097,10 @@
     }
 
     <span class="kw">fn</span> <span class="ident">prepare_to_enter_loop</span>(
-        <span class="ident">bts</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BacktrackInsn</span><span class="op">&gt;</span>,
-        <span class="ident">pos</span>: <span class="ident">Position</span>,
+        <span class="ident">bts</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BacktrackInsn</span><span class="op">&lt;</span><span class="ident">Input</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">pos</span>: <span class="ident">Input</span>::<span class="ident">Position</span>,
         <span class="ident">loop_fields</span>: <span class="kw-2">&amp;</span><span class="ident">LoopFields</span>,
-        <span class="ident">loop_data</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">LoopData</span>,
+        <span class="ident">loop_data</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">LoopData</span><span class="op">&lt;</span><span class="ident">Input</span>::<span class="ident">Position</span><span class="op">&gt;</span>,
     ) {
         <span class="ident">bts</span>.<span class="ident">push</span>(<span class="ident">BacktrackInsn</span>::<span class="ident">SetLoopData</span> {
             <span class="ident">id</span>: <span class="ident">loop_fields</span>.<span class="ident">loop_id</span>,
@@ -1055,14 +1110,19 @@
         <span class="ident">loop_data</span>.<span class="ident">entry</span> <span class="op">=</span> <span class="ident">pos</span>;
     }
 
-    <span class="kw">fn</span> <span class="ident">run_loop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">loop_fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">LoopFields</span>, <span class="ident">pos</span>: <span class="ident">Position</span>, <span class="ident">ip</span>: <span class="ident">IP</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IP</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">run_loop</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">loop_fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">LoopFields</span>,
+        <span class="ident">pos</span>: <span class="ident">Input</span>::<span class="ident">Position</span>,
+        <span class="ident">ip</span>: <span class="ident">IP</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IP</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">loop_data</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">loops</span>[<span class="ident">loop_fields</span>.<span class="ident">loop_id</span> <span class="kw">as</span> <span class="ident">usize</span>];
         <span class="kw">let</span> <span class="ident">iteration</span> <span class="op">=</span> <span class="ident">loop_data</span>.<span class="ident">iters</span>;
 
         <span class="kw">let</span> <span class="ident">do_taken</span> <span class="op">=</span> <span class="ident">iteration</span> <span class="op">&lt;</span> <span class="ident">loop_fields</span>.<span class="ident">max_iters</span>;
         <span class="kw">let</span> <span class="ident">do_not_taken</span> <span class="op">=</span> <span class="ident">iteration</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">loop_fields</span>.<span class="ident">min_iters</span>;
 
-        <span class="kw">let</span> <span class="ident">loop_taken_ip</span> <span class="op">=</span> <span class="ident">ip</span> <span class="op">+</span> <span class="number">1</span> <span class="kw">as</span> <span class="ident">IP</span>;
+        <span class="kw">let</span> <span class="ident">loop_taken_ip</span> <span class="op">=</span> <span class="ident">ip</span> <span class="op">+</span> <span class="number">1</span>;
         <span class="kw">let</span> <span class="ident">loop_not_taken_ip</span> <span class="op">=</span> <span class="ident">loop_fields</span>.<span class="ident">exit</span> <span class="kw">as</span> <span class="ident">IP</span>;
 
         <span class="comment">// If we have looped more than the minimum number of iterations, reject empty</span>
@@ -1112,19 +1172,19 @@
     <span class="comment">// Drive the loop up to \p max times.</span>
     <span class="comment">// \return the position (min, max), or None on failure.</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">run_scm_loop_impl</span><span class="op">&lt;</span><span class="ident">Cursor</span>: <span class="ident">Cursorable</span>, <span class="ident">Scm</span>: <span class="ident">SingleCharMatcher</span><span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&gt;</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">matcher</span>: <span class="ident">Scm</span>,
+    <span class="kw">fn</span> <span class="ident">run_scm_loop_impl</span><span class="op">&lt;</span><span class="ident">Dir</span>: <span class="ident">Direction</span>, <span class="ident">Scm</span>: <span class="ident">SingleCharMatcher</span><span class="op">&lt;</span><span class="ident">Input</span>, <span class="ident">Dir</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+        <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>,
+        <span class="kw-2">mut</span> <span class="ident">pos</span>: <span class="ident">Input</span>::<span class="ident">Position</span>,
         <span class="ident">min</span>: <span class="ident">usize</span>,
         <span class="ident">max</span>: <span class="ident">usize</span>,
-        <span class="kw-2">mut</span> <span class="ident">pos</span>: <span class="ident">Position</span>,
-        <span class="ident">cursor</span>: <span class="ident">Cursor</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Position</span>, <span class="ident">Position</span>)<span class="op">&gt;</span> {
+        <span class="ident">dir</span>: <span class="ident">Dir</span>,
+        <span class="ident">matcher</span>: <span class="ident">Scm</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Input</span>::<span class="ident">Position</span>, <span class="ident">Input</span>::<span class="ident">Position</span>)<span class="op">&gt;</span> {
         <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">min</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max</span>, <span class="string">&quot;min should be &lt;= max&quot;</span>);
         <span class="comment">// Drive the iteration min times.</span>
         <span class="comment">// That tells us the min position.</span>
         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">min</span> {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">matcher</span>.<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">cursor</span>) {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">matcher</span>.<span class="ident">matches</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>) {
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
         }
@@ -1134,7 +1194,7 @@
         <span class="comment">// TODO; this is dumb.</span>
         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..(<span class="ident">max</span> <span class="op">-</span> <span class="ident">min</span>) {
             <span class="kw">let</span> <span class="ident">saved</span> <span class="op">=</span> <span class="ident">pos</span>;
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">matcher</span>.<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">cursor</span>) {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">matcher</span>.<span class="ident">matches</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>) {
                 <span class="ident">pos</span> <span class="op">=</span> <span class="ident">saved</span>;
                 <span class="kw">break</span>;
             }
@@ -1148,12 +1208,14 @@
     <span class="comment">// our position every iteration: we know that our loop body matches a single</span>
     <span class="comment">// character so we can backtrack by matching a character backwards.</span>
     <span class="comment">// \return the next IP, or None if the loop failed.</span>
-    <span class="kw">fn</span> <span class="ident">run_scm_loop</span><span class="op">&lt;</span><span class="ident">Cursor</span>: <span class="ident">Cursorable</span><span class="op">&gt;</span>(
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">too_many_arguments</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">run_scm_loop</span><span class="op">&lt;</span><span class="ident">Dir</span>: <span class="ident">Direction</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>,
+        <span class="ident">dir</span>: <span class="ident">Dir</span>,
+        <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input</span>::<span class="ident">Position</span>,
         <span class="ident">min</span>: <span class="ident">usize</span>,
         <span class="ident">max</span>: <span class="ident">usize</span>,
-        <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>,
-        <span class="ident">cursor</span>: <span class="ident">Cursor</span>,
         <span class="ident">ip</span>: <span class="ident">IP</span>,
         <span class="ident">greedy</span>: <span class="ident">bool</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IP</span><span class="op">&gt;</span> {
@@ -1162,56 +1224,79 @@
             <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">Char</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// Note this try_from may fail, for example if our char is outside ASCII.</span>
                 <span class="comment">// In this case we wish to not match.</span>
-                <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Cursor</span>::<span class="ident">Element</span>::<span class="ident">try_from</span>(<span class="ident">c</span>)<span class="question-mark">?</span>;
-                <span class="self">self</span>.<span class="ident">run_scm_loop_impl</span>(<span class="ident">scm</span>::<span class="ident">Char</span> { <span class="ident">c</span> }, <span class="ident">min</span>, <span class="ident">max</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">cursor</span>)
+                <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Input</span>::<span class="ident">Element</span>::<span class="ident">try_from</span>(<span class="ident">c</span>)<span class="question-mark">?</span>;
+                <span class="self">Self</span>::<span class="ident">run_scm_loop_impl</span>(<span class="ident">input</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">min</span>, <span class="ident">max</span>, <span class="ident">dir</span>, <span class="ident">scm</span>::<span class="ident">Char</span> { <span class="ident">c</span> })
             }
             <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">CharICase</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Cursor</span>::<span class="ident">Element</span>::<span class="ident">try_from</span>(<span class="ident">c</span>)<span class="question-mark">?</span>;
-                <span class="self">self</span>.<span class="ident">run_scm_loop_impl</span>(<span class="ident">scm</span>::<span class="ident">CharICase</span> { <span class="ident">c</span> }, <span class="ident">min</span>, <span class="ident">max</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">cursor</span>)
+                <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Input</span>::<span class="ident">Element</span>::<span class="ident">try_from</span>(<span class="ident">c</span>)<span class="question-mark">?</span>;
+                <span class="self">Self</span>::<span class="ident">run_scm_loop_impl</span>(<span class="ident">input</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">min</span>, <span class="ident">max</span>, <span class="ident">dir</span>, <span class="ident">scm</span>::<span class="ident">CharICase</span> { <span class="ident">c</span> })
             }
             <span class="ident">Insn</span>::<span class="ident">Bracket</span>(<span class="ident">bc</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">run_scm_loop_impl</span>(<span class="ident">scm</span>::<span class="ident">Bracket</span> { <span class="ident">bc</span> }, <span class="ident">min</span>, <span class="ident">max</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">cursor</span>)
+                <span class="self">Self</span>::<span class="ident">run_scm_loop_impl</span>(<span class="ident">input</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">min</span>, <span class="ident">max</span>, <span class="ident">dir</span>, <span class="ident">scm</span>::<span class="ident">Bracket</span> { <span class="ident">bc</span> })
             }
-            <span class="ident">Insn</span>::<span class="ident">AsciiBracket</span>(<span class="ident">bitmap</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">run_scm_loop_impl</span>(<span class="ident">scm</span>::<span class="ident">MatchByteSet</span> { <span class="ident">bytes</span>: <span class="ident">bitmap</span> }, <span class="ident">min</span>, <span class="ident">max</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">cursor</span>)
-            }
-            <span class="ident">Insn</span>::<span class="ident">MatchAny</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">run_scm_loop_impl</span>(<span class="ident">scm</span>::<span class="ident">MatchAny</span>::<span class="ident">new</span>(), <span class="ident">min</span>, <span class="ident">max</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">cursor</span>),
-            <span class="ident">Insn</span>::<span class="ident">MatchAnyExceptLineTerminator</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">run_scm_loop_impl</span>(
-                <span class="ident">scm</span>::<span class="ident">MatchAnyExceptLineTerminator</span>::<span class="ident">new</span>(),
+            <span class="ident">Insn</span>::<span class="ident">AsciiBracket</span>(<span class="ident">bitmap</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">run_scm_loop_impl</span>(
+                <span class="ident">input</span>,
+                <span class="kw-2">*</span><span class="ident">pos</span>,
                 <span class="ident">min</span>,
                 <span class="ident">max</span>,
+                <span class="ident">dir</span>,
+                <span class="ident">scm</span>::<span class="ident">MatchByteSet</span> { <span class="ident">bytes</span>: <span class="ident">bitmap</span> },
+            ),
+            <span class="ident">Insn</span>::<span class="ident">MatchAny</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">Self</span>::<span class="ident">run_scm_loop_impl</span>(<span class="ident">input</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">min</span>, <span class="ident">max</span>, <span class="ident">dir</span>, <span class="ident">scm</span>::<span class="ident">MatchAny</span>::<span class="ident">new</span>())
+            }
+            <span class="ident">Insn</span>::<span class="ident">MatchAnyExceptLineTerminator</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">run_scm_loop_impl</span>(
+                <span class="ident">input</span>,
                 <span class="kw-2">*</span><span class="ident">pos</span>,
-                <span class="ident">cursor</span>,
+                <span class="ident">min</span>,
+                <span class="ident">max</span>,
+                <span class="ident">dir</span>,
+                <span class="ident">scm</span>::<span class="ident">MatchAnyExceptLineTerminator</span>::<span class="ident">new</span>(),
             ),
             <span class="ident">Insn</span>::<span class="ident">CharSet</span>(<span class="ident">chars</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">run_scm_loop_impl</span>(<span class="ident">scm</span>::<span class="ident">CharSet</span> { <span class="ident">chars</span> }, <span class="ident">min</span>, <span class="ident">max</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">cursor</span>)
+                <span class="self">Self</span>::<span class="ident">run_scm_loop_impl</span>(<span class="ident">input</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">min</span>, <span class="ident">max</span>, <span class="ident">dir</span>, <span class="ident">scm</span>::<span class="ident">CharSet</span> { <span class="ident">chars</span> })
             }
-            <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">ByteSet2</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">run_scm_loop_impl</span>(<span class="ident">scm</span>::<span class="ident">MatchByteArraySet</span> { <span class="ident">bytes</span> }, <span class="ident">min</span>, <span class="ident">max</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">cursor</span>)
-            }
-            <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">ByteSet3</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">run_scm_loop_impl</span>(<span class="ident">scm</span>::<span class="ident">MatchByteArraySet</span> { <span class="ident">bytes</span> }, <span class="ident">min</span>, <span class="ident">max</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">cursor</span>)
-            }
-            <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">ByteSet4</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">run_scm_loop_impl</span>(<span class="ident">scm</span>::<span class="ident">MatchByteArraySet</span> { <span class="ident">bytes</span> }, <span class="ident">min</span>, <span class="ident">max</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">cursor</span>)
-            }
+            <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">ByteSet2</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">run_scm_loop_impl</span>(
+                <span class="ident">input</span>,
+                <span class="kw-2">*</span><span class="ident">pos</span>,
+                <span class="ident">min</span>,
+                <span class="ident">max</span>,
+                <span class="ident">dir</span>,
+                <span class="ident">scm</span>::<span class="ident">MatchByteArraySet</span> { <span class="ident">bytes</span> },
+            ),
+            <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">ByteSet3</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">run_scm_loop_impl</span>(
+                <span class="ident">input</span>,
+                <span class="kw-2">*</span><span class="ident">pos</span>,
+                <span class="ident">min</span>,
+                <span class="ident">max</span>,
+                <span class="ident">dir</span>,
+                <span class="ident">scm</span>::<span class="ident">MatchByteArraySet</span> { <span class="ident">bytes</span> },
+            ),
+            <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">ByteSet4</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">run_scm_loop_impl</span>(
+                <span class="ident">input</span>,
+                <span class="kw-2">*</span><span class="ident">pos</span>,
+                <span class="ident">min</span>,
+                <span class="ident">max</span>,
+                <span class="ident">dir</span>,
+                <span class="ident">scm</span>::<span class="ident">MatchByteArraySet</span> { <span class="ident">bytes</span> },
+            ),
             <span class="ident">Insn</span>::<span class="ident">ByteSeq1</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">run_scm_loop_impl</span>(<span class="ident">scm</span>::<span class="ident">MatchByteSeq</span> { <span class="ident">bytes</span> }, <span class="ident">min</span>, <span class="ident">max</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">cursor</span>)
+                <span class="self">Self</span>::<span class="ident">run_scm_loop_impl</span>(<span class="ident">input</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">min</span>, <span class="ident">max</span>, <span class="ident">dir</span>, <span class="ident">scm</span>::<span class="ident">MatchByteSeq</span> { <span class="ident">bytes</span> })
             }
             <span class="ident">Insn</span>::<span class="ident">ByteSeq2</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">run_scm_loop_impl</span>(<span class="ident">scm</span>::<span class="ident">MatchByteSeq</span> { <span class="ident">bytes</span> }, <span class="ident">min</span>, <span class="ident">max</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">cursor</span>)
+                <span class="self">Self</span>::<span class="ident">run_scm_loop_impl</span>(<span class="ident">input</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">min</span>, <span class="ident">max</span>, <span class="ident">dir</span>, <span class="ident">scm</span>::<span class="ident">MatchByteSeq</span> { <span class="ident">bytes</span> })
             }
             <span class="ident">Insn</span>::<span class="ident">ByteSeq3</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">run_scm_loop_impl</span>(<span class="ident">scm</span>::<span class="ident">MatchByteSeq</span> { <span class="ident">bytes</span> }, <span class="ident">min</span>, <span class="ident">max</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">cursor</span>)
+                <span class="self">Self</span>::<span class="ident">run_scm_loop_impl</span>(<span class="ident">input</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">min</span>, <span class="ident">max</span>, <span class="ident">dir</span>, <span class="ident">scm</span>::<span class="ident">MatchByteSeq</span> { <span class="ident">bytes</span> })
             }
             <span class="ident">Insn</span>::<span class="ident">ByteSeq4</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">run_scm_loop_impl</span>(<span class="ident">scm</span>::<span class="ident">MatchByteSeq</span> { <span class="ident">bytes</span> }, <span class="ident">min</span>, <span class="ident">max</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">cursor</span>)
+                <span class="self">Self</span>::<span class="ident">run_scm_loop_impl</span>(<span class="ident">input</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">min</span>, <span class="ident">max</span>, <span class="ident">dir</span>, <span class="ident">scm</span>::<span class="ident">MatchByteSeq</span> { <span class="ident">bytes</span> })
             }
             <span class="ident">Insn</span>::<span class="ident">ByteSeq5</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">run_scm_loop_impl</span>(<span class="ident">scm</span>::<span class="ident">MatchByteSeq</span> { <span class="ident">bytes</span> }, <span class="ident">min</span>, <span class="ident">max</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">cursor</span>)
+                <span class="self">Self</span>::<span class="ident">run_scm_loop_impl</span>(<span class="ident">input</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">min</span>, <span class="ident">max</span>, <span class="ident">dir</span>, <span class="ident">scm</span>::<span class="ident">MatchByteSeq</span> { <span class="ident">bytes</span> })
             }
             <span class="ident">Insn</span>::<span class="ident">ByteSeq6</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">run_scm_loop_impl</span>(<span class="ident">scm</span>::<span class="ident">MatchByteSeq</span> { <span class="ident">bytes</span> }, <span class="ident">min</span>, <span class="ident">max</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">cursor</span>)
+                <span class="self">Self</span>::<span class="ident">run_scm_loop_impl</span>(<span class="ident">input</span>, <span class="kw-2">*</span><span class="ident">pos</span>, <span class="ident">min</span>, <span class="ident">max</span>, <span class="ident">dir</span>, <span class="ident">scm</span>::<span class="ident">MatchByteSeq</span> { <span class="ident">bytes</span> })
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// There should be no other SCMs.</span>
@@ -1222,7 +1307,7 @@
         <span class="comment">// If loop_res is none, we failed to match at least the minimum.</span>
         <span class="kw">let</span> (<span class="ident">min_pos</span>, <span class="ident">max_pos</span>) <span class="op">=</span> <span class="ident">loop_res</span><span class="question-mark">?</span>;
         <span class="macro">debug_assert</span><span class="macro">!</span>(
-            <span class="kw">if</span> <span class="ident">Cursor</span>::<span class="ident">FORWARD</span> {
+            <span class="kw">if</span> <span class="ident">Dir</span>::<span class="ident">FORWARD</span> {
                 <span class="ident">min_pos</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max_pos</span>
             } <span class="kw">else</span> {
                 <span class="ident">min_pos</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">max_pos</span>
@@ -1257,15 +1342,15 @@
     }
 
     <span class="comment">// Run a lookaround instruction, which is either forwards or backwards</span>
-    <span class="comment">// (according to the direction of Cursor). The half-open range</span>
+    <span class="comment">// (according to Direction). The half-open range</span>
     <span class="comment">// start_group..end_group is the range of contained capture groups.</span>
     <span class="comment">// \return whether we matched and negate was false, or did not match but negate</span>
     <span class="comment">// is true.</span>
-    <span class="kw">fn</span> <span class="ident">run_lookaround</span><span class="op">&lt;</span><span class="ident">Cursor</span>: <span class="ident">Cursorable</span><span class="op">&gt;</span>(
+    <span class="kw">fn</span> <span class="ident">run_lookaround</span><span class="op">&lt;</span><span class="ident">Dir</span>: <span class="ident">Direction</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>,
         <span class="ident">ip</span>: <span class="ident">IP</span>,
-        <span class="ident">pos</span>: <span class="ident">Position</span>,
-        <span class="ident">cursor</span>: <span class="ident">Cursor</span>,
+        <span class="ident">pos</span>: <span class="ident">Input</span>::<span class="ident">Position</span>,
         <span class="ident">start_group</span>: <span class="ident">CaptureGroupID</span>,
         <span class="ident">end_group</span>: <span class="ident">CaptureGroupID</span>,
         <span class="ident">negate</span>: <span class="ident">bool</span>,
@@ -1275,7 +1360,7 @@
         <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> (<span class="ident">start_group</span> <span class="kw">as</span> <span class="ident">usize</span>)..(<span class="ident">end_group</span> <span class="kw">as</span> <span class="ident">usize</span>);
         <span class="comment">// TODO: consider retaining storage here?</span>
         <span class="comment">// Temporarily defeat backtracking.</span>
-        <span class="kw">let</span> <span class="ident">saved_groups</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">GroupData</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">groups</span>.<span class="ident">iat</span>(<span class="ident">range</span>.<span class="ident">clone</span>()).<span class="ident">to_vec</span>();
+        <span class="kw">let</span> <span class="ident">saved_groups</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">groups</span>.<span class="ident">iat</span>(<span class="ident">range</span>.<span class="ident">clone</span>()).<span class="ident">to_vec</span>();
 
         <span class="comment">// Start with an &quot;empty&quot; backtrack stack.</span>
         <span class="comment">// TODO: consider using a stack-allocated array.</span>
@@ -1283,7 +1368,7 @@
         <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">bts</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">saved_bts</span>);
 
         <span class="comment">// Enter into the lookaround&#39;s instruction stream.</span>
-        <span class="kw">let</span> <span class="ident">matched</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_at_pos</span>(<span class="ident">ip</span>, <span class="ident">pos</span>, <span class="ident">cursor</span>).<span class="ident">is_some</span>();
+        <span class="kw">let</span> <span class="ident">matched</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_at_pos</span>(<span class="kw-2">*</span><span class="ident">input</span>, <span class="ident">ip</span>, <span class="ident">pos</span>, <span class="ident">Dir</span>::<span class="ident">new</span>()).<span class="ident">is_some</span>();
 
         <span class="comment">// Put back our bts.</span>
         <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">bts</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">saved_bts</span>);
@@ -1307,11 +1392,12 @@
 
     <span class="doccomment">/// Attempt to backtrack.</span>
     <span class="doccomment">/// \return true if we backtracked, false if we exhaust the backtrack stack.</span>
-    <span class="kw">fn</span> <span class="ident">try_backtrack</span><span class="op">&lt;</span><span class="ident">Cursor</span>: <span class="ident">Cursorable</span><span class="op">&gt;</span>(
+    <span class="kw">fn</span> <span class="ident">try_backtrack</span><span class="op">&lt;</span><span class="ident">Dir</span>: <span class="ident">Direction</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">Input</span>,
         <span class="ident">ip</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">IP</span>,
-        <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Position</span>,
-        <span class="ident">cursor</span>: <span class="ident">Cursor</span>,
+        <span class="ident">pos</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Input</span>::<span class="ident">Position</span>,
+        <span class="ident">_dir</span>: <span class="ident">Dir</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">loop</span> {
             <span class="comment">// We always have a single Exhausted instruction backstopping our stack,</span>
@@ -1319,13 +1405,7 @@
             <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">bts</span>.<span class="ident">is_empty</span>(), <span class="string">&quot;Backtrack stack should not be empty&quot;</span>);
             <span class="kw">let</span> <span class="ident">bt</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">bts</span>.<span class="ident">last_mut</span>() {
                 <span class="prelude-val">Some</span>(<span class="ident">bt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">bt</span>,
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;prohibit-unsafe&quot;</span>) {
-                        <span class="macro">unreachable</span><span class="macro">!</span>();
-                    } <span class="kw">else</span> {
-                        <span class="kw">unsafe</span> { <span class="ident">unreachable_unchecked</span>() }
-                    }
-                }
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">rs_unreachable</span><span class="macro">!</span>(<span class="string">&quot;BT stack should never be empty&quot;</span>),
             };
             <span class="kw">match</span> <span class="ident">bt</span> {
                 <span class="ident">BacktrackInsn</span>::<span class="ident">Exhausted</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="bool-val">false</span>,
@@ -1355,13 +1435,7 @@
                     <span class="kw-2">*</span><span class="ident">pos</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">entry</span>;
                     <span class="kw">let</span> <span class="ident">loop_fields</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">re</span>.<span class="ident">insns</span>.<span class="ident">iat</span>(<span class="ident">loop_ip</span>) {
                         <span class="ident">Insn</span>::<span class="ident">EnterLoop</span>(<span class="ident">loop_fields</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">loop_fields</span>,
-                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                            <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;prohibit-unsafe&quot;</span>) {
-                                <span class="macro">unreachable</span><span class="macro">!</span>();
-                            } <span class="kw">else</span> {
-                                <span class="kw">unsafe</span> { <span class="ident">unreachable_unchecked</span>() }
-                            }
-                        }
+                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">rs_unreachable</span><span class="macro">!</span>(<span class="string">&quot;EnterNonGreedyLoop must point at a loop instruction&quot;</span>),
                     };
                     <span class="kw">let</span> <span class="ident">loop_data</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">loops</span>.<span class="ident">mat</span>(<span class="ident">loop_fields</span>.<span class="ident">loop_id</span> <span class="kw">as</span> <span class="ident">usize</span>);
                     <span class="kw-2">*</span><span class="ident">loop_data</span> <span class="op">=</span> <span class="ident">data</span>;
@@ -1381,23 +1455,29 @@
                 } <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// The match failed at the max location.</span>
                     <span class="macro">debug_assert</span><span class="macro">!</span>(
-                        <span class="kw">if</span> <span class="ident">Cursor</span>::<span class="ident">FORWARD</span> {
-                            <span class="ident">max</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">min</span>
-                        } <span class="kw">else</span> {
-                            <span class="ident">max</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">min</span>
-                        },
+                        <span class="kw">if</span> <span class="ident">Dir</span>::<span class="ident">FORWARD</span> { <span class="ident">max</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">min</span> } <span class="kw">else</span> { <span class="ident">max</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">min</span> },
                         <span class="string">&quot;max should be &gt;= min (or &lt;= if tracking backwards)&quot;</span>
                     );
+                    <span class="comment">// If min is equal to max, there is no more backtracking to be done;</span>
+                    <span class="comment">// otherwise move opposite the direction of the cursor.</span>
                     <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">max</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">min</span> {
                         <span class="comment">// We have backtracked this loop as far as possible.</span>
                         <span class="self">self</span>.<span class="ident">bts</span>.<span class="ident">pop</span>();
-                    } <span class="kw">else</span> {
-                        <span class="comment">// Move opposite the direction of the cursor.</span>
-                        <span class="ident">cursor</span>.<span class="ident">retreat_by_char_known_valid</span>(<span class="ident">max</span>);
-                        <span class="kw-2">*</span><span class="ident">pos</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">max</span>;
-                        <span class="kw-2">*</span><span class="ident">ip</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">continuation</span>;
-                        <span class="kw">return</span> <span class="bool-val">true</span>;
+                        <span class="kw">continue</span>;
                     }
+                    <span class="kw">let</span> <span class="ident">newmax</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">Dir</span>::<span class="ident">FORWARD</span> {
+                        <span class="ident">input</span>.<span class="ident">next_left_pos</span>(<span class="kw-2">*</span><span class="ident">max</span>)
+                    } <span class="kw">else</span> {
+                        <span class="ident">input</span>.<span class="ident">next_right_pos</span>(<span class="kw-2">*</span><span class="ident">max</span>)
+                    };
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">newmax</span>) <span class="op">=</span> <span class="ident">newmax</span> {
+                        <span class="kw-2">*</span><span class="ident">pos</span> <span class="op">=</span> <span class="ident">newmax</span>;
+                        <span class="kw-2">*</span><span class="ident">max</span> <span class="op">=</span> <span class="ident">newmax</span>;
+                    } <span class="kw">else</span> {
+                        <span class="macro">rs_unreachable</span><span class="macro">!</span>(<span class="string">&quot;Should always be able to advance since min != max&quot;</span>)
+                    }
+                    <span class="kw-2">*</span><span class="ident">ip</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">continuation</span>;
+                    <span class="kw">return</span> <span class="bool-val">true</span>;
                 }
 
                 <span class="ident">BacktrackInsn</span>::<span class="ident">NonGreedyLoop1Char</span> {
@@ -1407,41 +1487,48 @@
                 } <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// The match failed at the min location.</span>
                     <span class="macro">debug_assert</span><span class="macro">!</span>(
-                        <span class="kw">if</span> <span class="ident">Cursor</span>::<span class="ident">FORWARD</span> {
-                            <span class="ident">max</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">min</span>
-                        } <span class="kw">else</span> {
-                            <span class="ident">max</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">min</span>
-                        },
+                        <span class="kw">if</span> <span class="ident">Dir</span>::<span class="ident">FORWARD</span> { <span class="ident">max</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">min</span> } <span class="kw">else</span> { <span class="ident">max</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">min</span> },
                         <span class="string">&quot;max should be &gt;= min (or &lt;= if tracking backwards)&quot;</span>
                     );
                     <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">max</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">min</span> {
                         <span class="comment">// We have backtracked this loop as far as possible.</span>
                         <span class="self">self</span>.<span class="ident">bts</span>.<span class="ident">pop</span>();
-                    } <span class="kw">else</span> {
-                        <span class="comment">// Move opposite the direction of the cursor.</span>
-                        <span class="ident">cursor</span>.<span class="ident">advance_by_char_known_valid</span>(<span class="ident">min</span>);
-                        <span class="kw-2">*</span><span class="ident">pos</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">min</span>;
-                        <span class="kw-2">*</span><span class="ident">ip</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">continuation</span>;
-                        <span class="kw">return</span> <span class="bool-val">true</span>;
+                        <span class="kw">continue</span>;
                     }
+                    <span class="comment">// Move in the direction of the cursor.</span>
+                    <span class="kw">let</span> <span class="ident">newmin</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">Dir</span>::<span class="ident">FORWARD</span> {
+                        <span class="ident">input</span>.<span class="ident">next_right_pos</span>(<span class="kw-2">*</span><span class="ident">min</span>)
+                    } <span class="kw">else</span> {
+                        <span class="ident">input</span>.<span class="ident">next_left_pos</span>(<span class="kw-2">*</span><span class="ident">min</span>)
+                    };
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">newmin</span>) <span class="op">=</span> <span class="ident">newmin</span> {
+                        <span class="kw-2">*</span><span class="ident">pos</span> <span class="op">=</span> <span class="ident">newmin</span>;
+                        <span class="kw-2">*</span><span class="ident">min</span> <span class="op">=</span> <span class="ident">newmin</span>;
+                    } <span class="kw">else</span> {
+                        <span class="macro">rs_unreachable</span><span class="macro">!</span>(<span class="string">&quot;Should always be able to advance since min != max&quot;</span>)
+                    }
+                    <span class="kw-2">*</span><span class="ident">ip</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">continuation</span>;
+                    <span class="kw">return</span> <span class="bool-val">true</span>;
                 }
             }
         }
     }
 
     <span class="doccomment">/// Attempt to match at a given IP and position.</span>
-    <span class="kw">fn</span> <span class="ident">try_at_pos</span><span class="op">&lt;</span><span class="ident">Cursor</span>: <span class="ident">Cursorable</span><span class="op">&gt;</span>(
+    <span class="kw">fn</span> <span class="ident">try_at_pos</span><span class="op">&lt;</span><span class="ident">Dir</span>: <span class="ident">Direction</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">inp</span>: <span class="ident">Input</span>,
         <span class="kw-2">mut</span> <span class="ident">ip</span>: <span class="ident">IP</span>,
-        <span class="kw-2">mut</span> <span class="ident">pos</span>: <span class="ident">Position</span>,
-        <span class="ident">cursor</span>: <span class="ident">Cursor</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Position</span><span class="op">&gt;</span> {
+        <span class="kw-2">mut</span> <span class="ident">pos</span>: <span class="ident">Input</span>::<span class="ident">Position</span>,
+        <span class="ident">dir</span>: <span class="ident">Dir</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Input</span>::<span class="ident">Position</span><span class="op">&gt;</span> {
         <span class="macro">debug_assert</span><span class="macro">!</span>(
             <span class="self">self</span>.<span class="ident">bts</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span>,
             <span class="string">&quot;Should be only initial exhausted backtrack insn&quot;</span>
         );
+        <span class="comment">// TODO: we are inconsistent about passing Input by reference or value.</span>
+        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">inp</span>;
         <span class="kw">let</span> <span class="ident">re</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">re</span>;
-
         <span class="comment">// These are not really loops, they are just labels that we effectively &#39;goto&#39;</span>
         <span class="comment">// to.</span>
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">never_loop</span>)]</span>
@@ -1457,86 +1544,123 @@
                             <span class="kw">break</span> <span class="lifetime">&#39;backtrack</span>;
                         }
                     };
-                };
+                }
 
                 <span class="kw">match</span> <span class="ident">re</span>.<span class="ident">insns</span>.<span class="ident">iat</span>(<span class="ident">ip</span>) {
                     <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">Char</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Cursor</span>::<span class="ident">Element</span>::<span class="ident">try_from</span>(<span class="ident">c</span>) {
-                            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">scm</span>::<span class="ident">Char</span> { <span class="ident">c</span> }.<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">cursor</span>),
+                        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Input</span>::<span class="ident">Element</span>::<span class="ident">try_from</span>(<span class="ident">c</span>) {
+                            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">scm</span>::<span class="ident">Char</span> { <span class="ident">c</span> }.<span class="ident">matches</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>),
                             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
                         };
                         <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">m</span>);
                     }
 
                     <span class="ident">Insn</span>::<span class="ident">CharSet</span>(<span class="ident">chars</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">scm</span>::<span class="ident">CharSet</span> { <span class="ident">chars</span> }.<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">cursor</span>);
+                        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">scm</span>::<span class="ident">CharSet</span> { <span class="ident">chars</span> }.<span class="ident">matches</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>);
                         <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">m</span>);
                     }
 
                     <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">ByteSet2</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">scm</span>::<span class="ident">MatchByteArraySet</span> { <span class="ident">bytes</span> }.<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">cursor</span>))
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">scm</span>::<span class="ident">MatchByteArraySet</span> { <span class="ident">bytes</span> }.<span class="ident">matches</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>))
                     }
                     <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">ByteSet3</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">scm</span>::<span class="ident">MatchByteArraySet</span> { <span class="ident">bytes</span> }.<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">cursor</span>))
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">scm</span>::<span class="ident">MatchByteArraySet</span> { <span class="ident">bytes</span> }.<span class="ident">matches</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>))
                     }
                     <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">ByteSet4</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">scm</span>::<span class="ident">MatchByteArraySet</span> { <span class="ident">bytes</span> }.<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">cursor</span>))
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">scm</span>::<span class="ident">MatchByteArraySet</span> { <span class="ident">bytes</span> }.<span class="ident">matches</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>))
                     }
 
-                    <span class="ident">Insn</span>::<span class="ident">ByteSeq1</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>)),
-                    <span class="ident">Insn</span>::<span class="ident">ByteSeq2</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>)),
-                    <span class="ident">Insn</span>::<span class="ident">ByteSeq3</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>)),
-                    <span class="ident">Insn</span>::<span class="ident">ByteSeq4</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>)),
-                    <span class="ident">Insn</span>::<span class="ident">ByteSeq5</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>)),
-                    <span class="ident">Insn</span>::<span class="ident">ByteSeq6</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>)),
-                    <span class="ident">Insn</span>::<span class="ident">ByteSeq7</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>)),
-                    <span class="ident">Insn</span>::<span class="ident">ByteSeq8</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>)),
-                    <span class="ident">Insn</span>::<span class="ident">ByteSeq9</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>)),
-                    <span class="ident">Insn</span>::<span class="ident">ByteSeq10</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>)),
-                    <span class="ident">Insn</span>::<span class="ident">ByteSeq11</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>)),
-                    <span class="ident">Insn</span>::<span class="ident">ByteSeq12</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>)),
-                    <span class="ident">Insn</span>::<span class="ident">ByteSeq13</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>)),
-                    <span class="ident">Insn</span>::<span class="ident">ByteSeq14</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>)),
-                    <span class="ident">Insn</span>::<span class="ident">ByteSeq15</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>)),
-                    <span class="ident">Insn</span>::<span class="ident">ByteSeq16</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>.<span class="ident">try_match_lit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>)),
+                    <span class="ident">Insn</span>::<span class="ident">ByteSeq1</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>::<span class="ident">try_match_lit</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>))
+                    }
+                    <span class="ident">Insn</span>::<span class="ident">ByteSeq2</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>::<span class="ident">try_match_lit</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>))
+                    }
+                    <span class="ident">Insn</span>::<span class="ident">ByteSeq3</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>::<span class="ident">try_match_lit</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>))
+                    }
+                    <span class="ident">Insn</span>::<span class="ident">ByteSeq4</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>::<span class="ident">try_match_lit</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>))
+                    }
+                    <span class="ident">Insn</span>::<span class="ident">ByteSeq5</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>::<span class="ident">try_match_lit</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>))
+                    }
+                    <span class="ident">Insn</span>::<span class="ident">ByteSeq6</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>::<span class="ident">try_match_lit</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>))
+                    }
+                    <span class="ident">Insn</span>::<span class="ident">ByteSeq7</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>::<span class="ident">try_match_lit</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>))
+                    }
+                    <span class="ident">Insn</span>::<span class="ident">ByteSeq8</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>::<span class="ident">try_match_lit</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>))
+                    }
+                    <span class="ident">Insn</span>::<span class="ident">ByteSeq9</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>::<span class="ident">try_match_lit</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>))
+                    }
+                    <span class="ident">Insn</span>::<span class="ident">ByteSeq10</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>::<span class="ident">try_match_lit</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>))
+                    }
+                    <span class="ident">Insn</span>::<span class="ident">ByteSeq11</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>::<span class="ident">try_match_lit</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>))
+                    }
+                    <span class="ident">Insn</span>::<span class="ident">ByteSeq12</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>::<span class="ident">try_match_lit</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>))
+                    }
+                    <span class="ident">Insn</span>::<span class="ident">ByteSeq13</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>::<span class="ident">try_match_lit</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>))
+                    }
+                    <span class="ident">Insn</span>::<span class="ident">ByteSeq14</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>::<span class="ident">try_match_lit</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>))
+                    }
+                    <span class="ident">Insn</span>::<span class="ident">ByteSeq15</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>::<span class="ident">try_match_lit</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>))
+                    }
+                    <span class="ident">Insn</span>::<span class="ident">ByteSeq16</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">cursor</span>::<span class="ident">try_match_lit</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">v</span>))
+                    }
 
                     <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">CharICase</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Cursor</span>::<span class="ident">Element</span>::<span class="ident">try_from</span>(<span class="ident">c</span>) {
-                            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">scm</span>::<span class="ident">CharICase</span> { <span class="ident">c</span> }.<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">cursor</span>),
+                        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Input</span>::<span class="ident">Element</span>::<span class="ident">try_from</span>(<span class="ident">c</span>) {
+                            <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">scm</span>::<span class="ident">CharICase</span> { <span class="ident">c</span> }.<span class="ident">matches</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>),
                             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
                         };
                         <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">m</span>)
                     }
 
-                    <span class="ident">Insn</span>::<span class="ident">AsciiBracket</span>(<span class="ident">bitmap</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">scm</span>::<span class="ident">MatchByteSet</span> { <span class="ident">bytes</span>: <span class="ident">bitmap</span> }.<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">cursor</span>))
+                    <span class="ident">Insn</span>::<span class="ident">AsciiBracket</span>(<span class="ident">bitmap</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(
+                        <span class="ident">scm</span>::<span class="ident">MatchByteSet</span> { <span class="ident">bytes</span>: <span class="ident">bitmap</span> }.<span class="ident">matches</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>)
+                    ),
+
+                    <span class="ident">Insn</span>::<span class="ident">Bracket</span>(<span class="ident">bc</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">scm</span>::<span class="ident">Bracket</span> { <span class="ident">bc</span> }.<span class="ident">matches</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>))
                     }
 
-                    <span class="ident">Insn</span>::<span class="ident">Bracket</span>(<span class="ident">bc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">scm</span>::<span class="ident">Bracket</span> { <span class="ident">bc</span> }.<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">cursor</span>)),
-
-                    <span class="ident">Insn</span>::<span class="ident">MatchAny</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">scm</span>::<span class="ident">MatchAny</span>::<span class="ident">new</span>().<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">cursor</span>)),
+                    <span class="ident">Insn</span>::<span class="ident">MatchAny</span> <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">scm</span>::<span class="ident">MatchAny</span>::<span class="ident">new</span>().<span class="ident">matches</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>))
+                    }
 
                     <span class="ident">Insn</span>::<span class="ident">MatchAnyExceptLineTerminator</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">next_or_bt</span><span class="macro">!</span>(
-                        <span class="ident">scm</span>::<span class="ident">MatchAnyExceptLineTerminator</span>::<span class="ident">new</span>().<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">cursor</span>)
+                        <span class="ident">scm</span>::<span class="ident">MatchAnyExceptLineTerminator</span>::<span class="ident">new</span>().<span class="ident">matches</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>)
                     ),
 
                     <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">WordBoundary</span> { <span class="ident">invert</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">let</span> <span class="ident">prev_wordchar</span> <span class="op">=</span> <span class="ident">cursor</span>
+                        <span class="comment">// Copy the positions since these destructively move them.</span>
+                        <span class="kw">let</span> <span class="ident">prev_wordchar</span> <span class="op">=</span> <span class="ident">input</span>
                             .<span class="ident">peek_left</span>(<span class="ident">pos</span>)
-                            .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">is_word_char</span>);
-                        <span class="kw">let</span> <span class="ident">curr_wordchar</span> <span class="op">=</span> <span class="ident">cursor</span>
+                            .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="ident">Input</span>::<span class="ident">CharProps</span>::<span class="ident">is_word_char</span>);
+                        <span class="kw">let</span> <span class="ident">curr_wordchar</span> <span class="op">=</span> <span class="ident">input</span>
                             .<span class="ident">peek_right</span>(<span class="ident">pos</span>)
-                            .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">is_word_char</span>);
+                            .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="ident">Input</span>::<span class="ident">CharProps</span>::<span class="ident">is_word_char</span>);
                         <span class="kw">let</span> <span class="ident">is_boundary</span> <span class="op">=</span> <span class="ident">prev_wordchar</span> <span class="op">!</span><span class="op">=</span> <span class="ident">curr_wordchar</span>;
                         <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">is_boundary</span> <span class="op">!</span><span class="op">=</span> <span class="ident">invert</span>)
                     }
 
                     <span class="ident">Insn</span>::<span class="ident">StartOfLine</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek_left</span>(<span class="ident">pos</span>) {
+                        <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">input</span>.<span class="ident">peek_left</span>(<span class="ident">pos</span>) {
                             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
                             <span class="prelude-val">Some</span>(<span class="ident">c</span>)
                                 <span class="kw">if</span> <span class="ident">re</span>.<span class="ident">flags</span>.<span class="ident">multiline</span>
-                                    <span class="op">&amp;&amp;</span> <span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">is_line_terminator</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span>
+                                    <span class="op">&amp;&amp;</span> <span class="ident">Input</span>::<span class="ident">CharProps</span>::<span class="ident">is_line_terminator</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span>
                             {
                                 <span class="bool-val">true</span>
                             }
@@ -1545,11 +1669,11 @@
                         <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="ident">matches</span>)
                     }
                     <span class="ident">Insn</span>::<span class="ident">EndOfLine</span> <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek_right</span>(<span class="ident">pos</span>) {
+                        <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">input</span>.<span class="ident">peek_right</span>(<span class="ident">pos</span>) {
                             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>, <span class="comment">// we&#39;re at the right of the string</span>
                             <span class="prelude-val">Some</span>(<span class="ident">c</span>)
                                 <span class="kw">if</span> <span class="ident">re</span>.<span class="ident">flags</span>.<span class="ident">multiline</span>
-                                    <span class="op">&amp;&amp;</span> <span class="ident">Cursor</span>::<span class="ident">CharProps</span>::<span class="ident">is_line_terminator</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span>
+                                    <span class="op">&amp;&amp;</span> <span class="ident">Input</span>::<span class="ident">CharProps</span>::<span class="ident">is_line_terminator</span>(<span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span>
                             {
                                 <span class="bool-val">true</span>
                             }
@@ -1564,33 +1688,33 @@
                     }
 
                     <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">BeginCaptureGroup</span>(<span class="ident">cg_idx</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">let</span> <span class="ident">cg</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">GroupData</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">groups</span>.<span class="ident">mat</span>(<span class="ident">cg_idx</span> <span class="kw">as</span> <span class="ident">usize</span>);
+                        <span class="kw">let</span> <span class="ident">cg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">groups</span>.<span class="ident">mat</span>(<span class="ident">cg_idx</span> <span class="kw">as</span> <span class="ident">usize</span>);
                         <span class="self">self</span>.<span class="ident">bts</span>.<span class="ident">push</span>(<span class="ident">BacktrackInsn</span>::<span class="ident">SetCaptureGroup</span> {
                             <span class="ident">id</span>: <span class="ident">cg_idx</span>,
                             <span class="ident">data</span>: <span class="kw-2">*</span><span class="ident">cg</span>,
                         });
-                        <span class="kw">if</span> <span class="ident">Cursor</span>::<span class="ident">FORWARD</span> {
-                            <span class="ident">cg</span>.<span class="ident">start</span> <span class="op">=</span> <span class="ident">pos</span>
+                        <span class="kw">if</span> <span class="ident">Dir</span>::<span class="ident">FORWARD</span> {
+                            <span class="ident">cg</span>.<span class="ident">start</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">pos</span>)
                         } <span class="kw">else</span> {
-                            <span class="ident">cg</span>.<span class="ident">end</span> <span class="op">=</span> <span class="ident">pos</span>
+                            <span class="ident">cg</span>.<span class="ident">end</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">pos</span>)
                         }
                         <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="bool-val">true</span>)
                     }
 
                     <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">EndCaptureGroup</span>(<span class="ident">cg_idx</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">let</span> <span class="ident">cg</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">GroupData</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">groups</span>.<span class="ident">mat</span>(<span class="ident">cg_idx</span> <span class="kw">as</span> <span class="ident">usize</span>);
-                        <span class="kw">if</span> <span class="ident">Cursor</span>::<span class="ident">FORWARD</span> {
+                        <span class="kw">let</span> <span class="ident">cg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">groups</span>.<span class="ident">mat</span>(<span class="ident">cg_idx</span> <span class="kw">as</span> <span class="ident">usize</span>);
+                        <span class="kw">if</span> <span class="ident">Dir</span>::<span class="ident">FORWARD</span> {
                             <span class="macro">debug_assert</span><span class="macro">!</span>(
                                 <span class="ident">cg</span>.<span class="ident">start_matched</span>(),
                                 <span class="string">&quot;Capture group should have been entered&quot;</span>
                             );
-                            <span class="ident">cg</span>.<span class="ident">end</span> <span class="op">=</span> <span class="ident">pos</span>;
+                            <span class="ident">cg</span>.<span class="ident">end</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">pos</span>);
                         } <span class="kw">else</span> {
                             <span class="macro">debug_assert</span><span class="macro">!</span>(
                                 <span class="ident">cg</span>.<span class="ident">end_matched</span>(),
                                 <span class="string">&quot;Capture group should have been entered&quot;</span>
                             );
-                            <span class="ident">cg</span>.<span class="ident">start</span> <span class="op">=</span> <span class="ident">pos</span>
+                            <span class="ident">cg</span>.<span class="ident">start</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">pos</span>)
                         }
                         <span class="macro">next_or_bt</span><span class="macro">!</span>(<span class="bool-val">true</span>)
                     }
@@ -1606,16 +1730,16 @@
                     }
 
                     <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">BackRef</span>(<span class="ident">cg_idx</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">let</span> <span class="ident">cg</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">GroupData</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">groups</span>.<span class="ident">mat</span>(<span class="ident">cg_idx</span> <span class="kw">as</span> <span class="ident">usize</span>);
+                        <span class="kw">let</span> <span class="ident">cg</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">s</span>.<span class="ident">groups</span>.<span class="ident">mat</span>(<span class="ident">cg_idx</span> <span class="kw">as</span> <span class="ident">usize</span>);
                         <span class="comment">// Backreferences to a capture group that did not match always succeed (ES5</span>
                         <span class="comment">// 15.10.2.9).</span>
                         <span class="comment">// Note we may be in the capture group we are examining, e.g. /(abc\1)/.</span>
                         <span class="kw">let</span> <span class="ident">matched</span>;
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">orig_range</span>) <span class="op">=</span> <span class="ident">cg</span>.<span class="ident">as_range</span>() {
                             <span class="kw">if</span> <span class="ident">re</span>.<span class="ident">flags</span>.<span class="ident">icase</span> {
-                                <span class="ident">matched</span> <span class="op">=</span> <span class="ident">matchers</span>::<span class="ident">backref_icase</span>(<span class="ident">orig_range</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">cursor</span>);
+                                <span class="ident">matched</span> <span class="op">=</span> <span class="ident">matchers</span>::<span class="ident">backref_icase</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="ident">orig_range</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>);
                             } <span class="kw">else</span> {
-                                <span class="ident">matched</span> <span class="op">=</span> <span class="ident">matchers</span>::<span class="ident">backref</span>(<span class="ident">orig_range</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">cursor</span>);
+                                <span class="ident">matched</span> <span class="op">=</span> <span class="ident">matchers</span>::<span class="ident">backref</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="ident">orig_range</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>);
                             }
                         } <span class="kw">else</span> {
                             <span class="comment">// This group has not been exited and so the match succeeds (ES6</span>
@@ -1631,10 +1755,10 @@
                         <span class="ident">end_group</span>,
                         <span class="ident">continuation</span>,
                     } <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">run_lookaround</span>(
+                        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">run_lookaround</span>::<span class="op">&lt;</span><span class="ident">Forward</span><span class="op">&gt;</span>(
+                            <span class="ident">input</span>,
                             <span class="ident">ip</span> <span class="op">+</span> <span class="number">1</span>,
                             <span class="ident">pos</span>,
-                            <span class="ident">cursor</span>.<span class="ident">as_forward</span>(),
                             <span class="ident">start_group</span>,
                             <span class="ident">end_group</span>,
                             <span class="ident">negate</span>,
@@ -1652,10 +1776,10 @@
                         <span class="ident">end_group</span>,
                         <span class="ident">continuation</span>,
                     } <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">run_lookaround</span>(
+                        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">run_lookaround</span>::<span class="op">&lt;</span><span class="ident">Backward</span><span class="op">&gt;</span>(
+                            <span class="ident">input</span>,
                             <span class="ident">ip</span> <span class="op">+</span> <span class="number">1</span>,
                             <span class="ident">pos</span>,
-                            <span class="ident">cursor</span>.<span class="ident">as_backward</span>(),
                             <span class="ident">start_group</span>,
                             <span class="ident">end_group</span>,
                             <span class="ident">negate</span>,
@@ -1692,13 +1816,7 @@
                     <span class="kw-2">&amp;</span><span class="ident">Insn</span>::<span class="ident">LoopAgain</span> { <span class="ident">begin</span> } <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">let</span> <span class="ident">act</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">re</span>.<span class="ident">insns</span>.<span class="ident">iat</span>(<span class="ident">begin</span> <span class="kw">as</span> <span class="ident">IP</span>) {
                             <span class="ident">Insn</span>::<span class="ident">EnterLoop</span>(<span class="ident">fields</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">run_loop</span>(<span class="ident">fields</span>, <span class="ident">pos</span>, <span class="ident">begin</span> <span class="kw">as</span> <span class="ident">IP</span>),
-                            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                                <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;prohibit-unsafe&quot;</span>) {
-                                    <span class="macro">unreachable</span><span class="macro">!</span>();
-                                } <span class="kw">else</span> {
-                                    <span class="kw">unsafe</span> { <span class="ident">unreachable_unchecked</span>() }
-                                }
-                            }
+                            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">rs_unreachable</span><span class="macro">!</span>(<span class="string">&quot;EnterLoop should always refer to loop field&quot;</span>),
                         };
                         <span class="kw">match</span> <span class="ident">act</span> {
                             <span class="prelude-val">Some</span>(<span class="ident">next_ip</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -1714,8 +1832,8 @@
                         <span class="ident">max_iters</span>,
                         <span class="ident">greedy</span>,
                     } <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next_ip</span>) <span class="op">=</span>
-                            <span class="self">self</span>.<span class="ident">run_scm_loop</span>(<span class="ident">min_iters</span>, <span class="ident">max_iters</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">cursor</span>, <span class="ident">ip</span>, <span class="ident">greedy</span>)
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next_ip</span>) <span class="op">=</span> <span class="self">self</span>
+                            .<span class="ident">run_scm_loop</span>(<span class="ident">input</span>, <span class="ident">dir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">min_iters</span>, <span class="ident">max_iters</span>, <span class="ident">ip</span>, <span class="ident">greedy</span>)
                         {
                             <span class="ident">ip</span> <span class="op">=</span> <span class="ident">next_ip</span>;
                             <span class="kw">continue</span> <span class="lifetime">&#39;nextinsn</span>;
@@ -1737,7 +1855,7 @@
 
             <span class="comment">// This after the backtrack loop.</span>
             <span class="comment">// A break &#39;backtrack will jump here.</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">try_backtrack</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ip</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">cursor</span>) {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">try_backtrack</span>(<span class="ident">input</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ip</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">pos</span>, <span class="ident">dir</span>) {
                 <span class="kw">continue</span> <span class="lifetime">&#39;nextinsn</span>;
             } <span class="kw">else</span> {
                 <span class="comment">// We have exhausted the backtracking stack.</span>
@@ -1751,32 +1869,37 @@
         <span class="comment">// Every instruction should either continue &#39;nextinsn, or break &#39;backtrack.</span>
         {
             <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">unreachable_code</span>)]</span>
-            <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;prohibit-unsafe&quot;</span>) {
-                <span class="macro">unreachable</span><span class="macro">!</span>();
-            } <span class="kw">else</span> {
-                <span class="kw">unsafe</span> { <span class="ident">unreachable_unchecked</span>() }
-            }
+            <span class="macro">rs_unreachable</span><span class="macro">!</span>(<span class="string">&quot;Should not fall to end of nextinsn loop&quot;</span>)
         }
     }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BacktrackExecutor</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">Input</span>: <span class="ident">InputIndexer</span><span class="op">&gt;</span> {
-    <span class="ident">cursor</span>: <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">Forward</span>, <span class="ident">Input</span><span class="op">&gt;</span>,
-    <span class="ident">matcher</span>: <span class="ident">MatchAttempter</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span><span class="op">&gt;</span>,
+    <span class="ident">input</span>: <span class="ident">Input</span>,
+    <span class="ident">matcher</span>: <span class="ident">MatchAttempter</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">Input</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">Input</span>: <span class="ident">InputIndexer</span><span class="op">&gt;</span> <span class="ident">BacktrackExecutor</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">Input</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">successful_match</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">start</span>: <span class="ident">usize</span>, <span class="ident">end</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Match</span> {
+    <span class="kw">fn</span> <span class="ident">successful_match</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">start</span>: <span class="ident">Input</span>::<span class="ident">Position</span>, <span class="ident">end</span>: <span class="ident">Input</span>::<span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Match</span> {
+        <span class="comment">// TODO: avoid allocating so much.</span>
+        <span class="kw">let</span> <span class="ident">range_to_offsets</span> <span class="op">=</span> <span class="op">|</span><span class="ident">mr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Input</span>::<span class="ident">Position</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+            <span class="ident">mr</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> <span class="ident">Range</span> {
+                <span class="ident">start</span>: <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">pos_to_offset</span>(<span class="ident">r</span>.<span class="ident">start</span>),
+                <span class="ident">end</span>: <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">pos_to_offset</span>(<span class="ident">r</span>.<span class="ident">end</span>),
+            })
+        };
+
         <span class="kw">let</span> <span class="ident">captures</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">matcher</span>
             .<span class="ident">s</span>
             .<span class="ident">groups</span>
             .<span class="ident">iter</span>()
             .<span class="ident">map</span>(<span class="ident">GroupData</span>::<span class="ident">as_range</span>)
+            .<span class="ident">map</span>(<span class="ident">range_to_offsets</span>)
             .<span class="ident">collect</span>();
         <span class="ident">Match</span> {
-            <span class="ident">range</span>: <span class="ident">start</span>..<span class="ident">end</span>,
+            <span class="ident">range</span>: <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">pos_to_offset</span>(<span class="ident">start</span>)..<span class="self">self</span>.<span class="ident">input</span>.<span class="ident">pos_to_offset</span>(<span class="ident">end</span>),
             <span class="ident">captures</span>,
         }
     }
@@ -1785,61 +1908,64 @@
     <span class="doccomment">/// prefix searcher to quickly find the first potential match location.</span>
     <span class="kw">fn</span> <span class="ident">next_match_with_prefix_search</span><span class="op">&lt;</span><span class="ident">PrefixSearch</span>: <span class="ident">bytesearch</span>::<span class="ident">ByteSearcher</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">upos</span>: <span class="ident">usize</span>,
-        <span class="ident">next_start</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+        <span class="kw-2">mut</span> <span class="ident">pos</span>: <span class="ident">Input</span>::<span class="ident">Position</span>,
+        <span class="ident">next_start</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Input</span>::<span class="ident">Position</span><span class="op">&gt;</span>,
         <span class="ident">prefix_search</span>: <span class="kw-2">&amp;</span><span class="ident">PrefixSearch</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position</span> { <span class="ident">pos</span>: <span class="ident">upos</span> };
+        <span class="kw">let</span> <span class="ident">inp</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>;
         <span class="kw">loop</span> {
-            <span class="comment">// Find the next start location.</span>
-            <span class="kw">let</span> <span class="ident">rem</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">remaining_bytes</span>(<span class="ident">pos</span>);
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">start_pos</span>) <span class="op">=</span> <span class="ident">prefix_search</span>.<span class="ident">find_in</span>(<span class="ident">rem</span>) {
-                <span class="ident">pos</span>.<span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="ident">start_pos</span>
-            } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">None</span>;
-            }
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">end</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">matcher</span>.<span class="ident">try_at_pos</span>(<span class="number">0</span>, <span class="ident">pos</span>, <span class="self">self</span>.<span class="ident">cursor</span>) {
+            <span class="comment">// Find the next start location, or None if none.</span>
+            <span class="ident">pos</span> <span class="op">=</span> <span class="ident">inp</span>.<span class="ident">find_bytes</span>(<span class="ident">pos</span>, <span class="ident">prefix_search</span>)<span class="question-mark">?</span>;
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">end</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">matcher</span>.<span class="ident">try_at_pos</span>(<span class="ident">inp</span>, <span class="number">0</span>, <span class="ident">pos</span>, <span class="ident">Forward</span>::<span class="ident">new</span>()) {
                 <span class="comment">// If we matched the empty string, we have to increment.</span>
                 <span class="kw">if</span> <span class="ident">end</span> <span class="op">!</span><span class="op">=</span> <span class="ident">pos</span> {
-                    <span class="kw-2">*</span><span class="ident">next_start</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">end</span>.<span class="ident">pos</span>)
+                    <span class="kw-2">*</span><span class="ident">next_start</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">end</span>)
                 } <span class="kw">else</span> {
-                    <span class="kw-2">*</span><span class="ident">next_start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">input</span>.<span class="ident">index_after_inc</span>(<span class="ident">end</span>.<span class="ident">pos</span>);
+                    <span class="kw-2">*</span><span class="ident">next_start</span> <span class="op">=</span> <span class="ident">inp</span>.<span class="ident">next_right_pos</span>(<span class="ident">end</span>);
                 }
-                <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">successful_match</span>(<span class="ident">pos</span>.<span class="ident">pos</span>, <span class="ident">end</span>.<span class="ident">pos</span>));
+                <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">successful_match</span>(<span class="ident">pos</span>, <span class="ident">end</span>));
             }
-            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">input</span>.<span class="ident">index_after_inc</span>(<span class="ident">pos</span>.<span class="ident">pos</span>) {
-                <span class="prelude-val">Some</span>(<span class="ident">nextpos</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">pos</span>.<span class="ident">pos</span> <span class="op">=</span> <span class="ident">nextpos</span>,
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
-            }
+            <span class="comment">// Didn&#39;t find it at this position, try the next one.</span>
+            <span class="ident">pos</span> <span class="op">=</span> <span class="ident">inp</span>.<span class="ident">next_right_pos</span>(<span class="ident">pos</span>)<span class="question-mark">?</span>;
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Input</span>: <span class="ident">InputIndexer</span><span class="op">&gt;</span> <span class="ident">exec</span>::<span class="ident">MatchProducer</span> <span class="kw">for</span> <span class="ident">BacktrackExecutor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Input</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">next_match</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">upos</span>: <span class="ident">usize</span>, <span class="ident">next_start</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">Position</span> <span class="op">=</span> <span class="ident">Input</span>::<span class="ident">Position</span>;
+
+    <span class="kw">fn</span> <span class="ident">initial_position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">offset</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Position</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">try_move_right</span>(<span class="self">self</span>.<span class="ident">input</span>.<span class="ident">left_end</span>(), <span class="ident">offset</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">next_match</span>(
+        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">pos</span>: <span class="ident">Input</span>::<span class="ident">Position</span>,
+        <span class="ident">next_start</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Input</span>::<span class="ident">Position</span><span class="op">&gt;</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Match</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">matcher</span>.<span class="ident">re</span>.<span class="ident">start_pred</span> {
             <span class="ident">StartPredicate</span>::<span class="ident">Arbitrary</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">next_match_with_prefix_search</span>(<span class="ident">upos</span>, <span class="ident">next_start</span>, <span class="kw-2">&amp;</span><span class="ident">bytesearch</span>::<span class="ident">EmptyString</span> {})
+                <span class="self">self</span>.<span class="ident">next_match_with_prefix_search</span>(<span class="ident">pos</span>, <span class="ident">next_start</span>, <span class="kw-2">&amp;</span><span class="ident">bytesearch</span>::<span class="ident">EmptyString</span> {})
             }
             <span class="ident">StartPredicate</span>::<span class="ident">ByteSeq1</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">next_match_with_prefix_search</span>(<span class="ident">upos</span>, <span class="ident">next_start</span>, <span class="ident">bytes</span>)
+                <span class="self">self</span>.<span class="ident">next_match_with_prefix_search</span>(<span class="ident">pos</span>, <span class="ident">next_start</span>, <span class="ident">bytes</span>)
             }
             <span class="ident">StartPredicate</span>::<span class="ident">ByteSeq2</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">next_match_with_prefix_search</span>(<span class="ident">upos</span>, <span class="ident">next_start</span>, <span class="ident">bytes</span>)
+                <span class="self">self</span>.<span class="ident">next_match_with_prefix_search</span>(<span class="ident">pos</span>, <span class="ident">next_start</span>, <span class="ident">bytes</span>)
             }
             <span class="ident">StartPredicate</span>::<span class="ident">ByteSeq3</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">next_match_with_prefix_search</span>(<span class="ident">upos</span>, <span class="ident">next_start</span>, <span class="ident">bytes</span>)
+                <span class="self">self</span>.<span class="ident">next_match_with_prefix_search</span>(<span class="ident">pos</span>, <span class="ident">next_start</span>, <span class="ident">bytes</span>)
             }
             <span class="ident">StartPredicate</span>::<span class="ident">ByteSeq4</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">next_match_with_prefix_search</span>(<span class="ident">upos</span>, <span class="ident">next_start</span>, <span class="ident">bytes</span>)
+                <span class="self">self</span>.<span class="ident">next_match_with_prefix_search</span>(<span class="ident">pos</span>, <span class="ident">next_start</span>, <span class="ident">bytes</span>)
             }
             <span class="kw-2">&amp;</span><span class="ident">StartPredicate</span>::<span class="ident">ByteSet2</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">next_match_with_prefix_search</span>(
-                <span class="ident">upos</span>,
+                <span class="ident">pos</span>,
                 <span class="ident">next_start</span>,
                 <span class="kw-2">&amp;</span><span class="ident">bytesearch</span>::<span class="ident">ByteArraySet</span>(<span class="ident">bytes</span>),
             ),
             <span class="ident">StartPredicate</span>::<span class="ident">ByteBracket</span>(<span class="ident">bitmap</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">next_match_with_prefix_search</span>(<span class="ident">upos</span>, <span class="ident">next_start</span>, <span class="ident">bitmap</span>)
+                <span class="self">self</span>.<span class="ident">next_match_with_prefix_search</span>(<span class="ident">pos</span>, <span class="ident">next_start</span>, <span class="ident">bitmap</span>)
             }
         }
     }
@@ -1851,8 +1977,8 @@
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">re</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="ident">CompiledRegex</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">Utf8Input</span>::<span class="ident">new</span>(<span class="ident">text</span>);
         <span class="self">Self</span> {
-            <span class="ident">cursor</span>: <span class="ident">cursor</span>::<span class="ident">starting_cursor</span>(<span class="ident">input</span>),
-            <span class="ident">matcher</span>: <span class="ident">MatchAttempter</span>::<span class="ident">new</span>(<span class="ident">re</span>),
+            <span class="ident">input</span>,
+            <span class="ident">matcher</span>: <span class="ident">MatchAttempter</span>::<span class="ident">new</span>(<span class="ident">re</span>, <span class="ident">input</span>.<span class="ident">left_end</span>()),
         }
     }
 }
@@ -1863,8 +1989,8 @@
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">re</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="ident">CompiledRegex</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">AsciiInput</span>::<span class="ident">new</span>(<span class="ident">text</span>);
         <span class="self">Self</span> {
-            <span class="ident">cursor</span>: <span class="ident">cursor</span>::<span class="ident">starting_cursor</span>(<span class="ident">input</span>),
-            <span class="ident">matcher</span>: <span class="ident">MatchAttempter</span>::<span class="ident">new</span>(<span class="ident">re</span>),
+            <span class="ident">input</span>,
+            <span class="ident">matcher</span>: <span class="ident">MatchAttempter</span>::<span class="ident">new</span>(<span class="ident">re</span>, <span class="ident">input</span>.<span class="ident">left_end</span>()),
         }
     }
 }

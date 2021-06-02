@@ -47,39 +47,6 @@
 <span id="46">46</span>
 <span id="47">47</span>
 <span id="48">48</span>
-<span id="49">49</span>
-<span id="50">50</span>
-<span id="51">51</span>
-<span id="52">52</span>
-<span id="53">53</span>
-<span id="54">54</span>
-<span id="55">55</span>
-<span id="56">56</span>
-<span id="57">57</span>
-<span id="58">58</span>
-<span id="59">59</span>
-<span id="60">60</span>
-<span id="61">61</span>
-<span id="62">62</span>
-<span id="63">63</span>
-<span id="64">64</span>
-<span id="65">65</span>
-<span id="66">66</span>
-<span id="67">67</span>
-<span id="68">68</span>
-<span id="69">69</span>
-<span id="70">70</span>
-<span id="71">71</span>
-<span id="72">72</span>
-<span id="73">73</span>
-<span id="74">74</span>
-<span id="75">75</span>
-<span id="76">76</span>
-<span id="77">77</span>
-<span id="78">78</span>
-<span id="79">79</span>
-<span id="80">80</span>
-<span id="81">81</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Conceptually, a realm consists of a set of intrinsic objects, an ECMAScript global environment,</span>
 <span class="doccomment">//! all of the ECMAScript code that is loaded within the scope of that global environment,</span>
@@ -89,16 +56,12 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">environment</span>::{
-        <span class="ident">declarative_environment_record</span>::<span class="ident">DeclarativeEnvironmentRecord</span>,
-        <span class="ident">global_environment_record</span>::<span class="ident">GlobalEnvironmentRecord</span>,
-        <span class="ident">lexical_environment</span>::<span class="ident">LexicalEnvironment</span>,
-        <span class="ident">object_environment_record</span>::<span class="ident">ObjectEnvironmentRecord</span>,
+        <span class="ident">global_environment_record</span>::<span class="ident">GlobalEnvironmentRecord</span>, <span class="ident">lexical_environment</span>::<span class="ident">LexicalEnvironment</span>,
     },
     <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>},
     <span class="ident">BoaProfiler</span>,
 };
-<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Gc</span>, <span class="ident">GcCell</span>};
-<span class="kw">use</span> <span class="ident">rustc_hash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};
+<span class="kw">use</span> <span class="ident">gc</span>::<span class="ident">Gc</span>;
 
 <span class="doccomment">/// Representation of a Realm.</span>
 <span class="doccomment">///</span>
@@ -106,7 +69,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Realm</span> {
     <span class="kw">pub</span> <span class="ident">global_object</span>: <span class="ident">GcObject</span>,
-    <span class="kw">pub</span> <span class="ident">global_env</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">GlobalEnvironmentRecord</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">global_env</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GlobalEnvironmentRecord</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">environment</span>: <span class="ident">LexicalEnvironment</span>,
 }
 
@@ -124,43 +87,14 @@
         <span class="kw">let</span> <span class="ident">gc_global</span> <span class="op">=</span> <span class="ident">GcObject</span>::<span class="ident">new</span>(<span class="ident">global</span>);
 
         <span class="comment">// We need to clone the global here because its referenced from separate places (only pointer is cloned)</span>
-        <span class="kw">let</span> <span class="ident">global_env</span> <span class="op">=</span> <span class="ident">new_global_environment</span>(<span class="ident">gc_global</span>.<span class="ident">clone</span>(), <span class="ident">gc_global</span>.<span class="ident">clone</span>());
+        <span class="kw">let</span> <span class="ident">global_env</span> <span class="op">=</span> <span class="ident">GlobalEnvironmentRecord</span>::<span class="ident">new</span>(<span class="ident">gc_global</span>.<span class="ident">clone</span>(), <span class="ident">gc_global</span>.<span class="ident">clone</span>());
 
         <span class="self">Self</span> {
             <span class="ident">global_object</span>: <span class="ident">gc_global</span>.<span class="ident">clone</span>(),
-            <span class="ident">global_env</span>,
+            <span class="ident">global_env</span>: <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">global_env</span>),
             <span class="ident">environment</span>: <span class="ident">LexicalEnvironment</span>::<span class="ident">new</span>(<span class="ident">gc_global</span>),
         }
     }
-}
-
-<span class="comment">// Similar to new_global_environment in lexical_environment, except we need to return a GlobalEnvirionment</span>
-<span class="kw">fn</span> <span class="ident">new_global_environment</span>(
-    <span class="ident">global</span>: <span class="ident">GcObject</span>,
-    <span class="ident">this_value</span>: <span class="ident">GcObject</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">GlobalEnvironmentRecord</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">obj_rec</span> <span class="op">=</span> <span class="ident">ObjectEnvironmentRecord</span> {
-        <span class="ident">bindings</span>: <span class="ident">global</span>.<span class="ident">into</span>(),
-        <span class="ident">outer_env</span>: <span class="prelude-val">None</span>,
-        <span class="doccomment">/// Object Environment Records created for with statements (13.11)</span>
-        <span class="doccomment">/// can provide their binding object as an implicit this value for use in function calls.</span>
-        <span class="doccomment">/// The capability is controlled by a withEnvironment Boolean value that is associated</span>
-        <span class="doccomment">/// with each object Environment Record. By default, the value of withEnvironment is false</span>
-        <span class="doccomment">/// for any object Environment Record.</span>
-        <span class="ident">with_environment</span>: <span class="bool-val">false</span>,
-    };
-
-    <span class="kw">let</span> <span class="ident">dcl_rec</span> <span class="op">=</span> <span class="ident">DeclarativeEnvironmentRecord</span> {
-        <span class="ident">env_rec</span>: <span class="ident">FxHashMap</span>::<span class="ident">default</span>(),
-        <span class="ident">outer_env</span>: <span class="prelude-val">None</span>,
-    };
-
-    <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">GcCell</span>::<span class="ident">new</span>(<span class="ident">GlobalEnvironmentRecord</span> {
-        <span class="ident">object_record</span>: <span class="ident">obj_rec</span>,
-        <span class="ident">global_this_binding</span>: <span class="ident">this_value</span>,
-        <span class="ident">declarative_record</span>: <span class="ident">dcl_rec</span>,
-        <span class="ident">var_names</span>: <span class="ident">FxHashSet</span>::<span class="ident">default</span>(),
-    }))
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa" data-search-js="../../search-index.js"></div>
