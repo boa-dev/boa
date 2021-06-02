@@ -11,7 +11,7 @@ use crate::{
     object::{GcObject, Object, ObjectData},
     BoaProfiler,
 };
-use gc::{Gc, GcCell};
+use gc::Gc;
 
 /// Representation of a Realm.
 ///
@@ -19,7 +19,7 @@ use gc::{Gc, GcCell};
 #[derive(Debug)]
 pub struct Realm {
     pub global_object: GcObject,
-    pub global_env: Gc<GcCell<GlobalEnvironmentRecord>>,
+    pub global_env: Gc<GlobalEnvironmentRecord>,
     pub environment: LexicalEnvironment,
 }
 
@@ -41,7 +41,7 @@ impl Realm {
 
         Self {
             global_object: gc_global.clone(),
-            global_env: Gc::new(GcCell::new(global_env)),
+            global_env: Gc::new(global_env),
             environment: LexicalEnvironment::new(gc_global),
         }
     }
