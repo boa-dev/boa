@@ -227,44 +227,40 @@ impl<'a> VM<'a> {
                 Instruction::DefVar(name_index) => {
                     let name: String = self.pool[name_index].to_string(self.ctx)?.to_string();
 
-                    self.ctx
-                        .realm_mut()
-                        .environment
-                        .create_mutable_binding(name.to_string(), false, VariableScope::Function)
-                        .map_err(|e| e.to_error(self.ctx))?;
+                    self.ctx.create_mutable_binding(
+                        name.to_string(),
+                        false,
+                        VariableScope::Function,
+                    )?;
 
                     None
                 }
                 Instruction::DefLet(name_index) => {
                     let name = self.pool[name_index].to_string(self.ctx)?;
 
-                    self.ctx
-                        .realm_mut()
-                        .environment
-                        .create_mutable_binding(name.to_string(), false, VariableScope::Block)
-                        .map_err(|e| e.to_error(self.ctx))?;
+                    self.ctx.create_mutable_binding(
+                        name.to_string(),
+                        false,
+                        VariableScope::Block,
+                    )?;
 
                     None
                 }
                 Instruction::DefConst(name_index) => {
                     let name = self.pool[name_index].to_string(self.ctx)?;
 
-                    self.ctx
-                        .realm_mut()
-                        .environment
-                        .create_immutable_binding(name.to_string(), false, VariableScope::Block)
-                        .map_err(|e| e.to_error(self.ctx))?;
+                    self.ctx.create_immutable_binding(
+                        name.to_string(),
+                        false,
+                        VariableScope::Block,
+                    )?;
 
                     None
                 }
                 Instruction::InitLexical(name_index) => {
                     let name = self.pool[name_index].to_string(self.ctx)?;
                     let value = self.pop();
-                    self.ctx
-                        .realm_mut()
-                        .environment
-                        .initialize_binding(&name, value.clone())
-                        .map_err(|e| e.to_error(self.ctx))?;
+                    self.ctx.initialize_binding(&name, value.clone())?;
 
                     Some(value)
                 }
