@@ -10,11 +10,11 @@ use crate::{
     environment::environment_record_trait::EnvironmentRecordTrait, object::GcObject, BoaProfiler,
     Context, Result, Value,
 };
-use gc::{Gc, GcCell};
+use gc::Gc;
 use std::{collections::VecDeque, error, fmt};
 
 /// Environments are wrapped in a Box and then in a GC wrapper
-pub type Environment = Gc<GcCell<Box<dyn EnvironmentRecordTrait>>>;
+pub type Environment = Gc<Box<dyn EnvironmentRecordTrait>>;
 
 /// Give each environment an easy way to declare its own type
 /// This helps with comparisons
@@ -90,7 +90,6 @@ impl Context {
 
     pub(crate) fn get_this_binding(&mut self) -> Result<Value> {
         self.get_current_environment()
-            .borrow()
             .recursive_get_this_binding(self)
     }
 
@@ -101,7 +100,6 @@ impl Context {
         scope: VariableScope,
     ) -> Result<()> {
         self.get_current_environment()
-            .borrow()
             .recursive_create_mutable_binding(name, deletion, scope, self)
     }
 
@@ -112,7 +110,6 @@ impl Context {
         scope: VariableScope,
     ) -> Result<()> {
         self.get_current_environment()
-            .borrow()
             .recursive_create_immutable_binding(name, deletion, scope, self)
     }
 
@@ -123,13 +120,11 @@ impl Context {
         strict: bool,
     ) -> Result<()> {
         self.get_current_environment()
-            .borrow()
             .recursive_set_mutable_binding(name, value, strict, self)
     }
 
     pub(crate) fn initialize_binding(&mut self, name: &str, value: Value) -> Result<()> {
         self.get_current_environment()
-            .borrow()
             .recursive_initialize_binding(name, value, self)
     }
 
@@ -145,14 +140,11 @@ impl Context {
     }
 
     pub(crate) fn has_binding(&mut self, name: &str) -> bool {
-        self.get_current_environment()
-            .borrow()
-            .recursive_has_binding(name)
+        self.get_current_environment().recursive_has_binding(name)
     }
 
     pub(crate) fn get_binding_value(&mut self, name: &str) -> Result<Value> {
         self.get_current_environment()
-            .borrow()
             .recursive_get_binding_value(name, self)
     }
 }

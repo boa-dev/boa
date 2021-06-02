@@ -6,7 +6,7 @@
 //! Property keys that are not strings in the form of an `IdentifierName` are not included in the set of bound identifiers.
 //! More info:  [Object Records](https://tc39.es/ecma262/#sec-object-environment-records)
 
-use gc::{Gc, GcCell};
+use gc::Gc;
 
 use crate::{
     environment::{
@@ -164,6 +164,6 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
 
 impl From<ObjectEnvironmentRecord> for Environment {
     fn from(env: ObjectEnvironmentRecord) -> Environment {
-        Gc::new(GcCell::new(Box::new(env)))
+        Gc::new(Box::new(env))
     }
 }

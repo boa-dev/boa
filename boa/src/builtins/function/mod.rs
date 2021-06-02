@@ -125,14 +125,12 @@ impl Function {
 
         // Create binding
         local_env
-            .borrow_mut()
             // Function parameters can share names in JavaScript...
             .create_mutable_binding(param.name().to_owned(), false, true, context)
             .expect("Failed to create binding for rest param");
 
         // Set Binding to value
         local_env
-            .borrow_mut()
             .initialize_binding(param.name(), array, context)
             .expect("Failed to initialize rest param");
     }
@@ -147,13 +145,11 @@ impl Function {
     ) {
         // Create binding
         local_env
-            .borrow_mut()
             .create_mutable_binding(param.name().to_owned(), false, true, context)
             .expect("Failed to create binding");
 
         // Set Binding to value
         local_env
-            .borrow_mut()
             .initialize_binding(param.name(), value, context)
             .expect("Failed to intialize binding");
     }

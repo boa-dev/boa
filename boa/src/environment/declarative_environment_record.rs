@@ -216,6 +216,6 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
 
 impl From<DeclarativeEnvironmentRecord> for Environment {
     fn from(env: DeclarativeEnvironmentRecord) -> Environment {
-        Gc::new(GcCell::new(Box::new(env)))
+        Gc::new(Box::new(env))
     }
 }

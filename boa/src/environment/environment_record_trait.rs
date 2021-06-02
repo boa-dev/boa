@@ -114,7 +114,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
             self.get_this_binding(context)
         } else {
             match self.get_outer_environment_ref() {
-                Some(outer) => outer.borrow().recursive_get_this_binding(context),
+                Some(outer) => outer.recursive_get_this_binding(context),
                 None => Ok(Value::Undefined),
             }
         }
@@ -133,7 +133,6 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
             VariableScope::Function => self
                 .get_outer_environment_ref()
                 .expect("No function or global environment")
-                .borrow()
                 .recursive_create_mutable_binding(name, deletion, scope, context),
         }
     }
@@ -151,7 +150,6 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
             VariableScope::Function => self
                 .get_outer_environment_ref()
                 .expect("No function or global environment")
-                .borrow()
                 .recursive_create_immutable_binding(name, deletion, scope, context),
         }
     }
@@ -169,7 +167,6 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         } else {
             self.get_outer_environment_ref()
                 .expect("Environment stack underflow")
-                .borrow()
                 .recursive_set_mutable_binding(name, value, strict, context)
         }
     }
@@ -186,7 +183,6 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
         } else {
             self.get_outer_environment_ref()
                 .expect("Environment stack underflow")
-                .borrow()
                 .recursive_initialize_binding(name, value, context)
         }
     }
@@ -195,7 +191,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     fn recursive_has_binding(&self, name: &str) -> bool {
         self.has_binding(name)
             || match self.get_outer_environment_ref() {
-                Some(outer) => outer.borrow().recursive_has_binding(name),
+                Some(outer) => outer.recursive_has_binding(name),
                 None => false,
             }
     }
@@ -206,7 +202,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
             self.get_binding_value(name, false, context)
         } else {
             match self.get_outer_environment_ref() {
-                Some(outer) => outer.borrow().recursive_get_binding_value(name, context),
+                Some(outer) => outer.recursive_get_binding_value(name, context),
                 None => context.throw_reference_error(format!("{} is not defined", name)),
             }
         }

@@ -8,7 +8,7 @@
 //! from within the function.
 //! More info: <https://tc39.es/ecma262/#sec-function-environment-records>
 
-use gc::{Gc, GcCell};
+use gc::Gc;
 
 use crate::{
     environment::{
@@ -226,6 +226,6 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
 
 impl From<FunctionEnvironmentRecord> for Environment {
     fn from(env: FunctionEnvironmentRecord) -> Environment {
-        Gc::new(GcCell::new(Box::new(env)))
+        Gc::new(Box::new(env))
     }
 }
