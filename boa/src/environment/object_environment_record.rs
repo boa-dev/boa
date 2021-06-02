@@ -6,7 +6,7 @@
 //! Property keys that are not strings in the form of an `IdentifierName` are not included in the set of bound identifiers.
 //! More info:  [Object Records](https://tc39.es/ecma262/#sec-object-environment-records)
 
-use gc::{Gc, GcCell};
+use gc::Gc;
 
 use crate::{
     environment::{
@@ -29,9 +29,8 @@ pub struct ObjectEnvironmentRecord {
 }
 
 impl ObjectEnvironmentRecord {
-    #[allow(clippy::new_ret_no_self)]
-    pub fn new(object: Value, environment: Option<Environment>) -> Environment {
-        Gc::new(GcCell::new(Box::new(ObjectEnvironmentRecord {
+    pub fn new(object: Value, environment: Option<Environment>) -> ObjectEnvironmentRecord {
+        ObjectEnvironmentRecord {
             bindings: object,
             outer_env: environment,
             /// Object Environment Records created for with statements (13.11)
@@ -40,7 +39,7 @@ impl ObjectEnvironmentRecord {
             /// with each object Environment Record. By default, the value of withEnvironment is false
             /// for any object Environment Record.
             with_environment: false,
-        })))
+        }
     }
 }
 
@@ -57,7 +56,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     }
 
     fn create_mutable_binding(
-        &mut self,
+        &self,
         name: String,
         deletion: bool,
         _allow_name_reuse: bool,
@@ -65,7 +64,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     ) -> Result<()> {
         // TODO: could save time here and not bother generating a new undefined object,
         // only for it to be replace with the real value later. We could just add the name to a Vector instead
-        let bindings = &mut self.bindings;
+        let bindings = &self.bindings;
         let mut prop = DataDescriptor::new(
             Value::undefined(),
             Attribute::WRITABLE | Attribute::ENUMERABLE,
@@ -77,7 +76,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     }
 
     fn create_immutable_binding(
-        &mut self,
+        &self,
         _name: String,
         _strict: bool,
         _context: &mut Context,
@@ -85,12 +84,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         Ok(())
     }
 
-    fn initialize_binding(
-        &mut self,
-        name: &str,
-        value: Value,
-        context: &mut Context,
-    ) -> Result<()> {
+    fn initialize_binding(&self, name: &str, value: Value, context: &mut Context) -> Result<()> {
         // We should never need to check if a binding has been created,
         // As all calls to create_mutable_binding are followed by initialized binding
         // The below is just a check.
@@ -99,7 +93,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     }
 
     fn set_mutable_binding(
-        &mut self,
+        &self,
         name: &str,
         value: Value,
         strict: bool,
@@ -128,7 +122,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         }
     }
 
-    fn delete_binding(&mut self, name: &str) -> bool {
+    fn delete_binding(&self, name: &str) -> bool {
         self.bindings.remove_property(name);
         true
     }
@@ -165,5 +159,11 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
 
     fn get_environment_type(&self) -> EnvironmentType {
         EnvironmentType::Function
+    }
+}
+
+impl From<ObjectEnvironmentRecord> for Environment {
+    fn from(env: ObjectEnvironmentRecord) -> Environment {
+        Gc::new(Box::new(env))
     }
 }

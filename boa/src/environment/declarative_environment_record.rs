@@ -34,30 +34,27 @@ pub struct DeclarativeEnvironmentRecordBinding {
 /// declarations contained within its scope.
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct DeclarativeEnvironmentRecord {
-    pub env_rec: FxHashMap<Box<str>, DeclarativeEnvironmentRecordBinding>,
+    pub env_rec: GcCell<FxHashMap<Box<str>, DeclarativeEnvironmentRecordBinding>>,
     pub outer_env: Option<Environment>,
 }
 
 impl DeclarativeEnvironmentRecord {
-    #[allow(clippy::new_ret_no_self)]
-    pub fn new(env: Option<Environment>) -> Environment {
+    pub fn new(env: Option<Environment>) -> DeclarativeEnvironmentRecord {
         let _timer = BoaProfiler::global().start_event("new_declarative_environment", "env");
-        let boxed_env = Box::new(DeclarativeEnvironmentRecord {
-            env_rec: FxHashMap::default(),
+        DeclarativeEnvironmentRecord {
+            env_rec: GcCell::new(FxHashMap::default()),
             outer_env: env,
-        });
-
-        Gc::new(GcCell::new(boxed_env))
+        }
     }
 }
 
 impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     fn has_binding(&self, name: &str) -> bool {
-        self.env_rec.contains_key(name)
+        self.env_rec.borrow().contains_key(name)
     }
 
     fn create_mutable_binding(
-        &mut self,
+        &self,
         name: String,
         deletion: bool,
         allow_name_reuse: bool,
@@ -65,13 +62,13 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     ) -> Result<()> {
         if !allow_name_reuse {
             assert!(
-                !self.env_rec.contains_key(name.as_str()),
+                !self.env_rec.borrow().contains_key(name.as_str()),
                 "Identifier {} has already been declared",
                 name
             );
         }
 
-        self.env_rec.insert(
+        self.env_rec.borrow_mut().insert(
             name.into_boxed_str(),
             DeclarativeEnvironmentRecordBinding {
                 value: None,
@@ -84,18 +81,18 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     }
 
     fn create_immutable_binding(
-        &mut self,
+        &self,
         name: String,
         strict: bool,
         _context: &mut Context,
     ) -> Result<()> {
         assert!(
-            !self.env_rec.contains_key(name.as_str()),
+            !self.env_rec.borrow().contains_key(name.as_str()),
             "Identifier {} has already been declared",
             name
         );
 
-        self.env_rec.insert(
+        self.env_rec.borrow_mut().insert(
             name.into_boxed_str(),
             DeclarativeEnvironmentRecordBinding {
                 value: None,
@@ -107,13 +104,8 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         Ok(())
     }
 
-    fn initialize_binding(
-        &mut self,
-        name: &str,
-        value: Value,
-        _context: &mut Context,
-    ) -> Result<()> {
-        if let Some(ref mut record) = self.env_rec.get_mut(name) {
+    fn initialize_binding(&self, name: &str, value: Value, _context: &mut Context) -> Result<()> {
+        if let Some(ref mut record) = self.env_rec.borrow_mut().get_mut(name) {
             if record.value.is_none() {
                 record.value = Some(value);
                 return Ok(());
@@ -124,13 +116,13 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
 
     #[allow(clippy::else_if_without_else)]
     fn set_mutable_binding(
-        &mut self,
+        &self,
         name: &str,
         value: Value,
         mut strict: bool,
         context: &mut Context,
     ) -> Result<()> {
-        if self.env_rec.get(name).is_none() {
+        if self.env_rec.borrow().get(name).is_none() {
             if strict {
                 return Err(context.construct_reference_error(format!("{} not found", name)));
             }
@@ -140,16 +132,22 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
             return Ok(());
         }
 
-        let record: &mut DeclarativeEnvironmentRecordBinding = self.env_rec.get_mut(name).unwrap();
-        if record.strict {
+        let (record_strict, record_has_no_value, record_mutable) = {
+            let env_rec = self.env_rec.borrow();
+            let record = env_rec.get(name).unwrap();
+            (record.strict, record.value.is_none(), record.mutable)
+        };
+        if record_strict {
             strict = true
         }
-        if record.value.is_none() {
+        if record_has_no_value {
             return Err(
                 context.construct_reference_error(format!("{} has not been initialized", name))
             );
         }
-        if record.mutable {
+        if record_mutable {
+            let mut env_rec = self.env_rec.borrow_mut();
+            let record = env_rec.get_mut(name).unwrap();
             record.value = Some(value);
         } else if strict {
             return Err(context.construct_reference_error(format!(
@@ -162,7 +160,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     }
 
     fn get_binding_value(&self, name: &str, _strict: bool, context: &mut Context) -> Result<Value> {
-        if let Some(binding) = self.env_rec.get(name) {
+        if let Some(binding) = self.env_rec.borrow().get(name) {
             if let Some(ref val) = binding.value {
                 Ok(val.clone())
             } else {
@@ -173,11 +171,11 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         }
     }
 
-    fn delete_binding(&mut self, name: &str) -> bool {
-        match self.env_rec.get(name) {
+    fn delete_binding(&self, name: &str) -> bool {
+        match self.env_rec.borrow().get(name) {
             Some(binding) => {
                 if binding.can_delete {
-                    self.env_rec.remove(name);
+                    self.env_rec.borrow_mut().remove(name);
                     true
                 } else {
                     false
@@ -213,5 +211,11 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
 
     fn get_environment_type(&self) -> EnvironmentType {
         EnvironmentType::Declarative
+    }
+}
+
+impl From<DeclarativeEnvironmentRecord> for Environment {
+    fn from(env: DeclarativeEnvironmentRecord) -> Environment {
+        Gc::new(Box::new(env))
     }
 }

@@ -20,19 +20,18 @@ use crate::{
     Context, Result, Value,
 };
 use gc::{Gc, GcCell};
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashSet;
 
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct GlobalEnvironmentRecord {
     pub object_record: ObjectEnvironmentRecord,
     pub global_this_binding: GcObject,
     pub declarative_record: DeclarativeEnvironmentRecord,
-    pub var_names: FxHashSet<Box<str>>,
+    pub var_names: GcCell<FxHashSet<Box<str>>>,
 }
 
 impl GlobalEnvironmentRecord {
-    #[allow(clippy::new_ret_no_self)]
-    pub fn new(global: GcObject, this_value: GcObject) -> Environment {
+    pub fn new(global: GcObject, this_value: GcObject) -> GlobalEnvironmentRecord {
         let obj_rec = ObjectEnvironmentRecord {
             bindings: global.into(),
             outer_env: None,
@@ -44,21 +43,18 @@ impl GlobalEnvironmentRecord {
             with_environment: false,
         };
 
-        let dcl_rec = DeclarativeEnvironmentRecord {
-            env_rec: FxHashMap::default(),
-            outer_env: None,
-        };
+        let dcl_rec = DeclarativeEnvironmentRecord::new(None);
 
-        Gc::new(GcCell::new(Box::new(GlobalEnvironmentRecord {
+        GlobalEnvironmentRecord {
             object_record: obj_rec,
             global_this_binding: this_value,
             declarative_record: dcl_rec,
-            var_names: FxHashSet::default(),
-        })))
+            var_names: GcCell::new(FxHashSet::default()),
+        }
     }
 
     pub fn has_var_declaration(&self, name: &str) -> bool {
-        self.var_names.contains(name)
+        self.var_names.borrow().contains(name)
     }
 
     pub fn has_lexical_declaration(&self, name: &str) -> bool {
@@ -118,7 +114,7 @@ impl GlobalEnvironmentRecord {
             obj_rec.initialize_binding(&name, Value::undefined(), context)?;
         }
 
-        let var_declared_names = &mut self.var_names;
+        let mut var_declared_names = self.var_names.borrow_mut();
         if !var_declared_names.contains(name.as_str()) {
             var_declared_names.insert(name.into_boxed_str());
         }
@@ -156,7 +152,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     }
 
     fn create_mutable_binding(
-        &mut self,
+        &self,
         name: String,
         deletion: bool,
         allow_name_reuse: bool,
@@ -173,7 +169,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     }
 
     fn create_immutable_binding(
-        &mut self,
+        &self,
         name: String,
         strict: bool,
         context: &mut Context,
@@ -188,12 +184,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
             .create_immutable_binding(name, strict, context)
     }
 
-    fn initialize_binding(
-        &mut self,
-        name: &str,
-        value: Value,
-        context: &mut Context,
-    ) -> Result<()> {
+    fn initialize_binding(&self, name: &str, value: Value, context: &mut Context) -> Result<()> {
         if self.declarative_record.has_binding(&name) {
             return self
                 .declarative_record
@@ -208,7 +199,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     }
 
     fn set_mutable_binding(
-        &mut self,
+        &self,
         name: &str,
         value: Value,
         strict: bool,
@@ -232,7 +223,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         self.object_record.get_binding_value(name, strict, context)
     }
 
-    fn delete_binding(&mut self, name: &str) -> bool {
+    fn delete_binding(&self, name: &str) -> bool {
         if self.declarative_record.has_binding(&name) {
             return self.declarative_record.delete_binding(name);
         }
@@ -241,7 +232,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         if global.has_field(name) {
             let status = self.object_record.delete_binding(name);
             if status {
-                let var_names = &mut self.var_names;
+                let mut var_names = self.var_names.borrow_mut();
                 if var_names.contains(name) {
                     var_names.remove(name);
                     return status;
@@ -277,7 +268,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn set_outer_environment(&mut self, _env: Environment) {
         // TODO: Implement
-        panic!("Not implemented yet")
+        todo!("Not implemented yet")
     }
 
     fn get_environment_type(&self) -> EnvironmentType {
@@ -285,7 +276,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     }
 
     fn recursive_create_mutable_binding(
-        &mut self,
+        &self,
         name: String,
         deletion: bool,
         _scope: VariableScope,
@@ -295,7 +286,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     }
 
     fn recursive_create_immutable_binding(
-        &mut self,
+        &self,
         name: String,
         deletion: bool,
         _scope: VariableScope,
@@ -305,7 +296,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     }
 
     fn recursive_set_mutable_binding(
-        &mut self,
+        &self,
         name: &str,
         value: Value,
         strict: bool,
@@ -315,11 +306,17 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     }
 
     fn recursive_initialize_binding(
-        &mut self,
+        &self,
         name: &str,
         value: Value,
         context: &mut Context,
     ) -> Result<()> {
         self.initialize_binding(name, value, context)
+    }
+}
+
+impl From<GlobalEnvironmentRecord> for Environment {
+    fn from(env: GlobalEnvironmentRecord) -> Environment {
+        Gc::new(Box::new(env))
     }
 }

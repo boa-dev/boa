@@ -8,8 +8,7 @@
 //! from within the function.
 //! More info: <https://tc39.es/ecma262/#sec-function-environment-records>
 
-use gc::{Gc, GcCell};
-use rustc_hash::FxHashMap;
+use gc::Gc;
 
 use crate::{
     environment::{
@@ -59,19 +58,15 @@ pub struct FunctionEnvironmentRecord {
 }
 
 impl FunctionEnvironmentRecord {
-    #[allow(clippy::new_ret_no_self)]
     pub fn new(
         f: GcObject,
         this: Option<Value>,
         outer: Option<Environment>,
         binding_status: BindingStatus,
         new_target: Value,
-    ) -> Environment {
+    ) -> FunctionEnvironmentRecord {
         let mut func_env = FunctionEnvironmentRecord {
-            declarative_record: DeclarativeEnvironmentRecord {
-                env_rec: FxHashMap::default(),
-                outer_env: outer, // this will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
-            },
+            declarative_record: DeclarativeEnvironmentRecord::new(outer), // the outer environment will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
             function: f,
             this_binding_status: binding_status,
             home_object: Value::undefined(),
@@ -82,7 +77,7 @@ impl FunctionEnvironmentRecord {
         if let Some(v) = this {
             func_env.bind_this_value(v).unwrap();
         }
-        Gc::new(GcCell::new(Box::new(func_env)))
+        func_env
     }
 
     pub fn bind_this_value(&mut self, value: Value) -> Result<Value> {
@@ -123,7 +118,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     }
 
     fn create_mutable_binding(
-        &mut self,
+        &self,
         name: String,
         deletion: bool,
         allow_name_reuse: bool,
@@ -134,7 +129,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     }
 
     fn create_immutable_binding(
-        &mut self,
+        &self,
         name: String,
         strict: bool,
         context: &mut Context,
@@ -143,18 +138,13 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
             .create_immutable_binding(name, strict, context)
     }
 
-    fn initialize_binding(
-        &mut self,
-        name: &str,
-        value: Value,
-        context: &mut Context,
-    ) -> Result<()> {
+    fn initialize_binding(&self, name: &str, value: Value, context: &mut Context) -> Result<()> {
         self.declarative_record
             .initialize_binding(name, value, context)
     }
 
     fn set_mutable_binding(
-        &mut self,
+        &self,
         name: &str,
         value: Value,
         strict: bool,
@@ -169,7 +159,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
             .get_binding_value(name, strict, context)
     }
 
-    fn delete_binding(&mut self, name: &str) -> bool {
+    fn delete_binding(&self, name: &str) -> bool {
         self.declarative_record.delete_binding(name)
     }
 
@@ -214,7 +204,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     }
 
     fn recursive_create_mutable_binding(
-        &mut self,
+        &self,
         name: String,
         deletion: bool,
         _scope: VariableScope,
@@ -224,12 +214,18 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     }
 
     fn recursive_create_immutable_binding(
-        &mut self,
+        &self,
         name: String,
         deletion: bool,
         _scope: VariableScope,
         context: &mut Context,
     ) -> Result<()> {
         self.create_immutable_binding(name, deletion, context)
+    }
+}
+
+impl From<FunctionEnvironmentRecord> for Environment {
+    fn from(env: FunctionEnvironmentRecord) -> Environment {
+        Gc::new(Box::new(env))
     }
 }

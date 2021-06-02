@@ -7,7 +7,11 @@ use crate::{
     builtins::function::{
         create_unmapped_arguments_object, BuiltInFunction, Function, NativeFunction,
     },
-    environment::function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
+    environment::{
+        environment_record_trait::EnvironmentRecordTrait,
+        function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
+        lexical_environment::Environment,
+    },
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
     syntax::ast::node::RcStatementList,
     value::PreferredType,
@@ -216,19 +220,19 @@ impl GcObject {
                         {
                             // Add arguments object
                             let arguments_obj = create_unmapped_arguments_object(args);
-                            local_env.borrow_mut().create_mutable_binding(
+                            local_env.create_mutable_binding(
                                 "arguments".to_string(),
                                 false,
                                 true,
                                 context,
                             )?;
-                            local_env.borrow_mut().initialize_binding(
-                                "arguments",
-                                arguments_obj,
-                                context,
-                            )?;
+                            local_env.initialize_binding("arguments", arguments_obj, context)?;
                         }
-                        // push the environment first so that it will be used by default parameters
+
+                        // Turn local_env into Environment so it can be cloned
+                        let local_env: Environment = local_env.into();
+
+                        // Push the environment first so that it will be used by default parameters
                         context.push_environment(local_env.clone());
 
                         // Add argument bindings to the function environment
