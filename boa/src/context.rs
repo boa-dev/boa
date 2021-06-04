@@ -652,7 +652,6 @@ impl Context {
         drop(main_timer);
         BoaProfiler::global().drop();
 
-        println!("{:?}", &execution_result);
         execution_result
     }
 

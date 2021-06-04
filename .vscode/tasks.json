@@ -61,6 +61,30 @@
     },
     {
       "type": "process",
+      "label": "Cargo Run (Profiler & VM)",
+      "command": "cargo",
+      "args": [
+        "run",
+        "--features",
+        "Boa/profiler",
+        "--features",
+        "vm",
+        "../tests/js/test.js"
+      ],
+      "group": "build",
+      "options": {
+        "env": {
+          "RUST_BACKTRACE": "full"
+        },
+        "cwd": "${workspaceFolder}/boa_cli"
+      },
+      "presentation": {
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "type": "process",
       "label": "Get Tokens",
       "command": "cargo",
       "args": ["run", "--bin", "boa", "--", "-t=Debug", "./tests/js/test.js"],
