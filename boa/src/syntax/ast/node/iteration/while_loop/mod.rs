@@ -84,7 +84,7 @@ impl Executable for WhileLoop {
                 InterpreterState::Return => {
                     return Ok(result);
                 }
-                InterpreterState::Executing => {
+                InterpreterState::Executing | InterpreterState::Error => {
                     // Continue execution.
                 }
             }

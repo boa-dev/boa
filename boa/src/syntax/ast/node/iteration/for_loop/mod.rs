@@ -130,7 +130,7 @@ impl Executable for ForLoop {
                 InterpreterState::Return => {
                     return Ok(result);
                 }
-                InterpreterState::Executing => {
+                InterpreterState::Executing | InterpreterState::Error => {
                     // Continue execution.
                 }
             }

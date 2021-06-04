@@ -1,7 +1,10 @@
 //! The Virtual Machine (VM) handles generating instructions, then executing them.
 //! This module will provide an instruction set for the AST to use, various traits, plus an interpreter to execute those instructions
 
-use crate::{environment::lexical_environment::VariableScope, BoaProfiler, Context, Result, Value};
+use crate::{
+    environment::lexical_environment::VariableScope, exec::InterpreterState, BoaProfiler, Context,
+    Result, Value,
+};
 
 pub(crate) mod compilation;
 pub(crate) mod instructions;
@@ -30,6 +33,9 @@ struct Profiler {
     trace_string: String,
     start_flag: bool,
 }
+
+#[cfg(test)]
+mod tests;
 
 impl<'a> VM<'a> {
     pub fn new(compiler: Compiler, ctx: &'a mut Context) -> Self {
@@ -264,12 +270,35 @@ impl<'a> VM<'a> {
 
                     Some(value)
                 }
+                // Find a binding on the environment chain and push its value.
+                Instruction::GetName(ref name) => {
+                    match self.ctx.get_binding_value(&name) {
+                        Ok(val) => {
+                            self.push(val);
+                        }
+                        Err(val) => {
+                            self.push(val);
+                            self.ctx
+                                .executor()
+                                .set_current_state(InterpreterState::Error)
+                        }
+                    }
+                    None
+                }
             };
+
             if let Some(value) = result {
                 self.push(value);
             }
 
             self.idx += 1;
+
+            if matches!(
+                self.ctx.executor().get_current_state(),
+                &InterpreterState::Error,
+            ) {
+                break;
+            }
         }
 
         if self.is_trace {

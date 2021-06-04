@@ -157,7 +157,7 @@ impl Executable for Switch {
                         // TODO, continue to a label.
                         break;
                     }
-                    InterpreterState::Executing => {
+                    InterpreterState::Executing | InterpreterState::Error => {
                         // Continuing execution / falling through to next case statement(s).
                         fall_through = true;
                     }

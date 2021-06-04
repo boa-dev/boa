@@ -96,6 +96,28 @@ jobs:
       #     args: --ignore-tests
       # - name: Upload to codecov.io
       #   uses: codecov/codecov-action@v1
+  test_vm_on_linux:
+    name: Test VM on Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.3.4
+      - uses: actions-rs/toolchain@v1.0.7
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+      - name: Cache cargo
+        uses: actions/cache@v2.1.6
+        with:
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: ---package Boa --lib --all-features -- vm --nocapture
 
   test_on_windows:
     name: Test Suite on Windows

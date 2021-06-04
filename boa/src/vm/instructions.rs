@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub enum Instruction {
     Undefined,
     Null,
@@ -66,6 +66,10 @@ pub enum Instruction {
     DefConst(usize),
     /// The usize is the index of the value to initiate the variable with in the pool
     InitLexical(usize),
+
+    // Getting Binding values
+    /// Find a binding on the environment chain and push its value.
+    GetName(String),
 }
 
 impl std::fmt::Display for Instruction {
@@ -90,6 +94,7 @@ impl std::fmt::Display for Instruction {
             Self::BitAnd => write!(f, "BitAnd"),
             Self::BitOr => write!(f, "BitOr"),
             Self::BitXor => write!(f, "BitXor"),
+            Self::GetName(ref name) => write!(f, "GetName({})", name),
             Self::Shl => write!(f, "Shl"),
             Self::Shr => write!(f, "Shr"),
             Self::UShr => write!(f, "UShr"),

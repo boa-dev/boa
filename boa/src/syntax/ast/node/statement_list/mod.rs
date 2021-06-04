@@ -120,7 +120,7 @@ impl Executable for StatementList {
                 InterpreterState::Continue(_label) => {
                     break;
                 }
-                InterpreterState::Executing => {
+                InterpreterState::Executing | InterpreterState::Error => {
                     // Continue execution
                 }
             }

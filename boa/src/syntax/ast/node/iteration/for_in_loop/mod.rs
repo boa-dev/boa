@@ -202,7 +202,7 @@ impl Executable for ForInLoop {
                     handle_state_with_labels!(self, label, context, continue);
                 }
                 InterpreterState::Return => return Ok(result),
-                InterpreterState::Executing => {
+                InterpreterState::Executing | InterpreterState::Error => {
                     // Continue execution.
                 }
             }

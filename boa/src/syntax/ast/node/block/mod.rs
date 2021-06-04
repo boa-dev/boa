@@ -84,7 +84,7 @@ impl Executable for Block {
                     // TODO, continue to a label
                     break;
                 }
-                InterpreterState::Executing => {
+                InterpreterState::Executing | InterpreterState::Error => {
                     // Continue execution
                 }
             }

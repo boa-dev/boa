@@ -14,6 +14,7 @@ pub trait Executable {
 pub(crate) enum InterpreterState {
     Executing,
     Return,
+    Error,
     Break(Option<Box<str>>),
     Continue(Option<Box<str>>),
 }
