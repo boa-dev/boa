@@ -268,23 +268,20 @@ impl<'a> VM<'a> {
                     let value = self.pop();
                     self.ctx.initialize_binding(&name, value.clone())?;
 
-                    Some(value)
-                }
-                // Find a binding on the environment chain and push its value.
-                Instruction::GetName(ref name) => {
-                    match self.ctx.get_binding_value(&name) {
-                        Ok(val) => {
-                            self.push(val);
-                        }
-                        Err(val) => {
-                            self.push(val);
-                            self.ctx
-                                .executor()
-                                .set_current_state(InterpreterState::Error)
-                        }
-                    }
                     None
                 }
+                // Find a binding on the environment chain and push its value.
+                Instruction::GetName(ref name) => match self.ctx.get_binding_value(&name) {
+                    Ok(val) => Some(val),
+                    Err(val) => {
+                        self.ctx
+                            .executor()
+                            .set_current_state(InterpreterState::Error);
+                        Some(val)
+                    }
+                },
+                // Create a new object and push to the stack
+                Instruction::NewObject => Some(Value::new_object(self.ctx)),
             };
 
             if let Some(value) = result {

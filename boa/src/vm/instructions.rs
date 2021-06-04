@@ -67,9 +67,12 @@ pub enum Instruction {
     /// The usize is the index of the value to initiate the variable with in the pool
     InitLexical(usize),
 
-    // Getting Binding values
+    // Binding values
     /// Find a binding on the environment chain and push its value.
     GetName(String),
+    // Objects
+    // Create and push a new object onto the stack
+    NewObject,
 }
 
 impl std::fmt::Display for Instruction {
@@ -118,6 +121,7 @@ impl std::fmt::Display for Instruction {
             Self::DefLet(name) => write!(f, "DefLet({})", name),
             Self::DefConst(name) => write!(f, "DefConst({})", name),
             Self::InitLexical(value) => write!(f, "InitLexical({})", value),
+            Self::NewObject => write!(f, "NewObject"),
         }
     }
 }
