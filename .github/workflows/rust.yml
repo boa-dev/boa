@@ -117,7 +117,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: ---package Boa --lib --all-features -- vm --nocapture
+          args: ---package Boa --lib --features=vm -- vm --nocapture
 
   test_on_windows:
     name: Test Suite on Windows
