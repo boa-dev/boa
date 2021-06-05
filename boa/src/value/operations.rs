@@ -11,9 +11,9 @@ impl Value {
             (Self::Integer(x), Self::Rational(y)) => Self::rational(f64::from(*x) + y),
             (Self::Rational(x), Self::Integer(y)) => Self::rational(x + f64::from(*y)),
 
-            (Self::String(ref x), Self::String(ref y)) => Self::string(format!("{}{}", x, y)),
-            (Self::String(ref x), ref y) => Self::string(format!("{}{}", x, y.to_string(context)?)),
-            (ref x, Self::String(ref y)) => Self::string(format!("{}{}", x.to_string(context)?, y)),
+            (Self::String(ref x), Self::String(ref y)) => Self::from(JsString::concat(x, y)),
+            (Self::String(ref x), ref y) => Self::from(JsString::concat(x, y.to_string(context)?)),
+            (ref x, Self::String(ref y)) => Self::from(JsString::concat(x.to_string(context)?, y)),
             (Self::BigInt(ref n1), Self::BigInt(ref n2)) => {
                 Self::bigint(n1.as_inner().clone() + n2.as_inner().clone())
             }
@@ -24,10 +24,10 @@ impl Value {
                 other.to_primitive(context, PreferredType::Default)?,
             ) {
                 (Self::String(ref x), ref y) => {
-                    Self::string(format!("{}{}", x, y.to_string(context)?))
+                    Self::from(JsString::concat(x, y.to_string(context)?))
                 }
                 (ref x, Self::String(ref y)) => {
-                    Self::string(format!("{}{}", x.to_string(context)?, y))
+                    Self::from(JsString::concat(x.to_string(context)?, y))
                 }
                 (x, y) => match (x.to_numeric(context)?, y.to_numeric(context)?) {
                     (Numeric::Number(x), Numeric::Number(y)) => Self::rational(x + y),

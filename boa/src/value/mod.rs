@@ -14,7 +14,7 @@ use crate::{
     object::{GcObject, Object, ObjectData},
     property::{Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
     symbol::{JsSymbol, WellKnownSymbols},
-    BoaProfiler, Context, Result,
+    BoaProfiler, Context, JsString, Result,
 };
 use gc::{Finalize, Trace};
 use serde_json::{Number as JSONNumber, Value as JSONValue};
@@ -31,7 +31,6 @@ mod equality;
 mod hash;
 mod operations;
 mod rcbigint;
-mod rcstring;
 mod r#type;
 
 pub use conversions::*;
@@ -41,7 +40,6 @@ pub use hash::*;
 pub use operations::*;
 pub use r#type::Type;
 pub use rcbigint::RcBigInt;
-pub use rcstring::RcString;
 
 /// A Javascript value
 #[derive(Trace, Finalize, Debug, Clone)]
@@ -53,7 +51,7 @@ pub enum Value {
     /// `boolean` - A `true` / `false` value, for if a certain criteria is met.
     Boolean(bool),
     /// `String` - A UTF-8 string, such as `"Hello, world"`.
-    String(RcString),
+    String(JsString),
     /// `Number` - A 64-bit floating point number, such as `3.1415`
     Rational(f64),
     /// `Number` - A 32-bit integer, such as `42`.
@@ -109,7 +107,7 @@ impl Value {
     #[inline]
     pub fn string<S>(value: S) -> Self
     where
-        S: Into<RcString>,
+        S: Into<JsString>,
     {
         Self::String(value.into())
     }
@@ -368,7 +366,7 @@ impl Value {
 
     /// Returns the string if the values is a string, otherwise `None`.
     #[inline]
-    pub fn as_string(&self) -> Option<&RcString> {
+    pub fn as_string(&self) -> Option<&JsString> {
         match self {
             Self::String(ref string) => Some(string),
             _ => None,
@@ -643,7 +641,7 @@ impl Value {
     /// Converts the value to a string.
     ///
     /// This function is equivalent to `String(value)` in JavaScript.
-    pub fn to_string(&self, context: &mut Context) -> Result<RcString> {
+    pub fn to_string(&self, context: &mut Context) -> Result<JsString> {
         match self {
             Value::Null => Ok("null".into()),
             Value::Undefined => Ok("undefined".into()),

@@ -44,9 +44,9 @@ impl From<char> for Value {
     }
 }
 
-impl From<RcString> for Value {
+impl From<JsString> for Value {
     #[inline]
-    fn from(value: RcString) -> Self {
+    fn from(value: JsString) -> Self {
         Value::String(value)
     }
 }

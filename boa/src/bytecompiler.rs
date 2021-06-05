@@ -4,9 +4,9 @@ use crate::{
         op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
         Const, Node,
     },
-    value::{RcBigInt, RcString},
+    value::RcBigInt,
     vm::{CodeBlock, Opcode},
-    Value,
+    JsString, Value,
 };
 
 use std::collections::HashMap;
@@ -34,7 +34,7 @@ fn u64_to_array(value: u64) -> [u8; 8] {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum Literal {
-    String(RcString),
+    String(JsString),
     BigInt(RcBigInt),
 }
 
@@ -64,7 +64,7 @@ enum Access<'a> {
 pub struct ByteCompiler {
     code_block: CodeBlock,
     literals_map: HashMap<Literal, u32>,
-    names_map: HashMap<RcString, u32>,
+    names_map: HashMap<JsString, u32>,
     loops: Vec<LoopControlInfo>,
 }
 
@@ -111,7 +111,7 @@ impl ByteCompiler {
             return *index;
         }
 
-        let name: RcString = name.into();
+        let name = JsString::new(name);
         let index = self.code_block.names.len() as u32;
         self.code_block.names.push(name.clone());
         self.names_map.insert(name, index);

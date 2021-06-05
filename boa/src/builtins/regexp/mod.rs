@@ -17,8 +17,8 @@ use crate::{
     object::{ConstructorBuilder, FunctionBuilder, GcObject, ObjectData, PROTOTYPE},
     property::{Attribute, DataDescriptor},
     symbol::WellKnownSymbols,
-    value::{IntegerOrInfinity, RcString, Value},
-    BoaProfiler, Context, Result,
+    value::{IntegerOrInfinity, Value},
+    BoaProfiler, Context, JsString, Result,
 };
 use regexp_string_iterator::RegExpStringIterator;
 use regress::Regex;
@@ -650,7 +650,7 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexpexec
     pub(crate) fn abstract_exec(
         this: &Value,
-        input: RcString,
+        input: JsString,
         context: &mut Context,
     ) -> Result<Value> {
         // 1. Assert: Type(R) is Object.
@@ -694,7 +694,7 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexpbuiltinexec
     pub(crate) fn abstract_builtin_exec(
         this: &Value,
-        input: RcString,
+        input: JsString,
         context: &mut Context,
     ) -> Result<Value> {
         // 1. Assert: R is an initialized RegExp instance.
@@ -1160,7 +1160,7 @@ impl RegExp {
         }
 
         // 12. Let accumulatedResult be the empty String.
-        let mut accumulated_result = RcString::from("");
+        let mut accumulated_result = JsString::new("");
 
         // 13. Let nextSourcePosition be 0.
         let mut next_source_position = 0;
@@ -1227,7 +1227,7 @@ impl RegExp {
 
             // k. If functionalReplace is true, then
             // l. Else,
-            let replacement: RcString;
+            let replacement: JsString;
             if functional_replace {
                 // i. Let replacerArgs be « matched ».
                 let mut replacer_args = vec![Value::from(matched)];
@@ -1553,7 +1553,7 @@ impl RegExp {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-advancestringindex
-fn advance_string_index(s: RcString, index: usize, unicode: bool) -> usize {
+fn advance_string_index(s: JsString, index: usize, unicode: bool) -> usize {
     // Regress only works with utf8, so this function differs from the spec.
 
     // 1. Assert: index ≤ 2^53 - 1.
