@@ -86,9 +86,11 @@ impl Executable for DoWhileLoop {
                 InterpreterState::Return => {
                     return Ok(result);
                 }
-                InterpreterState::Executing | InterpreterState::Error => {
+                InterpreterState::Executing => {
                     // Continue execution.
                 }
+                #[cfg(feature = "vm")]
+                InterpreterState::Error => {}
             }
             if !self.cond().run(context)?.to_boolean() {
                 break;

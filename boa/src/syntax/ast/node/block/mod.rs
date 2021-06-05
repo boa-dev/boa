@@ -84,9 +84,11 @@ impl Executable for Block {
                     // TODO, continue to a label
                     break;
                 }
-                InterpreterState::Executing | InterpreterState::Error => {
+                InterpreterState::Executing => {
                     // Continue execution
                 }
+                #[cfg(feature = "vm")]
+                InterpreterState::Error => {}
             }
         }
 

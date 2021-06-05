@@ -130,9 +130,11 @@ impl Executable for ForLoop {
                 InterpreterState::Return => {
                     return Ok(result);
                 }
-                InterpreterState::Executing | InterpreterState::Error => {
+                InterpreterState::Executing => {
                     // Continue execution.
                 }
+                #[cfg(feature = "vm")]
+                InterpreterState::Error => {}
             }
 
             if let Some(final_expr) = self.final_expr() {

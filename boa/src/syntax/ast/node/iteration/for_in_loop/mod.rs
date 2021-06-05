@@ -202,9 +202,11 @@ impl Executable for ForInLoop {
                     handle_state_with_labels!(self, label, context, continue);
                 }
                 InterpreterState::Return => return Ok(result),
-                InterpreterState::Executing | InterpreterState::Error => {
+                InterpreterState::Executing => {
                     // Continue execution.
                 }
+                #[cfg(feature = "vm")]
+                InterpreterState::Error => {}
             }
             let _ = context.pop_environment();
         }

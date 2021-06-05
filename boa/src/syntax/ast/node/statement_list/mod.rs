@@ -120,9 +120,11 @@ impl Executable for StatementList {
                 InterpreterState::Continue(_label) => {
                     break;
                 }
-                InterpreterState::Executing | InterpreterState::Error => {
+                InterpreterState::Executing => {
                     // Continue execution
                 }
+                #[cfg(feature = "vm")]
+                InterpreterState::Error => {}
             }
             if i + 1 == self.items().len() {
                 obj = val;
