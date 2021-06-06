@@ -28,10 +28,7 @@ use crate::{
     BoaProfiler, Context, Result,
 };
 use regress::Regex;
-use std::{
-    convert::TryFrom,
-    string::String as StdString,
-};
+use std::{convert::TryFrom, string::String as StdString};
 
 pub(crate) fn code_point_at(string: RcString, position: i64) -> Option<(u32, u8, bool)> {
     let size = string.encode_utf16().count();
