@@ -6,13 +6,16 @@ use crate::{
         function::{BuiltInFunction, Function, FunctionFlags, NativeFunction},
         map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
+        set::ordered_set::OrderedSet,
+        set::set_iterator::SetIterator,
         string::string_iterator::StringIterator,
         BigInt, Date, RegExp,
     },
     context::StandardConstructor,
     gc::{Finalize, Trace},
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
-    value::{same_value, RcBigInt, RcString, RcSymbol, Value},
+    symbol::RcSymbol,
+    value::{RcBigInt, RcString, Value},
     BoaProfiler, Context,
 };
 use rustc_hash::FxHashMap;
@@ -87,6 +90,8 @@ pub enum ObjectData {
     Boolean(bool),
     ForInIterator(ForInIterator),
     Function(Function),
+    Set(OrderedSet<Value>),
+    SetIterator(SetIterator),
     String(RcString),
     StringIterator(StringIterator),
     Number(f64),
@@ -111,6 +116,8 @@ impl Display for ObjectData {
                 Self::RegExp(_) => "RegExp",
                 Self::Map(_) => "Map",
                 Self::MapIterator(_) => "MapIterator",
+                Self::Set(_) => "Set",
+                Self::SetIterator(_) => "SetIterator",
                 Self::String(_) => "String",
                 Self::StringIterator(_) => "StringIterator",
                 Self::Symbol(_) => "Symbol",
@@ -360,6 +367,35 @@ impl Object {
         }
     }
 
+    #[inline]
+    pub fn is_set(&self) -> bool {
+        matches!(self.data, ObjectData::Set(_))
+    }
+
+    #[inline]
+    pub fn as_set_ref(&self) -> Option<&OrderedSet<Value>> {
+        match self.data {
+            ObjectData::Set(ref set) => Some(set),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_set_mut(&mut self) -> Option<&mut OrderedSet<Value>> {
+        match &mut self.data {
+            ObjectData::Set(set) => Some(set),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_set_iterator_mut(&mut self) -> Option<&mut SetIterator> {
+        match &mut self.data {
+            ObjectData::SetIterator(iter) => Some(iter),
+            _ => None,
+        }
+    }
+
     /// Checks if it a `String` object.
     #[inline]
     pub fn is_string(&self) -> bool {
@@ -498,7 +534,7 @@ impl Object {
         } else {
             // If target is non-extensible, [[SetPrototypeOf]] must return false
             // unless V is the SameValue as the target's observed [[GetPrototypeOf]] value.
-            same_value(&prototype, &self.prototype)
+            Value::same_value(&prototype, &self.prototype)
         }
     }
 

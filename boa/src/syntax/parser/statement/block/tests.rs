@@ -3,8 +3,8 @@
 use crate::syntax::{
     ast::{
         node::{
-            Assign, Block, Call, FunctionDecl, Identifier, Node, Return, UnaryOp, VarDecl,
-            VarDeclList,
+            Assign, Block, Call, Declaration, DeclarationList, FunctionDecl, Identifier, Node,
+            Return, UnaryOp,
         },
         op, Const,
     },
@@ -33,7 +33,8 @@ fn non_empty() {
             a++;
         }",
         vec![
-            VarDeclList::from(vec![VarDecl::new("a", Some(Const::from(10).into()))]).into(),
+            DeclarationList::Var(vec![Declaration::new("a", Some(Const::from(10).into()))].into())
+                .into(),
             UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::from("a")).into(),
         ],
     );
@@ -54,10 +55,13 @@ fn non_empty() {
                 vec![Return::new(Const::from(10), None).into()],
             )
             .into(),
-            VarDeclList::from(vec![VarDecl::new(
-                "a",
-                Node::from(Call::new(Identifier::from("hello"), vec![])),
-            )])
+            DeclarationList::Var(
+                vec![Declaration::new(
+                    "a",
+                    Node::from(Call::new(Identifier::from("hello"), vec![])),
+                )]
+                .into(),
+            )
             .into(),
             UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::from("a")).into(),
         ],
@@ -80,10 +84,13 @@ fn hoisting() {
                 vec![Return::new(Const::from(10), None).into()],
             )
             .into(),
-            VarDeclList::from(vec![VarDecl::new(
-                "a",
-                Node::from(Call::new(Identifier::from("hello"), vec![])),
-            )])
+            DeclarationList::Var(
+                vec![Declaration::new(
+                    "a",
+                    Node::from(Call::new(Identifier::from("hello"), vec![])),
+                )]
+                .into(),
+            )
             .into(),
             UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::from("a")).into(),
         ],
@@ -99,7 +106,7 @@ fn hoisting() {
         vec![
             Assign::new(Identifier::from("a"), Const::from(10)).into(),
             UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::from("a")).into(),
-            VarDeclList::from(vec![VarDecl::new("a", None)]).into(),
+            DeclarationList::Var(vec![Declaration::new("a", None)].into()).into(),
         ],
     );
 }

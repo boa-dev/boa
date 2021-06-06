@@ -16,10 +16,11 @@ mod tests;
 use crate::{
     builtins::array::array_iterator::{ArrayIterationKind, ArrayIterator},
     builtins::BuiltIn,
-    gc::GcObject,
-    object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
+    builtins::Number,
+    object::{ConstructorBuilder, FunctionBuilder, GcObject, ObjectData, PROTOTYPE},
     property::{Attribute, DataDescriptor},
-    value::{same_value_zero, IntegerOrInfinity, Value},
+    symbol::WellKnownSymbols,
+    value::{IntegerOrInfinity, Value},
     BoaProfiler, Context, Result,
 };
 use num_traits::*;
@@ -42,7 +43,7 @@ impl BuiltIn for Array {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let symbol_iterator = context.well_known_symbols().iterator_symbol();
+        let symbol_iterator = WellKnownSymbols::iterator();
 
         let values_function = FunctionBuilder::new(context, Self::values)
             .name("values")
@@ -91,6 +92,8 @@ impl BuiltIn for Array {
         .method(Self::every, "every", 1)
         .method(Self::find, "find", 1)
         .method(Self::find_index, "findIndex", 1)
+        .method(Self::flat, "flat", 0)
+        .method(Self::flat_map, "flatMap", 1)
         .method(Self::slice, "slice", 2)
         .method(Self::some, "some", 2)
         .method(Self::reduce, "reduce", 2)
@@ -259,6 +262,51 @@ impl Array {
         Ok(array_obj_ptr)
     }
 
+    /// Utility function used to specify the creation of a new Array object using a constructor
+    /// function that is derived from original_array.
+    ///
+    /// see: <https://tc39.es/ecma262/#sec-arrayspeciescreate>
+    pub(crate) fn array_species_create(
+        original_array: &GcObject,
+        length: u32,
+        context: &mut Context,
+    ) -> Result<Value> {
+        if !original_array.is_array() {
+            return Ok(Self::array_create(length, None, context));
+        }
+        let c = original_array.get(
+            &"constructor".into(),
+            original_array.clone().into(),
+            context,
+        )?;
+        // Step 4 is ignored, as there are no different realms for now
+        let c = if let Some(c) = c.as_object() {
+            let c = c.get(
+                &WellKnownSymbols::species().into(),
+                c.clone().into(),
+                context,
+            )?;
+            if c.is_null_or_undefined() {
+                Value::undefined()
+            } else {
+                c
+            }
+        } else {
+            c
+        };
+        if c.is_undefined() {
+            return Ok(Self::array_create(length, None, context));
+        }
+        if let Some(c) = c.as_object() {
+            if !c.is_constructable() {
+                return context.throw_type_error("Symbol.species must be a constructor");
+            }
+            c.construct(&[Value::from(length)], &c.clone().into(), context)
+        } else {
+            context.throw_type_error("Symbol.species must be a constructor")
+        }
+    }
+
     /// Utility function which takes an existing array object and puts additional
     /// values on the end, correctly rewriting the length
     pub(crate) fn add_to_array_object(
@@ -353,7 +401,7 @@ impl Array {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push
     pub(crate) fn push(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let new_array = Self::add_to_array_object(this, args, context)?;
-        Ok(new_array.get_field("length", context)?)
+        new_array.get_field("length", context)
     }
 
     /// `Array.prototype.pop()`
@@ -885,6 +933,224 @@ impl Array {
         Ok(Value::integer(-1))
     }
 
+    /// `Array.prototype.flat( [depth] )`
+    ///
+    /// This method creates a new array with all sub-array elements concatenated into it
+    /// recursively up to the specified depth.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.flat
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat
+    pub(crate) fn flat(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        // 1. Let O be ToObject(this value)
+        let this: Value = this.to_object(context)?.into();
+
+        // 2. Let sourceLen be LengthOfArrayLike(O)
+        let source_len = this.get_field("length", context)?.to_length(context)? as u32;
+
+        // 3. Let depthNum be 1
+        let depth = args.get(0);
+        let default_depth = Value::Integer(1);
+
+        // 4. If depth is not undefined, then set depthNum to IntegerOrInfinity(depth)
+        // 4.a. Set depthNum to ToIntegerOrInfinity(depth)
+        // 4.b. If depthNum < 0, set depthNum to 0
+        let depth_num = match depth
+            .unwrap_or(&default_depth)
+            .to_integer_or_infinity(context)?
+        {
+            IntegerOrInfinity::Integer(i) if i < 0 => IntegerOrInfinity::Integer(0),
+            num => num,
+        };
+
+        // 5. Let A be ArraySpeciesCreate(O, 0)
+        let new_array = Self::new_array(context);
+
+        // 6. Perform FlattenIntoArray(A, O, sourceLen, 0, depthNum)
+        let len = Self::flatten_into_array(
+            context,
+            &new_array,
+            &this,
+            source_len,
+            0,
+            depth_num,
+            &Value::undefined(),
+            &Value::undefined(),
+        )?;
+        new_array.set_field("length", len.to_length(context)?, context)?;
+
+        Ok(new_array)
+    }
+
+    /// `Array.prototype.flatMap( callback, [ thisArg ] )`
+    ///
+    /// This method returns a new array formed by applying a given callback function to
+    /// each element of the array, and then flattening the result by one level. It is
+    /// identical to a `map()` followed by a `flat()` of depth 1, but slightly more
+    /// efficient than calling those two methods separately.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.flatMap
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap
+    pub(crate) fn flat_map(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        // 1. Let O be ToObject(this value)
+        let o: Value = this.to_object(context)?.into();
+
+        // 2. Let sourceLen be LengthOfArrayLike(O)
+        let source_len = this.get_field("length", context)?.to_length(context)? as u32;
+
+        // 3. If IsCallable(mapperFunction) is false, throw a TypeError exception
+        let mapper_function = args.get(0).cloned().unwrap_or_else(Value::undefined);
+        if !mapper_function.is_function() {
+            return context.throw_type_error("flatMap mapper function is not callable");
+        }
+        let this_arg = args.get(1).cloned().unwrap_or(o);
+
+        // 4. Let A be ArraySpeciesCreate(O, 0)
+        let new_array = Self::new_array(context);
+
+        // 5. Perform FlattenIntoArray(A, O, sourceLen, 0, 1, mapperFunction, thisArg)
+        let depth = Value::Integer(1).to_integer_or_infinity(context)?;
+        let len = Self::flatten_into_array(
+            context,
+            &new_array,
+            &this,
+            source_len,
+            0,
+            depth,
+            &mapper_function,
+            &this_arg,
+        )?;
+        new_array.set_field("length", len.to_length(context)?, context)?;
+
+        // 6. Return A
+        Ok(new_array)
+    }
+
+    /// Abstract method `FlattenIntoArray`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-flattenintoarray
+    #[allow(clippy::too_many_arguments)]
+    fn flatten_into_array(
+        context: &mut Context,
+        target: &Value,
+        source: &Value,
+        source_len: u32,
+        start: u32,
+        depth: IntegerOrInfinity,
+        mapper_function: &Value,
+        this_arg: &Value,
+    ) -> Result<Value> {
+        // 1. Assert target is Object
+        debug_assert!(target.is_object());
+
+        // 2. Assert source is Object
+        debug_assert!(source.is_object());
+
+        // 3. Assert if mapper_function is present, then:
+        // - IsCallable(mapper_function) is true
+        // - thisArg is present
+        // - depth is 1
+
+        // 4. Let targetIndex be start
+        let mut target_index = start;
+
+        // 5. Let sourceIndex be 0
+        let mut source_index = 0;
+
+        // 6. Repeat, while R(sourceIndex) < sourceLen
+        while source_index < source_len {
+            // 6.a. Let P be ToString(sourceIndex)
+            // 6.b. Let exists be HasProperty(source, P)
+            // 6.c. If exists is true, then
+            if source.has_field(source_index) {
+                // 6.c.i. Let element be Get(source, P)
+                let mut element = source.get_field(source_index, context)?;
+
+                // 6.c.ii. If mapperFunction is present, then
+                if !mapper_function.is_undefined() {
+                    // 6.c.ii.1. Set element to Call(mapperFunction, thisArg, <<element, sourceIndex, source>>)
+                    let args = [element, Value::from(source_index), target.clone()];
+                    element = context.call(&mapper_function, &this_arg, &args)?;
+                }
+                let element_as_object = element.as_object();
+
+                // 6.c.iii. Let shouldFlatten be false
+                let mut should_flatten = false;
+
+                // 6.c.iv. If depth > 0, then
+                let depth_is_positive = match depth {
+                    IntegerOrInfinity::PositiveInfinity => true,
+                    IntegerOrInfinity::NegativeInfinity => false,
+                    IntegerOrInfinity::Integer(i) => i > 0,
+                };
+                if depth_is_positive {
+                    // 6.c.iv.1. Set shouldFlatten is IsArray(element)
+                    should_flatten = match element_as_object {
+                        Some(obj) => obj.is_array(),
+                        _ => false,
+                    };
+                }
+                // 6.c.v. If shouldFlatten is true
+                if should_flatten {
+                    // 6.c.v.1. If depth is +Infinity let newDepth be +Infinity
+                    // 6.c.v.2. Else, let newDepth be depth - 1
+                    let new_depth = match depth {
+                        IntegerOrInfinity::PositiveInfinity => IntegerOrInfinity::PositiveInfinity,
+                        IntegerOrInfinity::Integer(d) => IntegerOrInfinity::Integer(d - 1),
+                        IntegerOrInfinity::NegativeInfinity => IntegerOrInfinity::NegativeInfinity,
+                    };
+
+                    // 6.c.v.3. Let elementLen be LengthOfArrayLike(element)
+                    let element_len =
+                        element.get_field("length", context)?.to_length(context)? as u32;
+
+                    // 6.c.v.4. Set targetIndex to FlattenIntoArray(target, element, elementLen, targetIndex, newDepth)
+                    target_index = Self::flatten_into_array(
+                        context,
+                        target,
+                        &element,
+                        element_len,
+                        target_index,
+                        new_depth,
+                        &Value::undefined(),
+                        &Value::undefined(),
+                    )?
+                    .to_u32(context)?;
+
+                // 6.c.vi. Else
+                } else {
+                    // 6.c.vi.1. If targetIndex >= 2^53 - 1, throw a TypeError exception
+                    if target_index.to_f64().ok_or(0)? >= Number::MAX_SAFE_INTEGER {
+                        return context
+                            .throw_type_error("Target index exceeded max safe integer value");
+                    }
+
+                    // 6.c.vi.2. Perform CreateDataPropertyOrThrow(target, targetIndex, element)
+                    target
+                        .set_property(target_index, DataDescriptor::new(element, Attribute::all()));
+
+                    // 6.c.vi.3. Set targetIndex to targetIndex + 1
+                    target_index = target_index.saturating_add(1);
+                }
+            }
+            // 6.d. Set sourceIndex to sourceIndex + 1
+            source_index = source_index.saturating_add(1);
+        }
+
+        // 7. Return targetIndex
+        Ok(Value::Integer(target_index.try_into().unwrap_or(0)))
+    }
+
     /// `Array.prototype.fill( value[, start[, end]] )`
     ///
     /// The method fills (modifies) all the elements of an array from start index (default 0)
@@ -933,7 +1199,7 @@ impl Array {
         for idx in 0..length {
             let check_element = this.get_field(idx, context)?.clone();
 
-            if same_value_zero(&check_element, &search_element) {
+            if Value::same_value_zero(&check_element, &search_element) {
                 return Ok(Value::from(true));
             }
         }
@@ -990,37 +1256,57 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.filter
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter
     pub(crate) fn filter(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        if args.is_empty() {
-            return Err(Value::from(
-                "missing argument 0 when calling function Array.prototype.filter",
-            ));
-        }
+        let o = this.to_object(context)?;
+        let length = o
+            .get(&"length".into(), Value::from(o.clone()), context)?
+            .to_length(context)?;
 
-        let callback = args.get(0).cloned().unwrap_or_else(Value::undefined);
+        let callback = args
+            .get(0)
+            .map(|a| a.to_object(context))
+            .transpose()?
+            .ok_or_else(|| {
+                context.construct_type_error(
+                    "missing argument 0 when calling function Array.prototype.filter",
+                )
+            })?;
         let this_val = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        let length = this.get_field("length", context)?.to_length(context)?;
+        if !callback.is_callable() {
+            return context.throw_type_error("the callback must be callable");
+        }
 
-        let new = Self::new_array(context);
+        let mut a = Self::array_species_create(&o, 0, context)?
+            .as_object()
+            .expect("array_species_create must create an object");
 
-        let values = (0..length)
-            .map(|idx| {
-                let element = this.get_field(idx, context)?;
+        let mut to = 0u32;
+        for idx in 0..length {
+            if o.has_property(&idx.into()) {
+                let element = o.get(&idx.into(), Value::from(o.clone()), context)?;
 
-                let args = [element.clone(), Value::from(idx), new.clone()];
+                let args = [element.clone(), Value::from(idx), Value::from(o.clone())];
 
-                let callback_result = context.call(&callback, &this_val, &args)?;
+                let callback_result = callback.call(&this_val, &args, context)?;
 
                 if callback_result.to_boolean() {
-                    Ok(Some(element))
-                } else {
-                    Ok(None)
+                    if !a.define_own_property(
+                        to,
+                        DataDescriptor::new(
+                            element,
+                            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
+                        )
+                        .into(),
+                        context,
+                    )? {
+                        return context.throw_type_error("cannot set property in array");
+                    }
+                    to += 1;
                 }
-            })
-            .collect::<Result<Vec<Option<Value>>>>()?;
-        let values = values.into_iter().filter_map(|v| v).collect::<Vec<_>>();
+            }
+        }
 
-        Self::construct_array(&new, &values, context)
+        Ok(a.into())
     }
 
     /// Array.prototype.some ( callbackfn [ , thisArg ] )

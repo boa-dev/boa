@@ -6,7 +6,7 @@ use crate::{
     syntax::ast::node::Node,
     BoaProfiler, Context, Result, Value,
 };
-use std::{fmt, ops::Deref, rc::Rc};
+use std::{collections::HashSet, fmt, ops::Deref, rc::Rc};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -54,6 +54,44 @@ impl StatementList {
             writeln!(f)?;
         }
         Ok(())
+    }
+
+    pub fn lexically_declared_names(&self) -> HashSet<&str> {
+        let mut set = HashSet::new();
+        for stmt in self.items() {
+            if let Node::LetDeclList(decl_list) | Node::ConstDeclList(decl_list) = stmt {
+                for decl in decl_list.as_ref() {
+                    if !set.insert(decl.name()) {
+                        // It is a Syntax Error if the LexicallyDeclaredNames of StatementList contains any duplicate entries.
+                        // https://tc39.es/ecma262/#sec-block-static-semantics-early-errors
+                        unreachable!("Redeclaration of {}", decl.name());
+                    }
+                }
+            }
+        }
+        set
+    }
+
+    pub fn function_declared_names(&self) -> HashSet<&str> {
+        let mut set = HashSet::new();
+        for stmt in self.items() {
+            if let Node::FunctionDecl(decl) = stmt {
+                set.insert(decl.name());
+            }
+        }
+        set
+    }
+
+    pub fn var_declared_names(&self) -> HashSet<&str> {
+        let mut set = HashSet::new();
+        for stmt in self.items() {
+            if let Node::VarDeclList(decl_list) = stmt {
+                for decl in decl_list.as_ref() {
+                    set.insert(decl.name());
+                }
+            }
+        }
+        set
     }
 }
 

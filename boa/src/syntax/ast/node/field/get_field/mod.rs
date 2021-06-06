@@ -69,7 +69,7 @@ impl Executable for GetField {
         }
         let field = self.field().run(context)?;
 
-        Ok(obj.get_field(field.to_property_key(context)?, context)?)
+        obj.get_field(field.to_property_key(context)?, context)
     }
 }
 

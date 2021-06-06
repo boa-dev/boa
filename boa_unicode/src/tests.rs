@@ -1,4 +1,3 @@
-use unicode_general_category;
 #[test]
 fn check_unicode_version() {
     assert_eq!(

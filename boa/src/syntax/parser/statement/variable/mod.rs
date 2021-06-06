@@ -3,7 +3,7 @@
 use crate::{
     syntax::{
         ast::{
-            node::{VarDecl, VarDeclList},
+            node::{Declaration, DeclarationList},
             Keyword, Punctuator,
         },
         lexer::TokenKind,
@@ -52,7 +52,7 @@ impl<R> TokenParser<R> for VariableStatement
 where
     R: Read,
 {
-    type Output = VarDeclList;
+    type Output = DeclarationList;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("VariableStatement", "Parsing");
@@ -106,7 +106,7 @@ impl<R> TokenParser<R> for VariableDeclarationList
 where
     R: Read,
 {
-    type Output = VarDeclList;
+    type Output = DeclarationList;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let mut list = Vec::new();
@@ -127,7 +127,7 @@ where
             }
         }
 
-        Ok(VarDeclList::from(list))
+        Ok(DeclarationList::Var(list.into()))
     }
 }
 
@@ -164,7 +164,7 @@ impl<R> TokenParser<R> for VariableDeclaration
 where
     R: Read,
 {
-    type Output = VarDecl;
+    type Output = Declaration;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         // TODO: BindingPattern
@@ -181,6 +181,6 @@ where
             None
         };
 
-        Ok(VarDecl::new(name, init))
+        Ok(Declaration::new(name, init))
     }
 }

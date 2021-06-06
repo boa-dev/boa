@@ -125,11 +125,8 @@ where
         match cursor.peek(0)? {
             Some(tok) => {
                 match tok.kind() {
-                    TokenKind::StringLiteral(string)
-                    | TokenKind::TemplateNoSubstitution { cooked: string, .. } => {
-                        if string.as_ref() == "use strict" {
-                            cursor.set_strict_mode(true);
-                        }
+                    TokenKind::StringLiteral(string) if string.as_ref() == "use strict" => {
+                        cursor.set_strict_mode(true);
                     }
                     _ => {}
                 }

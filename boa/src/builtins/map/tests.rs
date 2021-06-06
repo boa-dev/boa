@@ -351,6 +351,6 @@ fn not_a_function() {
     ";
     assert_eq!(
         forward(&mut context, init),
-        "\"TypeError: function object is not callable\""
+        "\"TypeError: calling a builtin Map constructor without new is forbidden\""
     );
 }

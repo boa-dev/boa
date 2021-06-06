@@ -6,6 +6,7 @@ use super::token::Numeric;
 use super::*;
 use super::{Error, Position};
 use crate::syntax::ast::Keyword;
+use crate::syntax::lexer::template::TemplateString;
 use std::str;
 
 fn span(start: (u32, u32), end: (u32, u32)) -> Span {
@@ -72,7 +73,7 @@ fn check_multi_line_comment() {
 
 #[test]
 fn check_identifier() {
-    let s = "x x1 _x $x __ $$ Ѐ ЀЀ x\u{200C}\u{200D}";
+    let s = "x x1 _x $x __ $$ Ѐ ЀЀ x\u{200C}\u{200D} \\u0078 \\u0078\\u0078 \\u{0078}x\\u{0078}";
     let mut lexer = Lexer::new(s.as_bytes());
 
     let expected = [
@@ -85,6 +86,9 @@ fn check_identifier() {
         TokenKind::identifier("Ѐ"),
         TokenKind::identifier("ЀЀ"),
         TokenKind::identifier("x\u{200C}\u{200D}"),
+        TokenKind::identifier("x"),
+        TokenKind::identifier("xx"),
+        TokenKind::identifier("xxx"),
     ];
 
     expect_tokens(&mut lexer, &expected);
@@ -136,7 +140,10 @@ fn check_template_literal_simple() {
 
     assert_eq!(
         lexer.next().unwrap().unwrap().kind(),
-        &TokenKind::template_no_substitution("I'm a template literal", "I'm a template literal")
+        &TokenKind::template_no_substitution(TemplateString::new(
+            "I'm a template literal",
+            Position::new(1, 1)
+        ))
     );
 }
 

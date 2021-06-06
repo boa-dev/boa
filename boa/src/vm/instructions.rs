@@ -12,7 +12,7 @@ pub enum Instruction {
     /// Loads an i32 onto the stack
     Int32(i32),
 
-    /// Loads an f32 onto the stack
+    /// Loads an f64 onto the stack
     Rational(f64),
 
     /// Adds the values from destination and source and stores the result in destination

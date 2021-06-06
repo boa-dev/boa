@@ -17,7 +17,9 @@ pub mod math;
 pub mod nan;
 pub mod number;
 pub mod object;
+pub mod reflect;
 pub mod regexp;
+pub mod set;
 pub mod string;
 pub mod symbol;
 pub mod undefined;
@@ -39,7 +41,10 @@ pub(crate) use self::{
     number::Number,
     object::for_in_iterator::ForInIterator,
     object::Object as BuiltInObjectObject,
+    reflect::Reflect,
     regexp::RegExp,
+    set::set_iterator::SetIterator,
+    set::Set,
     string::String,
     symbol::Symbol,
     undefined::Undefined,
@@ -76,6 +81,7 @@ pub fn init(context: &mut Context) {
         Date::init,
         Map::init,
         Number::init,
+        Set::init,
         String::init,
         RegExp::init,
         Symbol::init,
@@ -86,11 +92,12 @@ pub fn init(context: &mut Context) {
         SyntaxError::init,
         EvalError::init,
         UriError::init,
+        Reflect::init,
         #[cfg(feature = "console")]
         console::Console::init,
     ];
 
-    let global_object = context.global_object().clone();
+    let global_object = context.global_object();
 
     for init in &globals {
         let (name, value, attribute) = init(context);

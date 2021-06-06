@@ -58,7 +58,8 @@ impl TestSuite {
 
         if verbose != 0 {
             println!(
-                "Results: total: {}, passed: {}, ignored: {}, failed: {} (panics: {}{}), conformance: {:.2}%",
+                "Suite {} results: total: {}, passed: {}, ignored: {}, failed: {} (panics: {}{}), conformance: {:.2}%",
+                self.name,
                 total,
                 passed.to_string().green(),
                 ignored.to_string().yellow(),

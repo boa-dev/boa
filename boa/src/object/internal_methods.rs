@@ -8,7 +8,7 @@
 use crate::{
     object::{GcObject, Object, ObjectData},
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
-    value::{same_value, Value},
+    value::{Type, Value},
     BoaProfiler, Context, Result,
 };
 
@@ -106,7 +106,7 @@ impl GcObject {
         let own_desc = if let Some(desc) = self.get_own_property(&key) {
             desc
         } else if let Some(ref mut parent) = self.get_prototype_of().as_object() {
-            return Ok(parent.set(key, val, receiver, context)?);
+            return parent.set(key, val, receiver, context);
         } else {
             DataDescriptor::new(Value::undefined(), Attribute::all()).into()
         };
@@ -211,36 +211,47 @@ impl GcObject {
         }
 
         match (&current, &desc) {
+            (
+                PropertyDescriptor::Data(current),
+                PropertyDescriptor::Accessor(AccessorDescriptor { get, set, .. }),
+            ) => {
+                // 6. b
+                if !current.configurable() {
+                    return false;
+                }
+
+                let current =
+                    AccessorDescriptor::new(get.clone(), set.clone(), current.attributes());
+                self.insert(key, current);
+                return true;
+            }
+            (
+                PropertyDescriptor::Accessor(current),
+                PropertyDescriptor::Data(DataDescriptor { value, .. }),
+            ) => {
+                // 6. c
+                if !current.configurable() {
+                    return false;
+                }
+
+                let current = DataDescriptor::new(value, current.attributes());
+                self.insert(key, current);
+                return true;
+            }
             (PropertyDescriptor::Data(current), PropertyDescriptor::Data(desc)) => {
+                // 7.
                 if !current.configurable() && !current.writable() {
                     if desc.writable() {
                         return false;
                     }
 
-                    if !same_value(&desc.value(), &current.value()) {
+                    if !Value::same_value(&desc.value(), &current.value()) {
                         return false;
                     }
                 }
             }
-            (PropertyDescriptor::Data(current), PropertyDescriptor::Accessor(_)) => {
-                if !current.configurable() {
-                    return false;
-                }
-
-                let current = AccessorDescriptor::new(None, None, current.attributes());
-                self.insert(key, current);
-                return true;
-            }
-            (PropertyDescriptor::Accessor(current), PropertyDescriptor::Data(_)) => {
-                if !current.configurable() {
-                    return false;
-                }
-
-                let current = DataDescriptor::new(Value::undefined(), current.attributes());
-                self.insert(key, current);
-                return true;
-            }
             (PropertyDescriptor::Accessor(current), PropertyDescriptor::Accessor(desc)) => {
+                // 8.
                 if !current.configurable() {
                     if let (Some(current_get), Some(desc_get)) = (current.getter(), desc.getter()) {
                         if !GcObject::equals(&current_get, &desc_get) {
@@ -363,7 +374,7 @@ impl GcObject {
                     return Ok(false);
                 }
                 if self.ordinary_define_own_property(key, desc) {
-                    if index >= old_len && index < std::u32::MAX {
+                    if index >= old_len && index < u32::MAX {
                         let desc = PropertyDescriptor::Data(DataDescriptor::new(
                             index + 1,
                             old_len_data_desc.attributes(),
@@ -379,6 +390,71 @@ impl GcObject {
         }
     }
 
+    /// Gets own property of 'Object'
+    ///
+    #[inline]
+    pub fn get_own_property(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
+        let _timer = BoaProfiler::global().start_event("Object::get_own_property", "object");
+
+        let object = self.borrow();
+        match object.data {
+            ObjectData::String(_) => self.string_exotic_get_own_property(key),
+            _ => self.ordinary_get_own_property(key),
+        }
+    }
+
+    /// StringGetOwnProperty abstract operation
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-stringgetownproperty
+    #[inline]
+    pub fn string_get_own_property(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
+        let object = self.borrow();
+
+        match key {
+            PropertyKey::Index(index) => {
+                let string = object.as_string().unwrap();
+                let pos = *index as usize;
+
+                if pos >= string.len() {
+                    return None;
+                }
+
+                let result_str = string.encode_utf16().nth(pos).map(|utf16_val| {
+                    char::from_u32(u32::from(utf16_val))
+                        .map_or_else(|| Value::from(format!("\\u{:x}", utf16_val)), Value::from)
+                })?;
+
+                let desc = PropertyDescriptor::from(DataDescriptor::new(
+                    result_str,
+                    Attribute::READONLY | Attribute::ENUMERABLE | Attribute::PERMANENT,
+                ));
+
+                Some(desc)
+            }
+            _ => None,
+        }
+    }
+
+    /// Gets own property of 'String' exotic object
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-getownproperty-p
+    #[inline]
+    pub fn string_exotic_get_own_property(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
+        let desc = self.ordinary_get_own_property(key);
+
+        if desc.is_some() {
+            desc
+        } else {
+            self.string_get_own_property(key)
+        }
+    }
+
     /// The specification returns a Property Descriptor or Undefined.
     ///
     /// These are 2 separate types and we can't do that here.
@@ -388,9 +464,7 @@ impl GcObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-getownproperty-p
     #[inline]
-    pub fn get_own_property(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
-        let _timer = BoaProfiler::global().start_event("Object::get_own_property", "object");
-
+    pub fn ordinary_get_own_property(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         let object = self.borrow();
         let property = match key {
             PropertyKey::Index(index) => object.indexed_properties.get(&index),
@@ -457,7 +531,7 @@ impl GcObject {
     pub fn set_prototype_of(&mut self, val: Value) -> bool {
         debug_assert!(val.is_object() || val.is_null());
         let current = self.get_prototype_of();
-        if same_value(&current, &val) {
+        if Value::same_value(&current, &val) {
             return true;
         }
         if !self.is_extensible() {
@@ -468,7 +542,7 @@ impl GcObject {
         while !done {
             if p.is_null() {
                 done = true
-            } else if same_value(&Value::from(self.clone()), &p) {
+            } else if Value::same_value(&Value::from(self.clone()), &p) {
                 return false;
             } else {
                 let prototype = p
@@ -559,6 +633,46 @@ impl GcObject {
     /// Returns true if the GcObject is the global for a Realm
     pub fn is_global(&self) -> bool {
         matches!(self.borrow().data, ObjectData::Global)
+    }
+
+    /// It is used to create List value whose elements are provided by the indexed properties of
+    /// self.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createlistfromarraylike
+    pub(crate) fn create_list_from_array_like(
+        &self,
+        element_types: &[Type],
+        context: &mut Context,
+    ) -> Result<Vec<Value>> {
+        let types = if element_types.is_empty() {
+            &[
+                Type::Undefined,
+                Type::Null,
+                Type::Boolean,
+                Type::String,
+                Type::Symbol,
+                Type::Number,
+                Type::BigInt,
+                Type::Symbol,
+            ]
+        } else {
+            element_types
+        };
+        let len = self
+            .get(&"length".into(), self.clone().into(), context)?
+            .to_length(context)?;
+        let mut list = Vec::with_capacity(len);
+        for index in 0..len {
+            let next = self.get(&index.into(), self.clone().into(), context)?;
+            if !types.contains(&next.get_type()) {
+                return Err(context.construct_type_error("bad type"));
+            }
+            list.push(next.clone());
+        }
+        Ok(list)
     }
 }
 

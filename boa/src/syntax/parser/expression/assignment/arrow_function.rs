@@ -8,13 +8,13 @@
 //! [spec]: https://tc39.es/ecma262/#sec-arrow-function-definitions
 
 use super::AssignmentExpression;
-use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
             node::{ArrowFunctionDecl, FormalParameter, Node, Return, StatementList},
             Punctuator,
         },
+        lexer::{Error as LexError, Position, TokenKind},
         parser::{
             error::{ErrorContext, ParseError, ParseResult},
             function::{FormalParameters, FunctionBody},
@@ -90,6 +90,25 @@ where
 
         cursor.expect(TokenKind::Punctuator(Punctuator::Arrow), "arrow function")?;
         let body = ConciseBody::new(self.allow_in).parse(cursor)?;
+
+        // It is a Syntax Error if any element of the BoundNames of ArrowParameters
+        // also occurs in the LexicallyDeclaredNames of ConciseBody.
+        // https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors
+        {
+            let lexically_declared_names = body.lexically_declared_names();
+            for param in params.as_ref() {
+                if lexically_declared_names.contains(param.name()) {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        format!("Redeclaration of formal parameter `{}`", param.name()).into(),
+                        match cursor.peek(0)? {
+                            Some(token) => token.span().end(),
+                            None => Position::new(1, 1),
+                        },
+                    )));
+                }
+            }
+        }
+
         Ok(ArrowFunctionDecl::new(params, body))
     }
 }

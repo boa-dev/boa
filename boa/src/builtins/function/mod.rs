@@ -120,19 +120,18 @@ impl Function {
     ) {
         // Create array of values
         let array = Array::new_array(context);
-        Array::add_to_array_object(&array, &args_list[index..], context).unwrap();
+        Array::add_to_array_object(&array, &args_list.get(index..).unwrap_or_default(), context)
+            .unwrap();
 
         // Create binding
         local_env
-            .borrow_mut()
             // Function parameters can share names in JavaScript...
-            .create_mutable_binding(param.name().to_owned(), false, true)
+            .create_mutable_binding(param.name().to_owned(), false, true, context)
             .expect("Failed to create binding for rest param");
 
         // Set Binding to value
         local_env
-            .borrow_mut()
-            .initialize_binding(param.name(), array)
+            .initialize_binding(param.name(), array, context)
             .expect("Failed to initialize rest param");
     }
 
@@ -142,17 +141,16 @@ impl Function {
         param: &FormalParameter,
         value: Value,
         local_env: &Environment,
+        context: &mut Context,
     ) {
         // Create binding
         local_env
-            .borrow_mut()
-            .create_mutable_binding(param.name().to_owned(), false, true)
+            .create_mutable_binding(param.name().to_owned(), false, true, context)
             .expect("Failed to create binding");
 
         // Set Binding to value
         local_env
-            .borrow_mut()
-            .initialize_binding(param.name(), value)
+            .initialize_binding(param.name(), value, context)
             .expect("Failed to intialize binding");
     }
 
@@ -324,9 +322,10 @@ impl BuiltInFunctionObject {
             // TODO?: 3.a. PrepareForTailCall
             return context.call(this, &this_arg, &[]);
         }
-        let arg_list = context
-            .extract_array_properties(&arg_array)?
-            .map_err(|()| arg_array)?;
+        let arg_array = arg_array.as_object().ok_or_else(|| {
+            context.construct_type_error("argList must be null, undefined or an object")
+        })?;
+        let arg_list = arg_array.create_list_from_array_like(&[], context)?;
         // TODO?: 5. PrepareForTailCall
         context.call(this, &this_arg, &arg_list)
     }

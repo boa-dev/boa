@@ -1,7 +1,7 @@
 use crate::syntax::{
     ast::node::{
-        ArrowFunctionDecl, BinOp, FormalParameter, FunctionDecl, Identifier, LetDecl, LetDeclList,
-        Node, Return,
+        ArrowFunctionDecl, BinOp, Declaration, DeclarationList, FormalParameter, FunctionDecl,
+        Identifier, Node, Return,
     },
     ast::op::NumOp,
     parser::tests::check_parser,
@@ -182,20 +182,23 @@ fn check_arrow_empty_return_semicolon_insertion() {
 fn check_arrow_assignment() {
     check_parser(
         "let foo = (a) => { return a };",
-        vec![LetDeclList::from(vec![LetDecl::new::<_, Option<Node>>(
-            Identifier::from("foo"),
-            Some(
-                ArrowFunctionDecl::new(
-                    vec![FormalParameter::new("a", None, false)],
-                    vec![Return::new::<Node, Option<_>, Option<_>>(
-                        Some(Identifier::from("a").into()),
-                        None,
+        vec![DeclarationList::Let(
+            vec![Declaration::new(
+                Identifier::from("foo"),
+                Some(
+                    ArrowFunctionDecl::new(
+                        vec![FormalParameter::new("a", None, false)],
+                        vec![Return::new::<Node, Option<_>, Option<_>>(
+                            Some(Identifier::from("a").into()),
+                            None,
+                        )
+                        .into()],
                     )
-                    .into()],
-                )
-                .into(),
-            ),
-        )])
+                    .into(),
+                ),
+            )]
+            .into(),
+        )
         .into()],
     );
 }
@@ -204,20 +207,23 @@ fn check_arrow_assignment() {
 fn check_arrow_assignment_nobrackets() {
     check_parser(
         "let foo = (a) => a;",
-        vec![LetDeclList::from(vec![LetDecl::new::<_, Option<Node>>(
-            Identifier::from("foo"),
-            Some(
-                ArrowFunctionDecl::new(
-                    vec![FormalParameter::new("a", None, false)],
-                    vec![Return::new::<Node, Option<_>, Option<_>>(
-                        Some(Identifier::from("a").into()),
-                        None,
+        vec![DeclarationList::Let(
+            vec![Declaration::new(
+                Identifier::from("foo"),
+                Some(
+                    ArrowFunctionDecl::new(
+                        vec![FormalParameter::new("a", None, false)],
+                        vec![Return::new::<Node, Option<_>, Option<_>>(
+                            Some(Identifier::from("a").into()),
+                            None,
+                        )
+                        .into()],
                     )
-                    .into()],
-                )
-                .into(),
-            ),
-        )])
+                    .into(),
+                ),
+            )]
+            .into(),
+        )
         .into()],
     );
 }
@@ -226,20 +232,23 @@ fn check_arrow_assignment_nobrackets() {
 fn check_arrow_assignment_noparenthesis() {
     check_parser(
         "let foo = a => { return a };",
-        vec![LetDeclList::from(vec![LetDecl::new::<_, Option<Node>>(
-            Identifier::from("foo"),
-            Some(
-                ArrowFunctionDecl::new(
-                    vec![FormalParameter::new("a", None, false)],
-                    vec![Return::new::<Node, Option<_>, Option<_>>(
-                        Some(Identifier::from("a").into()),
-                        None,
+        vec![DeclarationList::Let(
+            vec![Declaration::new(
+                Identifier::from("foo"),
+                Some(
+                    ArrowFunctionDecl::new(
+                        vec![FormalParameter::new("a", None, false)],
+                        vec![Return::new::<Node, Option<_>, Option<_>>(
+                            Some(Identifier::from("a").into()),
+                            None,
+                        )
+                        .into()],
                     )
-                    .into()],
-                )
-                .into(),
-            ),
-        )])
+                    .into(),
+                ),
+            )]
+            .into(),
+        )
         .into()],
     );
 }
@@ -248,20 +257,23 @@ fn check_arrow_assignment_noparenthesis() {
 fn check_arrow_assignment_noparenthesis_nobrackets() {
     check_parser(
         "let foo = a => a;",
-        vec![LetDeclList::from(vec![LetDecl::new::<_, Option<Node>>(
-            Identifier::from("foo"),
-            Some(
-                ArrowFunctionDecl::new(
-                    vec![FormalParameter::new("a", None, false)],
-                    vec![Return::new::<Node, Option<_>, Option<_>>(
-                        Some(Identifier::from("a").into()),
-                        None,
+        vec![DeclarationList::Let(
+            vec![Declaration::new(
+                Identifier::from("foo"),
+                Some(
+                    ArrowFunctionDecl::new(
+                        vec![FormalParameter::new("a", None, false)],
+                        vec![Return::new::<Node, Option<_>, Option<_>>(
+                            Some(Identifier::from("a").into()),
+                            None,
+                        )
+                        .into()],
                     )
-                    .into()],
-                )
-                .into(),
-            ),
-        )])
+                    .into(),
+                ),
+            )]
+            .into(),
+        )
         .into()],
     );
 }
@@ -270,23 +282,26 @@ fn check_arrow_assignment_noparenthesis_nobrackets() {
 fn check_arrow_assignment_2arg() {
     check_parser(
         "let foo = (a, b) => { return a };",
-        vec![LetDeclList::from(vec![LetDecl::new::<_, Option<Node>>(
-            Identifier::from("foo"),
-            Some(
-                ArrowFunctionDecl::new(
-                    vec![
-                        FormalParameter::new("a", None, false),
-                        FormalParameter::new("b", None, false),
-                    ],
-                    vec![Return::new::<Node, Option<_>, Option<_>>(
-                        Some(Identifier::from("a").into()),
-                        None,
+        vec![DeclarationList::Let(
+            vec![Declaration::new(
+                Identifier::from("foo"),
+                Some(
+                    ArrowFunctionDecl::new(
+                        vec![
+                            FormalParameter::new("a", None, false),
+                            FormalParameter::new("b", None, false),
+                        ],
+                        vec![Return::new::<Node, Option<_>, Option<_>>(
+                            Some(Identifier::from("a").into()),
+                            None,
+                        )
+                        .into()],
                     )
-                    .into()],
-                )
-                .into(),
-            ),
-        )])
+                    .into(),
+                ),
+            )]
+            .into(),
+        )
         .into()],
     );
 }
@@ -295,23 +310,26 @@ fn check_arrow_assignment_2arg() {
 fn check_arrow_assignment_2arg_nobrackets() {
     check_parser(
         "let foo = (a, b) => a;",
-        vec![LetDeclList::from(vec![LetDecl::new::<_, Option<Node>>(
-            Identifier::from("foo"),
-            Some(
-                ArrowFunctionDecl::new(
-                    vec![
-                        FormalParameter::new("a", None, false),
-                        FormalParameter::new("b", None, false),
-                    ],
-                    vec![Return::new::<Node, Option<_>, Option<_>>(
-                        Some(Identifier::from("a").into()),
-                        None,
+        vec![DeclarationList::Let(
+            vec![Declaration::new(
+                Identifier::from("foo"),
+                Some(
+                    ArrowFunctionDecl::new(
+                        vec![
+                            FormalParameter::new("a", None, false),
+                            FormalParameter::new("b", None, false),
+                        ],
+                        vec![Return::new::<Node, Option<_>, Option<_>>(
+                            Some(Identifier::from("a").into()),
+                            None,
+                        )
+                        .into()],
                     )
-                    .into()],
-                )
-                .into(),
-            ),
-        )])
+                    .into(),
+                ),
+            )]
+            .into(),
+        )
         .into()],
     );
 }
@@ -320,24 +338,27 @@ fn check_arrow_assignment_2arg_nobrackets() {
 fn check_arrow_assignment_3arg() {
     check_parser(
         "let foo = (a, b, c) => { return a };",
-        vec![LetDeclList::from(vec![LetDecl::new::<_, Option<Node>>(
-            Identifier::from("foo"),
-            Some(
-                ArrowFunctionDecl::new(
-                    vec![
-                        FormalParameter::new("a", None, false),
-                        FormalParameter::new("b", None, false),
-                        FormalParameter::new("c", None, false),
-                    ],
-                    vec![Return::new::<Node, Option<_>, Option<_>>(
-                        Some(Identifier::from("a").into()),
-                        None,
+        vec![DeclarationList::Let(
+            vec![Declaration::new(
+                Identifier::from("foo"),
+                Some(
+                    ArrowFunctionDecl::new(
+                        vec![
+                            FormalParameter::new("a", None, false),
+                            FormalParameter::new("b", None, false),
+                            FormalParameter::new("c", None, false),
+                        ],
+                        vec![Return::new::<Node, Option<_>, Option<_>>(
+                            Some(Identifier::from("a").into()),
+                            None,
+                        )
+                        .into()],
                     )
-                    .into()],
-                )
-                .into(),
-            ),
-        )])
+                    .into(),
+                ),
+            )]
+            .into(),
+        )
         .into()],
     );
 }
@@ -346,24 +367,27 @@ fn check_arrow_assignment_3arg() {
 fn check_arrow_assignment_3arg_nobrackets() {
     check_parser(
         "let foo = (a, b, c) => a;",
-        vec![LetDeclList::from(vec![LetDecl::new::<_, Option<Node>>(
-            Identifier::from("foo"),
-            Some(
-                ArrowFunctionDecl::new(
-                    vec![
-                        FormalParameter::new("a", None, false),
-                        FormalParameter::new("b", None, false),
-                        FormalParameter::new("c", None, false),
-                    ],
-                    vec![Return::new::<Node, Option<_>, Option<_>>(
-                        Some(Identifier::from("a").into()),
-                        None,
+        vec![DeclarationList::Let(
+            vec![Declaration::new(
+                Identifier::from("foo"),
+                Some(
+                    ArrowFunctionDecl::new(
+                        vec![
+                            FormalParameter::new("a", None, false),
+                            FormalParameter::new("b", None, false),
+                            FormalParameter::new("c", None, false),
+                        ],
+                        vec![Return::new::<Node, Option<_>, Option<_>>(
+                            Some(Identifier::from("a").into()),
+                            None,
+                        )
+                        .into()],
                     )
-                    .into()],
-                )
-                .into(),
-            ),
-        )])
+                    .into(),
+                ),
+            )]
+            .into(),
+        )
         .into()],
     );
 }

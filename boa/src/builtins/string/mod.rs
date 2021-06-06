@@ -23,11 +23,15 @@ use crate::{
     },
     object::{ConstructorBuilder, Object, ObjectData},
     property::Attribute,
+    symbol::WellKnownSymbols,
     value::{RcString, Value},
     BoaProfiler, Context, Result,
 };
 use regress::Regex;
-use std::{convert::TryFrom, f64::NAN, string::String as StdString};
+use std::{
+    convert::TryFrom,
+    string::String as StdString,
+};
 
 pub(crate) fn code_point_at(string: RcString, position: i64) -> Option<(u32, u8, bool)> {
     let size = string.encode_utf16().count();
@@ -94,7 +98,7 @@ impl BuiltIn for String {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let symbol_iterator = context.well_known_symbols().iterator_symbol();
+        let symbol_iterator = WellKnownSymbols::iterator();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         let string_object = ConstructorBuilder::with_standard_object(
@@ -336,8 +340,8 @@ impl String {
             .to_integer(context)?;
 
         // Fast path returning NaN when pos is obviously out of range
-        if position < 0.0 {
-            return Ok(Value::from(NAN));
+        if position < 0.0 || position >= string.len() as f64 {
+            return Ok(Value::nan());
         }
 
         // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
@@ -1244,7 +1248,7 @@ impl String {
         if let Some(result) = separator
             .and_then(|separator| separator.as_object())
             .and_then(|separator| {
-                let key = context.well_known_symbols().split_symbol();
+                let key = WellKnownSymbols::split();
 
                 match separator.get_method(context, key) {
                     Ok(splitter) => splitter.map(|splitter| {
@@ -1273,7 +1277,7 @@ impl String {
             .get(1)
             .map(|arg| arg.to_integer(context).map(|limit| limit as usize))
             .transpose()?
-            .unwrap_or(std::u32::MAX as usize);
+            .unwrap_or(u32::MAX as usize);
 
         let values: Vec<Value> = match separator {
             None if limit == 0 => vec![],
