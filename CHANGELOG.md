@@ -1,6 +1,6 @@
 # CHANGELOG
 
-# [0.12.0 (YYYY-MM-DD) - `Set`, accessors, `@@toStringTag` and no more panics](https://github.com/boa-dev/boa/compare/v0.11.0...v0.12.0)
+# [0.12.0 (2021-06-07) - `Set`, accessors, `@@toStringTag` and no more panics](https://github.com/boa-dev/boa/compare/v0.11.0...v0.12.0)
 
 Feature Enhancements:
 
@@ -23,6 +23,8 @@ Feature Enhancements:
 - [FEATURE #1273](https://github.com/boa-dev/boa/pull/1273): Add default parameter support (@0x7D2B)
 - [FEATURE #1292](https://github.com/boa-dev/boa/pull/1292): Implement `symbol.prototype[ @@ToStringTag ]` (@moadmmh)
 - [FEATURE #1291](https://github.com/boa-dev/boa/pull/1291): Support `GetOwnProperty` for `string` exotic object (@jarkonik)
+- [FEATURE #1296](https://github.com/boa-dev/boa/pull/1296): Added the `$262` object to the Test262 test runner (@Razican)
+- [FEATURE #1127](https://github.com/boa-dev/boa/pull/1127): Implement `Array.of` (@camc)
 
 Bug Fixes:
 
@@ -46,6 +48,8 @@ Bug Fixes:
 - [BUG #1283](https://github.com/boa-dev/boa/pull/1283): Fix panic in regex execution (@0x7D2B)
 - [BUG #1286](https://github.com/boa-dev/boa/pull/1286): Fix construct usage (@0x7D2B)
 - [BUG #1288](https://github.com/boa-dev/boa/pull/1288): Fixed `Math.hypot.length` bug (@moadmmh)
+- [BUG #1285](https://github.com/boa-dev/boa/pull/1285): Fix environment record panics (@0x7D2B)
+- [BUG #1302](https://github.com/boa-dev/boa/pull/1302): Fix VM branch (@jasonwilliams)
 
 Internal Improvements:
 
