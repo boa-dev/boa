@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.94/src/unix/linux_like/linux/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../../storage.js"></script><script src="../../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.95/src/unix/linux_like/linux/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../../storage.js"></script><script src="../../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../../libc/index.html'><div class='logo-container rust-logo'><img src='../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../../../settings.html"><img src="../../../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -3612,6 +3612,198 @@
 <span id="3609">3609</span>
 <span id="3610">3610</span>
 <span id="3611">3611</span>
+<span id="3612">3612</span>
+<span id="3613">3613</span>
+<span id="3614">3614</span>
+<span id="3615">3615</span>
+<span id="3616">3616</span>
+<span id="3617">3617</span>
+<span id="3618">3618</span>
+<span id="3619">3619</span>
+<span id="3620">3620</span>
+<span id="3621">3621</span>
+<span id="3622">3622</span>
+<span id="3623">3623</span>
+<span id="3624">3624</span>
+<span id="3625">3625</span>
+<span id="3626">3626</span>
+<span id="3627">3627</span>
+<span id="3628">3628</span>
+<span id="3629">3629</span>
+<span id="3630">3630</span>
+<span id="3631">3631</span>
+<span id="3632">3632</span>
+<span id="3633">3633</span>
+<span id="3634">3634</span>
+<span id="3635">3635</span>
+<span id="3636">3636</span>
+<span id="3637">3637</span>
+<span id="3638">3638</span>
+<span id="3639">3639</span>
+<span id="3640">3640</span>
+<span id="3641">3641</span>
+<span id="3642">3642</span>
+<span id="3643">3643</span>
+<span id="3644">3644</span>
+<span id="3645">3645</span>
+<span id="3646">3646</span>
+<span id="3647">3647</span>
+<span id="3648">3648</span>
+<span id="3649">3649</span>
+<span id="3650">3650</span>
+<span id="3651">3651</span>
+<span id="3652">3652</span>
+<span id="3653">3653</span>
+<span id="3654">3654</span>
+<span id="3655">3655</span>
+<span id="3656">3656</span>
+<span id="3657">3657</span>
+<span id="3658">3658</span>
+<span id="3659">3659</span>
+<span id="3660">3660</span>
+<span id="3661">3661</span>
+<span id="3662">3662</span>
+<span id="3663">3663</span>
+<span id="3664">3664</span>
+<span id="3665">3665</span>
+<span id="3666">3666</span>
+<span id="3667">3667</span>
+<span id="3668">3668</span>
+<span id="3669">3669</span>
+<span id="3670">3670</span>
+<span id="3671">3671</span>
+<span id="3672">3672</span>
+<span id="3673">3673</span>
+<span id="3674">3674</span>
+<span id="3675">3675</span>
+<span id="3676">3676</span>
+<span id="3677">3677</span>
+<span id="3678">3678</span>
+<span id="3679">3679</span>
+<span id="3680">3680</span>
+<span id="3681">3681</span>
+<span id="3682">3682</span>
+<span id="3683">3683</span>
+<span id="3684">3684</span>
+<span id="3685">3685</span>
+<span id="3686">3686</span>
+<span id="3687">3687</span>
+<span id="3688">3688</span>
+<span id="3689">3689</span>
+<span id="3690">3690</span>
+<span id="3691">3691</span>
+<span id="3692">3692</span>
+<span id="3693">3693</span>
+<span id="3694">3694</span>
+<span id="3695">3695</span>
+<span id="3696">3696</span>
+<span id="3697">3697</span>
+<span id="3698">3698</span>
+<span id="3699">3699</span>
+<span id="3700">3700</span>
+<span id="3701">3701</span>
+<span id="3702">3702</span>
+<span id="3703">3703</span>
+<span id="3704">3704</span>
+<span id="3705">3705</span>
+<span id="3706">3706</span>
+<span id="3707">3707</span>
+<span id="3708">3708</span>
+<span id="3709">3709</span>
+<span id="3710">3710</span>
+<span id="3711">3711</span>
+<span id="3712">3712</span>
+<span id="3713">3713</span>
+<span id="3714">3714</span>
+<span id="3715">3715</span>
+<span id="3716">3716</span>
+<span id="3717">3717</span>
+<span id="3718">3718</span>
+<span id="3719">3719</span>
+<span id="3720">3720</span>
+<span id="3721">3721</span>
+<span id="3722">3722</span>
+<span id="3723">3723</span>
+<span id="3724">3724</span>
+<span id="3725">3725</span>
+<span id="3726">3726</span>
+<span id="3727">3727</span>
+<span id="3728">3728</span>
+<span id="3729">3729</span>
+<span id="3730">3730</span>
+<span id="3731">3731</span>
+<span id="3732">3732</span>
+<span id="3733">3733</span>
+<span id="3734">3734</span>
+<span id="3735">3735</span>
+<span id="3736">3736</span>
+<span id="3737">3737</span>
+<span id="3738">3738</span>
+<span id="3739">3739</span>
+<span id="3740">3740</span>
+<span id="3741">3741</span>
+<span id="3742">3742</span>
+<span id="3743">3743</span>
+<span id="3744">3744</span>
+<span id="3745">3745</span>
+<span id="3746">3746</span>
+<span id="3747">3747</span>
+<span id="3748">3748</span>
+<span id="3749">3749</span>
+<span id="3750">3750</span>
+<span id="3751">3751</span>
+<span id="3752">3752</span>
+<span id="3753">3753</span>
+<span id="3754">3754</span>
+<span id="3755">3755</span>
+<span id="3756">3756</span>
+<span id="3757">3757</span>
+<span id="3758">3758</span>
+<span id="3759">3759</span>
+<span id="3760">3760</span>
+<span id="3761">3761</span>
+<span id="3762">3762</span>
+<span id="3763">3763</span>
+<span id="3764">3764</span>
+<span id="3765">3765</span>
+<span id="3766">3766</span>
+<span id="3767">3767</span>
+<span id="3768">3768</span>
+<span id="3769">3769</span>
+<span id="3770">3770</span>
+<span id="3771">3771</span>
+<span id="3772">3772</span>
+<span id="3773">3773</span>
+<span id="3774">3774</span>
+<span id="3775">3775</span>
+<span id="3776">3776</span>
+<span id="3777">3777</span>
+<span id="3778">3778</span>
+<span id="3779">3779</span>
+<span id="3780">3780</span>
+<span id="3781">3781</span>
+<span id="3782">3782</span>
+<span id="3783">3783</span>
+<span id="3784">3784</span>
+<span id="3785">3785</span>
+<span id="3786">3786</span>
+<span id="3787">3787</span>
+<span id="3788">3788</span>
+<span id="3789">3789</span>
+<span id="3790">3790</span>
+<span id="3791">3791</span>
+<span id="3792">3792</span>
+<span id="3793">3793</span>
+<span id="3794">3794</span>
+<span id="3795">3795</span>
+<span id="3796">3796</span>
+<span id="3797">3797</span>
+<span id="3798">3798</span>
+<span id="3799">3799</span>
+<span id="3800">3800</span>
+<span id="3801">3801</span>
+<span id="3802">3802</span>
+<span id="3803">3803</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Linux-specific definitions for linux-like values</span>
 
@@ -5713,6 +5905,11 @@ pub const NFQA_VLAN_TCI: ::c_int = 2;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFPROTO_IPV6</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">10</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFPROTO_DECNET</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">12</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFPROTO_NUMPROTO</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">13</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFPROTO_INET</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFPROTO_NETDEV</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">5</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NF_NETDEV_INGRESS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NF_NETDEV_NUMHOOKS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
 
 <span class="comment">// linux/netfilter_ipv4.h</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NF_IP_PRE_ROUTING</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
@@ -6202,6 +6399,193 @@ pub const NFQA_VLAN_TCI: ::c_int = 2;
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IN_CLOEXEC</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="ident">O_CLOEXEC</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IN_NONBLOCK</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="ident">O_NONBLOCK</span>;
+
+<span class="comment">// uapi/linux/netfilter/nf_tables.h</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_TABLE_MAXNAMELEN</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">256</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CHAIN_MAXNAMELEN</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">256</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_SET_MAXNAMELEN</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">256</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_OBJ_MAXNAMELEN</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">256</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_USERDATA_MAXLEN</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">256</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG_VERDICT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG_1</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG_2</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG_3</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">3</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG_4</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">4</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">__NFT_REG_MAX</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">5</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG32_00</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">8</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG32_01</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">9</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG32_02</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">10</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG32_03</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">11</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG32_04</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">12</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG32_05</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">13</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG32_06</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">14</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG32_07</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">15</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG32_08</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">16</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG32_09</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">17</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG32_10</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">18</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG32_11</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">19</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG32_12</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">20</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG32_13</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">21</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG32_14</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">22</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG32_15</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">23</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG_SIZE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">16</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REG32_SIZE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">4</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CONTINUE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="op">-</span><span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_BREAK</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="op">-</span><span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_JUMP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="op">-</span><span class="number">3</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_GOTO</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="op">-</span><span class="number">4</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_RETURN</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="op">-</span><span class="number">5</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_NEWTABLE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_GETTABLE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_DELTABLE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_NEWCHAIN</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">3</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_GETCHAIN</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">4</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_DELCHAIN</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">5</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_NEWRULE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">6</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_GETRULE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">7</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_DELRULE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">8</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_NEWSET</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">9</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_GETSET</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">10</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_DELSET</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">11</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_NEWSETELEM</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">12</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_GETSETELEM</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">13</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_DELSETELEM</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">14</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_NEWGEN</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">15</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_GETGEN</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">16</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_TRACE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">17</span>;
+<span class="macro">cfg_if</span><span class="macro">!</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc64&quot;</span>))]</span> {
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_NEWOBJ</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">18</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_GETOBJ</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">19</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_DELOBJ</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">20</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_GETOBJ_RESET</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">21</span>;
+    }
+}
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_MSG_MAX</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">25</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_SET_ANONYMOUS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_SET_CONSTANT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_SET_INTERVAL</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x4</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_SET_MAP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x8</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_SET_TIMEOUT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x10</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_SET_EVAL</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x20</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_SET_POL_PERFORMANCE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_SET_POL_MEMORY</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_SET_ELEM_INTERVAL_END</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x1</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_DATA_VALUE</span>: ::<span class="ident">c_uint</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_DATA_VERDICT</span>: ::<span class="ident">c_uint</span> <span class="op">=</span> <span class="number">0xffffff00</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_DATA_RESERVED_MASK</span>: ::<span class="ident">c_uint</span> <span class="op">=</span> <span class="number">0xffffff00</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_DATA_VALUE_MAXLEN</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">64</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_BYTEORDER_NTOH</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_BYTEORDER_HTON</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CMP_EQ</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CMP_NEQ</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CMP_LT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CMP_LTE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">3</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CMP_GT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">4</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CMP_GTE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">5</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_RANGE_EQ</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_RANGE_NEQ</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_LOOKUP_F_INV</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_DYNSET_OP_ADD</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_DYNSET_OP_UPDATE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_DYNSET_F_INV</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_PAYLOAD_LL_HEADER</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_PAYLOAD_NETWORK_HEADER</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_PAYLOAD_TRANSPORT_HEADER</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">2</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_PAYLOAD_CSUM_NONE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_PAYLOAD_CSUM_INET</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_LEN</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_PROTOCOL</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_PRIORITY</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_MARK</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">3</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_IIF</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">4</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_OIF</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">5</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_IIFNAME</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">6</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_OIFNAME</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">7</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_IIFTYPE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">8</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_OIFTYPE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">9</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_SKUID</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">10</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_SKGID</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">11</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_NFTRACE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">12</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_RTCLASSID</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">13</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_SECMARK</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">14</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_NFPROTO</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">15</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_L4PROTO</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">16</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_BRI_IIFNAME</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">17</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_BRI_OIFNAME</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">18</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_PKTTYPE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">19</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_CPU</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">20</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_IIFGROUP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">21</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_OIFGROUP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">22</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_CGROUP</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">23</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_META_PRANDOM</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">24</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CT_STATE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CT_DIRECTION</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CT_STATUS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CT_MARK</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">3</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CT_SECMARK</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">4</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CT_EXPIRATION</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">5</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CT_HELPER</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">6</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CT_L3PROTOCOL</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">7</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CT_SRC</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">8</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CT_DST</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">9</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CT_PROTOCOL</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">10</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CT_PROTO_SRC</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">11</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CT_PROTO_DST</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">12</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CT_LABELS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">13</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CT_PKTS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">14</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_CT_BYTES</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">15</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_LIMIT_PKTS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_LIMIT_PKT_BYTES</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_LIMIT_F_INV</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_QUEUE_FLAG_BYPASS</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x01</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_QUEUE_FLAG_CPU_FANOUT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x02</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_QUEUE_FLAG_MASK</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0x03</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_QUOTA_F_INV</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">0</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REJECT_ICMP_UNREACH</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REJECT_TCP_RST</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REJECT_ICMPX_UNREACH</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">2</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REJECT_ICMPX_NO_ROUTE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REJECT_ICMPX_PORT_UNREACH</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REJECT_ICMPX_HOST_UNREACH</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_REJECT_ICMPX_ADMIN_PROHIBITED</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">3</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_NAT_SNAT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_NAT_DNAT</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_TRACETYPE_UNSPEC</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_TRACETYPE_POLICY</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_TRACETYPE_RETURN</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_TRACETYPE_RULE</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">3</span>;
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_NG_INCREMENTAL</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NFT_NG_RANDOM</span>: ::<span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
 
 <span class="comment">// linux/input.h</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FF_MAX</span>: ::<span class="ident">__u16</span> <span class="op">=</span> <span class="number">0x7f</span>;

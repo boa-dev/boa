@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["test262_print","`print()` function required by the test262 suite."]]});
+initSidebarItems({"fn":[["test262_print","`print()` function required by the test262 suite."]],"mod":[["js262",""]]});
