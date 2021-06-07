@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-normalization-0.1.18/src/tables.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tables.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../unicode_normalization/index.html'><div class='logo-container'><img src='https://unicode-rs.github.io/unicode-rs_sm.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-normalization-0.1.19/src/tables.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tables.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../unicode_normalization/index.html'><div class='logo-container'><img src='https://unicode-rs.github.io/unicode-rs_sm.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">    1</span>
 <span id="2">    2</span>
 <span id="3">    3</span>
@@ -26019,17 +26019,6 @@
 <span id="26018">26018</span>
 <span id="26019">26019</span>
 <span id="26020">26020</span>
-<span id="26021">26021</span>
-<span id="26022">26022</span>
-<span id="26023">26023</span>
-<span id="26024">26024</span>
-<span id="26025">26025</span>
-<span id="26026">26026</span>
-<span id="26027">26027</span>
-<span id="26028">26028</span>
-<span id="26029">26029</span>
-<span id="26030">26030</span>
-<span id="26031">26031</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2012-2018 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
@@ -48084,9 +48073,7 @@
         <span class="op">|</span> <span class="string">&#39;\u{3131}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{318E}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{3190}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{31E3}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{31F0}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{321E}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{3220}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{3400}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{4DBF}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{4E00}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{9FFC}&#39;</span>
+        <span class="op">|</span> <span class="string">&#39;\u{3220}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{9FFC}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{A000}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{A48C}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{A490}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{A4C6}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{A4D0}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{A62B}&#39;</span>
@@ -48116,8 +48103,7 @@
         <span class="op">|</span> <span class="string">&#39;\u{AB30}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{AB6B}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{AB70}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{ABED}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{ABF0}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{ABF9}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{AC00}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{D7A3}&#39;</span>
+        <span class="op">|</span> <span class="string">&#39;\u{AC00}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{D7A3}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{D7B0}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{D7C6}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{D7CB}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{D7FB}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{F900}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{FA6D}&#39;</span>
@@ -48338,11 +48324,9 @@
         <span class="op">|</span> <span class="string">&#39;\u{16F8F}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{16F9F}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{16FE0}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{16FE4}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{16FF0}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{16FF1}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{17000}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{187F7}&#39;</span>
+        <span class="op">|</span> <span class="string">&#39;\u{17000}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{187F7}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{18800}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{18CD5}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{18D00}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{18D08}&#39;</span>
+        <span class="op">|</span> <span class="string">&#39;\u{18D00}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{18D08}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{1B000}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{1B11E}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{1B150}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{1B152}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{1B164}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{1B167}&#39;</span>
@@ -48472,19 +48456,13 @@
         <span class="op">|</span> <span class="string">&#39;\u{1FB00}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{1FB92}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{1FB94}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{1FBCA}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{1FBF0}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{1FBF9}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{20000}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{2A6DD}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{2A700}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{2B734}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{2B740}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{2B81D}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{2B820}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{2CEA1}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{2CEB0}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{2EBE0}&#39;</span>
+        <span class="op">|</span> <span class="string">&#39;\u{20000}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{2A6DD}&#39;</span>
+        <span class="op">|</span> <span class="string">&#39;\u{2A700}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{2B734}&#39;</span>
+        <span class="op">|</span> <span class="string">&#39;\u{2B740}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{2B81D}&#39;</span>
+        <span class="op">|</span> <span class="string">&#39;\u{2B820}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{2CEA1}&#39;</span>
+        <span class="op">|</span> <span class="string">&#39;\u{2CEB0}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{2EBE0}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{2F800}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{2FA1D}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{30000}&#39;</span>
-        <span class="op">|</span> <span class="string">&#39;\u{3134A}&#39;</span>
+        <span class="op">|</span> <span class="string">&#39;\u{30000}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{3134A}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{E0001}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{E0020}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{E007F}&#39;</span>
         <span class="op">|</span> <span class="string">&#39;\u{E0100}&#39;</span>..<span class="op">=</span><span class="string">&#39;\u{E01EF}&#39;</span>
