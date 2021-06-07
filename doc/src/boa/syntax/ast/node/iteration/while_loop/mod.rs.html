@@ -105,6 +105,8 @@
 <span id="104">104</span>
 <span id="105">105</span>
 <span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">exec</span>::{<span class="ident">Executable</span>, <span class="ident">InterpreterState</span>},
@@ -195,6 +197,8 @@
                 <span class="ident">InterpreterState</span>::<span class="ident">Executing</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Continue execution.</span>
                 }
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
+                <span class="ident">InterpreterState</span>::<span class="ident">Error</span> <span class="op">=</span><span class="op">&gt;</span> {}
             }
         }
         <span class="prelude-val">Ok</span>(<span class="ident">result</span>)

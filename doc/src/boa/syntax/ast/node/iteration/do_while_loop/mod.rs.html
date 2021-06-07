@@ -110,6 +110,8 @@
 <span id="109">109</span>
 <span id="110">110</span>
 <span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">exec</span>::{<span class="ident">Executable</span>, <span class="ident">InterpreterState</span>},
@@ -202,6 +204,8 @@
                 <span class="ident">InterpreterState</span>::<span class="ident">Executing</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Continue execution.</span>
                 }
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
+                <span class="ident">InterpreterState</span>::<span class="ident">Error</span> <span class="op">=</span><span class="op">&gt;</span> {}
             }
             <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">cond</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
                 <span class="kw">break</span>;

@@ -50,6 +50,8 @@
 <span id="49">49</span>
 <span id="50">50</span>
 <span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Execution of the AST, this is where the interpreter actually runs</span>
 
@@ -67,6 +69,8 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">InterpreterState</span> {
     <span class="ident">Executing</span>,
     <span class="ident">Return</span>,
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
+    <span class="ident">Error</span>,
     <span class="ident">Break</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>),
     <span class="ident">Continue</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>),
 }

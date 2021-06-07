@@ -184,6 +184,8 @@
 <span id="183">183</span>
 <span id="184">184</span>
 <span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Statement list node.</span>
 
@@ -310,6 +312,8 @@
                 <span class="ident">InterpreterState</span>::<span class="ident">Executing</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Continue execution</span>
                 }
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
+                <span class="ident">InterpreterState</span>::<span class="ident">Error</span> <span class="op">=</span><span class="op">&gt;</span> {}
             }
             <span class="kw">if</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">items</span>().<span class="ident">len</span>() {
                 <span class="ident">obj</span> <span class="op">=</span> <span class="ident">val</span>;

@@ -203,6 +203,8 @@
 <span id="202">202</span>
 <span id="203">203</span>
 <span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::<span class="ident">iterable</span>::<span class="ident">get_iterator</span>,
@@ -402,6 +404,8 @@
                 <span class="ident">InterpreterState</span>::<span class="ident">Executing</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Continue execution.</span>
                 }
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
+                <span class="ident">InterpreterState</span>::<span class="ident">Error</span> <span class="op">=</span><span class="op">&gt;</span> {}
             }
             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">pop_environment</span>();
         }
