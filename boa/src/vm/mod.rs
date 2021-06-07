@@ -1,7 +1,10 @@
 //! The Virtual Machine (VM) handles generating instructions, then executing them.
 //! This module will provide an instruction set for the AST to use, various traits, plus an interpreter to execute those instructions
 
-use crate::{environment::lexical_environment::VariableScope, BoaProfiler, Context, Result, Value};
+use crate::{
+    environment::lexical_environment::VariableScope, exec::InterpreterState, BoaProfiler, Context,
+    Result, Value,
+};
 
 pub(crate) mod compilation;
 pub(crate) mod instructions;
@@ -30,6 +33,9 @@ struct Profiler {
     trace_string: String,
     start_flag: bool,
 }
+
+#[cfg(test)]
+mod tests;
 
 impl<'a> VM<'a> {
     pub fn new(compiler: Compiler, ctx: &'a mut Context) -> Self {
@@ -227,53 +233,69 @@ impl<'a> VM<'a> {
                 Instruction::DefVar(name_index) => {
                     let name: String = self.pool[name_index].to_string(self.ctx)?.to_string();
 
-                    self.ctx
-                        .realm_mut()
-                        .environment
-                        .create_mutable_binding(name.to_string(), false, VariableScope::Function)
-                        .map_err(|e| e.to_error(self.ctx))?;
+                    self.ctx.create_mutable_binding(
+                        name.to_string(),
+                        false,
+                        VariableScope::Function,
+                    )?;
 
                     None
                 }
                 Instruction::DefLet(name_index) => {
                     let name = self.pool[name_index].to_string(self.ctx)?;
 
-                    self.ctx
-                        .realm_mut()
-                        .environment
-                        .create_mutable_binding(name.to_string(), false, VariableScope::Block)
-                        .map_err(|e| e.to_error(self.ctx))?;
+                    self.ctx.create_mutable_binding(
+                        name.to_string(),
+                        false,
+                        VariableScope::Block,
+                    )?;
 
                     None
                 }
                 Instruction::DefConst(name_index) => {
                     let name = self.pool[name_index].to_string(self.ctx)?;
 
-                    self.ctx
-                        .realm_mut()
-                        .environment
-                        .create_immutable_binding(name.to_string(), false, VariableScope::Block)
-                        .map_err(|e| e.to_error(self.ctx))?;
+                    self.ctx.create_immutable_binding(
+                        name.to_string(),
+                        false,
+                        VariableScope::Block,
+                    )?;
 
                     None
                 }
                 Instruction::InitLexical(name_index) => {
                     let name = self.pool[name_index].to_string(self.ctx)?;
                     let value = self.pop();
-                    self.ctx
-                        .realm_mut()
-                        .environment
-                        .initialize_binding(&name, value.clone())
-                        .map_err(|e| e.to_error(self.ctx))?;
+                    self.ctx.initialize_binding(&name, value.clone())?;
 
-                    Some(value)
+                    None
                 }
+                // Find a binding on the environment chain and push its value.
+                Instruction::GetName(ref name) => match self.ctx.get_binding_value(&name) {
+                    Ok(val) => Some(val),
+                    Err(val) => {
+                        self.ctx
+                            .executor()
+                            .set_current_state(InterpreterState::Error);
+                        Some(val)
+                    }
+                },
+                // Create a new object and push to the stack
+                Instruction::NewObject => Some(Value::new_object(self.ctx)),
             };
+
             if let Some(value) = result {
                 self.push(value);
             }
 
             self.idx += 1;
+
+            if matches!(
+                self.ctx.executor().get_current_state(),
+                &InterpreterState::Error,
+            ) {
+                break;
+            }
         }
 
         if self.is_trace {

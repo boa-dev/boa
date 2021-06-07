@@ -161,6 +161,8 @@ impl Executable for Switch {
                         // Continuing execution / falling through to next case statement(s).
                         fall_through = true;
                     }
+                    #[cfg(feature = "vm")]
+                    InterpreterState::Error => {}
                 }
             }
         }

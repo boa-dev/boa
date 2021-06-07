@@ -103,6 +103,9 @@ impl CodeGen for Node {
                     };
                 }
             }
+            Node::Identifier(ref name) => name.compile(compiler),
+            Node::Object(ref obj) => obj.compile(compiler),
+
             _ => unimplemented!(),
         }
     }

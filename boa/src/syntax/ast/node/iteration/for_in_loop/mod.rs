@@ -205,6 +205,8 @@ impl Executable for ForInLoop {
                 InterpreterState::Executing => {
                     // Continue execution.
                 }
+                #[cfg(feature = "vm")]
+                InterpreterState::Error => {}
             }
             let _ = context.pop_environment();
         }
