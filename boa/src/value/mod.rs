@@ -612,9 +612,70 @@ impl Value {
             Value::String(string) => Ok(string.clone()),
             Value::Symbol(_) => Err(context.construct_type_error("can't convert symbol to string")),
             Value::BigInt(ref bigint) => Ok(bigint.to_string().into()),
-            Value::Object(_) => {
-                let primitive = self.to_primitive(context, PreferredType::String)?;
-                primitive.to_string(context)
+            Value::Object(gc_object) => {
+                if let Some(function) = gc_object.borrow().as_function() {
+                    use crate::builtins::function::Function;
+                    let name = {
+                        // Is there a case here where if there is no name field on a value
+                        // We it should default to None? Do all functions have names set?
+                        let value = self.get_field("name", &mut *context)?;
+                        if value.is_null_or_undefined() {
+                            None
+                        } else {
+                            Some(value.to_string(context)?)
+                        }
+                    };
+
+                    match (function, name) {
+                        (Function::BuiltIn(_, _), Some(name)) => {
+                            Ok(format!("function {}() {{\n  [native Code]\n}}", &name).into())
+                        }
+                        (Function::Ordinary { body, params, .. }, Some(name)) => {
+                            let arguments: String = params
+                                .iter()
+                                .map(|param| param.name())
+                                .collect::<Vec<&str>>()
+                                .join(", ");
+
+                            let statement_list = &**body;
+                            // This is a kluge. The implementaion in browser seems to suggest that
+                            // the value here is printed exactly as defined in source. I'm not sure if
+                            // that's possible here, but for now here's a dumb heuristic that prints functions
+                            let is_multiline = {
+                                let value = statement_list.to_string();
+                                value.lines().count() > 1
+                            };
+                            if is_multiline {
+                                Ok(
+                                    // ?? For some reason statement_list string implementation
+                                    // sticks a \n at the end no matter what
+                                    format!(
+                                        "{}({}) {{\n{}}}",
+                                        &name,
+                                        arguments,
+                                        statement_list.to_string()
+                                    )
+                                    .into(),
+                                )
+                            } else {
+                                Ok(format!(
+                                    "{}({}) {{{}}}",
+                                    &name,
+                                    arguments,
+                                    // The trim here is to remove a \n stuck at the end
+                                    // of the statement_list to_string method
+                                    statement_list.to_string().trim()
+                                )
+                                .into())
+                            }
+                        }
+
+                        _ => Ok("TODO".into()),
+                    }
+                } else {
+                    let primitive = self.to_primitive(context, PreferredType::String)?;
+                    primitive.to_string(context)
+                }
             }
         }
     }
