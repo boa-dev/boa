@@ -76,11 +76,11 @@ impl FunctionExpr {
         }
         f.write_str("(")?;
         join_nodes(f, &self.parameters)?;
-        f.write_str(") {{")?;
+        writeln!(f, ") {{")?;
 
         self.body.display(f, indentation + 1)?;
 
-        writeln!(f, "}}")
+        write!(f, "}}")
     }
 }
 
