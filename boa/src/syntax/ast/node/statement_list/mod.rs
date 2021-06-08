@@ -45,7 +45,8 @@ impl StatementList {
         // Print statements
         for node in self.items.iter() {
             f.write_str(&indent)?;
-            node.display(f, indentation + 1)?;
+            // Never used except in the top-level list of nodes, so we don't add to indentation here.
+            node.display(f, indentation)?;
 
             match node {
                 Node::Block(_) | Node::If(_) | Node::Switch(_) | Node::WhileLoop(_) => {}
