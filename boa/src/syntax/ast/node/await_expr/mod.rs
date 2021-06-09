@@ -31,14 +31,6 @@ impl Executable for AwaitExpr {
     }
 }
 
-impl AwaitExpr {
-    /// Implements the display formatting with indentation.
-    pub(super) fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
-        write!(f, "await ")?;
-        self.expr.display(f, 0)
-    }
-}
-
 impl<T> From<T> for AwaitExpr
 where
     T: Into<Box<Node>>,
@@ -50,7 +42,8 @@ where
 
 impl fmt::Display for AwaitExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+        write!(f, "await ")?;
+        self.expr.display(f, 0)
     }
 }
 
