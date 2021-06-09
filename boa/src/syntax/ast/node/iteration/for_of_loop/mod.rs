@@ -59,9 +59,8 @@ impl ForOfLoop {
     }
 
     pub fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
-        write!(f, "for ({} of {}) {{", self.variable, self.iterable)?;
-        self.body().display(f, indentation + 1)?;
-        f.write_str("}")
+        write!(f, "for ({} of {}) ", self.variable, self.iterable)?;
+        self.body().display(f, indentation)
     }
 }
 
