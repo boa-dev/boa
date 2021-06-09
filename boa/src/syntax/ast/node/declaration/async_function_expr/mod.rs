@@ -64,7 +64,7 @@ impl AsyncFunctionExpr {
         f: &mut fmt::Formatter<'_>,
         indentation: usize,
     ) -> fmt::Result {
-        f.write_str("function")?;
+        f.write_str("async function")?;
         if let Some(ref name) = self.name {
             write!(f, " {}", name)?;
         }

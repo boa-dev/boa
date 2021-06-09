@@ -13,8 +13,6 @@ fn duplicate_function_name() {
 
 #[test]
 fn fmt() {
-    // TODO: Async function expr are considered valid syntax, but are converted
-    // into normal functions somewhere in the parser.
     super::super::test_formatting(
         r#"
         function func(a, b) {
@@ -28,7 +26,7 @@ fn fmt() {
         async function async_func(a, b) {
             console.log(a);
         };
-        pass_async_func(function(a, b) {
+        pass_async_func(async function(a, b) {
             console.log("in async callback", a);
         });
         pass_func(function(a, b) {
@@ -36,7 +34,7 @@ fn fmt() {
         });
         let arrow_func_2 = (a, b) => {};
         async function async_func_2(a, b) {};
-        pass_async_func(function(a, b) {});
+        pass_async_func(async function(a, b) {});
         pass_func(function(a, b) {});
         "#,
     );
