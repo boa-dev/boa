@@ -1,6 +1,5 @@
 use crate::{
     exec::{Executable, InterpreterState},
-    parse,
     syntax::ast::node::Break,
     Context,
 };
@@ -35,7 +34,8 @@ fn fmt() {
     //     skipped_call();
     // }
     // ```
-    let scenario = r#"
+    super::super::test_formatting(
+        r#"
         {
             while (true) {
                 break outer;
@@ -45,10 +45,6 @@ fn fmt() {
         while (true) {
             break;
         }
-        "#[1..] // Remove the preceding newline
-        .lines()
-        .map(|l| &l[8..]) // Remove preceding whitespace from each line
-        .collect::<Vec<&'static str>>()
-        .join("\n");
-    assert_eq!(format!("{}", parse(&scenario, false).unwrap()), scenario);
+        "#,
+    );
 }
