@@ -41,11 +41,9 @@ impl StatementList {
         f: &mut fmt::Formatter<'_>,
         indentation: usize,
     ) -> fmt::Result {
-        let indent = "    ".repeat(indentation);
         // Print statements
         for node in self.items.iter() {
-            f.write_str(&indent)?;
-            // Never used except in the top-level list of nodes, so we don't add to indentation here.
+            // We rely on the node to add the correct indent.
             node.display(f, indentation)?;
 
             match node {
