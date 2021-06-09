@@ -8,6 +8,9 @@ use std::fmt;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
+#[cfg(test)]
+mod tests;
+
 /// An await expression is used within an async function to pause execution and wait for a
 /// promise to resolve.
 ///
