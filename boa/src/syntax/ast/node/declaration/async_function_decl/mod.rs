@@ -64,15 +64,11 @@ impl AsyncFunctionDecl {
         indentation: usize,
     ) -> fmt::Result {
         match &self.name {
-            Some(name) => {
-                write!(f, "async function {}(", name)?;
-            }
-            None => {
-                write!(f, "async function (")?;
-            }
+            Some(name) => write!(f, "async function {}(", name)?,
+            None => write!(f, "async function (")?,
         }
         join_nodes(f, &self.parameters)?;
-        f.write_str(") {{")?;
+        writeln!(f, ") {{")?;
 
         self.body.display(f, indentation + 1)?;
 
