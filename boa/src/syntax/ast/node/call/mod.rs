@@ -12,6 +12,9 @@ use std::fmt;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
+#[cfg(test)]
+mod tests;
+
 /// Calling the function actually performs the specified actions with the indicated parameters.
 ///
 /// Defining a function does not execute it. Defining it simply names the function and
