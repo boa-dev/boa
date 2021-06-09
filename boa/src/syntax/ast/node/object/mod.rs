@@ -53,16 +53,17 @@ impl Object {
         indent: usize,
     ) -> fmt::Result {
         f.write_str("{\n")?;
+        let indent = "    ".repeat(indent + 1);
         for property in self.properties().iter() {
             match property {
                 PropertyDefinition::IdentifierReference(key) => {
-                    write!(f, "{}    {},", indent, key)?;
+                    writeln!(f, "{}{},", indent, key)?;
                 }
                 PropertyDefinition::Property(key, value) => {
-                    write!(f, "{}    {}: {},", indent, key, value)?;
+                    writeln!(f, "{}{}: {},", indent, key, value)?;
                 }
                 PropertyDefinition::SpreadObject(key) => {
-                    write!(f, "{}    ...{},", indent, key)?;
+                    writeln!(f, "{}...{},", indent, key)?;
                 }
                 PropertyDefinition::MethodDefinition(_kind, _key, _node) => {
                     // TODO: Implement display for PropertyDefinition::MethodDefinition.
