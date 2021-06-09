@@ -1,4 +1,4 @@
-use crate::exec;
+use crate::{exec, parse};
 
 #[test]
 fn assignmentoperator_lhs_not_defined() {
@@ -112,4 +112,32 @@ fn logical_assignment() {
         "#;
 
     assert_eq!(&exec(scenario), "20");
+}
+
+#[test]
+fn fmt() {
+    let scenario = r#"
+        let a = 20;
+        a += 10;
+        a -= 10;
+        a *= 10;
+        a **= 10;
+        a /= 10;
+        a %= 10;
+        a &= 10;
+        a |= 10;
+        a ^= 10;
+        a <<= 10;
+        a >>= 10;
+        a >>>= 10;
+        a &&= 10;
+        a ||= 10;
+        a ??= 10;
+        a;
+        "#[1..] // Remove the preceding newline
+        .lines()
+        .map(|l| l.trim()) // Remove trailing whitespace from each line
+        .collect::<Vec<&'static str>>()
+        .join("\n");
+    assert_eq!(format!("{}", parse(&scenario, false).unwrap()), scenario);
 }
