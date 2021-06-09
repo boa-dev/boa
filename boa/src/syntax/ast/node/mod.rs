@@ -613,8 +613,13 @@ fn test_formatting(source: &'static str) {
         .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
         .collect::<Vec<&'static str>>()
         .join("\n");
-    assert_eq!(
-        format!("{}", crate::parse(&scenario, false).unwrap()),
-        scenario
-    );
+    let result = format!("{}", crate::parse(&scenario, false).unwrap());
+    if scenario != result {
+        print!("========= Expected:\n{}", scenario);
+        print!("========= Got:\n{}", result);
+        // Might be helpful to find differing whitespace
+        println!("========= Expected: {:?}", scenario);
+        println!("========= Got:      {:?}", result);
+        panic!("parsing test did not give the correct result (see above)");
+    }
 }
