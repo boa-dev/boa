@@ -133,6 +133,7 @@ impl BuiltIn for String {
         .method(Self::match_all, "matchAll", 1)
         .method(Self::replace, "replace", 2)
         .method(Self::iterator, (symbol_iterator, "[Symbol.iterator]"), 0)
+        .method(Self::search, "search", 1)
         .build();
 
         (Self::NAME, string_object.into(), Self::attribute())
@@ -1322,6 +1323,29 @@ impl String {
         }?;
 
         RegExp::match_all(&re, this.to_string(context)?.to_string(), context)
+    }
+
+    /// `String.prototype.replace( regexp )`
+    ///
+    /// The search() method executes a search for a match between a regular expression and this String object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.search
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search
+    pub(crate) fn search(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let this = this.require_object_coercible(context)?;
+
+        let re_value = args.get(0).cloned().unwrap_or_default();
+        if !re_value.is_undefined() && !re_value.is_null() {
+            let re = RegExp::constructor(&Value::from(Object::default()), &[re_value], context)?;
+            return RegExp::search(&re, &[this.clone()], context);
+        }
+
+        let re = RegExp::constructor(&Value::from(Object::default()), &[re_value], context)?;
+        RegExp::search(&re, &[Value::from(this.to_string(context)?)], context)
     }
 
     pub(crate) fn iterator(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
