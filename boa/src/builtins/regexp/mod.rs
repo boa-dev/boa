@@ -120,6 +120,7 @@ impl BuiltIn for RegExp {
         .method(Self::test, "test", 1)
         .method(Self::exec, "exec", 1)
         .method(Self::to_string, "toString", 0)
+        .method(Self::search, "search", 1)
         .accessor("global", Some(get_global), None, flag_attributes)
         .accessor("ignoreCase", Some(get_ignore_case), None, flag_attributes)
         .accessor("multiline", Some(get_multiline), None, flag_attributes)
@@ -713,5 +714,38 @@ impl RegExp {
         result.set_data(ObjectData::Array);
 
         Ok(result)
+    }
+
+    /// `RegExp.prototype[ @@search ]( string )`
+    ///
+    /// This method executes a search for a match between a this regular expression and a string.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype-@@search
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@search
+    pub(crate) fn search(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let previous_last_index = this.get_field("lastIndex", context)?.to_length(context)?;
+        if previous_last_index != 0 {
+            this.set_field("lastIndex", 0, context)?;
+        }
+
+        let result = Self::exec(this, args, context)?;
+
+        let current_last_index = this.get_field("lastIndex", context)?.to_length(context)?;
+        if current_last_index != previous_last_index {
+            this.set_field("lastIndex", previous_last_index, context)?;
+        }
+
+        if result.is_null() {
+            Ok(Value::from(-1))
+        } else {
+            Ok(result
+                .get_property("index")
+                .map(|p| p.as_data_descriptor().unwrap().value())
+                .ok_or_else(|| context.construct_type_error("Could not find property `index`"))?)
+        }
     }
 }
