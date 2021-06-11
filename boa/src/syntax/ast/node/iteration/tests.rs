@@ -521,4 +521,57 @@ fn fmt() {
         str;
         "#,
     );
+    // Labeled and unlabeled for loops
+    super::super::test_formatting(
+        r#"
+        var str = "";
+        outer: for (let i = 0; i < 10; i++) {
+            for (let j = 3; j < 6; j++) {
+                if (j === "1") {
+                    continue outer;
+                }
+                str = str + j;
+            };
+            str = str + i;
+        };
+        str;
+        "#,
+    );
+    // Labeled and unlabeled for of loops
+    super::super::test_formatting(
+        r#"
+        for (i of [1, 2, 3]) {
+            if (false) {
+                break;
+            }
+        }
+        label: for (i of [1, 2, 3]) {
+            if (false) {
+                break label;
+            }
+        }
+        "#,
+    );
+    // Labeled and unlabeled do while loops
+    super::super::test_formatting(
+        r#"
+        do {
+            break;
+        } while (true);
+        label: do {
+            break label;
+        } while (true);
+        "#,
+    );
+    // Labeled and unlabeled while loops
+    super::super::test_formatting(
+        r#"
+        while (true) {
+            break;
+        }
+        label: while (true) {
+            break label;
+        }
+        "#,
+    );
 }
