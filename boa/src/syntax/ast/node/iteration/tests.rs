@@ -502,3 +502,22 @@ fn for_in_continue_label() {
     "#;
     assert_eq!(&exec(scenario), "\"00\"")
 }
+
+#[test]
+fn fmt() {
+    super::super::test_formatting(
+        r#"
+        var str = "";
+        outer: for (let i in [1, 2]) {
+            inner: for (let b in [2, 3, 4]) {
+                if (b === "1") {
+                    continue outer;
+                }
+                str = str + b;
+            };
+            str = str + i;
+        };
+        str;
+        "#,
+    );
+}
