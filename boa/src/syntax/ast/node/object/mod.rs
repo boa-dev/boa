@@ -15,6 +15,9 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "vm")]
 use crate::vm::{compilation::CodeGen, Compiler, Instruction};
 
+#[cfg(test)]
+mod tests;
+
 /// Objects in JavaScript may be defined as an unordered collection of related data, of
 /// primitive or reference types, in the form of “key: value” pairs.
 ///
