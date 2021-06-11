@@ -59,6 +59,9 @@ impl ForInLoop {
     }
 
     pub fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
+        if let Some(ref label) = self.label {
+            write!(f, "{}: ", label)?;
+        }
         write!(f, "for ({} in {}) ", self.variable, self.expr)?;
         self.body().display(f, indentation)
     }

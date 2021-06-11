@@ -505,11 +505,12 @@ fn for_in_continue_label() {
 
 #[test]
 fn fmt() {
+    // Labeled and unlabeled for in loops
     super::super::test_formatting(
         r#"
         var str = "";
         outer: for (let i in [1, 2]) {
-            inner: for (let b in [2, 3, 4]) {
+            for (let b in [2, 3, 4]) {
                 if (b === "1") {
                     continue outer;
                 }
