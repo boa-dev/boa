@@ -2,6 +2,9 @@
 fn fmt() {
     super::super::test_formatting(
         r#"
+        let other = {
+            c: 10,
+        };
         let inst = {
             a: 5,
             b: "hello world",
@@ -9,6 +12,7 @@ fn fmt() {
                 a: 5,
                 b: 6,
             },
+            ...other,
             say_hi: function() {
                 console.log("hello!");
             }

@@ -56,17 +56,24 @@ impl Object {
         indent: usize,
     ) -> fmt::Result {
         f.write_str("{\n")?;
-        let indent = "    ".repeat(indent + 1);
+        let indentation = "    ".repeat(indent + 1);
         for property in self.properties().iter() {
             match property {
                 PropertyDefinition::IdentifierReference(key) => {
-                    writeln!(f, "{}{},", indent, key)?;
+                    writeln!(f, "{}{},", indentation, key)?;
                 }
                 PropertyDefinition::Property(key, value) => {
-                    writeln!(f, "{}{}: {},", indent, key, value)?;
+                    dbg!(&value);
+                    if let Node::Object(ref inner) = value {
+                        write!(f, "{}{}: ", indentation, key)?;
+                        inner.display(f, indent + 1)?;
+                        writeln!(f, ",")?;
+                    } else {
+                        writeln!(f, "{}{}: {},", indentation, key, value)?;
+                    }
                 }
                 PropertyDefinition::SpreadObject(key) => {
-                    writeln!(f, "{}...{},", indent, key)?;
+                    writeln!(f, "{}...{},", indentation, key)?;
                 }
                 PropertyDefinition::MethodDefinition(_kind, _key, _node) => {
                     // TODO: Implement display for PropertyDefinition::MethodDefinition.
@@ -74,7 +81,7 @@ impl Object {
                 }
             }
         }
-        f.write_str("}")
+        write!(f, "{}}}", "    ".repeat(indent))
     }
 }
 
