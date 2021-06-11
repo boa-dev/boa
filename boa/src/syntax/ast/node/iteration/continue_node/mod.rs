@@ -57,15 +57,11 @@ impl Executable for Continue {
 
 impl fmt::Display for Continue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "continue{}",
-            if let Some(label) = self.label() {
-                format!(" {}", label)
-            } else {
-                String::new()
-            }
-        )
+        write!(f, "continue")?;
+        if let Some(label) = self.label() {
+            write!(f, " {}", label)?;
+        }
+        Ok(())
     }
 }
 

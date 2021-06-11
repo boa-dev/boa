@@ -525,8 +525,8 @@ fn fmt() {
     super::super::test_formatting(
         r#"
         var str = "";
-        outer: for (let i = 0; i < 10; i++) {
-            for (let j = 3; j < 6; j++) {
+        outer: for (let i = 0; i < 10; ++i) {
+            for (let j = 3; j < 6; ++j) {
                 if (j === "1") {
                     continue outer;
                 }
@@ -544,12 +544,12 @@ fn fmt() {
             if (false) {
                 break;
             }
-        }
+        };
         label: for (i of [1, 2, 3]) {
             if (false) {
                 break label;
             }
-        }
+        };
         "#,
     );
     // Labeled and unlabeled do while loops

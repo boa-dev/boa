@@ -63,6 +63,9 @@ impl WhileLoop {
         f: &mut fmt::Formatter<'_>,
         indentation: usize,
     ) -> fmt::Result {
+        if let Some(ref label) = self.label {
+            write!(f, "{}: ", label)?;
+        }
         write!(f, "while ({}) ", self.cond())?;
         self.expr().display(f, indentation)
     }
