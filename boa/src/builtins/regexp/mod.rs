@@ -72,6 +72,12 @@ impl BuiltIn for RegExp {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
+        let get_species = FunctionBuilder::new(context, Self::get_species)
+            .name("get [Symbol.species]")
+            .constructable(false)
+            .callable(true)
+            .build();
+
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
         let get_global = FunctionBuilder::new(context, Self::get_global)
@@ -117,6 +123,12 @@ impl BuiltIn for RegExp {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
+        .static_accessor(
+            WellKnownSymbols::species(),
+            Some(get_species),
+            None,
+            Attribute::CONFIGURABLE,
+        )
         .property("lastIndex", 0, Attribute::all())
         .method(Self::test, "test", 1)
         .method(Self::exec, "exec", 1)
@@ -256,6 +268,21 @@ impl RegExp {
         this.set_data(ObjectData::RegExp(Box::new(regexp)));
 
         Ok(this)
+    }
+
+    /// `get RegExp[@@species]`
+    ///
+    /// The RegExp[@@species] accessor property returns the RegExp constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-regexp-@@species
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@species
+    fn get_species(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+        // 1. Return the this value.
+        Ok(this.clone())
     }
 
     #[inline]
