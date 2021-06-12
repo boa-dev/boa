@@ -1104,3 +1104,13 @@ fn string_get_property() {
     assert_eq!(forward(&mut context, "'abc'['foo']"), "undefined");
     assert_eq!(forward(&mut context, "'😀'[0]"), "\"\\ud83d\"");
 }
+
+#[test]
+fn search() {
+    let mut context = Context::new();
+
+    assert_eq!(forward(&mut context, "'aa'.search(/b/)"), "-1");
+    assert_eq!(forward(&mut context, "'aa'.search(/a/)"), "0");
+    assert_eq!(forward(&mut context, "'aa'.search(/a/g)"), "0");
+    assert_eq!(forward(&mut context, "'ba'.search(/a/)"), "1");
+}

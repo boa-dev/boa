@@ -107,3 +107,14 @@ fn no_panic_on_invalid_character_escape() {
     // The line below should not cause Boa to panic
     forward(&mut context, r"const a = /,\;/");
 }
+
+#[test]
+fn search() {
+    let mut context = Context::new();
+
+    assert_eq!(forward(&mut context, "/a/[Symbol.search](\"a\")"), "0");
+    assert_eq!(forward(&mut context, "/a/[Symbol.search](\"ba\")"), "1");
+    assert_eq!(forward(&mut context, "/a/[Symbol.search](\"bb\")"), "-1");
+    assert_eq!(forward(&mut context, "/u/[Symbol.search](null)"), "1");
+    assert_eq!(forward(&mut context, "/d/[Symbol.search](undefined)"), "2");
+}
