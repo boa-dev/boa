@@ -22,6 +22,7 @@ pub mod regexp;
 pub mod set;
 pub mod string;
 pub mod symbol;
+pub mod typed_arrays;
 pub mod undefined;
 
 pub(crate) use self::{
@@ -49,6 +50,7 @@ pub(crate) use self::{
     symbol::Symbol,
     undefined::Undefined,
 };
+use crate::builtins::typed_arrays::uint8_array::UInt8Array;
 use crate::{
     property::{Attribute, DataDescriptor},
     Context, Value,
@@ -93,6 +95,7 @@ pub fn init(context: &mut Context) {
         EvalError::init,
         UriError::init,
         Reflect::init,
+        UInt8Array::init,
         #[cfg(feature = "console")]
         console::Console::init,
     ];

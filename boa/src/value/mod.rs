@@ -58,6 +58,8 @@ pub enum Value {
     Rational(f64),
     /// `Number` - A 32-bit integer, such as `42`.
     Integer(i32),
+    // TODO: Figure out if value should contain types like these
+    // TypedInt(TypedInt),
     /// `BigInt` - holds any arbitrary large signed integer.
     BigInt(RcBigInt),
     /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values.
@@ -65,6 +67,12 @@ pub enum Value {
     /// `Symbol` - A Symbol Primitive type.
     Symbol(RcSymbol),
 }
+
+// Integer values for typed_arrays and other size defined integer values
+// pub enum TypedInt {
+//     I8(i8),
+//     U8(u8),
+// }
 
 /// Represents the result of ToIntegerOrInfinity operation
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -1,5 +1,6 @@
 //! Javascript context.
 
+use crate::builtins::typed_arrays::typed_array::TypedArray;
 use crate::{
     builtins::{
         self,
@@ -83,6 +84,7 @@ pub struct StandardObjects {
     object: StandardConstructor,
     function: StandardConstructor,
     array: StandardConstructor,
+    typed_array: StandardConstructor,
     bigint: StandardConstructor,
     number: StandardConstructor,
     boolean: StandardConstructor,
@@ -106,6 +108,10 @@ impl Default for StandardObjects {
             object: StandardConstructor::default(),
             function: StandardConstructor::default(),
             array: StandardConstructor::default(),
+            // TODO: Figure out how this is relevant. I'm not entirely sure this is the right place for this
+            // The spec seems to hint that this should be implemented similarly to iterator_prototypes
+            // as a separate key on the context object
+            typed_array: StandardConstructor::default(),
             bigint: StandardConstructor::default(),
             number: StandardConstructor::with_prototype(Object::number(0.0)),
             boolean: StandardConstructor::with_prototype(Object::boolean(false)),
@@ -139,6 +145,11 @@ impl StandardObjects {
     #[inline]
     pub fn array_object(&self) -> &StandardConstructor {
         &self.array
+    }
+
+    #[inline]
+    pub fn typed_array_object(&self) -> &StandardConstructor {
+        &self.typed_array
     }
 
     #[inline]
@@ -233,7 +244,7 @@ pub struct Context {
     /// console object state.
     #[cfg(feature = "console")]
     console: Console,
-
+    typed_array_prototype: GcObject,
     /// Cached iterator prototypes.
     iterator_prototypes: IteratorPrototypes,
 
@@ -253,11 +264,13 @@ impl Default for Context {
             executor,
             #[cfg(feature = "console")]
             console: Console::default(),
+            typed_array_prototype: Default::default(),
             iterator_prototypes: IteratorPrototypes::default(),
             standard_objects: Default::default(),
             trace: false,
         };
 
+        context.typed_array_prototype = TypedArray::init(&mut context);
         // Add new builtIns to Context Realm
         // At a later date this can be removed from here and called explicitly,
         // but for now we almost always want these default builtins
@@ -700,6 +713,11 @@ impl Context {
     #[inline]
     pub fn iterator_prototypes(&self) -> &IteratorPrototypes {
         &self.iterator_prototypes
+    }
+
+    #[inline]
+    pub fn typed_array_prototype(&self) -> &GcObject {
+        &self.typed_array_prototype
     }
 
     /// Return the core standard objects.
