@@ -1351,9 +1351,6 @@ impl String {
                 // i. Return ? Call(searcher, regexp, « O »).
                 return searcher.call(&regexp, &[this.clone()], context);
             }
-
-            //let re = RegExp::constructor(&Value::from(Object::default()), &[regexp], context)?;
-            //return RegExp::search(&re, &[this.clone()], context);
         }
 
         // 3. Let string be ? ToString(O).
