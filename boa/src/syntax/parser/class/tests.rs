@@ -9,7 +9,7 @@ use crate::syntax::{
 fn check_empty() {
     check_parser(
         "class Empty {}",
-        vec![ClassDecl::new(Box::from("Empty"), vec![]).into()],
+        vec![ClassDecl::new(Box::from("Empty"), None, vec![]).into()],
     );
 }
 
@@ -26,14 +26,15 @@ fn check_basic() {
         "#,
         vec![ClassDecl::new(
             Box::from("Basic"),
-            vec![FunctionDecl::new(
+            Some(FunctionDecl::new(
                 Box::from("constructor"),
                 vec![],
                 vec![
                     DeclarationList::Let(vec![Declaration::new("val", None)].into_boxed_slice())
                         .into(),
                 ],
-            )],
+            )),
+            vec![],
         )
         .into()],
     );
@@ -54,15 +55,15 @@ fn check_multi() {
         "#,
         vec![ClassDecl::new(
             Box::from("Multi"),
+            Some(FunctionDecl::new(
+                Box::from("constructor"),
+                vec![],
+                vec![
+                    DeclarationList::Let(vec![Declaration::new("val", None)].into_boxed_slice())
+                        .into(),
+                ],
+            )),
             vec![
-                FunctionDecl::new(
-                    Box::from("constructor"),
-                    vec![],
-                    vec![DeclarationList::Let(
-                        vec![Declaration::new("val", None)].into_boxed_slice(),
-                    )
-                    .into()],
-                ),
                 FunctionDecl::new(Box::from("say_hello"), vec![], vec![]),
                 FunctionDecl::new(Box::from("say_hello_again"), vec![], vec![]),
             ],

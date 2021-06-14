@@ -1,5 +1,4 @@
-#[cfg(test)]
-mod tests;
+// Tests are in parser/class/tests.rs
 
 use crate::syntax::{
     ast::{node::ClassDecl, Keyword, Punctuator},
@@ -56,7 +55,7 @@ where
 
         cursor.expect(Punctuator::OpenBlock, "class declaration")?;
 
-        let fields = ClassElementList::new(false, false).parse(cursor)?;
+        let (constructor, fields) = ClassElementList::new(false, false).parse(cursor)?;
 
         cursor.expect(Punctuator::CloseBlock, "class declaration")?;
 
@@ -78,6 +77,6 @@ where
             // }
         }
 
-        Ok(ClassDecl::new(name, fields.constructor, fields))
+        Ok(ClassDecl::new(name, constructor, fields))
     }
 }
