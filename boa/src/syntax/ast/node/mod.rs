@@ -29,8 +29,8 @@ pub use self::{
     call::Call,
     conditional::{ConditionalOp, If},
     declaration::{
-        ArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList,
-        FunctionDecl, FunctionExpr,
+        ArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, ClassDecl, Declaration,
+        DeclarationList, FunctionDecl, FunctionExpr,
     },
     field::{GetConstField, GetField},
     identifier::Identifier,
@@ -93,6 +93,9 @@ pub enum Node {
 
     /// A function call. [More information](./expression/struct.Call.html).
     Call(Call),
+
+    /// A class declaration. [More information](./declaration/class_decl.ClassDecl.html).
+    ClassDecl(ClassDecl),
 
     /// A javascript conditional operand ( x ? y : z ). [More information](./conditional/struct.ConditionalOp.html).
     ConditionalOp(ConditionalOp),
@@ -286,6 +289,7 @@ impl Node {
             Self::Object(ref obj) => obj.display(f, indentation),
             Self::ArrayDecl(ref arr) => Display::fmt(arr, f),
             Self::VarDeclList(ref list) => Display::fmt(list, f),
+            Self::ClassDecl(ref decl) => decl.display(f, indentation),
             Self::FunctionDecl(ref decl) => decl.display(f, indentation),
             Self::FunctionExpr(ref expr) => expr.display(f, indentation),
             Self::ArrowFunctionDecl(ref decl) => decl.display(f, indentation),
@@ -338,6 +342,7 @@ impl Executable for Node {
             Node::Switch(ref switch) => switch.run(context),
             Node::Object(ref obj) => obj.run(context),
             Node::ArrayDecl(ref arr) => arr.run(context),
+            Node::ClassDecl(ref decl) => decl.run(context),
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>
             Node::FunctionDecl(ref decl) => decl.run(context),
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>

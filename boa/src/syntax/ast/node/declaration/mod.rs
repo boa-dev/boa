@@ -14,12 +14,13 @@ use serde::{Deserialize, Serialize};
 pub mod arrow_function_decl;
 pub mod async_function_decl;
 pub mod async_function_expr;
+pub mod class_decl;
 pub mod function_decl;
 pub mod function_expr;
 
 pub use self::{
     arrow_function_decl::ArrowFunctionDecl, async_function_decl::AsyncFunctionDecl,
-    async_function_expr::AsyncFunctionExpr, function_decl::FunctionDecl,
+    async_function_expr::AsyncFunctionExpr, class_decl::ClassDecl, function_decl::FunctionDecl,
     function_expr::FunctionExpr,
 };
 
