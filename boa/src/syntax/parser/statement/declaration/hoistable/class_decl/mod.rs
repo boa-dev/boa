@@ -78,6 +78,6 @@ where
             // }
         }
 
-        Ok(ClassDecl::new(name, fields))
+        Ok(ClassDecl::new(name, fields.constructor, fields))
     }
 }
