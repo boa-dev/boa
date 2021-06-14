@@ -38,3 +38,35 @@ fn check_basic() {
         .into()],
     );
 }
+
+/// Checks for multiple functions being parsed.
+#[test]
+fn check_multi() {
+    check_parser(
+        r#"
+        class Multi {
+            constructor() {
+                let val;
+            }
+            say_hello() {}
+            say_hello_again() {}
+        }
+        "#,
+        vec![ClassDecl::new(
+            Box::from("Multi"),
+            vec![
+                FunctionDecl::new(
+                    Box::from("constructor"),
+                    vec![],
+                    vec![DeclarationList::Let(
+                        vec![Declaration::new("val", None)].into_boxed_slice(),
+                    )
+                    .into()],
+                ),
+                FunctionDecl::new(Box::from("say_hello"), vec![], vec![]),
+                FunctionDecl::new(Box::from("say_hello_again"), vec![], vec![]),
+            ],
+        )
+        .into()],
+    );
+}
