@@ -239,14 +239,28 @@ impl Node {
         Self::This
     }
 
-    /// Implements the display formatting with indentation.
+    /// Displays the value of the node with the given indentation. For example, an indent
+    /// level of 2 would produce this:
+    ///
+    /// ```js
+    ///         function hello() {
+    ///             console.log("hello");
+    ///         }
+    ///         hello();
+    ///         a = 2;
+    /// ```
     fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
         let indent = "    ".repeat(indentation);
         match *self {
             Self::Block(_) => {}
             _ => write!(f, "{}", indent)?,
         }
+        self.display_no_indent(f, indentation)
+    }
 
+    /// Implements the display formatting with indentation. This will not prefix the value with
+    /// any indentation. If you want to prefix this with proper indents, use [`display`](Self::display).
+    fn display_no_indent(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
         match *self {
             Self::Call(ref expr) => Display::fmt(expr, f),
             Self::Const(ref c) => write!(f, "{}", c),

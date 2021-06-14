@@ -15,7 +15,10 @@ fn fmt() {
             ...other,
             say_hi: function() {
                 console.log("hello!");
-            }
+            },
+            get a() {
+                return this.a + 1;
+            },
         };
         "#,
     );

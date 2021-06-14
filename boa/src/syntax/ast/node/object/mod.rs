@@ -63,14 +63,9 @@ impl Object {
                     writeln!(f, "{}{},", indentation, key)?;
                 }
                 PropertyDefinition::Property(key, value) => {
-                    dbg!(&value);
-                    if let Node::Object(ref inner) = value {
-                        write!(f, "{}{}: ", indentation, key)?;
-                        inner.display(f, indent + 1)?;
-                        writeln!(f, ",")?;
-                    } else {
-                        writeln!(f, "{}{}: {},", indentation, key, value)?;
-                    }
+                    write!(f, "{}{}: ", indentation, key,)?;
+                    value.display_no_indent(f, indent + 1)?;
+                    writeln!(f, ",")?;
                 }
                 PropertyDefinition::SpreadObject(key) => {
                     writeln!(f, "{}...{},", indentation, key)?;
