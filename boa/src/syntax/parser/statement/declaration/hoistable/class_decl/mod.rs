@@ -4,8 +4,8 @@ mod tests;
 use crate::syntax::{
     ast::{node::FunctionDecl, Keyword, Punctuator},
     parser::{
-        function::FunctionBody, statement::BindingIdentifier, AllowAwait, AllowDefault, AllowYield,
-        Cursor, ParseError, TokenParser,
+        class::ClassElementList, statement::BindingIdentifier, AllowAwait, AllowDefault,
+        AllowYield, Cursor, ParseError, TokenParser,
     },
 };
 use std::io::Read;
@@ -56,7 +56,7 @@ where
 
         cursor.expect(Punctuator::OpenBlock, "class declaration")?;
 
-        let body = FunctionBody::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let fields = ClassElementList::new(false, false).parse(cursor);
 
         cursor.expect(Punctuator::CloseBlock, "class declaration")?;
 
