@@ -6,7 +6,7 @@ fn fmt() {
             c: 10,
         };
         let inst = {
-            a: 5,
+            val: 5,
             b: "hello world",
             nested: {
                 a: 5,
@@ -17,9 +17,18 @@ fn fmt() {
                 console.log("hello!");
             },
             get a() {
-                return this.a + 1;
+                return this.val + 1;
+            },
+            set a(new_value) {
+                this.val = new_value;
+            },
+            say_hello(msg) {
+                console.log("hello " + msg);
             },
         };
+        inst.a = 20;
+        inst.a;
+        inst.say_hello("humans");
         "#,
     );
 }
