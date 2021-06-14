@@ -343,15 +343,16 @@ impl BuiltInFunctionObject {
         };
 
         let function = {
-            let object = this.clone().as_object().expect("Should be an object");
+            let object = this.clone().as_object().map(|object| {
+                let func = object.borrow().as_function().map(|f| f.clone());
+                func
+            });
 
-            let func = object
-                .borrow()
-                .as_function()
-                .map(|f| f.clone())
-                .expect("Should be a function");
-
-            func
+            if let Some(Some(function)) = object {
+                function
+            } else {
+                return context.throw_type_error("Not a function");
+            }
         };
 
         match (&function, name) {
