@@ -107,3 +107,89 @@ fn no_panic_on_invalid_character_escape() {
     // The line below should not cause Boa to panic
     forward(&mut context, r"const a = /,\;/");
 }
+
+#[test]
+fn search() {
+    let mut context = Context::new();
+
+    // coerce-string
+    assert_eq!(
+        forward(
+            &mut context,
+            r#"
+        var obj = {
+            toString: function() {
+                return 'toString value';
+            }
+        };
+        /ring/[Symbol.search](obj)
+        "#
+        ),
+        "4"
+    );
+
+    // failure-return-val
+    assert_eq!(forward(&mut context, "/z/[Symbol.search]('a')"), "-1");
+
+    // length
+    assert_eq!(
+        forward(&mut context, "RegExp.prototype[Symbol.search].length"),
+        "1"
+    );
+
+    let init =
+        "var obj = Object.getOwnPropertyDescriptor(RegExp.prototype[Symbol.search], \"length\")";
+    eprintln!("{}", forward(&mut context, init));
+    assert_eq!(forward(&mut context, "obj.enumerable"), "false");
+    assert_eq!(forward(&mut context, "obj.writable"), "false");
+    assert_eq!(forward(&mut context, "obj.configurable"), "true");
+
+    // name
+    assert_eq!(
+        forward(&mut context, "RegExp.prototype[Symbol.search].name"),
+        "\"[Symbol.search]\""
+    );
+
+    let init =
+        "var obj = Object.getOwnPropertyDescriptor(RegExp.prototype[Symbol.search], \"name\")";
+    eprintln!("{}", forward(&mut context, init));
+    assert_eq!(forward(&mut context, "obj.enumerable"), "false");
+    assert_eq!(forward(&mut context, "obj.writable"), "false");
+    assert_eq!(forward(&mut context, "obj.configurable"), "true");
+
+    // prop-desc
+    let init = "var obj = Object.getOwnPropertyDescriptor(RegExp.prototype, Symbol.search)";
+    eprintln!("{}", forward(&mut context, init));
+    assert_eq!(forward(&mut context, "obj.enumerable"), "false");
+    assert_eq!(forward(&mut context, "obj.writable"), "true");
+    assert_eq!(forward(&mut context, "obj.configurable"), "true");
+
+    // success-return-val
+    assert_eq!(forward(&mut context, "/a/[Symbol.search]('abc')"), "0");
+    assert_eq!(forward(&mut context, "/b/[Symbol.search]('abc')"), "1");
+    assert_eq!(forward(&mut context, "/c/[Symbol.search]('abc')"), "2");
+
+    // this-val-non-obj
+    let error = "Uncaught \"TypeError\": \"RegExp.prototype[Symbol.search] method called on incompatible value\"";
+    let init = "var search = RegExp.prototype[Symbol.search]";
+    eprintln!("{}", forward(&mut context, init));
+    assert_eq!(forward(&mut context, "search.call()"), error);
+    assert_eq!(forward(&mut context, "search.call(undefined)"), error);
+    assert_eq!(forward(&mut context, "search.call(null)"), error);
+    assert_eq!(forward(&mut context, "search.call(true)"), error);
+    assert_eq!(forward(&mut context, "search.call('string')"), error);
+    assert_eq!(forward(&mut context, "search.call(Symbol.search)"), error);
+    assert_eq!(forward(&mut context, "search.call(86)"), error);
+
+    // u-lastindex-advance
+    assert_eq!(
+        forward(&mut context, "/\\udf06/u[Symbol.search]('\\ud834\\udf06')"),
+        "-1"
+    );
+
+    assert_eq!(forward(&mut context, "/a/[Symbol.search](\"a\")"), "0");
+    assert_eq!(forward(&mut context, "/a/[Symbol.search](\"ba\")"), "1");
+    assert_eq!(forward(&mut context, "/a/[Symbol.search](\"bb\")"), "-1");
+    assert_eq!(forward(&mut context, "/u/[Symbol.search](null)"), "1");
+    assert_eq!(forward(&mut context, "/d/[Symbol.search](undefined)"), "2");
+}

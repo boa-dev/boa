@@ -133,6 +133,7 @@ impl BuiltIn for String {
         .method(Self::match_all, "matchAll", 1)
         .method(Self::replace, "replace", 2)
         .method(Self::iterator, (symbol_iterator, "[Symbol.iterator]"), 0)
+        .method(Self::search, "search", 1)
         .build();
 
         (Self::NAME, string_object.into(), Self::attribute())
@@ -1322,6 +1323,51 @@ impl String {
         }?;
 
         RegExp::match_all(&re, this.to_string(context)?.to_string(), context)
+    }
+
+    /// `String.prototype.search( regexp )`
+    ///
+    /// The search() method executes a search for a match between a regular expression and this String object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.search
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search
+    pub(crate) fn search(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
+        let this = this.require_object_coercible(context)?;
+
+        // 2. If regexp is neither undefined nor null, then
+        let regexp = args.get(0).cloned().unwrap_or_default();
+        if !regexp.is_null_or_undefined() {
+            // a. Let searcher be ? GetMethod(regexp, @@search).
+            // b. If searcher is not undefined, then
+            if let Some(searcher) = regexp
+                .to_object(context)?
+                .get_method(context, WellKnownSymbols::search())?
+            {
+                // i. Return ? Call(searcher, regexp, « O »).
+                return searcher.call(&regexp, &[this.clone()], context);
+            }
+        }
+
+        // 3. Let string be ? ToString(O).
+        let s = this.to_string(context)?;
+
+        // 4. Let rx be ? RegExpCreate(regexp, undefined).
+        let rx = RegExp::constructor(&Value::from(Object::default()), &[regexp], context)?;
+
+        // 5. Return ? Invoke(rx, @@search, « string »).
+        if let Some(searcher) = rx
+            .to_object(context)?
+            .get_method(context, WellKnownSymbols::search())?
+        {
+            searcher.call(&rx, &[Value::from(s)], context)
+        } else {
+            context.throw_type_error("regexp[Symbol.search] is not a function")
+        }
     }
 
     pub(crate) fn iterator(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
