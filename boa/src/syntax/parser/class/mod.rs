@@ -13,13 +13,13 @@ mod tests;
 use crate::{
     syntax::{
         ast::{
-            node::{self},
+            node::{self, FunctionDecl},
             Punctuator,
         },
         lexer::{InputElement, TokenKind},
         parser::{
-            expression::Initializer,
-            statement::{BindingIdentifier, StatementList},
+            function::{FormalParameters, FunctionBody},
+            statement::BindingIdentifier,
             AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
         },
     },
@@ -59,7 +59,7 @@ impl<R> TokenParser<R> for ClassElementList
 where
     R: Read,
 {
-    type Output = Box<[node::FunctionDecl]>;
+    type Output = Box<[FunctionDecl]>;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ClassElementList", "Parsing");
@@ -74,23 +74,20 @@ where
         }
 
         loop {
-            let next_elem = match cursor.peek(0)? {
-                Some(tok) => {
-                    if let TokenKind::Identifier(name) = tok.kind() {
-                        name
-                    } else {
-                        continue;
-                    }
-                }
-                _ => {
-                    return Err(ParseError::unexpected(
-                        cursor.next()?.expect("peeked token disappeared"),
-                        "classes can only contain function names",
-                    ));
-                }
-            };
+            let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
-            elems.push(next_elem);
+            cursor.expect(Punctuator::OpenParen, "class function declaration")?;
+
+            let params = FormalParameters::new(false, false).parse(cursor)?;
+
+            cursor.expect(Punctuator::CloseParen, "class function declaration")?;
+            cursor.expect(Punctuator::OpenBlock, "class function declaration")?;
+
+            let body = FunctionBody::new(self.allow_yield, self.allow_await).parse(cursor)?;
+
+            cursor.expect(Punctuator::CloseBlock, "class function declaration")?;
+
+            elems.push(FunctionDecl::new(name, params, body));
 
             if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
                 == &TokenKind::Punctuator(Punctuator::CloseBlock)
