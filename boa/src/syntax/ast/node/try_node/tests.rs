@@ -93,3 +93,23 @@ fn catch_binding_finally() {
     "#;
     assert_eq!(&exec(scenario), "30");
 }
+
+#[test]
+fn fmt() {
+    super::super::test_formatting(
+        r#"
+        try {
+            throw "hello";
+        } catch(e) {
+            console.log(e);
+        } finally {
+            console.log("things");
+        };
+        try {
+            throw "hello";
+        } catch {
+            console.log("something went wrong");
+        };
+        "#,
+    );
+}
