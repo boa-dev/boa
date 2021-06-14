@@ -31,18 +31,21 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct ClassDecl {
     name: Box<str>,
+    constructor: Option<FunctionDecl>,
     fields: Box<[FunctionDecl]>,
 }
 
 impl ClassDecl {
     /// Creates a new function declaration.
-    pub(in crate::syntax) fn new<N, F>(name: N, fields: F) -> Self
+    pub(in crate::syntax) fn new<N, C, F>(name: N, constructor: C, fields: F) -> Self
     where
         N: Into<Box<str>>,
+        C: Into<Option<FunctionDecl>>,
         F: Into<Box<[FunctionDecl]>>,
     {
         Self {
             name: name.into(),
+            constructor: constructor.into(),
             fields: fields.into(),
         }
     }
