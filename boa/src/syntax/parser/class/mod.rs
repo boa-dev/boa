@@ -89,11 +89,10 @@ where
 
             cursor.expect(Punctuator::CloseBlock, "class function declaration")?;
 
-            let f = FunctionDecl::new(name, params, body);
-            if &*name == "constructor" {
-                constructor = Some(f);
+            if *name == *"constructor" {
+                constructor = Some(FunctionDecl::new(name, params, body));
             } else {
-                elems.push(f);
+                elems.push(FunctionDecl::new(name, params, body));
             }
 
             if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
