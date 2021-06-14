@@ -3,24 +3,21 @@ mod tests;
 
 use crate::syntax::{
     ast::{node::FunctionDecl, Keyword, Punctuator},
-    lexer::{InputElement, TokenKind},
     parser::{
-        function::FormalParameters,
-        function::FunctionBody,
-        statement::{BindingIdentifier, LexError, Position},
-        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
+        function::FunctionBody, statement::BindingIdentifier, AllowAwait, AllowDefault, AllowYield,
+        Cursor, ParseError, TokenParser,
     },
 };
 use std::io::Read;
 
-/// Function declaration parsing.
+/// Class declaration parsing.
 ///
 /// More information:
 ///  - [MDN documentation][mdn]
 ///  - [ECMAScript specification][spec]
 ///
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
-/// [spec]: https://tc39.es/ecma262/#prod-FunctionDeclaration
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/class
+/// [spec]: https://tc39.es/ecma262/#sec-class-definitions
 
 #[derive(Debug, Clone, Copy)]
 pub(super) struct ClassDeclaration {
