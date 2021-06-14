@@ -9,9 +9,11 @@
 mod tests;
 
 mod async_function_decl;
+mod class_decl;
 mod function_decl;
 
 use async_function_decl::AsyncFunctionDeclaration;
+use class_decl::ClassDeclaration;
 use function_decl::FunctionDeclaration;
 
 use crate::{
@@ -73,6 +75,11 @@ where
             }
             TokenKind::Keyword(Keyword::Async) => {
                 AsyncFunctionDeclaration::new(self.allow_yield, self.allow_await, false)
+                    .parse(cursor)
+                    .map(Node::from)
+            }
+            TokenKind::Keyword(Keyword::Class) => {
+                ClassDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
                     .parse(cursor)
                     .map(Node::from)
             }

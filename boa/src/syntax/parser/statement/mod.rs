@@ -390,7 +390,9 @@ where
         let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
         match *tok.kind() {
-            TokenKind::Keyword(Keyword::Function) | TokenKind::Keyword(Keyword::Async) => {
+            TokenKind::Keyword(Keyword::Function)
+            | TokenKind::Keyword(Keyword::Async)
+            | TokenKind::Keyword(Keyword::Class) => {
                 if strict_mode && self.in_block {
                     return Err(ParseError::lex(LexError::Syntax(
                         "Function declaration in blocks not allowed in strict mode".into(),
