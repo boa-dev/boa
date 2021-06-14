@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.7.2/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.8.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../once_cell/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
@@ -1081,6 +1081,98 @@
 <span id="1078">1078</span>
 <span id="1079">1079</span>
 <span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
+<span id="1106">1106</span>
+<span id="1107">1107</span>
+<span id="1108">1108</span>
+<span id="1109">1109</span>
+<span id="1110">1110</span>
+<span id="1111">1111</span>
+<span id="1112">1112</span>
+<span id="1113">1113</span>
+<span id="1114">1114</span>
+<span id="1115">1115</span>
+<span id="1116">1116</span>
+<span id="1117">1117</span>
+<span id="1118">1118</span>
+<span id="1119">1119</span>
+<span id="1120">1120</span>
+<span id="1121">1121</span>
+<span id="1122">1122</span>
+<span id="1123">1123</span>
+<span id="1124">1124</span>
+<span id="1125">1125</span>
+<span id="1126">1126</span>
+<span id="1127">1127</span>
+<span id="1128">1128</span>
+<span id="1129">1129</span>
+<span id="1130">1130</span>
+<span id="1131">1131</span>
+<span id="1132">1132</span>
+<span id="1133">1133</span>
+<span id="1134">1134</span>
+<span id="1135">1135</span>
+<span id="1136">1136</span>
+<span id="1137">1137</span>
+<span id="1138">1138</span>
+<span id="1139">1139</span>
+<span id="1140">1140</span>
+<span id="1141">1141</span>
+<span id="1142">1142</span>
+<span id="1143">1143</span>
+<span id="1144">1144</span>
+<span id="1145">1145</span>
+<span id="1146">1146</span>
+<span id="1147">1147</span>
+<span id="1148">1148</span>
+<span id="1149">1149</span>
+<span id="1150">1150</span>
+<span id="1151">1151</span>
+<span id="1152">1152</span>
+<span id="1153">1153</span>
+<span id="1154">1154</span>
+<span id="1155">1155</span>
+<span id="1156">1156</span>
+<span id="1157">1157</span>
+<span id="1158">1158</span>
+<span id="1159">1159</span>
+<span id="1160">1160</span>
+<span id="1161">1161</span>
+<span id="1162">1162</span>
+<span id="1163">1163</span>
+<span id="1164">1164</span>
+<span id="1165">1165</span>
+<span id="1166">1166</span>
+<span id="1167">1167</span>
+<span id="1168">1168</span>
+<span id="1169">1169</span>
+<span id="1170">1170</span>
+<span id="1171">1171</span>
+<span id="1172">1172</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! # Overview</span>
 <span class="doccomment">//!</span>
@@ -1090,7 +1182,7 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```rust,ignore</span>
 <span class="doccomment">//! impl&lt;T&gt; OnceCell&lt;T&gt; {</span>
-<span class="doccomment">//!     fn new() -&gt; OnceCell&lt;T&gt; { ... }</span>
+<span class="doccomment">//!     const fn new() -&gt; OnceCell&lt;T&gt; { ... }</span>
 <span class="doccomment">//!     fn set(&amp;self, value: T) -&gt; Result&lt;(), T&gt; { ... }</span>
 <span class="doccomment">//!     fn get(&amp;self) -&gt; Option&lt;&amp;T&gt; { ... }</span>
 <span class="doccomment">//! }</span>
@@ -1108,11 +1200,11 @@
 <span class="doccomment">//! [`Mutex`]: https://doc.rust-lang.org/std/sync/struct.Mutex.html</span>
 <span class="doccomment">//! [`Sync`]: https://doc.rust-lang.org/std/marker/trait.Sync.html</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! # Patterns</span>
+<span class="doccomment">//! # Recipes</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! `OnceCell` might be useful for a variety of patterns.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! ## Safe Initialization of global data</span>
+<span class="doccomment">//! ## Safe Initialization of Global Data</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```rust</span>
 <span class="doccomment">//! use std::{env, io};</span>
@@ -1143,7 +1235,7 @@
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! ## Lazy initialized global data</span>
+<span class="doccomment">//! ## Lazy Initialized Global Data</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This is essentially the `lazy_static!` macro, but without a macro.</span>
 <span class="doccomment">//!</span>
@@ -1180,6 +1272,9 @@
 <span class="doccomment">//!     println!(&quot;{:?}&quot;, GLOBAL_DATA.lock().unwrap());</span>
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Note that the variable that holds `Lazy` is declared as `static`, *not*</span>
+<span class="doccomment">//! `const`. This is important: using `const` instead compiles, but works wrong.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [`sync::Lazy`]: sync/struct.Lazy.html</span>
 <span class="doccomment">//! [`unsync::Lazy`]: unsync/struct.Lazy.html</span>
@@ -1223,10 +1318,9 @@
 <span class="doccomment">//! }</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! ## Building block</span>
+<span class="doccomment">//! ## Lazily Compiled Regex</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Naturally, it is  possible to build other abstractions on top of `OnceCell`.</span>
-<span class="doccomment">//! For example, this is a `regex!` macro which takes a string literal and returns an</span>
+<span class="doccomment">//! This is a `regex!` macro which takes a string literal and returns an</span>
 <span class="doccomment">//! *expression* that evaluates to a `&amp;&#39;static Regex`:</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```</span>
@@ -1240,7 +1334,51 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This macro can be useful to avoid the &quot;compile regex on every loop iteration&quot; problem.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Another pattern would be a `LateInit` type for delayed initialization:</span>
+<span class="doccomment">//! ## Runtime `include_bytes!`</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The `include_bytes` macro is useful to include test resources, but it slows</span>
+<span class="doccomment">//! down test compilation a lot. An alternative is to load the resources at</span>
+<span class="doccomment">//! runtime:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//! use std::path::Path;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! use once_cell::sync::OnceCell;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! pub struct TestResource {</span>
+<span class="doccomment">//!     path: &amp;&#39;static str,</span>
+<span class="doccomment">//!     cell: OnceCell&lt;Vec&lt;u8&gt;&gt;,</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! impl TestResource {</span>
+<span class="doccomment">//!     pub const fn new(path: &amp;&#39;static str) -&gt; TestResource {</span>
+<span class="doccomment">//!         TestResource { path, cell: OnceCell::new() }</span>
+<span class="doccomment">//!     }</span>
+<span class="doccomment">//!     pub fn bytes(&amp;self) -&gt; &amp;[u8] {</span>
+<span class="doccomment">//!         self.cell.get_or_init(|| {</span>
+<span class="doccomment">//!             let dir = std::env::var(&quot;CARGO_MANIFEST_DIR&quot;).unwrap();</span>
+<span class="doccomment">//!             let path = Path::new(dir.as_str()).join(self.path);</span>
+<span class="doccomment">//!             std::fs::read(&amp;path).unwrap_or_else(|_err| {</span>
+<span class="doccomment">//!                 panic!(&quot;failed to load test resource: {}&quot;, path.display())</span>
+<span class="doccomment">//!             })</span>
+<span class="doccomment">//!         }).as_slice()</span>
+<span class="doccomment">//!     }</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! static TEST_IMAGE: TestResource = TestResource::new(&quot;test_data/lena.png&quot;);</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! #[test]</span>
+<span class="doccomment">//! fn test_sobel_filter() {</span>
+<span class="doccomment">//!     let rgb: &amp;[u8] = TEST_IMAGE.bytes();</span>
+<span class="doccomment">//!     // ...</span>
+<span class="doccomment">//! # drop(rgb);</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## `lateinit`</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! `LateInit` type for delayed initialization. It is reminiscent of Kotlin&#39;s</span>
+<span class="doccomment">//! `lateinit` keyword and allows construction of cyclic data structures:</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```</span>
@@ -1375,10 +1513,11 @@
 <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;imp_std.rs&quot;</span>]</span>
 <span class="kw">mod</span> <span class="ident">imp</span>;
 
+<span class="doccomment">/// Single-threaded version of `OnceCell`.</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">unsync</span> {
     <span class="kw">use</span> <span class="ident">core</span>::{
         <span class="ident">cell</span>::{<span class="ident">Cell</span>, <span class="ident">UnsafeCell</span>},
-        <span class="ident">fmt</span>, <span class="ident">mem</span>,
+        <span class="ident">fmt</span>, <span class="ident">hint</span>, <span class="ident">mem</span>,
         <span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>},
     };
 
@@ -1501,9 +1640,29 @@
         <span class="doccomment">/// assert!(cell.get().is_some());</span>
         <span class="doccomment">/// ```</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">T</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get</span>() };
-            <span class="kw">if</span> <span class="ident">slot</span>.<span class="ident">is_some</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">value</span>);
+            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">try_insert</span>(<span class="ident">value</span>) {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
+                <span class="prelude-val">Err</span>((<span class="kw">_</span>, <span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">value</span>),
+            }
+        }
+
+        <span class="doccomment">/// Like [`set`](Self::set), but also returns a referce to the final cell value.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// # Example</span>
+        <span class="doccomment">/// ```</span>
+        <span class="doccomment">/// use once_cell::unsync::OnceCell;</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// let cell = OnceCell::new();</span>
+        <span class="doccomment">/// assert!(cell.get().is_none());</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// assert_eq!(cell.try_insert(92), Ok(&amp;92));</span>
+        <span class="doccomment">/// assert_eq!(cell.try_insert(62), Err((&amp;92, 62)));</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// assert!(cell.get().is_some());</span>
+        <span class="doccomment">/// ```</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_insert</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span>, (<span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">T</span>)<span class="op">&gt;</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">old</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>() {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>((<span class="ident">old</span>, <span class="ident">value</span>));
             }
             <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get</span>() };
             <span class="comment">// This is the only place where we set the slot, no races</span>
@@ -1511,7 +1670,10 @@
             <span class="comment">// checked that slot is currently `None`, so this write</span>
             <span class="comment">// maintains the `inner`&#39;s invariant.</span>
             <span class="kw-2">*</span><span class="ident">slot</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>);
-            <span class="prelude-val">Ok</span>(())
+            <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">slot</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>,
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { <span class="ident">hint</span>::<span class="ident">unreachable_unchecked</span>() },
+            })
         }
 
         <span class="doccomment">/// Gets the contents of the cell, initializing it with `f`</span>
@@ -1741,6 +1903,7 @@
     }
 }
 
+<span class="doccomment">/// Thread-safe, blocking version of `OnceCell`.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">sync</span> {
     <span class="kw">use</span> <span class="ident">std</span>::{
@@ -1887,11 +2050,33 @@
         <span class="doccomment">/// }</span>
         <span class="doccomment">/// ```</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">T</span><span class="op">&gt;</span> {
+            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">try_insert</span>(<span class="ident">value</span>) {
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
+                <span class="prelude-val">Err</span>((<span class="kw">_</span>, <span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">value</span>),
+            }
+        }
+
+        <span class="doccomment">/// Like [`set`](Self::set), but also returns a reference to the final cell value.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// # Example</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// ```</span>
+        <span class="doccomment">/// use once_cell::unsync::OnceCell;</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// let cell = OnceCell::new();</span>
+        <span class="doccomment">/// assert!(cell.get().is_none());</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// assert_eq!(cell.try_insert(92), Ok(&amp;92));</span>
+        <span class="doccomment">/// assert_eq!(cell.try_insert(62), Err((&amp;92, 62)));</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// assert!(cell.get().is_some());</span>
+        <span class="doccomment">/// ```</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_insert</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span>, (<span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">T</span>)<span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>);
-            <span class="self">self</span>.<span class="ident">get_or_init</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>());
+            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_init</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>());
             <span class="kw">match</span> <span class="ident">value</span> {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(()),
-                <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">value</span>),
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">res</span>),
+                <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>((<span class="ident">res</span>, <span class="ident">value</span>)),
             }
         }
 
@@ -2058,11 +2243,10 @@
         }
     }
 
-    <span class="comment">// We never create a `&amp;F` from a `&amp;Lazy&lt;T, F&gt;` so it is fine</span>
-    <span class="comment">// to not impl `Sync` for `F`</span>
-    <span class="comment">// we do create a `&amp;mut Option&lt;F&gt;` in `force`, but this is</span>
-    <span class="comment">// properly synchronized, so it only happens once</span>
-    <span class="comment">// so it also does not contribute to this impl.</span>
+    <span class="comment">// We never create a `&amp;F` from a `&amp;Lazy&lt;T, F&gt;` so it is fine to not impl</span>
+    <span class="comment">// `Sync` for `F`. we do create a `&amp;mut Option&lt;F&gt;` in `force`, but this is</span>
+    <span class="comment">// properly synchronized, so it only happens once so it also does not</span>
+    <span class="comment">// contribute to this impl.</span>
     <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span>: <span class="ident">Send</span><span class="op">&gt;</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Sync</span> {}
     <span class="comment">// auto-derived `Send` impl is OK.</span>
 

@@ -1329,6 +1329,52 @@
 <span id="1328">1328</span>
 <span id="1329">1329</span>
 <span id="1330">1330</span>
+<span id="1331">1331</span>
+<span id="1332">1332</span>
+<span id="1333">1333</span>
+<span id="1334">1334</span>
+<span id="1335">1335</span>
+<span id="1336">1336</span>
+<span id="1337">1337</span>
+<span id="1338">1338</span>
+<span id="1339">1339</span>
+<span id="1340">1340</span>
+<span id="1341">1341</span>
+<span id="1342">1342</span>
+<span id="1343">1343</span>
+<span id="1344">1344</span>
+<span id="1345">1345</span>
+<span id="1346">1346</span>
+<span id="1347">1347</span>
+<span id="1348">1348</span>
+<span id="1349">1349</span>
+<span id="1350">1350</span>
+<span id="1351">1351</span>
+<span id="1352">1352</span>
+<span id="1353">1353</span>
+<span id="1354">1354</span>
+<span id="1355">1355</span>
+<span id="1356">1356</span>
+<span id="1357">1357</span>
+<span id="1358">1358</span>
+<span id="1359">1359</span>
+<span id="1360">1360</span>
+<span id="1361">1361</span>
+<span id="1362">1362</span>
+<span id="1363">1363</span>
+<span id="1364">1364</span>
+<span id="1365">1365</span>
+<span id="1366">1366</span>
+<span id="1367">1367</span>
+<span id="1368">1368</span>
+<span id="1369">1369</span>
+<span id="1370">1370</span>
+<span id="1371">1371</span>
+<span id="1372">1372</span>
+<span id="1373">1373</span>
+<span id="1374">1374</span>
+<span id="1375">1375</span>
+<span id="1376">1376</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -1465,6 +1511,7 @@
         .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">match_all</span>, <span class="string">&quot;matchAll&quot;</span>, <span class="number">1</span>)
         .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">replace</span>, <span class="string">&quot;replace&quot;</span>, <span class="number">2</span>)
         .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">iterator</span>, (<span class="ident">symbol_iterator</span>, <span class="string">&quot;[Symbol.iterator]&quot;</span>), <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">search</span>, <span class="string">&quot;search&quot;</span>, <span class="number">1</span>)
         .<span class="ident">build</span>();
 
         (<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="ident">string_object</span>.<span class="ident">into</span>(), <span class="self">Self</span>::<span class="ident">attribute</span>())
@@ -2654,6 +2701,51 @@
         }<span class="question-mark">?</span>;
 
         <span class="ident">RegExp</span>::<span class="ident">match_all</span>(<span class="kw-2">&amp;</span><span class="ident">re</span>, <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>(), <span class="ident">context</span>)
+    }
+
+    <span class="doccomment">/// `String.prototype.search( regexp )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The search() method executes a search for a match between a regular expression and this String object.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.search</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">search</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 2. If regexp is neither undefined nor null, then</span>
+        <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">regexp</span>.<span class="ident">is_null_or_undefined</span>() {
+            <span class="comment">// a. Let searcher be ? GetMethod(regexp, @@search).</span>
+            <span class="comment">// b. If searcher is not undefined, then</span>
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">searcher</span>) <span class="op">=</span> <span class="ident">regexp</span>
+                .<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
+                .<span class="ident">get_method</span>(<span class="ident">context</span>, <span class="ident">WellKnownSymbols</span>::<span class="ident">search</span>())<span class="question-mark">?</span>
+            {
+                <span class="comment">// i. Return ? Call(searcher, regexp, « O »).</span>
+                <span class="kw">return</span> <span class="ident">searcher</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">regexp</span>, <span class="kw-2">&amp;</span>[<span class="ident">this</span>.<span class="ident">clone</span>()], <span class="ident">context</span>);
+            }
+        }
+
+        <span class="comment">// 3. Let string be ? ToString(O).</span>
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 4. Let rx be ? RegExpCreate(regexp, undefined).</span>
+        <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">RegExp</span>::<span class="ident">constructor</span>(<span class="kw-2">&amp;</span><span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">Object</span>::<span class="ident">default</span>()), <span class="kw-2">&amp;</span>[<span class="ident">regexp</span>], <span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 5. Return ? Invoke(rx, @@search, « string »).</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">searcher</span>) <span class="op">=</span> <span class="ident">rx</span>
+            .<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
+            .<span class="ident">get_method</span>(<span class="ident">context</span>, <span class="ident">WellKnownSymbols</span>::<span class="ident">search</span>())<span class="question-mark">?</span>
+        {
+            <span class="ident">searcher</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">rx</span>, <span class="kw-2">&amp;</span>[<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">s</span>)], <span class="ident">context</span>)
+        } <span class="kw">else</span> {
+            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;regexp[Symbol.search] is not a function&quot;</span>)
+        }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">iterator</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
