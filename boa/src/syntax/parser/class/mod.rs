@@ -62,46 +62,43 @@ where
     type Output = Box<[node::FunctionDecl]>;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        let _timer = BoaProfiler::global().start_event("FormalParameters", "Parsing");
+        let _timer = BoaProfiler::global().start_event("ClassElementList", "Parsing");
         cursor.set_goal(InputElement::RegExp);
 
-        let mut params = Vec::new();
+        let mut elems = Vec::new();
 
         if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
-            == &TokenKind::Punctuator(Punctuator::CloseParen)
+            == &TokenKind::Punctuator(Punctuator::CloseBlock)
         {
-            return Ok(params.into_boxed_slice());
+            return Ok(elems.into_boxed_slice());
         }
 
         loop {
-            let mut rest_param = false;
-
-            let next_param = match cursor.peek(0)? {
-                Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Spread) => {
-                    rest_param = true;
-                    FunctionRestParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
+            let next_elem = match cursor.peek(0)? {
+                Some(tok) => {
+                    if let TokenKind::Identifier(name) = tok.kind() {
+                        name
+                    } else {
+                        continue;
+                    }
                 }
-                _ => FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?,
+                _ => {
+                    return Err(ParseError::unexpected(
+                        cursor.next()?.expect("peeked token disappeared"),
+                        "classes can only contain function names",
+                    ));
+                }
             };
 
-            params.push(next_param);
+            elems.push(next_elem);
 
             if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
-                == &TokenKind::Punctuator(Punctuator::CloseParen)
+                == &TokenKind::Punctuator(Punctuator::CloseBlock)
             {
                 break;
             }
-
-            if rest_param {
-                return Err(ParseError::unexpected(
-                    cursor.next()?.expect("peeked token disappeared"),
-                    "rest parameter must be the last formal parameter",
-                ));
-            }
-
-            cursor.expect(Punctuator::Comma, "parameter list")?;
         }
 
-        Ok(params.into_boxed_slice())
+        Ok(elems.into_boxed_slice())
     }
 }
