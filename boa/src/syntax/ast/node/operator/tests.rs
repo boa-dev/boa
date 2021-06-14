@@ -116,7 +116,8 @@ fn logical_assignment() {
 
 #[test]
 fn fmt() {
-    let scenario = r#"
+    super::super::test_formatting(
+        r#"
         let a = 20;
         a += 10;
         a -= 10;
@@ -134,10 +135,6 @@ fn fmt() {
         a ||= 10;
         a ??= 10;
         a;
-        "#[1..] // Remove the preceding newline
-        .lines()
-        .map(|l| l.trim()) // Remove trailing whitespace from each line
-        .collect::<Vec<&'static str>>()
-        .join("\n");
-    assert_eq!(format!("{}", parse(&scenario, false).unwrap()), scenario);
+        "#,
+    );
 }
