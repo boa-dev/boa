@@ -2,7 +2,7 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node::FunctionDecl, Keyword, Punctuator},
+    ast::{node::ClassDecl, Keyword, Punctuator},
     parser::{
         class::ClassElementList, statement::BindingIdentifier, AllowAwait, AllowDefault,
         AllowYield, Cursor, ParseError, TokenParser,
@@ -46,7 +46,7 @@ impl<R> TokenParser<R> for ClassDeclaration
 where
     R: Read,
 {
-    type Output = FunctionDecl;
+    type Output = ClassDecl;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Class, "class declaration")?;
@@ -56,7 +56,7 @@ where
 
         cursor.expect(Punctuator::OpenBlock, "class declaration")?;
 
-        let fields = ClassElementList::new(false, false).parse(cursor);
+        let fields = ClassElementList::new(false, false).parse(cursor)?;
 
         cursor.expect(Punctuator::CloseBlock, "class declaration")?;
 
@@ -78,6 +78,6 @@ where
             // }
         }
 
-        Ok(FunctionDecl::new(name, vec![], body))
+        Ok(ClassDecl::new(name, fields))
     }
 }
