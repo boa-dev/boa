@@ -343,7 +343,7 @@ impl BuiltInFunctionObject {
         };
 
         let function = {
-            let object = this.clone().as_object().map(|object| {
+            let object = this.as_object().map(|object| {
                 let func = object.borrow().as_function().map(|f| f.clone());
                 func
             });
