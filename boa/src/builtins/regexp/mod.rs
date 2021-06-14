@@ -734,53 +734,48 @@ impl RegExp {
     pub(crate) fn search(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
-        if let Some(object) = this.as_object() {
-            if object.is_regexp() {
-                // 3. Let S be ? ToString(string).
-                let arg_str = args
-                    .get(0)
-                    .cloned()
-                    .unwrap_or_default()
-                    .to_string(context)?;
+        if !this.is_object() {
+            return context.throw_type_error(
+                "RegExp.prototype[Symbol.search] method called on incompatible value",
+            );
+        }
 
-                // 4. Let previousLastIndex be ? Get(rx, "lastIndex").
-                let previous_last_index =
-                    this.get_field("lastIndex", context)?.to_length(context)?;
+        // 3. Let S be ? ToString(string).
+        let arg_str = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_string(context)?;
 
-                // 5. If SameValue(previousLastIndex, +0𝔽) is false, then
-                if previous_last_index != 0 {
-                    // a. Perform ? Set(rx, "lastIndex", +0𝔽, true).
-                    this.set_field("lastIndex", 0, context)?;
-                }
+        // 4. Let previousLastIndex be ? Get(rx, "lastIndex").
+        let previous_last_index = this.get_field("lastIndex", context)?.to_length(context)?;
 
-                // 6. Let result be ? RegExpExec(rx, S).
-                let result = Self::exec(this, &[Value::from(arg_str)], context)?;
+        // 5. If SameValue(previousLastIndex, +0𝔽) is false, then
+        if previous_last_index != 0 {
+            // a. Perform ? Set(rx, "lastIndex", +0𝔽, true).
+            this.set_field("lastIndex", 0, context)?;
+        }
 
-                // 7. Let currentLastIndex be ? Get(rx, "lastIndex").
-                let current_last_index =
-                    this.get_field("lastIndex", context)?.to_length(context)?;
+        // 6. Let result be ? RegExpExec(rx, S).
+        let result = Self::exec(this, &[Value::from(arg_str)], context)?;
 
-                // 8. If SameValue(currentLastIndex, previousLastIndex) is false, then
-                if current_last_index != previous_last_index {
-                    // a. Perform ? Set(rx, "lastIndex", previousLastIndex, true).
-                    this.set_field("lastIndex", previous_last_index, context)?;
-                }
+        // 7. Let currentLastIndex be ? Get(rx, "lastIndex").
+        let current_last_index = this.get_field("lastIndex", context)?.to_length(context)?;
 
-                // 9. If result is null, return -1𝔽.
-                // 10. Return ? Get(result, "index").
-                if result.is_null() {
-                    Ok(Value::from(-1))
-                } else {
-                    result.get_field("index", context).map_err(|_| {
-                        context.construct_type_error("Could not find property `index`")
-                    })
-                }
-            } else {
-                context
-                    .throw_type_error("RegExp.prototype.search method called on incompatible value")
-            }
+        // 8. If SameValue(currentLastIndex, previousLastIndex) is false, then
+        if current_last_index != previous_last_index {
+            // a. Perform ? Set(rx, "lastIndex", previousLastIndex, true).
+            this.set_field("lastIndex", previous_last_index, context)?;
+        }
+
+        // 9. If result is null, return -1𝔽.
+        // 10. Return ? Get(result, "index").
+        if result.is_null() {
+            Ok(Value::from(-1))
         } else {
-            context.throw_type_error("RegExp.prototype.search method called on incompatible value")
+            result
+                .get_field("index", context)
+                .map_err(|_| context.construct_type_error("Could not find property `index`"))
         }
     }
 }
