@@ -29,3 +29,19 @@ fn spread_with_call() {
     "#;
     assert_eq!(&exec(scenario), r#""message""#);
 }
+
+#[test]
+fn fmt() {
+    super::super::test_formatting(
+        r#"
+        function f(m) {
+            return m;
+        };
+        function g(...args) {
+            return f(...args);
+        };
+        let a = g("message");
+        a;
+        "#,
+    );
+}
