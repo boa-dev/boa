@@ -4,7 +4,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor},
-    syntax::ast::node::{MethodDefinitionKind, Node, PropertyDefinition},
+    syntax::ast::node::{join_nodes, MethodDefinitionKind, Node, PropertyDefinition},
     BoaProfiler, Context, Result, Value,
 };
 use std::fmt;
@@ -70,9 +70,18 @@ impl Object {
                 PropertyDefinition::SpreadObject(key) => {
                     writeln!(f, "{}...{},", indentation, key)?;
                 }
-                PropertyDefinition::MethodDefinition(_kind, _key, _node) => {
-                    // TODO: Implement display for PropertyDefinition::MethodDefinition.
-                    unimplemented!("Display for PropertyDefinition::MethodDefinition");
+                PropertyDefinition::MethodDefinition(kind, key, node) => {
+                    write!(f, "{}", indentation)?;
+                    match &kind {
+                        MethodDefinitionKind::Get => write!(f, "get ")?,
+                        MethodDefinitionKind::Set => write!(f, "set ")?,
+                        MethodDefinitionKind::Ordinary => (),
+                    }
+                    write!(f, "{}(", key)?;
+                    join_nodes(f, &node.parameters())?;
+                    write!(f, ") ")?;
+                    node.display_block(f, indent + 1)?;
+                    writeln!(f, ",")?;
                 }
             }
         }
