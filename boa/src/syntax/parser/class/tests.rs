@@ -1,5 +1,5 @@
 use crate::syntax::{
-    ast::node::{BinOp, ClassDecl, FunctionDecl, Identifier, Return},
+    ast::node::{BinOp, ClassDecl, Declaration, DeclarationList, FunctionDecl, Identifier},
     ast::op::NumOp,
     parser::tests::check_parser,
 };
@@ -20,7 +20,7 @@ fn check_basic() {
         r#"
         class Basic {
             constructor() {
-                console.log("Hello, world!");
+                let val;
             }
         }
         "#,
@@ -29,11 +29,10 @@ fn check_basic() {
             vec![FunctionDecl::new(
                 Box::from("constructor"),
                 vec![],
-                vec![Return::new(
-                    BinOp::new(NumOp::Add, Identifier::from("a"), Identifier::from("b")),
-                    None,
-                )
-                .into()],
+                vec![
+                    DeclarationList::Let(vec![Declaration::new("val", None)].into_boxed_slice())
+                        .into(),
+                ],
             )],
         )
         .into()],
