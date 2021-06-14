@@ -329,6 +329,78 @@ impl BuiltInFunctionObject {
         // TODO?: 5. PrepareForTailCall
         context.call(this, &this_arg, &arg_list)
     }
+
+    fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        let name = {
+            // Is there a case here where if there is no name field on a value
+            // We it should default to None? Do all functions have names set?
+            let value = this.get_field("name", &mut *context)?;
+            if value.is_null_or_undefined() {
+                None
+            } else {
+                Some(value.to_string(context)?)
+            }
+        };
+
+        let function = {
+            let object = this.clone().as_object().expect("Should be an object");
+
+            let func = object
+                .borrow()
+                .as_function()
+                .map(|f| f.clone())
+                .expect("Should be a function");
+
+            func
+        };
+
+        match (&function, name) {
+            (Function::BuiltIn(_, _), Some(name)) => {
+                Ok(format!("function {}() {{\n  [native Code]\n}}", &name).into())
+            }
+            (Function::Ordinary { body, params, .. }, Some(name)) => {
+                let arguments: String = params
+                    .iter()
+                    .map(|param| param.name())
+                    .collect::<Vec<&str>>()
+                    .join(", ");
+
+                let statement_list = &*body;
+                // This is a kluge. The implementaion in browser seems to suggest that
+                // the value here is printed exactly as defined in source. I'm not sure if
+                // that's possible here, but for now here's a dumb heuristic that prints functions
+                let is_multiline = {
+                    let value = statement_list.to_string();
+                    value.lines().count() > 1
+                };
+                if is_multiline {
+                    Ok(
+                        // ?? For some reason statement_list string implementation
+                        // sticks a \n at the end no matter what
+                        format!(
+                            "{}({}) {{\n{}}}",
+                            &name,
+                            arguments,
+                            statement_list.to_string()
+                        )
+                        .into(),
+                    )
+                } else {
+                    Ok(format!(
+                        "{}({}) {{{}}}",
+                        &name,
+                        arguments,
+                        // The trim here is to remove a \n stuck at the end
+                        // of the statement_list to_string method
+                        statement_list.to_string().trim()
+                    )
+                    .into())
+                }
+            }
+
+            _ => Ok("TODO".into()),
+        }
+    }
 }
 
 impl BuiltIn for BuiltInFunctionObject {
@@ -358,6 +430,7 @@ impl BuiltIn for BuiltInFunctionObject {
         .length(Self::LENGTH)
         .method(Self::call, "call", 1)
         .method(Self::apply, "apply", 1)
+        .method(Self::to_string, "toString", 0)
         .build();
 
         (Self::NAME, function_object.into(), Self::attribute())
