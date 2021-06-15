@@ -1,6 +1,7 @@
 //! Builtins live here, such as Object, String, Math, etc.
 
 pub mod array;
+pub mod array_buffer;
 pub mod bigint;
 pub mod boolean;
 #[cfg(feature = "console")]
@@ -26,6 +27,7 @@ pub mod undefined;
 
 pub(crate) use self::{
     array::{array_iterator::ArrayIterator, Array},
+    array_buffer::ArrayBuffer,
     bigint::BigInt,
     boolean::Boolean,
     date::Date,
@@ -93,6 +95,7 @@ pub fn init(context: &mut Context) {
         EvalError::init,
         UriError::init,
         Reflect::init,
+        //array_buffer::init,
         #[cfg(feature = "console")]
         console::Console::init,
     ];
