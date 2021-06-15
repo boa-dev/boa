@@ -36,11 +36,7 @@ impl BuiltIn for ArrayBuffer {
         let array_buffer_object = ConstructorBuilder::new(context, Self::constructor)
             .name(Self::NAME)
             .length(Self::LENGTH)
-            .property(
-                to_string_tag,
-                Self::NAME,
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
+            .property(to_string_tag, Self::NAME, Self::attribute())
             .property("byte_length", byte_length.clone(), Self::attribute())
             .static_method(Self::is_view, "is_view", 1)
             .method(Self::slice, "slice", 2)
