@@ -330,6 +330,7 @@ impl BuiltInFunctionObject {
         context.call(this, &this_arg, &arg_list)
     }
 
+    #[allow(clippy::wrong_self_convention)]
     fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         let name = {
             // Is there a case here where if there is no name field on a value
@@ -343,10 +344,9 @@ impl BuiltInFunctionObject {
         };
 
         let function = {
-            let object = this.as_object().map(|object| {
-                let func = object.borrow().as_function().map(|f| f.clone());
-                func
-            });
+            let object = this
+                .as_object()
+                .map(|object| object.borrow().as_function().cloned());
 
             if let Some(Some(function)) = object {
                 function
