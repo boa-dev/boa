@@ -44,6 +44,12 @@ impl BuiltIn for Map {
         let to_string_tag = WellKnownSymbols::to_string_tag();
         let iterator_symbol = WellKnownSymbols::iterator();
 
+        let get_species = FunctionBuilder::new(context, Self::get_species)
+            .name("get [Symbol.species]")
+            .constructable(false)
+            .callable(true)
+            .build();
+
         let entries_function = FunctionBuilder::new(context, Self::entries)
             .name("entries")
             .length(0)
@@ -58,6 +64,12 @@ impl BuiltIn for Map {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
+        .static_accessor(
+            WellKnownSymbols::species(),
+            Some(get_species),
+            None,
+            Attribute::CONFIGURABLE,
+        )
         .property(
             "entries",
             entries_function.clone(),
@@ -158,6 +170,21 @@ impl Map {
         this.set_data(ObjectData::Map(data));
 
         Ok(this)
+    }
+
+    /// `get Map [ @@species ]`
+    ///
+    /// The Map[@@species] accessor property returns the Map constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-map-@@species
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/@@species
+    fn get_species(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+        // 1. Return the this value.
+        Ok(this.clone())
     }
 
     /// `Map.prototype.entries()`
