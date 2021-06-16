@@ -261,7 +261,9 @@ impl Default for Context {
         // Add new builtIns to Context Realm
         // At a later date this can be removed from here and called explicitly,
         // but for now we almost always want these default builtins
-        context.create_intrinsics();
+
+        // Only expose the minimal builtins for the interpreter to parse, then the rest can be added in before execution
+        context.create_min_intrinsics();
         context.iterator_prototypes = IteratorPrototypes::init(&mut context);
         context
     }
@@ -294,10 +296,18 @@ impl Context {
 
     /// Sets up the default global objects within Global
     #[inline]
-    fn create_intrinsics(&mut self) {
-        let _timer = BoaProfiler::global().start_event("create_intrinsics", "interpreter");
-        // Create intrinsics, add global objects here
-        builtins::init(self);
+    fn create_min_intrinsics(&mut self) {
+        let _timer = BoaProfiler::global().start_event("create_min_intrinsics", "interpreter");
+        // Create minimal intrinsics, enough for the interpreter itself to work, add global objects here
+        builtins::init_min(self);
+    }
+
+    /// Sets up the default global objects within Global
+    #[inline]
+    fn create_full_intrinsics(&mut self) {
+        let _timer = BoaProfiler::global().start_event("create_full_intrinsics", "interpreter");
+        // Create minimal intrinsics, enough for the interpreter itself to work, add global objects here
+        builtins::init_rest(self);
     }
 
     /// Construct a new `Symbol` with an optional description.
@@ -647,7 +657,10 @@ impl Context {
             .map_err(|e| e.to_string());
 
         let execution_result = match parsing_result {
-            Ok(statement_list) => statement_list.run(self),
+            Ok(statement_list) => {
+                self.create_full_intrinsics();
+                statement_list.run(self)
+            }
             Err(e) => self.throw_syntax_error(e),
         };
 
@@ -681,7 +694,10 @@ impl Context {
             .map_err(|e| e.to_string());
 
         let statement_list = match parsing_result {
-            Ok(statement_list) => statement_list,
+            Ok(statement_list) => {
+                self.create_full_intrinsics();
+                statement_list
+            }
             Err(e) => return self.throw_syntax_error(e),
         };
 

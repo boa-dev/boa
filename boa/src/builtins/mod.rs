@@ -62,9 +62,23 @@ pub(crate) trait BuiltIn {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute);
 }
 
-/// Initializes builtin objects and functions
+/// Initializes the minimal builtin objects and functions
 #[inline]
-pub fn init(context: &mut Context) {
+pub fn init_min(context: &mut Context) {
+    let globals = [BuiltInObjectObject::init, SyntaxError::init];
+
+    let global_object = context.global_object();
+
+    for init in &globals {
+        let (name, value, attribute) = init(context);
+        let property = DataDescriptor::new(value, attribute);
+        global_object.borrow_mut().insert(name, property);
+    }
+}
+
+/// Initializes the remaining builtin objects and functions
+#[inline]
+pub fn init_rest(context: &mut Context) {
     let globals = [
         // Global properties.
         Undefined::init,
@@ -72,7 +86,6 @@ pub fn init(context: &mut Context) {
         NaN::init,
         GlobalThis::init,
         BuiltInFunctionObject::init,
-        BuiltInObjectObject::init,
         Math::init,
         Json::init,
         Array::init,
@@ -89,7 +102,6 @@ pub fn init(context: &mut Context) {
         RangeError::init,
         ReferenceError::init,
         TypeError::init,
-        SyntaxError::init,
         EvalError::init,
         UriError::init,
         Reflect::init,
