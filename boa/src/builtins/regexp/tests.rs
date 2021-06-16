@@ -15,6 +15,51 @@ fn constructors() {
     assert_eq!(forward(&mut context, "ctor_literal.test('1.0')"), "true");
 }
 
+#[test]
+fn species() {
+    let mut context = Context::new();
+
+    let init = r#"
+        var descriptor = Object.getOwnPropertyDescriptor(RegExp, Symbol.species);
+        var accessor = Object.getOwnPropertyDescriptor(RegExp, Symbol.species).get;
+        var name = Object.getOwnPropertyDescriptor(descriptor.get, "name");
+        var length = Object.getOwnPropertyDescriptor(descriptor.get, "length");
+        var thisVal = {};
+        "#;
+    eprintln!("{}", forward(&mut context, init));
+
+    // length
+    assert_eq!(forward(&mut context, "descriptor.get.length"), "0");
+    assert_eq!(forward(&mut context, "length.enumerable"), "false");
+    assert_eq!(forward(&mut context, "length.writable"), "false");
+    assert_eq!(forward(&mut context, "length.configurable"), "true");
+
+    // return-value
+    assert_eq!(
+        forward(&mut context, "Object.is(accessor.call(thisVal), thisVal)"),
+        "true"
+    );
+
+    // symbol-species-name
+    assert_eq!(
+        forward(&mut context, "descriptor.get.name"),
+        "\"get [Symbol.species]\""
+    );
+    assert_eq!(forward(&mut context, "name.enumerable"), "false");
+    assert_eq!(forward(&mut context, "name.writable"), "false");
+    assert_eq!(forward(&mut context, "name.configurable"), "true");
+
+    // symbol-species
+    assert_eq!(forward(&mut context, "descriptor.set"), "undefined");
+    assert_eq!(
+        forward(&mut context, "typeof descriptor.get"),
+        "\"function\""
+    );
+    assert_eq!(forward(&mut context, "descriptor.enumerable"), "false");
+    assert_eq!(forward(&mut context, "descriptor.writable"), "false");
+    assert_eq!(forward(&mut context, "descriptor.configurable"), "true");
+}
+
 // TODO: uncomment this test when property getters are supported
 
 //    #[test]
