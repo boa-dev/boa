@@ -97,17 +97,17 @@ impl Executable for TaggedTemplate {
         let raw_array = Array::new_array(context);
 
         for (i, raw) in self.raws.iter().enumerate() {
-            raw_array.set_field(i, Value::from(raw), context)?;
+            raw_array.set_field(i, Value::from(raw), false, context)?;
         }
 
         for (i, cooked) in self.cookeds.iter().enumerate() {
             if let Some(cooked) = cooked {
-                template_object.set_field(i, Value::from(cooked), context)?;
+                template_object.set_field(i, Value::from(cooked), false, context)?;
             } else {
-                template_object.set_field(i, Value::undefined(), context)?;
+                template_object.set_field(i, Value::undefined(), false, context)?;
             }
         }
-        template_object.set_field("raw", raw_array, context)?;
+        template_object.set_field("raw", raw_array, false, context)?;
 
         let (this, func) = match *self.tag {
             Node::GetConstField(ref get_const_field) => {

@@ -73,7 +73,7 @@ impl RangeError {
         let this = Value::from(obj);
         if let Some(message) = args.get(0) {
             if !message.is_undefined() {
-                this.set_field("message", message.to_string(context)?, context)?;
+                this.set_field("message", message.to_string(context)?, false, context)?;
             }
         }
 

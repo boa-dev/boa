@@ -308,7 +308,7 @@ impl Reflect {
 
         let keys = target.own_property_keys();
         for (i, k) in keys.iter().enumerate() {
-            result.set_field(i, k, context)?;
+            result.set_field(i, k, true, context)?;
         }
 
         Ok(result)

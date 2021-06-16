@@ -472,18 +472,47 @@ impl Value {
     }
 
     /// Set the field in the value
+    ///
+    /// Similar to `7.3.4 Set ( O, P, V, Throw )`, but returns the value instead of a boolean.
+    ///
+    /// More information:
+    ///  - [ECMAScript][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set-o-p-v-throw
     #[inline]
-    pub fn set_field<K, V>(&self, key: K, value: V, context: &mut Context) -> Result<Value>
+    pub fn set_field<K, V>(
+        &self,
+        key: K,
+        value: V,
+        throw: bool,
+        context: &mut Context,
+    ) -> Result<Value>
     where
         K: Into<PropertyKey>,
         V: Into<Value>,
     {
+        // 1. Assert: Type(O) is Object.
+        // TODO: Currently the value may not be an object.
+        //       In that case this function does nothing.
+        // 2. Assert: IsPropertyKey(P) is true.
+        // 3. Assert: Type(Throw) is Boolean.
+
         let key = key.into();
         let value = value.into();
         let _timer = BoaProfiler::global().start_event("Value::set_field", "value");
         if let Self::Object(ref obj) = *self {
-            obj.clone()
+            // 4. Let success be ? O.[[Set]](P, V, O).
+            let success = obj
+                .clone()
                 .set(key, value.clone(), obj.clone().into(), context)?;
+
+            // 5. If success is false and Throw is true, throw a TypeError exception.
+            // 6. Return success.
+            if !success && throw {
+                return Err(context.construct_type_error("Cannot assign value to property"));
+            } else {
+                return Ok(value);
+            }
         }
         Ok(value)
     }

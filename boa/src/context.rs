@@ -495,10 +495,10 @@ impl Context {
         let val = Value::from(new_func);
 
         // Set constructor field to the newly created Value (function object)
-        proto.set_field("constructor", val.clone(), self)?;
+        proto.set_field("constructor", val.clone(), false, self)?;
 
-        val.set_field(PROTOTYPE, proto, self)?;
-        val.set_field("length", Value::from(params_len), self)?;
+        val.set_field(PROTOTYPE, proto, false, self)?;
+        val.set_field("length", Value::from(params_len), false, self)?;
 
         Ok(val)
     }
@@ -557,11 +557,14 @@ impl Context {
             Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node
                 .obj()
                 .run(self)?
-                .set_field(get_const_field_node.field(), value, self)?),
+                .set_field(get_const_field_node.field(), value, false, self)?),
             Node::GetField(ref get_field) => {
                 let field = get_field.field().run(self)?;
                 let key = field.to_property_key(self)?;
-                Ok(get_field.obj().run(self)?.set_field(key, value, self)?)
+                Ok(get_field
+                    .obj()
+                    .run(self)?
+                    .set_field(key, value, false, self)?)
             }
             _ => self.throw_type_error(format!("invalid assignment to {}", node)),
         }

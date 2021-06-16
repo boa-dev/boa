@@ -80,7 +80,7 @@ impl Json {
                 match args.get(1) {
                     Some(reviver) if reviver.is_function() => {
                         let mut holder = Value::object(Object::default());
-                        holder.set_field("", j, context)?;
+                        holder.set_field("", j, true, context)?;
                         Self::walk(reviver, context, &mut holder, &PropertyKey::from(""))
                     }
                     _ => Ok(j),
@@ -111,7 +111,7 @@ impl Json {
                 let v = Self::walk(reviver, context, &mut value.clone(), &key);
                 match v {
                     Ok(v) if !v.is_undefined() => {
-                        value.set_field(key, v, context)?;
+                        value.set_field(key, v, false, context)?;
                     }
                     Ok(_) => {
                         value.remove_property(key);

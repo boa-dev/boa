@@ -34,7 +34,7 @@ fn get_set_field() {
     let obj = Value::new_object(&context);
     // Create string and convert it to a Value
     let s = Value::from("bar");
-    obj.set_field("foo", s, &mut context).unwrap();
+    obj.set_field("foo", s, false, &mut context).unwrap();
     assert_eq!(
         obj.get_field("foo", &mut context)
             .unwrap()

@@ -155,12 +155,12 @@ impl Array {
 
         if !length.is_number() {
             array.set_property(0, DataDescriptor::new(length, Attribute::all()));
-            array.set_field("length", 1, context)?;
+            array.set_field("length", 1, true, context)?;
         } else {
             if length.is_double() {
                 return context.throw_range_error("Invalid array length");
             }
-            array.set_field("length", length.to_u32(context).unwrap(), context)?;
+            array.set_field("length", length.to_u32(context).unwrap(), true, context)?;
         }
 
         Ok(array)
@@ -325,6 +325,7 @@ impl Array {
         array_ptr.set_field(
             "length",
             Value::from(orig_length.wrapping_add(add_values.len())),
+            false,
             context,
         )?;
 
@@ -374,7 +375,7 @@ impl Array {
         }
 
         // set length
-        array.set_field("length", args.len(), context)?;
+        array.set_field("length", args.len(), true, context)?;
 
         Ok(array)
     }
@@ -454,7 +455,7 @@ impl Array {
         let pop_index = curr_length.wrapping_sub(1);
         let pop_value: Value = this.get_field(pop_index.to_string(), context)?;
         this.remove_property(pop_index);
-        this.set_field("length", Value::from(pop_index), context)?;
+        this.set_field("length", Value::from(pop_index), true, context)?;
         Ok(pop_value)
     }
 
@@ -616,7 +617,7 @@ impl Array {
         let len = this.get_field("length", context)?.to_length(context)?;
 
         if len == 0 {
-            this.set_field("length", 0, context)?;
+            this.set_field("length", 0, true, context)?;
             return Ok(Value::undefined());
         }
 
@@ -636,7 +637,7 @@ impl Array {
 
         let final_index = len.wrapping_sub(1);
         this.remove_property(final_index);
-        this.set_field("length", Value::from(final_index), context)?;
+        this.set_field("length", Value::from(final_index), true, context)?;
 
         Ok(first)
     }
@@ -682,7 +683,7 @@ impl Array {
         }
 
         let temp = len.wrapping_add(arg_c);
-        this.set_field("length", Value::from(temp), context)?;
+        this.set_field("length", Value::from(temp), true, context)?;
         Ok(Value::from(temp))
     }
 
@@ -1011,7 +1012,7 @@ impl Array {
             &Value::undefined(),
             &Value::undefined(),
         )?;
-        new_array.set_field("length", len.to_length(context)?, context)?;
+        new_array.set_field("length", len.to_length(context)?, false, context)?;
 
         Ok(new_array)
     }
@@ -1058,7 +1059,7 @@ impl Array {
             &mapper_function,
             &this_arg,
         )?;
-        new_array.set_field("length", len.to_length(context)?, context)?;
+        new_array.set_field("length", len.to_length(context)?, false, context)?;
 
         // 6. Return A
         Ok(new_array)
@@ -1271,7 +1272,7 @@ impl Array {
             );
             new_array_len = new_array_len.saturating_add(1);
         }
-        new_array.set_field("length", Value::from(new_array_len), context)?;
+        new_array.set_field("length", Value::from(new_array_len), true, context)?;
         Ok(new_array)
     }
 

@@ -536,7 +536,7 @@ impl RegExp {
             return context
                 .throw_type_error("RegExp.prototype.exec method called on incompatible value");
         };
-        this.set_field("lastIndex", Value::from(last_index), context)?;
+        this.set_field("lastIndex", Value::from(last_index), true, context)?;
         result
     }
 
@@ -616,7 +616,7 @@ impl RegExp {
             return context.throw_type_error("exec method called on incompatible value");
         };
 
-        this.set_field("lastIndex", Value::from(last_index), context)?;
+        this.set_field("lastIndex", Value::from(last_index), true, context)?;
         result
     }
 
@@ -742,7 +742,7 @@ impl RegExp {
 
         let length = matches.len();
         let result = Value::from(matches);
-        result.set_field("length", Value::from(length), context)?;
+        result.set_field("length", Value::from(length), false, context)?;
         result.set_data(ObjectData::Array);
 
         Ok(result)
@@ -780,7 +780,7 @@ impl RegExp {
         // 5. If SameValue(previousLastIndex, +0𝔽) is false, then
         if previous_last_index != 0 {
             // a. Perform ? Set(rx, "lastIndex", +0𝔽, true).
-            this.set_field("lastIndex", 0, context)?;
+            this.set_field("lastIndex", 0, true, context)?;
         }
 
         // 6. Let result be ? RegExpExec(rx, S).
@@ -792,7 +792,7 @@ impl RegExp {
         // 8. If SameValue(currentLastIndex, previousLastIndex) is false, then
         if current_last_index != previous_last_index {
             // a. Perform ? Set(rx, "lastIndex", previousLastIndex, true).
-            this.set_field("lastIndex", previous_last_index, context)?;
+            this.set_field("lastIndex", previous_last_index, true, context)?;
         }
 
         // 9. If result is null, return -1𝔽.
