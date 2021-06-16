@@ -18,6 +18,7 @@ static SYMBOL_CREATION: &str = include_str!("bench_scripts/symbol_creation.js");
 
 fn symbol_creation(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     // Parse the AST nodes.
     let nodes = Parser::new(SYMBOL_CREATION.as_bytes(), false)
@@ -34,6 +35,7 @@ static FOR_LOOP: &str = include_str!("bench_scripts/for_loop.js");
 
 fn for_loop_execution(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     // Parse the AST nodes.
     let nodes = Parser::new(FOR_LOOP.as_bytes(), false).parse_all().unwrap();
@@ -48,6 +50,7 @@ static FIBONACCI: &str = include_str!("bench_scripts/fibonacci.js");
 
 fn fibonacci(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     // Parse the AST nodes.
     let nodes = Parser::new(FIBONACCI.as_bytes(), false)
@@ -64,6 +67,7 @@ static OBJECT_CREATION: &str = include_str!("bench_scripts/object_creation.js");
 
 fn object_creation(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     // Parse the AST nodes.
     let nodes = Parser::new(OBJECT_CREATION.as_bytes(), false)
@@ -80,6 +84,7 @@ static OBJECT_PROP_ACCESS_CONST: &str = include_str!("bench_scripts/object_prop_
 
 fn object_prop_access_const(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     // Parse the AST nodes.
     let nodes = Parser::new(OBJECT_PROP_ACCESS_CONST.as_bytes(), false)
@@ -96,6 +101,7 @@ static OBJECT_PROP_ACCESS_DYN: &str = include_str!("bench_scripts/object_prop_ac
 
 fn object_prop_access_dyn(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     // Parse the AST nodes.
     let nodes = Parser::new(OBJECT_PROP_ACCESS_DYN.as_bytes(), false)
@@ -112,6 +118,7 @@ static REGEXP_LITERAL_CREATION: &str = include_str!("bench_scripts/regexp_litera
 
 fn regexp_literal_creation(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     // Parse the AST nodes.
     let nodes = Parser::new(REGEXP_LITERAL_CREATION.as_bytes(), false)
@@ -128,6 +135,7 @@ static REGEXP_CREATION: &str = include_str!("bench_scripts/regexp_creation.js");
 
 fn regexp_creation(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     // Parse the AST nodes.
     let nodes = Parser::new(REGEXP_CREATION.as_bytes(), false)
@@ -144,6 +152,7 @@ static REGEXP_LITERAL: &str = include_str!("bench_scripts/regexp_literal.js");
 
 fn regexp_literal(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     // Parse the AST nodes.
     let nodes = Parser::new(REGEXP_LITERAL.as_bytes(), false)
@@ -160,6 +169,7 @@ static REGEXP: &str = include_str!("bench_scripts/regexp.js");
 
 fn regexp(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     // Parse the AST nodes.
     let nodes = Parser::new(REGEXP.as_bytes(), false).parse_all().unwrap();
@@ -174,6 +184,7 @@ static ARRAY_ACCESS: &str = include_str!("bench_scripts/array_access.js");
 
 fn array_access(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     let nodes = Parser::new(ARRAY_ACCESS.as_bytes(), false)
         .parse_all()
@@ -188,6 +199,7 @@ static ARRAY_CREATE: &str = include_str!("bench_scripts/array_create.js");
 
 fn array_creation(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     let nodes = Parser::new(ARRAY_CREATE.as_bytes(), false)
         .parse_all()
@@ -202,6 +214,7 @@ static ARRAY_POP: &str = include_str!("bench_scripts/array_pop.js");
 
 fn array_pop(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     let nodes = Parser::new(ARRAY_POP.as_bytes(), false)
         .parse_all()
@@ -216,6 +229,7 @@ static STRING_CONCAT: &str = include_str!("bench_scripts/string_concat.js");
 
 fn string_concat(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     let nodes = Parser::new(STRING_CONCAT.as_bytes(), false)
         .parse_all()
@@ -230,6 +244,7 @@ static STRING_COMPARE: &str = include_str!("bench_scripts/string_compare.js");
 
 fn string_compare(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     let nodes = Parser::new(STRING_COMPARE.as_bytes(), false)
         .parse_all()
@@ -244,6 +259,7 @@ static STRING_COPY: &str = include_str!("bench_scripts/string_copy.js");
 
 fn string_copy(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     let nodes = Parser::new(STRING_COPY.as_bytes(), false)
         .parse_all()
@@ -258,6 +274,7 @@ static NUMBER_OBJECT_ACCESS: &str = include_str!("bench_scripts/number_object_ac
 
 fn number_object_access(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     let nodes = Parser::new(NUMBER_OBJECT_ACCESS.as_bytes(), false)
         .parse_all()
@@ -272,6 +289,7 @@ static BOOLEAN_OBJECT_ACCESS: &str = include_str!("bench_scripts/boolean_object_
 
 fn boolean_object_access(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     let nodes = Parser::new(BOOLEAN_OBJECT_ACCESS.as_bytes(), false)
         .parse_all()
@@ -286,6 +304,7 @@ static STRING_OBJECT_ACCESS: &str = include_str!("bench_scripts/string_object_ac
 
 fn string_object_access(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     let nodes = Parser::new(STRING_OBJECT_ACCESS.as_bytes(), false)
         .parse_all()
@@ -300,6 +319,7 @@ static ARITHMETIC_OPERATIONS: &str = include_str!("bench_scripts/arithmetic_oper
 
 fn arithmetic_operations(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     let nodes = Parser::new(ARITHMETIC_OPERATIONS.as_bytes(), false)
         .parse_all()
@@ -314,6 +334,8 @@ static CLEAN_JS: &str = include_str!("bench_scripts/clean_js.js");
 
 fn clean_js(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
+
     let nodes = Parser::new(CLEAN_JS.as_bytes(), false).parse_all().unwrap();
     c.bench_function("Clean js (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut context).unwrap())
@@ -324,6 +346,8 @@ static MINI_JS: &str = include_str!("bench_scripts/mini_js.js");
 
 fn mini_js(c: &mut Criterion) {
     let mut context = Context::new();
+    context.create_full_intrinsics();
+
     let nodes = Parser::new(MINI_JS.as_bytes(), false).parse_all().unwrap();
     c.bench_function("Mini js (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut context).unwrap())
