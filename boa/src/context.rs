@@ -312,7 +312,6 @@ impl Context {
         let _timer = BoaProfiler::global().start_event("create_full_intrinsics", "interpreter");
         // Create minimal intrinsics, enough for the interpreter itself to work, add global objects here
         if !self.intrinsics_set {
-            dbg!("setting intrinsics");
             builtins::init_rest(self);
             self.intrinsics_set = true;
         }
