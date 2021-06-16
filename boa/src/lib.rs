@@ -109,6 +109,7 @@ pub(crate) fn forward<T: AsRef<[u8]>>(context: &mut Context, src: T) -> String {
             );
         }
     };
+    context.create_full_intrinsics();
     expr.run(context).map_or_else(
         |e| format!("Uncaught {}", e.display()),
         |v| v.display().to_string(),
@@ -132,7 +133,10 @@ pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &mut Context, src: T) -> Resu
                 .throw_syntax_error(e.to_string())
                 .expect_err("interpreter.throw_syntax_error() did not return an error")
         })
-        .and_then(|expr| expr.run(context));
+        .and_then(|expr| {
+            context.create_full_intrinsics();
+            expr.run(context)
+        });
 
     // The main_timer needs to be dropped before the BoaProfiler is.
     drop(main_timer);

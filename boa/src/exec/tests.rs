@@ -898,6 +898,7 @@ fn function_decl_hoisting() {
 #[test]
 fn to_bigint() {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     assert!(Value::null().to_bigint(&mut context).is_err());
     assert!(Value::undefined().to_bigint(&mut context).is_err());
@@ -909,6 +910,7 @@ fn to_bigint() {
 #[test]
 fn to_index() {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     assert_eq!(Value::undefined().to_index(&mut context).unwrap(), 0);
     assert!(Value::integer(-1).to_index(&mut context).is_err());
@@ -917,6 +919,7 @@ fn to_index() {
 #[test]
 fn to_integer() {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     assert!(Number::equal(
         Value::number(f64::NAN).to_integer(&mut context).unwrap(),
@@ -1131,6 +1134,7 @@ fn calling_function_with_unspecified_arguments() {
 #[test]
 fn to_object() {
     let mut context = Context::new();
+    context.create_full_intrinsics();
 
     assert!(Value::undefined()
         .to_object(&mut context)

@@ -242,6 +242,9 @@ pub struct Context {
 
     /// Whether or not to show trace of instructions being ran
     pub trace: bool,
+
+    /// Whether or not full intrinsics have been set
+    pub intrinsics_set: bool,
 }
 
 impl Default for Context {
@@ -256,6 +259,7 @@ impl Default for Context {
             iterator_prototypes: IteratorPrototypes::default(),
             standard_objects: Default::default(),
             trace: false,
+            intrinsics_set: false,
         };
 
         // Add new builtIns to Context Realm
@@ -304,10 +308,14 @@ impl Context {
 
     /// Sets up the default global objects within Global
     #[inline]
-    fn create_full_intrinsics(&mut self) {
+    pub fn create_full_intrinsics(&mut self) {
         let _timer = BoaProfiler::global().start_event("create_full_intrinsics", "interpreter");
         // Create minimal intrinsics, enough for the interpreter itself to work, add global objects here
-        builtins::init_rest(self);
+        if !self.intrinsics_set {
+            dbg!("setting intrinsics");
+            builtins::init_rest(self);
+            self.intrinsics_set = true;
+        }
     }
 
     /// Construct a new `Symbol` with an optional description.

@@ -850,6 +850,7 @@ fn slice() {
 #[test]
 fn for_each() {
     let mut context = Context::new();
+    context.create_full_intrinsics();
     let init = r#"
         var a = [2, 3, 4, 5];
         var sum = 0;
