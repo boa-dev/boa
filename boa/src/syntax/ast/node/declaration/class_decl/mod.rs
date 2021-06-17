@@ -14,24 +14,14 @@ use serde::{Deserialize, Serialize};
 #[cfg(test)]
 mod tests;
 
-/// The `function` declaration (function statement) defines a function with the specified
-/// parameters.
+/// The `class` declaration defines a class with the specified methods, fields, and optional constructor.
 ///
-/// A function created with a function declaration is a `Function` object and has all the
-/// properties, methods and behavior of `Function`.
-///
-/// A function can also be created using an expression (see [function expression][func_expr]).
-///
-/// By default, functions return `undefined`. To return any other value, the function must have
-/// a return statement that specifies the value to return.
+/// Classes can be used to create objects, which can also be created through literals (using `{}`).
 ///
 /// More information:
-///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-function
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
-/// [func_expr]: ../enum.Node.html#variant.FunctionExpr
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/class
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct ClassDecl {
@@ -41,7 +31,7 @@ pub struct ClassDecl {
 }
 
 impl ClassDecl {
-    /// Creates a new function declaration.
+    /// Creates a new class declaration.
     pub(in crate::syntax) fn new<N, C, F>(name: N, constructor: C, fields: F) -> Self
     where
         N: Into<Box<str>>,
@@ -78,7 +68,6 @@ impl ClassDecl {
 
 impl Executable for ClassDecl {
     fn run(&self, context: &mut Context) -> Result<Value> {
-        // TODO: Implement class exec
         let _timer = BoaProfiler::global().start_event("ClassDecl", "exec");
         let constructor = match &self.constructor {
             Some(c) => context.create_function(
