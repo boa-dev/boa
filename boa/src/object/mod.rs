@@ -738,6 +738,7 @@ impl<'context> FunctionBuilder<'context> {
     /// Build the function object.
     #[inline]
     pub fn build(&mut self) -> GcObject {
+        let _timer = BoaProfiler::global().start_event("Object::build", "object");
         let mut function = Object::function(
             Function::BuiltIn(
                 self.function,
@@ -930,6 +931,7 @@ impl<'context> ConstructorBuilder<'context> {
     where
         B: Into<FunctionBinding>,
     {
+        let _timer = BoaProfiler::global().start_event("Object::method", "object");
         let binding = binding.into();
         let function = FunctionBuilder::new(self.context, function)
             .name(binding.name)
@@ -957,6 +959,7 @@ impl<'context> ConstructorBuilder<'context> {
     where
         B: Into<FunctionBinding>,
     {
+        let _timer = BoaProfiler::global().start_event("Object::static_method", "object");
         let binding = binding.into();
         let function = FunctionBuilder::new(self.context, function)
             .name(binding.name)

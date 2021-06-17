@@ -603,6 +603,7 @@ impl GcObject {
         K: Into<PropertyKey>,
         V: Into<Value>,
     {
+        let _timer = BoaProfiler::global().start_event("Object::insert_property", "object");
         self.insert(key.into(), DataDescriptor::new(value, attribute))
     }
 
@@ -721,6 +722,7 @@ impl Object {
         K: Into<PropertyKey>,
         V: Into<Value>,
     {
+        let _timer = BoaProfiler::global().start_event("Object::insert_property", "object");
         self.insert(key.into(), DataDescriptor::new(value, attribute))
     }
 }

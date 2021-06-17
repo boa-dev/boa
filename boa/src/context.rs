@@ -298,19 +298,19 @@ impl Context {
         &mut self.console
     }
 
-    /// Sets up the default global objects within Global
+    /// Sets up the minimal amount of intrinsics for the interpreter to work (SyntaxError, Object)
     #[inline]
     fn create_min_intrinsics(&mut self) {
-        let _timer = BoaProfiler::global().start_event("create_min_intrinsics", "interpreter");
+        let _timer = BoaProfiler::global().start_event("create_min_intrinsics", "context");
         // Create minimal intrinsics, enough for the interpreter itself to work, add global objects here
         builtins::init_min(self);
     }
 
-    /// Sets up the default global objects within Global
+    /// Sets up the remaining intrinisics (Date, Array, Number etc)
     #[inline]
     pub fn create_full_intrinsics(&mut self) {
-        let _timer = BoaProfiler::global().start_event("create_full_intrinsics", "interpreter");
-        // Create minimal intrinsics, enough for the interpreter itself to work, add global objects here
+        let _timer = BoaProfiler::global().start_event("create_full_intrinsics", "context");
+        // Create full intrinsics, this will load the remaining intrinsics, which is most of them
         if !self.intrinsics_set {
             builtins::init_rest(self);
             self.intrinsics_set = true;
@@ -342,6 +342,7 @@ impl Context {
     /// Return the global object.
     #[inline]
     pub fn global_object(&self) -> GcObject {
+        let _timer = BoaProfiler::global().start_event("global_object", "context");
         self.realm.global_object.clone()
     }
 
