@@ -15,10 +15,12 @@ impl BuiltIn for UInt8Array {
     }
 
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
-        let prototype = context.typed_array_prototype().clone().into();
-        let constructor = ConstructorBuilder::new(context, Self::constructor)
-            .inherit(prototype)
-            .build();
+        let constructor = ConstructorBuilder::with_standard_object(
+            context,
+            Self::constructor,
+            context.standard_objects().typed_array_object().clone(),
+        )
+        .build();
 
         (Self::NAME, constructor.into(), Self::attribute())
     }
