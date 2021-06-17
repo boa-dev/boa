@@ -27,21 +27,21 @@ mod tests;
 pub struct ClassDecl {
     name: Box<str>,
     constructor: Option<FunctionDecl>,
-    fields: Box<[FunctionDecl]>,
+    methods: Box<[FunctionDecl]>,
 }
 
 impl ClassDecl {
     /// Creates a new class declaration.
-    pub(in crate::syntax) fn new<N, C, F>(name: N, constructor: C, fields: F) -> Self
+    pub(in crate::syntax) fn new<N, C, M>(name: N, constructor: C, methods: M) -> Self
     where
         N: Into<Box<str>>,
         C: Into<Option<FunctionDecl>>,
-        F: Into<Box<[FunctionDecl]>>,
+        M: Into<Box<[FunctionDecl]>>,
     {
         Self {
             name: name.into(),
             constructor: constructor.into(),
-            fields: fields.into(),
+            methods: methods.into(),
         }
     }
 
@@ -51,8 +51,8 @@ impl ClassDecl {
     }
 
     /// Gets the list of functions defined on this class.
-    pub fn fields(&self) -> &[FunctionDecl] {
-        &self.fields
+    pub fn methods(&self) -> &[FunctionDecl] {
+        &self.methods
     }
 
     /// Implements the display formatting with indentation.
