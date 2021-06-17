@@ -27,7 +27,6 @@ use regress::Regex;
 use std::{
     char::{decode_utf16, from_u32},
     cmp::{max, min},
-    f64::NAN,
     string::String as StdString,
 };
 
@@ -314,7 +313,7 @@ impl String {
 
         // Fast path returning NaN when pos is obviously out of range
         if pos < 0 || pos >= primitive_val.len() as i32 {
-            return Ok(Value::from(NAN));
+            return Ok(Value::from(f64::NAN));
         }
 
         // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
@@ -323,7 +322,7 @@ impl String {
         if let Some(utf16_val) = primitive_val.encode_utf16().nth(pos as usize) {
             Ok(Value::from(f64::from(utf16_val)))
         } else {
-            Ok(Value::from(NAN))
+            Ok(Value::from(f64::NAN))
         }
     }
 
@@ -1169,7 +1168,7 @@ impl String {
         // the number of code units from start to the end of the string,
         // which should always be smaller or equals to both +infinity and i32::max_value
         let end = if args.len() < 2 {
-            i32::max_value()
+            i32::MAX
         } else {
             args.get(1)
                 .expect("Could not get argument")
@@ -1247,7 +1246,7 @@ impl String {
             .get(1)
             .map(|arg| arg.to_integer(context).map(|limit| limit as usize))
             .transpose()?
-            .unwrap_or(std::u32::MAX as usize);
+            .unwrap_or(u32::MAX as usize);
 
         let values: Vec<Value> = match separator {
             None if limit == 0 => vec![],
