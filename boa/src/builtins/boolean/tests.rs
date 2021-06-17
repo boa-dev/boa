@@ -13,8 +13,8 @@ fn construct_and_call() {
     let one = forward_val(&mut context, "one").unwrap();
     let zero = forward_val(&mut context, "zero").unwrap();
 
-    assert_eq!(one.is_object(), true);
-    assert_eq!(zero.is_boolean(), true);
+    assert!(one.is_object());
+    assert!(zero.is_boolean());
 }
 
 #[test]
@@ -34,16 +34,16 @@ fn constructor_gives_true_instance() {
     let true_bool = forward_val(&mut context, "trueBool").expect("value expected");
 
     // Values should all be objects
-    assert_eq!(true_val.is_object(), true);
-    assert_eq!(true_num.is_object(), true);
-    assert_eq!(true_string.is_object(), true);
-    assert_eq!(true_bool.is_object(), true);
+    assert!(true_val.is_object());
+    assert!(true_num.is_object());
+    assert!(true_string.is_object());
+    assert!(true_bool.is_object());
 
     // Values should all be truthy
-    assert_eq!(true_val.to_boolean(), true);
-    assert_eq!(true_num.to_boolean(), true);
-    assert_eq!(true_string.to_boolean(), true);
-    assert_eq!(true_bool.to_boolean(), true);
+    assert!(true_val.to_boolean());
+    assert!(true_num.to_boolean());
+    assert!(true_string.to_boolean());
+    assert!(true_bool.to_boolean());
 }
 
 #[test]
