@@ -1,7 +1,6 @@
 use crate::syntax::{
-    ast::node::{BinOp, ClassDecl, Declaration, DeclarationList, FunctionDecl, Identifier},
-    ast::op::NumOp,
-    parser::tests::check_parser,
+    ast::node::{ClassDecl, Declaration, DeclarationList, FunctionDecl},
+    parser::{tests::check_parser, Parser},
 };
 
 /// Checks for empty class parsing (making sure the keyword works)
@@ -70,4 +69,18 @@ fn check_multi() {
         )
         .into()],
     );
+}
+
+/// Checks for multiple constructors being a parse error.
+#[test]
+fn check_multi_constructors() {
+    let js = r#"
+        class InvalidBecauseConstructors {
+            constructor() {
+            }
+            constructor() {
+            }
+        }
+        "#;
+    assert!(Parser::new(js.as_bytes(), false).parse_all().is_err());
 }

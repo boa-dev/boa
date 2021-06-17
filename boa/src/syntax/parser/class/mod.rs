@@ -76,7 +76,16 @@ where
         let mut constructor = None;
 
         loop {
+            let position = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
             let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            if *name == *"constructor" {
+                if constructor.is_some() {
+                    return Err(ParseError::general(
+                        "Cannot have multiple constructors on an object",
+                        position,
+                    ));
+                }
+            }
 
             cursor.expect(Punctuator::OpenParen, "class function declaration")?;
 
