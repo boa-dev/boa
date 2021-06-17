@@ -267,12 +267,6 @@ impl Default for Context {
             standard_objects: Default::default(),
             trace: false,
         };
-
-        // We want the methods in `TypedArray` to be bound to the corresponding
-        // standard object but we don't really need a reference to the constructor.
-        // So we discard the constructor.
-        TypedArray::init(&mut context);
-
         // Add new builtIns to Context Realm
         // At a later date this can be removed from here and called explicitly,
         // but for now we almost always want these default builtins

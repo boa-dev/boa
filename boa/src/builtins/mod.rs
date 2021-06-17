@@ -102,6 +102,11 @@ pub fn init(context: &mut Context) {
 
     let global_object = context.global_object();
 
+    // We want the methods in `TypedArray` to be bound to the corresponding
+    // standard object but we don't really need a reference to the constructor.
+    // So we discard the constructor.
+    typed_arrays::typed_array::TypedArray::init(context);
+
     for init in &globals {
         let (name, value, attribute) = init(context);
         let property = DataDescriptor::new(value, attribute);
