@@ -32,6 +32,21 @@ fn call_on_class() {
 }
 
 #[test]
+fn call_static_on_class() {
+    let scenario = r#"
+    class MyClass {
+        static get_value() {
+            return 15;
+        }
+    }
+    MyClass.get_value();
+    f()
+    "#;
+
+    assert_eq!(&exec(scenario), "15");
+}
+
+#[test]
 fn get_class_field() {
     let scenario = r#"
     class MyClass {
