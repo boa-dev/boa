@@ -31,8 +31,6 @@ impl BuiltIn for Math {
     }
 
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
-        use std::f64;
-
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
