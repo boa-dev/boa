@@ -1,6 +1,9 @@
 use crate::syntax::{
     ast::{
-        node::{Break, Call, Case, GetConstField, Identifier, LetDecl, LetDeclList, Node, Switch},
+        node::{
+            Break, Call, Case, Declaration, DeclarationList, GetConstField, Identifier, Node,
+            Switch,
+        },
         Const,
     },
     parser::tests::{check_invalid, check_parser},
@@ -16,7 +19,7 @@ fn check_switch_no_closeblock() {
             case 10:
                 a = 20;
                 break;
-        
+
         "#,
     );
 }
@@ -30,7 +33,7 @@ fn check_switch_case_unclosed() {
         switch (a) {
             case 10:
                 a = 20;
-        
+
         "#,
     );
 }
@@ -110,9 +113,9 @@ fn check_seperated_switch() {
     let s = r#"
         let a = 10;
 
-        switch 
+        switch
 
-        (a) 
+        (a)
 
         {
 
@@ -148,7 +151,8 @@ fn check_seperated_switch() {
     check_parser(
         s,
         vec![
-            LetDeclList::from(vec![LetDecl::new("a", Node::from(Const::from(10)))]).into(),
+            DeclarationList::Let(vec![Declaration::new("a", Node::from(Const::from(10)))].into())
+                .into(),
             Switch::new(
                 Identifier::from("a"),
                 vec![

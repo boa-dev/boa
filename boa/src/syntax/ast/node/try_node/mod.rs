@@ -1,5 +1,8 @@
 use crate::{
-    environment::lexical_environment::{new_declarative_environment, VariableScope},
+    environment::{
+        declarative_environment_record::DeclarativeEnvironmentRecord,
+        lexical_environment::VariableScope,
+    },
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{Block, Identifier, Node},
@@ -98,28 +101,23 @@ impl Executable for Try {
             |err| {
                 if let Some(catch) = self.catch() {
                     {
-                        let env = &mut context.realm_mut().environment;
-                        env.push(new_declarative_environment(Some(
-                            env.get_current_environment_ref().clone(),
-                        )));
+                        let env = context.get_current_environment();
+                        context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
 
                         if let Some(param) = catch.parameter() {
-                            env.create_mutable_binding(
+                            context.create_mutable_binding(
                                 param.to_owned(),
                                 false,
                                 VariableScope::Block,
-                            )
-                            .map_err(|e| e.to_error(context))?;
-                            let env = &mut context.realm_mut().environment;
-                            env.initialize_binding(param, err)
-                                .map_err(|e| e.to_error(context))?;
+                            )?;
+                            context.initialize_binding(param, err)?;
                         }
                     }
 
                     let res = catch.block().run(context);
 
                     // pop the block env
-                    let _ = context.realm_mut().environment.pop();
+                    let _ = context.pop_environment();
 
                     res
                 } else {

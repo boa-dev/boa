@@ -5,12 +5,15 @@ use crate::{
     gc::{Finalize, Trace},
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor},
     syntax::ast::node::{MethodDefinitionKind, Node, PropertyDefinition},
-    Context, Result, Value,
+    BoaProfiler, Context, Result, Value,
 };
 use std::fmt;
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "vm")]
+use crate::vm::{compilation::CodeGen, Compiler, Instruction};
 
 /// Objects in JavaScript may be defined as an unordered collection of related data, of
 /// primitive or reference types, in the form of “key: value” pairs.
@@ -71,8 +74,23 @@ impl Object {
     }
 }
 
+#[cfg(feature = "vm")]
+impl CodeGen for Object {
+    fn compile(&self, compiler: &mut Compiler) {
+        let _timer = BoaProfiler::global().start_event("object", "codeGen");
+        // Is it a new empty object?
+        if self.properties.len() == 0 {
+            compiler.add_instruction(Instruction::NewObject);
+            return;
+        }
+
+        unimplemented!()
+    }
+}
+
 impl Executable for Object {
     fn run(&self, context: &mut Context) -> Result<Value> {
+        let _timer = BoaProfiler::global().start_event("object", "exec");
         let obj = Value::new_object(context);
 
         // TODO: Implement the rest of the property types.

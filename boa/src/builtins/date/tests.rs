@@ -196,12 +196,12 @@ fn date_ctor_now_call() -> Result<(), Box<dyn std::error::Error>> {
     let mut context = Context::new();
 
     let date_time = forward(&mut context, "Date.now()");
-    let dt1 = u64::from_str_radix(&date_time, 10)?;
+    let dt1 = date_time.parse::<u64>()?;
 
     std::thread::sleep(std::time::Duration::from_millis(1));
 
     let date_time = forward(&mut context, "Date.now()");
-    let dt2 = u64::from_str_radix(&date_time, 10)?;
+    let dt2 = date_time.parse::<u64>()?;
 
     assert_ne!(dt1, dt2);
     Ok(())

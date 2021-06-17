@@ -3,14 +3,87 @@
 use super::{Cursor, Error, Tokenizer};
 use crate::{
     profiler::BoaProfiler,
-    syntax::lexer::string::{StringLiteral, StringTerminator},
+    syntax::lexer::string::{StringLiteral, UTF16CodeUnitsBuffer},
     syntax::{
         ast::{Position, Span},
         lexer::{Token, TokenKind},
     },
 };
-use std::convert::TryFrom;
 use std::io::{self, ErrorKind, Read};
+
+#[cfg(feature = "deser")]
+use serde::{Deserialize, Serialize};
+
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, PartialEq, Debug)]
+pub struct TemplateString {
+    /// The start position of the template string. Used to make lexer error if `to_owned_cooked` failed.
+    start_pos: Position,
+    /// The template string of template literal with argument `raw` true.
+    raw: Box<str>,
+}
+
+impl TemplateString {
+    pub fn new<R>(raw: R, start_pos: Position) -> Self
+    where
+        R: Into<Box<str>>,
+    {
+        Self {
+            start_pos,
+            raw: raw.into(),
+        }
+    }
+
+    /// Converts the raw template string into a mutable string slice.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-templatestrings
+    pub fn as_raw(&self) -> &str {
+        self.raw.as_ref()
+    }
+
+    /// Creats a new cooked template string. Returns a lexer error if it fails to cook the template string.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-templatestrings
+    pub fn to_owned_cooked(&self) -> Result<Box<str>, Error> {
+        let mut cursor = Cursor::with_position(self.raw.as_bytes(), self.start_pos);
+        let mut buf: Vec<u16> = Vec::new();
+
+        loop {
+            let ch_start_pos = cursor.pos();
+            let ch = cursor.next_char()?;
+
+            match ch {
+                Some(0x005C /* \ */) => {
+                    let escape_value = StringLiteral::take_escape_sequence_or_line_continuation(
+                        &mut cursor,
+                        ch_start_pos,
+                        true,
+                        true,
+                    )?;
+
+                    if let Some(escape_value) = escape_value {
+                        buf.push_code_point(escape_value);
+                    }
+                }
+                Some(ch) => {
+                    // The caller guarantees that sequences '`' and '${' never appear
+                    // LineTerminatorSequence <CR> <LF> is consumed by `cursor.next_char()` and returns <LF>,
+                    // which matches the TV of <CR> <LF>
+                    buf.push_code_point(ch);
+                }
+                None => break,
+            }
+        }
+
+        Ok(buf.to_string_lossy().into())
+    }
+}
 
 /// Template literal lexing.
 ///
@@ -34,63 +107,48 @@ impl<R> Tokenizer<R> for TemplateLiteral {
 
         let mut buf = Vec::new();
         loop {
-            let next_chr = char::try_from(cursor.next_char()?.ok_or_else(|| {
+            let ch = cursor.next_char()?.ok_or_else(|| {
                 Error::from(io::Error::new(
                     ErrorKind::UnexpectedEof,
                     "unterminated template literal",
                 ))
-            })?)
-            .unwrap();
-            match next_chr {
-                '`' => {
-                    let raw = String::from_utf16_lossy(buf.as_slice());
-                    let (cooked, _) = StringLiteral::take_string_characters(
-                        &mut Cursor::with_position(raw.as_bytes(), start_pos),
-                        start_pos,
-                        StringTerminator::End,
-                        true,
-                    )?;
+            })?;
+
+            match ch {
+                0x0060 /* ` */ => {
+                    let raw = buf.to_string_lossy();
+                    let template_string = TemplateString::new(raw, start_pos);
+
                     return Ok(Token::new(
-                        TokenKind::template_no_substitution(raw, cooked),
+                        TokenKind::template_no_substitution(template_string),
                         Span::new(start_pos, cursor.pos()),
                     ));
                 }
-                '$' if cursor.peek()? == Some(b'{') => {
-                    let _ = cursor.next_byte()?;
-                    let raw = String::from_utf16_lossy(buf.as_slice());
-                    let (cooked, _) = StringLiteral::take_string_characters(
-                        &mut Cursor::with_position(raw.as_bytes(), start_pos),
-                        start_pos,
-                        StringTerminator::End,
-                        true,
-                    )?;
+                0x0024 /* $ */ if cursor.next_is(b'{')? => {
+                    let raw = buf.to_string_lossy();
+                    let template_string = TemplateString::new(raw, start_pos);
+
                     return Ok(Token::new(
-                        TokenKind::template_middle(raw, cooked),
+                        TokenKind::template_middle(template_string),
                         Span::new(start_pos, cursor.pos()),
                     ));
                 }
-                '\\' => {
-                    let escape = cursor.peek()?.ok_or_else(|| {
+                0x005C /* \ */ => {
+                    let escape_ch = cursor.peek()?.ok_or_else(|| {
                         Error::from(io::Error::new(
                             ErrorKind::UnexpectedEof,
                             "unterminated escape sequence in literal",
                         ))
                     })?;
-                    buf.push('\\' as u16);
-                    match escape {
+
+                    buf.push(b'\\' as u16);
+                    match escape_ch {
                         b'`' | b'$' | b'\\' => buf.push(cursor.next_byte()?.unwrap() as u16),
                         _ => continue,
                     }
                 }
-                next_ch => {
-                    if next_ch.len_utf16() == 1 {
-                        buf.push(next_ch as u16);
-                    } else {
-                        let mut code_point_bytes_buf = [0u16; 2];
-                        let code_point_bytes = next_ch.encode_utf16(&mut code_point_bytes_buf);
-
-                        buf.extend(code_point_bytes.iter());
-                    }
+                ch => {
+                    buf.push_code_point(ch);
                 }
             }
         }

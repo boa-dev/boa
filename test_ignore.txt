@@ -4,56 +4,17 @@ flag:async
 
 // Non-implemented features:
 feature:TypedArray
+feature:json-modules
 //feature:generators
 //feature:async-iteration
 //feature:class
-
-// This does not break the tester but it does iterate from 0 to u32::MAX,
-// because of incorect implementation of `Array.prototype.indexOf`.
-// TODO: Fix it do iterate on the elements in the array **in insertion order**, not from
-// 0 to u32::MAX untill it reaches the element.
-15.4.4.14-5-13
 
 // These seem to run forever:
 arg-length-exceeding-integer-limit
 15.4.4.19-8-c-ii-1
 fill-string-empty
-S15.4.4.10_A3_T2
-S15.4.4.10_A3_T1
-15.4.4.15-3-9
-15.4.4.15-3-28
-length-near-integer-limit
-15.4.4.15-5-12
-15.4.4.15-3-7
-15.4.4.15-3-25
-15.4.4.15-8-9
 length-boundaries
 throws-if-integer-limit-exceeded
-length-exceeding-integer-limit-with-object
-S15.1.3.1_A1.2_T1
-S15.1.3.1_A1.2_T2
-S15.1.3.1_A1.10_T1
-S15.1.3.1_A1.11_T1
-S15.1.3.1_A1.11_T2
-S15.1.3.1_A1.12_T1
-S15.1.3.1_A1.12_T2
-S15.1.3.1_A1.12_T3
-
-S15.1.3.2_A1.2_T1
-S15.1.3.2_A1.2_T2
-S15.1.3.2_A1.10_T1
-S15.1.3.2_A1.11_T1
-S15.1.3.2_A1.11_T2
-S15.1.3.2_A1.12_T1
-S15.1.3.2_A1.12_T2
-S15.1.3.2_A1.12_T3
-
-S15.1.3.3_A1.3_T1
-
-S15.1.3.4_A1.3_T1
-
-// This one seems to terminate the process somehow:
-arg-length-near-integer-limit
 
 // These generate a stack overflow
 tco-call

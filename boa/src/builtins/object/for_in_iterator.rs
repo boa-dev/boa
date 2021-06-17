@@ -1,4 +1,3 @@
-use crate::property::PropertyKey;
 use crate::value::RcString;
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object},
@@ -7,6 +6,7 @@ use crate::{
     property::{Attribute, DataDescriptor},
     BoaProfiler, Context, Result, Value,
 };
+use crate::{property::PropertyKey, symbol::WellKnownSymbols};
 use rustc_hash::FxHashSet;
 use std::collections::VecDeque;
 
@@ -45,14 +45,14 @@ impl ForInIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createforiniterator
-    pub(crate) fn create_for_in_iterator(context: &Context, object: Value) -> Result<Value> {
+    pub(crate) fn create_for_in_iterator(context: &Context, object: Value) -> Value {
         let for_in_iterator = Value::new_object(context);
         for_in_iterator.set_data(ObjectData::ForInIterator(Self::new(object)));
         for_in_iterator
             .as_object()
             .expect("for in iterator object")
             .set_prototype_instance(context.iterator_prototypes().for_in_iterator().into());
-        Ok(for_in_iterator)
+        for_in_iterator
     }
 
     /// %ForInIteratorPrototype%.next( )
@@ -133,9 +133,11 @@ impl ForInIterator {
         make_builtin_fn(Self::next, "next", &for_in_iterator, 0, context);
         for_in_iterator.set_prototype_instance(iterator_prototype);
 
-        let to_string_tag = context.well_known_symbols().to_string_tag_symbol();
-        let to_string_tag_property =
-            DataDescriptor::new("For In Iterator", Attribute::CONFIGURABLE);
+        let to_string_tag = WellKnownSymbols::to_string_tag();
+        let to_string_tag_property = DataDescriptor::new(
+            "For In Iterator",
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
         for_in_iterator.insert(to_string_tag, to_string_tag_property);
         for_in_iterator
     }

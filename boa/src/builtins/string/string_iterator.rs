@@ -5,6 +5,7 @@ use crate::{
     gc::{Finalize, Trace},
     object::{GcObject, ObjectData},
     property::{Attribute, DataDescriptor},
+    symbol::WellKnownSymbols,
     BoaProfiler, Context, Result, Value,
 };
 
@@ -77,9 +78,11 @@ impl StringIterator {
         make_builtin_fn(Self::next, "next", &array_iterator, 0, context);
         array_iterator.set_prototype_instance(iterator_prototype);
 
-        let to_string_tag = context.well_known_symbols().to_string_tag_symbol();
-        let to_string_tag_property =
-            DataDescriptor::new("String Iterator", Attribute::CONFIGURABLE);
+        let to_string_tag = WellKnownSymbols::to_string_tag();
+        let to_string_tag_property = DataDescriptor::new(
+            "String Iterator",
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
         array_iterator.insert(to_string_tag, to_string_tag_property);
         array_iterator
     }

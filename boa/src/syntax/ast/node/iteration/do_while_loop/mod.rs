@@ -89,6 +89,8 @@ impl Executable for DoWhileLoop {
                 InterpreterState::Executing => {
                     // Continue execution.
                 }
+                #[cfg(feature = "vm")]
+                InterpreterState::Error => {}
             }
             if !self.cond().run(context)?.to_boolean() {
                 break;

@@ -6,7 +6,7 @@ use super::token::Numeric;
 use super::*;
 use super::{Error, Position};
 use crate::syntax::ast::Keyword;
-use crate::syntax::lexer::string::{StringLiteral, StringTerminator};
+use crate::syntax::lexer::template::TemplateString;
 use std::str;
 
 fn span(start: (u32, u32), end: (u32, u32)) -> Span {
@@ -73,7 +73,7 @@ fn check_multi_line_comment() {
 
 #[test]
 fn check_identifier() {
-    let s = "x x1 _x $x __ $$ Ѐ ЀЀ x\u{200C}\u{200D}";
+    let s = "x x1 _x $x __ $$ Ѐ ЀЀ x\u{200C}\u{200D} \\u0078 \\u0078\\u0078 \\u{0078}x\\u{0078}";
     let mut lexer = Lexer::new(s.as_bytes());
 
     let expected = [
@@ -86,6 +86,9 @@ fn check_identifier() {
         TokenKind::identifier("Ѐ"),
         TokenKind::identifier("ЀЀ"),
         TokenKind::identifier("x\u{200C}\u{200D}"),
+        TokenKind::identifier("x"),
+        TokenKind::identifier("xx"),
+        TokenKind::identifier("xxx"),
     ];
 
     expect_tokens(&mut lexer, &expected);
@@ -137,7 +140,10 @@ fn check_template_literal_simple() {
 
     assert_eq!(
         lexer.next().unwrap().unwrap().kind(),
-        &TokenKind::template_no_substitution("I'm a template literal", "I'm a template literal")
+        &TokenKind::template_no_substitution(TemplateString::new(
+            "I'm a template literal",
+            Position::new(1, 1)
+        ))
     );
 }
 
@@ -815,9 +821,9 @@ fn illegal_code_point_following_numeric_literal() {
 
 #[test]
 fn string_unicode() {
-    let str = r#"'中文';"#;
+    let s = r#"'中文';"#;
 
-    let mut lexer = Lexer::new(str.as_bytes());
+    let mut lexer = Lexer::new(s.as_bytes());
 
     let expected = [
         TokenKind::StringLiteral("中文".into()),
@@ -859,74 +865,56 @@ fn string_unicode_escape_with_braces() {
 }
 
 #[test]
-fn take_string_characters_unicode_escape_with_braces_2() {
-    let s = r#"\u{20ac}\u{a0}\u{a0}"#.to_string();
+fn string_unicode_escape_with_braces_2() {
+    let s = r#"'\u{20ac}\u{a0}\u{a0}'"#;
 
-    let mut cursor = Cursor::new(s.as_bytes());
+    let mut lexer = Lexer::new(s.as_bytes());
 
-    if let Ok((s, _)) = StringLiteral::take_string_characters(
-        &mut cursor,
-        Position::new(1, 1),
-        StringTerminator::End,
-        false,
-    ) {
-        assert_eq!(s, "\u{20ac}\u{a0}\u{a0}")
-    } else {
-        panic!();
-    }
+    let expected = [TokenKind::StringLiteral("\u{20ac}\u{a0}\u{a0}".into())];
+
+    expect_tokens(&mut lexer, &expected);
 }
 
 #[test]
-fn take_string_characters_with_single_escape() {
-    let s = r#"\Б"#.to_string();
-    let mut cursor = Cursor::new(s.as_bytes());
-    let (s, _) = StringLiteral::take_string_characters(
-        &mut cursor,
-        Position::new(1, 1),
-        StringTerminator::End,
-        false,
-    )
-    .unwrap();
-    assert_eq!(s, "Б");
+fn string_with_single_escape() {
+    let s = r#"'\Б'"#;
+
+    let mut lexer = Lexer::new(s.as_bytes());
+
+    let expected = [TokenKind::StringLiteral("Б".into())];
+
+    expect_tokens(&mut lexer, &expected);
 }
 
 #[test]
-fn take_string_characters_legacy_octal_escape() {
+fn string_legacy_octal_escape() {
     let test_cases = [
-        (r#"\3"#, "\u{3}"),
-        (r#"\03"#, "\u{3}"),
-        (r#"\003"#, "\u{3}"),
-        (r#"\0003"#, "\u{0}3"),
-        (r#"\43"#, "#"),
-        (r#"\043"#, "#"),
-        (r#"\101"#, "A"),
+        (r#"'\3'"#, "\u{3}"),
+        (r#"'\03'"#, "\u{3}"),
+        (r#"'\003'"#, "\u{3}"),
+        (r#"'\0003'"#, "\u{0}3"),
+        (r#"'\43'"#, "#"),
+        (r#"'\043'"#, "#"),
+        (r#"'\101'"#, "A"),
     ];
 
     for (s, expected) in test_cases.iter() {
-        let mut cursor = Cursor::new(s.as_bytes());
-        let (s, _) = StringLiteral::take_string_characters(
-            &mut cursor,
-            Position::new(1, 1),
-            StringTerminator::End,
-            false,
-        )
-        .unwrap();
+        let mut lexer = Lexer::new(s.as_bytes());
 
-        assert_eq!(s, *expected);
+        let expected_tokens = [TokenKind::StringLiteral((*expected).into())];
+
+        expect_tokens(&mut lexer, &expected_tokens);
     }
 
     for (s, _) in test_cases.iter() {
-        let mut cursor = Cursor::new(s.as_bytes());
+        let mut lexer = Lexer::new(s.as_bytes());
+        lexer.set_strict_mode(true);
 
-        if let Error::Syntax(_, pos) = StringLiteral::take_string_characters(
-            &mut cursor,
-            Position::new(1, 1),
-            StringTerminator::End,
-            true,
-        )
-        .expect_err("Octal-escape in strict mode not rejected as expected")
+        if let Error::Syntax(_, pos) = lexer
+            .next()
+            .expect_err("Octal-escape in strict mode not rejected as expected")
         {
-            assert_eq!(pos, Position::new(1, 1));
+            assert_eq!(pos, Position::new(1, 2));
         } else {
             panic!("invalid error type");
         }
@@ -934,52 +922,39 @@ fn take_string_characters_legacy_octal_escape() {
 }
 
 #[test]
-fn take_string_characters_zero_escape() {
-    let test_cases = [(r#"\0"#, "\u{0}"), (r#"\0A"#, "\u{0}A")];
+fn string_zero_escape() {
+    let test_cases = [(r#"'\0'"#, "\u{0}"), (r#"'\0A'"#, "\u{0}A")];
 
     for (s, expected) in test_cases.iter() {
-        let mut cursor = Cursor::new(s.as_bytes());
-        let (s, _) = StringLiteral::take_string_characters(
-            &mut cursor,
-            Position::new(1, 1),
-            StringTerminator::End,
-            false,
-        )
-        .unwrap();
+        let mut lexer = Lexer::new(s.as_bytes());
 
-        assert_eq!(s, *expected);
+        let expected_tokens = [TokenKind::StringLiteral((*expected).into())];
+
+        expect_tokens(&mut lexer, &expected_tokens);
     }
 }
 
 #[test]
-fn take_string_characters_non_octal_decimal_escape() {
-    let test_cases = [(r#"\8"#, "8"), (r#"\9"#, "9")];
+fn string_non_octal_decimal_escape() {
+    let test_cases = [(r#"'\8'"#, "8"), (r#"'\9'"#, "9")];
 
     for (s, expected) in test_cases.iter() {
-        let mut cursor = Cursor::new(s.as_bytes());
-        let (s, _) = StringLiteral::take_string_characters(
-            &mut cursor,
-            Position::new(1, 1),
-            StringTerminator::End,
-            false,
-        )
-        .unwrap();
+        let mut lexer = Lexer::new(s.as_bytes());
 
-        assert_eq!(s, *expected);
+        let expected_tokens = [TokenKind::StringLiteral((*expected).into())];
+
+        expect_tokens(&mut lexer, &expected_tokens);
     }
 
     for (s, _) in test_cases.iter() {
-        let mut cursor = Cursor::new(s.as_bytes());
+        let mut lexer = Lexer::new(s.as_bytes());
+        lexer.set_strict_mode(true);
 
-        if let Error::Syntax(_, pos) = StringLiteral::take_string_characters(
-            &mut cursor,
-            Position::new(1, 1),
-            StringTerminator::End,
-            true,
-        )
-        .expect_err("Non-octal-decimal-escape in strict mode not rejected as expected")
+        if let Error::Syntax(_, pos) = lexer
+            .next()
+            .expect_err("Non-octal-decimal-escape in strict mode not rejected as expected")
         {
-            assert_eq!(pos, Position::new(1, 1));
+            assert_eq!(pos, Position::new(1, 2));
         } else {
             panic!("invalid error type");
         }
@@ -987,18 +962,14 @@ fn take_string_characters_non_octal_decimal_escape() {
 }
 
 #[test]
-fn take_string_characters_line_continuation() {
-    let s = "hello \\\nworld";
-    let mut cursor = Cursor::new(s.as_bytes());
-    let (s, _) = StringLiteral::take_string_characters(
-        &mut cursor,
-        Position::new(1, 1),
-        StringTerminator::End,
-        false,
-    )
-    .unwrap();
+fn string_line_continuation() {
+    let s = "'hello \\\nworld'";
 
-    assert_eq!(s, "hello world");
+    let mut lexer = Lexer::new(s.as_bytes());
+
+    let expected_tokens = [TokenKind::StringLiteral("hello world".into())];
+
+    expect_tokens(&mut lexer, &expected_tokens);
 }
 
 mod carriage_return {

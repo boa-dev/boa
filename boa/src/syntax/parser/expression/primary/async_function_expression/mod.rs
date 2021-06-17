@@ -4,7 +4,7 @@ mod tests;
 use crate::{
     syntax::{
         ast::{node::AsyncFunctionExpr, Keyword, Punctuator},
-        lexer::TokenKind,
+        lexer::{Error as LexError, Position, TokenKind},
         parser::{
             function::{FormalParameters, FunctionBody},
             statement::BindingIdentifier,
@@ -73,6 +73,24 @@ where
         let body = FunctionBody::new(false, true).parse(cursor)?;
 
         cursor.expect(Punctuator::CloseBlock, "async function expression")?;
+
+        // It is a Syntax Error if any element of the BoundNames of FormalParameters
+        // also occurs in the LexicallyDeclaredNames of FunctionBody.
+        // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
+        {
+            let lexically_declared_names = body.lexically_declared_names();
+            for param in params.as_ref() {
+                if lexically_declared_names.contains(param.name()) {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        format!("Redeclaration of formal parameter `{}`", param.name()).into(),
+                        match cursor.peek(0)? {
+                            Some(token) => token.span().end(),
+                            None => Position::new(1, 1),
+                        },
+                    )));
+                }
+            }
+        }
 
         Ok(AsyncFunctionExpr::new(name, params, body))
     }

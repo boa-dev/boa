@@ -84,7 +84,7 @@ impl Executable for Call {
             }
             _ => (
                 // 'this' binding should come from the function's self-contained environment
-                context.global_object().clone().into(),
+                context.global_object().into(),
                 self.expr().run(context)?,
             ),
         };

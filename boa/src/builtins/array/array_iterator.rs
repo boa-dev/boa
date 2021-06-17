@@ -3,6 +3,7 @@ use crate::{
     gc::{Finalize, Trace},
     object::{GcObject, ObjectData},
     property::{Attribute, DataDescriptor},
+    symbol::WellKnownSymbols,
     BoaProfiler, Context, Result,
 };
 
@@ -49,14 +50,14 @@ impl ArrayIterator {
         context: &Context,
         array: Value,
         kind: ArrayIterationKind,
-    ) -> Result<Value> {
+    ) -> Value {
         let array_iterator = Value::new_object(context);
         array_iterator.set_data(ObjectData::ArrayIterator(Self::new(array, kind)));
         array_iterator
             .as_object()
             .expect("array iterator object")
             .set_prototype_instance(context.iterator_prototypes().array_iterator().into());
-        Ok(array_iterator)
+        array_iterator
     }
 
     /// %ArrayIteratorPrototype%.next( )
@@ -126,8 +127,11 @@ impl ArrayIterator {
         make_builtin_fn(Self::next, "next", &array_iterator, 0, context);
         array_iterator.set_prototype_instance(iterator_prototype);
 
-        let to_string_tag = context.well_known_symbols().to_string_tag_symbol();
-        let to_string_tag_property = DataDescriptor::new("Array Iterator", Attribute::CONFIGURABLE);
+        let to_string_tag = WellKnownSymbols::to_string_tag();
+        let to_string_tag_property = DataDescriptor::new(
+            "Array Iterator",
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
         array_iterator.insert(to_string_tag, to_string_tag_property);
         array_iterator
     }

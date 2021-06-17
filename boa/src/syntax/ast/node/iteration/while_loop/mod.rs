@@ -87,6 +87,8 @@ impl Executable for WhileLoop {
                 InterpreterState::Executing => {
                     // Continue execution.
                 }
+                #[cfg(feature = "vm")]
+                InterpreterState::Error => {}
             }
         }
         Ok(result)

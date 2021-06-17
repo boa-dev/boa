@@ -1,6 +1,6 @@
 use crate::syntax::{
     ast::{
-        node::{Block, Catch, Finally, Identifier, Try, VarDecl, VarDeclList},
+        node::{Block, Catch, Declaration, DeclarationList, Finally, Identifier, Try},
         Const,
     },
     parser::tests::{check_invalid, check_parser},
@@ -19,7 +19,10 @@ fn check_inline_with_var_decl_inside_try() {
     check_parser(
         "try { var x = 1; } catch(e) {}",
         vec![Try::new(
-            vec![VarDeclList::from(vec![VarDecl::new("x", Some(Const::from(1).into()))]).into()],
+            vec![DeclarationList::Var(
+                vec![Declaration::new("x", Some(Const::from(1).into()))].into(),
+            )
+            .into()],
             Some(Catch::new("e", vec![])),
             None,
         )
@@ -32,12 +35,16 @@ fn check_inline_with_var_decl_inside_catch() {
     check_parser(
         "try { var x = 1; } catch(e) { var x = 1; }",
         vec![Try::new(
-            vec![VarDeclList::from(vec![VarDecl::new("x", Some(Const::from(1).into()))]).into()],
+            vec![DeclarationList::Var(
+                vec![Declaration::new("x", Some(Const::from(1).into()))].into(),
+            )
+            .into()],
             Some(Catch::new(
                 "e",
-                vec![
-                    VarDeclList::from(vec![VarDecl::new("x", Some(Const::from(1).into()))]).into(),
-                ],
+                vec![DeclarationList::Var(
+                    vec![Declaration::new("x", Some(Const::from(1).into()))].into(),
+                )
+                .into()],
             )),
             None,
         )
@@ -73,10 +80,9 @@ fn check_inline_with_empty_try_var_decl_in_finally() {
         vec![Try::new(
             vec![],
             None,
-            Some(Finally::from(vec![VarDeclList::from(vec![VarDecl::new(
-                "x",
-                Some(Const::from(1).into()),
-            )])
+            Some(Finally::from(vec![DeclarationList::Var(
+                vec![Declaration::new("x", Some(Const::from(1).into()))].into(),
+            )
             .into()])),
         )
         .into()],
@@ -91,9 +97,10 @@ fn check_inline_empty_try_paramless_catch() {
             Block::from(vec![]),
             Some(Catch::new::<_, Identifier, _>(
                 None,
-                vec![
-                    VarDeclList::from(vec![VarDecl::new("x", Some(Const::from(1).into()))]).into(),
-                ],
+                vec![DeclarationList::Var(
+                    vec![Declaration::new("x", Some(Const::from(1).into()))].into(),
+                )
+                .into()],
             )),
             None,
         )

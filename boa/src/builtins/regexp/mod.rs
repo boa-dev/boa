@@ -12,8 +12,9 @@
 use crate::{
     builtins::BuiltIn,
     gc::{empty_trace, Finalize, Trace},
-    object::{ConstructorBuilder, ObjectData, PROTOTYPE},
+    object::{ConstructorBuilder, FunctionBuilder, GcObject, ObjectData, PROTOTYPE},
     property::{Attribute, DataDescriptor},
+    symbol::WellKnownSymbols,
     value::{RcString, Value},
     BoaProfiler, Context, Result,
 };
@@ -71,6 +72,50 @@ impl BuiltIn for RegExp {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
+        let get_species = FunctionBuilder::new(context, Self::get_species)
+            .name("get [Symbol.species]")
+            .constructable(false)
+            .callable(true)
+            .build();
+
+        let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
+
+        let get_global = FunctionBuilder::new(context, Self::get_global)
+            .name("get global")
+            .constructable(false)
+            .callable(true)
+            .build();
+        let get_ignore_case = FunctionBuilder::new(context, Self::get_ignore_case)
+            .name("get ignoreCase")
+            .constructable(false)
+            .callable(true)
+            .build();
+        let get_multiline = FunctionBuilder::new(context, Self::get_multiline)
+            .name("get multiline")
+            .constructable(false)
+            .callable(true)
+            .build();
+        let get_dot_all = FunctionBuilder::new(context, Self::get_dot_all)
+            .name("get dotAll")
+            .constructable(false)
+            .callable(true)
+            .build();
+        let get_unicode = FunctionBuilder::new(context, Self::get_unicode)
+            .name("get unicode")
+            .constructable(false)
+            .callable(true)
+            .build();
+        let get_sticky = FunctionBuilder::new(context, Self::get_sticky)
+            .name("get sticky")
+            .constructable(false)
+            .callable(true)
+            .build();
+        let get_flags = FunctionBuilder::new(context, Self::get_flags)
+            .name("get flags")
+            .constructable(false)
+            .callable(true)
+            .build();
+
         let regexp_object = ConstructorBuilder::with_standard_object(
             context,
             Self::constructor,
@@ -78,10 +123,28 @@ impl BuiltIn for RegExp {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
+        .static_accessor(
+            WellKnownSymbols::species(),
+            Some(get_species),
+            None,
+            Attribute::CONFIGURABLE,
+        )
         .property("lastIndex", 0, Attribute::all())
         .method(Self::test, "test", 1)
         .method(Self::exec, "exec", 1)
         .method(Self::to_string, "toString", 0)
+        .method(
+            Self::search,
+            (WellKnownSymbols::search(), "[Symbol.search]"),
+            1,
+        )
+        .accessor("global", Some(get_global), None, flag_attributes)
+        .accessor("ignoreCase", Some(get_ignore_case), None, flag_attributes)
+        .accessor("multiline", Some(get_multiline), None, flag_attributes)
+        .accessor("dotAll", Some(get_dot_all), None, flag_attributes)
+        .accessor("unicode", Some(get_unicode), None, flag_attributes)
+        .accessor("sticky", Some(get_sticky), None, flag_attributes)
+        .accessor("flags", Some(get_flags), None, flag_attributes)
         .build();
 
         // TODO: add them RegExp accessor properties
@@ -207,76 +270,206 @@ impl RegExp {
         Ok(this)
     }
 
-    // /// `RegExp.prototype.dotAll`
-    // ///
-    // /// The `dotAll` property indicates whether or not the "`s`" flag is used with the regular expression.
-    // ///
-    // /// More information:
-    // ///  - [ECMAScript reference][spec]
-    // ///  - [MDN documentation][mdn]
-    // ///
-    // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.dotAll
-    // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/dotAll
-    // fn get_dot_all(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
-    //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.dot_all)))
-    // }
+    /// `get RegExp[@@species]`
+    ///
+    /// The RegExp[@@species] accessor property returns the RegExp constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-regexp-@@species
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@species
+    fn get_species(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+        // 1. Return the this value.
+        Ok(this.clone())
+    }
 
-    // /// `RegExp.prototype.flags`
-    // ///
-    // /// The `flags` property returns a string consisting of the [`flags`][flags] of the current regular expression object.
-    // ///
-    // /// More information:
-    // ///  - [ECMAScript reference][spec]
-    // ///  - [MDN documentation][mdn]
-    // ///
-    // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.flags
-    // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/flags
-    // /// [flags]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Advanced_searching_with_flags_2
-    // fn get_flags(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
-    //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.flags.clone())))
-    // }
+    #[inline]
+    fn regexp_has_flag(this: &Value, flag: char, context: &mut Context) -> Result<Value> {
+        if let Some(object) = this.as_object() {
+            if let Some(regexp) = object.borrow().as_regexp() {
+                return Ok(Value::boolean(match flag {
+                    'g' => regexp.global,
+                    'm' => regexp.multiline,
+                    's' => regexp.dot_all,
+                    'i' => regexp.ignore_case,
+                    'u' => regexp.unicode,
+                    'y' => regexp.sticky,
+                    _ => unreachable!(),
+                }));
+            }
 
-    // /// `RegExp.prototype.global`
-    // ///
-    // /// The `global` property indicates whether or not the "`g`" flag is used with the regular expression.
-    // ///
-    // /// More information:
-    // ///  - [ECMAScript reference][spec]
-    // ///  - [MDN documentation][mdn]
-    // ///
-    // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.global
-    // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/global
-    // fn get_global(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
-    //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.global)))
-    // }
+            if GcObject::equals(
+                &object,
+                &context.standard_objects().regexp_object().prototype,
+            ) {
+                return Ok(Value::undefined());
+            }
+        }
 
-    // /// `RegExp.prototype.ignoreCase`
-    // ///
-    // /// The `ignoreCase` property indicates whether or not the "`i`" flag is used with the regular expression.
-    // ///
-    // /// More information:
-    // ///  - [ECMAScript reference][spec]
-    // ///  - [MDN documentation][mdn]
-    // ///
-    // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.ignorecase
-    // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/ignoreCase
-    // fn get_ignore_case(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
-    //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.ignore_case)))
-    // }
+        let name = match flag {
+            'g' => "global",
+            'm' => "multiline",
+            's' => "dotAll",
+            'i' => "ignoreCase",
+            'u' => "unicode",
+            'y' => "sticky",
+            _ => unreachable!(),
+        };
 
-    // /// `RegExp.prototype.multiline`
-    // ///
-    // /// The multiline property indicates whether or not the "m" flag is used with the regular expression.
-    // ///
-    // /// More information:
-    // ///  - [ECMAScript reference][spec]
-    // ///  - [MDN documentation][mdn]
-    // ///
-    // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.multiline
-    // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/multiline
-    // fn get_multiline(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
-    //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.multiline)))
-    // }
+        context.throw_type_error(format!(
+            "RegExp.prototype.{} getter called on non-RegExp object",
+            name
+        ))
+    }
+
+    /// `get RegExp.prototype.global`
+    ///
+    /// The `global` property indicates whether or not the "`g`" flag is used with the regular expression.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.global
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/global
+    pub(crate) fn get_global(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        Self::regexp_has_flag(this, 'g', context)
+    }
+
+    /// `get RegExp.prototype.ignoreCase`
+    ///
+    /// The `ignoreCase` property indicates whether or not the "`i`" flag is used with the regular expression.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.ignorecase
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/ignoreCase
+    pub(crate) fn get_ignore_case(
+        this: &Value,
+        _: &[Value],
+        context: &mut Context,
+    ) -> Result<Value> {
+        Self::regexp_has_flag(this, 'i', context)
+    }
+
+    /// `get RegExp.prototype.multiline`
+    ///
+    /// The multiline property indicates whether or not the "m" flag is used with the regular expression.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.multiline
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/multiline
+    pub(crate) fn get_multiline(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        Self::regexp_has_flag(this, 'm', context)
+    }
+
+    /// `get RegExp.prototype.dotAll`
+    ///
+    /// The `dotAll` property indicates whether or not the "`s`" flag is used with the regular expression.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.dotAll
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/dotAll
+    pub(crate) fn get_dot_all(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        Self::regexp_has_flag(this, 's', context)
+    }
+
+    /// `get RegExp.prototype.unicode`
+    ///
+    /// The unicode property indicates whether or not the "`u`" flag is used with a regular expression.
+    /// unicode is a read-only property of an individual regular expression instance.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.unicode
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/unicode
+    pub(crate) fn get_unicode(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        Self::regexp_has_flag(this, 'u', context)
+    }
+
+    /// `get RegExp.prototype.sticky`
+    ///
+    /// This flag indicates that it matches only from the index indicated by the `lastIndex` property
+    /// of this regular expression in the target string (and does not attempt to match from any later indexes).
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.sticky
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/sticky
+    pub(crate) fn get_sticky(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        Self::regexp_has_flag(this, 'y', context)
+    }
+
+    /// `get RegExp.prototype.flags`
+    ///
+    /// The `flags` property returns a string consisting of the [`flags`][flags] of the current regular expression object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.flags
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/flags
+    /// [flags]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Advanced_searching_with_flags_2
+    pub(crate) fn get_flags(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        if let Some(object) = this.as_object() {
+            let mut result = String::new();
+            if object
+                .get(&"global".into(), this.clone(), context)?
+                .to_boolean()
+            {
+                result.push('g');
+            }
+            if object
+                .get(&"ignoreCase".into(), this.clone(), context)?
+                .to_boolean()
+            {
+                result.push('i');
+            }
+            if object
+                .get(&"multiline".into(), this.clone(), context)?
+                .to_boolean()
+            {
+                result.push('m');
+            }
+            if object
+                .get(&"dotAll".into(), this.clone(), context)?
+                .to_boolean()
+            {
+                result.push('s');
+            }
+            if object
+                .get(&"unicode".into(), this.clone(), context)?
+                .to_boolean()
+            {
+                result.push('u');
+            }
+            if object
+                .get(&"sticky".into(), this.clone(), context)?
+                .to_boolean()
+            {
+                result.push('y');
+            }
+
+            return Ok(result.into());
+        }
+
+        context.throw_type_error("RegExp.prototype.flags getter called on non-object")
+    }
 
     // /// `RegExp.prototype.source`
     // ///
@@ -289,37 +482,8 @@ impl RegExp {
     // ///
     // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.source
     // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/source
-    // fn get_source(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    // pub(crate) fn get_source(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
     //     Ok(this.get_internal_slot("OriginalSource"))
-    // }
-
-    // /// `RegExp.prototype.sticky`
-    // ///
-    // /// The `flags` property returns a string consisting of the [`flags`][flags] of the current regular expression object.
-    // ///
-    // /// More information:
-    // ///  - [ECMAScript reference][spec]
-    // ///  - [MDN documentation][mdn]
-    // ///
-    // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.sticky
-    // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/sticky
-    // fn get_sticky(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
-    //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.sticky)))
-    // }
-
-    // /// `RegExp.prototype.unicode`
-    // ///
-    // /// The unicode property indicates whether or not the "`u`" flag is used with a regular expression.
-    // /// unicode is a read-only property of an individual regular expression instance.
-    // ///
-    // /// More information:
-    // ///  - [ECMAScript reference][spec]
-    // ///  - [MDN documentation][mdn]
-    // ///
-    // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.unicode
-    // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/unicode
-    // fn get_unicode(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
-    //     this.with_internal_state_ref(|regex: &RegExp| Ok(Value::from(regex.unicode)))
     // }
 
     /// `RegExp.prototype.test( string )`
@@ -335,7 +499,8 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.test
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test
     pub(crate) fn test(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let mut last_index = this.get_field("lastIndex", context)?.to_index(context)?;
+        // 22.2.5.2.2.4 really says to use "toLength" and not "toIndex"
+        let mut last_index = this.get_field("lastIndex", context)?.to_length(context)?;
         let result = if let Some(object) = this.as_object() {
             // 3. Let string be ? ToString(S).
             let arg_str = args
@@ -389,7 +554,8 @@ impl RegExp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec
     pub(crate) fn exec(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // 4. Return ? RegExpBuiltinExec(R, S).
-        let mut last_index = this.get_field("lastIndex", context)?.to_index(context)?;
+        // 22.2.5.2.2.4 really says to use "toLength" and not "toIndex"
+        let mut last_index = this.get_field("lastIndex", context)?.to_length(context)?;
         let result = if let Some(object) = this.as_object() {
             let object = object.borrow();
             if let Some(regex) = object.as_regexp() {
@@ -401,7 +567,14 @@ impl RegExp {
                     .to_string(context)?;
 
                 let result = {
-                    if let Some(m) = regex.matcher.find_from(arg_str.as_str(), last_index).next() {
+                    if last_index > arg_str.len() {
+                        if regex.use_last_index {
+                            last_index = 0;
+                        }
+                        Value::null()
+                    } else if let Some(m) =
+                        regex.matcher.find_from(arg_str.as_str(), last_index).next()
+                    {
                         if regex.use_last_index {
                             last_index = m.end();
                         }
@@ -573,5 +746,63 @@ impl RegExp {
         result.set_data(ObjectData::Array);
 
         Ok(result)
+    }
+
+    /// `RegExp.prototype[ @@search ]( string )`
+    ///
+    /// This method executes a search for a match between a this regular expression and a string.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype-@@search
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@search
+    pub(crate) fn search(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        // 1. Let rx be the this value.
+        // 2. If Type(rx) is not Object, throw a TypeError exception.
+        if !this.is_object() {
+            return context.throw_type_error(
+                "RegExp.prototype[Symbol.search] method called on incompatible value",
+            );
+        }
+
+        // 3. Let S be ? ToString(string).
+        let arg_str = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_string(context)?;
+
+        // 4. Let previousLastIndex be ? Get(rx, "lastIndex").
+        let previous_last_index = this.get_field("lastIndex", context)?.to_length(context)?;
+
+        // 5. If SameValue(previousLastIndex, +0𝔽) is false, then
+        if previous_last_index != 0 {
+            // a. Perform ? Set(rx, "lastIndex", +0𝔽, true).
+            this.set_field("lastIndex", 0, context)?;
+        }
+
+        // 6. Let result be ? RegExpExec(rx, S).
+        let result = Self::exec(this, &[Value::from(arg_str)], context)?;
+
+        // 7. Let currentLastIndex be ? Get(rx, "lastIndex").
+        let current_last_index = this.get_field("lastIndex", context)?.to_length(context)?;
+
+        // 8. If SameValue(currentLastIndex, previousLastIndex) is false, then
+        if current_last_index != previous_last_index {
+            // a. Perform ? Set(rx, "lastIndex", previousLastIndex, true).
+            this.set_field("lastIndex", previous_last_index, context)?;
+        }
+
+        // 9. If result is null, return -1𝔽.
+        // 10. Return ? Get(result, "index").
+        if result.is_null() {
+            Ok(Value::from(-1))
+        } else {
+            result
+                .get_field("index", context)
+                .map_err(|_| context.construct_type_error("Could not find property `index`"))
+        }
     }
 }
