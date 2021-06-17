@@ -44,7 +44,13 @@ impl UInt8Array {
                     .transpose()
             })
             .transpose()?
-            .unwrap_or_else(|| context.typed_array_prototype().clone());
+            .unwrap_or_else(|| {
+                context
+                    .standard_objects()
+                    .typed_array_object()
+                    .prototype
+                    .clone()
+            });
 
         let argument = args.get(0).expect("Expected an argument");
         match argument {

@@ -244,7 +244,6 @@ pub struct Context {
     /// console object state.
     #[cfg(feature = "console")]
     console: Console,
-    typed_array_prototype: GcObject,
     /// Cached iterator prototypes.
     iterator_prototypes: IteratorPrototypes,
 
@@ -264,13 +263,16 @@ impl Default for Context {
             executor,
             #[cfg(feature = "console")]
             console: Console::default(),
-            typed_array_prototype: Default::default(),
             iterator_prototypes: IteratorPrototypes::default(),
             standard_objects: Default::default(),
             trace: false,
         };
 
-        context.typed_array_prototype = TypedArray::init(&mut context);
+        // We want the methods in `TypedArray` to be bound to the corresponding
+        // standard object but we don't really need a reference to the constructor.
+        // So we discard the constructor.
+        TypedArray::init(&mut context);
+
         // Add new builtIns to Context Realm
         // At a later date this can be removed from here and called explicitly,
         // but for now we almost always want these default builtins
@@ -713,11 +715,6 @@ impl Context {
     #[inline]
     pub fn iterator_prototypes(&self) -> &IteratorPrototypes {
         &self.iterator_prototypes
-    }
-
-    #[inline]
-    pub fn typed_array_prototype(&self) -> &GcObject {
-        &self.typed_array_prototype
     }
 
     /// Return the core standard objects.
