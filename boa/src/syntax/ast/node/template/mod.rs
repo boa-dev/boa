@@ -69,12 +69,17 @@ impl fmt::Display for TemplateLit {
 pub struct TaggedTemplate {
     tag: Box<Node>,
     raws: Vec<Box<str>>,
-    cookeds: Vec<Box<str>>,
+    cookeds: Vec<Option<Box<str>>>,
     exprs: Vec<Node>,
 }
 
 impl TaggedTemplate {
-    pub fn new(tag: Node, raws: Vec<Box<str>>, cookeds: Vec<Box<str>>, exprs: Vec<Node>) -> Self {
+    pub fn new(
+        tag: Node,
+        raws: Vec<Box<str>>,
+        cookeds: Vec<Option<Box<str>>>,
+        exprs: Vec<Node>,
+    ) -> Self {
         Self {
             tag: Box::new(tag),
             raws,
@@ -88,15 +93,19 @@ impl Executable for TaggedTemplate {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("TaggedTemplate", "exec");
 
-        let template_object = Array::new_array(context)?;
-        let raw_array = Array::new_array(context)?;
+        let template_object = Array::new_array(context);
+        let raw_array = Array::new_array(context);
 
         for (i, raw) in self.raws.iter().enumerate() {
             raw_array.set_field(i, Value::from(raw), context)?;
         }
 
         for (i, cooked) in self.cookeds.iter().enumerate() {
-            template_object.set_field(i, Value::from(cooked), context)?;
+            if let Some(cooked) = cooked {
+                template_object.set_field(i, Value::from(cooked), context)?;
+            } else {
+                template_object.set_field(i, Value::undefined(), context)?;
+            }
         }
         template_object.set_field("raw", raw_array, context)?;
 
@@ -119,14 +128,10 @@ impl Executable for TaggedTemplate {
                     obj.get_field(field.to_property_key(context)?, context)?,
                 )
             }
-            _ => (
-                context.global_object().clone().into(),
-                self.tag.run(context)?,
-            ),
+            _ => (context.global_object().into(), self.tag.run(context)?),
         };
 
-        let mut args = Vec::new();
-        args.push(template_object);
+        let mut args = vec![template_object];
         for expr in self.exprs.iter() {
             args.push(expr.run(context)?);
         }

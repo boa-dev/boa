@@ -17,7 +17,8 @@
 use crate::{
     gc::{Finalize, Trace},
     object::GcObject,
-    value::{RcString, RcSymbol, Value},
+    symbol::RcSymbol,
+    value::{RcString, Value},
 };
 use std::{convert::TryFrom, fmt};
 
@@ -34,7 +35,7 @@ pub use attribute::Attribute;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct DataDescriptor {
-    value: Value,
+    pub(crate) value: Value,
     attributes: Attribute,
 }
 

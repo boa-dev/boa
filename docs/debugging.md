@@ -94,3 +94,7 @@ rust-lldb ./target/debug/boa [arguments]
 
 [remote_containers]: https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers
 [blog_debugging]: https://jason-williams.co.uk/debugging-rust-in-vscode
+
+## VM
+
+For debugging the new VM see [here](./vm.md)

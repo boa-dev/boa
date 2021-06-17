@@ -12,8 +12,8 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math
 
 use crate::{
-    builtins::BuiltIn, object::ObjectInitializer, property::Attribute, BoaProfiler, Context,
-    Result, Value,
+    builtins::BuiltIn, object::ObjectInitializer, property::Attribute, symbol::WellKnownSymbols,
+    BoaProfiler, Context, Result, Value,
 };
 
 #[cfg(test)]
@@ -31,9 +31,12 @@ impl BuiltIn for Math {
     }
 
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+        use std::f64;
+
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
+        let string_tag = WellKnownSymbols::to_string_tag();
         let object = ObjectInitializer::new(context)
             .property("E", std::f64::consts::E, attribute)
             .property("LN2", std::f64::consts::LN_2, attribute)
@@ -60,7 +63,7 @@ impl BuiltIn for Math {
             .function(Self::expm1, "expm1", 1)
             .function(Self::floor, "floor", 1)
             .function(Self::fround, "fround", 1)
-            .function(Self::hypot, "hypot", 1)
+            .function(Self::hypot, "hypot", 2)
             .function(Self::imul, "imul", 1)
             .function(Self::log, "log", 1)
             .function(Self::log1p, "log1p", 1)
@@ -78,6 +81,11 @@ impl BuiltIn for Math {
             .function(Self::tan, "tan", 1)
             .function(Self::tanh, "tanh", 1)
             .function(Self::trunc, "trunc", 1)
+            .property(
+                string_tag,
+                Math::NAME,
+                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            )
             .build();
 
         (Self::NAME, object.into(), Self::attribute())

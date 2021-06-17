@@ -62,11 +62,12 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("TemplateLiteral", "Parsing");
 
-        let mut elements = Vec::new();
-        elements.push(TemplateElement::String(self.first.into_boxed_str()));
-        elements.push(TemplateElement::Expr(
-            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?,
-        ));
+        let mut elements = vec![
+            TemplateElement::String(self.first.into_boxed_str()),
+            TemplateElement::Expr(
+                Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?,
+            ),
+        ];
         cursor.expect(
             TokenKind::Punctuator(Punctuator::CloseBlock),
             "template literal",
@@ -74,10 +75,10 @@ where
 
         loop {
             match cursor.lex_template(self.start)?.kind() {
-                TokenKind::TemplateMiddle {
-                    cooked: template, ..
-                } => {
-                    elements.push(TemplateElement::String(template.to_owned()));
+                TokenKind::TemplateMiddle(template_string) => {
+                    let cooked = template_string.to_owned_cooked().map_err(ParseError::lex)?;
+
+                    elements.push(TemplateElement::String(cooked));
                     elements.push(TemplateElement::Expr(
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?,
                     ));
@@ -86,10 +87,10 @@ where
                         "template literal",
                     )?;
                 }
-                TokenKind::TemplateNoSubstitution {
-                    cooked: template, ..
-                } => {
-                    elements.push(TemplateElement::String(template.to_owned()));
+                TokenKind::TemplateNoSubstitution(template_string) => {
+                    let cooked = template_string.to_owned_cooked().map_err(ParseError::lex)?;
+
+                    elements.push(TemplateElement::String(cooked));
                     return Ok(TemplateLit::new(elements));
                 }
                 _ => {

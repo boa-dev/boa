@@ -1,5 +1,7 @@
 //! Execution module for the test runner.
 
+mod js262;
+
 use super::{
     Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult,
     TestSuite, IGNORED,
@@ -58,7 +60,8 @@ impl TestSuite {
 
         if verbose != 0 {
             println!(
-                "Results: total: {}, passed: {}, ignored: {}, failed: {} (panics: {}{}), conformance: {:.2}%",
+                "Suite {} results: total: {}, passed: {}, ignored: {}, failed: {} (panics: {}{}), conformance: {:.2}%",
+                self.name,
                 total,
                 passed.to_string().green(),
                 ignored.to_string().yellow(),
@@ -259,7 +262,6 @@ impl Test {
     /// Sets the environment up to run the test.
     fn set_up_env(&self, harness: &Harness, strict: bool) -> Result<Context, String> {
         // Create new Realm
-        // TODO: in parallel.
         let mut context = Context::new();
 
         // Register the print() function.
@@ -271,7 +273,9 @@ impl Test {
                     e.display()
                 )
             })?;
-        // TODO: add the $262 object.
+
+        // add the $262 object.
+        let _ = js262::init(&mut context);
 
         if strict {
             context

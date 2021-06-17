@@ -20,6 +20,7 @@ use crate::{
     builtins::{string::string_iterator::StringIterator, Array, BuiltIn, RegExp},
     object::{ConstructorBuilder, Object, ObjectData},
     property::Attribute,
+    symbol::WellKnownSymbols,
     value::{RcString, Value},
     BoaProfiler, Context, Result,
 };
@@ -51,6 +52,27 @@ pub(crate) fn code_point_at(string: RcString, position: i32) -> Option<(u32, u8,
     Some((cp, 2, false))
 }
 
+/// Helper function to check if a `char` is trimmable.
+#[inline]
+pub(crate) fn is_trimmable_whitespace(c: char) -> bool {
+    // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
+    //
+    // Rust uses \p{White_Space} by default, which also includes:
+    // `\u{0085}' (next line)
+    // And does not include:
+    // '\u{FEFF}' (zero width non-breaking space)
+    // Explicit whitespace: https://tc39.es/ecma262/#sec-white-space
+    matches!(
+        c,
+        '\u{0009}' | '\u{000B}' | '\u{000C}' | '\u{0020}' | '\u{00A0}' | '\u{FEFF}' |
+    // Unicode Space_Separator category
+    '\u{1680}' | '\u{2000}'
+            ..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}' |
+    // Line terminators: https://tc39.es/ecma262/#sec-line-terminators
+    '\u{000A}' | '\u{000D}' | '\u{2028}' | '\u{2029}'
+    )
+}
+
 fn is_leading_surrogate(value: u16) -> bool {
     (0xD800..=0xDBFF).contains(&value)
 }
@@ -73,7 +95,7 @@ impl BuiltIn for String {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let symbol_iterator = context.well_known_symbols().iterator_symbol();
+        let symbol_iterator = WellKnownSymbols::iterator();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         let string_object = ConstructorBuilder::with_standard_object(
@@ -111,6 +133,7 @@ impl BuiltIn for String {
         .method(Self::match_all, "matchAll", 1)
         .method(Self::replace, "replace", 2)
         .method(Self::iterator, (symbol_iterator, "[Symbol.iterator]"), 0)
+        .method(Self::search, "search", 1)
         .build();
 
         (Self::NAME, string_object.into(), Self::attribute())
@@ -313,7 +336,7 @@ impl String {
 
         // Fast path returning NaN when pos is obviously out of range
         if pos < 0 || pos >= primitive_val.len() as i32 {
-            return Ok(Value::from(f64::NAN));
+            return Ok(Value::nan());
         }
 
         // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
@@ -322,7 +345,7 @@ impl String {
         if let Some(utf16_val) = primitive_val.encode_utf16().nth(pos as usize) {
             Ok(Value::from(f64::from(utf16_val)))
         } else {
-            Ok(Value::from(f64::NAN))
+            Ok(Value::nan())
         }
     }
 
@@ -888,11 +911,11 @@ impl String {
         max_length: i32,
         fill_string: Option<RcString>,
         at_start: bool,
-    ) -> Result<Value> {
+    ) -> Value {
         let primitive_length = primitive.len() as i32;
 
         if max_length <= primitive_length {
-            return Ok(Value::from(primitive));
+            return Value::from(primitive);
         }
 
         let filter = fill_string.as_deref().unwrap_or(" ");
@@ -907,9 +930,9 @@ impl String {
         let concat_fill_str: StdString = fill_str.chars().take(fill_len as usize).collect();
 
         if at_start {
-            Ok(Value::from(format!("{}{}", concat_fill_str, &primitive)))
+            Value::from(format!("{}{}", concat_fill_str, &primitive))
         } else {
-            Ok(Value::from(format!("{}{}", primitive, &concat_fill_str)))
+            Value::from(format!("{}{}", primitive, &concat_fill_str))
         }
     }
 
@@ -937,7 +960,7 @@ impl String {
 
         let fill_string = args.get(1).map(|arg| arg.to_string(context)).transpose()?;
 
-        Self::string_pad(primitive, max_length, fill_string, false)
+        Ok(Self::string_pad(primitive, max_length, fill_string, false))
     }
 
     /// `String.prototype.padStart( targetLength [, padString] )`
@@ -964,28 +987,7 @@ impl String {
 
         let fill_string = args.get(1).map(|arg| arg.to_string(context)).transpose()?;
 
-        Self::string_pad(primitive, max_length, fill_string, true)
-    }
-
-    /// Helper function to check if a `char` is trimmable.
-    #[inline]
-    fn is_trimmable_whitespace(c: char) -> bool {
-        // The rust implementation of `trim` does not regard the same characters whitespace as ecma standard does
-        //
-        // Rust uses \p{White_Space} by default, which also includes:
-        // `\u{0085}' (next line)
-        // And does not include:
-        // '\u{FEFF}' (zero width non-breaking space)
-        // Explicit whitespace: https://tc39.es/ecma262/#sec-white-space
-        matches!(
-            c,
-            '\u{0009}' | '\u{000B}' | '\u{000C}' | '\u{0020}' | '\u{00A0}' | '\u{FEFF}' |
-        // Unicode Space_Seperator category
-        '\u{1680}' | '\u{2000}'
-                ..='\u{200A}' | '\u{202F}' | '\u{205F}' | '\u{3000}' |
-        // Line terminators: https://tc39.es/ecma262/#sec-line-terminators
-        '\u{000A}' | '\u{000D}' | '\u{2028}' | '\u{2029}'
-        )
+        Ok(Self::string_pad(primitive, max_length, fill_string, true))
     }
 
     /// String.prototype.trim()
@@ -1003,9 +1005,7 @@ impl String {
     pub(crate) fn trim(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         let this = this.require_object_coercible(context)?;
         let string = this.to_string(context)?;
-        Ok(Value::from(
-            string.trim_matches(Self::is_trimmable_whitespace),
-        ))
+        Ok(Value::from(string.trim_matches(is_trimmable_whitespace)))
     }
 
     /// `String.prototype.trimStart()`
@@ -1023,7 +1023,7 @@ impl String {
     pub(crate) fn trim_start(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         let string = this.to_string(context)?;
         Ok(Value::from(
-            string.trim_start_matches(Self::is_trimmable_whitespace),
+            string.trim_start_matches(is_trimmable_whitespace),
         ))
     }
 
@@ -1043,7 +1043,7 @@ impl String {
         let this = this.require_object_coercible(context)?;
         let string = this.to_string(context)?;
         Ok(Value::from(
-            string.trim_end_matches(Self::is_trimmable_whitespace),
+            string.trim_end_matches(is_trimmable_whitespace),
         ))
     }
 
@@ -1217,7 +1217,7 @@ impl String {
         if let Some(result) = separator
             .and_then(|separator| separator.as_object())
             .and_then(|separator| {
-                let key = context.well_known_symbols().split_symbol();
+                let key = WellKnownSymbols::split();
 
                 match separator.get_method(context, key) {
                     Ok(splitter) => splitter.map(|splitter| {
@@ -1264,7 +1264,7 @@ impl String {
                 .collect(),
         };
 
-        let new = Array::new_array(context)?;
+        let new = Array::new_array(context);
         Array::construct_array(&new, &values, context)
     }
 
@@ -1323,6 +1323,51 @@ impl String {
         }?;
 
         RegExp::match_all(&re, this.to_string(context)?.to_string(), context)
+    }
+
+    /// `String.prototype.search( regexp )`
+    ///
+    /// The search() method executes a search for a match between a regular expression and this String object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.search
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search
+    pub(crate) fn search(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
+        let this = this.require_object_coercible(context)?;
+
+        // 2. If regexp is neither undefined nor null, then
+        let regexp = args.get(0).cloned().unwrap_or_default();
+        if !regexp.is_null_or_undefined() {
+            // a. Let searcher be ? GetMethod(regexp, @@search).
+            // b. If searcher is not undefined, then
+            if let Some(searcher) = regexp
+                .to_object(context)?
+                .get_method(context, WellKnownSymbols::search())?
+            {
+                // i. Return ? Call(searcher, regexp, « O »).
+                return searcher.call(&regexp, &[this.clone()], context);
+            }
+        }
+
+        // 3. Let string be ? ToString(O).
+        let s = this.to_string(context)?;
+
+        // 4. Let rx be ? RegExpCreate(regexp, undefined).
+        let rx = RegExp::constructor(&Value::from(Object::default()), &[regexp], context)?;
+
+        // 5. Return ? Invoke(rx, @@search, « string »).
+        if let Some(searcher) = rx
+            .to_object(context)?
+            .get_method(context, WellKnownSymbols::search())?
+        {
+            searcher.call(&rx, &[Value::from(s)], context)
+        } else {
+            context.throw_type_error("regexp[Symbol.search] is not a function")
+        }
     }
 
     pub(crate) fn iterator(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {

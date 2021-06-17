@@ -14,6 +14,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
 
 use super::function::make_builtin_fn;
+use super::string::is_trimmable_whitespace;
 use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, ObjectData, PROTOTYPE},
@@ -317,28 +318,57 @@ impl Number {
     ///   represented by these digits is rounded using string
     ///   manipulation.
     /// - Else, zeroes are appended to the string.
+    /// - Additionnally, sometimes the exponent was wrongly computed and
+    ///   while up-rounding we find that we need an extra digit. When this
+    ///   happens, we return true so that the calling context can adjust
+    ///   the exponent. The string is kept at an exact length of `precision`.
     ///
     /// When this procedure returns, `digits` is exactly `precision` long.
     ///
-    fn round_to_precision(digits: &mut String, precision: usize) {
+    fn round_to_precision(digits: &mut String, precision: usize) -> bool {
         if digits.len() > precision {
             let to_round = digits.split_off(precision);
             let mut digit = digits.pop().unwrap() as u8;
-
-            for c in to_round.chars() {
-                match c {
-                    c if c < '4' => break,
-                    c if c > '4' => {
-                        digit += 1;
-                        break;
-                    }
-                    _ => {}
+            if let Some(first) = to_round.chars().next() {
+                if first > '4' {
+                    digit += 1;
                 }
             }
 
-            digits.push(digit as char);
+            if digit as char == ':' {
+                // ':' is '9' + 1
+                // need to propagate the increment backward
+                let mut replacement = String::from("0");
+                let mut propagated = false;
+                for c in digits.chars().rev() {
+                    let d = match (c, propagated) {
+                        ('0'..='8', false) => (c as u8 + 1) as char,
+                        (_, false) => '0',
+                        (_, true) => c,
+                    };
+                    replacement.push(d);
+                    if d != '0' {
+                        propagated = true;
+                    }
+                }
+                digits.clear();
+                let replacement = if !propagated {
+                    digits.push('1');
+                    &replacement.as_str()[1..]
+                } else {
+                    replacement.as_str()
+                };
+                for c in replacement.chars().rev() {
+                    digits.push(c)
+                }
+                !propagated
+            } else {
+                digits.push(digit as char);
+                false
+            }
         } else {
             digits.push_str(&"0".repeat(precision - digits.len()));
+            false
         }
     }
 
@@ -358,17 +388,24 @@ impl Number {
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        let precision_var = args.get(0).cloned().unwrap_or_default();
+        let precision = args.get(0).cloned().unwrap_or_default();
 
         // 1 & 6
         let mut this_num = Self::this_number_value(this, context)?;
-        // 2 & 4
-        if precision_var == Value::undefined() || !this_num.is_finite() {
+        // 2
+        if precision == Value::undefined() {
             return Self::to_string(this, &[], context);
         }
 
         // 3
-        let precision = match precision_var.to_integer_or_infinity(context)? {
+        let precision = precision.to_integer_or_infinity(context)?;
+
+        // 4
+        if !this_num.is_finite() {
+            return Self::to_string(this, &[], context);
+        }
+
+        let precision = match precision {
             IntegerOrInfinity::Integer(x) if (1..=100).contains(&x) => x as usize,
             _ => {
                 // 5
@@ -382,7 +419,7 @@ impl Number {
         // 7
         let mut prefix = String::new(); // spec: 's'
         let mut suffix: String; // spec: 'm'
-        let exponent: i32; // spec: 'e'
+        let mut exponent: i32; // spec: 'e'
 
         // 8
         if this_num < 0.0 {
@@ -398,10 +435,8 @@ impl Number {
         } else {
             // Due to f64 limitations, this part differs a bit from the spec,
             // but has the same effect. It manipulates the string constructed
-            // by ryu-js: digits with an optional dot between two of them.
-
-            let mut buffer = ryu_js::Buffer::new();
-            suffix = buffer.format(this_num).to_string();
+            // by `format`: digits with an optional dot between two of them.
+            suffix = format!("{:.100}", this_num);
 
             // a: getting an exponent
             exponent = Self::flt_str_to_exp(&suffix);
@@ -412,7 +447,9 @@ impl Number {
                 suffix.remove(n);
             }
             // impl: having exactly `precision` digits in `suffix`
-            Self::round_to_precision(&mut suffix, precision);
+            if Self::round_to_precision(&mut suffix, precision) {
+                exponent += 1;
+            }
 
             // c: switching to scientific notation
             let great_exp = exponent >= precision_i32;
@@ -673,7 +710,7 @@ impl Number {
             let input_string = val.to_string(context)?;
 
             // 2. Let S be ! TrimString(inputString, start).
-            let mut var_s = input_string.trim();
+            let mut var_s = input_string.trim_start_matches(is_trimmable_whitespace);
 
             // 3. Let sign be 1.
             // 4. If S is not empty and the first code unit of S is the code unit 0x002D (HYPHEN-MINUS),
@@ -789,31 +826,37 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parsefloat-string
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
-    pub(crate) fn parse_float(_: &Value, args: &[Value], _ctx: &mut Context) -> Result<Value> {
+    pub(crate) fn parse_float(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         if let Some(val) = args.get(0) {
-            match val {
-                Value::String(s) => {
-                    if let Ok(i) = s.parse::<i32>() {
-                        // Attempt to parse an integer first so that it can be stored as an integer
-                        // to improve performance
-                        Ok(Value::integer(i))
-                    } else if let Ok(f) = s.parse::<f64>() {
-                        Ok(Value::rational(f))
-                    } else {
-                        // String can't be parsed.
-                        Ok(Value::from(f64::NAN))
-                    }
-                }
-                Value::Integer(i) => Ok(Value::integer(*i)),
-                Value::Rational(f) => Ok(Value::rational(*f)),
-                _ => {
-                    // Wrong argument type to parseFloat.
-                    Ok(Value::from(f64::NAN))
-                }
+            let input_string = val.to_string(context)?;
+            let s = input_string.trim_start_matches(is_trimmable_whitespace);
+            let s_prefix_lower = s.chars().take(4).collect::<String>().to_ascii_lowercase();
+
+            // TODO: write our own lexer to match syntax StrDecimalLiteral
+            if s.starts_with("Infinity") || s.starts_with("+Infinity") {
+                Ok(Value::from(f64::INFINITY))
+            } else if s.starts_with("-Infinity") {
+                Ok(Value::from(f64::NEG_INFINITY))
+            } else if s_prefix_lower.starts_with("inf")
+                || s_prefix_lower.starts_with("+inf")
+                || s_prefix_lower.starts_with("-inf")
+            {
+                // Prevent fast_float from parsing "inf", "+inf" as Infinity and "-inf" as -Infinity
+                Ok(Value::nan())
+            } else {
+                Ok(fast_float::parse_partial::<f64, _>(s)
+                    .map(|(f, len)| {
+                        if len > 0 {
+                            Value::rational(f)
+                        } else {
+                            Value::nan()
+                        }
+                    })
+                    .unwrap_or_else(|_| Value::nan()))
             }
         } else {
             // Not enough arguments to parseFloat.
-            Ok(Value::from(f64::NAN))
+            Ok(Value::nan())
         }
     }
 

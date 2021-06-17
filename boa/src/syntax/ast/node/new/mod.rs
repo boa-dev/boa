@@ -69,7 +69,7 @@ impl Executable for New {
         }
 
         match func_object {
-            Value::Object(ref object) => object.construct(&v_args, object.clone().into(), context),
+            Value::Object(ref object) => object.construct(&v_args, &object.clone().into(), context),
             _ => context
                 .throw_type_error(format!("{} is not a constructor", self.expr().to_string(),)),
         }

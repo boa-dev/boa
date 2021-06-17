@@ -163,7 +163,7 @@ static IGNORED: Lazy<Ignored> = Lazy::new(|| {
 #[derive(StructOpt, Debug)]
 #[structopt(name = "Boa test262 tester")]
 enum Cli {
-    /// Run the test suitr.
+    /// Run the test suite.
     Run {
         /// Whether to show verbose output.
         #[structopt(short, long, parse(from_occurrences))]

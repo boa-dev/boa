@@ -10,8 +10,8 @@ use super::regex::RegExpFlags;
 use crate::{
     builtins::BigInt,
     syntax::ast::{Keyword, Punctuator, Span},
+    syntax::lexer::template::TemplateString,
 };
-
 use std::fmt::{self, Debug, Display, Formatter};
 
 #[cfg(feature = "deser")]
@@ -126,20 +126,10 @@ pub enum TokenKind {
     StringLiteral(Box<str>),
 
     /// A part of a template literal without substitution.
-    TemplateNoSubstitution {
-        /// The string as it has been entered, without processing escape sequences.
-        raw: Box<str>,
-        /// The raw string with escape sequences processed.
-        cooked: Box<str>,
-    },
+    TemplateNoSubstitution(TemplateString),
 
     /// The part of a template literal between substitutions
-    TemplateMiddle {
-        /// The string as it has been entered, without processing escape sequences.
-        raw: Box<str>,
-        /// The raw string with escape sequences processed.
-        cooked: Box<str>,
-    },
+    TemplateMiddle(TemplateString),
 
     /// A regular expression, consisting of body and flags.
     RegularExpressionLiteral(Box<str>, RegExpFlags),
@@ -220,26 +210,12 @@ impl TokenKind {
         Self::StringLiteral(lit.into())
     }
 
-    pub fn template_middle<R, C>(raw: R, cooked: C) -> Self
-    where
-        R: Into<Box<str>>,
-        C: Into<Box<str>>,
-    {
-        Self::TemplateMiddle {
-            raw: raw.into(),
-            cooked: cooked.into(),
-        }
+    pub fn template_middle(template_string: TemplateString) -> Self {
+        Self::TemplateMiddle(template_string)
     }
 
-    pub fn template_no_substitution<R, C>(raw: R, cooked: C) -> Self
-    where
-        R: Into<Box<str>>,
-        C: Into<Box<str>>,
-    {
-        Self::TemplateNoSubstitution {
-            raw: raw.into(),
-            cooked: cooked.into(),
-        }
+    pub fn template_no_substitution(template_string: TemplateString) -> Self {
+        Self::TemplateNoSubstitution(template_string)
     }
 
     /// Creates a `RegularExpressionLiteral` token kind.
@@ -275,8 +251,8 @@ impl Display for TokenKind {
             Self::NumericLiteral(Numeric::BigInt(ref num)) => write!(f, "{}n", num),
             Self::Punctuator(ref punc) => write!(f, "{}", punc),
             Self::StringLiteral(ref lit) => write!(f, "{}", lit),
-            Self::TemplateNoSubstitution { ref cooked, .. } => write!(f, "{}", cooked),
-            Self::TemplateMiddle { ref cooked, .. } => write!(f, "{}", cooked),
+            Self::TemplateNoSubstitution(ref ts) => write!(f, "{}", ts.as_raw()),
+            Self::TemplateMiddle(ref ts) => write!(f, "{}", ts.as_raw()),
             Self::RegularExpressionLiteral(ref body, ref flags) => write!(f, "/{}/{}", body, flags),
             Self::LineTerminator => write!(f, "line terminator"),
             Self::Comment => write!(f, "comment"),

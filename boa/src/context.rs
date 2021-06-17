@@ -5,13 +5,13 @@ use crate::{
         self,
         function::{Function, FunctionFlags, NativeFunction},
         iterable::IteratorPrototypes,
-        symbol::{Symbol, WellKnownSymbols},
     },
     class::{Class, ClassBuilder},
     exec::Interpreter,
-    object::{GcObject, Object, ObjectData, PROTOTYPE},
+    object::{FunctionBuilder, GcObject, Object, PROTOTYPE},
     property::{Attribute, DataDescriptor, PropertyKey},
     realm::Realm,
+    symbol::{RcSymbol, Symbol},
     syntax::{
         ast::{
             node::{
@@ -22,10 +22,9 @@ use crate::{
         },
         Parser,
     },
-    value::{RcString, RcSymbol, Value},
+    value::{RcString, Value},
     BoaProfiler, Executable, Result,
 };
-use std::result::Result as StdResult;
 
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;
@@ -97,6 +96,8 @@ pub struct StandardObjects {
     syntax_error: StandardConstructor,
     eval_error: StandardConstructor,
     uri_error: StandardConstructor,
+    map: StandardConstructor,
+    set: StandardConstructor,
 }
 
 impl Default for StandardObjects {
@@ -118,6 +119,8 @@ impl Default for StandardObjects {
             syntax_error: StandardConstructor::default(),
             eval_error: StandardConstructor::default(),
             uri_error: StandardConstructor::default(),
+            map: StandardConstructor::default(),
+            set: StandardConstructor::default(),
         }
     }
 }
@@ -198,8 +201,19 @@ impl StandardObjects {
         &self.eval_error
     }
 
+    #[inline]
     pub fn uri_error_object(&self) -> &StandardConstructor {
         &self.uri_error
+    }
+
+    #[inline]
+    pub fn map_object(&self) -> &StandardConstructor {
+        &self.map
+    }
+
+    #[inline]
+    pub fn set_object(&self) -> &StandardConstructor {
+        &self.set
     }
 }
 
@@ -211,44 +225,37 @@ impl StandardObjects {
 #[derive(Debug)]
 pub struct Context {
     /// realm holds both the global object and the environment
-    realm: Realm,
+    pub(crate) realm: Realm,
 
     /// The current executor.
     executor: Interpreter,
 
-    /// Symbol hash.
-    ///
-    /// For now this is an incremented u64 number.
-    symbol_count: u64,
-
     /// console object state.
     #[cfg(feature = "console")]
     console: Console,
-
-    /// Cached well known symbols
-    well_known_symbols: WellKnownSymbols,
 
     /// Cached iterator prototypes.
     iterator_prototypes: IteratorPrototypes,
 
     /// Cached standard objects and their prototypes.
     standard_objects: StandardObjects,
+
+    /// Whether or not to show trace of instructions being ran
+    pub trace: bool,
 }
 
 impl Default for Context {
     fn default() -> Self {
         let realm = Realm::create();
         let executor = Interpreter::new();
-        let (well_known_symbols, symbol_count) = WellKnownSymbols::new();
         let mut context = Self {
             realm,
             executor,
-            symbol_count,
             #[cfg(feature = "console")]
             console: Console::default(),
-            well_known_symbols,
             iterator_prototypes: IteratorPrototypes::default(),
             standard_objects: Default::default(),
+            trace: false,
         };
 
         // Add new builtIns to Context Realm
@@ -265,16 +272,6 @@ impl Context {
     #[inline]
     pub fn new() -> Self {
         Default::default()
-    }
-
-    #[inline]
-    pub fn realm(&self) -> &Realm {
-        &self.realm
-    }
-
-    #[inline]
-    pub fn realm_mut(&mut self) -> &mut Realm {
-        &mut self.realm
     }
 
     #[inline]
@@ -303,20 +300,10 @@ impl Context {
         builtins::init(self);
     }
 
-    /// Generates a new `Symbol` internal hash.
-    ///
-    /// This currently is an incremented value.
-    #[inline]
-    fn generate_hash(&mut self) -> u64 {
-        let hash = self.symbol_count;
-        self.symbol_count += 1;
-        hash
-    }
-
     /// Construct a new `Symbol` with an optional description.
     #[inline]
     pub fn construct_symbol(&mut self, description: Option<RcString>) -> RcSymbol {
-        RcSymbol::from(Symbol::new(self.generate_hash(), description))
+        RcSymbol::from(Symbol::new(description))
     }
 
     /// Construct an empty object.
@@ -337,8 +324,8 @@ impl Context {
 
     /// Return the global object.
     #[inline]
-    pub fn global_object(&self) -> &GcObject {
-        &self.realm().global_object
+    pub fn global_object(&self) -> GcObject {
+        self.realm.global_object.clone()
     }
 
     /// Constructs a `RangeError` with the specified message.
@@ -500,7 +487,7 @@ impl Context {
             flags,
             body: RcStatementList::from(body.into()),
             params,
-            environment: self.realm.environment.get_current_environment().clone(),
+            environment: self.get_current_environment().clone(),
         };
 
         let new_func = Object::function(func, function_prototype);
@@ -516,34 +503,18 @@ impl Context {
         Ok(val)
     }
 
-    /// Create a new builin function.
-    pub fn create_builtin_function(
-        &mut self,
-        name: &str,
-        length: usize,
-        body: NativeFunction,
-    ) -> Result<GcObject> {
-        let function_prototype: Value = self.standard_objects().object_object().prototype().into();
-
-        // Every new function has a prototype property pre-made
-        let proto = Value::new_object(self);
-        let mut function = GcObject::new(Object::function(
-            Function::BuiltIn(body.into(), FunctionFlags::CALLABLE),
-            function_prototype,
-        ));
-        function.set(PROTOTYPE.into(), proto, function.clone().into(), self)?;
-        function.set(
-            "length".into(),
-            length.into(),
-            function.clone().into(),
-            self,
-        )?;
-        function.set("name".into(), name.into(), function.clone().into(), self)?;
-
-        Ok(function)
-    }
-
     /// Register a global function.
+    ///
+    /// The function will be both `callable` and `constructable` (call with `new`).
+    ///
+    /// The function will be bound to the global object with `writable`, `non-enumerable`
+    /// and `configurable` attributes. The same as when you create a function in JavaScript.
+    ///
+    /// # Note
+    ///
+    /// If you want to make a function only `callable` or `constructable`, or wish to bind it differently
+    /// to the global object, you can create the function object with [`FunctionBuilder`](crate::object::FunctionBuilder).
+    /// And bind it to the global object with [`Context::register_global_property`](Context::register_global_property) method.
     #[inline]
     pub fn register_global_function(
         &mut self,
@@ -551,57 +522,19 @@ impl Context {
         length: usize,
         body: NativeFunction,
     ) -> Result<()> {
-        let function = self.create_builtin_function(name, length, body)?;
-        let mut global = self.global_object().clone();
-        global.insert_property(name, function, Attribute::all());
+        let function = FunctionBuilder::new(self, body)
+            .name(name)
+            .length(length)
+            .callable(true)
+            .constructable(true)
+            .build();
+
+        self.global_object().insert_property(
+            name,
+            function,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
         Ok(())
-    }
-
-    /// Converts an array object into a rust vector of values.
-    ///
-    /// This is useful for the spread operator, for any other object an `Err` is returned
-    /// TODO: Not needed for spread of arrays. Check in the future for Map and remove if necessary
-    pub(crate) fn extract_array_properties(
-        &mut self,
-        value: &Value,
-    ) -> Result<StdResult<Vec<Value>, ()>> {
-        if let Value::Object(ref x) = value {
-            // Check if object is array
-            if let ObjectData::Array = x.borrow().data {
-                let length = value.get_field("length", self)?.as_number().unwrap() as i32;
-                let values = (0..length)
-                    .map(|idx| value.get_field(idx, self))
-                    .collect::<Result<Vec<_>>>()?;
-                return Ok(Ok(values));
-            }
-            // Check if object is a Map
-            else if let ObjectData::Map(ref map) = x.borrow().data {
-                let values = map
-                    .iter()
-                    .map(|(key, value)| {
-                        // Construct a new array containing the key-value pair
-                        let array = Value::new_object(self);
-                        array.set_data(ObjectData::Array);
-                        array.as_object().expect("object").set_prototype_instance(
-                            self.realm()
-                                .environment
-                                .get_binding_value("Array")
-                                .expect("Array was not initialized")
-                                .get_field(PROTOTYPE, self)?,
-                        );
-                        array.set_field(0, key, self)?;
-                        array.set_field(1, value, self)?;
-                        array.set_field("length", Value::from(2), self)?;
-                        Ok(array)
-                    })
-                    .collect::<Result<Vec<_>>>()?;
-                return Ok(Ok(values));
-            }
-
-            return Ok(Err(()));
-        }
-
-        Ok(Err(()))
     }
 
     /// <https://tc39.es/ecma262/#sec-hasproperty>
@@ -618,10 +551,7 @@ impl Context {
     pub(crate) fn set_value(&mut self, node: &Node, value: Value) -> Result<Value> {
         match node {
             Node::Identifier(ref name) => {
-                self.realm
-                    .environment
-                    .set_mutable_binding(name.as_ref(), value.clone(), true)
-                    .map_err(|e| e.to_error(self))?;
+                self.set_mutable_binding(name.as_ref(), value.clone(), true)?;
                 Ok(value)
             }
             Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node
@@ -660,7 +590,7 @@ impl Context {
 
         let class = class_builder.build();
         let property = DataDescriptor::new(class, T::ATTRIBUTE);
-        self.global_object().clone().insert(T::NAME, property);
+        self.global_object().insert(T::NAME, property);
         Ok(())
     }
 
@@ -687,7 +617,7 @@ impl Context {
         V: Into<Value>,
     {
         let property = DataDescriptor::new(value, attribute);
-        self.global_object().clone().insert(key, property);
+        self.global_object().insert(key, property);
     }
 
     /// Evaluates the given code.
@@ -754,7 +684,6 @@ impl Context {
 
         let mut compiler = Compiler::default();
         statement_list.compile(&mut compiler);
-        dbg!(&compiler);
 
         let mut vm = VM::new(compiler, self);
         // Generate Bytecode and place it into instruction_stack
@@ -767,22 +696,6 @@ impl Context {
         result
     }
 
-    /// Returns a structure that contains the JavaScript well known symbols.
-    ///
-    /// # Examples
-    /// ```
-    ///# use boa::Context;
-    /// let mut context = Context::new();
-    ///
-    /// let iterator = context.well_known_symbols().iterator_symbol();
-    /// assert_eq!(iterator.description(), Some("Symbol.iterator"));
-    /// ```
-    /// This is equivalent to `let iterator = Symbol.iterator` in JavaScript.
-    #[inline]
-    pub fn well_known_symbols(&self) -> &WellKnownSymbols {
-        &self.well_known_symbols
-    }
-
     /// Return the cached iterator prototypes.
     #[inline]
     pub fn iterator_prototypes(&self) -> &IteratorPrototypes {
@@ -793,5 +706,10 @@ impl Context {
     #[inline]
     pub fn standard_objects(&self) -> &StandardObjects {
         &self.standard_objects
+    }
+
+    /// Set the value of trace on the context
+    pub fn set_trace(&mut self, trace: bool) {
+        self.trace = trace;
     }
 }

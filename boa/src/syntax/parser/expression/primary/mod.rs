@@ -107,8 +107,9 @@ where
             TokenKind::BooleanLiteral(boolean) => Ok(Const::from(*boolean).into()),
             TokenKind::NullLiteral => Ok(Const::Null.into()),
             TokenKind::Identifier(ident) => Ok(Identifier::from(ident.as_ref()).into()), // TODO: IdentifierReference
-            TokenKind::StringLiteral(s) | TokenKind::TemplateNoSubstitution { cooked: s, .. } => {
-                Ok(Const::from(s.as_ref()).into())
+            TokenKind::StringLiteral(s) => Ok(Const::from(s.as_ref()).into()),
+            TokenKind::TemplateNoSubstitution(template_string) => {
+                Ok(Const::from(template_string.to_owned_cooked().map_err(ParseError::lex)?).into())
             }
             TokenKind::NumericLiteral(Numeric::Integer(num)) => Ok(Const::from(*num).into()),
             TokenKind::NumericLiteral(Numeric::Rational(num)) => Ok(Const::from(*num).into()),
@@ -138,11 +139,14 @@ where
                     Err(ParseError::unexpected(tok, "regular expression literal"))
                 }
             }
-            TokenKind::TemplateMiddle { cooked, .. } => TemplateLiteral::new(
+            TokenKind::TemplateMiddle(template_string) => TemplateLiteral::new(
                 self.allow_yield,
                 self.allow_await,
                 tok.span().start(),
-                cooked.as_ref(),
+                template_string
+                    .to_owned_cooked()
+                    .map_err(ParseError::lex)?
+                    .as_ref(),
             )
             .parse(cursor)
             .map(Node::TemplateLit),

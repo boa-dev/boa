@@ -6,7 +6,7 @@
     unused_lifetimes,
     unreachable_pub,
     trivial_numeric_casts,
-    rustdoc,
+    rustdoc::all,
     missing_debug_implementations,
     missing_copy_implementations,
     deprecated_in_future,
@@ -65,6 +65,11 @@ struct Opt {
         case_insensitive = true
     )]
     dump_ast: Option<Option<DumpFormat>>,
+
+    /// Dump the AST to stdout with the given format.
+    #[cfg(feature = "vm")]
+    #[structopt(long = "trace", short = "t")]
+    trace: bool,
 
     /// Use vi mode in the REPL
     #[structopt(long = "vi")]
@@ -142,6 +147,10 @@ pub fn main() -> Result<(), std::io::Error> {
     let args = Opt::from_args();
 
     let mut context = Context::new();
+
+    // Trace Output
+    #[cfg(feature = "vm")]
+    context.set_trace(args.trace);
 
     for file in &args.files {
         let buffer = read(file)?;

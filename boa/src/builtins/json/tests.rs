@@ -1,4 +1,4 @@
-use crate::{forward, forward_val, value::same_value, Context, Value};
+use crate::{forward, forward_val, Context, Value};
 
 #[test]
 fn json_sanity() {
@@ -217,10 +217,10 @@ fn json_stringify_pretty_print() {
     );
     let expected = forward(
         &mut context,
-        r#"'{
-    "a": "b",
-    "b": "c"
-}'"#,
+        r#"'{\n'
+            +'    "a": "b",\n'
+            +'    "b": "c"\n'
+            +'}'"#,
     );
     assert_eq!(actual, expected);
 }
@@ -235,10 +235,10 @@ fn json_stringify_pretty_print_four_spaces() {
     );
     let expected = forward(
         &mut context,
-        r#"'{
-    "a": "b",
-    "b": "c"
-}'"#,
+        r#"'{\n'
+            +'    "a": "b",\n'
+            +'    "b": "c"\n'
+            +'}'"#,
     );
     assert_eq!(actual, expected);
 }
@@ -253,10 +253,10 @@ fn json_stringify_pretty_print_twenty_spaces() {
     );
     let expected = forward(
         &mut context,
-        r#"'{
-          "a": "b",
-          "b": "c"
-}'"#,
+        r#"'{\n'
+            +'          "a": "b",\n'
+            +'          "b": "c"\n'
+            +'}'"#,
     );
     assert_eq!(actual, expected);
 }
@@ -271,10 +271,10 @@ fn json_stringify_pretty_print_with_number_object() {
     );
     let expected = forward(
         &mut context,
-        r#"'{
-          "a": "b",
-          "b": "c"
-}'"#,
+        r#"'{\n'
+        +'          "a": "b",\n'
+        +'          "b": "c"\n'
+        +'}'"#,
     );
     assert_eq!(actual, expected);
 }
@@ -301,10 +301,10 @@ fn json_stringify_pretty_print_with_too_long_string() {
     );
     let expected = forward(
         &mut context,
-        r#"'{
-abcdefghij"a": "b",
-abcdefghij"b": "c"
-}'"#,
+        r#"'{\n'
+            +'abcdefghij"a": "b",\n'
+            +'abcdefghij"b": "c"\n'
+            +'}'"#,
     );
     assert_eq!(actual, expected);
 }
@@ -319,10 +319,10 @@ fn json_stringify_pretty_print_with_string_object() {
     );
     let expected = forward(
         &mut context,
-        r#"'{
-abcd"a": "b",
-abcd"b": "c"
-}'"#,
+        r#"'{\n'
+            +'abcd"a": "b",\n'
+            +'abcd"b": "c"\n'
+            +'}'"#,
     );
     assert_eq!(actual, expected);
 }
@@ -404,10 +404,7 @@ fn json_parse_object_with_reviver() {
 fn json_parse_sets_prototypes() {
     let mut context = Context::new();
     let init = r#"
-        const jsonString = "{
-            \"ob\":{\"ject\":1},
-            \"arr\": [0,1]
-        }";
+        const jsonString = "{\"ob\":{\"ject\":1},\"arr\": [0,1]}";
         const jsonObj = JSON.parse(jsonString);
     "#;
     eprintln!("{}", forward(&mut context, init));
@@ -429,10 +426,13 @@ fn json_parse_sets_prototypes() {
     let global_array_prototype: Value =
         context.standard_objects().array_object().prototype().into();
     assert_eq!(
-        same_value(&object_prototype, &global_object_prototype),
+        Value::same_value(&object_prototype, &global_object_prototype),
         true
     );
-    assert_eq!(same_value(&array_prototype, &global_array_prototype), true);
+    assert_eq!(
+        Value::same_value(&array_prototype, &global_array_prototype),
+        true
+    );
 }
 
 #[test]

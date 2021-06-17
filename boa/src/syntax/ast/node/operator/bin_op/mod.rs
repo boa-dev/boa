@@ -1,6 +1,7 @@
 use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
+    symbol::WellKnownSymbols,
     syntax::ast::{
         node::Node,
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
@@ -153,7 +154,7 @@ impl Executable for BinOp {
                     }
                     CompOp::InstanceOf => {
                         if let Some(object) = y.as_object() {
-                            let key = context.well_known_symbols().has_instance_symbol();
+                            let key = WellKnownSymbols::has_instance();
 
                             match object.get_method(context, key)? {
                                 Some(instance_of_handler) => {
@@ -205,18 +206,10 @@ impl Executable for BinOp {
             }),
             op::BinOp::Assign(op) => match self.lhs() {
                 Node::Identifier(ref name) => {
-                    let v_a = context
-                        .realm()
-                        .environment
-                        .get_binding_value(name.as_ref())
-                        .map_err(|e| e.to_error(context))?;
+                    let v_a = context.get_binding_value(name.as_ref())?;
 
                     let value = Self::run_assign(op, v_a, self.rhs(), context)?;
-                    context
-                        .realm_mut()
-                        .environment
-                        .set_mutable_binding(name.as_ref(), value.clone(), true)
-                        .map_err(|e| e.to_error(context))?;
+                    context.set_mutable_binding(name.as_ref(), value.clone(), true)?;
                     Ok(value)
                 }
                 Node::GetConstField(ref get_const_field) => {

@@ -533,34 +533,46 @@ fn test_match() {
 #[test]
 fn trim() {
     let mut context = Context::new();
-    assert_eq!(forward(&mut context, "'Hello'.trim()"), "\"Hello\"");
-    assert_eq!(forward(&mut context, "' \nHello'.trim()"), "\"Hello\"");
-    assert_eq!(forward(&mut context, "'Hello \n\r'.trim()"), "\"Hello\"");
-    assert_eq!(forward(&mut context, "' Hello '.trim()"), "\"Hello\"");
+    assert_eq!(forward(&mut context, r#"'Hello'.trim()"#), "\"Hello\"");
+    assert_eq!(forward(&mut context, r#"' \nHello'.trim()"#), "\"Hello\"");
+    assert_eq!(forward(&mut context, r#"'Hello \n\r'.trim()"#), "\"Hello\"");
+    assert_eq!(forward(&mut context, r#"' Hello '.trim()"#), "\"Hello\"");
 }
 
 #[test]
 fn trim_start() {
     let mut context = Context::new();
-    assert_eq!(forward(&mut context, "'Hello'.trimStart()"), "\"Hello\"");
-    assert_eq!(forward(&mut context, "' \nHello'.trimStart()"), "\"Hello\"");
+    assert_eq!(forward(&mut context, r#"'Hello'.trimStart()"#), "\"Hello\"");
     assert_eq!(
-        forward(&mut context, "'Hello \n'.trimStart()"),
+        forward(&mut context, r#"' \nHello'.trimStart()"#),
+        "\"Hello\""
+    );
+    assert_eq!(
+        forward(&mut context, r#"'Hello \n'.trimStart()"#),
         "\"Hello \n\""
     );
-    assert_eq!(forward(&mut context, "' Hello '.trimStart()"), "\"Hello \"");
+    assert_eq!(
+        forward(&mut context, r#"' Hello '.trimStart()"#),
+        "\"Hello \""
+    );
 }
 
 #[test]
 fn trim_end() {
     let mut context = Context::new();
-    assert_eq!(forward(&mut context, "'Hello'.trimEnd()"), "\"Hello\"");
+    assert_eq!(forward(&mut context, r#"'Hello'.trimEnd()"#), "\"Hello\"");
     assert_eq!(
-        forward(&mut context, "' \nHello'.trimEnd()"),
+        forward(&mut context, r#"' \nHello'.trimEnd()"#),
         "\" \nHello\""
     );
-    assert_eq!(forward(&mut context, "'Hello \n'.trimEnd()"), "\"Hello\"");
-    assert_eq!(forward(&mut context, "' Hello '.trimEnd()"), "\" Hello\"");
+    assert_eq!(
+        forward(&mut context, r#"'Hello \n'.trimEnd()"#),
+        "\"Hello\""
+    );
+    assert_eq!(
+        forward(&mut context, r#"' Hello '.trimEnd()"#),
+        "\" Hello\""
+    );
 }
 
 #[test]
@@ -1080,4 +1092,25 @@ fn unicode_iter() {
     forward(&mut context, "next = iter.next()");
     assert_eq!(forward(&mut context, "next.value"), "undefined");
     assert_eq!(forward(&mut context, "next.done"), "true");
+}
+
+#[test]
+fn string_get_property() {
+    let mut context = Context::new();
+    assert_eq!(forward(&mut context, "'abc'[-1]"), "undefined");
+    assert_eq!(forward(&mut context, "'abc'[1]"), "\"b\"");
+    assert_eq!(forward(&mut context, "'abc'[2]"), "\"c\"");
+    assert_eq!(forward(&mut context, "'abc'[3]"), "undefined");
+    assert_eq!(forward(&mut context, "'abc'['foo']"), "undefined");
+    assert_eq!(forward(&mut context, "'😀'[0]"), "\"\\ud83d\"");
+}
+
+#[test]
+fn search() {
+    let mut context = Context::new();
+
+    assert_eq!(forward(&mut context, "'aa'.search(/b/)"), "-1");
+    assert_eq!(forward(&mut context, "'aa'.search(/a/)"), "0");
+    assert_eq!(forward(&mut context, "'aa'.search(/a/g)"), "0");
+    assert_eq!(forward(&mut context, "'ba'.search(/a/)"), "1");
 }
