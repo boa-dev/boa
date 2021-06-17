@@ -343,6 +343,16 @@ pub enum Keyword {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return
     Return,
 
+    /// The `static` keyword.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ClassElement
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/static
+    Static,
+
     /// The `super` keyword
     ///
     /// More information:
@@ -522,6 +532,7 @@ impl Keyword {
             Self::Null => "null",
             Self::Of => "of",
             Self::Return => "return",
+            Self::Static => "static",
             Self::Super => "super",
             Self::Switch => "switch",
             Self::This => "this",
@@ -598,6 +609,7 @@ impl FromStr for Keyword {
             "null" => Ok(Self::Null),
             "of" => Ok(Self::Of),
             "return" => Ok(Self::Return),
+            "static" => Ok(Self::Static),
             "super" => Ok(Self::Super),
             "switch" => Ok(Self::Switch),
             "this" => Ok(Self::This),
