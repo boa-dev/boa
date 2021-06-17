@@ -1,4 +1,6 @@
 use crate::{
+    builtins::function::FunctionFlags,
+    environment::lexical_environment::VariableScope,
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{FunctionDecl, Node},
@@ -8,6 +10,9 @@ use std::fmt;
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(test)]
+mod tests;
 
 /// The `function` declaration (function statement) defines a function with the specified
 /// parameters.
@@ -75,26 +80,33 @@ impl Executable for ClassDecl {
     fn run(&self, context: &mut Context) -> Result<Value> {
         // TODO: Implement class exec
         let _timer = BoaProfiler::global().start_event("ClassDecl", "exec");
-        // let val = context.create_function(
-        //     self.parameters().to_vec(),
-        //     self.body().to_vec(),
-        //     FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
-        // )?;
-        //
-        // // Set the name and assign it in the current environment
-        // val.set_field("name", self.name(), context)?;
-        //
-        // if context.has_binding(self.name()) {
-        //     context.set_mutable_binding(self.name(), val, true)?;
-        // } else {
-        //     context.create_mutable_binding(
-        //         self.name().to_owned(),
-        //         false,
-        //         VariableScope::Function,
-        //     )?;
-        //
-        //     context.initialize_binding(self.name(), val)?;
-        // }
+        let constructor = match &self.constructor {
+            Some(c) => context.create_function(
+                c.parameters().to_vec(),
+                c.body().to_vec(),
+                FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
+            )?,
+            None => context.create_function(
+                vec![],
+                vec![],
+                FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
+            )?,
+        };
+
+        // Set the name and assign it in the current environment
+        constructor.set_field("name", self.name(), context)?;
+
+        if context.has_binding(self.name()) {
+            context.set_mutable_binding(self.name(), constructor, true)?;
+        } else {
+            context.create_mutable_binding(
+                self.name().to_owned(),
+                false,
+                VariableScope::Function,
+            )?;
+
+            context.initialize_binding(self.name(), constructor)?;
+        }
         Ok(Value::undefined())
     }
 }
