@@ -59,18 +59,27 @@ impl<R> TokenParser<R> for ClassElementList
 where
     R: Read,
 {
-    type Output = (Option<FunctionDecl>, Box<[FunctionDecl]>);
+    type Output = (
+        Option<FunctionDecl>,
+        Box<[FunctionDecl]>,
+        Box<[FunctionDecl]>,
+    );
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ClassElementList", "Parsing");
         cursor.set_goal(InputElement::RegExp);
 
-        let mut elems = Vec::new();
+        let mut methods = Vec::new();
+        let mut static_methods = Vec::new();
 
         if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
             == &TokenKind::Punctuator(Punctuator::CloseBlock)
         {
-            return Ok((None, elems.into_boxed_slice()));
+            return Ok((
+                None,
+                methods.into_boxed_slice(),
+                static_methods.into_boxed_slice(),
+            ));
         }
 
         let mut constructor = None;
@@ -101,7 +110,7 @@ where
             if *name == *"constructor" {
                 constructor = Some(FunctionDecl::new(name, params, body));
             } else {
-                elems.push(FunctionDecl::new(name, params, body));
+                methods.push(FunctionDecl::new(name, params, body));
             }
 
             if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
@@ -111,6 +120,10 @@ where
             }
         }
 
-        Ok((constructor, elems.into_boxed_slice()))
+        Ok((
+            constructor,
+            methods.into_boxed_slice(),
+            static_methods.into_boxed_slice(),
+        ))
     }
 }
