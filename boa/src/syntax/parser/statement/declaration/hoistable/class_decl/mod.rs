@@ -55,7 +55,8 @@ where
 
         cursor.expect(Punctuator::OpenBlock, "class declaration")?;
 
-        let (constructor, fields) = ClassElementList::new(false, false).parse(cursor)?;
+        let (constructor, methods, static_methods) =
+            ClassElementList::new(false, false).parse(cursor)?;
 
         cursor.expect(Punctuator::CloseBlock, "class declaration")?;
 
@@ -77,6 +78,6 @@ where
             // }
         }
 
-        Ok(ClassDecl::new(name, constructor, fields))
+        Ok(ClassDecl::new(name, constructor, methods, static_methods))
     }
 }

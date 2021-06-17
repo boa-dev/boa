@@ -8,7 +8,7 @@ use crate::syntax::{
 fn check_empty() {
     check_parser(
         "class Empty {}",
-        vec![ClassDecl::new(Box::from("Empty"), None, vec![]).into()],
+        vec![ClassDecl::new(Box::from("Empty"), None, vec![], vec![]).into()],
     );
 }
 
@@ -34,6 +34,35 @@ fn check_basic() {
                 ],
             )),
             vec![],
+            vec![],
+        )
+        .into()],
+    );
+}
+
+/// Checks for a static method being parsed in a class
+#[test]
+fn check_static() {
+    check_parser(
+        r#"
+        class Basic {
+            static say_hello() {
+                let val;
+            }
+        }
+        "#,
+        vec![ClassDecl::new(
+            Box::from("Basic"),
+            None,
+            vec![],
+            vec![FunctionDecl::new(
+                Box::from("say_hello"),
+                vec![],
+                vec![
+                    DeclarationList::Let(vec![Declaration::new("val", None)].into_boxed_slice())
+                        .into(),
+                ],
+            )],
         )
         .into()],
     );
@@ -66,6 +95,7 @@ fn check_multi() {
                 FunctionDecl::new(Box::from("say_hello"), vec![], vec![]),
                 FunctionDecl::new(Box::from("say_hello_again"), vec![], vec![]),
             ],
+            vec![],
         )
         .into()],
     );
