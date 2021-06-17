@@ -41,7 +41,7 @@ impl BuiltIn for Math {
             .property("LN10", std::f64::consts::LN_10, attribute)
             .property("LOG2E", std::f64::consts::LOG2_E, attribute)
             .property("LOG10E", std::f64::consts::LOG10_E, attribute)
-            .property("SQRT1_2", 0.5_f64.sqrt(), attribute)
+            .property("SQRT1_2", std::f64::consts::FRAC_1_SQRT_2, attribute)
             .property("SQRT2", std::f64::consts::SQRT_2, attribute)
             .property("PI", std::f64::consts::PI, attribute)
             .function(Self::abs, "abs", 1)
