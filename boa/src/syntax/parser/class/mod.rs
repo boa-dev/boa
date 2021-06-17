@@ -12,10 +12,7 @@ mod tests;
 
 use crate::{
     syntax::{
-        ast::{
-            node::{self, FunctionDecl},
-            Punctuator,
-        },
+        ast::{node::FunctionDecl, Keyword, Punctuator},
         lexer::{InputElement, TokenKind},
         parser::{
             function::{FormalParameters, FunctionBody},
@@ -85,6 +82,17 @@ where
         let mut constructor = None;
 
         loop {
+            let next = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+
+            let static_method = match next.kind() {
+                TokenKind::Keyword(Keyword::Static) => {
+                    // Consume the static token.
+                    cursor.next()?;
+                    true
+                }
+                _ => false,
+            };
+
             let position = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
             let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
             if *name == *"constructor" {
@@ -110,7 +118,11 @@ where
             if *name == *"constructor" {
                 constructor = Some(FunctionDecl::new(name, params, body));
             } else {
-                methods.push(FunctionDecl::new(name, params, body));
+                if static_method {
+                    static_methods.push(FunctionDecl::new(name, params, body));
+                } else {
+                    methods.push(FunctionDecl::new(name, params, body));
+                }
             }
 
             if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
