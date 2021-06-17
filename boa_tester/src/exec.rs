@@ -110,18 +110,27 @@ impl Test {
             && !IGNORED.contains_test(&self.name)
             && !IGNORED.contains_any_feature(&self.features)
             && (matches!(self.expected_outcome, Outcome::Positive)
-                || matches!(self.expected_outcome, Outcome::Negative {
-                    phase: Phase::Parse,
-                    error_type: _,
-                })
-                || matches!(self.expected_outcome, Outcome::Negative {
-                    phase: Phase::Early,
-                    error_type: _,
-                })
-                || matches!(self.expected_outcome, Outcome::Negative {
-                    phase: Phase::Runtime,
-                    error_type: _,
-                })) {
+                || matches!(
+                    self.expected_outcome,
+                    Outcome::Negative {
+                        phase: Phase::Parse,
+                        error_type: _,
+                    }
+                )
+                || matches!(
+                    self.expected_outcome,
+                    Outcome::Negative {
+                        phase: Phase::Early,
+                        error_type: _,
+                    }
+                )
+                || matches!(
+                    self.expected_outcome,
+                    Outcome::Negative {
+                        phase: Phase::Runtime,
+                        error_type: _,
+                    }
+                )) {
             let res = panic::catch_unwind(|| match self.expected_outcome {
                 Outcome::Positive => {
                     // TODO: implement async and add `harness/doneprintHandle.js` to the includes.
