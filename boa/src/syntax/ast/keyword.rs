@@ -245,6 +245,16 @@ pub enum Keyword {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
     Function,
 
+    /// The `get` keyword. Used in classes and object literals.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions
+    Get,
+
     /// The `if` keyword.
     ///
     /// More information:
@@ -342,6 +352,16 @@ pub enum Keyword {
     /// [spec]: https://tc39.es/ecma262/#prod-ReturnStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return
     Return,
+
+    /// The `set` keyword. Used in classes and object literals.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions
+    Set,
 
     /// The `static` keyword.
     ///
@@ -523,6 +543,7 @@ impl Keyword {
             Self::Finally => "finally",
             Self::For => "for",
             Self::Function => "function",
+            Self::Get => "get",
             Self::If => "if",
             Self::In => "in",
             Self::InstanceOf => "instanceof",
@@ -532,6 +553,7 @@ impl Keyword {
             Self::Null => "null",
             Self::Of => "of",
             Self::Return => "return",
+            Self::Set => "set",
             Self::Static => "static",
             Self::Super => "super",
             Self::Switch => "switch",
@@ -600,6 +622,7 @@ impl FromStr for Keyword {
             "finally" => Ok(Self::Finally),
             "for" => Ok(Self::For),
             "function" => Ok(Self::Function),
+            "get" => Ok(Self::Get),
             "if" => Ok(Self::If),
             "in" => Ok(Self::In),
             "instanceof" => Ok(Self::InstanceOf),
@@ -609,6 +632,7 @@ impl FromStr for Keyword {
             "null" => Ok(Self::Null),
             "of" => Ok(Self::Of),
             "return" => Ok(Self::Return),
+            "set" => Ok(Self::Set),
             "static" => Ok(Self::Static),
             "super" => Ok(Self::Super),
             "switch" => Ok(Self::Switch),
