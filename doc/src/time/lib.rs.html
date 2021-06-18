@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/time-0.1.44/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../time/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/time-0.1.44/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../time/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1332,20 +1332,20 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span> <span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">log</span>;
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">Ordering</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::{<span class="ident">Add</span>, <span class="ident">Sub</span>};
+<span class="kw">use</span> <span class="ident">std::cmp::Ordering</span>;
+<span class="kw">use</span> <span class="ident">std::error::Error</span>;
+<span class="kw">use</span> <span class="ident">std::fmt</span>;
+<span class="kw">use</span> <span class="ident">std::ops</span>::{<span class="ident">Add</span>, <span class="ident">Sub</span>};
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">duration</span>::{<span class="ident">Duration</span>, <span class="ident">OutOfRangeError</span>};
 
-<span class="kw">use</span> <span class="self">self</span>::<span class="ident">ParseError</span>::{<span class="ident">InvalidDay</span>, <span class="ident">InvalidDayOfMonth</span>, <span class="ident">InvalidDayOfWeek</span>,
+<span class="kw">use</span> <span class="self">self</span><span class="ident">::ParseError</span>::{<span class="ident">InvalidDay</span>, <span class="ident">InvalidDayOfMonth</span>, <span class="ident">InvalidDayOfWeek</span>,
                        <span class="ident">InvalidDayOfYear</span>, <span class="ident">InvalidFormatSpecifier</span>, <span class="ident">InvalidHour</span>,
                        <span class="ident">InvalidMinute</span>, <span class="ident">InvalidMonth</span>, <span class="ident">InvalidSecond</span>, <span class="ident">InvalidTime</span>,
                        <span class="ident">InvalidYear</span>, <span class="ident">InvalidZoneOffset</span>, <span class="ident">InvalidSecondsSinceEpoch</span>,
                        <span class="ident">MissingFormatConverter</span>, <span class="ident">UnexpectedCharacter</span>};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">parse</span>::<span class="ident">strptime</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">parse::strptime</span>;
 
 <span class="kw">mod</span> <span class="ident">display</span>;
 <span class="kw">mod</span> <span class="ident">duration</span>;
@@ -1372,7 +1372,7 @@
  */</span>
 <span class="kw">impl</span> <span class="ident">Timespec</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">sec</span>: <span class="ident">i64</span>, <span class="ident">nsec</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Timespec</span> {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">nsec</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">nsec</span> <span class="op">&lt;</span> <span class="ident">NSEC_PER_SEC</span>);
+        <span class="macro">assert!</span>(<span class="ident">nsec</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">nsec</span> <span class="op">&lt;</span> <span class="ident">NSEC_PER_SEC</span>);
         <span class="ident">Timespec</span> { <span class="ident">sec</span>: <span class="ident">sec</span>, <span class="ident">nsec</span>: <span class="ident">nsec</span> }
     }
 }
@@ -1384,7 +1384,7 @@
         <span class="kw">let</span> <span class="ident">d_sec</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">num_seconds</span>();
         <span class="comment">// It is safe to unwrap the nanoseconds, because there cannot be</span>
         <span class="comment">// more than one second left, which fits in i64 and in i32.</span>
-        <span class="kw">let</span> <span class="ident">d_nsec</span> <span class="op">=</span> (<span class="ident">other</span> <span class="op">-</span> <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="ident">d_sec</span>))
+        <span class="kw">let</span> <span class="ident">d_nsec</span> <span class="op">=</span> (<span class="ident">other</span> <span class="op">-</span> <span class="ident">Duration::seconds</span>(<span class="ident">d_sec</span>))
                      .<span class="ident">num_nanoseconds</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sec</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sec</span> <span class="op">+</span> <span class="ident">d_sec</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nsec</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nsec</span> <span class="op">+</span> <span class="ident">d_nsec</span>;
@@ -1395,7 +1395,7 @@
             <span class="ident">nsec</span> <span class="op">+</span><span class="op">=</span> <span class="ident">NSEC_PER_SEC</span>;
             <span class="ident">sec</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
         }
-        <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="ident">sec</span>, <span class="ident">nsec</span>)
+        <span class="ident">Timespec::new</span>(<span class="ident">sec</span>, <span class="ident">nsec</span>)
     }
 }
 
@@ -1406,7 +1406,7 @@
         <span class="kw">let</span> <span class="ident">d_sec</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">num_seconds</span>();
         <span class="comment">// It is safe to unwrap the nanoseconds, because there cannot be</span>
         <span class="comment">// more than one second left, which fits in i64 and in i32.</span>
-        <span class="kw">let</span> <span class="ident">d_nsec</span> <span class="op">=</span> (<span class="ident">other</span> <span class="op">-</span> <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="ident">d_sec</span>))
+        <span class="kw">let</span> <span class="ident">d_nsec</span> <span class="op">=</span> (<span class="ident">other</span> <span class="op">-</span> <span class="ident">Duration::seconds</span>(<span class="ident">d_sec</span>))
                      .<span class="ident">num_nanoseconds</span>().<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">i32</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sec</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sec</span> <span class="op">-</span> <span class="ident">d_sec</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nsec</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nsec</span> <span class="op">-</span> <span class="ident">d_nsec</span>;
@@ -1417,7 +1417,7 @@
             <span class="ident">nsec</span> <span class="op">+</span><span class="op">=</span> <span class="ident">NSEC_PER_SEC</span>;
             <span class="ident">sec</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
         }
-        <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="ident">sec</span>, <span class="ident">nsec</span>)
+        <span class="ident">Timespec::new</span>(<span class="ident">sec</span>, <span class="ident">nsec</span>)
     }
 }
 
@@ -1427,7 +1427,7 @@
     <span class="kw">fn</span> <span class="ident">sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Timespec</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Duration</span> {
         <span class="kw">let</span> <span class="ident">sec</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sec</span> <span class="op">-</span> <span class="ident">other</span>.<span class="ident">sec</span>;
         <span class="kw">let</span> <span class="ident">nsec</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nsec</span> <span class="op">-</span> <span class="ident">other</span>.<span class="ident">nsec</span>;
-        <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="ident">sec</span>) <span class="op">+</span> <span class="ident">Duration</span>::<span class="ident">nanoseconds</span>(<span class="ident">nsec</span> <span class="kw">as</span> <span class="ident">i64</span>)
+        <span class="ident">Duration::seconds</span>(<span class="ident">sec</span>) <span class="op">+</span> <span class="ident">Duration::nanoseconds</span>(<span class="ident">nsec</span> <span class="kw">as</span> <span class="ident">i64</span>)
     }
 }
 
@@ -1436,8 +1436,8 @@
  * nanoseconds since 1970-01-01T00:00:00Z.
  */</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_time</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Timespec</span> {
-    <span class="kw">let</span> (<span class="ident">sec</span>, <span class="ident">nsec</span>) <span class="op">=</span> <span class="ident">sys</span>::<span class="ident">get_time</span>();
-    <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="ident">sec</span>, <span class="ident">nsec</span>)
+    <span class="kw">let</span> (<span class="ident">sec</span>, <span class="ident">nsec</span>) <span class="op">=</span> <span class="ident">sys::get_time</span>();
+    <span class="ident">Timespec::new</span>(<span class="ident">sec</span>, <span class="ident">nsec</span>)
 }
 
 
@@ -1447,7 +1447,7 @@
  */</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">precise_time_ns</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
-    <span class="ident">sys</span>::<span class="ident">get_precise_ns</span>()
+    <span class="ident">sys::get_precise_ns</span>()
 }
 
 
@@ -1505,7 +1505,7 @@
         <span class="comment">// We could deal with the overflow when casting to an i64, but all that</span>
         <span class="comment">// gets us is the ability to handle intervals of up to 584 years, which</span>
         <span class="comment">// seems not very useful :)</span>
-        <span class="ident">Duration</span>::<span class="ident">nanoseconds</span>((<span class="ident">later</span>.<span class="number">0</span> <span class="op">-</span> <span class="self">self</span>.<span class="number">0</span>) <span class="kw">as</span> <span class="ident">i64</span>)
+        <span class="ident">Duration::nanoseconds</span>((<span class="ident">later</span>.<span class="number">0</span> <span class="op">-</span> <span class="self">self</span>.<span class="number">0</span>) <span class="kw">as</span> <span class="ident">i64</span>)
     }
 }
 
@@ -1529,19 +1529,19 @@
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SteadyTime</span>(<span class="ident">sys</span>::<span class="ident">SteadyTime</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SteadyTime</span>(<span class="ident">sys::SteadyTime</span>);
 
 <span class="kw">impl</span> <span class="ident">SteadyTime</span> {
     <span class="doccomment">/// Returns a `SteadyTime` representing the current moment in time.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">now</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SteadyTime</span> {
-        <span class="ident">SteadyTime</span>(<span class="ident">sys</span>::<span class="ident">SteadyTime</span>::<span class="ident">now</span>())
+        <span class="ident">SteadyTime</span>(<span class="ident">sys::SteadyTime::now</span>())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">SteadyTime</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">SteadyTime</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="comment">// TODO: needs a display customization</span>
-        <span class="ident">fmt</span>::<span class="ident">Debug</span>::<span class="ident">fmt</span>(<span class="self">self</span>, <span class="ident">fmt</span>)
+        <span class="ident">fmt::Debug::fmt</span>(<span class="self">self</span>, <span class="ident">fmt</span>)
     }
 }
 
@@ -1691,7 +1691,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">at_utc</span>(<span class="ident">clock</span>: <span class="ident">Timespec</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Tm</span> {
     <span class="kw">let</span> <span class="ident">Timespec</span> { <span class="ident">sec</span>, <span class="ident">nsec</span> } <span class="op">=</span> <span class="ident">clock</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tm</span> <span class="op">=</span> <span class="ident">empty_tm</span>();
-    <span class="ident">sys</span>::<span class="ident">time_to_utc_tm</span>(<span class="ident">sec</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">tm</span>);
+    <span class="ident">sys::time_to_utc_tm</span>(<span class="ident">sec</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">tm</span>);
     <span class="ident">tm</span>.<span class="ident">tm_nsec</span> <span class="op">=</span> <span class="ident">nsec</span>;
     <span class="ident">tm</span>
 }
@@ -1705,7 +1705,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">at</span>(<span class="ident">clock</span>: <span class="ident">Timespec</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Tm</span> {
     <span class="kw">let</span> <span class="ident">Timespec</span> { <span class="ident">sec</span>, <span class="ident">nsec</span> } <span class="op">=</span> <span class="ident">clock</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tm</span> <span class="op">=</span> <span class="ident">empty_tm</span>();
-    <span class="ident">sys</span>::<span class="ident">time_to_local_tm</span>(<span class="ident">sec</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">tm</span>);
+    <span class="ident">sys::time_to_local_tm</span>(<span class="ident">sec</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">tm</span>);
     <span class="ident">tm</span>.<span class="ident">tm_nsec</span> <span class="op">=</span> <span class="ident">nsec</span>;
     <span class="ident">tm</span>
 }
@@ -1719,11 +1719,11 @@
     <span class="doccomment">/// Convert time to the seconds from January 1, 1970</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_timespec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Timespec</span> {
         <span class="kw">let</span> <span class="ident">sec</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">tm_utcoff</span> {
-            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sys</span>::<span class="ident">utc_tm_to_time</span>(<span class="self">self</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sys</span>::<span class="ident">local_tm_to_time</span>(<span class="self">self</span>)
+            <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sys::utc_tm_to_time</span>(<span class="self">self</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sys::local_tm_to_time</span>(<span class="self">self</span>)
         };
 
-        <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="ident">sec</span>, <span class="self">self</span>.<span class="ident">tm_nsec</span>)
+        <span class="ident">Timespec::new</span>(<span class="ident">sec</span>, <span class="self">self</span>.<span class="ident">tm_nsec</span>)
     }
 
     <span class="doccomment">/// Convert time to the local timezone</span>
@@ -1748,7 +1748,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ctime</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TmFmt</span> {
         <span class="ident">TmFmt</span> {
             <span class="ident">tm</span>: <span class="self">self</span>,
-            <span class="ident">format</span>: <span class="ident">Fmt</span>::<span class="ident">Ctime</span>,
+            <span class="ident">format</span>: <span class="ident">Fmt::Ctime</span>,
         }
     }
 
@@ -1761,7 +1761,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">asctime</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TmFmt</span> {
         <span class="ident">TmFmt</span> {
             <span class="ident">tm</span>: <span class="self">self</span>,
-            <span class="ident">format</span>: <span class="ident">Fmt</span>::<span class="ident">Str</span>(<span class="string">&quot;%c&quot;</span>),
+            <span class="ident">format</span>: <span class="ident">Fmt::Str</span>(<span class="string">&quot;%c&quot;</span>),
         }
     }
 
@@ -1769,7 +1769,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strftime</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">format</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TmFmt</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="ident">validate_format</span>(<span class="ident">TmFmt</span> {
             <span class="ident">tm</span>: <span class="self">self</span>,
-            <span class="ident">format</span>: <span class="ident">Fmt</span>::<span class="ident">Str</span>(<span class="ident">format</span>),
+            <span class="ident">format</span>: <span class="ident">Fmt::Str</span>(<span class="ident">format</span>),
         })
     }
 
@@ -1787,7 +1787,7 @@
         };
         <span class="ident">TmFmt</span> {
             <span class="ident">tm</span>: <span class="self">self</span>,
-            <span class="ident">format</span>: <span class="ident">Fmt</span>::<span class="ident">Str</span>(<span class="ident">fmt</span>),
+            <span class="ident">format</span>: <span class="ident">Fmt::Str</span>(<span class="ident">fmt</span>),
         }
     }
 
@@ -1800,7 +1800,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rfc822z</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TmFmt</span> {
         <span class="ident">TmFmt</span> {
             <span class="ident">tm</span>: <span class="self">self</span>,
-            <span class="ident">format</span>: <span class="ident">Fmt</span>::<span class="ident">Str</span>(<span class="string">&quot;%a, %d %b %Y %T %z&quot;</span>),
+            <span class="ident">format</span>: <span class="ident">Fmt::Str</span>(<span class="string">&quot;%a, %d %b %Y %T %z&quot;</span>),
         }
     }
 
@@ -1814,7 +1814,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rfc3339</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TmFmt</span> {
         <span class="ident">TmFmt</span> {
             <span class="ident">tm</span>: <span class="self">self</span>,
-            <span class="ident">format</span>: <span class="ident">Fmt</span>::<span class="ident">Rfc3339</span>,
+            <span class="ident">format</span>: <span class="ident">Fmt::Rfc3339</span>,
         }
     }
 }
@@ -1838,17 +1838,17 @@
     <span class="ident">UnexpectedCharacter</span>(<span class="ident">char</span>, <span class="ident">char</span>),
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ParseError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ParseError</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">InvalidFormatSpecifier</span>(<span class="ident">ch</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}: %{}&quot;</span>, <span class="self">self</span>.<span class="ident">description</span>(), <span class="ident">ch</span>)
+                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}: %{}&quot;</span>, <span class="self">self</span>.<span class="ident">description</span>(), <span class="ident">ch</span>)
             }
             <span class="ident">UnexpectedCharacter</span>(<span class="ident">a</span>, <span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;expected: `{}`, found: `{}`&quot;</span>, <span class="ident">a</span>, <span class="ident">b</span>)
+                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;expected: `{}`, found: `{}`&quot;</span>, <span class="ident">a</span>, <span class="ident">b</span>)
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">description</span>())
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">description</span>())
         }
     }
 }
@@ -1898,7 +1898,7 @@
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">InvalidDay</span>)
     }
     <span class="kw">match</span> <span class="ident">fmt</span>.<span class="ident">format</span> {
-        <span class="ident">Fmt</span>::<span class="ident">Str</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Fmt::Str</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">chars</span>();
             <span class="kw">loop</span> {
                 <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
@@ -1939,17 +1939,17 @@
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Timespec</span>, <span class="ident">get_time</span>, <span class="ident">precise_time_ns</span>, <span class="ident">precise_time_s</span>,
                 <span class="ident">at_utc</span>, <span class="ident">at</span>, <span class="ident">strptime</span>, <span class="ident">PreciseTime</span>, <span class="ident">SteadyTime</span>, <span class="ident">ParseError</span>, <span class="ident">Duration</span>};
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">ParseError</span>::{<span class="ident">InvalidTime</span>, <span class="ident">InvalidYear</span>, <span class="ident">MissingFormatConverter</span>,
+    <span class="kw">use</span> <span class="kw">super</span><span class="ident">::ParseError</span>::{<span class="ident">InvalidTime</span>, <span class="ident">InvalidYear</span>, <span class="ident">MissingFormatConverter</span>,
                             <span class="ident">InvalidFormatSpecifier</span>};
 
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span> <span class="comment">// `Once::new` is const starting in Rust 1.32</span>
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">ONCE_INIT</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::{<span class="ident">Once</span>, <span class="ident">Mutex</span>, <span class="ident">MutexGuard</span>, <span class="ident">LockResult</span>};
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">i32</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
+    <span class="kw">use</span> <span class="ident">std::sync::ONCE_INIT</span>;
+    <span class="kw">use</span> <span class="ident">std::sync</span>::{<span class="ident">Once</span>, <span class="ident">Mutex</span>, <span class="ident">MutexGuard</span>, <span class="ident">LockResult</span>};
+    <span class="kw">use</span> <span class="ident">std::i32</span>;
+    <span class="kw">use</span> <span class="ident">std::mem</span>;
 
     <span class="kw">struct</span> <span class="ident">TzReset</span> {
-        <span class="ident">_tzreset</span>: ::<span class="ident">sys</span>::<span class="ident">TzReset</span>,
+        <span class="ident">_tzreset</span>: <span class="ident">::sys::TzReset</span>,
         <span class="ident">_lock</span>: <span class="ident">LockResult</span><span class="op">&lt;</span><span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, ()<span class="op">&gt;</span><span class="op">&gt;</span>,
     }
 
@@ -1962,14 +1962,14 @@
 
         <span class="kw">unsafe</span> {
             <span class="ident">INIT</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">LOCK</span> <span class="op">=</span> <span class="ident">mem</span>::<span class="ident">transmute</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Mutex</span>::<span class="ident">new</span>(())));
+                <span class="ident">LOCK</span> <span class="op">=</span> <span class="ident">mem::transmute</span>(<span class="ident">Box::new</span>(<span class="ident">Mutex::new</span>(())));
             });
 
             <span class="kw">let</span> <span class="ident">timezone_lock</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">LOCK</span>).<span class="ident">lock</span>();
             <span class="kw">let</span> <span class="ident">reset_func</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">london</span> {
-                ::<span class="ident">sys</span>::<span class="ident">set_london_with_dst_time_zone</span>()
+                <span class="ident">::sys::set_london_with_dst_time_zone</span>()
             } <span class="kw">else</span> {
-                ::<span class="ident">sys</span>::<span class="ident">set_los_angeles_time_zone</span>()
+                <span class="ident">::sys::set_los_angeles_time_zone</span>()
             };
             <span class="ident">TzReset</span> {
                 <span class="ident">_lock</span>: <span class="ident">timezone_lock</span>,
@@ -1989,116 +1989,116 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_get_time</span>() {
         <span class="kw">static</span> <span class="ident">SOME_RECENT_DATE</span>: <span class="ident">i64</span> <span class="op">=</span> <span class="number">1577836800i64</span>; <span class="comment">// 2020-01-01T00:00:00Z</span>
-        <span class="kw">static</span> <span class="ident">SOME_FUTURE_DATE</span>: <span class="ident">i64</span> <span class="op">=</span> <span class="ident">i32</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">i64</span>; <span class="comment">// Y2038</span>
+        <span class="kw">static</span> <span class="ident">SOME_FUTURE_DATE</span>: <span class="ident">i64</span> <span class="op">=</span> <span class="ident">i32::MAX</span> <span class="kw">as</span> <span class="ident">i64</span>; <span class="comment">// Y2038</span>
 
         <span class="kw">let</span> <span class="ident">tv1</span> <span class="op">=</span> <span class="ident">get_time</span>();
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;tv1={} sec + {} nsec&quot;</span>, <span class="ident">tv1</span>.<span class="ident">sec</span>, <span class="ident">tv1</span>.<span class="ident">nsec</span>);
+        <span class="macro">debug!</span>(<span class="string">&quot;tv1={} sec + {} nsec&quot;</span>, <span class="ident">tv1</span>.<span class="ident">sec</span>, <span class="ident">tv1</span>.<span class="ident">nsec</span>);
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">tv1</span>.<span class="ident">sec</span> <span class="op">&gt;</span> <span class="ident">SOME_RECENT_DATE</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">tv1</span>.<span class="ident">nsec</span> <span class="op">&lt;</span> <span class="number">1000000000i32</span>);
+        <span class="macro">assert!</span>(<span class="ident">tv1</span>.<span class="ident">sec</span> <span class="op">&gt;</span> <span class="ident">SOME_RECENT_DATE</span>);
+        <span class="macro">assert!</span>(<span class="ident">tv1</span>.<span class="ident">nsec</span> <span class="op">&lt;</span> <span class="number">1000000000i32</span>);
 
         <span class="kw">let</span> <span class="ident">tv2</span> <span class="op">=</span> <span class="ident">get_time</span>();
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;tv2={} sec + {} nsec&quot;</span>, <span class="ident">tv2</span>.<span class="ident">sec</span>, <span class="ident">tv2</span>.<span class="ident">nsec</span>);
+        <span class="macro">debug!</span>(<span class="string">&quot;tv2={} sec + {} nsec&quot;</span>, <span class="ident">tv2</span>.<span class="ident">sec</span>, <span class="ident">tv2</span>.<span class="ident">nsec</span>);
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">tv2</span>.<span class="ident">sec</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">tv1</span>.<span class="ident">sec</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">tv2</span>.<span class="ident">sec</span> <span class="op">&lt;</span> <span class="ident">SOME_FUTURE_DATE</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">tv2</span>.<span class="ident">nsec</span> <span class="op">&lt;</span> <span class="number">1000000000i32</span>);
+        <span class="macro">assert!</span>(<span class="ident">tv2</span>.<span class="ident">sec</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">tv1</span>.<span class="ident">sec</span>);
+        <span class="macro">assert!</span>(<span class="ident">tv2</span>.<span class="ident">sec</span> <span class="op">&lt;</span> <span class="ident">SOME_FUTURE_DATE</span>);
+        <span class="macro">assert!</span>(<span class="ident">tv2</span>.<span class="ident">nsec</span> <span class="op">&lt;</span> <span class="number">1000000000i32</span>);
         <span class="kw">if</span> <span class="ident">tv2</span>.<span class="ident">sec</span> <span class="op">=</span><span class="op">=</span> <span class="ident">tv1</span>.<span class="ident">sec</span> {
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">tv2</span>.<span class="ident">nsec</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">tv1</span>.<span class="ident">nsec</span>);
+            <span class="macro">assert!</span>(<span class="ident">tv2</span>.<span class="ident">nsec</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">tv1</span>.<span class="ident">nsec</span>);
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_precise_time</span>() {
         <span class="kw">let</span> <span class="ident">s0</span> <span class="op">=</span> <span class="ident">precise_time_s</span>();
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;s0={} sec&quot;</span>, <span class="ident">s0</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">s0</span> <span class="op">&gt;</span> <span class="number">0.</span>);
+        <span class="macro">debug!</span>(<span class="string">&quot;s0={} sec&quot;</span>, <span class="ident">s0</span>);
+        <span class="macro">assert!</span>(<span class="ident">s0</span> <span class="op">&gt;</span> <span class="number">0.</span>);
 
         <span class="kw">let</span> <span class="ident">ns0</span> <span class="op">=</span> <span class="ident">precise_time_ns</span>();
         <span class="kw">let</span> <span class="ident">ns1</span> <span class="op">=</span> <span class="ident">precise_time_ns</span>();
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;ns0={} ns&quot;</span>, <span class="ident">ns0</span>);
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;ns1={} ns&quot;</span>, <span class="ident">ns1</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">ns1</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">ns0</span>);
+        <span class="macro">debug!</span>(<span class="string">&quot;ns0={} ns&quot;</span>, <span class="ident">ns0</span>);
+        <span class="macro">debug!</span>(<span class="string">&quot;ns1={} ns&quot;</span>, <span class="ident">ns1</span>);
+        <span class="macro">assert!</span>(<span class="ident">ns1</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">ns0</span>);
 
         <span class="kw">let</span> <span class="ident">ns2</span> <span class="op">=</span> <span class="ident">precise_time_ns</span>();
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;ns2={} ns&quot;</span>, <span class="ident">ns2</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">ns2</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">ns1</span>);
+        <span class="macro">debug!</span>(<span class="string">&quot;ns2={} ns&quot;</span>, <span class="ident">ns2</span>);
+        <span class="macro">assert!</span>(<span class="ident">ns2</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">ns1</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_precise_time_to</span>() {
         <span class="kw">let</span> <span class="ident">t0</span> <span class="op">=</span> <span class="ident">PreciseTime</span>(<span class="number">1000</span>);
         <span class="kw">let</span> <span class="ident">t1</span> <span class="op">=</span> <span class="ident">PreciseTime</span>(<span class="number">1023</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">Duration</span>::<span class="ident">nanoseconds</span>(<span class="number">23</span>), <span class="ident">t0</span>.<span class="ident">to</span>(<span class="ident">t1</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">Duration::nanoseconds</span>(<span class="number">23</span>), <span class="ident">t0</span>.<span class="ident">to</span>(<span class="ident">t1</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_at_utc</span>() {
         <span class="kw">let</span> <span class="ident">_reset</span> <span class="op">=</span> <span class="ident">set_time_zone</span>();
 
-        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">1234567890</span>, <span class="number">54321</span>);
+        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">Timespec::new</span>(<span class="number">1234567890</span>, <span class="number">54321</span>);
         <span class="kw">let</span> <span class="ident">utc</span> <span class="op">=</span> <span class="ident">at_utc</span>(<span class="ident">time</span>);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">tm_sec</span>, <span class="number">30</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">tm_min</span>, <span class="number">31</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">tm_hour</span>, <span class="number">23</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">tm_mday</span>, <span class="number">13</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">tm_mon</span>, <span class="number">1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">tm_year</span>, <span class="number">109</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">tm_wday</span>, <span class="number">5</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">tm_yday</span>, <span class="number">43</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">tm_isdst</span>, <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">tm_utcoff</span>, <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">tm_nsec</span>, <span class="number">54321</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">tm_sec</span>, <span class="number">30</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">tm_min</span>, <span class="number">31</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">tm_hour</span>, <span class="number">23</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">tm_mday</span>, <span class="number">13</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">tm_mon</span>, <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">tm_year</span>, <span class="number">109</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">tm_wday</span>, <span class="number">5</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">tm_yday</span>, <span class="number">43</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">tm_isdst</span>, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">tm_utcoff</span>, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">tm_nsec</span>, <span class="number">54321</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_at</span>() {
         <span class="kw">let</span> <span class="ident">_reset</span> <span class="op">=</span> <span class="ident">set_time_zone</span>();
 
-        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">1234567890</span>, <span class="number">54321</span>);
+        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">Timespec::new</span>(<span class="number">1234567890</span>, <span class="number">54321</span>);
         <span class="kw">let</span> <span class="ident">local</span> <span class="op">=</span> <span class="ident">at</span>(<span class="ident">time</span>);
 
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;time_at: {:?}&quot;</span>, <span class="ident">local</span>);
+        <span class="macro">debug!</span>(<span class="string">&quot;time_at: {:?}&quot;</span>, <span class="ident">local</span>);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">tm_sec</span>, <span class="number">30</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">tm_min</span>, <span class="number">31</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">tm_hour</span>, <span class="number">15</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">tm_mday</span>, <span class="number">13</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">tm_mon</span>, <span class="number">1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">tm_year</span>, <span class="number">109</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">tm_wday</span>, <span class="number">5</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">tm_yday</span>, <span class="number">43</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">tm_isdst</span>, <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">tm_utcoff</span>, <span class="op">-</span><span class="number">28800</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">tm_nsec</span>, <span class="number">54321</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">tm_sec</span>, <span class="number">30</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">tm_min</span>, <span class="number">31</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">tm_hour</span>, <span class="number">15</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">tm_mday</span>, <span class="number">13</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">tm_mon</span>, <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">tm_year</span>, <span class="number">109</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">tm_wday</span>, <span class="number">5</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">tm_yday</span>, <span class="number">43</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">tm_isdst</span>, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">tm_utcoff</span>, <span class="op">-</span><span class="number">28800</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">tm_nsec</span>, <span class="number">54321</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_to_timespec</span>() {
         <span class="kw">let</span> <span class="ident">_reset</span> <span class="op">=</span> <span class="ident">set_time_zone</span>();
 
-        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">1234567890</span>, <span class="number">54321</span>);
+        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">Timespec::new</span>(<span class="number">1234567890</span>, <span class="number">54321</span>);
         <span class="kw">let</span> <span class="ident">utc</span> <span class="op">=</span> <span class="ident">at_utc</span>(<span class="ident">time</span>);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">to_timespec</span>(), <span class="ident">time</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">to_local</span>().<span class="ident">to_timespec</span>(), <span class="ident">time</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">to_timespec</span>(), <span class="ident">time</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">to_local</span>().<span class="ident">to_timespec</span>(), <span class="ident">time</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_conversions</span>() {
         <span class="kw">let</span> <span class="ident">_reset</span> <span class="op">=</span> <span class="ident">set_time_zone</span>();
 
-        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">1234567890</span>, <span class="number">54321</span>);
+        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">Timespec::new</span>(<span class="number">1234567890</span>, <span class="number">54321</span>);
         <span class="kw">let</span> <span class="ident">utc</span> <span class="op">=</span> <span class="ident">at_utc</span>(<span class="ident">time</span>);
         <span class="kw">let</span> <span class="ident">local</span> <span class="op">=</span> <span class="ident">at</span>(<span class="ident">time</span>);
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">to_local</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">local</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">to_utc</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">utc</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">to_utc</span>().<span class="ident">to_local</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">local</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">to_utc</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">utc</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">to_local</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">local</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">to_local</span>().<span class="ident">to_utc</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">utc</span>);
+        <span class="macro">assert!</span>(<span class="ident">local</span>.<span class="ident">to_local</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">local</span>);
+        <span class="macro">assert!</span>(<span class="ident">local</span>.<span class="ident">to_utc</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">utc</span>);
+        <span class="macro">assert!</span>(<span class="ident">local</span>.<span class="ident">to_utc</span>().<span class="ident">to_local</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">local</span>);
+        <span class="macro">assert!</span>(<span class="ident">utc</span>.<span class="ident">to_utc</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">utc</span>);
+        <span class="macro">assert!</span>(<span class="ident">utc</span>.<span class="ident">to_local</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">local</span>);
+        <span class="macro">assert!</span>(<span class="ident">utc</span>.<span class="ident">to_local</span>().<span class="ident">to_utc</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">utc</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -2107,39 +2107,39 @@
 
         <span class="kw">match</span> <span class="ident">strptime</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>) {
             <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="ident">tm</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_sec</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_min</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_hour</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_mday</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_mon</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_year</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_wday</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_isdst</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_utcoff</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_nsec</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+                <span class="macro">assert!</span>(<span class="ident">tm</span>.<span class="ident">tm_sec</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+                <span class="macro">assert!</span>(<span class="ident">tm</span>.<span class="ident">tm_min</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+                <span class="macro">assert!</span>(<span class="ident">tm</span>.<span class="ident">tm_hour</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+                <span class="macro">assert!</span>(<span class="ident">tm</span>.<span class="ident">tm_mday</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+                <span class="macro">assert!</span>(<span class="ident">tm</span>.<span class="ident">tm_mon</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+                <span class="macro">assert!</span>(<span class="ident">tm</span>.<span class="ident">tm_year</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+                <span class="macro">assert!</span>(<span class="ident">tm</span>.<span class="ident">tm_wday</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+                <span class="macro">assert!</span>(<span class="ident">tm</span>.<span class="ident">tm_isdst</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+                <span class="macro">assert!</span>(<span class="ident">tm</span>.<span class="ident">tm_utcoff</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+                <span class="macro">assert!</span>(<span class="ident">tm</span>.<span class="ident">tm_nsec</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
             }
             <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> ()
         }
 
         <span class="kw">let</span> <span class="ident">format</span> <span class="op">=</span> <span class="string">&quot;%a %b %e %T.%f %Y&quot;</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">strptime</span>(<span class="string">&quot;&quot;</span>, <span class="ident">format</span>), <span class="prelude-val">Err</span>(<span class="ident">ParseError</span>::<span class="ident">InvalidDay</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">strptime</span>(<span class="string">&quot;Fri Feb 13 15:31:30&quot;</span>, <span class="ident">format</span>),
+        <span class="macro">assert_eq!</span>(<span class="ident">strptime</span>(<span class="string">&quot;&quot;</span>, <span class="ident">format</span>), <span class="prelude-val">Err</span>(<span class="ident">ParseError::InvalidDay</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">strptime</span>(<span class="string">&quot;Fri Feb 13 15:31:30&quot;</span>, <span class="ident">format</span>),
                    <span class="prelude-val">Err</span>(<span class="ident">InvalidTime</span>));
 
         <span class="kw">match</span> <span class="ident">strptime</span>(<span class="string">&quot;Fri Feb 13 15:31:30.01234 2009&quot;</span>, <span class="ident">format</span>) {
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>),
             <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="ident">tm</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_sec</span>, <span class="number">30</span>);
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_min</span>, <span class="number">31</span>);
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_hour</span>, <span class="number">15</span>);
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_mday</span>, <span class="number">13</span>);
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_mon</span>, <span class="number">1</span>);
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_year</span>, <span class="number">109</span>);
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_wday</span>, <span class="number">5</span>);
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_yday</span>, <span class="number">0</span>);
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_isdst</span>, <span class="number">0</span>);
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_utcoff</span>, <span class="number">0</span>);
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_nsec</span>, <span class="number">12340000</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">tm</span>.<span class="ident">tm_sec</span>, <span class="number">30</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">tm</span>.<span class="ident">tm_min</span>, <span class="number">31</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">tm</span>.<span class="ident">tm_hour</span>, <span class="number">15</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">tm</span>.<span class="ident">tm_mday</span>, <span class="number">13</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">tm</span>.<span class="ident">tm_mon</span>, <span class="number">1</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">tm</span>.<span class="ident">tm_year</span>, <span class="number">109</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">tm</span>.<span class="ident">tm_wday</span>, <span class="number">5</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">tm</span>.<span class="ident">tm_yday</span>, <span class="number">0</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">tm</span>.<span class="ident">tm_isdst</span>, <span class="number">0</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">tm</span>.<span class="ident">tm_utcoff</span>, <span class="number">0</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">tm</span>.<span class="ident">tm_nsec</span>, <span class="number">12340000</span>);
             }
         }
 
@@ -2148,7 +2148,7 @@
               <span class="prelude-val">Ok</span>(<span class="ident">tm</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">tm</span>.<span class="ident">strftime</span>(<span class="ident">format</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">s</span>.<span class="ident">to_string</span>()
               },
-              <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{:?},  s={:?}, format={:?}&quot;</span>, <span class="ident">e</span>, <span class="ident">s</span>, <span class="ident">format</span>)
+              <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;{:?},  s={:?}, format={:?}&quot;</span>, <span class="ident">e</span>, <span class="ident">s</span>, <span class="ident">format</span>)
             }
         }
 
@@ -2160,7 +2160,7 @@
                 <span class="comment">// from the original (i.e. leading zeroes)</span>
                 <span class="bool-val">true</span>
               },
-              <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{:?},  s={:?}, format={:?}&quot;</span>, <span class="ident">e</span>, <span class="ident">s</span>, <span class="ident">format</span>)
+              <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;{:?},  s={:?}, format={:?}&quot;</span>, <span class="ident">e</span>, <span class="ident">s</span>, <span class="ident">format</span>)
             }
         }
 
@@ -2174,7 +2174,7 @@
             <span class="string">&quot;Saturday&quot;</span>.<span class="ident">to_string</span>()
         ];
         <span class="kw">for</span> <span class="ident">day</span> <span class="kw">in</span> <span class="ident">days</span>.<span class="ident">iter</span>() {
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="kw-2">&amp;</span><span class="ident">day</span>, <span class="string">&quot;%A&quot;</span>));
+            <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="kw-2">&amp;</span><span class="ident">day</span>, <span class="string">&quot;%A&quot;</span>));
         }
 
         <span class="kw">let</span> <span class="ident">days</span> <span class="op">=</span> [
@@ -2187,7 +2187,7 @@
             <span class="string">&quot;Sat&quot;</span>.<span class="ident">to_string</span>()
         ];
         <span class="kw">for</span> <span class="ident">day</span> <span class="kw">in</span> <span class="ident">days</span>.<span class="ident">iter</span>() {
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="kw-2">&amp;</span><span class="ident">day</span>, <span class="string">&quot;%a&quot;</span>));
+            <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="kw-2">&amp;</span><span class="ident">day</span>, <span class="string">&quot;%a&quot;</span>));
         }
 
         <span class="kw">let</span> <span class="ident">months</span> <span class="op">=</span> [
@@ -2205,7 +2205,7 @@
             <span class="string">&quot;December&quot;</span>.<span class="ident">to_string</span>()
         ];
         <span class="kw">for</span> <span class="ident">day</span> <span class="kw">in</span> <span class="ident">months</span>.<span class="ident">iter</span>() {
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="kw-2">&amp;</span><span class="ident">day</span>, <span class="string">&quot;%B&quot;</span>));
+            <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="kw-2">&amp;</span><span class="ident">day</span>, <span class="string">&quot;%B&quot;</span>));
         }
 
         <span class="kw">let</span> <span class="ident">months</span> <span class="op">=</span> [
@@ -2223,81 +2223,81 @@
             <span class="string">&quot;Dec&quot;</span>.<span class="ident">to_string</span>()
         ];
         <span class="kw">for</span> <span class="ident">day</span> <span class="kw">in</span> <span class="ident">months</span>.<span class="ident">iter</span>() {
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="kw-2">&amp;</span><span class="ident">day</span>, <span class="string">&quot;%b&quot;</span>));
+            <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="kw-2">&amp;</span><span class="ident">day</span>, <span class="string">&quot;%b&quot;</span>));
         }
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;19&quot;</span>, <span class="string">&quot;%C&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;Fri Feb  3 23:31:30 2009&quot;</span>, <span class="string">&quot;%c&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;Fri Feb 13 23:31:30 2009&quot;</span>, <span class="string">&quot;%c&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;02/13/09&quot;</span>, <span class="string">&quot;%D&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;03&quot;</span>, <span class="string">&quot;%d&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;13&quot;</span>, <span class="string">&quot;%d&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot; 3&quot;</span>, <span class="string">&quot;%e&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;13&quot;</span>, <span class="string">&quot;%e&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;2009-02-13&quot;</span>, <span class="string">&quot;%F&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;03&quot;</span>, <span class="string">&quot;%H&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;13&quot;</span>, <span class="string">&quot;%H&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;03&quot;</span>, <span class="string">&quot;%I&quot;</span>)); <span class="comment">// FIXME (#2350): flesh out</span>
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;11&quot;</span>, <span class="string">&quot;%I&quot;</span>)); <span class="comment">// FIXME (#2350): flesh out</span>
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;044&quot;</span>, <span class="string">&quot;%j&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot; 3&quot;</span>, <span class="string">&quot;%k&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;13&quot;</span>, <span class="string">&quot;%k&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot; 1&quot;</span>, <span class="string">&quot;%l&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;11&quot;</span>, <span class="string">&quot;%l&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;03&quot;</span>, <span class="string">&quot;%M&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;13&quot;</span>, <span class="string">&quot;%M&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;\n&quot;</span>, <span class="string">&quot;%n&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;am&quot;</span>, <span class="string">&quot;%P&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;pm&quot;</span>, <span class="string">&quot;%P&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;AM&quot;</span>, <span class="string">&quot;%p&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;PM&quot;</span>, <span class="string">&quot;%p&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;23:31&quot;</span>, <span class="string">&quot;%R&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;11:31:30 AM&quot;</span>, <span class="string">&quot;%r&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;11:31:30 PM&quot;</span>, <span class="string">&quot;%r&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;03&quot;</span>, <span class="string">&quot;%S&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;13&quot;</span>, <span class="string">&quot;%S&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;15:31:30&quot;</span>, <span class="string">&quot;%T&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;\t&quot;</span>, <span class="string">&quot;%t&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;1&quot;</span>, <span class="string">&quot;%u&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;7&quot;</span>, <span class="string">&quot;%u&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;13-Feb-2009&quot;</span>, <span class="string">&quot;%v&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;0&quot;</span>, <span class="string">&quot;%w&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;6&quot;</span>, <span class="string">&quot;%w&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;2009&quot;</span>, <span class="string">&quot;%Y&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;09&quot;</span>, <span class="string">&quot;%y&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;19&quot;</span>, <span class="string">&quot;%C&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;Fri Feb  3 23:31:30 2009&quot;</span>, <span class="string">&quot;%c&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;Fri Feb 13 23:31:30 2009&quot;</span>, <span class="string">&quot;%c&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;02/13/09&quot;</span>, <span class="string">&quot;%D&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;03&quot;</span>, <span class="string">&quot;%d&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;13&quot;</span>, <span class="string">&quot;%d&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot; 3&quot;</span>, <span class="string">&quot;%e&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;13&quot;</span>, <span class="string">&quot;%e&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;2009-02-13&quot;</span>, <span class="string">&quot;%F&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;03&quot;</span>, <span class="string">&quot;%H&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;13&quot;</span>, <span class="string">&quot;%H&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;03&quot;</span>, <span class="string">&quot;%I&quot;</span>)); <span class="comment">// FIXME (#2350): flesh out</span>
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;11&quot;</span>, <span class="string">&quot;%I&quot;</span>)); <span class="comment">// FIXME (#2350): flesh out</span>
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;044&quot;</span>, <span class="string">&quot;%j&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot; 3&quot;</span>, <span class="string">&quot;%k&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;13&quot;</span>, <span class="string">&quot;%k&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot; 1&quot;</span>, <span class="string">&quot;%l&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;11&quot;</span>, <span class="string">&quot;%l&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;03&quot;</span>, <span class="string">&quot;%M&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;13&quot;</span>, <span class="string">&quot;%M&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;\n&quot;</span>, <span class="string">&quot;%n&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;am&quot;</span>, <span class="string">&quot;%P&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;pm&quot;</span>, <span class="string">&quot;%P&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;AM&quot;</span>, <span class="string">&quot;%p&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;PM&quot;</span>, <span class="string">&quot;%p&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;23:31&quot;</span>, <span class="string">&quot;%R&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;11:31:30 AM&quot;</span>, <span class="string">&quot;%r&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;11:31:30 PM&quot;</span>, <span class="string">&quot;%r&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;03&quot;</span>, <span class="string">&quot;%S&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;13&quot;</span>, <span class="string">&quot;%S&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;15:31:30&quot;</span>, <span class="string">&quot;%T&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;\t&quot;</span>, <span class="string">&quot;%t&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;1&quot;</span>, <span class="string">&quot;%u&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;7&quot;</span>, <span class="string">&quot;%u&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;13-Feb-2009&quot;</span>, <span class="string">&quot;%v&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;0&quot;</span>, <span class="string">&quot;%w&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;6&quot;</span>, <span class="string">&quot;%w&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;2009&quot;</span>, <span class="string">&quot;%Y&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;09&quot;</span>, <span class="string">&quot;%y&quot;</span>));
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test_oneway</span>(<span class="string">&quot;3&quot;</span>,  <span class="string">&quot;%d&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test_oneway</span>(<span class="string">&quot;3&quot;</span>,  <span class="string">&quot;%H&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test_oneway</span>(<span class="string">&quot;3&quot;</span>,  <span class="string">&quot;%e&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test_oneway</span>(<span class="string">&quot;3&quot;</span>,  <span class="string">&quot;%M&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test_oneway</span>(<span class="string">&quot;3&quot;</span>,  <span class="string">&quot;%S&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test_oneway</span>(<span class="string">&quot;3&quot;</span>,  <span class="string">&quot;%d&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test_oneway</span>(<span class="string">&quot;3&quot;</span>,  <span class="string">&quot;%H&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test_oneway</span>(<span class="string">&quot;3&quot;</span>,  <span class="string">&quot;%e&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test_oneway</span>(<span class="string">&quot;3&quot;</span>,  <span class="string">&quot;%M&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">test_oneway</span>(<span class="string">&quot;3&quot;</span>,  <span class="string">&quot;%S&quot;</span>));
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">strptime</span>(<span class="string">&quot;-0000&quot;</span>, <span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">tm_utcoff</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">strptime</span>(<span class="string">&quot;-00:00&quot;</span>, <span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">tm_utcoff</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">strptime</span>(<span class="string">&quot;Z&quot;</span>, <span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">tm_utcoff</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="op">-</span><span class="number">28800</span>, <span class="ident">strptime</span>(<span class="string">&quot;-0800&quot;</span>, <span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">tm_utcoff</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="op">-</span><span class="number">28800</span>, <span class="ident">strptime</span>(<span class="string">&quot;-08:00&quot;</span>, <span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">tm_utcoff</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">28800</span>, <span class="ident">strptime</span>(<span class="string">&quot;+0800&quot;</span>, <span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">tm_utcoff</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">28800</span>, <span class="ident">strptime</span>(<span class="string">&quot;+08:00&quot;</span>, <span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">tm_utcoff</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">5400</span>, <span class="ident">strptime</span>(<span class="string">&quot;+0130&quot;</span>, <span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">tm_utcoff</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">5400</span>, <span class="ident">strptime</span>(<span class="string">&quot;+01:30&quot;</span>, <span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">tm_utcoff</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;%&quot;</span>, <span class="string">&quot;%%&quot;</span>));
+        <span class="macro">assert!</span>(<span class="ident">strptime</span>(<span class="string">&quot;-0000&quot;</span>, <span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">tm_utcoff</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+        <span class="macro">assert!</span>(<span class="ident">strptime</span>(<span class="string">&quot;-00:00&quot;</span>, <span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">tm_utcoff</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+        <span class="macro">assert!</span>(<span class="ident">strptime</span>(<span class="string">&quot;Z&quot;</span>, <span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">tm_utcoff</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="op">-</span><span class="number">28800</span>, <span class="ident">strptime</span>(<span class="string">&quot;-0800&quot;</span>, <span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">tm_utcoff</span>);
+        <span class="macro">assert_eq!</span>(<span class="op">-</span><span class="number">28800</span>, <span class="ident">strptime</span>(<span class="string">&quot;-08:00&quot;</span>, <span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">tm_utcoff</span>);
+        <span class="macro">assert_eq!</span>(<span class="number">28800</span>, <span class="ident">strptime</span>(<span class="string">&quot;+0800&quot;</span>, <span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">tm_utcoff</span>);
+        <span class="macro">assert_eq!</span>(<span class="number">28800</span>, <span class="ident">strptime</span>(<span class="string">&quot;+08:00&quot;</span>, <span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">tm_utcoff</span>);
+        <span class="macro">assert_eq!</span>(<span class="number">5400</span>, <span class="ident">strptime</span>(<span class="string">&quot;+0130&quot;</span>, <span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">tm_utcoff</span>);
+        <span class="macro">assert_eq!</span>(<span class="number">5400</span>, <span class="ident">strptime</span>(<span class="string">&quot;+01:30&quot;</span>, <span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">tm_utcoff</span>);
+        <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;%&quot;</span>, <span class="string">&quot;%%&quot;</span>));
 
         <span class="comment">// Test for #7256</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">strptime</span>(<span class="string">&quot;360&quot;</span>, <span class="string">&quot;%Y-%m-%d&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">InvalidYear</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">strptime</span>(<span class="string">&quot;360&quot;</span>, <span class="string">&quot;%Y-%m-%d&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">InvalidYear</span>));
 
         <span class="comment">// Test for epoch seconds parsing</span>
         {
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">test</span>(<span class="string">&quot;1428035610&quot;</span>, <span class="string">&quot;%s&quot;</span>));
+            <span class="macro">assert!</span>(<span class="ident">test</span>(<span class="string">&quot;1428035610&quot;</span>, <span class="string">&quot;%s&quot;</span>));
             <span class="kw">let</span> <span class="ident">tm</span> <span class="op">=</span> <span class="ident">strptime</span>(<span class="string">&quot;1428035610&quot;</span>, <span class="string">&quot;%s&quot;</span>).<span class="ident">unwrap</span>();
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_utcoff</span>, <span class="number">0</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_isdst</span>, <span class="number">0</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_yday</span>, <span class="number">92</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_wday</span>, <span class="number">5</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_year</span>, <span class="number">115</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_mon</span>, <span class="number">3</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_mday</span>, <span class="number">3</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">tm</span>.<span class="ident">tm_hour</span>, <span class="number">4</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">tm</span>.<span class="ident">tm_utcoff</span>, <span class="number">0</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">tm</span>.<span class="ident">tm_isdst</span>, <span class="number">0</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">tm</span>.<span class="ident">tm_yday</span>, <span class="number">92</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">tm</span>.<span class="ident">tm_wday</span>, <span class="number">5</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">tm</span>.<span class="ident">tm_year</span>, <span class="number">115</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">tm</span>.<span class="ident">tm_mon</span>, <span class="number">3</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">tm</span>.<span class="ident">tm_mday</span>, <span class="number">3</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">tm</span>.<span class="ident">tm_hour</span>, <span class="number">4</span>);
         }
     }
 
@@ -2305,241 +2305,241 @@
     <span class="kw">fn</span> <span class="ident">test_asctime</span>() {
         <span class="kw">let</span> <span class="ident">_reset</span> <span class="op">=</span> <span class="ident">set_time_zone</span>();
 
-        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">1234567890</span>, <span class="number">54321</span>);
+        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">Timespec::new</span>(<span class="number">1234567890</span>, <span class="number">54321</span>);
         <span class="kw">let</span> <span class="ident">utc</span>   <span class="op">=</span> <span class="ident">at_utc</span>(<span class="ident">time</span>);
         <span class="kw">let</span> <span class="ident">local</span> <span class="op">=</span> <span class="ident">at</span>(<span class="ident">time</span>);
 
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;test_ctime: {} {}&quot;</span>, <span class="ident">utc</span>.<span class="ident">asctime</span>(), <span class="ident">local</span>.<span class="ident">asctime</span>());
+        <span class="macro">debug!</span>(<span class="string">&quot;test_ctime: {} {}&quot;</span>, <span class="ident">utc</span>.<span class="ident">asctime</span>(), <span class="ident">local</span>.<span class="ident">asctime</span>());
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">asctime</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri Feb 13 23:31:30 2009&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">asctime</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri Feb 13 15:31:30 2009&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">asctime</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri Feb 13 23:31:30 2009&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">asctime</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri Feb 13 15:31:30 2009&quot;</span>.<span class="ident">to_string</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_ctime</span>() {
         <span class="kw">let</span> <span class="ident">_reset</span> <span class="op">=</span> <span class="ident">set_time_zone</span>();
 
-        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">1234567890</span>, <span class="number">54321</span>);
+        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">Timespec::new</span>(<span class="number">1234567890</span>, <span class="number">54321</span>);
         <span class="kw">let</span> <span class="ident">utc</span>   <span class="op">=</span> <span class="ident">at_utc</span>(<span class="ident">time</span>);
         <span class="kw">let</span> <span class="ident">local</span> <span class="op">=</span> <span class="ident">at</span>(<span class="ident">time</span>);
 
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;test_ctime: {} {}&quot;</span>, <span class="ident">utc</span>.<span class="ident">ctime</span>(), <span class="ident">local</span>.<span class="ident">ctime</span>());
+        <span class="macro">debug!</span>(<span class="string">&quot;test_ctime: {} {}&quot;</span>, <span class="ident">utc</span>.<span class="ident">ctime</span>(), <span class="ident">local</span>.<span class="ident">ctime</span>());
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">ctime</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri Feb 13 15:31:30 2009&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">ctime</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri Feb 13 15:31:30 2009&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">ctime</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri Feb 13 15:31:30 2009&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">ctime</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri Feb 13 15:31:30 2009&quot;</span>.<span class="ident">to_string</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_strftime</span>() {
         <span class="kw">let</span> <span class="ident">_reset</span> <span class="op">=</span> <span class="ident">set_time_zone</span>();
 
-        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">1234567890</span>, <span class="number">54321</span>);
+        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">Timespec::new</span>(<span class="number">1234567890</span>, <span class="number">54321</span>);
         <span class="kw">let</span> <span class="ident">utc</span> <span class="op">=</span> <span class="ident">at_utc</span>(<span class="ident">time</span>);
         <span class="kw">let</span> <span class="ident">local</span> <span class="op">=</span> <span class="ident">at</span>(<span class="ident">time</span>);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%A&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Friday&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%a&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%B&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;February&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%b&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Feb&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%C&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;20&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%c&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(),
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%A&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Friday&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%a&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%B&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;February&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%b&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Feb&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%C&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;20&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%c&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(),
                    <span class="string">&quot;Fri Feb 13 15:31:30 2009&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%D&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;02/13/09&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%d&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;13&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%e&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;13&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%F&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;2009-02-13&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%f&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;000054321&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%G&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;2009&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%g&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;09&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%H&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;15&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%h&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Feb&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%I&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;03&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%j&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;044&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%k&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;15&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%l&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot; 3&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%M&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;31&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%m&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;02&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%n&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;\n&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%P&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;pm&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%p&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;PM&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%R&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;15:31&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%r&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;03:31:30 PM&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%S&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;30&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%s&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;1234567890&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%T&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;15:31:30&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%t&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;\t&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%U&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;06&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%u&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;5&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%V&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;07&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%v&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;13-Feb-2009&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%W&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;06&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%w&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;5&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%D&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;02/13/09&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%d&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;13&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%e&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;13&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%F&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;2009-02-13&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%f&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;000054321&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%G&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;2009&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%g&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;09&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%H&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;15&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%h&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Feb&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%I&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;03&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%j&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;044&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%k&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;15&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%l&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot; 3&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%M&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;31&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%m&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;02&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%n&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;\n&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%P&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;pm&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%p&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;PM&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%R&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;15:31&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%r&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;03:31:30 PM&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%S&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;30&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%s&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;1234567890&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%T&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;15:31:30&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%t&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;\t&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%U&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;06&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%u&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;5&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%V&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;07&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%v&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;13-Feb-2009&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%W&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;06&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%w&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;5&quot;</span>.<span class="ident">to_string</span>());
         <span class="comment">// FIXME (#2350): support locale</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%X&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;15:31:30&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%X&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;15:31:30&quot;</span>.<span class="ident">to_string</span>());
         <span class="comment">// FIXME (#2350): support locale</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%x&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;02/13/09&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%Y&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;2009&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%y&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;09&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%x&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;02/13/09&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%Y&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;2009&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%y&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;09&quot;</span>.<span class="ident">to_string</span>());
         <span class="comment">// FIXME (#2350): support locale</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%Z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;-0800&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%+&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(),
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%Z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%z&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;-0800&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%+&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(),
                    <span class="string">&quot;2009-02-13T15:31:30-08:00&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%%&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;%&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%%&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="string">&quot;%&quot;</span>.<span class="ident">to_string</span>());
 
          <span class="kw">let</span> <span class="ident">invalid_specifiers</span> <span class="op">=</span> [<span class="string">&quot;%E&quot;</span>, <span class="string">&quot;%J&quot;</span>, <span class="string">&quot;%K&quot;</span>, <span class="string">&quot;%L&quot;</span>, <span class="string">&quot;%N&quot;</span>, <span class="string">&quot;%O&quot;</span>, <span class="string">&quot;%o&quot;</span>, <span class="string">&quot;%Q&quot;</span>, <span class="string">&quot;%q&quot;</span>];
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">sp</span> <span class="kw">in</span> <span class="ident">invalid_specifiers</span>.<span class="ident">iter</span>() {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="ident">sp</span>).<span class="ident">unwrap_err</span>(),
+            <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="ident">sp</span>).<span class="ident">unwrap_err</span>(),
                        <span class="ident">InvalidFormatSpecifier</span>(<span class="ident">sp</span>[<span class="number">1</span>..].<span class="ident">chars</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>()));
         }
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%&quot;</span>).<span class="ident">unwrap_err</span>(), <span class="ident">MissingFormatConverter</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%A %&quot;</span>).<span class="ident">unwrap_err</span>(), <span class="ident">MissingFormatConverter</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%&quot;</span>).<span class="ident">unwrap_err</span>(), <span class="ident">MissingFormatConverter</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">strftime</span>(<span class="string">&quot;%A %&quot;</span>).<span class="ident">unwrap_err</span>(), <span class="ident">MissingFormatConverter</span>);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">asctime</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri Feb 13 15:31:30 2009&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">ctime</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri Feb 13 15:31:30 2009&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">rfc822z</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri, 13 Feb 2009 15:31:30 -0800&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local</span>.<span class="ident">rfc3339</span>().<span class="ident">to_string</span>(), <span class="string">&quot;2009-02-13T15:31:30-08:00&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">asctime</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri Feb 13 15:31:30 2009&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">ctime</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri Feb 13 15:31:30 2009&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">rfc822z</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri, 13 Feb 2009 15:31:30 -0800&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">local</span>.<span class="ident">rfc3339</span>().<span class="ident">to_string</span>(), <span class="string">&quot;2009-02-13T15:31:30-08:00&quot;</span>.<span class="ident">to_string</span>());
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">asctime</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri Feb 13 23:31:30 2009&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">ctime</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri Feb 13 15:31:30 2009&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">rfc822</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri, 13 Feb 2009 23:31:30 GMT&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">rfc822z</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri, 13 Feb 2009 23:31:30 -0000&quot;</span>.<span class="ident">to_string</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">utc</span>.<span class="ident">rfc3339</span>().<span class="ident">to_string</span>(), <span class="string">&quot;2009-02-13T23:31:30Z&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">asctime</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri Feb 13 23:31:30 2009&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">ctime</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri Feb 13 15:31:30 2009&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">rfc822</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri, 13 Feb 2009 23:31:30 GMT&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">rfc822z</span>().<span class="ident">to_string</span>(), <span class="string">&quot;Fri, 13 Feb 2009 23:31:30 -0000&quot;</span>.<span class="ident">to_string</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">utc</span>.<span class="ident">rfc3339</span>().<span class="ident">to_string</span>(), <span class="string">&quot;2009-02-13T23:31:30Z&quot;</span>.<span class="ident">to_string</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_timespec_eq_ord</span>() {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="op">-</span><span class="number">2</span>, <span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="op">-</span><span class="number">1</span>, <span class="number">2</span>);
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">1</span>, <span class="number">2</span>);
-        <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">2</span>, <span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">2</span>, <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Timespec::new</span>(<span class="op">-</span><span class="number">2</span>, <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Timespec::new</span>(<span class="op">-</span><span class="number">1</span>, <span class="number">2</span>);
+        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Timespec::new</span>(<span class="number">1</span>, <span class="number">2</span>);
+        <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Timespec::new</span>(<span class="number">2</span>, <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Timespec::new</span>(<span class="number">2</span>, <span class="number">1</span>);
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">eq</span>(<span class="ident">e</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">ne</span>(<span class="ident">e</span>));
+        <span class="macro">assert!</span>(<span class="ident">d</span>.<span class="ident">eq</span>(<span class="ident">e</span>));
+        <span class="macro">assert!</span>(<span class="ident">c</span>.<span class="ident">ne</span>(<span class="ident">e</span>));
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">lt</span>(<span class="ident">b</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">lt</span>(<span class="ident">c</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">lt</span>(<span class="ident">d</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">lt</span>(<span class="ident">b</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">lt</span>(<span class="ident">c</span>));
+        <span class="macro">assert!</span>(<span class="ident">c</span>.<span class="ident">lt</span>(<span class="ident">d</span>));
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">le</span>(<span class="ident">b</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">le</span>(<span class="ident">c</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">le</span>(<span class="ident">d</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">le</span>(<span class="ident">e</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">e</span>.<span class="ident">le</span>(<span class="ident">d</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">le</span>(<span class="ident">b</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">le</span>(<span class="ident">c</span>));
+        <span class="macro">assert!</span>(<span class="ident">c</span>.<span class="ident">le</span>(<span class="ident">d</span>));
+        <span class="macro">assert!</span>(<span class="ident">d</span>.<span class="ident">le</span>(<span class="ident">e</span>));
+        <span class="macro">assert!</span>(<span class="ident">e</span>.<span class="ident">le</span>(<span class="ident">d</span>));
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">ge</span>(<span class="ident">a</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">ge</span>(<span class="ident">b</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">ge</span>(<span class="ident">c</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">e</span>.<span class="ident">ge</span>(<span class="ident">d</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">ge</span>(<span class="ident">e</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">ge</span>(<span class="ident">a</span>));
+        <span class="macro">assert!</span>(<span class="ident">c</span>.<span class="ident">ge</span>(<span class="ident">b</span>));
+        <span class="macro">assert!</span>(<span class="ident">d</span>.<span class="ident">ge</span>(<span class="ident">c</span>));
+        <span class="macro">assert!</span>(<span class="ident">e</span>.<span class="ident">ge</span>(<span class="ident">d</span>));
+        <span class="macro">assert!</span>(<span class="ident">d</span>.<span class="ident">ge</span>(<span class="ident">e</span>));
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">gt</span>(<span class="ident">a</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">gt</span>(<span class="ident">b</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">d</span>.<span class="ident">gt</span>(<span class="ident">c</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">gt</span>(<span class="ident">a</span>));
+        <span class="macro">assert!</span>(<span class="ident">c</span>.<span class="ident">gt</span>(<span class="ident">b</span>));
+        <span class="macro">assert!</span>(<span class="ident">d</span>.<span class="ident">gt</span>(<span class="ident">c</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
     <span class="kw">fn</span> <span class="ident">test_timespec_hash</span>() {
-        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
+        <span class="kw">use</span> <span class="ident">std::hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
 
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">3</span>, <span class="number">2</span>);
-        <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">2</span>, <span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">2</span>, <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Timespec::new</span>(<span class="number">3</span>, <span class="number">2</span>);
+        <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Timespec::new</span>(<span class="number">2</span>, <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Timespec::new</span>(<span class="number">2</span>, <span class="number">1</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> ::<span class="ident">std</span>::<span class="ident">hash</span>::<span class="ident">SipHasher</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">::std::hash::SipHasher::new</span>();
 
         <span class="kw">let</span> <span class="ident">d_hash</span>:<span class="ident">u64</span> <span class="op">=</span> {
           <span class="ident">d</span>.<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">hasher</span>);
           <span class="ident">hasher</span>.<span class="ident">finish</span>()
         };
 
-        <span class="ident">hasher</span> <span class="op">=</span> ::<span class="ident">std</span>::<span class="ident">hash</span>::<span class="ident">SipHasher</span>::<span class="ident">new</span>();
+        <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">::std::hash::SipHasher::new</span>();
 
         <span class="kw">let</span> <span class="ident">e_hash</span>:<span class="ident">u64</span> <span class="op">=</span> {
           <span class="ident">e</span>.<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">hasher</span>);
           <span class="ident">hasher</span>.<span class="ident">finish</span>()
         };
 
-        <span class="ident">hasher</span> <span class="op">=</span> ::<span class="ident">std</span>::<span class="ident">hash</span>::<span class="ident">SipHasher</span>::<span class="ident">new</span>();
+        <span class="ident">hasher</span> <span class="op">=</span> <span class="ident">::std::hash::SipHasher::new</span>();
 
         <span class="kw">let</span> <span class="ident">c_hash</span>:<span class="ident">u64</span> <span class="op">=</span> {
           <span class="ident">c</span>.<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">hasher</span>);
           <span class="ident">hasher</span>.<span class="ident">finish</span>()
         };
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">d_hash</span>, <span class="ident">e_hash</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">c_hash</span> <span class="op">!</span><span class="op">=</span> <span class="ident">e_hash</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">d_hash</span>, <span class="ident">e_hash</span>);
+        <span class="macro">assert!</span>(<span class="ident">c_hash</span> <span class="op">!</span><span class="op">=</span> <span class="ident">e_hash</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_timespec_add</span>() {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">1</span>, <span class="number">2</span>);
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="number">2</span>) <span class="op">+</span> <span class="ident">Duration</span>::<span class="ident">nanoseconds</span>(<span class="number">3</span>);
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Timespec::new</span>(<span class="number">1</span>, <span class="number">2</span>);
+        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Duration::seconds</span>(<span class="number">2</span>) <span class="op">+</span> <span class="ident">Duration::nanoseconds</span>(<span class="number">3</span>);
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">a</span> <span class="op">+</span> <span class="ident">b</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">sec</span>, <span class="number">3</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">nsec</span>, <span class="number">5</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">c</span>.<span class="ident">sec</span>, <span class="number">3</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">c</span>.<span class="ident">nsec</span>, <span class="number">5</span>);
 
-        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">1</span>, <span class="kw">super</span>::<span class="ident">NSEC_PER_SEC</span> <span class="op">-</span> <span class="number">2</span>);
-        <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="number">2</span>) <span class="op">+</span> <span class="ident">Duration</span>::<span class="ident">nanoseconds</span>(<span class="number">2</span>);
+        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">Timespec::new</span>(<span class="number">1</span>, <span class="kw">super</span><span class="ident">::NSEC_PER_SEC</span> <span class="op">-</span> <span class="number">2</span>);
+        <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> <span class="ident">Duration::seconds</span>(<span class="number">2</span>) <span class="op">+</span> <span class="ident">Duration::nanoseconds</span>(<span class="number">2</span>);
         <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">p</span> <span class="op">+</span> <span class="ident">q</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">r</span>.<span class="ident">sec</span>, <span class="number">4</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">r</span>.<span class="ident">nsec</span>, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">r</span>.<span class="ident">sec</span>, <span class="number">4</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">r</span>.<span class="ident">nsec</span>, <span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="ident">u</span> <span class="op">=</span> <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">1</span>, <span class="kw">super</span>::<span class="ident">NSEC_PER_SEC</span> <span class="op">-</span> <span class="number">2</span>);
-        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="number">2</span>) <span class="op">+</span> <span class="ident">Duration</span>::<span class="ident">nanoseconds</span>(<span class="number">3</span>);
+        <span class="kw">let</span> <span class="ident">u</span> <span class="op">=</span> <span class="ident">Timespec::new</span>(<span class="number">1</span>, <span class="kw">super</span><span class="ident">::NSEC_PER_SEC</span> <span class="op">-</span> <span class="number">2</span>);
+        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Duration::seconds</span>(<span class="number">2</span>) <span class="op">+</span> <span class="ident">Duration::nanoseconds</span>(<span class="number">3</span>);
         <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <span class="ident">u</span> <span class="op">+</span> <span class="ident">v</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">w</span>.<span class="ident">sec</span>, <span class="number">4</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">w</span>.<span class="ident">nsec</span>, <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">w</span>.<span class="ident">sec</span>, <span class="number">4</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">w</span>.<span class="ident">nsec</span>, <span class="number">1</span>);
 
-        <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">1</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">nanoseconds</span>(<span class="op">-</span><span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="ident">Timespec::new</span>(<span class="number">1</span>, <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">Duration::nanoseconds</span>(<span class="op">-</span><span class="number">1</span>);
         <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">k</span> <span class="op">+</span> <span class="ident">l</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">m</span>.<span class="ident">sec</span>, <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">m</span>.<span class="ident">nsec</span>, <span class="number">999_999_999</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">m</span>.<span class="ident">sec</span>, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">m</span>.<span class="ident">nsec</span>, <span class="number">999_999_999</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_timespec_sub</span>() {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">2</span>, <span class="number">3</span>);
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">1</span>, <span class="number">2</span>);
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Timespec::new</span>(<span class="number">2</span>, <span class="number">3</span>);
+        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Timespec::new</span>(<span class="number">1</span>, <span class="number">2</span>);
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">a</span> <span class="op">-</span> <span class="ident">b</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">num_nanoseconds</span>(), <span class="prelude-val">Some</span>(<span class="kw">super</span>::<span class="ident">NSEC_PER_SEC</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">+</span> <span class="number">1</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">c</span>.<span class="ident">num_nanoseconds</span>(), <span class="prelude-val">Some</span>(<span class="kw">super</span><span class="ident">::NSEC_PER_SEC</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">+</span> <span class="number">1</span>));
 
-        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">2</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">1</span>, <span class="number">2</span>);
+        <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">Timespec::new</span>(<span class="number">2</span>, <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> <span class="ident">Timespec::new</span>(<span class="number">1</span>, <span class="number">2</span>);
         <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">p</span> <span class="op">-</span> <span class="ident">q</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">r</span>.<span class="ident">num_nanoseconds</span>(), <span class="prelude-val">Some</span>(<span class="kw">super</span>::<span class="ident">NSEC_PER_SEC</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">-</span> <span class="number">2</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">r</span>.<span class="ident">num_nanoseconds</span>(), <span class="prelude-val">Some</span>(<span class="kw">super</span><span class="ident">::NSEC_PER_SEC</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">-</span> <span class="number">2</span>));
 
-        <span class="kw">let</span> <span class="ident">u</span> <span class="op">=</span> <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">1</span>, <span class="number">2</span>);
-        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Timespec</span>::<span class="ident">new</span>(<span class="number">2</span>, <span class="number">3</span>);
+        <span class="kw">let</span> <span class="ident">u</span> <span class="op">=</span> <span class="ident">Timespec::new</span>(<span class="number">1</span>, <span class="number">2</span>);
+        <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Timespec::new</span>(<span class="number">2</span>, <span class="number">3</span>);
         <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <span class="ident">u</span> <span class="op">-</span> <span class="ident">v</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">w</span>.<span class="ident">num_nanoseconds</span>(), <span class="prelude-val">Some</span>(<span class="op">-</span><span class="kw">super</span>::<span class="ident">NSEC_PER_SEC</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">-</span> <span class="number">1</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">w</span>.<span class="ident">num_nanoseconds</span>(), <span class="prelude-val">Some</span>(<span class="op">-</span><span class="kw">super</span><span class="ident">::NSEC_PER_SEC</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">-</span> <span class="number">1</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_time_sub</span>() {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> ::<span class="ident">now</span>();
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">at</span>(<span class="ident">a</span>.<span class="ident">to_timespec</span>() <span class="op">+</span> <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="number">5</span>));
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">::now</span>();
+        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">at</span>(<span class="ident">a</span>.<span class="ident">to_timespec</span>() <span class="op">+</span> <span class="ident">Duration::seconds</span>(<span class="number">5</span>));
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">b</span> <span class="op">-</span> <span class="ident">a</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">c</span>.<span class="ident">num_nanoseconds</span>(), <span class="prelude-val">Some</span>(<span class="kw">super</span>::<span class="ident">NSEC_PER_SEC</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">*</span> <span class="number">5</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">c</span>.<span class="ident">num_nanoseconds</span>(), <span class="prelude-val">Some</span>(<span class="kw">super</span><span class="ident">::NSEC_PER_SEC</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">*</span> <span class="number">5</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_steadytime_sub</span>() {
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">SteadyTime</span>::<span class="ident">now</span>();
-        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">a</span> <span class="op">+</span> <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="number">1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">b</span> <span class="op">-</span> <span class="ident">a</span>, <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="number">1</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a</span> <span class="op">-</span> <span class="ident">b</span>, <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="op">-</span><span class="number">1</span>));
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">SteadyTime::now</span>();
+        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">a</span> <span class="op">+</span> <span class="ident">Duration::seconds</span>(<span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">b</span> <span class="op">-</span> <span class="ident">a</span>, <span class="ident">Duration::seconds</span>(<span class="number">1</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">a</span> <span class="op">-</span> <span class="ident">b</span>, <span class="ident">Duration::seconds</span>(<span class="op">-</span><span class="number">1</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_date_before_1970</span>() {
         <span class="kw">let</span> <span class="ident">early</span> <span class="op">=</span> <span class="ident">strptime</span>(<span class="string">&quot;1901-01-06&quot;</span>, <span class="string">&quot;%F&quot;</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">late</span> <span class="op">=</span> <span class="ident">strptime</span>(<span class="string">&quot;2000-01-01&quot;</span>, <span class="string">&quot;%F&quot;</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">early</span> <span class="op">&lt;</span> <span class="ident">late</span>);
+        <span class="macro">assert!</span>(<span class="ident">early</span> <span class="op">&lt;</span> <span class="ident">late</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -2552,22 +2552,22 @@
         <span class="kw">let</span> <span class="ident">local_in_jun</span> <span class="op">=</span> <span class="ident">utc_in_jun</span>.<span class="ident">to_local</span>();
         <span class="kw">let</span> <span class="ident">local_in_nov</span> <span class="op">=</span> <span class="ident">utc_in_nov</span>.<span class="ident">to_local</span>();
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local_in_feb</span>.<span class="ident">tm_mon</span>, <span class="number">1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local_in_feb</span>.<span class="ident">tm_hour</span>, <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local_in_feb</span>.<span class="ident">tm_utcoff</span>, <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local_in_feb</span>.<span class="ident">tm_isdst</span>, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local_in_feb</span>.<span class="ident">tm_mon</span>, <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local_in_feb</span>.<span class="ident">tm_hour</span>, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local_in_feb</span>.<span class="ident">tm_utcoff</span>, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local_in_feb</span>.<span class="ident">tm_isdst</span>, <span class="number">0</span>);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local_in_jun</span>.<span class="ident">tm_mon</span>, <span class="number">5</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local_in_jun</span>.<span class="ident">tm_hour</span>, <span class="number">1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local_in_jun</span>.<span class="ident">tm_utcoff</span>, <span class="number">3600</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local_in_jun</span>.<span class="ident">tm_isdst</span>, <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local_in_jun</span>.<span class="ident">tm_mon</span>, <span class="number">5</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local_in_jun</span>.<span class="ident">tm_hour</span>, <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local_in_jun</span>.<span class="ident">tm_utcoff</span>, <span class="number">3600</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local_in_jun</span>.<span class="ident">tm_isdst</span>, <span class="number">1</span>);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local_in_nov</span>.<span class="ident">tm_mon</span>, <span class="number">10</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local_in_nov</span>.<span class="ident">tm_hour</span>, <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local_in_nov</span>.<span class="ident">tm_utcoff</span>, <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">local_in_nov</span>.<span class="ident">tm_isdst</span>, <span class="number">0</span>)
+        <span class="macro">assert_eq!</span>(<span class="ident">local_in_nov</span>.<span class="ident">tm_mon</span>, <span class="number">10</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local_in_nov</span>.<span class="ident">tm_hour</span>, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local_in_nov</span>.<span class="ident">tm_utcoff</span>, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">local_in_nov</span>.<span class="ident">tm_isdst</span>, <span class="number">0</span>)
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="time" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="time" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

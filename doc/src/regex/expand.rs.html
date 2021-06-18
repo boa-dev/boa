@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.5.4/src/expand.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expand.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../regex/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../regex/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -241,15 +241,15 @@
 <span id="238">238</span>
 <span id="239">239</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>;
+<span class="kw">use</span> <span class="ident">std::str</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">find_byte</span>::<span class="ident">find_byte</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::find_byte::find_byte</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">re_bytes</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">re_unicode</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::re_bytes</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::re_unicode</span>;
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand_str</span>(
-    <span class="ident">caps</span>: <span class="kw-2">&amp;</span><span class="ident">re_unicode</span>::<span class="ident">Captures</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+    <span class="ident">caps</span>: <span class="kw-2">&amp;</span><span class="ident">re_unicode::Captures</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
     <span class="kw-2">mut</span> <span class="ident">replacement</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">String</span>,
 ) {
@@ -266,7 +266,7 @@
             <span class="ident">replacement</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">replacement</span>[<span class="number">2</span>..];
             <span class="kw">continue</span>;
         }
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">replacement</span>.<span class="ident">is_empty</span>());
+        <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">replacement</span>.<span class="ident">is_empty</span>());
         <span class="kw">let</span> <span class="ident">cap_ref</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">find_cap_ref</span>(<span class="ident">replacement</span>.<span class="ident">as_bytes</span>()) {
             <span class="prelude-val">Some</span>(<span class="ident">cap_ref</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">cap_ref</span>,
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
@@ -277,10 +277,10 @@
         };
         <span class="ident">replacement</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">replacement</span>[<span class="ident">cap_ref</span>.<span class="ident">end</span>..];
         <span class="kw">match</span> <span class="ident">cap_ref</span>.<span class="ident">cap</span> {
-            <span class="ident">Ref</span>::<span class="ident">Number</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Ref::Number</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">dst</span>.<span class="ident">push_str</span>(<span class="ident">caps</span>.<span class="ident">get</span>(<span class="ident">i</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">as_str</span>()).<span class="ident">unwrap_or</span>(<span class="string">&quot;&quot;</span>));
             }
-            <span class="ident">Ref</span>::<span class="ident">Named</span>(<span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Ref::Named</span>(<span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">dst</span>.<span class="ident">push_str</span>(
                     <span class="ident">caps</span>.<span class="ident">name</span>(<span class="ident">name</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">as_str</span>()).<span class="ident">unwrap_or</span>(<span class="string">&quot;&quot;</span>),
                 );
@@ -291,7 +291,7 @@
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand_bytes</span>(
-    <span class="ident">caps</span>: <span class="kw-2">&amp;</span><span class="ident">re_bytes</span>::<span class="ident">Captures</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+    <span class="ident">caps</span>: <span class="kw-2">&amp;</span><span class="ident">re_bytes::Captures</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
     <span class="kw-2">mut</span> <span class="ident">replacement</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
 ) {
@@ -308,7 +308,7 @@
             <span class="ident">replacement</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">replacement</span>[<span class="number">2</span>..];
             <span class="kw">continue</span>;
         }
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">replacement</span>.<span class="ident">is_empty</span>());
+        <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">replacement</span>.<span class="ident">is_empty</span>());
         <span class="kw">let</span> <span class="ident">cap_ref</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">find_cap_ref</span>(<span class="ident">replacement</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">cap_ref</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">cap_ref</span>,
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
@@ -319,10 +319,10 @@
         };
         <span class="ident">replacement</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">replacement</span>[<span class="ident">cap_ref</span>.<span class="ident">end</span>..];
         <span class="kw">match</span> <span class="ident">cap_ref</span>.<span class="ident">cap</span> {
-            <span class="ident">Ref</span>::<span class="ident">Number</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Ref::Number</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">dst</span>.<span class="ident">extend</span>(<span class="ident">caps</span>.<span class="ident">get</span>(<span class="ident">i</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">as_bytes</span>()).<span class="ident">unwrap_or</span>(<span class="string">b&quot;&quot;</span>));
             }
-            <span class="ident">Ref</span>::<span class="ident">Named</span>(<span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Ref::Named</span>(<span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">dst</span>.<span class="ident">extend</span>(
                     <span class="ident">caps</span>.<span class="ident">name</span>(<span class="ident">name</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <span class="ident">m</span>.<span class="ident">as_bytes</span>()).<span class="ident">unwrap_or</span>(<span class="string">b&quot;&quot;</span>),
                 );
@@ -354,13 +354,13 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Ref</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ref</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="ident">Ref</span>::<span class="ident">Named</span>(<span class="ident">x</span>)
+        <span class="ident">Ref::Named</span>(<span class="ident">x</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Ref</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">x</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ref</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
-        <span class="ident">Ref</span>::<span class="ident">Number</span>(<span class="ident">x</span>)
+        <span class="ident">Ref::Number</span>(<span class="ident">x</span>)
     }
 }
 
@@ -390,11 +390,11 @@
     <span class="comment">// check via an unchecked conversion or by parsing the number straight from</span>
     <span class="comment">// &amp;[u8].</span>
     <span class="kw">let</span> <span class="ident">cap</span> <span class="op">=</span>
-        <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">rep</span>[<span class="ident">i</span>..<span class="ident">cap_end</span>]).<span class="ident">expect</span>(<span class="string">&quot;valid UTF-8 capture name&quot;</span>);
+        <span class="ident">str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">rep</span>[<span class="ident">i</span>..<span class="ident">cap_end</span>]).<span class="ident">expect</span>(<span class="string">&quot;valid UTF-8 capture name&quot;</span>);
     <span class="prelude-val">Some</span>(<span class="ident">CaptureRef</span> {
         <span class="ident">cap</span>: <span class="kw">match</span> <span class="ident">cap</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ref</span>::<span class="ident">Number</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ref</span>::<span class="ident">Named</span>(<span class="ident">cap</span>),
+            <span class="prelude-val">Ok</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ref::Number</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ref::Named</span>(<span class="ident">cap</span>),
         },
         <span class="ident">end</span>: <span class="ident">cap_end</span>,
     })
@@ -412,14 +412,14 @@
     <span class="comment">// so it&#39;s possible it could be invalid UTF-8. But a capture group name</span>
     <span class="comment">// can never be invalid UTF-8, so if we have invalid UTF-8, then we can</span>
     <span class="comment">// safely return None.</span>
-    <span class="kw">let</span> <span class="ident">cap</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">rep</span>[<span class="ident">start</span>..<span class="ident">i</span>]) {
+    <span class="kw">let</span> <span class="ident">cap</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">rep</span>[<span class="ident">start</span>..<span class="ident">i</span>]) {
         <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">None</span>,
         <span class="prelude-val">Ok</span>(<span class="ident">cap</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">cap</span>,
     };
     <span class="prelude-val">Some</span>(<span class="ident">CaptureRef</span> {
         <span class="ident">cap</span>: <span class="kw">match</span> <span class="ident">cap</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ref</span>::<span class="ident">Number</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>),
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ref</span>::<span class="ident">Named</span>(<span class="ident">cap</span>),
+            <span class="prelude-val">Ok</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ref::Number</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ref::Named</span>(<span class="ident">cap</span>),
         },
         <span class="ident">end</span>: <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>,
     })
@@ -437,49 +437,49 @@
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">find_cap_ref</span>, <span class="ident">CaptureRef</span>};
 
-    <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">find</span> {
+    <span class="macro">macro_rules!</span> <span class="ident">find</span> {
         (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">text</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="attribute">#[<span class="ident">test</span>]</span>
             <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>() {
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="prelude-val">None</span>, <span class="ident">find_cap_ref</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">text</span>.<span class="ident">as_bytes</span>()));
+                <span class="macro">assert_eq!</span>(<span class="prelude-val">None</span>, <span class="ident">find_cap_ref</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">text</span>.<span class="ident">as_bytes</span>()));
             }
         };
         (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">text</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">capref</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="attribute">#[<span class="ident">test</span>]</span>
             <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>() {
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="prelude-val">Some</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">capref</span>), <span class="ident">find_cap_ref</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">text</span>.<span class="ident">as_bytes</span>()));
+                <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">capref</span>), <span class="ident">find_cap_ref</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">text</span>.<span class="ident">as_bytes</span>()));
             }
         };
     }
 
-    <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">c</span> {
+    <span class="macro">macro_rules!</span> <span class="ident">c</span> {
         (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name_or_number</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pos</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="ident">CaptureRef</span> { <span class="ident">cap</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name_or_number</span>.<span class="ident">into</span>(), <span class="ident">end</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pos</span> }
         };
     }
 
-    <span class="macro">find</span><span class="macro">!</span>(<span class="ident">find_cap_ref1</span>, <span class="string">&quot;$foo&quot;</span>, <span class="macro">c</span><span class="macro">!</span>(<span class="string">&quot;foo&quot;</span>, <span class="number">4</span>));
-    <span class="macro">find</span><span class="macro">!</span>(<span class="ident">find_cap_ref2</span>, <span class="string">&quot;${foo}&quot;</span>, <span class="macro">c</span><span class="macro">!</span>(<span class="string">&quot;foo&quot;</span>, <span class="number">6</span>));
-    <span class="macro">find</span><span class="macro">!</span>(<span class="ident">find_cap_ref3</span>, <span class="string">&quot;$0&quot;</span>, <span class="macro">c</span><span class="macro">!</span>(<span class="number">0</span>, <span class="number">2</span>));
-    <span class="macro">find</span><span class="macro">!</span>(<span class="ident">find_cap_ref4</span>, <span class="string">&quot;$5&quot;</span>, <span class="macro">c</span><span class="macro">!</span>(<span class="number">5</span>, <span class="number">2</span>));
-    <span class="macro">find</span><span class="macro">!</span>(<span class="ident">find_cap_ref5</span>, <span class="string">&quot;$10&quot;</span>, <span class="macro">c</span><span class="macro">!</span>(<span class="number">10</span>, <span class="number">3</span>));
+    <span class="macro">find!</span>(<span class="ident">find_cap_ref1</span>, <span class="string">&quot;$foo&quot;</span>, <span class="macro">c!</span>(<span class="string">&quot;foo&quot;</span>, <span class="number">4</span>));
+    <span class="macro">find!</span>(<span class="ident">find_cap_ref2</span>, <span class="string">&quot;${foo}&quot;</span>, <span class="macro">c!</span>(<span class="string">&quot;foo&quot;</span>, <span class="number">6</span>));
+    <span class="macro">find!</span>(<span class="ident">find_cap_ref3</span>, <span class="string">&quot;$0&quot;</span>, <span class="macro">c!</span>(<span class="number">0</span>, <span class="number">2</span>));
+    <span class="macro">find!</span>(<span class="ident">find_cap_ref4</span>, <span class="string">&quot;$5&quot;</span>, <span class="macro">c!</span>(<span class="number">5</span>, <span class="number">2</span>));
+    <span class="macro">find!</span>(<span class="ident">find_cap_ref5</span>, <span class="string">&quot;$10&quot;</span>, <span class="macro">c!</span>(<span class="number">10</span>, <span class="number">3</span>));
     <span class="comment">// See https://github.com/rust-lang/regex/pull/585</span>
     <span class="comment">// for more on characters following numbers</span>
-    <span class="macro">find</span><span class="macro">!</span>(<span class="ident">find_cap_ref6</span>, <span class="string">&quot;$42a&quot;</span>, <span class="macro">c</span><span class="macro">!</span>(<span class="string">&quot;42a&quot;</span>, <span class="number">4</span>));
-    <span class="macro">find</span><span class="macro">!</span>(<span class="ident">find_cap_ref7</span>, <span class="string">&quot;${42}a&quot;</span>, <span class="macro">c</span><span class="macro">!</span>(<span class="number">42</span>, <span class="number">5</span>));
-    <span class="macro">find</span><span class="macro">!</span>(<span class="ident">find_cap_ref8</span>, <span class="string">&quot;${42&quot;</span>);
-    <span class="macro">find</span><span class="macro">!</span>(<span class="ident">find_cap_ref9</span>, <span class="string">&quot;${42 &quot;</span>);
-    <span class="macro">find</span><span class="macro">!</span>(<span class="ident">find_cap_ref10</span>, <span class="string">&quot; $0 &quot;</span>);
-    <span class="macro">find</span><span class="macro">!</span>(<span class="ident">find_cap_ref11</span>, <span class="string">&quot;$&quot;</span>);
-    <span class="macro">find</span><span class="macro">!</span>(<span class="ident">find_cap_ref12</span>, <span class="string">&quot; &quot;</span>);
-    <span class="macro">find</span><span class="macro">!</span>(<span class="ident">find_cap_ref13</span>, <span class="string">&quot;&quot;</span>);
-    <span class="macro">find</span><span class="macro">!</span>(<span class="ident">find_cap_ref14</span>, <span class="string">&quot;$1-$2&quot;</span>, <span class="macro">c</span><span class="macro">!</span>(<span class="number">1</span>, <span class="number">2</span>));
-    <span class="macro">find</span><span class="macro">!</span>(<span class="ident">find_cap_ref15</span>, <span class="string">&quot;$1_$2&quot;</span>, <span class="macro">c</span><span class="macro">!</span>(<span class="string">&quot;1_&quot;</span>, <span class="number">3</span>));
-    <span class="macro">find</span><span class="macro">!</span>(<span class="ident">find_cap_ref16</span>, <span class="string">&quot;$x-$y&quot;</span>, <span class="macro">c</span><span class="macro">!</span>(<span class="string">&quot;x&quot;</span>, <span class="number">2</span>));
-    <span class="macro">find</span><span class="macro">!</span>(<span class="ident">find_cap_ref17</span>, <span class="string">&quot;$x_$y&quot;</span>, <span class="macro">c</span><span class="macro">!</span>(<span class="string">&quot;x_&quot;</span>, <span class="number">3</span>));
-    <span class="macro">find</span><span class="macro">!</span>(<span class="ident">find_cap_ref18</span>, <span class="string">&quot;${#}&quot;</span>, <span class="macro">c</span><span class="macro">!</span>(<span class="string">&quot;#&quot;</span>, <span class="number">4</span>));
-    <span class="macro">find</span><span class="macro">!</span>(<span class="ident">find_cap_ref19</span>, <span class="string">&quot;${Z[}&quot;</span>, <span class="macro">c</span><span class="macro">!</span>(<span class="string">&quot;Z[&quot;</span>, <span class="number">5</span>));
+    <span class="macro">find!</span>(<span class="ident">find_cap_ref6</span>, <span class="string">&quot;$42a&quot;</span>, <span class="macro">c!</span>(<span class="string">&quot;42a&quot;</span>, <span class="number">4</span>));
+    <span class="macro">find!</span>(<span class="ident">find_cap_ref7</span>, <span class="string">&quot;${42}a&quot;</span>, <span class="macro">c!</span>(<span class="number">42</span>, <span class="number">5</span>));
+    <span class="macro">find!</span>(<span class="ident">find_cap_ref8</span>, <span class="string">&quot;${42&quot;</span>);
+    <span class="macro">find!</span>(<span class="ident">find_cap_ref9</span>, <span class="string">&quot;${42 &quot;</span>);
+    <span class="macro">find!</span>(<span class="ident">find_cap_ref10</span>, <span class="string">&quot; $0 &quot;</span>);
+    <span class="macro">find!</span>(<span class="ident">find_cap_ref11</span>, <span class="string">&quot;$&quot;</span>);
+    <span class="macro">find!</span>(<span class="ident">find_cap_ref12</span>, <span class="string">&quot; &quot;</span>);
+    <span class="macro">find!</span>(<span class="ident">find_cap_ref13</span>, <span class="string">&quot;&quot;</span>);
+    <span class="macro">find!</span>(<span class="ident">find_cap_ref14</span>, <span class="string">&quot;$1-$2&quot;</span>, <span class="macro">c!</span>(<span class="number">1</span>, <span class="number">2</span>));
+    <span class="macro">find!</span>(<span class="ident">find_cap_ref15</span>, <span class="string">&quot;$1_$2&quot;</span>, <span class="macro">c!</span>(<span class="string">&quot;1_&quot;</span>, <span class="number">3</span>));
+    <span class="macro">find!</span>(<span class="ident">find_cap_ref16</span>, <span class="string">&quot;$x-$y&quot;</span>, <span class="macro">c!</span>(<span class="string">&quot;x&quot;</span>, <span class="number">2</span>));
+    <span class="macro">find!</span>(<span class="ident">find_cap_ref17</span>, <span class="string">&quot;$x_$y&quot;</span>, <span class="macro">c!</span>(<span class="string">&quot;x_&quot;</span>, <span class="number">3</span>));
+    <span class="macro">find!</span>(<span class="ident">find_cap_ref18</span>, <span class="string">&quot;${#}&quot;</span>, <span class="macro">c!</span>(<span class="string">&quot;#&quot;</span>, <span class="number">4</span>));
+    <span class="macro">find!</span>(<span class="ident">find_cap_ref19</span>, <span class="string">&quot;${Z[}&quot;</span>, <span class="macro">c!</span>(<span class="string">&quot;Z[&quot;</span>, <span class="number">5</span>));
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

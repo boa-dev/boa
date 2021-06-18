@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand_core-0.6.2/src/block.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>block.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rand_core/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand_core-0.6.2/src/block.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>block.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rand_core/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -486,10 +486,10 @@
 <span class="doccomment">//! [`BlockRngCore`]: crate::block::BlockRngCore</span>
 <span class="doccomment">//! [`fill_bytes`]: RngCore::fill_bytes</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">impls</span>::{<span class="ident">fill_via_u32_chunks</span>, <span class="ident">fill_via_u64_chunks</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::impls</span>::{<span class="ident">fill_via_u32_chunks</span>, <span class="ident">fill_via_u64_chunks</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">CryptoRng</span>, <span class="ident">Error</span>, <span class="ident">RngCore</span>, <span class="ident">SeedableRng</span>};
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">convert</span>::<span class="ident">AsRef</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
+<span class="kw">use</span> <span class="ident">core::convert::AsRef</span>;
+<span class="kw">use</span> <span class="ident">core::fmt</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
@@ -504,10 +504,10 @@
 
     <span class="doccomment">/// Results type. This is the &#39;block&#39; an RNG implementing `BlockRngCore`</span>
     <span class="doccomment">/// generates, which will usually be an array like `[u32; 16]`.</span>
-    <span class="kw">type</span> <span class="ident">Results</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="self">Self</span>::<span class="ident">Item</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AsMut</span><span class="op">&lt;</span>[<span class="self">Self</span>::<span class="ident">Item</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Default</span>;
+    <span class="kw">type</span> <span class="ident">Results</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="self">Self</span><span class="ident">::Item</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AsMut</span><span class="op">&lt;</span>[<span class="self">Self</span><span class="ident">::Item</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Default</span>;
 
     <span class="doccomment">/// Generate a new block of results.</span>
-    <span class="kw">fn</span> <span class="ident">generate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">results</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>::<span class="ident">Results</span>);
+    <span class="kw">fn</span> <span class="ident">generate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">results</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span><span class="ident">::Results</span>);
 }
 
 <span class="doccomment">/// A wrapper type implementing [`RngCore`] for some type implementing</span>
@@ -548,15 +548,15 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BlockRng</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">BlockRngCore</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> {
-    <span class="ident">results</span>: <span class="ident">R</span>::<span class="ident">Results</span>,
+    <span class="ident">results</span>: <span class="ident">R::Results</span>,
     <span class="ident">index</span>: <span class="ident">usize</span>,
     <span class="doccomment">/// The *core* part of the RNG, implementing the `generate` function.</span>
     <span class="kw">pub</span> <span class="ident">core</span>: <span class="ident">R</span>,
 }
 
 <span class="comment">// Custom Debug implementation that does not expose the contents of `results`.</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">BlockRngCore</span> <span class="op">+</span> <span class="ident">fmt</span>::<span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">BlockRng</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">BlockRngCore</span> <span class="op">+</span> <span class="ident">fmt::Debug</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">BlockRng</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">fmt</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;BlockRng&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;core&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">core</span>)
             .<span class="ident">field</span>(<span class="string">&quot;result_len&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">results</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>())
@@ -570,7 +570,7 @@
     <span class="doccomment">/// `BlockRngCore`. Results will be generated on first use.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">core</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BlockRng</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">results_empty</span> <span class="op">=</span> <span class="ident">R</span>::<span class="ident">Results</span>::<span class="ident">default</span>();
+        <span class="kw">let</span> <span class="ident">results_empty</span> <span class="op">=</span> <span class="ident">R::Results::default</span>();
         <span class="ident">BlockRng</span> {
             <span class="ident">core</span>,
             <span class="ident">index</span>: <span class="ident">results_empty</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>(),
@@ -599,7 +599,7 @@
     <span class="doccomment">/// given value.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_and_set</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">index</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">results</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>());
+        <span class="macro">assert!</span>(<span class="ident">index</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">results</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>());
         <span class="self">self</span>.<span class="ident">core</span>.<span class="ident">generate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">results</span>);
         <span class="self">self</span>.<span class="ident">index</span> <span class="op">=</span> <span class="ident">index</span>;
     }
@@ -607,7 +607,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">BlockRngCore</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">RngCore</span> <span class="kw">for</span> <span class="ident">BlockRng</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">BlockRngCore</span><span class="op">&gt;</span>::<span class="ident">Results</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u32</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AsMut</span><span class="op">&lt;</span>[<span class="ident">u32</span>]<span class="op">&gt;</span>,
+    <span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">BlockRngCore</span><span class="op">&gt;</span><span class="ident">::Results</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u32</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AsMut</span><span class="op">&lt;</span>[<span class="ident">u32</span>]<span class="op">&gt;</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">next_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
@@ -624,7 +624,7 @@
     <span class="kw">fn</span> <span class="ident">next_u64</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
         <span class="kw">let</span> <span class="ident">read_u64</span> <span class="op">=</span> <span class="op">|</span><span class="ident">results</span>: <span class="kw-2">&amp;</span>[<span class="ident">u32</span>], <span class="ident">index</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">results</span>[<span class="ident">index</span>..<span class="op">=</span><span class="ident">index</span> <span class="op">+</span> <span class="number">1</span>];
-            <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">data</span>[<span class="number">1</span>]) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span> <span class="op">|</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">data</span>[<span class="number">0</span>])
+            <span class="ident">u64::from</span>(<span class="ident">data</span>[<span class="number">1</span>]) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span> <span class="op">|</span> <span class="ident">u64::from</span>(<span class="ident">data</span>[<span class="number">0</span>])
         };
 
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">results</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>();
@@ -638,9 +638,9 @@
             <span class="self">self</span>.<span class="ident">generate_and_set</span>(<span class="number">2</span>);
             <span class="ident">read_u64</span>(<span class="self">self</span>.<span class="ident">results</span>.<span class="ident">as_ref</span>(), <span class="number">0</span>)
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">results</span>.<span class="ident">as_ref</span>()[<span class="ident">len</span> <span class="op">-</span> <span class="number">1</span>]);
+            <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">u64::from</span>(<span class="self">self</span>.<span class="ident">results</span>.<span class="ident">as_ref</span>()[<span class="ident">len</span> <span class="op">-</span> <span class="number">1</span>]);
             <span class="self">self</span>.<span class="ident">generate_and_set</span>(<span class="number">1</span>);
-            <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">results</span>.<span class="ident">as_ref</span>()[<span class="number">0</span>]);
+            <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">u64::from</span>(<span class="self">self</span>.<span class="ident">results</span>.<span class="ident">as_ref</span>()[<span class="number">0</span>]);
             (<span class="ident">y</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>) <span class="op">|</span> <span class="ident">x</span>
         }
     }
@@ -668,21 +668,21 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">BlockRngCore</span> <span class="op">+</span> <span class="ident">SeedableRng</span><span class="op">&gt;</span> <span class="ident">SeedableRng</span> <span class="kw">for</span> <span class="ident">BlockRng</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Seed</span> <span class="op">=</span> <span class="ident">R</span>::<span class="ident">Seed</span>;
+    <span class="kw">type</span> <span class="ident">Seed</span> <span class="op">=</span> <span class="ident">R::Seed</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_seed</span>(<span class="ident">seed</span>: <span class="self">Self</span>::<span class="ident">Seed</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">R</span>::<span class="ident">from_seed</span>(<span class="ident">seed</span>))
+    <span class="kw">fn</span> <span class="ident">from_seed</span>(<span class="ident">seed</span>: <span class="self">Self</span><span class="ident">::Seed</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">R::from_seed</span>(<span class="ident">seed</span>))
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">fn</span> <span class="ident">seed_from_u64</span>(<span class="ident">seed</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">R</span>::<span class="ident">seed_from_u64</span>(<span class="ident">seed</span>))
+        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">R::seed_from_u64</span>(<span class="ident">seed</span>))
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">fn</span> <span class="ident">from_rng</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">RngCore</span><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">R</span>::<span class="ident">from_rng</span>(<span class="ident">rng</span>)<span class="question-mark">?</span>))
+        <span class="prelude-val">Ok</span>(<span class="self">Self</span><span class="ident">::new</span>(<span class="ident">R::from_rng</span>(<span class="ident">rng</span>)<span class="question-mark">?</span>))
     }
 }
 
@@ -711,7 +711,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BlockRng64</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">BlockRngCore</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> {
-    <span class="ident">results</span>: <span class="ident">R</span>::<span class="ident">Results</span>,
+    <span class="ident">results</span>: <span class="ident">R::Results</span>,
     <span class="ident">index</span>: <span class="ident">usize</span>,
     <span class="ident">half_used</span>: <span class="ident">bool</span>, <span class="comment">// true if only half of the previous result is used</span>
     <span class="doccomment">/// The *core* part of the RNG, implementing the `generate` function.</span>
@@ -719,8 +719,8 @@
 }
 
 <span class="comment">// Custom Debug implementation that does not expose the contents of `results`.</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">BlockRngCore</span> <span class="op">+</span> <span class="ident">fmt</span>::<span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">BlockRng64</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">BlockRngCore</span> <span class="op">+</span> <span class="ident">fmt::Debug</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">BlockRng64</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">fmt</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;BlockRng64&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;core&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">core</span>)
             .<span class="ident">field</span>(<span class="string">&quot;result_len&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">results</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>())
@@ -735,7 +735,7 @@
     <span class="doccomment">/// `BlockRngCore`. Results will be generated on first use.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">core</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BlockRng64</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">results_empty</span> <span class="op">=</span> <span class="ident">R</span>::<span class="ident">Results</span>::<span class="ident">default</span>();
+        <span class="kw">let</span> <span class="ident">results_empty</span> <span class="op">=</span> <span class="ident">R::Results::default</span>();
         <span class="ident">BlockRng64</span> {
             <span class="ident">core</span>,
             <span class="ident">index</span>: <span class="ident">results_empty</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>(),
@@ -766,7 +766,7 @@
     <span class="doccomment">/// given value.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_and_set</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">index</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">results</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>());
+        <span class="macro">assert!</span>(<span class="ident">index</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">results</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>());
         <span class="self">self</span>.<span class="ident">core</span>.<span class="ident">generate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">results</span>);
         <span class="self">self</span>.<span class="ident">index</span> <span class="op">=</span> <span class="ident">index</span>;
         <span class="self">self</span>.<span class="ident">half_used</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -775,7 +775,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">BlockRngCore</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">u64</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">RngCore</span> <span class="kw">for</span> <span class="ident">BlockRng64</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">BlockRngCore</span><span class="op">&gt;</span>::<span class="ident">Results</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u64</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AsMut</span><span class="op">&lt;</span>[<span class="ident">u64</span>]<span class="op">&gt;</span>,
+    <span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">BlockRngCore</span><span class="op">&gt;</span><span class="ident">::Results</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u64</span>]<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">AsMut</span><span class="op">&lt;</span>[<span class="ident">u64</span>]<span class="op">&gt;</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">next_u32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
@@ -794,7 +794,7 @@
         <span class="comment">// Index as if this is a u32 slice.</span>
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">results</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="self">self</span>.<span class="ident">results</span>.<span class="ident">as_ref</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [<span class="ident">u64</span>] <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> [<span class="ident">u32</span>]);
-            <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
+            <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
                 <span class="kw-2">*</span><span class="ident">results</span>.<span class="ident">get_unchecked</span>(<span class="ident">index</span>)
             } <span class="kw">else</span> {
                 <span class="kw-2">*</span><span class="ident">results</span>.<span class="ident">get_unchecked</span>(<span class="ident">index</span> <span class="op">^</span> <span class="number">1</span>)
@@ -843,25 +843,25 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">BlockRngCore</span> <span class="op">+</span> <span class="ident">SeedableRng</span><span class="op">&gt;</span> <span class="ident">SeedableRng</span> <span class="kw">for</span> <span class="ident">BlockRng64</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Seed</span> <span class="op">=</span> <span class="ident">R</span>::<span class="ident">Seed</span>;
+    <span class="kw">type</span> <span class="ident">Seed</span> <span class="op">=</span> <span class="ident">R::Seed</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_seed</span>(<span class="ident">seed</span>: <span class="self">Self</span>::<span class="ident">Seed</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">R</span>::<span class="ident">from_seed</span>(<span class="ident">seed</span>))
+    <span class="kw">fn</span> <span class="ident">from_seed</span>(<span class="ident">seed</span>: <span class="self">Self</span><span class="ident">::Seed</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">R::from_seed</span>(<span class="ident">seed</span>))
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">fn</span> <span class="ident">seed_from_u64</span>(<span class="ident">seed</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">R</span>::<span class="ident">seed_from_u64</span>(<span class="ident">seed</span>))
+        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">R::seed_from_u64</span>(<span class="ident">seed</span>))
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">fn</span> <span class="ident">from_rng</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">RngCore</span><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">R</span>::<span class="ident">from_rng</span>(<span class="ident">rng</span>)<span class="question-mark">?</span>))
+        <span class="prelude-val">Ok</span>(<span class="self">Self</span><span class="ident">::new</span>(<span class="ident">R::from_rng</span>(<span class="ident">rng</span>)<span class="question-mark">?</span>))
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">BlockRngCore</span> <span class="op">+</span> <span class="ident">CryptoRng</span><span class="op">&gt;</span> <span class="ident">CryptoRng</span> <span class="kw">for</span> <span class="ident">BlockRng</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {}
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rand_core" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rand_core" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

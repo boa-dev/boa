@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa/src/builtins/iterable/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa/src/builtins/iterable/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -205,14 +205,14 @@
 <span id="204">204</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::<span class="ident">string</span>::<span class="ident">string_iterator</span>::<span class="ident">StringIterator</span>,
-    <span class="ident">builtins</span>::<span class="ident">ArrayIterator</span>,
-    <span class="ident">builtins</span>::<span class="ident">ForInIterator</span>,
-    <span class="ident">builtins</span>::<span class="ident">MapIterator</span>,
-    <span class="ident">builtins</span>::<span class="ident">SetIterator</span>,
+    <span class="ident">builtins::string::string_iterator::StringIterator</span>,
+    <span class="ident">builtins::ArrayIterator</span>,
+    <span class="ident">builtins::ForInIterator</span>,
+    <span class="ident">builtins::MapIterator</span>,
+    <span class="ident">builtins::SetIterator</span>,
     <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">ObjectInitializer</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>},
-    <span class="ident">symbol</span>::<span class="ident">WellKnownSymbols</span>,
+    <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
 
@@ -230,17 +230,17 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">iterator_prototype</span> <span class="op">=</span> <span class="ident">create_iterator_prototype</span>(<span class="ident">context</span>);
         <span class="self">Self</span> {
-            <span class="ident">array_iterator</span>: <span class="ident">ArrayIterator</span>::<span class="ident">create_prototype</span>(
+            <span class="ident">array_iterator</span>: <span class="ident">ArrayIterator::create_prototype</span>(
                 <span class="ident">context</span>,
                 <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
             ),
-            <span class="ident">set_iterator</span>: <span class="ident">SetIterator</span>::<span class="ident">create_prototype</span>(<span class="ident">context</span>, <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>()),
-            <span class="ident">string_iterator</span>: <span class="ident">StringIterator</span>::<span class="ident">create_prototype</span>(
+            <span class="ident">set_iterator</span>: <span class="ident">SetIterator::create_prototype</span>(<span class="ident">context</span>, <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>()),
+            <span class="ident">string_iterator</span>: <span class="ident">StringIterator::create_prototype</span>(
                 <span class="ident">context</span>,
                 <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
             ),
-            <span class="ident">map_iterator</span>: <span class="ident">MapIterator</span>::<span class="ident">create_prototype</span>(<span class="ident">context</span>, <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>()),
-            <span class="ident">for_in_iterator</span>: <span class="ident">ForInIterator</span>::<span class="ident">create_prototype</span>(
+            <span class="ident">map_iterator</span>: <span class="ident">MapIterator::create_prototype</span>(<span class="ident">context</span>, <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>()),
+            <span class="ident">for_in_iterator</span>: <span class="ident">ForInIterator::create_prototype</span>(
                 <span class="ident">context</span>,
                 <span class="ident">iterator_prototype</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
             ),
@@ -283,10 +283,10 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Generates an object supporting the IteratorResult interface.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_iter_result_object</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">value</span>: <span class="ident">Value</span>, <span class="ident">done</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-    <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="ident">context</span>);
+    <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">Value::new_object</span>(<span class="ident">context</span>);
     <span class="comment">// TODO: Fix attributes of value and done</span>
-    <span class="kw">let</span> <span class="ident">value_property</span> <span class="op">=</span> <span class="ident">DataDescriptor</span>::<span class="ident">new</span>(<span class="ident">value</span>, <span class="ident">Attribute</span>::<span class="ident">all</span>());
-    <span class="kw">let</span> <span class="ident">done_property</span> <span class="op">=</span> <span class="ident">DataDescriptor</span>::<span class="ident">new</span>(<span class="ident">done</span>, <span class="ident">Attribute</span>::<span class="ident">all</span>());
+    <span class="kw">let</span> <span class="ident">value_property</span> <span class="op">=</span> <span class="ident">DataDescriptor::new</span>(<span class="ident">value</span>, <span class="ident">Attribute::all</span>());
+    <span class="kw">let</span> <span class="ident">done_property</span> <span class="op">=</span> <span class="ident">DataDescriptor::new</span>(<span class="ident">done</span>, <span class="ident">Attribute::all</span>());
     <span class="ident">object</span>.<span class="ident">set_property</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">value_property</span>);
     <span class="ident">object</span>.<span class="ident">set_property</span>(<span class="string">&quot;done&quot;</span>, <span class="ident">done_property</span>);
     <span class="ident">object</span>
@@ -294,7 +294,7 @@
 
 <span class="doccomment">/// Get an iterator record</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_iterator</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">iterable</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IteratorRecord</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">iterator_function</span> <span class="op">=</span> <span class="ident">iterable</span>.<span class="ident">get_field</span>(<span class="ident">WellKnownSymbols</span>::<span class="ident">iterator</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">iterator_function</span> <span class="op">=</span> <span class="ident">iterable</span>.<span class="ident">get_field</span>(<span class="ident">WellKnownSymbols::iterator</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">iterator_function</span>.<span class="ident">is_null_or_undefined</span>() {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Not an iterable&quot;</span>));
     }
@@ -303,7 +303,7 @@
     <span class="kw">if</span> <span class="ident">next_function</span>.<span class="ident">is_null_or_undefined</span>() {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Could not find property `next`&quot;</span>));
     }
-    <span class="prelude-val">Ok</span>(<span class="ident">IteratorRecord</span>::<span class="ident">new</span>(<span class="ident">iterator_object</span>, <span class="ident">next_function</span>))
+    <span class="prelude-val">Ok</span>(<span class="ident">IteratorRecord::new</span>(<span class="ident">iterator_object</span>, <span class="ident">next_function</span>))
 }
 
 <span class="doccomment">/// Create the %IteratorPrototype% object</span>
@@ -313,10 +313,10 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object</span>
 <span class="kw">fn</span> <span class="ident">create_iterator_prototype</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
-    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Iterator Prototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
+    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Iterator Prototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
-    <span class="kw">let</span> <span class="ident">symbol_iterator</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">iterator</span>();
-    <span class="kw">let</span> <span class="ident">iterator_prototype</span> <span class="op">=</span> <span class="ident">ObjectInitializer</span>::<span class="ident">new</span>(<span class="ident">context</span>)
+    <span class="kw">let</span> <span class="ident">symbol_iterator</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::iterator</span>();
+    <span class="kw">let</span> <span class="ident">iterator_prototype</span> <span class="op">=</span> <span class="ident">ObjectInitializer::new</span>(<span class="ident">context</span>)
         .<span class="ident">function</span>(
             <span class="op">|</span><span class="ident">v</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>.<span class="ident">clone</span>()),
             (<span class="ident">symbol_iterator</span>, <span class="string">&quot;[Symbol.iterator]&quot;</span>),
@@ -351,7 +351,7 @@
         <span class="kw">let</span> <span class="ident">done</span> <span class="op">=</span> <span class="ident">next</span>.<span class="ident">get_field</span>(<span class="string">&quot;done&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>();
 
         <span class="kw">let</span> <span class="ident">next_result</span> <span class="op">=</span> <span class="ident">next</span>.<span class="ident">get_field</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">IteratorResult</span>::<span class="ident">new</span>(<span class="ident">next_result</span>, <span class="ident">done</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">IteratorResult::new</span>(<span class="ident">next_result</span>, <span class="ident">done</span>))
     }
 
     <span class="doccomment">/// Cleanup the iterator</span>
@@ -409,5 +409,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa" data-search-js="../../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>
     <script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script></body></html>

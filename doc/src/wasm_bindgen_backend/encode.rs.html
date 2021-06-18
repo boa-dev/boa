@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-backend-0.2.74/src/encode.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>encode.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../wasm_bindgen_backend/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../wasm_bindgen_backend/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -527,25 +527,25 @@
 <span id="524">524</span>
 <span id="525">525</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">ShortHash</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::util::ShortHash</span>;
 <span class="kw">use</span> <span class="ident">proc_macro2</span>::{<span class="ident">Ident</span>, <span class="ident">Span</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::{<span class="ident">Cell</span>, <span class="ident">RefCell</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">env</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
+<span class="kw">use</span> <span class="ident">std::cell</span>::{<span class="ident">Cell</span>, <span class="ident">RefCell</span>};
+<span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
+<span class="kw">use</span> <span class="ident">std::env</span>;
+<span class="kw">use</span> <span class="ident">std::fs</span>;
+<span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ast</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Diagnostic</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ast</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::Diagnostic</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EncodeResult</span> {
     <span class="kw">pub</span> <span class="ident">custom_section</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
     <span class="kw">pub</span> <span class="ident">included_files</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode</span>(<span class="ident">program</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">Program</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">EncodeResult</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">Encoder</span>::<span class="ident">new</span>();
-    <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">Interner</span>::<span class="ident">new</span>();
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode</span>(<span class="ident">program</span>: <span class="kw-2">&amp;</span><span class="ident">ast::Program</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">EncodeResult</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">Encoder::new</span>();
+    <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">Interner::new</span>();
     <span class="ident">shared_program</span>(<span class="ident">program</span>, <span class="kw-2">&amp;</span><span class="ident">i</span>)<span class="question-mark">?</span>.<span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">e</span>);
     <span class="kw">let</span> <span class="ident">custom_section</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">finish</span>();
     <span class="kw">let</span> <span class="ident">included_files</span> <span class="op">=</span> <span class="ident">i</span>
@@ -562,7 +562,7 @@
 }
 
 <span class="kw">struct</span> <span class="ident">Interner</span> {
-    <span class="ident">bump</span>: <span class="ident">bumpalo</span>::<span class="ident">Bump</span>,
+    <span class="ident">bump</span>: <span class="ident">bumpalo::Bump</span>,
     <span class="ident">files</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">LocalFile</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">root</span>: <span class="ident">PathBuf</span>,
     <span class="ident">crate_name</span>: <span class="ident">String</span>,
@@ -578,11 +578,11 @@
 <span class="kw">impl</span> <span class="ident">Interner</span> {
     <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Interner</span> {
         <span class="ident">Interner</span> {
-            <span class="ident">bump</span>: <span class="ident">bumpalo</span>::<span class="ident">Bump</span>::<span class="ident">new</span>(),
-            <span class="ident">files</span>: <span class="ident">RefCell</span>::<span class="ident">new</span>(<span class="ident">HashMap</span>::<span class="ident">new</span>()),
-            <span class="ident">root</span>: <span class="ident">env</span>::<span class="ident">var_os</span>(<span class="string">&quot;CARGO_MANIFEST_DIR&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">into</span>(),
-            <span class="ident">crate_name</span>: <span class="ident">env</span>::<span class="ident">var</span>(<span class="string">&quot;CARGO_PKG_NAME&quot;</span>).<span class="ident">unwrap</span>(),
-            <span class="ident">has_package_json</span>: <span class="ident">Cell</span>::<span class="ident">new</span>(<span class="bool-val">false</span>),
+            <span class="ident">bump</span>: <span class="ident">bumpalo::Bump::new</span>(),
+            <span class="ident">files</span>: <span class="ident">RefCell::new</span>(<span class="ident">HashMap::new</span>()),
+            <span class="ident">root</span>: <span class="ident">env::var_os</span>(<span class="string">&quot;CARGO_MANIFEST_DIR&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">into</span>(),
+            <span class="ident">crate_name</span>: <span class="ident">env::var</span>(<span class="string">&quot;CARGO_PKG_NAME&quot;</span>).<span class="ident">unwrap</span>(),
+            <span class="ident">has_package_json</span>: <span class="ident">Cell::new</span>(<span class="bool-val">false</span>),
         }
     }
 
@@ -612,14 +612,14 @@
             <span class="self">self</span>.<span class="ident">root</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>[<span class="number">1</span>..])
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">id</span>.<span class="ident">starts_with</span>(<span class="string">&quot;./&quot;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">id</span>.<span class="ident">starts_with</span>(<span class="string">&quot;../&quot;</span>) {
             <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;relative module paths aren&#39;t supported yet&quot;</span>;
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic</span>::<span class="ident">span_error</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Diagnostic::span_error</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
         } <span class="kw">else</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">intern_str</span>(<span class="kw-2">&amp;</span><span class="ident">id</span>));
         };
 
         <span class="comment">// Generate a unique ID which is somewhat readable as well, so mix in</span>
         <span class="comment">// the crate name, hash to make it unique, and then the original path.</span>
-        <span class="kw">let</span> <span class="ident">new_identifier</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="self">self</span>.<span class="ident">unique_crate_identifier</span>(), <span class="ident">id</span>);
+        <span class="kw">let</span> <span class="ident">new_identifier</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="self">self</span>.<span class="ident">unique_crate_identifier</span>(), <span class="ident">id</span>);
         <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">LocalFile</span> {
             <span class="ident">path</span>,
             <span class="ident">definition</span>: <span class="ident">span</span>,
@@ -631,7 +631,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">unique_crate_identifier</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}-{}&quot;</span>, <span class="self">self</span>.<span class="ident">crate_name</span>, <span class="ident">ShortHash</span>(<span class="number">0</span>))
+        <span class="macro">format!</span>(<span class="string">&quot;{}-{}&quot;</span>, <span class="self">self</span>.<span class="ident">crate_name</span>, <span class="ident">ShortHash</span>(<span class="number">0</span>))
     }
 
     <span class="kw">fn</span> <span class="ident">check_for_package_json</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
@@ -646,7 +646,7 @@
 }
 
 <span class="kw">fn</span> <span class="ident">shared_program</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-    <span class="ident">prog</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">Program</span>,
+    <span class="ident">prog</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::Program</span>,
     <span class="ident">intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Program</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="prelude-val">Ok</span>(<span class="ident">Program</span> {
@@ -676,14 +676,14 @@
             .<span class="ident">borrow</span>()
             .<span class="ident">values</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">file</span><span class="op">|</span> {
-                <span class="ident">fs</span>::<span class="ident">read_to_string</span>(<span class="kw-2">&amp;</span><span class="ident">file</span>.<span class="ident">path</span>)
+                <span class="ident">fs::read_to_string</span>(<span class="kw-2">&amp;</span><span class="ident">file</span>.<span class="ident">path</span>)
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">LocalModule</span> {
                         <span class="ident">identifier</span>: <span class="ident">intern</span>.<span class="ident">intern_str</span>(<span class="kw-2">&amp;</span><span class="ident">file</span>.<span class="ident">new_identifier</span>),
                         <span class="ident">contents</span>: <span class="ident">intern</span>.<span class="ident">intern_str</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>),
                     })
                     .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;failed to read file `{}`: {}&quot;</span>, <span class="ident">file</span>.<span class="ident">path</span>.<span class="ident">display</span>(), <span class="ident">e</span>);
-                        <span class="ident">Diagnostic</span>::<span class="ident">span_error</span>(<span class="ident">file</span>.<span class="ident">definition</span>, <span class="ident">msg</span>)
+                        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;failed to read file `{}`: {}&quot;</span>, <span class="ident">file</span>.<span class="ident">path</span>.<span class="ident">display</span>(), <span class="ident">e</span>);
+                        <span class="ident">Diagnostic::span_error</span>(<span class="ident">file</span>.<span class="ident">definition</span>, <span class="ident">msg</span>)
                     })
             })
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>,
@@ -702,11 +702,11 @@
 }
 
 <span class="kw">fn</span> <span class="ident">shared_export</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-    <span class="ident">export</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">Export</span>,
+    <span class="ident">export</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::Export</span>,
     <span class="ident">intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Export</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">consumed</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">export</span>.<span class="ident">method_self</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">ast</span>::<span class="ident">MethodSelf</span>::<span class="ident">ByValue</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+        <span class="prelude-val">Some</span>(<span class="ident">ast::MethodSelf::ByValue</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
     };
     <span class="kw">let</span> <span class="ident">method_kind</span> <span class="op">=</span> <span class="ident">from_ast_method_kind</span>(<span class="kw-2">&amp;</span><span class="ident">export</span>.<span class="ident">function</span>, <span class="ident">intern</span>, <span class="kw-2">&amp;</span><span class="ident">export</span>.<span class="ident">method_kind</span>)<span class="question-mark">?</span>;
@@ -720,16 +720,16 @@
     })
 }
 
-<span class="kw">fn</span> <span class="ident">shared_function</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">func</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">Function</span>, <span class="ident">_intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Function</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">shared_function</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">func</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::Function</span>, <span class="ident">_intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Function</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">arg_names</span> <span class="op">=</span> <span class="ident">func</span>
         .<span class="ident">arguments</span>
         .<span class="ident">iter</span>()
         .<span class="ident">enumerate</span>()
         .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">idx</span>, <span class="ident">arg</span>)<span class="op">|</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">syn</span>::<span class="ident">Pat</span>::<span class="ident">Ident</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">arg</span>.<span class="ident">pat</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">syn::Pat::Ident</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">arg</span>.<span class="ident">pat</span> {
                 <span class="kw">return</span> <span class="ident">x</span>.<span class="ident">ident</span>.<span class="ident">to_string</span>();
             }
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;arg{}&quot;</span>, <span class="ident">idx</span>)
+            <span class="macro">format!</span>(<span class="string">&quot;arg{}&quot;</span>, <span class="ident">idx</span>)
         })
         .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
     <span class="ident">Function</span> {
@@ -739,7 +739,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">shared_enum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">Enum</span>, <span class="ident">intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Enum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">shared_enum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">e</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::Enum</span>, <span class="ident">intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Enum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">Enum</span> {
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">e</span>.<span class="ident">js_name</span>,
         <span class="ident">variants</span>: <span class="ident">e</span>
@@ -752,7 +752,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">shared_variant</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">Variant</span>, <span class="ident">intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EnumVariant</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">shared_variant</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::Variant</span>, <span class="ident">intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EnumVariant</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">EnumVariant</span> {
         <span class="ident">name</span>: <span class="ident">intern</span>.<span class="ident">intern</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="ident">name</span>),
         <span class="ident">value</span>: <span class="ident">v</span>.<span class="ident">value</span>,
@@ -760,15 +760,15 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">shared_import</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">Import</span>, <span class="ident">intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Import</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">shared_import</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::Import</span>, <span class="ident">intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Import</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="prelude-val">Ok</span>(<span class="ident">Import</span> {
         <span class="ident">module</span>: <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">i</span>.<span class="ident">module</span> {
-            <span class="ident">ast</span>::<span class="ident">ImportModule</span>::<span class="ident">Named</span>(<span class="ident">m</span>, <span class="ident">span</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">ImportModule</span>::<span class="ident">Named</span>(<span class="ident">intern</span>.<span class="ident">resolve_import_module</span>(<span class="ident">m</span>, <span class="kw-2">*</span><span class="ident">span</span>)<span class="question-mark">?</span>)
+            <span class="ident">ast::ImportModule::Named</span>(<span class="ident">m</span>, <span class="ident">span</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ImportModule::Named</span>(<span class="ident">intern</span>.<span class="ident">resolve_import_module</span>(<span class="ident">m</span>, <span class="kw-2">*</span><span class="ident">span</span>)<span class="question-mark">?</span>)
             }
-            <span class="ident">ast</span>::<span class="ident">ImportModule</span>::<span class="ident">RawNamed</span>(<span class="ident">m</span>, <span class="ident">_span</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImportModule</span>::<span class="ident">RawNamed</span>(<span class="ident">intern</span>.<span class="ident">intern_str</span>(<span class="ident">m</span>)),
-            <span class="ident">ast</span>::<span class="ident">ImportModule</span>::<span class="ident">Inline</span>(<span class="ident">idx</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImportModule</span>::<span class="ident">Inline</span>(<span class="kw-2">*</span><span class="ident">idx</span> <span class="kw">as</span> <span class="ident">u32</span>),
-            <span class="ident">ast</span>::<span class="ident">ImportModule</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImportModule</span>::<span class="prelude-val">None</span>,
+            <span class="ident">ast::ImportModule::RawNamed</span>(<span class="ident">m</span>, <span class="ident">_span</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImportModule::RawNamed</span>(<span class="ident">intern</span>.<span class="ident">intern_str</span>(<span class="ident">m</span>)),
+            <span class="ident">ast::ImportModule::Inline</span>(<span class="ident">idx</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImportModule::Inline</span>(<span class="kw-2">*</span><span class="ident">idx</span> <span class="kw">as</span> <span class="ident">u32</span>),
+            <span class="ident">ast::ImportModule::None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImportModule::None</span>,
         },
         <span class="ident">js_namespace</span>: <span class="ident">i</span>.<span class="ident">js_namespace</span>.<span class="ident">clone</span>(),
         <span class="ident">kind</span>: <span class="ident">shared_import_kind</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>.<span class="ident">kind</span>, <span class="ident">intern</span>)<span class="question-mark">?</span>,
@@ -776,27 +776,27 @@
 }
 
 <span class="kw">fn</span> <span class="ident">shared_import_kind</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-    <span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">ImportKind</span>,
+    <span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ImportKind</span>,
     <span class="ident">intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ImportKind</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">i</span> {
-        <span class="ident">ast</span>::<span class="ident">ImportKind</span>::<span class="ident">Function</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImportKind</span>::<span class="ident">Function</span>(<span class="ident">shared_import_function</span>(<span class="ident">f</span>, <span class="ident">intern</span>)<span class="question-mark">?</span>),
-        <span class="ident">ast</span>::<span class="ident">ImportKind</span>::<span class="ident">Static</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImportKind</span>::<span class="ident">Static</span>(<span class="ident">shared_import_static</span>(<span class="ident">f</span>, <span class="ident">intern</span>)),
-        <span class="ident">ast</span>::<span class="ident">ImportKind</span>::<span class="ident">Type</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImportKind</span>::<span class="ident">Type</span>(<span class="ident">shared_import_type</span>(<span class="ident">f</span>, <span class="ident">intern</span>)),
-        <span class="ident">ast</span>::<span class="ident">ImportKind</span>::<span class="ident">Enum</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImportKind</span>::<span class="ident">Enum</span>(<span class="ident">shared_import_enum</span>(<span class="ident">f</span>, <span class="ident">intern</span>)),
+        <span class="ident">ast::ImportKind::Function</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImportKind::Function</span>(<span class="ident">shared_import_function</span>(<span class="ident">f</span>, <span class="ident">intern</span>)<span class="question-mark">?</span>),
+        <span class="ident">ast::ImportKind::Static</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImportKind::Static</span>(<span class="ident">shared_import_static</span>(<span class="ident">f</span>, <span class="ident">intern</span>)),
+        <span class="ident">ast::ImportKind::Type</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImportKind::Type</span>(<span class="ident">shared_import_type</span>(<span class="ident">f</span>, <span class="ident">intern</span>)),
+        <span class="ident">ast::ImportKind::Enum</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ImportKind::Enum</span>(<span class="ident">shared_import_enum</span>(<span class="ident">f</span>, <span class="ident">intern</span>)),
     })
 }
 
 <span class="kw">fn</span> <span class="ident">shared_import_function</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-    <span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">ImportFunction</span>,
+    <span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ImportFunction</span>,
     <span class="ident">intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ImportFunction</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">method</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">i</span>.<span class="ident">kind</span> {
-        <span class="ident">ast</span>::<span class="ident">ImportFunctionKind</span>::<span class="ident">Method</span> { <span class="ident">class</span>, <span class="ident">kind</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">ast::ImportFunctionKind::Method</span> { <span class="ident">class</span>, <span class="ident">kind</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="ident">from_ast_method_kind</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>.<span class="ident">function</span>, <span class="ident">intern</span>, <span class="ident">kind</span>)<span class="question-mark">?</span>;
             <span class="prelude-val">Some</span>(<span class="ident">MethodData</span> { <span class="ident">class</span>, <span class="ident">kind</span> })
         }
-        <span class="ident">ast</span>::<span class="ident">ImportFunctionKind</span>::<span class="ident">Normal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        <span class="ident">ast::ImportFunctionKind::Normal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
     };
 
     <span class="prelude-val">Ok</span>(<span class="ident">ImportFunction</span> {
@@ -810,14 +810,14 @@
     })
 }
 
-<span class="kw">fn</span> <span class="ident">shared_import_static</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">ImportStatic</span>, <span class="ident">intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ImportStatic</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">shared_import_static</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ImportStatic</span>, <span class="ident">intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ImportStatic</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">ImportStatic</span> {
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">i</span>.<span class="ident">js_name</span>,
         <span class="ident">shim</span>: <span class="ident">intern</span>.<span class="ident">intern</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>.<span class="ident">shim</span>),
     }
 }
 
-<span class="kw">fn</span> <span class="ident">shared_import_type</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">ImportType</span>, <span class="ident">intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ImportType</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">shared_import_type</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ImportType</span>, <span class="ident">intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ImportType</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">ImportType</span> {
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">i</span>.<span class="ident">js_name</span>,
         <span class="ident">instanceof_shim</span>: <span class="kw-2">&amp;</span><span class="ident">i</span>.<span class="ident">instanceof_shim</span>,
@@ -825,11 +825,11 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">shared_import_enum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">_i</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">ImportEnum</span>, <span class="ident">_intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ImportEnum</span> {
+<span class="kw">fn</span> <span class="ident">shared_import_enum</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">_i</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ImportEnum</span>, <span class="ident">_intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ImportEnum</span> {
     <span class="ident">ImportEnum</span> {}
 }
 
-<span class="kw">fn</span> <span class="ident">shared_struct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">Struct</span>, <span class="ident">intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Struct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">shared_struct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::Struct</span>, <span class="ident">intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Struct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">Struct</span> {
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">js_name</span>,
         <span class="ident">fields</span>: <span class="ident">s</span>
@@ -843,7 +843,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">shared_struct_field</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">StructField</span>, <span class="ident">_intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StructField</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">shared_struct_field</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::StructField</span>, <span class="ident">_intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StructField</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">StructField</span> {
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">js_name</span>,
         <span class="ident">readonly</span>: <span class="ident">s</span>.<span class="ident">readonly</span>,
@@ -863,7 +863,7 @@
 <span class="kw">impl</span> <span class="ident">Encoder</span> {
     <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Encoder</span> {
         <span class="ident">Encoder</span> {
-            <span class="ident">dst</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>],
+            <span class="ident">dst</span>: <span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>],
         }
     }
 
@@ -894,14 +894,14 @@
             <span class="ident">dst</span>.<span class="ident">byte</span>((<span class="ident">val</span> <span class="kw">as</span> <span class="ident">u8</span>) <span class="op">|</span> <span class="number">0x80</span>);
             <span class="ident">val</span> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <span class="number">7</span>;
         }
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">val</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">7</span>, <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">val</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">7</span>, <span class="number">0</span>);
         <span class="ident">dst</span>.<span class="ident">byte</span>(<span class="ident">val</span> <span class="kw">as</span> <span class="ident">u8</span>);
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Encode</span> <span class="kw">for</span> <span class="ident">usize</span> {
     <span class="kw">fn</span> <span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Encoder</span>) {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">u32</span>::<span class="ident">max_value</span>() <span class="kw">as</span> <span class="ident">usize</span>);
+        <span class="macro">assert!</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">u32::max_value</span>() <span class="kw">as</span> <span class="ident">usize</span>);
         (<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">encode</span>(<span class="ident">dst</span>);
     }
 }
@@ -946,7 +946,7 @@
     }
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">encode_struct</span> {
+<span class="macro">macro_rules!</span> <span class="ident">encode_struct</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">lt</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>,)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">lt</span>)<span class="op">*</span> {
             $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>,)<span class="op">*</span>
@@ -960,24 +960,24 @@
     }
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">encode_enum</span> {
+<span class="macro">macro_rules!</span> <span class="ident">encode_enum</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">lt</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fields</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> (
         <span class="kw">enum</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">lt</span>)<span class="op">*</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fields</span>)<span class="op">*</span> }
 
         <span class="kw">impl</span>$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">lt</span>)<span class="op">*</span> <span class="ident">Encode</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">lt</span>)<span class="op">*</span> {
             <span class="kw">fn</span> <span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Encoder</span>) {
                 <span class="kw">use</span> <span class="self">self</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>::<span class="kw-2">*</span>;
-                <span class="macro">encode_enum</span><span class="macro">!</span>(@<span class="ident">arms</span> <span class="self">self</span> <span class="ident">dst</span> (<span class="number">0</span>) () $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fields</span>)<span class="kw-2">*</span>)
+                <span class="macro">encode_enum!</span>(@<span class="ident">arms</span> <span class="self">self</span> <span class="ident">dst</span> (<span class="number">0</span>) () $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fields</span>)<span class="kw-2">*</span>)
             }
         }
     );
 
     (@<span class="ident">arms</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">me</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>:<span class="ident">ident</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cnt</span>:<span class="ident">expr</span>) ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arms</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)) <span class="op">=</span><span class="op">&gt;</span> (
-        <span class="macro">encode_enum</span><span class="macro">!</span>(@<span class="ident">expr</span> <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">me</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arms</span>)<span class="op">*</span> })
+        <span class="macro">encode_enum!</span>(@<span class="ident">expr</span> <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">me</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arms</span>)<span class="op">*</span> })
     );
 
     (@<span class="ident">arms</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">me</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>:<span class="ident">ident</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cnt</span>:<span class="ident">expr</span>) ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arms</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> (
-        <span class="macro">encode_enum</span><span class="macro">!</span>(
+        <span class="macro">encode_enum!</span>(
             @<span class="ident">arms</span>
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">me</span>
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>
@@ -988,7 +988,7 @@
     );
 
     (@<span class="ident">arms</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">me</span>:<span class="ident">ident</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>:<span class="ident">ident</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cnt</span>:<span class="ident">expr</span>) ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arms</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t</span>:<span class="ident">ty</span>), $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> (
-        <span class="macro">encode_enum</span><span class="macro">!</span>(
+        <span class="macro">encode_enum!</span>(
             @<span class="ident">arms</span>
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">me</span>
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>
@@ -1001,57 +1001,57 @@
     (@<span class="ident">expr</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>);
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">encode_api</span> {
+<span class="macro">macro_rules!</span> <span class="ident">encode_api</span> {
     () <span class="op">=</span><span class="op">&gt;</span> ();
     (<span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fields</span>:<span class="ident">tt</span>)<span class="op">*</span> } $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> (
-        <span class="macro">encode_struct</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> (<span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fields</span>)<span class="kw-2">*</span>);
-        <span class="macro">encode_api</span><span class="macro">!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="kw-2">*</span>);
+        <span class="macro">encode_struct!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> (<span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fields</span>)<span class="kw-2">*</span>);
+        <span class="macro">encode_api!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="kw-2">*</span>);
     );
     (<span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fields</span>:<span class="ident">tt</span>)<span class="op">*</span> } $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> (
-        <span class="macro">encode_struct</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> () $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fields</span>)<span class="kw-2">*</span>);
-        <span class="macro">encode_api</span><span class="macro">!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="kw-2">*</span>);
+        <span class="macro">encode_struct!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> () $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fields</span>)<span class="kw-2">*</span>);
+        <span class="macro">encode_api!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="kw-2">*</span>);
     );
     (<span class="kw">enum</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variants</span>:<span class="ident">tt</span>)<span class="op">*</span> } $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> (
-        <span class="macro">encode_enum</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> (<span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variants</span>)<span class="kw-2">*</span>);
-        <span class="macro">encode_api</span><span class="macro">!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="kw-2">*</span>);
+        <span class="macro">encode_enum!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> (<span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variants</span>)<span class="kw-2">*</span>);
+        <span class="macro">encode_api!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="kw-2">*</span>);
     );
     (<span class="kw">enum</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> { $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variants</span>:<span class="ident">tt</span>)<span class="op">*</span> } $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> (
-        <span class="macro">encode_enum</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> () $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variants</span>)<span class="kw-2">*</span>);
-        <span class="macro">encode_api</span><span class="macro">!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="kw-2">*</span>);
+        <span class="macro">encode_enum!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> () $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variants</span>)<span class="kw-2">*</span>);
+        <span class="macro">encode_api!</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>)<span class="kw-2">*</span>);
     );
 }
-<span class="ident">wasm_bindgen_shared</span>::<span class="macro">shared_api</span><span class="macro">!</span>(<span class="ident">encode_api</span>);
+<span class="macro">wasm_bindgen_shared::shared_api!</span>(<span class="ident">encode_api</span>);
 
 <span class="kw">fn</span> <span class="ident">from_ast_method_kind</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-    <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">Function</span>,
+    <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::Function</span>,
     <span class="ident">intern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span>,
-    <span class="ident">method_kind</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">MethodKind</span>,
+    <span class="ident">method_kind</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::MethodKind</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MethodKind</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
     <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">method_kind</span> {
-        <span class="ident">ast</span>::<span class="ident">MethodKind</span>::<span class="ident">Constructor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MethodKind</span>::<span class="ident">Constructor</span>,
-        <span class="ident">ast</span>::<span class="ident">MethodKind</span>::<span class="ident">Operation</span>(<span class="ident">ast</span>::<span class="ident">Operation</span> { <span class="ident">is_static</span>, <span class="ident">kind</span> }) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">ast::MethodKind::Constructor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MethodKind::Constructor</span>,
+        <span class="ident">ast::MethodKind::Operation</span>(<span class="ident">ast::Operation</span> { <span class="ident">is_static</span>, <span class="ident">kind</span> }) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">is_static</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">is_static</span>;
             <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">kind</span> {
-                <span class="ident">ast</span>::<span class="ident">OperationKind</span>::<span class="ident">Getter</span>(<span class="ident">g</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ast::OperationKind::Getter</span>(<span class="ident">g</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">g</span> <span class="op">=</span> <span class="ident">g</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="ident">intern</span>.<span class="ident">intern</span>(<span class="ident">g</span>));
-                    <span class="ident">OperationKind</span>::<span class="ident">Getter</span>(<span class="ident">g</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">function</span>.<span class="ident">infer_getter_property</span>()))
+                    <span class="ident">OperationKind::Getter</span>(<span class="ident">g</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">function</span>.<span class="ident">infer_getter_property</span>()))
                 }
-                <span class="ident">ast</span>::<span class="ident">OperationKind</span>::<span class="ident">Regular</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OperationKind</span>::<span class="ident">Regular</span>,
-                <span class="ident">ast</span>::<span class="ident">OperationKind</span>::<span class="ident">Setter</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ast::OperationKind::Regular</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OperationKind::Regular</span>,
+                <span class="ident">ast::OperationKind::Setter</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">intern</span>.<span class="ident">intern</span>(<span class="ident">s</span>));
-                    <span class="ident">OperationKind</span>::<span class="ident">Setter</span>(<span class="kw">match</span> <span class="ident">s</span> {
+                    <span class="ident">OperationKind::Setter</span>(<span class="kw">match</span> <span class="ident">s</span> {
                         <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>,
                         <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">intern</span>.<span class="ident">intern_str</span>(<span class="kw-2">&amp;</span><span class="ident">function</span>.<span class="ident">infer_setter_property</span>()<span class="question-mark">?</span>),
                     })
                 }
-                <span class="ident">ast</span>::<span class="ident">OperationKind</span>::<span class="ident">IndexingGetter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OperationKind</span>::<span class="ident">IndexingGetter</span>,
-                <span class="ident">ast</span>::<span class="ident">OperationKind</span>::<span class="ident">IndexingSetter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OperationKind</span>::<span class="ident">IndexingSetter</span>,
-                <span class="ident">ast</span>::<span class="ident">OperationKind</span>::<span class="ident">IndexingDeleter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OperationKind</span>::<span class="ident">IndexingDeleter</span>,
+                <span class="ident">ast::OperationKind::IndexingGetter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OperationKind::IndexingGetter</span>,
+                <span class="ident">ast::OperationKind::IndexingSetter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OperationKind::IndexingSetter</span>,
+                <span class="ident">ast::OperationKind::IndexingDeleter</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">OperationKind::IndexingDeleter</span>,
             };
-            <span class="ident">MethodKind</span>::<span class="ident">Operation</span>(<span class="ident">Operation</span> { <span class="ident">is_static</span>, <span class="ident">kind</span> })
+            <span class="ident">MethodKind::Operation</span>(<span class="ident">Operation</span> { <span class="ident">is_static</span>, <span class="ident">kind</span> })
         }
     })
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="wasm_bindgen_backend" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="wasm_bindgen_backend" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

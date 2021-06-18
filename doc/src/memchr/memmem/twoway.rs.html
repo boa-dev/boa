@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/memchr-2.4.0/src/memmem/twoway.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>twoway.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../memchr/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../memchr/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -880,9 +880,9 @@
 <span id="877">877</span>
 <span id="878">878</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">cmp</span>;
+<span class="kw">use</span> <span class="ident">core::cmp</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">memmem</span>::{<span class="ident">prefilter</span>::<span class="ident">Pre</span>, <span class="ident">util</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::memmem</span>::{<span class="ident">prefilter::Pre</span>, <span class="ident">util</span>};
 
 <span class="doccomment">/// Two-Way search in the forward direction.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
@@ -961,19 +961,19 @@
     <span class="doccomment">/// through any haystack.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Forward</span> {
         <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="ident">Forward</span>(<span class="ident">TwoWay</span>::<span class="ident">empty</span>());
+            <span class="kw">return</span> <span class="ident">Forward</span>(<span class="ident">TwoWay::empty</span>());
         }
 
-        <span class="kw">let</span> <span class="ident">byteset</span> <span class="op">=</span> <span class="ident">ApproximateByteSet</span>::<span class="ident">new</span>(<span class="ident">needle</span>);
-        <span class="kw">let</span> <span class="ident">min_suffix</span> <span class="op">=</span> <span class="ident">Suffix</span>::<span class="ident">forward</span>(<span class="ident">needle</span>, <span class="ident">SuffixKind</span>::<span class="ident">Minimal</span>);
-        <span class="kw">let</span> <span class="ident">max_suffix</span> <span class="op">=</span> <span class="ident">Suffix</span>::<span class="ident">forward</span>(<span class="ident">needle</span>, <span class="ident">SuffixKind</span>::<span class="ident">Maximal</span>);
+        <span class="kw">let</span> <span class="ident">byteset</span> <span class="op">=</span> <span class="ident">ApproximateByteSet::new</span>(<span class="ident">needle</span>);
+        <span class="kw">let</span> <span class="ident">min_suffix</span> <span class="op">=</span> <span class="ident">Suffix::forward</span>(<span class="ident">needle</span>, <span class="ident">SuffixKind::Minimal</span>);
+        <span class="kw">let</span> <span class="ident">max_suffix</span> <span class="op">=</span> <span class="ident">Suffix::forward</span>(<span class="ident">needle</span>, <span class="ident">SuffixKind::Maximal</span>);
         <span class="kw">let</span> (<span class="ident">period_lower_bound</span>, <span class="ident">critical_pos</span>) <span class="op">=</span>
             <span class="kw">if</span> <span class="ident">min_suffix</span>.<span class="ident">pos</span> <span class="op">&gt;</span> <span class="ident">max_suffix</span>.<span class="ident">pos</span> {
                 (<span class="ident">min_suffix</span>.<span class="ident">period</span>, <span class="ident">min_suffix</span>.<span class="ident">pos</span>)
             } <span class="kw">else</span> {
                 (<span class="ident">max_suffix</span>.<span class="ident">period</span>, <span class="ident">max_suffix</span>.<span class="ident">pos</span>)
             };
-        <span class="kw">let</span> <span class="ident">shift</span> <span class="op">=</span> <span class="ident">Shift</span>::<span class="ident">forward</span>(<span class="ident">needle</span>, <span class="ident">period_lower_bound</span>, <span class="ident">critical_pos</span>);
+        <span class="kw">let</span> <span class="ident">shift</span> <span class="op">=</span> <span class="ident">Shift::forward</span>(<span class="ident">needle</span>, <span class="ident">period_lower_bound</span>, <span class="ident">critical_pos</span>);
         <span class="ident">Forward</span>(<span class="ident">TwoWay</span> { <span class="ident">byteset</span>, <span class="ident">critical_pos</span>, <span class="ident">shift</span> })
     }
 
@@ -992,14 +992,14 @@
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">needle</span>.<span class="ident">is_empty</span>(), <span class="string">&quot;needle should not be empty&quot;</span>);
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>(), <span class="string">&quot;haystack too short&quot;</span>);
+        <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">needle</span>.<span class="ident">is_empty</span>(), <span class="string">&quot;needle should not be empty&quot;</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>(), <span class="string">&quot;haystack too short&quot;</span>);
 
         <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">shift</span> {
-            <span class="ident">Shift</span>::<span class="ident">Small</span> { <span class="ident">period</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Shift::Small</span> { <span class="ident">period</span> } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">find_small_imp</span>(<span class="ident">pre</span>, <span class="ident">haystack</span>, <span class="ident">needle</span>, <span class="ident">period</span>)
             }
-            <span class="ident">Shift</span>::<span class="ident">Large</span> { <span class="ident">shift</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Shift::Large</span> { <span class="ident">shift</span> } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">find_large_imp</span>(<span class="ident">pre</span>, <span class="ident">haystack</span>, <span class="ident">needle</span>, <span class="ident">shift</span>)
             }
         }
@@ -1042,7 +1042,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shift</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">while</span> <span class="ident">pos</span> <span class="op">+</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">max</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">critical_pos</span>, <span class="ident">shift</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">cmp::max</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">critical_pos</span>, <span class="ident">shift</span>);
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pre</span>) <span class="op">=</span> <span class="ident">pre</span>.<span class="ident">as_mut</span>() {
                 <span class="kw">if</span> <span class="ident">pre</span>.<span class="ident">should_call</span>() {
                     <span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="ident">pre</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">haystack</span>[<span class="ident">pos</span>..], <span class="ident">needle</span>)<span class="question-mark">?</span>;
@@ -1128,12 +1128,12 @@
     <span class="doccomment">/// reverse through any haystack.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Reverse</span> {
         <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="ident">Reverse</span>(<span class="ident">TwoWay</span>::<span class="ident">empty</span>());
+            <span class="kw">return</span> <span class="ident">Reverse</span>(<span class="ident">TwoWay::empty</span>());
         }
 
-        <span class="kw">let</span> <span class="ident">byteset</span> <span class="op">=</span> <span class="ident">ApproximateByteSet</span>::<span class="ident">new</span>(<span class="ident">needle</span>);
-        <span class="kw">let</span> <span class="ident">min_suffix</span> <span class="op">=</span> <span class="ident">Suffix</span>::<span class="ident">reverse</span>(<span class="ident">needle</span>, <span class="ident">SuffixKind</span>::<span class="ident">Minimal</span>);
-        <span class="kw">let</span> <span class="ident">max_suffix</span> <span class="op">=</span> <span class="ident">Suffix</span>::<span class="ident">reverse</span>(<span class="ident">needle</span>, <span class="ident">SuffixKind</span>::<span class="ident">Maximal</span>);
+        <span class="kw">let</span> <span class="ident">byteset</span> <span class="op">=</span> <span class="ident">ApproximateByteSet::new</span>(<span class="ident">needle</span>);
+        <span class="kw">let</span> <span class="ident">min_suffix</span> <span class="op">=</span> <span class="ident">Suffix::reverse</span>(<span class="ident">needle</span>, <span class="ident">SuffixKind::Minimal</span>);
+        <span class="kw">let</span> <span class="ident">max_suffix</span> <span class="op">=</span> <span class="ident">Suffix::reverse</span>(<span class="ident">needle</span>, <span class="ident">SuffixKind::Maximal</span>);
         <span class="kw">let</span> (<span class="ident">period_lower_bound</span>, <span class="ident">critical_pos</span>) <span class="op">=</span>
             <span class="kw">if</span> <span class="ident">min_suffix</span>.<span class="ident">pos</span> <span class="op">&lt;</span> <span class="ident">max_suffix</span>.<span class="ident">pos</span> {
                 (<span class="ident">min_suffix</span>.<span class="ident">period</span>, <span class="ident">min_suffix</span>.<span class="ident">pos</span>)
@@ -1141,7 +1141,7 @@
                 (<span class="ident">max_suffix</span>.<span class="ident">period</span>, <span class="ident">max_suffix</span>.<span class="ident">pos</span>)
             };
         <span class="comment">// let critical_pos = needle.len() - critical_pos;</span>
-        <span class="kw">let</span> <span class="ident">shift</span> <span class="op">=</span> <span class="ident">Shift</span>::<span class="ident">reverse</span>(<span class="ident">needle</span>, <span class="ident">period_lower_bound</span>, <span class="ident">critical_pos</span>);
+        <span class="kw">let</span> <span class="ident">shift</span> <span class="op">=</span> <span class="ident">Shift::reverse</span>(<span class="ident">needle</span>, <span class="ident">period_lower_bound</span>, <span class="ident">critical_pos</span>);
         <span class="ident">Reverse</span>(<span class="ident">TwoWay</span> { <span class="ident">byteset</span>, <span class="ident">critical_pos</span>, <span class="ident">shift</span> })
     }
 
@@ -1159,17 +1159,17 @@
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">needle</span>.<span class="ident">is_empty</span>(), <span class="string">&quot;needle should not be empty&quot;</span>);
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>(), <span class="string">&quot;haystack too short&quot;</span>);
+        <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">needle</span>.<span class="ident">is_empty</span>(), <span class="string">&quot;needle should not be empty&quot;</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>(), <span class="string">&quot;haystack too short&quot;</span>);
         <span class="comment">// For the reverse case, we don&#39;t use a prefilter. It&#39;s plausible that</span>
         <span class="comment">// perhaps we should, but it&#39;s a lot of additional code to do it, and</span>
         <span class="comment">// it&#39;s not clear that it&#39;s actually worth it. If you have a really</span>
         <span class="comment">// compelling use case for this, please file an issue.</span>
         <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">shift</span> {
-            <span class="ident">Shift</span>::<span class="ident">Small</span> { <span class="ident">period</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Shift::Small</span> { <span class="ident">period</span> } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">rfind_small_imp</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>, <span class="ident">period</span>)
             }
-            <span class="ident">Shift</span>::<span class="ident">Large</span> { <span class="ident">shift</span> } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Shift::Large</span> { <span class="ident">shift</span> } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">rfind_large_imp</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>, <span class="ident">shift</span>)
             }
         }
@@ -1205,7 +1205,7 @@
                 <span class="ident">shift</span> <span class="op">=</span> <span class="ident">nlen</span>;
                 <span class="kw">continue</span>;
             }
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">min</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">critical_pos</span>, <span class="ident">shift</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">critical_pos</span>, <span class="ident">shift</span>);
             <span class="kw">while</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">needle</span>[<span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">haystack</span>[<span class="ident">pos</span> <span class="op">-</span> <span class="ident">nlen</span> <span class="op">+</span> <span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>] {
                 <span class="ident">i</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
             }
@@ -1265,9 +1265,9 @@
 <span class="kw">impl</span> <span class="ident">TwoWay</span> {
     <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TwoWay</span> {
         <span class="ident">TwoWay</span> {
-            <span class="ident">byteset</span>: <span class="ident">ApproximateByteSet</span>::<span class="ident">new</span>(<span class="string">b&quot;&quot;</span>),
+            <span class="ident">byteset</span>: <span class="ident">ApproximateByteSet::new</span>(<span class="string">b&quot;&quot;</span>),
             <span class="ident">critical_pos</span>: <span class="number">0</span>,
-            <span class="ident">shift</span>: <span class="ident">Shift</span>::<span class="ident">Large</span> { <span class="ident">shift</span>: <span class="number">0</span> },
+            <span class="ident">shift</span>: <span class="ident">Shift::Large</span> { <span class="ident">shift</span>: <span class="number">0</span> },
         }
     }
 }
@@ -1320,16 +1320,16 @@
         <span class="ident">period_lower_bound</span>: <span class="ident">usize</span>,
         <span class="ident">critical_pos</span>: <span class="ident">usize</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Shift</span> {
-        <span class="kw">let</span> <span class="ident">large</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">max</span>(<span class="ident">critical_pos</span>, <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">critical_pos</span>);
+        <span class="kw">let</span> <span class="ident">large</span> <span class="op">=</span> <span class="ident">cmp::max</span>(<span class="ident">critical_pos</span>, <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">critical_pos</span>);
         <span class="kw">if</span> <span class="ident">critical_pos</span> <span class="op">*</span> <span class="number">2</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">needle</span>.<span class="ident">len</span>() {
-            <span class="kw">return</span> <span class="ident">Shift</span>::<span class="ident">Large</span> { <span class="ident">shift</span>: <span class="ident">large</span> };
+            <span class="kw">return</span> <span class="ident">Shift::Large</span> { <span class="ident">shift</span>: <span class="ident">large</span> };
         }
 
         <span class="kw">let</span> (<span class="ident">u</span>, <span class="ident">v</span>) <span class="op">=</span> <span class="ident">needle</span>.<span class="ident">split_at</span>(<span class="ident">critical_pos</span>);
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">util</span>::<span class="ident">is_suffix</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>[..<span class="ident">period_lower_bound</span>], <span class="ident">u</span>) {
-            <span class="kw">return</span> <span class="ident">Shift</span>::<span class="ident">Large</span> { <span class="ident">shift</span>: <span class="ident">large</span> };
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">util::is_suffix</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>[..<span class="ident">period_lower_bound</span>], <span class="ident">u</span>) {
+            <span class="kw">return</span> <span class="ident">Shift::Large</span> { <span class="ident">shift</span>: <span class="ident">large</span> };
         }
-        <span class="ident">Shift</span>::<span class="ident">Small</span> { <span class="ident">period</span>: <span class="ident">period_lower_bound</span> }
+        <span class="ident">Shift::Small</span> { <span class="ident">period</span>: <span class="ident">period_lower_bound</span> }
     }
 
     <span class="doccomment">/// Compute the shift for a given needle in the reverse direction.</span>
@@ -1343,16 +1343,16 @@
         <span class="ident">period_lower_bound</span>: <span class="ident">usize</span>,
         <span class="ident">critical_pos</span>: <span class="ident">usize</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Shift</span> {
-        <span class="kw">let</span> <span class="ident">large</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">max</span>(<span class="ident">critical_pos</span>, <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">critical_pos</span>);
+        <span class="kw">let</span> <span class="ident">large</span> <span class="op">=</span> <span class="ident">cmp::max</span>(<span class="ident">critical_pos</span>, <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">critical_pos</span>);
         <span class="kw">if</span> (<span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">critical_pos</span>) <span class="op">*</span> <span class="number">2</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">needle</span>.<span class="ident">len</span>() {
-            <span class="kw">return</span> <span class="ident">Shift</span>::<span class="ident">Large</span> { <span class="ident">shift</span>: <span class="ident">large</span> };
+            <span class="kw">return</span> <span class="ident">Shift::Large</span> { <span class="ident">shift</span>: <span class="ident">large</span> };
         }
 
         <span class="kw">let</span> (<span class="ident">v</span>, <span class="ident">u</span>) <span class="op">=</span> <span class="ident">needle</span>.<span class="ident">split_at</span>(<span class="ident">critical_pos</span>);
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">util</span>::<span class="ident">is_prefix</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>[<span class="ident">v</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">period_lower_bound</span>..], <span class="ident">u</span>) {
-            <span class="kw">return</span> <span class="ident">Shift</span>::<span class="ident">Large</span> { <span class="ident">shift</span>: <span class="ident">large</span> };
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">util::is_prefix</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>[<span class="ident">v</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">period_lower_bound</span>..], <span class="ident">u</span>) {
+            <span class="kw">return</span> <span class="ident">Shift::Large</span> { <span class="ident">shift</span>: <span class="ident">large</span> };
         }
-        <span class="ident">Shift</span>::<span class="ident">Small</span> { <span class="ident">period</span>: <span class="ident">period_lower_bound</span> }
+        <span class="ident">Shift::Small</span> { <span class="ident">period</span>: <span class="ident">period_lower_bound</span> }
     }
 }
 
@@ -1376,7 +1376,7 @@
 
 <span class="kw">impl</span> <span class="ident">Suffix</span> {
     <span class="kw">fn</span> <span class="ident">forward</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">kind</span>: <span class="ident">SuffixKind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Suffix</span> {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">needle</span>.<span class="ident">is_empty</span>());
+        <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">needle</span>.<span class="ident">is_empty</span>());
 
         <span class="comment">// suffix represents our maximal (or minimal) suffix, along with</span>
         <span class="comment">// its period.</span>
@@ -1402,17 +1402,17 @@
             <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="ident">needle</span>[<span class="ident">suffix</span>.<span class="ident">pos</span> <span class="op">+</span> <span class="ident">offset</span>];
             <span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">needle</span>[<span class="ident">candidate_start</span> <span class="op">+</span> <span class="ident">offset</span>];
             <span class="kw">match</span> <span class="ident">kind</span>.<span class="ident">cmp</span>(<span class="ident">current</span>, <span class="ident">candidate</span>) {
-                <span class="ident">SuffixOrdering</span>::<span class="ident">Accept</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">SuffixOrdering::Accept</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">suffix</span> <span class="op">=</span> <span class="ident">Suffix</span> { <span class="ident">pos</span>: <span class="ident">candidate_start</span>, <span class="ident">period</span>: <span class="number">1</span> };
                     <span class="ident">candidate_start</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                     <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
                 }
-                <span class="ident">SuffixOrdering</span>::<span class="ident">Skip</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">SuffixOrdering::Skip</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">candidate_start</span> <span class="op">+</span><span class="op">=</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span>;
                     <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
                     <span class="ident">suffix</span>.<span class="ident">period</span> <span class="op">=</span> <span class="ident">candidate_start</span> <span class="op">-</span> <span class="ident">suffix</span>.<span class="ident">pos</span>;
                 }
-                <span class="ident">SuffixOrdering</span>::<span class="ident">Push</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">SuffixOrdering::Push</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">suffix</span>.<span class="ident">period</span> {
                         <span class="ident">candidate_start</span> <span class="op">+</span><span class="op">=</span> <span class="ident">suffix</span>.<span class="ident">period</span>;
                         <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
@@ -1426,7 +1426,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">reverse</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">kind</span>: <span class="ident">SuffixKind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Suffix</span> {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">needle</span>.<span class="ident">is_empty</span>());
+        <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">needle</span>.<span class="ident">is_empty</span>());
 
         <span class="comment">// See the comments in `forward` for how this works.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">suffix</span> <span class="op">=</span> <span class="ident">Suffix</span> { <span class="ident">pos</span>: <span class="ident">needle</span>.<span class="ident">len</span>(), <span class="ident">period</span>: <span class="number">1</span> };
@@ -1440,17 +1440,17 @@
             <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="ident">needle</span>[<span class="ident">suffix</span>.<span class="ident">pos</span> <span class="op">-</span> <span class="ident">offset</span> <span class="op">-</span> <span class="number">1</span>];
             <span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">needle</span>[<span class="ident">candidate_start</span> <span class="op">-</span> <span class="ident">offset</span> <span class="op">-</span> <span class="number">1</span>];
             <span class="kw">match</span> <span class="ident">kind</span>.<span class="ident">cmp</span>(<span class="ident">current</span>, <span class="ident">candidate</span>) {
-                <span class="ident">SuffixOrdering</span>::<span class="ident">Accept</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">SuffixOrdering::Accept</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">suffix</span> <span class="op">=</span> <span class="ident">Suffix</span> { <span class="ident">pos</span>: <span class="ident">candidate_start</span>, <span class="ident">period</span>: <span class="number">1</span> };
                     <span class="ident">candidate_start</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
                     <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
                 }
-                <span class="ident">SuffixOrdering</span>::<span class="ident">Skip</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">SuffixOrdering::Skip</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">candidate_start</span> <span class="op">-</span><span class="op">=</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span>;
                     <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
                     <span class="ident">suffix</span>.<span class="ident">period</span> <span class="op">=</span> <span class="ident">suffix</span>.<span class="ident">pos</span> <span class="op">-</span> <span class="ident">candidate_start</span>;
                 }
-                <span class="ident">SuffixOrdering</span>::<span class="ident">Push</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">SuffixOrdering::Push</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="ident">suffix</span>.<span class="ident">period</span> {
                         <span class="ident">candidate_start</span> <span class="op">-</span><span class="op">=</span> <span class="ident">suffix</span>.<span class="ident">period</span>;
                         <span class="ident">offset</span> <span class="op">=</span> <span class="number">0</span>;
@@ -1507,15 +1507,15 @@
     <span class="doccomment">/// it should replace the current suffix as the maximal (or minimal)</span>
     <span class="doccomment">/// suffix.</span>
     <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="self">self</span>, <span class="ident">current</span>: <span class="ident">u8</span>, <span class="ident">candidate</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SuffixOrdering</span> {
-        <span class="kw">use</span> <span class="self">self</span>::<span class="ident">SuffixOrdering</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="self">self</span><span class="ident">::SuffixOrdering</span>::<span class="kw-2">*</span>;
 
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">SuffixKind</span>::<span class="ident">Minimal</span> <span class="kw">if</span> <span class="ident">candidate</span> <span class="op">&lt;</span> <span class="ident">current</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Accept</span>,
-            <span class="ident">SuffixKind</span>::<span class="ident">Minimal</span> <span class="kw">if</span> <span class="ident">candidate</span> <span class="op">&gt;</span> <span class="ident">current</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Skip</span>,
-            <span class="ident">SuffixKind</span>::<span class="ident">Minimal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Push</span>,
-            <span class="ident">SuffixKind</span>::<span class="ident">Maximal</span> <span class="kw">if</span> <span class="ident">candidate</span> <span class="op">&gt;</span> <span class="ident">current</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Accept</span>,
-            <span class="ident">SuffixKind</span>::<span class="ident">Maximal</span> <span class="kw">if</span> <span class="ident">candidate</span> <span class="op">&lt;</span> <span class="ident">current</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Skip</span>,
-            <span class="ident">SuffixKind</span>::<span class="ident">Maximal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Push</span>,
+            <span class="ident">SuffixKind::Minimal</span> <span class="kw">if</span> <span class="ident">candidate</span> <span class="op">&lt;</span> <span class="ident">current</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Accept</span>,
+            <span class="ident">SuffixKind::Minimal</span> <span class="kw">if</span> <span class="ident">candidate</span> <span class="op">&gt;</span> <span class="ident">current</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Skip</span>,
+            <span class="ident">SuffixKind::Minimal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Push</span>,
+            <span class="ident">SuffixKind::Maximal</span> <span class="kw">if</span> <span class="ident">candidate</span> <span class="op">&gt;</span> <span class="ident">current</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Accept</span>,
+            <span class="ident">SuffixKind::Maximal</span> <span class="kw">if</span> <span class="ident">candidate</span> <span class="op">&lt;</span> <span class="ident">current</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Skip</span>,
+            <span class="ident">SuffixKind::Maximal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Push</span>,
         }
     }
 }
@@ -1549,24 +1549,24 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">test</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">not</span>(<span class="ident">miri</span>)))]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">quickcheck</span>::<span class="ident">quickcheck</span>;
+    <span class="kw">use</span> <span class="ident">quickcheck::quickcheck</span>;
 
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
-    <span class="macro">define_memmem_quickcheck_tests</span><span class="macro">!</span>(
-        <span class="kw">super</span>::<span class="ident">simpletests</span>::<span class="ident">twoway_find</span>,
-        <span class="kw">super</span>::<span class="ident">simpletests</span>::<span class="ident">twoway_rfind</span>
+    <span class="macro">define_memmem_quickcheck_tests!</span>(
+        <span class="kw">super</span><span class="ident">::simpletests::twoway_find</span>,
+        <span class="kw">super</span><span class="ident">::simpletests::twoway_rfind</span>
     );
 
     <span class="doccomment">/// Convenience wrapper for computing the suffix as a byte string.</span>
     <span class="kw">fn</span> <span class="ident">get_suffix_forward</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">kind</span>: <span class="ident">SuffixKind</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">usize</span>) {
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">Suffix</span>::<span class="ident">forward</span>(<span class="ident">needle</span>, <span class="ident">kind</span>);
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">Suffix::forward</span>(<span class="ident">needle</span>, <span class="ident">kind</span>);
         (<span class="kw-2">&amp;</span><span class="ident">needle</span>[<span class="ident">s</span>.<span class="ident">pos</span>..], <span class="ident">s</span>.<span class="ident">period</span>)
     }
 
     <span class="doccomment">/// Convenience wrapper for computing the reverse suffix as a byte string.</span>
     <span class="kw">fn</span> <span class="ident">get_suffix_reverse</span>(<span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">kind</span>: <span class="ident">SuffixKind</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">usize</span>) {
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">Suffix</span>::<span class="ident">reverse</span>(<span class="ident">needle</span>, <span class="ident">kind</span>);
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">Suffix::reverse</span>(<span class="ident">needle</span>, <span class="ident">kind</span>);
         (<span class="kw-2">&amp;</span><span class="ident">needle</span>[..<span class="ident">s</span>.<span class="ident">pos</span>], <span class="ident">s</span>.<span class="ident">period</span>)
     }
 
@@ -1594,122 +1594,122 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">suffix_forward</span>() {
-        <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">assert_suffix_min</span> {
+        <span class="macro">macro_rules!</span> <span class="ident">assert_suffix_min</span> {
             (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> (<span class="ident">got_suffix</span>, <span class="ident">got_period</span>) <span class="op">=</span>
-                    <span class="ident">get_suffix_forward</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>.<span class="ident">as_bytes</span>(), <span class="ident">SuffixKind</span>::<span class="ident">Minimal</span>);
-                <span class="kw">let</span> <span class="ident">got_suffix</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="ident">got_suffix</span>).<span class="ident">unwrap</span>();
-                <span class="macro">assert_eq</span><span class="macro">!</span>((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>), (<span class="ident">got_suffix</span>, <span class="ident">got_period</span>));
+                    <span class="ident">get_suffix_forward</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>.<span class="ident">as_bytes</span>(), <span class="ident">SuffixKind::Minimal</span>);
+                <span class="kw">let</span> <span class="ident">got_suffix</span> <span class="op">=</span> <span class="ident">std::str::from_utf8</span>(<span class="ident">got_suffix</span>).<span class="ident">unwrap</span>();
+                <span class="macro">assert_eq!</span>((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>), (<span class="ident">got_suffix</span>, <span class="ident">got_period</span>));
             };
         }
 
-        <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">assert_suffix_max</span> {
+        <span class="macro">macro_rules!</span> <span class="ident">assert_suffix_max</span> {
             (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> (<span class="ident">got_suffix</span>, <span class="ident">got_period</span>) <span class="op">=</span>
-                    <span class="ident">get_suffix_forward</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>.<span class="ident">as_bytes</span>(), <span class="ident">SuffixKind</span>::<span class="ident">Maximal</span>);
-                <span class="kw">let</span> <span class="ident">got_suffix</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="ident">got_suffix</span>).<span class="ident">unwrap</span>();
-                <span class="macro">assert_eq</span><span class="macro">!</span>((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>), (<span class="ident">got_suffix</span>, <span class="ident">got_period</span>));
+                    <span class="ident">get_suffix_forward</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>.<span class="ident">as_bytes</span>(), <span class="ident">SuffixKind::Maximal</span>);
+                <span class="kw">let</span> <span class="ident">got_suffix</span> <span class="op">=</span> <span class="ident">std::str::from_utf8</span>(<span class="ident">got_suffix</span>).<span class="ident">unwrap</span>();
+                <span class="macro">assert_eq!</span>((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>), (<span class="ident">got_suffix</span>, <span class="ident">got_period</span>));
             };
         }
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;ab&quot;</span>, <span class="string">&quot;ab&quot;</span>, <span class="number">2</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;ab&quot;</span>, <span class="string">&quot;b&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;ab&quot;</span>, <span class="string">&quot;ab&quot;</span>, <span class="number">2</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;ab&quot;</span>, <span class="string">&quot;b&quot;</span>, <span class="number">1</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;ba&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;ba&quot;</span>, <span class="string">&quot;ba&quot;</span>, <span class="number">2</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;ba&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;ba&quot;</span>, <span class="string">&quot;ba&quot;</span>, <span class="number">2</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;abc&quot;</span>, <span class="string">&quot;abc&quot;</span>, <span class="number">3</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;abc&quot;</span>, <span class="string">&quot;c&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;abc&quot;</span>, <span class="string">&quot;abc&quot;</span>, <span class="number">3</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;abc&quot;</span>, <span class="string">&quot;c&quot;</span>, <span class="number">1</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;acb&quot;</span>, <span class="string">&quot;acb&quot;</span>, <span class="number">3</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;acb&quot;</span>, <span class="string">&quot;cb&quot;</span>, <span class="number">2</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;acb&quot;</span>, <span class="string">&quot;acb&quot;</span>, <span class="number">3</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;acb&quot;</span>, <span class="string">&quot;cb&quot;</span>, <span class="number">2</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;cba&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;cba&quot;</span>, <span class="string">&quot;cba&quot;</span>, <span class="number">3</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;cba&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;cba&quot;</span>, <span class="string">&quot;cba&quot;</span>, <span class="number">3</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;abcabc&quot;</span>, <span class="string">&quot;abcabc&quot;</span>, <span class="number">3</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;abcabc&quot;</span>, <span class="string">&quot;cabc&quot;</span>, <span class="number">3</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;abcabc&quot;</span>, <span class="string">&quot;abcabc&quot;</span>, <span class="number">3</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;abcabc&quot;</span>, <span class="string">&quot;cabc&quot;</span>, <span class="number">3</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;abcabcabc&quot;</span>, <span class="string">&quot;abcabcabc&quot;</span>, <span class="number">3</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;abcabcabc&quot;</span>, <span class="string">&quot;cabcabc&quot;</span>, <span class="number">3</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;abcabcabc&quot;</span>, <span class="string">&quot;abcabcabc&quot;</span>, <span class="number">3</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;abcabcabc&quot;</span>, <span class="string">&quot;cabcabc&quot;</span>, <span class="number">3</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;abczz&quot;</span>, <span class="string">&quot;abczz&quot;</span>, <span class="number">5</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;abczz&quot;</span>, <span class="string">&quot;zz&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;abczz&quot;</span>, <span class="string">&quot;abczz&quot;</span>, <span class="number">5</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;abczz&quot;</span>, <span class="string">&quot;zz&quot;</span>, <span class="number">1</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;zzabc&quot;</span>, <span class="string">&quot;abc&quot;</span>, <span class="number">3</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;zzabc&quot;</span>, <span class="string">&quot;zzabc&quot;</span>, <span class="number">5</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;zzabc&quot;</span>, <span class="string">&quot;abc&quot;</span>, <span class="number">3</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;zzabc&quot;</span>, <span class="string">&quot;zzabc&quot;</span>, <span class="number">5</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;aaa&quot;</span>, <span class="string">&quot;aaa&quot;</span>, <span class="number">1</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;aaa&quot;</span>, <span class="string">&quot;aaa&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;aaa&quot;</span>, <span class="string">&quot;aaa&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;aaa&quot;</span>, <span class="string">&quot;aaa&quot;</span>, <span class="number">1</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;foobar&quot;</span>, <span class="string">&quot;ar&quot;</span>, <span class="number">2</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;foobar&quot;</span>, <span class="string">&quot;r&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;foobar&quot;</span>, <span class="string">&quot;ar&quot;</span>, <span class="number">2</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;foobar&quot;</span>, <span class="string">&quot;r&quot;</span>, <span class="number">1</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">suffix_reverse</span>() {
-        <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">assert_suffix_min</span> {
+        <span class="macro">macro_rules!</span> <span class="ident">assert_suffix_min</span> {
             (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> (<span class="ident">got_suffix</span>, <span class="ident">got_period</span>) <span class="op">=</span>
-                    <span class="ident">get_suffix_reverse</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>.<span class="ident">as_bytes</span>(), <span class="ident">SuffixKind</span>::<span class="ident">Minimal</span>);
-                <span class="kw">let</span> <span class="ident">got_suffix</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="ident">got_suffix</span>).<span class="ident">unwrap</span>();
-                <span class="macro">assert_eq</span><span class="macro">!</span>((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>), (<span class="ident">got_suffix</span>, <span class="ident">got_period</span>));
+                    <span class="ident">get_suffix_reverse</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>.<span class="ident">as_bytes</span>(), <span class="ident">SuffixKind::Minimal</span>);
+                <span class="kw">let</span> <span class="ident">got_suffix</span> <span class="op">=</span> <span class="ident">std::str::from_utf8</span>(<span class="ident">got_suffix</span>).<span class="ident">unwrap</span>();
+                <span class="macro">assert_eq!</span>((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>), (<span class="ident">got_suffix</span>, <span class="ident">got_period</span>));
             };
         }
 
-        <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">assert_suffix_max</span> {
+        <span class="macro">macro_rules!</span> <span class="ident">assert_suffix_max</span> {
             (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> (<span class="ident">got_suffix</span>, <span class="ident">got_period</span>) <span class="op">=</span>
-                    <span class="ident">get_suffix_reverse</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>.<span class="ident">as_bytes</span>(), <span class="ident">SuffixKind</span>::<span class="ident">Maximal</span>);
-                <span class="kw">let</span> <span class="ident">got_suffix</span> <span class="op">=</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="ident">got_suffix</span>).<span class="ident">unwrap</span>();
-                <span class="macro">assert_eq</span><span class="macro">!</span>((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>), (<span class="ident">got_suffix</span>, <span class="ident">got_period</span>));
+                    <span class="ident">get_suffix_reverse</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">given</span>.<span class="ident">as_bytes</span>(), <span class="ident">SuffixKind::Maximal</span>);
+                <span class="kw">let</span> <span class="ident">got_suffix</span> <span class="op">=</span> <span class="ident">std::str::from_utf8</span>(<span class="ident">got_suffix</span>).<span class="ident">unwrap</span>();
+                <span class="macro">assert_eq!</span>((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">period</span>), (<span class="ident">got_suffix</span>, <span class="ident">got_period</span>));
             };
         }
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;ab&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;ab&quot;</span>, <span class="string">&quot;ab&quot;</span>, <span class="number">2</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;ab&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;ab&quot;</span>, <span class="string">&quot;ab&quot;</span>, <span class="number">2</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;ba&quot;</span>, <span class="string">&quot;ba&quot;</span>, <span class="number">2</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;ba&quot;</span>, <span class="string">&quot;b&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;ba&quot;</span>, <span class="string">&quot;ba&quot;</span>, <span class="number">2</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;ba&quot;</span>, <span class="string">&quot;b&quot;</span>, <span class="number">1</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;abc&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;abc&quot;</span>, <span class="string">&quot;abc&quot;</span>, <span class="number">3</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;abc&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;abc&quot;</span>, <span class="string">&quot;abc&quot;</span>, <span class="number">3</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;acb&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;acb&quot;</span>, <span class="string">&quot;ac&quot;</span>, <span class="number">2</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;acb&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;acb&quot;</span>, <span class="string">&quot;ac&quot;</span>, <span class="number">2</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;cba&quot;</span>, <span class="string">&quot;cba&quot;</span>, <span class="number">3</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;cba&quot;</span>, <span class="string">&quot;c&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;cba&quot;</span>, <span class="string">&quot;cba&quot;</span>, <span class="number">3</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;cba&quot;</span>, <span class="string">&quot;c&quot;</span>, <span class="number">1</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;abcabc&quot;</span>, <span class="string">&quot;abca&quot;</span>, <span class="number">3</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;abcabc&quot;</span>, <span class="string">&quot;abcabc&quot;</span>, <span class="number">3</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;abcabc&quot;</span>, <span class="string">&quot;abca&quot;</span>, <span class="number">3</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;abcabc&quot;</span>, <span class="string">&quot;abcabc&quot;</span>, <span class="number">3</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;abcabcabc&quot;</span>, <span class="string">&quot;abcabca&quot;</span>, <span class="number">3</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;abcabcabc&quot;</span>, <span class="string">&quot;abcabcabc&quot;</span>, <span class="number">3</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;abcabcabc&quot;</span>, <span class="string">&quot;abcabca&quot;</span>, <span class="number">3</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;abcabcabc&quot;</span>, <span class="string">&quot;abcabcabc&quot;</span>, <span class="number">3</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;abczz&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;abczz&quot;</span>, <span class="string">&quot;abczz&quot;</span>, <span class="number">5</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;abczz&quot;</span>, <span class="string">&quot;a&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;abczz&quot;</span>, <span class="string">&quot;abczz&quot;</span>, <span class="number">5</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;zzabc&quot;</span>, <span class="string">&quot;zza&quot;</span>, <span class="number">3</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;zzabc&quot;</span>, <span class="string">&quot;zz&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;zzabc&quot;</span>, <span class="string">&quot;zza&quot;</span>, <span class="number">3</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;zzabc&quot;</span>, <span class="string">&quot;zz&quot;</span>, <span class="number">1</span>);
 
-        <span class="macro">assert_suffix_min</span><span class="macro">!</span>(<span class="string">&quot;aaa&quot;</span>, <span class="string">&quot;aaa&quot;</span>, <span class="number">1</span>);
-        <span class="macro">assert_suffix_max</span><span class="macro">!</span>(<span class="string">&quot;aaa&quot;</span>, <span class="string">&quot;aaa&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_min!</span>(<span class="string">&quot;aaa&quot;</span>, <span class="string">&quot;aaa&quot;</span>, <span class="number">1</span>);
+        <span class="macro">assert_suffix_max!</span>(<span class="string">&quot;aaa&quot;</span>, <span class="string">&quot;aaa&quot;</span>, <span class="number">1</span>);
     }
 
-    <span class="macro">quickcheck</span><span class="macro">!</span> {
+    <span class="macro">quickcheck!</span> {
         <span class="kw">fn</span> <span class="ident">qc_suffix_forward_maximal</span>(<span class="ident">bytes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
             <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">is_empty</span>() {
                 <span class="kw">return</span> <span class="bool-val">true</span>;
             }
 
-            <span class="kw">let</span> (<span class="ident">got</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">get_suffix_forward</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>, <span class="ident">SuffixKind</span>::<span class="ident">Maximal</span>);
+            <span class="kw">let</span> (<span class="ident">got</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">get_suffix_forward</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>, <span class="ident">SuffixKind::Maximal</span>);
             <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">naive_maximal_suffix_forward</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>);
             <span class="ident">got</span> <span class="op">=</span><span class="op">=</span> <span class="ident">expected</span>
         }
@@ -1719,7 +1719,7 @@
                 <span class="kw">return</span> <span class="bool-val">true</span>;
             }
 
-            <span class="kw">let</span> (<span class="ident">got</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">get_suffix_reverse</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>, <span class="ident">SuffixKind</span>::<span class="ident">Maximal</span>);
+            <span class="kw">let</span> (<span class="ident">got</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">get_suffix_reverse</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>, <span class="ident">SuffixKind::Maximal</span>);
             <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">naive_maximal_suffix_reverse</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>);
             <span class="ident">expected</span> <span class="op">=</span><span class="op">=</span> <span class="ident">got</span>
         }
@@ -1734,17 +1734,17 @@
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="ident">Forward</span>::<span class="ident">new</span>(<span class="ident">needle</span>).<span class="ident">find_general</span>(<span class="prelude-val">None</span>, <span class="ident">haystack</span>, <span class="ident">needle</span>)
+        <span class="ident">Forward::new</span>(<span class="ident">needle</span>).<span class="ident">find_general</span>(<span class="prelude-val">None</span>, <span class="ident">haystack</span>, <span class="ident">needle</span>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">twoway_rfind</span>(
         <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">needle</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="ident">Reverse</span>::<span class="ident">new</span>(<span class="ident">needle</span>).<span class="ident">rfind_general</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>)
+        <span class="ident">Reverse::new</span>(<span class="ident">needle</span>).<span class="ident">rfind_general</span>(<span class="ident">haystack</span>, <span class="ident">needle</span>)
     }
 
-    <span class="macro">define_memmem_simple_tests</span><span class="macro">!</span>(<span class="ident">twoway_find</span>, <span class="ident">twoway_rfind</span>);
+    <span class="macro">define_memmem_simple_tests!</span>(<span class="ident">twoway_find</span>, <span class="ident">twoway_rfind</span>);
 
     <span class="comment">// This is a regression test caught by quickcheck that exercised a bug in</span>
     <span class="comment">// the reverse small period handling. The bug was that we were using &#39;if j</span>
@@ -1752,12 +1752,12 @@
     <span class="comment">// j &gt;= shift&#39;, which matches the corresponding guard in the forward impl.</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">regression_rev_small_period</span>() {
-        <span class="kw">let</span> <span class="ident">rfind</span> <span class="op">=</span> <span class="kw">super</span>::<span class="ident">simpletests</span>::<span class="ident">twoway_rfind</span>;
+        <span class="kw">let</span> <span class="ident">rfind</span> <span class="op">=</span> <span class="kw">super</span><span class="ident">::simpletests::twoway_rfind</span>;
         <span class="kw">let</span> <span class="ident">haystack</span> <span class="op">=</span> <span class="string">&quot;ababaz&quot;</span>;
         <span class="kw">let</span> <span class="ident">needle</span> <span class="op">=</span> <span class="string">&quot;abab&quot;</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="prelude-val">Some</span>(<span class="number">0</span>), <span class="ident">rfind</span>(<span class="ident">haystack</span>.<span class="ident">as_bytes</span>(), <span class="ident">needle</span>.<span class="ident">as_bytes</span>()));
+        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="number">0</span>), <span class="ident">rfind</span>(<span class="ident">haystack</span>.<span class="ident">as_bytes</span>(), <span class="ident">needle</span>.<span class="ident">as_bytes</span>()));
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="memchr" data-search-js="../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="memchr" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.8.3/src/rngs/std.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>std.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../rand/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.8.4/src/rngs/std.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>std.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../rand/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -115,12 +115,12 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">CryptoRng</span>, <span class="ident">Error</span>, <span class="ident">RngCore</span>, <span class="ident">SeedableRng</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">test</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>)))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">rand_chacha</span>::<span class="ident">ChaCha12Core</span> <span class="kw">as</span> <span class="ident">Core</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">rand_chacha::ChaCha12Core</span> <span class="kw">as</span> <span class="ident">Core</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">test</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>))]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">rand_hc</span>::<span class="ident">Hc128Core</span> <span class="kw">as</span> <span class="ident">Core</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">rand_hc::Hc128Core</span> <span class="kw">as</span> <span class="ident">Core</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>))]</span> <span class="kw">use</span> <span class="ident">rand_chacha</span>::<span class="ident">ChaCha12Rng</span> <span class="kw">as</span> <span class="ident">Rng</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>)]</span> <span class="kw">use</span> <span class="ident">rand_hc</span>::<span class="ident">Hc128Rng</span> <span class="kw">as</span> <span class="ident">Rng</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>))]</span> <span class="kw">use</span> <span class="ident">rand_chacha::ChaCha12Rng</span> <span class="kw">as</span> <span class="ident">Rng</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>)]</span> <span class="kw">use</span> <span class="ident">rand_hc::Hc128Rng</span> <span class="kw">as</span> <span class="ident">Rng</span>;
 
 <span class="doccomment">/// The standard RNG. The PRNG algorithm in `StdRng` is chosen to be efficient</span>
 <span class="doccomment">/// on the current platform, to be statistically strong and unpredictable</span>
@@ -164,16 +164,16 @@
 }
 
 <span class="kw">impl</span> <span class="ident">SeedableRng</span> <span class="kw">for</span> <span class="ident">StdRng</span> {
-    <span class="kw">type</span> <span class="ident">Seed</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Rng</span> <span class="kw">as</span> <span class="ident">SeedableRng</span><span class="op">&gt;</span>::<span class="ident">Seed</span>;
+    <span class="kw">type</span> <span class="ident">Seed</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Rng</span> <span class="kw">as</span> <span class="ident">SeedableRng</span><span class="op">&gt;</span><span class="ident">::Seed</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_seed</span>(<span class="ident">seed</span>: <span class="self">Self</span>::<span class="ident">Seed</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">StdRng</span>(<span class="ident">Rng</span>::<span class="ident">from_seed</span>(<span class="ident">seed</span>))
+    <span class="kw">fn</span> <span class="ident">from_seed</span>(<span class="ident">seed</span>: <span class="self">Self</span><span class="ident">::Seed</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="ident">StdRng</span>(<span class="ident">Rng::from_seed</span>(<span class="ident">seed</span>))
     }
 
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
     <span class="kw">fn</span> <span class="ident">from_rng</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">RngCore</span><span class="op">&gt;</span>(<span class="ident">rng</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="ident">Rng</span>::<span class="ident">from_rng</span>(<span class="ident">rng</span>).<span class="ident">map</span>(<span class="ident">StdRng</span>)
+        <span class="ident">Rng::from_rng</span>(<span class="ident">rng</span>).<span class="ident">map</span>(<span class="ident">StdRng</span>)
     }
 }
 
@@ -182,28 +182,28 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">rngs</span>::<span class="ident">StdRng</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::rngs::StdRng</span>;
     <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">RngCore</span>, <span class="ident">SeedableRng</span>};
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_stdrng_construction</span>() {
         <span class="comment">// Test value-stability of StdRng. This is expected to break any time</span>
         <span class="comment">// the algorithm is changed.</span>
-        <span class="attribute">#[<span class="ident">rustfmt</span>::<span class="ident">skip</span>]</span>
+        <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
         <span class="kw">let</span> <span class="ident">seed</span> <span class="op">=</span> [<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">23</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">200</span>,<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">210</span>,<span class="number">30</span>,<span class="number">0</span>,<span class="number">0</span>,
                     <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>, <span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>];
 
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> [<span class="number">10719222850664546238</span>, <span class="number">14064965282130556830</span>];
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng0</span> <span class="op">=</span> <span class="ident">StdRng</span>::<span class="ident">from_seed</span>(<span class="ident">seed</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng0</span> <span class="op">=</span> <span class="ident">StdRng::from_seed</span>(<span class="ident">seed</span>);
         <span class="kw">let</span> <span class="ident">x0</span> <span class="op">=</span> <span class="ident">rng0</span>.<span class="ident">next_u64</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng1</span> <span class="op">=</span> <span class="ident">StdRng</span>::<span class="ident">from_rng</span>(<span class="ident">rng0</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng1</span> <span class="op">=</span> <span class="ident">StdRng::from_rng</span>(<span class="ident">rng0</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">x1</span> <span class="op">=</span> <span class="ident">rng1</span>.<span class="ident">next_u64</span>();
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>([<span class="ident">x0</span>, <span class="ident">x1</span>], <span class="ident">target</span>);
+        <span class="macro">assert_eq!</span>([<span class="ident">x0</span>, <span class="ident">x1</span>], <span class="ident">target</span>);
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rand" data-search-js="../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rand" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

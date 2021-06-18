@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-bigint-0.4.0/src/biguint/monty.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>monty.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../num_bigint/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../num_bigint/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -227,13 +227,13 @@
 <span id="224">224</span>
 <span id="225">225</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">std_alloc</span>::<span class="ident">Vec</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">mem</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::<span class="ident">Shl</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::std_alloc::Vec</span>;
+<span class="kw">use</span> <span class="ident">core::mem</span>;
+<span class="kw">use</span> <span class="ident">core::ops::Shl</span>;
 <span class="kw">use</span> <span class="ident">num_traits</span>::{<span class="ident">One</span>, <span class="ident">Zero</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">big_digit</span>::{<span class="self">self</span>, <span class="ident">BigDigit</span>, <span class="ident">DoubleBigDigit</span>, <span class="ident">SignedDoubleBigDigit</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">biguint</span>::<span class="ident">BigUint</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::big_digit</span>::{<span class="self">self</span>, <span class="ident">BigDigit</span>, <span class="ident">DoubleBigDigit</span>, <span class="ident">SignedDoubleBigDigit</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::biguint::BigUint</span>;
 
 <span class="kw">struct</span> <span class="ident">MontyReducer</span> {
     <span class="ident">n0inv</span>: <span class="ident">BigDigit</span>,
@@ -242,12 +242,12 @@
 <span class="comment">// k0 = -m**-1 mod 2**BITS. Algorithm from: Dumas, J.G. &quot;On Newton–Raphson</span>
 <span class="comment">// Iteration for Multiplicative Inverses Modulo Prime Powers&quot;.</span>
 <span class="kw">fn</span> <span class="ident">inv_mod_alt</span>(<span class="ident">b</span>: <span class="ident">BigDigit</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigDigit</span> {
-    <span class="macro">assert_ne</span><span class="macro">!</span>(<span class="ident">b</span> <span class="op">&amp;</span> <span class="number">1</span>, <span class="number">0</span>);
+    <span class="macro">assert_ne!</span>(<span class="ident">b</span> <span class="op">&amp;</span> <span class="number">1</span>, <span class="number">0</span>);
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k0</span> <span class="op">=</span> <span class="number">2</span> <span class="op">-</span> <span class="ident">b</span> <span class="kw">as</span> <span class="ident">SignedDoubleBigDigit</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> (<span class="ident">b</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">SignedDoubleBigDigit</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="number">1</span>;
-    <span class="kw">while</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">big_digit</span>::<span class="ident">BITS</span> {
+    <span class="kw">while</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">big_digit::BITS</span> {
         <span class="ident">t</span> <span class="op">=</span> <span class="ident">t</span>.<span class="ident">wrapping_mul</span>(<span class="ident">t</span>);
         <span class="ident">k0</span> <span class="op">=</span> <span class="ident">k0</span>.<span class="ident">wrapping_mul</span>(<span class="ident">t</span> <span class="op">+</span> <span class="number">1</span>);
 
@@ -270,13 +270,13 @@
 <span class="doccomment">/// In the terminology of that paper, this is an &quot;Almost Montgomery Multiplication&quot;:</span>
 <span class="doccomment">/// x and y are required to satisfy 0 &lt;= z &lt; 2**(n*_W) and then the result</span>
 <span class="doccomment">/// z is guaranteed to satisfy 0 &lt;= z &lt; 2**(n*_W), but it may not be &lt; m.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">many_single_char_names</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::many_single_char_names</span>)]</span>
 <span class="kw">fn</span> <span class="ident">montgomery</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">BigUint</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="ident">BigUint</span>, <span class="ident">m</span>: <span class="kw-2">&amp;</span><span class="ident">BigUint</span>, <span class="ident">k</span>: <span class="ident">BigDigit</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigUint</span> {
     <span class="comment">// This code assumes x, y, m are all the same length, n.</span>
     <span class="comment">// (required by addMulVVW and the for loop).</span>
     <span class="comment">// It also assumes that x, y are already reduced mod m,</span>
     <span class="comment">// or else the result will not be properly reduced.</span>
-    <span class="macro">assert</span><span class="macro">!</span>(
+    <span class="macro">assert!</span>(
         <span class="ident">x</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">n</span> <span class="op">&amp;&amp;</span> <span class="ident">y</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">n</span> <span class="op">&amp;&amp;</span> <span class="ident">m</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">n</span>,
         <span class="string">&quot;{:?} {:?} {:?} {}&quot;</span>,
         <span class="ident">x</span>,
@@ -285,7 +285,7 @@
         <span class="ident">n</span>
     );
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">z</span> <span class="op">=</span> <span class="ident">BigUint</span>::<span class="ident">zero</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">z</span> <span class="op">=</span> <span class="ident">BigUint::zero</span>();
     <span class="ident">z</span>.<span class="ident">data</span>.<span class="ident">resize</span>(<span class="ident">n</span> <span class="op">*</span> <span class="number">2</span>, <span class="number">0</span>);
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span>: <span class="ident">BigDigit</span> <span class="op">=</span> <span class="number">0</span>;
@@ -337,7 +337,7 @@
         <span class="kw">let</span> <span class="ident">zi</span> <span class="op">=</span> <span class="ident">xi</span>.<span class="ident">wrapping_sub</span>(<span class="kw-2">*</span><span class="ident">yi</span>).<span class="ident">wrapping_sub</span>(<span class="ident">c</span>);
         <span class="ident">z</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">zi</span>;
         <span class="comment">// see &quot;Hacker&#39;s Delight&quot;, section 2-12 (overflow detection)</span>
-        <span class="ident">c</span> <span class="op">=</span> ((<span class="ident">yi</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">xi</span>) <span class="op">|</span> ((<span class="ident">yi</span> <span class="op">|</span> <span class="op">!</span><span class="ident">xi</span>) <span class="op">&amp;</span> <span class="ident">zi</span>)) <span class="op">&gt;</span><span class="op">&gt;</span> (<span class="ident">big_digit</span>::<span class="ident">BITS</span> <span class="op">-</span> <span class="number">1</span>)
+        <span class="ident">c</span> <span class="op">=</span> ((<span class="ident">yi</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">xi</span>) <span class="op">|</span> ((<span class="ident">yi</span> <span class="op">|</span> <span class="op">!</span><span class="ident">xi</span>) <span class="op">&amp;</span> <span class="ident">zi</span>)) <span class="op">&gt;</span><span class="op">&gt;</span> (<span class="ident">big_digit::BITS</span> <span class="op">-</span> <span class="number">1</span>)
     }
 
     <span class="ident">c</span>
@@ -357,14 +357,14 @@
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 <span class="kw">fn</span> <span class="ident">mul_add_www</span>(<span class="ident">x</span>: <span class="ident">BigDigit</span>, <span class="ident">y</span>: <span class="ident">BigDigit</span>, <span class="ident">c</span>: <span class="ident">BigDigit</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">BigDigit</span>, <span class="ident">BigDigit</span>) {
     <span class="kw">let</span> <span class="ident">z</span> <span class="op">=</span> <span class="ident">x</span> <span class="kw">as</span> <span class="ident">DoubleBigDigit</span> <span class="op">*</span> <span class="ident">y</span> <span class="kw">as</span> <span class="ident">DoubleBigDigit</span> <span class="op">+</span> <span class="ident">c</span> <span class="kw">as</span> <span class="ident">DoubleBigDigit</span>;
-    ((<span class="ident">z</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">big_digit</span>::<span class="ident">BITS</span>) <span class="kw">as</span> <span class="ident">BigDigit</span>, <span class="ident">z</span> <span class="kw">as</span> <span class="ident">BigDigit</span>)
+    ((<span class="ident">z</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">big_digit::BITS</span>) <span class="kw">as</span> <span class="ident">BigDigit</span>, <span class="ident">z</span> <span class="kw">as</span> <span class="ident">BigDigit</span>)
 }
 
 <span class="doccomment">/// Calculates x ** y mod m using a fixed, 4-bit window.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">many_single_char_names</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::many_single_char_names</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">monty_modpow</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">BigUint</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="ident">BigUint</span>, <span class="ident">m</span>: <span class="kw-2">&amp;</span><span class="ident">BigUint</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigUint</span> {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">m</span>.<span class="ident">data</span>[<span class="number">0</span>] <span class="op">&amp;</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span>);
-    <span class="kw">let</span> <span class="ident">mr</span> <span class="op">=</span> <span class="ident">MontyReducer</span>::<span class="ident">new</span>(<span class="ident">m</span>);
+    <span class="macro">assert!</span>(<span class="ident">m</span>.<span class="ident">data</span>[<span class="number">0</span>] <span class="op">&amp;</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span>);
+    <span class="kw">let</span> <span class="ident">mr</span> <span class="op">=</span> <span class="ident">MontyReducer::new</span>(<span class="ident">m</span>);
     <span class="kw">let</span> <span class="ident">num_words</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">data</span>.<span class="ident">len</span>();
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">clone</span>();
@@ -380,18 +380,18 @@
     }
 
     <span class="comment">// rr = 2**(2*_W*len(m)) mod m</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rr</span> <span class="op">=</span> <span class="ident">BigUint</span>::<span class="ident">one</span>();
-    <span class="ident">rr</span> <span class="op">=</span> (<span class="ident">rr</span>.<span class="ident">shl</span>(<span class="number">2</span> <span class="op">*</span> <span class="ident">num_words</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">*</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">big_digit</span>::<span class="ident">BITS</span>))) <span class="op">%</span> <span class="ident">m</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rr</span> <span class="op">=</span> <span class="ident">BigUint::one</span>();
+    <span class="ident">rr</span> <span class="op">=</span> (<span class="ident">rr</span>.<span class="ident">shl</span>(<span class="number">2</span> <span class="op">*</span> <span class="ident">num_words</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">*</span> <span class="ident">u64::from</span>(<span class="ident">big_digit::BITS</span>))) <span class="op">%</span> <span class="ident">m</span>;
     <span class="kw">if</span> <span class="ident">rr</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">num_words</span> {
         <span class="ident">rr</span>.<span class="ident">data</span>.<span class="ident">resize</span>(<span class="ident">num_words</span>, <span class="number">0</span>);
     }
     <span class="comment">// one = 1, with equal length to that of m</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">one</span> <span class="op">=</span> <span class="ident">BigUint</span>::<span class="ident">one</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">one</span> <span class="op">=</span> <span class="ident">BigUint::one</span>();
     <span class="ident">one</span>.<span class="ident">data</span>.<span class="ident">resize</span>(<span class="ident">num_words</span>, <span class="number">0</span>);
 
     <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="number">4</span>;
     <span class="comment">// powers[i] contains x^i</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">powers</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">n</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">powers</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">n</span>);
     <span class="ident">powers</span>.<span class="ident">push</span>(<span class="ident">montgomery</span>(<span class="kw-2">&amp;</span><span class="ident">one</span>, <span class="kw-2">&amp;</span><span class="ident">rr</span>, <span class="ident">m</span>, <span class="ident">mr</span>.<span class="ident">n0inv</span>, <span class="ident">num_words</span>));
     <span class="ident">powers</span>.<span class="ident">push</span>(<span class="ident">montgomery</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>, <span class="kw-2">&amp;</span><span class="ident">rr</span>, <span class="ident">m</span>, <span class="ident">mr</span>.<span class="ident">n0inv</span>, <span class="ident">num_words</span>));
     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">2</span>..<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">n</span> {
@@ -402,14 +402,14 @@
     <span class="comment">// initialize z = 1 (Montgomery 1)</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">z</span> <span class="op">=</span> <span class="ident">powers</span>[<span class="number">0</span>].<span class="ident">clone</span>();
     <span class="ident">z</span>.<span class="ident">data</span>.<span class="ident">resize</span>(<span class="ident">num_words</span>, <span class="number">0</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zz</span> <span class="op">=</span> <span class="ident">BigUint</span>::<span class="ident">zero</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zz</span> <span class="op">=</span> <span class="ident">BigUint::zero</span>();
     <span class="ident">zz</span>.<span class="ident">data</span>.<span class="ident">resize</span>(<span class="ident">num_words</span>, <span class="number">0</span>);
 
     <span class="comment">// same windowed exponent, but with Montgomery multiplications</span>
     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> (<span class="number">0</span>..<span class="ident">y</span>.<span class="ident">data</span>.<span class="ident">len</span>()).<span class="ident">rev</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">yi</span> <span class="op">=</span> <span class="ident">y</span>.<span class="ident">data</span>[<span class="ident">i</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">j</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">while</span> <span class="ident">j</span> <span class="op">&lt;</span> <span class="ident">big_digit</span>::<span class="ident">BITS</span> {
+        <span class="kw">while</span> <span class="ident">j</span> <span class="op">&lt;</span> <span class="ident">big_digit::BITS</span> {
             <span class="kw">if</span> <span class="ident">i</span> <span class="op">!</span><span class="op">=</span> <span class="ident">y</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">j</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                 <span class="ident">zz</span> <span class="op">=</span> <span class="ident">montgomery</span>(<span class="kw-2">&amp;</span><span class="ident">z</span>, <span class="kw-2">&amp;</span><span class="ident">z</span>, <span class="ident">m</span>, <span class="ident">mr</span>.<span class="ident">n0inv</span>, <span class="ident">num_words</span>);
                 <span class="ident">z</span> <span class="op">=</span> <span class="ident">montgomery</span>(<span class="kw-2">&amp;</span><span class="ident">zz</span>, <span class="kw-2">&amp;</span><span class="ident">zz</span>, <span class="ident">m</span>, <span class="ident">mr</span>.<span class="ident">n0inv</span>, <span class="ident">num_words</span>);
@@ -418,12 +418,12 @@
             }
             <span class="ident">zz</span> <span class="op">=</span> <span class="ident">montgomery</span>(
                 <span class="kw-2">&amp;</span><span class="ident">z</span>,
-                <span class="kw-2">&amp;</span><span class="ident">powers</span>[(<span class="ident">yi</span> <span class="op">&gt;</span><span class="op">&gt;</span> (<span class="ident">big_digit</span>::<span class="ident">BITS</span> <span class="op">-</span> <span class="ident">n</span>)) <span class="kw">as</span> <span class="ident">usize</span>],
+                <span class="kw-2">&amp;</span><span class="ident">powers</span>[(<span class="ident">yi</span> <span class="op">&gt;</span><span class="op">&gt;</span> (<span class="ident">big_digit::BITS</span> <span class="op">-</span> <span class="ident">n</span>)) <span class="kw">as</span> <span class="ident">usize</span>],
                 <span class="ident">m</span>,
                 <span class="ident">mr</span>.<span class="ident">n0inv</span>,
                 <span class="ident">num_words</span>,
             );
-            <span class="ident">mem</span>::<span class="ident">swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">z</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">zz</span>);
+            <span class="ident">mem::swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">z</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">zz</span>);
             <span class="ident">yi</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="op">=</span> <span class="ident">n</span>;
             <span class="ident">j</span> <span class="op">+</span><span class="op">=</span> <span class="ident">n</span>;
         }
@@ -453,5 +453,5 @@
     <span class="ident">zz</span>
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="num_bigint" data-search-js="../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="num_bigint" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

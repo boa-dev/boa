@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/synstructure-0.12.4/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../synstructure/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../synstructure/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -2601,10 +2601,10 @@
 ))]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proc_macro</span>;
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashSet</span>;
+<span class="kw">use</span> <span class="ident">std::collections::HashSet</span>;
 
-<span class="kw">use</span> <span class="ident">syn</span>::<span class="ident">parse</span>::{<span class="ident">ParseStream</span>, <span class="ident">Parser</span>};
-<span class="kw">use</span> <span class="ident">syn</span>::<span class="ident">visit</span>::{<span class="self">self</span>, <span class="ident">Visit</span>};
+<span class="kw">use</span> <span class="ident">syn::parse</span>::{<span class="ident">ParseStream</span>, <span class="ident">Parser</span>};
+<span class="kw">use</span> <span class="ident">syn::visit</span>::{<span class="self">self</span>, <span class="ident">Visit</span>};
 <span class="kw">use</span> <span class="ident">syn</span>::{
     <span class="ident">braced</span>, <span class="ident">punctuated</span>, <span class="ident">token</span>, <span class="ident">Attribute</span>, <span class="ident">Data</span>, <span class="ident">DeriveInput</span>, <span class="ident">Error</span>, <span class="ident">Expr</span>, <span class="ident">Field</span>, <span class="ident">Fields</span>,
     <span class="ident">FieldsNamed</span>, <span class="ident">FieldsUnnamed</span>, <span class="ident">GenericParam</span>, <span class="ident">Generics</span>, <span class="ident">Ident</span>, <span class="ident">PredicateType</span>, <span class="prelude-ty">Result</span>, <span class="ident">Token</span>,
@@ -2615,9 +2615,9 @@
 <span class="comment">// re-export the quote! macro so we can depend on it being around in our macro&#39;s</span>
 <span class="comment">// implementations.</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">quote</span>::<span class="ident">quote</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">quote::quote</span>;
 
-<span class="kw">use</span> <span class="ident">unicode_xid</span>::<span class="ident">UnicodeXID</span>;
+<span class="kw">use</span> <span class="ident">unicode_xid::UnicodeXID</span>;
 
 <span class="kw">use</span> <span class="ident">proc_macro2</span>::{<span class="ident">Span</span>, <span class="ident">TokenStream</span>, <span class="ident">TokenTree</span>};
 
@@ -2658,10 +2658,10 @@
 <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">BindStyle</span> {
     <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">BindStyle</span>::<span class="ident">Move</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">BindStyle</span>::<span class="ident">MoveMut</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">quote_spanned</span><span class="macro">!</span>(<span class="ident">Span</span>::<span class="ident">call_site</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">mut</span>).<span class="ident">to_tokens</span>(<span class="ident">tokens</span>),
-            <span class="ident">BindStyle</span>::<span class="ident">Ref</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">quote_spanned</span><span class="macro">!</span>(<span class="ident">Span</span>::<span class="ident">call_site</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">ref</span>).<span class="ident">to_tokens</span>(<span class="ident">tokens</span>),
-            <span class="ident">BindStyle</span>::<span class="ident">RefMut</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">quote_spanned</span><span class="macro">!</span>(<span class="ident">Span</span>::<span class="ident">call_site</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">ref</span> <span class="kw-2">mut</span>).<span class="ident">to_tokens</span>(<span class="ident">tokens</span>),
+            <span class="ident">BindStyle::Move</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">BindStyle::MoveMut</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">quote_spanned!</span>(<span class="ident">Span::call_site</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">mut</span>).<span class="ident">to_tokens</span>(<span class="ident">tokens</span>),
+            <span class="ident">BindStyle::Ref</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">quote_spanned!</span>(<span class="ident">Span::call_site</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">ref</span>).<span class="ident">to_tokens</span>(<span class="ident">tokens</span>),
+            <span class="ident">BindStyle::RefMut</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">quote_spanned!</span>(<span class="ident">Span::call_site</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">ref</span> <span class="kw-2">mut</span>).<span class="ident">to_tokens</span>(<span class="ident">tokens</span>),
         }
     }
 }
@@ -2680,10 +2680,10 @@
 
 <span class="comment">// Internal method for extracting the set of generics which have been matched.</span>
 <span class="kw">fn</span> <span class="ident">fetch_generics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">set</span>: <span class="kw-2">&amp;</span>[<span class="ident">bool</span>], <span class="ident">generics</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Generics</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ident</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tys</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tys</span> <span class="op">=</span> <span class="macro">vec!</span>[];
     <span class="kw">for</span> (<span class="kw-2">&amp;</span><span class="ident">seen</span>, <span class="ident">param</span>) <span class="kw">in</span> <span class="ident">set</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">generics</span>.<span class="ident">params</span>.<span class="ident">iter</span>()) {
         <span class="kw">if</span> <span class="ident">seen</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">GenericParam</span>::<span class="ident">Type</span>(<span class="ident">tparam</span>) <span class="op">=</span> <span class="ident">param</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">GenericParam::Type</span>(<span class="ident">tparam</span>) <span class="op">=</span> <span class="ident">param</span> {
                 <span class="ident">tys</span>.<span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="ident">tparam</span>.<span class="ident">ident</span>)
             }
         }
@@ -2693,9 +2693,9 @@
 
 <span class="comment">// Internal method for sanitizing an identifier for hygiene purposes.</span>
 <span class="kw">fn</span> <span class="ident">sanitize_ident</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ident</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">with_capacity</span>(<span class="ident">s</span>.<span class="ident">len</span>());
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">String::with_capacity</span>(<span class="ident">s</span>.<span class="ident">len</span>());
     <span class="kw">for</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">chars</span>() {
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">UnicodeXID</span>::<span class="ident">is_xid_continue</span>(<span class="ident">c</span>) {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">UnicodeXID::is_xid_continue</span>(<span class="ident">c</span>) {
             <span class="ident">c</span> <span class="op">=</span> <span class="string">&#39;_&#39;</span>
         }
         <span class="comment">// Deduplicate consecutive _ characters.</span>
@@ -2704,7 +2704,7 @@
         }
         <span class="ident">res</span>.<span class="ident">push</span>(<span class="ident">c</span>);
     }
-    <span class="ident">Ident</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">res</span>, <span class="ident">Span</span>::<span class="ident">call_site</span>())
+    <span class="ident">Ident::new</span>(<span class="kw-2">&amp;</span><span class="ident">res</span>, <span class="ident">Span::call_site</span>())
 }
 
 <span class="comment">// Internal method to merge two Generics objects together intelligently.</span>
@@ -2713,28 +2713,28 @@
     <span class="kw">for</span> <span class="ident">p</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">from</span>.<span class="ident">params</span> {
         <span class="kw">for</span> <span class="ident">op</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">into</span>.<span class="ident">params</span> {
             <span class="kw">match</span> (<span class="ident">op</span>, <span class="ident">p</span>) {
-                (<span class="ident">GenericParam</span>::<span class="ident">Type</span>(<span class="ident">otp</span>), <span class="ident">GenericParam</span>::<span class="ident">Type</span>(<span class="ident">tp</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                (<span class="ident">GenericParam::Type</span>(<span class="ident">otp</span>), <span class="ident">GenericParam::Type</span>(<span class="ident">tp</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// NOTE: This is only OK because syn ignores the span for equality purposes.</span>
                     <span class="kw">if</span> <span class="ident">otp</span>.<span class="ident">ident</span> <span class="op">=</span><span class="op">=</span> <span class="ident">tp</span>.<span class="ident">ident</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">new_spanned</span>(
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new_spanned</span>(
                             <span class="ident">p</span>,
-                            <span class="macro">format</span><span class="macro">!</span>(
+                            <span class="macro">format!</span>(
                                 <span class="string">&quot;Attempted to merge conflicting generic parameters: {} and {}&quot;</span>,
-                                <span class="macro">quote</span><span class="macro">!</span>(#<span class="ident">op</span>),
-                                <span class="macro">quote</span><span class="macro">!</span>(#<span class="ident">p</span>)
+                                <span class="macro">quote!</span>(#<span class="ident">op</span>),
+                                <span class="macro">quote!</span>(#<span class="ident">p</span>)
                             ),
                         ));
                     }
                 }
-                (<span class="ident">GenericParam</span>::<span class="ident">Lifetime</span>(<span class="ident">olp</span>), <span class="ident">GenericParam</span>::<span class="ident">Lifetime</span>(<span class="ident">lp</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                (<span class="ident">GenericParam::Lifetime</span>(<span class="ident">olp</span>), <span class="ident">GenericParam::Lifetime</span>(<span class="ident">lp</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// NOTE: This is only OK because syn ignores the span for equality purposes.</span>
                     <span class="kw">if</span> <span class="ident">olp</span>.<span class="ident">lifetime</span> <span class="op">=</span><span class="op">=</span> <span class="ident">lp</span>.<span class="ident">lifetime</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">new_spanned</span>(
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new_spanned</span>(
                             <span class="ident">p</span>,
-                            <span class="macro">format</span><span class="macro">!</span>(
+                            <span class="macro">format!</span>(
                                 <span class="string">&quot;Attempted to merge conflicting generic parameters: {} and {}&quot;</span>,
-                                <span class="macro">quote</span><span class="macro">!</span>(#<span class="ident">op</span>),
-                                <span class="macro">quote</span><span class="macro">!</span>(#<span class="ident">p</span>)
+                                <span class="macro">quote!</span>(#<span class="ident">op</span>),
+                                <span class="macro">quote!</span>(#<span class="ident">p</span>)
                             ),
                         ));
                     }
@@ -2769,7 +2769,7 @@
 
     <span class="kw">match</span> <span class="ident">opt</span> {
         <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">v</span>,
-        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+        <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
     }
 }
 
@@ -2829,7 +2829,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
         <span class="kw">let</span> <span class="ident">BindingInfo</span> { <span class="ident">binding</span>, <span class="ident">style</span>, .. } <span class="op">=</span> <span class="self">self</span>;
-        <span class="macro">quote</span><span class="macro">!</span>(#<span class="ident">style</span> #<span class="ident">binding</span>)
+        <span class="macro">quote!</span>(#<span class="ident">style</span> #<span class="ident">binding</span>)
     }
 
     <span class="doccomment">/// Returns a list of the type parameters which are referenced in this</span>
@@ -2871,7 +2871,7 @@
     <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">Attribute</span>],
     <span class="kw">pub</span> <span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ident</span>,
     <span class="kw">pub</span> <span class="ident">fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Fields</span>,
-    <span class="kw">pub</span> <span class="ident">discriminant</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">token</span>::<span class="ident">Eq</span>, <span class="ident">Expr</span>)<span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">discriminant</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">token::Eq</span>, <span class="ident">Expr</span>)<span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// A wrapper around a `syn::DeriveInput`&#39;s variant which provides utilities</span>
@@ -2901,7 +2901,7 @@
         <span class="comment">// this desirable?</span>
         <span class="kw">fn</span> <span class="ident">visit_ident</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">Ident</span>) {
             <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">i</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">generics</span>.<span class="ident">params</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">GenericParam</span>::<span class="ident">Type</span>(<span class="ident">tparam</span>) <span class="op">=</span> <span class="ident">i</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">GenericParam::Type</span>(<span class="ident">tparam</span>) <span class="op">=</span> <span class="ident">i</span> {
                     <span class="kw">if</span> <span class="ident">tparam</span>.<span class="ident">ident</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">id</span> {
                         <span class="self">self</span>.<span class="ident">result</span>[<span class="ident">idx</span>] <span class="op">=</span> <span class="bool-val">true</span>;
                     }
@@ -2915,12 +2915,12 @@
             <span class="kw">for</span> <span class="ident">r</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">result</span> {
                 <span class="kw-2">*</span><span class="ident">r</span> <span class="op">=</span> <span class="bool-val">true</span>;
             }
-            <span class="ident">visit</span>::<span class="ident">visit_type_macro</span>(<span class="self">self</span>, <span class="ident">x</span>)
+            <span class="ident">visit::visit_type_macro</span>(<span class="self">self</span>, <span class="ident">x</span>)
         }
     }
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">btl</span> <span class="op">=</span> <span class="ident">BoundTypeLocator</span> {
-        <span class="ident">result</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="bool-val">false</span>; <span class="ident">generics</span>.<span class="ident">params</span>.<span class="ident">len</span>()],
+        <span class="ident">result</span>: <span class="macro">vec!</span>[<span class="bool-val">false</span>; <span class="ident">generics</span>.<span class="ident">params</span>.<span class="ident">len</span>()],
         <span class="ident">generics</span>,
     };
 
@@ -2932,11 +2932,11 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">VariantInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ast</span>: <span class="ident">VariantAst</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">prefix</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ident</span><span class="op">&gt;</span>, <span class="ident">generics</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Generics</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ast</span>.<span class="ident">fields</span> {
-            <span class="ident">Fields</span>::<span class="ident">Unit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vec</span><span class="macro">!</span>[],
-            <span class="ident">Fields</span>::<span class="ident">Unnamed</span>(<span class="ident">FieldsUnnamed</span> {
+            <span class="ident">Fields::Unit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">vec!</span>[],
+            <span class="ident">Fields::Unnamed</span>(<span class="ident">FieldsUnnamed</span> {
                 <span class="ident">unnamed</span>: <span class="ident">fields</span>, ..
             })
-            <span class="op">|</span> <span class="ident">Fields</span>::<span class="ident">Named</span>(<span class="ident">FieldsNamed</span> { <span class="ident">named</span>: <span class="ident">fields</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="op">|</span> <span class="ident">Fields::Named</span>(<span class="ident">FieldsNamed</span> { <span class="ident">named</span>: <span class="ident">fields</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">fields</span>
                     .<span class="ident">into_iter</span>()
                     .<span class="ident">enumerate</span>()
@@ -2944,8 +2944,8 @@
                         <span class="ident">BindingInfo</span> {
                             <span class="comment">// XXX: This has to be call_site to avoid privacy</span>
                             <span class="comment">// when deriving on private fields.</span>
-                            <span class="ident">binding</span>: <span class="macro">format_ident</span><span class="macro">!</span>(<span class="string">&quot;__binding_{}&quot;</span>, <span class="ident">i</span>),
-                            <span class="ident">style</span>: <span class="ident">BindStyle</span>::<span class="ident">Ref</span>,
+                            <span class="ident">binding</span>: <span class="macro">format_ident!</span>(<span class="string">&quot;__binding_{}&quot;</span>, <span class="ident">i</span>),
+                            <span class="ident">style</span>: <span class="ident">BindStyle::Ref</span>,
                             <span class="ident">field</span>,
                             <span class="ident">generics</span>,
                             <span class="ident">seen_generics</span>: <span class="ident">get_ty_params</span>(<span class="ident">field</span>, <span class="ident">generics</span>),
@@ -3006,34 +3006,34 @@
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pat</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">TokenStream</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">TokenStream::new</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">prefix</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">prefix</span> {
             <span class="ident">prefix</span>.<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
-            <span class="macro">quote</span><span class="macro">!</span>(::).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
+            <span class="macro">quote!</span>(::).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
         }
         <span class="self">self</span>.<span class="ident">ast</span>.<span class="ident">ident</span>.<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">ast</span>.<span class="ident">fields</span> {
-            <span class="ident">Fields</span>::<span class="ident">Unit</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">bindings</span>.<span class="ident">is_empty</span>());
+            <span class="ident">Fields::Unit</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">bindings</span>.<span class="ident">is_empty</span>());
             }
-            <span class="ident">Fields</span>::<span class="ident">Unnamed</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">token</span>::<span class="ident">Paren</span>(<span class="ident">Span</span>::<span class="ident">call_site</span>()).<span class="ident">surround</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>, <span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
+            <span class="ident">Fields::Unnamed</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">token::Paren</span>(<span class="ident">Span::call_site</span>()).<span class="ident">surround</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>, <span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
                 <span class="kw">for</span> <span class="ident">binding</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bindings</span> {
                     <span class="ident">binding</span>.<span class="ident">pat</span>().<span class="ident">to_tokens</span>(<span class="ident">t</span>);
-                    <span class="macro">quote</span><span class="macro">!</span>(,).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
+                    <span class="macro">quote!</span>(,).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
                 }
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">omitted_fields</span> {
-                    <span class="macro">quote</span><span class="macro">!</span>(..).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
+                    <span class="macro">quote!</span>(..).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
                 }
             }),
-            <span class="ident">Fields</span>::<span class="ident">Named</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">token</span>::<span class="ident">Brace</span>(<span class="ident">Span</span>::<span class="ident">call_site</span>()).<span class="ident">surround</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>, <span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
+            <span class="ident">Fields::Named</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">token::Brace</span>(<span class="ident">Span::call_site</span>()).<span class="ident">surround</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>, <span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
                 <span class="kw">for</span> <span class="ident">binding</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bindings</span> {
                     <span class="ident">binding</span>.<span class="ident">field</span>.<span class="ident">ident</span>.<span class="ident">to_tokens</span>(<span class="ident">t</span>);
-                    <span class="macro">quote</span><span class="macro">!</span>(:).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
+                    <span class="macro">quote!</span>(:).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
                     <span class="ident">binding</span>.<span class="ident">pat</span>().<span class="ident">to_tokens</span>(<span class="ident">t</span>);
-                    <span class="macro">quote</span><span class="macro">!</span>(,).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
+                    <span class="macro">quote!</span>(,).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
                 }
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">omitted_fields</span> {
-                    <span class="macro">quote</span><span class="macro">!</span>(..).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
+                    <span class="macro">quote!</span>(..).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
                 }
             }),
         }
@@ -3077,29 +3077,29 @@
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Field</span>, <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>,
         <span class="ident">T</span>: <span class="ident">ToTokens</span>,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">TokenStream</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">TokenStream::new</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">prefix</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">prefix</span> {
-            <span class="macro">quote</span><span class="macro">!</span>(#<span class="ident">prefix</span> ::).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
+            <span class="macro">quote!</span>(#<span class="ident">prefix</span> ::).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
         }
         <span class="self">self</span>.<span class="ident">ast</span>.<span class="ident">ident</span>.<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
 
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ast</span>.<span class="ident">fields</span> {
-            <span class="ident">Fields</span>::<span class="ident">Unit</span> <span class="op">=</span><span class="op">&gt;</span> (),
-            <span class="ident">Fields</span>::<span class="ident">Unnamed</span>(<span class="ident">FieldsUnnamed</span> { <span class="ident">unnamed</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">token</span>::<span class="ident">Paren</span>::<span class="ident">default</span>().<span class="ident">surround</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>, <span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
+            <span class="ident">Fields::Unit</span> <span class="op">=</span><span class="op">&gt;</span> (),
+            <span class="ident">Fields::Unnamed</span>(<span class="ident">FieldsUnnamed</span> { <span class="ident">unnamed</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">token::Paren::default</span>().<span class="ident">surround</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>, <span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
                     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">field</span>) <span class="kw">in</span> <span class="ident">unnamed</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
                         <span class="ident">func</span>(<span class="ident">field</span>, <span class="ident">i</span>).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
-                        <span class="macro">quote</span><span class="macro">!</span>(,).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
+                        <span class="macro">quote!</span>(,).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
                     }
                 })
             }
-            <span class="ident">Fields</span>::<span class="ident">Named</span>(<span class="ident">FieldsNamed</span> { <span class="ident">named</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">token</span>::<span class="ident">Brace</span>::<span class="ident">default</span>().<span class="ident">surround</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>, <span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
+            <span class="ident">Fields::Named</span>(<span class="ident">FieldsNamed</span> { <span class="ident">named</span>, .. }) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">token::Brace::default</span>().<span class="ident">surround</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>, <span class="op">|</span><span class="ident">t</span><span class="op">|</span> {
                     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">field</span>) <span class="kw">in</span> <span class="ident">named</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
                         <span class="ident">field</span>.<span class="ident">ident</span>.<span class="ident">to_tokens</span>(<span class="ident">t</span>);
-                        <span class="macro">quote</span><span class="macro">!</span>(:).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
+                        <span class="macro">quote!</span>(:).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
                         <span class="ident">func</span>(<span class="ident">field</span>, <span class="ident">i</span>).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
-                        <span class="macro">quote</span><span class="macro">!</span>(,).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
+                        <span class="macro">quote!</span>(,).<span class="ident">to_tokens</span>(<span class="ident">t</span>);
                     }
                 })
             }
@@ -3141,13 +3141,13 @@
         <span class="ident">R</span>: <span class="ident">ToTokens</span>,
     {
         <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pat</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">TokenStream</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">TokenStream::new</span>();
         <span class="kw">for</span> <span class="ident">binding</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bindings</span> {
-            <span class="ident">token</span>::<span class="ident">Brace</span>::<span class="ident">default</span>().<span class="ident">surround</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">body</span>, <span class="op">|</span><span class="ident">body</span><span class="op">|</span> {
+            <span class="ident">token::Brace::default</span>().<span class="ident">surround</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">body</span>, <span class="op">|</span><span class="ident">body</span><span class="op">|</span> {
                 <span class="ident">f</span>(<span class="ident">binding</span>).<span class="ident">to_tokens</span>(<span class="ident">body</span>);
             });
         }
-        <span class="macro">quote</span><span class="macro">!</span>(#<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> { #<span class="ident">body</span> })
+        <span class="macro">quote!</span>(#<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> { #<span class="ident">body</span> })
     }
 
     <span class="doccomment">/// Runs the passed-in function once for each bound field, passing in the</span>
@@ -3185,11 +3185,11 @@
         <span class="ident">R</span>: <span class="ident">ToTokens</span>,
     {
         <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pat</span>();
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">bindings</span>.<span class="ident">iter</span>().<span class="ident">fold</span>(<span class="macro">quote</span><span class="macro">!</span>(#<span class="ident">init</span>), <span class="op">|</span><span class="ident">i</span>, <span class="ident">bi</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">bindings</span>.<span class="ident">iter</span>().<span class="ident">fold</span>(<span class="macro">quote!</span>(#<span class="ident">init</span>), <span class="op">|</span><span class="ident">i</span>, <span class="ident">bi</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">i</span>, <span class="ident">bi</span>);
-            <span class="macro">quote</span><span class="macro">!</span>(#<span class="ident">r</span>)
+            <span class="macro">quote!</span>(#<span class="ident">r</span>)
         });
-        <span class="macro">quote</span><span class="macro">!</span>(#<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> { #<span class="ident">body</span> })
+        <span class="macro">quote!</span>(#<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> { #<span class="ident">body</span> })
     }
 
     <span class="doccomment">/// Filter the bindings created by this `Variant` object. This has 2 effects:</span>
@@ -3364,7 +3364,7 @@
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">referenced_ty_params</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ident</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         <span class="kw">for</span> <span class="ident">binding</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bindings</span> {
             <span class="ident">generics_fuse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">flags</span>, <span class="kw-2">&amp;</span><span class="ident">binding</span>.<span class="ident">seen_generics</span>);
         }
@@ -3394,7 +3394,7 @@
     <span class="doccomment">/// This method will panic if the provided AST node represents an untagged</span>
     <span class="doccomment">/// union.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">DeriveInput</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">try_new</span>(<span class="ident">ast</span>).<span class="ident">expect</span>(<span class="string">&quot;Unable to create synstructure::Structure&quot;</span>)
+        <span class="self">Self</span><span class="ident">::try_new</span>(<span class="ident">ast</span>).<span class="ident">expect</span>(<span class="string">&quot;Unable to create synstructure::Structure&quot;</span>)
     }
 
     <span class="doccomment">/// Create a new `Structure` with the variants and fields from the passed-in</span>
@@ -3404,10 +3404,10 @@
     <span class="doccomment">/// node represents an untagged union.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_new</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">DeriveInput</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">variants</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">data</span> {
-            <span class="ident">Data</span>::<span class="ident">Enum</span>(<span class="ident">data</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="ident">data</span>.<span class="ident">variants</span>)
+            <span class="ident">Data::Enum</span>(<span class="ident">data</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="ident">data</span>.<span class="ident">variants</span>)
                 .<span class="ident">into_iter</span>()
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
-                    <span class="ident">VariantInfo</span>::<span class="ident">new</span>(
+                    <span class="ident">VariantInfo::new</span>(
                         <span class="ident">VariantAst</span> {
                             <span class="ident">attrs</span>: <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="ident">attrs</span>,
                             <span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="ident">v</span>.<span class="ident">ident</span>,
@@ -3419,17 +3419,17 @@
                     )
                 })
                 .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
-            <span class="ident">Data</span>::<span class="ident">Struct</span>(<span class="ident">data</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Data::Struct</span>(<span class="ident">data</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// SAFETY NOTE: Normally putting an `Expr` in static storage</span>
                 <span class="comment">// wouldn&#39;t be safe, because it could contain `Term` objects</span>
                 <span class="comment">// which use thread-local interning. However, this static always</span>
                 <span class="comment">// contains the value `None`. Thus, it will never contain any</span>
                 <span class="comment">// unsafe values.</span>
-                <span class="kw">struct</span> <span class="ident">UnsafeMakeSync</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">token</span>::<span class="ident">Eq</span>, <span class="ident">Expr</span>)<span class="op">&gt;</span>);
+                <span class="kw">struct</span> <span class="ident">UnsafeMakeSync</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">token::Eq</span>, <span class="ident">Expr</span>)<span class="op">&gt;</span>);
                 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Sync</span> <span class="kw">for</span> <span class="ident">UnsafeMakeSync</span> {}
                 <span class="kw">static</span> <span class="ident">NONE_DISCRIMINANT</span>: <span class="ident">UnsafeMakeSync</span> <span class="op">=</span> <span class="ident">UnsafeMakeSync</span>(<span class="prelude-val">None</span>);
 
-                <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">VariantInfo</span>::<span class="ident">new</span>(
+                <span class="macro">vec!</span>[<span class="ident">VariantInfo::new</span>(
                     <span class="ident">VariantAst</span> {
                         <span class="ident">attrs</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">attrs</span>,
                         <span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">ident</span>,
@@ -3440,8 +3440,8 @@
                     <span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">generics</span>,
                 )]
             }
-            <span class="ident">Data</span>::<span class="ident">Union</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">new_spanned</span>(
+            <span class="ident">Data::Union</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new_spanned</span>(
                     <span class="ident">ast</span>,
                     <span class="string">&quot;unexpected unsupported untagged union&quot;</span>,
                 ));
@@ -3453,9 +3453,9 @@
             <span class="ident">omitted_variants</span>: <span class="bool-val">false</span>,
             <span class="ident">underscore_const</span>: <span class="bool-val">false</span>,
             <span class="ident">ast</span>,
-            <span class="ident">extra_impl</span>: <span class="macro">vec</span><span class="macro">!</span>[],
-            <span class="ident">extra_predicates</span>: <span class="macro">vec</span><span class="macro">!</span>[],
-            <span class="ident">add_bounds</span>: <span class="ident">AddBounds</span>::<span class="ident">Both</span>,
+            <span class="ident">extra_impl</span>: <span class="macro">vec!</span>[],
+            <span class="ident">extra_predicates</span>: <span class="macro">vec!</span>[],
+            <span class="ident">add_bounds</span>: <span class="ident">AddBounds::Both</span>,
         })
     }
 
@@ -3516,12 +3516,12 @@
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">BindingInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
         <span class="ident">R</span>: <span class="ident">ToTokens</span>,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">TokenStream</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">TokenStream::new</span>();
         <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">variants</span> {
             <span class="ident">variant</span>.<span class="ident">each</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">f</span>).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
         }
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">omitted_variants</span> {
-            <span class="macro">quote</span><span class="macro">!</span>(<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
+            <span class="macro">quote!</span>(<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
         }
         <span class="ident">t</span>
     }
@@ -3565,12 +3565,12 @@
         <span class="ident">I</span>: <span class="ident">ToTokens</span>,
         <span class="ident">R</span>: <span class="ident">ToTokens</span>,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">TokenStream</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">TokenStream::new</span>();
         <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">variants</span> {
             <span class="ident">variant</span>.<span class="ident">fold</span>(<span class="kw-2">&amp;</span><span class="ident">init</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">f</span>).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
         }
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">omitted_variants</span> {
-            <span class="macro">quote</span><span class="macro">!</span>(<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> { #<span class="ident">init</span> }).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
+            <span class="macro">quote!</span>(<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> { #<span class="ident">init</span> }).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
         }
         <span class="ident">t</span>
     }
@@ -3614,14 +3614,14 @@
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">VariantInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">R</span>,
         <span class="ident">R</span>: <span class="ident">ToTokens</span>,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">TokenStream</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">TokenStream::new</span>();
         <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">variants</span> {
             <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="ident">variant</span>.<span class="ident">pat</span>();
             <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">variant</span>);
-            <span class="macro">quote</span><span class="macro">!</span>(#<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> { #<span class="ident">body</span> }).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
+            <span class="macro">quote!</span>(#<span class="ident">pat</span> <span class="op">=</span><span class="op">&gt;</span> { #<span class="ident">body</span> }).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
         }
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">omitted_variants</span> {
-            <span class="macro">quote</span><span class="macro">!</span>(<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
+            <span class="macro">quote!</span>(<span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}).<span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">t</span>);
         }
         <span class="ident">t</span>
     }
@@ -3932,7 +3932,7 @@
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">referenced_ty_params</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ident</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">variants</span> {
             <span class="kw">for</span> <span class="ident">binding</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">variant</span>.<span class="ident">bindings</span> {
                 <span class="ident">generics_fuse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">flags</span>, <span class="kw-2">&amp;</span><span class="ident">binding</span>.<span class="ident">seen_generics</span>);
@@ -4001,29 +4001,29 @@
         <span class="comment">// If we have any explicit where predicates, make sure to add them first.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">extra_predicates</span>.<span class="ident">is_empty</span>() {
             <span class="kw">let</span> <span class="ident">clause</span> <span class="op">=</span> <span class="ident">get_or_insert_with</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">where_clause</span>, <span class="op">|</span><span class="op">|</span> <span class="ident">WhereClause</span> {
-                <span class="ident">where_token</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-                <span class="ident">predicates</span>: <span class="ident">punctuated</span>::<span class="ident">Punctuated</span>::<span class="ident">new</span>(),
+                <span class="ident">where_token</span>: <span class="ident">Default::default</span>(),
+                <span class="ident">predicates</span>: <span class="ident">punctuated::Punctuated::new</span>(),
             });
             <span class="ident">clause</span>
                 .<span class="ident">predicates</span>
                 .<span class="ident">extend</span>(<span class="self">self</span>.<span class="ident">extra_predicates</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>());
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seen</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seen</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pred</span> <span class="op">=</span> <span class="op">|</span><span class="ident">ty</span>: <span class="ident">Type</span><span class="op">|</span> {
             <span class="kw">if</span> <span class="op">!</span><span class="ident">seen</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">ty</span>) {
                 <span class="ident">seen</span>.<span class="ident">insert</span>(<span class="ident">ty</span>.<span class="ident">clone</span>());
 
                 <span class="comment">// Add a predicate.</span>
                 <span class="kw">let</span> <span class="ident">clause</span> <span class="op">=</span> <span class="ident">get_or_insert_with</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="ident">where_clause</span>, <span class="op">|</span><span class="op">|</span> <span class="ident">WhereClause</span> {
-                    <span class="ident">where_token</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-                    <span class="ident">predicates</span>: <span class="ident">punctuated</span>::<span class="ident">Punctuated</span>::<span class="ident">new</span>(),
+                    <span class="ident">where_token</span>: <span class="ident">Default::default</span>(),
+                    <span class="ident">predicates</span>: <span class="ident">punctuated::Punctuated::new</span>(),
                 });
-                <span class="ident">clause</span>.<span class="ident">predicates</span>.<span class="ident">push</span>(<span class="ident">WherePredicate</span>::<span class="ident">Type</span>(<span class="ident">PredicateType</span> {
+                <span class="ident">clause</span>.<span class="ident">predicates</span>.<span class="ident">push</span>(<span class="ident">WherePredicate::Type</span>(<span class="ident">PredicateType</span> {
                     <span class="ident">lifetimes</span>: <span class="prelude-val">None</span>,
                     <span class="ident">bounded_ty</span>: <span class="ident">ty</span>,
-                    <span class="ident">colon_token</span>: <span class="ident">Default</span>::<span class="ident">default</span>(),
-                    <span class="ident">bounds</span>: <span class="prelude-val">Some</span>(<span class="ident">punctuated</span>::<span class="ident">Pair</span>::<span class="ident">End</span>(<span class="ident">TypeParamBound</span>::<span class="ident">Trait</span>(<span class="ident">bound</span>.<span class="ident">clone</span>())))
+                    <span class="ident">colon_token</span>: <span class="ident">Default::default</span>(),
+                    <span class="ident">bounds</span>: <span class="prelude-val">Some</span>(<span class="ident">punctuated::Pair::End</span>(<span class="ident">TypeParamBound::Trait</span>(<span class="ident">bound</span>.<span class="ident">clone</span>())))
                         .<span class="ident">into_iter</span>()
                         .<span class="ident">collect</span>(),
                 }));
@@ -4033,7 +4033,7 @@
         <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">variants</span> {
             <span class="kw">for</span> <span class="ident">binding</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">variant</span>.<span class="ident">bindings</span> {
                 <span class="kw">match</span> <span class="ident">mode</span> {
-                    <span class="ident">AddBounds</span>::<span class="ident">Both</span> <span class="op">|</span> <span class="ident">AddBounds</span>::<span class="ident">Fields</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">AddBounds::Both</span> <span class="op">|</span> <span class="ident">AddBounds::Fields</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">seen</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">binding</span>.<span class="ident">seen_generics</span> {
                             <span class="kw">if</span> <span class="ident">seen</span> {
                                 <span class="ident">pred</span>(<span class="ident">binding</span>.<span class="ident">ast</span>().<span class="ident">ty</span>.<span class="ident">clone</span>());
@@ -4045,9 +4045,9 @@
                 }
 
                 <span class="kw">match</span> <span class="ident">mode</span> {
-                    <span class="ident">AddBounds</span>::<span class="ident">Both</span> <span class="op">|</span> <span class="ident">AddBounds</span>::<span class="ident">Generics</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">AddBounds::Both</span> <span class="op">|</span> <span class="ident">AddBounds::Generics</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">binding</span>.<span class="ident">referenced_ty_params</span>() {
-                            <span class="ident">pred</span>(<span class="ident">Type</span>::<span class="ident">Path</span>(<span class="ident">TypePath</span> {
+                            <span class="ident">pred</span>(<span class="ident">Type::Path</span>(<span class="ident">TypePath</span> {
                                 <span class="ident">qself</span>: <span class="prelude-val">None</span>,
                                 <span class="ident">path</span>: (<span class="kw-2">*</span><span class="ident">param</span>).<span class="ident">clone</span>().<span class="ident">into</span>(),
                             }));
@@ -4170,7 +4170,7 @@
         <span class="self">self</span>.<span class="ident">impl_internal</span>(
             <span class="ident">path</span>.<span class="ident">into_token_stream</span>(),
             <span class="ident">body</span>.<span class="ident">into_token_stream</span>(),
-            <span class="macro">quote</span><span class="macro">!</span>(),
+            <span class="macro">quote!</span>(),
             <span class="prelude-val">None</span>,
         )
     }
@@ -4240,7 +4240,7 @@
         <span class="self">self</span>.<span class="ident">impl_internal</span>(
             <span class="ident">path</span>.<span class="ident">into_token_stream</span>(),
             <span class="ident">body</span>.<span class="ident">into_token_stream</span>(),
-            <span class="macro">quote</span><span class="macro">!</span>(<span class="kw">unsafe</span>),
+            <span class="macro">quote!</span>(<span class="kw">unsafe</span>),
             <span class="prelude-val">None</span>,
         )
     }
@@ -4300,8 +4300,8 @@
         <span class="self">self</span>.<span class="ident">impl_internal</span>(
             <span class="ident">path</span>.<span class="ident">into_token_stream</span>(),
             <span class="ident">body</span>.<span class="ident">into_token_stream</span>(),
-            <span class="macro">quote</span><span class="macro">!</span>(),
-            <span class="prelude-val">Some</span>(<span class="ident">AddBounds</span>::<span class="prelude-val">None</span>),
+            <span class="macro">quote!</span>(),
+            <span class="prelude-val">Some</span>(<span class="ident">AddBounds::None</span>),
         )
     }
 
@@ -4361,8 +4361,8 @@
         <span class="self">self</span>.<span class="ident">impl_internal</span>(
             <span class="ident">path</span>.<span class="ident">into_token_stream</span>(),
             <span class="ident">body</span>.<span class="ident">into_token_stream</span>(),
-            <span class="macro">quote</span><span class="macro">!</span>(<span class="kw">unsafe</span>),
-            <span class="prelude-val">Some</span>(<span class="ident">AddBounds</span>::<span class="prelude-val">None</span>),
+            <span class="macro">quote!</span>(<span class="kw">unsafe</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">AddBounds::None</span>),
         )
     }
 
@@ -4380,7 +4380,7 @@
         <span class="kw">let</span> (<span class="ident">impl_generics</span>, <span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">gen_clone</span>.<span class="ident">split_for_impl</span>();
         <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">ty_generics</span>, <span class="ident">where_clause</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">ast</span>.<span class="ident">generics</span>.<span class="ident">split_for_impl</span>();
 
-        <span class="kw">let</span> <span class="ident">bound</span> <span class="op">=</span> <span class="ident">syn</span>::<span class="ident">parse2</span>::<span class="op">&lt;</span><span class="ident">TraitBound</span><span class="op">&gt;</span>(<span class="ident">path</span>)
+        <span class="kw">let</span> <span class="ident">bound</span> <span class="op">=</span> <span class="ident">syn::parse2</span>::<span class="op">&lt;</span><span class="ident">TraitBound</span><span class="op">&gt;</span>(<span class="ident">path</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;`path` argument must be a valid rust trait bound&quot;</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">where_clause</span> <span class="op">=</span> <span class="ident">where_clause</span>.<span class="ident">cloned</span>();
@@ -4390,15 +4390,15 @@
         <span class="comment">// statement will be generated, however, a relative path will cause the</span>
         <span class="comment">// crate which it is relative to to be imported within the current</span>
         <span class="comment">// scope.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">extern_crate</span> <span class="op">=</span> <span class="macro">quote</span><span class="macro">!</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">extern_crate</span> <span class="op">=</span> <span class="macro">quote!</span>();
         <span class="kw">if</span> <span class="ident">bound</span>.<span class="ident">path</span>.<span class="ident">leading_colon</span>.<span class="ident">is_none</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">seg</span>) <span class="op">=</span> <span class="ident">bound</span>.<span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">first</span>() {
                 <span class="kw">let</span> <span class="ident">seg</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">seg</span>.<span class="ident">ident</span>;
-                <span class="ident">extern_crate</span> <span class="op">=</span> <span class="macro">quote</span><span class="macro">!</span> { <span class="kw">extern</span> <span class="kw">crate</span> #<span class="ident">seg</span>; };
+                <span class="ident">extern_crate</span> <span class="op">=</span> <span class="macro">quote!</span> { <span class="kw">extern</span> <span class="kw">crate</span> #<span class="ident">seg</span>; };
             }
         }
 
-        <span class="kw">let</span> <span class="ident">generated</span> <span class="op">=</span> <span class="macro">quote</span><span class="macro">!</span> {
+        <span class="kw">let</span> <span class="ident">generated</span> <span class="op">=</span> <span class="macro">quote!</span> {
             #<span class="ident">extern_crate</span>
             #<span class="ident">safety</span> <span class="kw">impl</span> #<span class="ident">impl_generics</span> #<span class="ident">bound</span> <span class="kw">for</span> #<span class="ident">name</span> #<span class="ident">ty_generics</span> #<span class="ident">where_clause</span> {
                 #<span class="ident">body</span>
@@ -4406,16 +4406,16 @@
         };
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">underscore_const</span> {
-            <span class="macro">quote</span><span class="macro">!</span> {
+            <span class="macro">quote!</span> {
                 <span class="kw">const</span> <span class="kw">_</span>: () <span class="op">=</span> { #<span class="ident">generated</span> }
             }
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">dummy_const</span>: <span class="ident">Ident</span> <span class="op">=</span> <span class="ident">sanitize_ident</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
+            <span class="kw">let</span> <span class="ident">dummy_const</span>: <span class="ident">Ident</span> <span class="op">=</span> <span class="ident">sanitize_ident</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                 <span class="string">&quot;_DERIVE_{}_FOR_{}&quot;</span>,
                 (<span class="kw-2">&amp;</span><span class="ident">bound</span>).<span class="ident">into_token_stream</span>(),
                 <span class="ident">name</span>.<span class="ident">into_token_stream</span>(),
             ));
-            <span class="macro">quote</span><span class="macro">!</span> {
+            <span class="macro">quote!</span> {
                 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_upper_case_globals</span>)]</span>
                 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
                 <span class="kw">const</span> #<span class="ident">dummy_const</span>: () <span class="op">=</span> {
@@ -4642,7 +4642,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Use `add_bounds` to change which bounds are generated.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gen_impl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cfg</span>: <span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
-        <span class="ident">Parser</span>::<span class="ident">parse2</span>(
+        <span class="ident">Parser::parse2</span>(
             <span class="op">|</span><span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">|</span> <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> { <span class="self">self</span>.<span class="ident">gen_impl_parse</span>(<span class="ident">input</span>, <span class="bool-val">true</span>) },
             <span class="ident">cfg</span>,
         )
@@ -4650,16 +4650,16 @@
     }
 
     <span class="kw">fn</span> <span class="ident">gen_impl_parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">wrap</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> {
-        <span class="kw">fn</span> <span class="ident">parse_prefix</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">unsafe</span>]<span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">parse_prefix</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">unsafe</span>]<span class="op">&gt;</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span>()<span class="question-mark">?</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;gen&quot;</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">input</span>.<span class="ident">error</span>(<span class="string">&quot;Expected keyword `gen`&quot;</span>));
             }
-            <span class="kw">let</span> <span class="ident">safety</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">unsafe</span>]<span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">impl</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">safety</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">unsafe</span>]<span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">impl</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<span class="ident">safety</span>)
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">before</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">before</span> <span class="op">=</span> <span class="macro">vec!</span>[];
         <span class="kw">loop</span> {
             <span class="kw">if</span> <span class="ident">parse_prefix</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>.<span class="ident">fork</span>()).<span class="ident">is_ok</span>() {
                 <span class="kw">break</span>;
@@ -4677,16 +4677,16 @@
         <span class="kw">let</span> <span class="ident">bound</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">TraitBound</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// `for @Self`</span>
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">for</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[@]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="self">Self</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">for</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token!</span>[@]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token!</span>[<span class="self">Self</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// optional `where ...`</span>
         <span class="ident">generics</span>.<span class="ident">where_clause</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// Body of the impl</span>
         <span class="kw">let</span> <span class="ident">body</span>;
-        <span class="macro">braced</span><span class="macro">!</span>(<span class="ident">body</span> <span class="kw">in</span> <span class="ident">input</span>);
+        <span class="macro">braced!</span>(<span class="ident">body</span> <span class="kw">in</span> <span class="ident">input</span>);
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// Try to parse the next entry in sequence. If this fails, we&#39;ll fall</span>
@@ -4699,7 +4699,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">stream</span>) <span class="op">=</span> <span class="ident">maybe_next_impl</span> {
             <span class="ident">after</span> <span class="op">=</span> <span class="ident">stream</span>;
         }
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">input</span>.<span class="ident">is_empty</span>(), <span class="string">&quot;Should&#39;ve consumed the rest of our input&quot;</span>);
+        <span class="macro">assert!</span>(<span class="ident">input</span>.<span class="ident">is_empty</span>(), <span class="string">&quot;Should&#39;ve consumed the rest of our input&quot;</span>);
 
         <span class="comment">/* Codegen Logic */</span>
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ast</span>.<span class="ident">ident</span>;
@@ -4716,7 +4716,7 @@
         <span class="kw">let</span> (<span class="ident">impl_generics</span>, <span class="kw">_</span>, <span class="ident">where_clause</span>) <span class="op">=</span> <span class="ident">generics</span>.<span class="ident">split_for_impl</span>();
         <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">ty_generics</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">ast</span>.<span class="ident">generics</span>.<span class="ident">split_for_impl</span>();
 
-        <span class="kw">let</span> <span class="ident">generated</span> <span class="op">=</span> <span class="macro">quote</span><span class="macro">!</span> {
+        <span class="kw">let</span> <span class="ident">generated</span> <span class="op">=</span> <span class="macro">quote!</span> {
             #(#<span class="ident">before</span>)<span class="op">*</span>
             #<span class="ident">safety</span> <span class="kw">impl</span> #<span class="ident">impl_generics</span> #<span class="ident">bound</span> <span class="kw">for</span> #<span class="ident">name</span> #<span class="ident">ty_generics</span> #<span class="ident">where_clause</span> {
                 #<span class="ident">body</span>
@@ -4726,16 +4726,16 @@
 
         <span class="kw">if</span> <span class="ident">wrap</span> {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">underscore_const</span> {
-                <span class="prelude-val">Ok</span>(<span class="macro">quote</span><span class="macro">!</span> {
+                <span class="prelude-val">Ok</span>(<span class="macro">quote!</span> {
                     <span class="kw">const</span> <span class="kw">_</span>: () <span class="op">=</span> { #<span class="ident">generated</span> };
                 })
             } <span class="kw">else</span> {
-                <span class="kw">let</span> <span class="ident">dummy_const</span>: <span class="ident">Ident</span> <span class="op">=</span> <span class="ident">sanitize_ident</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(
+                <span class="kw">let</span> <span class="ident">dummy_const</span>: <span class="ident">Ident</span> <span class="op">=</span> <span class="ident">sanitize_ident</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                     <span class="string">&quot;_DERIVE_{}_FOR_{}&quot;</span>,
                     (<span class="kw-2">&amp;</span><span class="ident">bound</span>).<span class="ident">into_token_stream</span>(),
                     <span class="ident">name</span>.<span class="ident">into_token_stream</span>(),
                 ));
-                <span class="prelude-val">Ok</span>(<span class="macro">quote</span><span class="macro">!</span> {
+                <span class="prelude-val">Ok</span>(<span class="macro">quote!</span> {
                     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_upper_case_globals</span>)]</span>
                     <span class="kw">const</span> #<span class="ident">dummy_const</span>: () <span class="op">=</span> {
                         #<span class="ident">generated</span>
@@ -4798,8 +4798,8 @@
 <span class="doccomment">/// &quot;</span>
 <span class="doccomment">/// )</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unpretty_print</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Display</span><span class="op">&gt;</span>(<span class="ident">ts</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unpretty_print</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">std::fmt::Display</span><span class="op">&gt;</span>(<span class="ident">ts</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">String::new</span>();
 
     <span class="kw">let</span> <span class="ident">raw_s</span> <span class="op">=</span> <span class="ident">ts</span>.<span class="ident">to_string</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">raw_s</span>[..];
@@ -4847,7 +4847,7 @@
         <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>, <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>))),
         <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;proc-macro&quot;</span>
     ))]</span>
-    <span class="kw">fn</span> <span class="ident">into_stream</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro</span>::<span class="ident">TokenStream</span>
+    <span class="kw">fn</span> <span class="ident">into_stream</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro::TokenStream</span>
     <span class="kw">where</span>
         <span class="self">Self</span>: <span class="ident">Sized</span>,
     {
@@ -4862,12 +4862,12 @@
     <span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>, <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>))),
     <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;proc-macro&quot;</span>
 ))]</span>
-<span class="kw">impl</span> <span class="ident">MacroResult</span> <span class="kw">for</span> <span class="ident">proc_macro</span>::<span class="ident">TokenStream</span> {
+<span class="kw">impl</span> <span class="ident">MacroResult</span> <span class="kw">for</span> <span class="ident">proc_macro::TokenStream</span> {
     <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">into</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">into_stream</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro</span>::<span class="ident">TokenStream</span> {
+    <span class="kw">fn</span> <span class="ident">into_stream</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro::TokenStream</span> {
         <span class="self">self</span>
     }
 }
@@ -4887,5 +4887,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="synstructure" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="synstructure" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

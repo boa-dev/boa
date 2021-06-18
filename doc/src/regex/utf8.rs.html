@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.5.4/src/utf8.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>utf8.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../regex/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../regex/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -279,7 +279,7 @@
 <span class="doccomment">/// Should this be factored out into a separate crate? It seems independently</span>
 <span class="doccomment">/// useful. There are other crates that already exist (e.g., `utf-8`) that have</span>
 <span class="doccomment">/// overlapping use cases. Not sure what to do.</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">char</span>;
+<span class="kw">use</span> <span class="ident">std::char</span>;
 
 <span class="kw">const</span> <span class="ident">TAG_CONT</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">0b1000_0000</span>;
 <span class="kw">const</span> <span class="ident">TAG_TWO</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">0b1100_0000</span>;
@@ -333,7 +333,7 @@
             }
             <span class="kw">let</span> <span class="ident">cp</span> <span class="op">=</span> ((<span class="ident">b0</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">TAG_TWO</span>) <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">6</span> <span class="op">|</span> ((<span class="ident">b1</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">TAG_CONT</span>) <span class="kw">as</span> <span class="ident">u32</span>);
             <span class="kw">match</span> <span class="ident">cp</span> {
-                <span class="number">0x80</span>..<span class="op">=</span><span class="number">0x7FF</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">char</span>::<span class="ident">from_u32</span>(<span class="ident">cp</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">cp</span><span class="op">|</span> (<span class="ident">cp</span>, <span class="number">2</span>)),
+                <span class="number">0x80</span>..<span class="op">=</span><span class="number">0x7FF</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">char::from_u32</span>(<span class="ident">cp</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">cp</span><span class="op">|</span> (<span class="ident">cp</span>, <span class="number">2</span>)),
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
             }
         }
@@ -353,7 +353,7 @@
                 <span class="op">|</span> ((<span class="ident">b2</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">TAG_CONT</span>) <span class="kw">as</span> <span class="ident">u32</span>);
             <span class="kw">match</span> <span class="ident">cp</span> {
                 <span class="comment">// char::from_u32 will disallow surrogate codepoints.</span>
-                <span class="number">0x800</span>..<span class="op">=</span><span class="number">0xFFFF</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">char</span>::<span class="ident">from_u32</span>(<span class="ident">cp</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">cp</span><span class="op">|</span> (<span class="ident">cp</span>, <span class="number">3</span>)),
+                <span class="number">0x800</span>..<span class="op">=</span><span class="number">0xFFFF</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">char::from_u32</span>(<span class="ident">cp</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">cp</span><span class="op">|</span> (<span class="ident">cp</span>, <span class="number">3</span>)),
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
             }
         }
@@ -376,7 +376,7 @@
                 <span class="op">|</span> ((<span class="ident">b2</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">TAG_CONT</span>) <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">6</span>
                 <span class="op">|</span> ((<span class="ident">b3</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">TAG_CONT</span>) <span class="kw">as</span> <span class="ident">u32</span>);
             <span class="kw">match</span> <span class="ident">cp</span> {
-                <span class="number">0x10000</span>..<span class="op">=</span><span class="number">0x10FFFF</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">char</span>::<span class="ident">from_u32</span>(<span class="ident">cp</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">cp</span><span class="op">|</span> (<span class="ident">cp</span>, <span class="number">4</span>)),
+                <span class="number">0x10000</span>..<span class="op">=</span><span class="number">0x10FFFF</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">char::from_u32</span>(<span class="ident">cp</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">cp</span><span class="op">|</span> (<span class="ident">cp</span>, <span class="number">4</span>)),
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
             }
         }
@@ -413,9 +413,9 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>;
+    <span class="kw">use</span> <span class="ident">std::str</span>;
 
-    <span class="kw">use</span> <span class="ident">quickcheck</span>::<span class="ident">quickcheck</span>;
+    <span class="kw">use</span> <span class="ident">quickcheck::quickcheck</span>;
 
     <span class="kw">use</span> <span class="kw">super</span>::{
         <span class="ident">decode_last_utf8</span>, <span class="ident">decode_utf8</span>, <span class="ident">TAG_CONT</span>, <span class="ident">TAG_FOUR</span>, <span class="ident">TAG_THREE</span>, <span class="ident">TAG_TWO</span>,
@@ -462,7 +462,7 @@
             <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">given_cp</span>.<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">tmp</span>).<span class="ident">len</span>();
             <span class="kw">let</span> (<span class="ident">got_cp</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">decode_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">tmp</span>[..<span class="ident">n</span>]).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">expected_cp</span> <span class="op">=</span>
-                <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">tmp</span>[..<span class="ident">n</span>]).<span class="ident">unwrap</span>().<span class="ident">chars</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
+                <span class="ident">str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">tmp</span>[..<span class="ident">n</span>]).<span class="ident">unwrap</span>().<span class="ident">chars</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>();
             <span class="ident">got_cp</span> <span class="op">=</span><span class="op">=</span> <span class="ident">expected_cp</span>
         }
         <span class="ident">quickcheck</span>(<span class="ident">p</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>)
@@ -474,7 +474,7 @@
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">4</span>];
             <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">given_cp</span>.<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">tmp</span>).<span class="ident">len</span>();
             <span class="kw">let</span> (<span class="ident">got_cp</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">decode_last_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">tmp</span>[..<span class="ident">n</span>]).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">expected_cp</span> <span class="op">=</span> <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">tmp</span>[..<span class="ident">n</span>])
+            <span class="kw">let</span> <span class="ident">expected_cp</span> <span class="op">=</span> <span class="ident">str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">tmp</span>[..<span class="ident">n</span>])
                 .<span class="ident">unwrap</span>()
                 .<span class="ident">chars</span>()
                 .<span class="ident">rev</span>()
@@ -488,19 +488,19 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">reject_invalid</span>() {
         <span class="comment">// Invalid start byte</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">decode_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xFF</span>]), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">decode_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xFF</span>]), <span class="prelude-val">None</span>);
         <span class="comment">// Surrogate pair</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">decode_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xED</span>, <span class="number">0xA0</span>, <span class="number">0x81</span>]), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">decode_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xED</span>, <span class="number">0xA0</span>, <span class="number">0x81</span>]), <span class="prelude-val">None</span>);
         <span class="comment">// Invalid continuation byte.</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">decode_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xD4</span>, <span class="number">0xC2</span>]), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">decode_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xD4</span>, <span class="number">0xC2</span>]), <span class="prelude-val">None</span>);
         <span class="comment">// Bad lengths</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">decode_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xC3</span>]), <span class="prelude-val">None</span>); <span class="comment">// 2 bytes</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">decode_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xEF</span>, <span class="number">0xBF</span>]), <span class="prelude-val">None</span>); <span class="comment">// 3 bytes</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">decode_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xF4</span>, <span class="number">0x8F</span>, <span class="number">0xBF</span>]), <span class="prelude-val">None</span>); <span class="comment">// 4 bytes</span>
+        <span class="macro">assert_eq!</span>(<span class="ident">decode_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xC3</span>]), <span class="prelude-val">None</span>); <span class="comment">// 2 bytes</span>
+        <span class="macro">assert_eq!</span>(<span class="ident">decode_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xEF</span>, <span class="number">0xBF</span>]), <span class="prelude-val">None</span>); <span class="comment">// 3 bytes</span>
+        <span class="macro">assert_eq!</span>(<span class="ident">decode_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xF4</span>, <span class="number">0x8F</span>, <span class="number">0xBF</span>]), <span class="prelude-val">None</span>); <span class="comment">// 4 bytes</span>
                                                             <span class="comment">// Not a minimal UTF-8 sequence</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">decode_utf8</span>(<span class="kw-2">&amp;</span>[<span class="ident">TAG_TWO</span>, <span class="ident">TAG_CONT</span> <span class="op">|</span> <span class="string">b&#39;a&#39;</span>]), <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">decode_utf8</span>(<span class="kw-2">&amp;</span>[<span class="ident">TAG_THREE</span>, <span class="ident">TAG_CONT</span>, <span class="ident">TAG_CONT</span> <span class="op">|</span> <span class="string">b&#39;a&#39;</span>]), <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(<span class="ident">decode_utf8</span>(<span class="kw-2">&amp;</span>[<span class="ident">TAG_TWO</span>, <span class="ident">TAG_CONT</span> <span class="op">|</span> <span class="string">b&#39;a&#39;</span>]), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">decode_utf8</span>(<span class="kw-2">&amp;</span>[<span class="ident">TAG_THREE</span>, <span class="ident">TAG_CONT</span>, <span class="ident">TAG_CONT</span> <span class="op">|</span> <span class="string">b&#39;a&#39;</span>]), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(
             <span class="ident">decode_utf8</span>(<span class="kw-2">&amp;</span>[<span class="ident">TAG_FOUR</span>, <span class="ident">TAG_CONT</span>, <span class="ident">TAG_CONT</span>, <span class="ident">TAG_CONT</span> <span class="op">|</span> <span class="string">b&#39;a&#39;</span>,]),
             <span class="prelude-val">None</span>
         );
@@ -509,20 +509,20 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">reject_invalid_last</span>() {
         <span class="comment">// Invalid start byte</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">decode_last_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xFF</span>]), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">decode_last_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xFF</span>]), <span class="prelude-val">None</span>);
         <span class="comment">// Surrogate pair</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">decode_last_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xED</span>, <span class="number">0xA0</span>, <span class="number">0x81</span>]), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">decode_last_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xED</span>, <span class="number">0xA0</span>, <span class="number">0x81</span>]), <span class="prelude-val">None</span>);
         <span class="comment">// Bad lengths</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">decode_last_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xC3</span>]), <span class="prelude-val">None</span>); <span class="comment">// 2 bytes</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">decode_last_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xEF</span>, <span class="number">0xBF</span>]), <span class="prelude-val">None</span>); <span class="comment">// 3 bytes</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">decode_last_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xF4</span>, <span class="number">0x8F</span>, <span class="number">0xBF</span>]), <span class="prelude-val">None</span>); <span class="comment">// 4 bytes</span>
+        <span class="macro">assert_eq!</span>(<span class="ident">decode_last_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xC3</span>]), <span class="prelude-val">None</span>); <span class="comment">// 2 bytes</span>
+        <span class="macro">assert_eq!</span>(<span class="ident">decode_last_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xEF</span>, <span class="number">0xBF</span>]), <span class="prelude-val">None</span>); <span class="comment">// 3 bytes</span>
+        <span class="macro">assert_eq!</span>(<span class="ident">decode_last_utf8</span>(<span class="kw-2">&amp;</span>[<span class="number">0xF4</span>, <span class="number">0x8F</span>, <span class="number">0xBF</span>]), <span class="prelude-val">None</span>); <span class="comment">// 4 bytes</span>
                                                                  <span class="comment">// Not a minimal UTF-8 sequence</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">decode_last_utf8</span>(<span class="kw-2">&amp;</span>[<span class="ident">TAG_TWO</span>, <span class="ident">TAG_CONT</span> <span class="op">|</span> <span class="string">b&#39;a&#39;</span>]), <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(<span class="ident">decode_last_utf8</span>(<span class="kw-2">&amp;</span>[<span class="ident">TAG_TWO</span>, <span class="ident">TAG_CONT</span> <span class="op">|</span> <span class="string">b&#39;a&#39;</span>]), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(
             <span class="ident">decode_last_utf8</span>(<span class="kw-2">&amp;</span>[<span class="ident">TAG_THREE</span>, <span class="ident">TAG_CONT</span>, <span class="ident">TAG_CONT</span> <span class="op">|</span> <span class="string">b&#39;a&#39;</span>,]),
             <span class="prelude-val">None</span>
         );
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">decode_last_utf8</span>(
                 <span class="kw-2">&amp;</span>[<span class="ident">TAG_FOUR</span>, <span class="ident">TAG_CONT</span>, <span class="ident">TAG_CONT</span>, <span class="ident">TAG_CONT</span> <span class="op">|</span> <span class="string">b&#39;a&#39;</span>,]
             ),
@@ -531,5 +531,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

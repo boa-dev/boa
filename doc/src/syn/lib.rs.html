@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.72/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../syn/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../syn/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1259,46 +1259,46 @@
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">non_camel_case_types</span>)]</span>
 <span class="comment">// Ignored clippy lints.</span>
 <span class="attribute">#![<span class="ident">allow</span>(
-    <span class="ident">clippy</span>::<span class="ident">doc_markdown</span>,
-    <span class="ident">clippy</span>::<span class="ident">eval_order_dependence</span>,
-    <span class="ident">clippy</span>::<span class="ident">inherent_to_string</span>,
-    <span class="ident">clippy</span>::<span class="ident">large_enum_variant</span>,
-    <span class="ident">clippy</span>::<span class="ident">manual_map</span>, <span class="comment">// https://github.com/rust-lang/rust-clippy/issues/6795</span>
-    <span class="ident">clippy</span>::<span class="ident">match_on_vec_items</span>,
-    <span class="ident">clippy</span>::<span class="ident">missing_panics_doc</span>,
-    <span class="ident">clippy</span>::<span class="ident">needless_doctest_main</span>,
-    <span class="ident">clippy</span>::<span class="ident">needless_pass_by_value</span>,
-    <span class="ident">clippy</span>::<span class="ident">never_loop</span>,
-    <span class="ident">clippy</span>::<span class="ident">too_many_arguments</span>,
-    <span class="ident">clippy</span>::<span class="ident">trivially_copy_pass_by_ref</span>,
-    <span class="ident">clippy</span>::<span class="ident">unnecessary_unwrap</span>,
+    <span class="ident">clippy::doc_markdown</span>,
+    <span class="ident">clippy::eval_order_dependence</span>,
+    <span class="ident">clippy::inherent_to_string</span>,
+    <span class="ident">clippy::large_enum_variant</span>,
+    <span class="ident">clippy::manual_map</span>, <span class="comment">// https://github.com/rust-lang/rust-clippy/issues/6795</span>
+    <span class="ident">clippy::match_on_vec_items</span>,
+    <span class="ident">clippy::missing_panics_doc</span>,
+    <span class="ident">clippy::needless_doctest_main</span>,
+    <span class="ident">clippy::needless_pass_by_value</span>,
+    <span class="ident">clippy::never_loop</span>,
+    <span class="ident">clippy::too_many_arguments</span>,
+    <span class="ident">clippy::trivially_copy_pass_by_ref</span>,
+    <span class="ident">clippy::unnecessary_unwrap</span>,
     <span class="comment">// clippy bug: https://github.com/rust-lang/rust-clippy/issues/6983</span>
-    <span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>
+    <span class="ident">clippy::wrong_self_convention</span>
 )]</span>
 <span class="comment">// Ignored clippy_pedantic lints.</span>
 <span class="attribute">#![<span class="ident">allow</span>(
-    <span class="ident">clippy</span>::<span class="ident">cast_possible_truncation</span>,
+    <span class="ident">clippy::cast_possible_truncation</span>,
     <span class="comment">// clippy bug: https://github.com/rust-lang/rust-clippy/issues/7127</span>
-    <span class="ident">clippy</span>::<span class="ident">cloned_instead_of_copied</span>,
-    <span class="ident">clippy</span>::<span class="ident">default_trait_access</span>,
-    <span class="ident">clippy</span>::<span class="ident">empty_enum</span>,
-    <span class="ident">clippy</span>::<span class="ident">expl_impl_clone_on_copy</span>,
-    <span class="ident">clippy</span>::<span class="ident">if_not_else</span>,
-    <span class="ident">clippy</span>::<span class="ident">match_same_arms</span>,
+    <span class="ident">clippy::cloned_instead_of_copied</span>,
+    <span class="ident">clippy::default_trait_access</span>,
+    <span class="ident">clippy::empty_enum</span>,
+    <span class="ident">clippy::expl_impl_clone_on_copy</span>,
+    <span class="ident">clippy::if_not_else</span>,
+    <span class="ident">clippy::match_same_arms</span>,
     <span class="comment">// clippy bug: https://github.com/rust-lang/rust-clippy/issues/6984</span>
-    <span class="ident">clippy</span>::<span class="ident">match_wildcard_for_single_variants</span>,
-    <span class="ident">clippy</span>::<span class="ident">missing_errors_doc</span>,
-    <span class="ident">clippy</span>::<span class="ident">module_name_repetitions</span>,
-    <span class="ident">clippy</span>::<span class="ident">must_use_candidate</span>,
-    <span class="ident">clippy</span>::<span class="ident">option_if_let_else</span>,
-    <span class="ident">clippy</span>::<span class="ident">redundant_else</span>,
-    <span class="ident">clippy</span>::<span class="ident">shadow_unrelated</span>,
-    <span class="ident">clippy</span>::<span class="ident">similar_names</span>,
-    <span class="ident">clippy</span>::<span class="ident">single_match_else</span>,
-    <span class="ident">clippy</span>::<span class="ident">too_many_lines</span>,
-    <span class="ident">clippy</span>::<span class="ident">unseparated_literal_suffix</span>,
-    <span class="ident">clippy</span>::<span class="ident">used_underscore_binding</span>,
-    <span class="ident">clippy</span>::<span class="ident">wildcard_imports</span>
+    <span class="ident">clippy::match_wildcard_for_single_variants</span>,
+    <span class="ident">clippy::missing_errors_doc</span>,
+    <span class="ident">clippy::module_name_repetitions</span>,
+    <span class="ident">clippy::must_use_candidate</span>,
+    <span class="ident">clippy::option_if_let_else</span>,
+    <span class="ident">clippy::redundant_else</span>,
+    <span class="ident">clippy::shadow_unrelated</span>,
+    <span class="ident">clippy::similar_names</span>,
+    <span class="ident">clippy::single_match_else</span>,
+    <span class="ident">clippy::too_many_lines</span>,
+    <span class="ident">clippy::unseparated_literal_suffix</span>,
+    <span class="ident">clippy::used_underscore_binding</span>,
+    <span class="ident">clippy::wildcard_imports</span>
 )]</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
@@ -1325,12 +1325,12 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">token</span>;
 
 <span class="kw">mod</span> <span class="ident">ident</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ident</span>::<span class="ident">Ident</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ident::Ident</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))]</span>
 <span class="kw">mod</span> <span class="ident">attr</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">attr</span>::{
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::attr</span>::{
     <span class="ident">AttrStyle</span>, <span class="ident">Attribute</span>, <span class="ident">AttributeArgs</span>, <span class="ident">Meta</span>, <span class="ident">MetaList</span>, <span class="ident">MetaNameValue</span>, <span class="ident">NestedMeta</span>,
 };
 
@@ -1339,7 +1339,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))]</span>
 <span class="kw">mod</span> <span class="ident">data</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">data</span>::{
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::data</span>::{
     <span class="ident">Field</span>, <span class="ident">Fields</span>, <span class="ident">FieldsNamed</span>, <span class="ident">FieldsUnnamed</span>, <span class="ident">Variant</span>, <span class="ident">VisCrate</span>, <span class="ident">VisPublic</span>, <span class="ident">VisRestricted</span>,
     <span class="ident">Visibility</span>,
 };
@@ -1347,11 +1347,11 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))]</span>
 <span class="kw">mod</span> <span class="ident">expr</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">expr</span>::{
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::expr</span>::{
     <span class="ident">Arm</span>, <span class="ident">FieldValue</span>, <span class="ident">GenericMethodArgument</span>, <span class="ident">Label</span>, <span class="ident">MethodTurbofish</span>, <span class="ident">RangeLimits</span>,
 };
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">expr</span>::{
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::expr</span>::{
     <span class="ident">Expr</span>, <span class="ident">ExprArray</span>, <span class="ident">ExprAssign</span>, <span class="ident">ExprAssignOp</span>, <span class="ident">ExprAsync</span>, <span class="ident">ExprAwait</span>, <span class="ident">ExprBinary</span>, <span class="ident">ExprBlock</span>,
     <span class="ident">ExprBox</span>, <span class="ident">ExprBreak</span>, <span class="ident">ExprCall</span>, <span class="ident">ExprCast</span>, <span class="ident">ExprClosure</span>, <span class="ident">ExprContinue</span>, <span class="ident">ExprField</span>, <span class="ident">ExprForLoop</span>,
     <span class="ident">ExprGroup</span>, <span class="ident">ExprIf</span>, <span class="ident">ExprIndex</span>, <span class="ident">ExprLet</span>, <span class="ident">ExprLit</span>, <span class="ident">ExprLoop</span>, <span class="ident">ExprMacro</span>, <span class="ident">ExprMatch</span>, <span class="ident">ExprMethodCall</span>,
@@ -1362,18 +1362,18 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))]</span>
 <span class="kw">mod</span> <span class="ident">generics</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">generics</span>::{
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::generics</span>::{
     <span class="ident">BoundLifetimes</span>, <span class="ident">ConstParam</span>, <span class="ident">GenericParam</span>, <span class="ident">Generics</span>, <span class="ident">LifetimeDef</span>, <span class="ident">PredicateEq</span>,
     <span class="ident">PredicateLifetime</span>, <span class="ident">PredicateType</span>, <span class="ident">TraitBound</span>, <span class="ident">TraitBoundModifier</span>, <span class="ident">TypeParam</span>, <span class="ident">TypeParamBound</span>,
     <span class="ident">WhereClause</span>, <span class="ident">WherePredicate</span>,
 };
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">generics</span>::{<span class="ident">ImplGenerics</span>, <span class="ident">Turbofish</span>, <span class="ident">TypeGenerics</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::generics</span>::{<span class="ident">ImplGenerics</span>, <span class="ident">Turbofish</span>, <span class="ident">TypeGenerics</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">item</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">item</span>::{
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::item</span>::{
     <span class="ident">FnArg</span>, <span class="ident">ForeignItem</span>, <span class="ident">ForeignItemFn</span>, <span class="ident">ForeignItemMacro</span>, <span class="ident">ForeignItemStatic</span>, <span class="ident">ForeignItemType</span>,
     <span class="ident">ImplItem</span>, <span class="ident">ImplItemConst</span>, <span class="ident">ImplItemMacro</span>, <span class="ident">ImplItemMethod</span>, <span class="ident">ImplItemType</span>, <span class="ident">Item</span>, <span class="ident">ItemConst</span>,
     <span class="ident">ItemEnum</span>, <span class="ident">ItemExternCrate</span>, <span class="ident">ItemFn</span>, <span class="ident">ItemForeignMod</span>, <span class="ident">ItemImpl</span>, <span class="ident">ItemMacro</span>, <span class="ident">ItemMacro2</span>, <span class="ident">ItemMod</span>,
@@ -1385,40 +1385,40 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">file</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">file</span>::<span class="ident">File</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::file::File</span>;
 
 <span class="kw">mod</span> <span class="ident">lifetime</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">lifetime</span>::<span class="ident">Lifetime</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::lifetime::Lifetime</span>;
 
 <span class="kw">mod</span> <span class="ident">lit</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">lit</span>::{
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::lit</span>::{
     <span class="ident">Lit</span>, <span class="ident">LitBool</span>, <span class="ident">LitByte</span>, <span class="ident">LitByteStr</span>, <span class="ident">LitChar</span>, <span class="ident">LitFloat</span>, <span class="ident">LitInt</span>, <span class="ident">LitStr</span>, <span class="ident">StrStyle</span>,
 };
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))]</span>
 <span class="kw">mod</span> <span class="ident">mac</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">mac</span>::{<span class="ident">Macro</span>, <span class="ident">MacroDelimiter</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::mac</span>::{<span class="ident">Macro</span>, <span class="ident">MacroDelimiter</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))]</span>
 <span class="kw">mod</span> <span class="ident">derive</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">derive</span>::{<span class="ident">Data</span>, <span class="ident">DataEnum</span>, <span class="ident">DataStruct</span>, <span class="ident">DataUnion</span>, <span class="ident">DeriveInput</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::derive</span>::{<span class="ident">Data</span>, <span class="ident">DataEnum</span>, <span class="ident">DataStruct</span>, <span class="ident">DataUnion</span>, <span class="ident">DeriveInput</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))]</span>
 <span class="kw">mod</span> <span class="ident">op</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">op</span>::{<span class="ident">BinOp</span>, <span class="ident">UnOp</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::op</span>::{<span class="ident">BinOp</span>, <span class="ident">UnOp</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">stmt</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">stmt</span>::{<span class="ident">Block</span>, <span class="ident">Local</span>, <span class="ident">Stmt</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::stmt</span>::{<span class="ident">Block</span>, <span class="ident">Local</span>, <span class="ident">Stmt</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))]</span>
 <span class="kw">mod</span> <span class="ident">ty</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ty</span>::{
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ty</span>::{
     <span class="ident">Abi</span>, <span class="ident">BareFnArg</span>, <span class="ident">ReturnType</span>, <span class="ident">Type</span>, <span class="ident">TypeArray</span>, <span class="ident">TypeBareFn</span>, <span class="ident">TypeGroup</span>, <span class="ident">TypeImplTrait</span>, <span class="ident">TypeInfer</span>,
     <span class="ident">TypeMacro</span>, <span class="ident">TypeNever</span>, <span class="ident">TypeParen</span>, <span class="ident">TypePath</span>, <span class="ident">TypePtr</span>, <span class="ident">TypeReference</span>, <span class="ident">TypeSlice</span>, <span class="ident">TypeTraitObject</span>,
     <span class="ident">TypeTuple</span>, <span class="ident">Variadic</span>,
@@ -1427,7 +1427,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">pat</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">pat</span>::{
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::pat</span>::{
     <span class="ident">FieldPat</span>, <span class="ident">Pat</span>, <span class="ident">PatBox</span>, <span class="ident">PatIdent</span>, <span class="ident">PatLit</span>, <span class="ident">PatMacro</span>, <span class="ident">PatOr</span>, <span class="ident">PatPath</span>, <span class="ident">PatRange</span>, <span class="ident">PatReference</span>,
     <span class="ident">PatRest</span>, <span class="ident">PatSlice</span>, <span class="ident">PatStruct</span>, <span class="ident">PatTuple</span>, <span class="ident">PatTupleStruct</span>, <span class="ident">PatType</span>, <span class="ident">PatWild</span>,
 };
@@ -1435,7 +1435,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))]</span>
 <span class="kw">mod</span> <span class="ident">path</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">path</span>::{
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::path</span>::{
     <span class="ident">AngleBracketedGenericArguments</span>, <span class="ident">Binding</span>, <span class="ident">Constraint</span>, <span class="ident">GenericArgument</span>,
     <span class="ident">ParenthesizedGenericArguments</span>, <span class="ident">Path</span>, <span class="ident">PathArguments</span>, <span class="ident">PathSegment</span>, <span class="ident">QSelf</span>,
 };
@@ -1590,7 +1590,7 @@
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;visit&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;visit&quot;</span>)))]</span>
-    <span class="attribute">#[<span class="ident">rustfmt</span>::<span class="ident">skip</span>]</span>
+    <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
     <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">visit</span>;
 
     <span class="doccomment">/// Syntax tree traversal to mutate an exclusive borrow of a syntax tree in</span>
@@ -1687,7 +1687,7 @@
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;visit-mut&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;visit-mut&quot;</span>)))]</span>
-    <span class="attribute">#[<span class="ident">rustfmt</span>::<span class="ident">skip</span>]</span>
+    <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
     <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">visit_mut</span>;
 
     <span class="doccomment">/// Syntax tree traversal to transform the nodes of an owned syntax tree.</span>
@@ -1774,30 +1774,30 @@
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fold&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;fold&quot;</span>)))]</span>
-    <span class="attribute">#[<span class="ident">rustfmt</span>::<span class="ident">skip</span>]</span>
+    <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
     <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">fold</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;clone-impls&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">rustfmt</span>::<span class="ident">skip</span>]</span>
+    <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
     <span class="kw">mod</span> <span class="ident">clone</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">rustfmt</span>::<span class="ident">skip</span>]</span>
+    <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
     <span class="kw">mod</span> <span class="ident">eq</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">rustfmt</span>::<span class="ident">skip</span>]</span>
+    <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
     <span class="kw">mod</span> <span class="ident">hash</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra-traits&quot;</span>)]</span>
-    <span class="attribute">#[<span class="ident">rustfmt</span>::<span class="ident">skip</span>]</span>
+    <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
     <span class="kw">mod</span> <span class="ident">debug</span>;
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))]</span>
     <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;../gen_helper.rs&quot;</span>]</span>
     <span class="kw">mod</span> <span class="ident">helper</span>;
 }
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">gen</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::gen</span>::<span class="kw-2">*</span>;
 
 <span class="comment">// Not public API.</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
@@ -1826,20 +1826,20 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>))]</span>
 <span class="kw">mod</span> <span class="ident">print</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">__private</span>::<span class="ident">private</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::__private::private</span>;
 
 <span class="comment">////////////////////////////////////////////////////////////////////////////////</span>
 
 <span class="comment">// https://github.com/rust-lang/rust/issues/62830</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">rustdoc_workaround</span> {
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">parse</span>::{<span class="self">self</span> <span class="kw">as</span> <span class="ident">parse_module</span>};
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::parse</span>::{<span class="self">self</span> <span class="kw">as</span> <span class="ident">parse_module</span>};
 }
 
 <span class="comment">////////////////////////////////////////////////////////////////////////////////</span>
 
 <span class="kw">mod</span> <span class="ident">error</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::error</span>::{<span class="ident">Error</span>, <span class="prelude-ty">Result</span>};
 
 <span class="doccomment">/// Parse tokens of source code into the chosen syntax tree node.</span>
 <span class="doccomment">///</span>
@@ -1888,8 +1888,8 @@
     <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;proc-macro&quot;</span>
 ))]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;proc-macro&quot;</span>))))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">parse</span>::<span class="ident">Parse</span><span class="op">&gt;</span>(<span class="ident">tokens</span>: <span class="ident">proc_macro</span>::<span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">parse</span>::<span class="ident">Parser</span>::<span class="ident">parse</span>(<span class="ident">T</span>::<span class="ident">parse</span>, <span class="ident">tokens</span>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">parse::Parse</span><span class="op">&gt;</span>(<span class="ident">tokens</span>: <span class="ident">proc_macro::TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="ident">parse::Parser::parse</span>(<span class="ident">T::parse</span>, <span class="ident">tokens</span>)
 }
 
 <span class="doccomment">/// Parse a proc-macro2 token stream into the chosen syntax tree node.</span>
@@ -1905,8 +1905,8 @@
 <span class="doccomment">/// *This function is available only if Syn is built with the `&quot;parsing&quot;` feature.*</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse2</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">parse</span>::<span class="ident">Parse</span><span class="op">&gt;</span>(<span class="ident">tokens</span>: <span class="ident">proc_macro2</span>::<span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">parse</span>::<span class="ident">Parser</span>::<span class="ident">parse2</span>(<span class="ident">T</span>::<span class="ident">parse</span>, <span class="ident">tokens</span>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse2</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">parse::Parse</span><span class="op">&gt;</span>(<span class="ident">tokens</span>: <span class="ident">proc_macro2::TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="ident">parse::Parser::parse2</span>(<span class="ident">T::parse</span>, <span class="ident">tokens</span>)
 }
 
 <span class="doccomment">/// Parse a string of Rust code into the chosen syntax tree node.</span>
@@ -1934,8 +1934,8 @@
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_str</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">parse</span>::<span class="ident">Parse</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">parse</span>::<span class="ident">Parser</span>::<span class="ident">parse_str</span>(<span class="ident">T</span>::<span class="ident">parse</span>, <span class="ident">s</span>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_str</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">parse::Parse</span><span class="op">&gt;</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="ident">parse::Parser::parse_str</span>(<span class="ident">T::parse</span>, <span class="ident">s</span>)
 }
 
 <span class="comment">// FIXME the name parse_file makes it sound like you might pass in a path to a</span>
@@ -1986,7 +1986,7 @@
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">shebang</span> <span class="op">=</span> <span class="prelude-val">None</span>;
     <span class="kw">if</span> <span class="ident">content</span>.<span class="ident">starts_with</span>(<span class="string">&quot;#!&quot;</span>) {
-        <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="ident">whitespace</span>::<span class="ident">skip</span>(<span class="kw-2">&amp;</span><span class="ident">content</span>[<span class="number">2</span>..]);
+        <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="ident">whitespace::skip</span>(<span class="kw-2">&amp;</span><span class="ident">content</span>[<span class="number">2</span>..]);
         <span class="kw">if</span> <span class="op">!</span><span class="ident">rest</span>.<span class="ident">starts_with</span>(<span class="string">&#39;[&#39;</span>) {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">idx</span>) <span class="op">=</span> <span class="ident">content</span>.<span class="ident">find</span>(<span class="string">&#39;\n&#39;</span>) {
                 <span class="ident">shebang</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">content</span>[..<span class="ident">idx</span>].<span class="ident">to_string</span>());
@@ -2003,5 +2003,5 @@
     <span class="prelude-val">Ok</span>(<span class="ident">file</span>)
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

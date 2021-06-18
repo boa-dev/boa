@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/url-2.2.2/src/slicing.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>slicing.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../url/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../url/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -197,8 +197,8 @@
 <span class="comment">// option. This file may not be copied, modified, or distributed</span>
 <span class="comment">// except according to those terms.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Url</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::{<span class="ident">Index</span>, <span class="ident">Range</span>, <span class="ident">RangeFrom</span>, <span class="ident">RangeFull</span>, <span class="ident">RangeTo</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::Url</span>;
+<span class="kw">use</span> <span class="ident">std::ops</span>::{<span class="ident">Index</span>, <span class="ident">Range</span>, <span class="ident">RangeFrom</span>, <span class="ident">RangeFull</span>, <span class="ident">RangeTo</span>};
 
 <span class="kw">impl</span> <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">RangeFull</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Url</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">str</span>;
@@ -292,90 +292,90 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">position</span>: <span class="ident">Position</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="ident">position</span> {
-            <span class="ident">Position</span>::<span class="ident">BeforeScheme</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
+            <span class="ident">Position::BeforeScheme</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
 
-            <span class="ident">Position</span>::<span class="ident">AfterScheme</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">scheme_end</span> <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="ident">Position::AfterScheme</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">scheme_end</span> <span class="kw">as</span> <span class="ident">usize</span>,
 
-            <span class="ident">Position</span>::<span class="ident">BeforeUsername</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Position::BeforeUsername</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_authority</span>() {
                     <span class="self">self</span>.<span class="ident">scheme_end</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="string">&quot;://&quot;</span>.<span class="ident">len</span>()
                 } <span class="kw">else</span> {
-                    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">scheme_end</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;:&#39;</span>);
-                    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">scheme_end</span> <span class="op">+</span> <span class="string">&quot;:&quot;</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">username_end</span>);
+                    <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">scheme_end</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;:&#39;</span>);
+                    <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">scheme_end</span> <span class="op">+</span> <span class="string">&quot;:&quot;</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">username_end</span>);
                     <span class="self">self</span>.<span class="ident">scheme_end</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="string">&quot;:&quot;</span>.<span class="ident">len</span>()
                 }
             }
 
-            <span class="ident">Position</span>::<span class="ident">AfterUsername</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">username_end</span> <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="ident">Position::AfterUsername</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">username_end</span> <span class="kw">as</span> <span class="ident">usize</span>,
 
-            <span class="ident">Position</span>::<span class="ident">BeforePassword</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Position::BeforePassword</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_authority</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">username_end</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;:&#39;</span> {
                     <span class="self">self</span>.<span class="ident">username_end</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="string">&quot;:&quot;</span>.<span class="ident">len</span>()
                 } <span class="kw">else</span> {
-                    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">username_end</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">host_start</span>);
+                    <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">username_end</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">host_start</span>);
                     <span class="self">self</span>.<span class="ident">username_end</span> <span class="kw">as</span> <span class="ident">usize</span>
                 }
             }
 
-            <span class="ident">Position</span>::<span class="ident">AfterPassword</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Position::AfterPassword</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_authority</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">username_end</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;:&#39;</span> {
-                    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">host_start</span> <span class="op">-</span> <span class="string">&quot;@&quot;</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;@&#39;</span>);
+                    <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">host_start</span> <span class="op">-</span> <span class="string">&quot;@&quot;</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;@&#39;</span>);
                     <span class="self">self</span>.<span class="ident">host_start</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="string">&quot;@&quot;</span>.<span class="ident">len</span>()
                 } <span class="kw">else</span> {
-                    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">username_end</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">host_start</span>);
+                    <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">username_end</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">host_start</span>);
                     <span class="self">self</span>.<span class="ident">host_start</span> <span class="kw">as</span> <span class="ident">usize</span>
                 }
             }
 
-            <span class="ident">Position</span>::<span class="ident">BeforeHost</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">host_start</span> <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="ident">Position::BeforeHost</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">host_start</span> <span class="kw">as</span> <span class="ident">usize</span>,
 
-            <span class="ident">Position</span>::<span class="ident">AfterHost</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">host_end</span> <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="ident">Position::AfterHost</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">host_end</span> <span class="kw">as</span> <span class="ident">usize</span>,
 
-            <span class="ident">Position</span>::<span class="ident">BeforePort</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Position::BeforePort</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">port</span>.<span class="ident">is_some</span>() {
-                    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">host_end</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;:&#39;</span>);
+                    <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="self">self</span>.<span class="ident">host_end</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;:&#39;</span>);
                     <span class="self">self</span>.<span class="ident">host_end</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="string">&quot;:&quot;</span>.<span class="ident">len</span>()
                 } <span class="kw">else</span> {
                     <span class="self">self</span>.<span class="ident">host_end</span> <span class="kw">as</span> <span class="ident">usize</span>
                 }
             }
 
-            <span class="ident">Position</span>::<span class="ident">AfterPort</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">path_start</span> <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="ident">Position::AfterPort</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">path_start</span> <span class="kw">as</span> <span class="ident">usize</span>,
 
-            <span class="ident">Position</span>::<span class="ident">BeforePath</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">path_start</span> <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="ident">Position::BeforePath</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">path_start</span> <span class="kw">as</span> <span class="ident">usize</span>,
 
-            <span class="ident">Position</span>::<span class="ident">AfterPath</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">query_start</span>, <span class="self">self</span>.<span class="ident">fragment_start</span>) {
+            <span class="ident">Position::AfterPath</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">query_start</span>, <span class="self">self</span>.<span class="ident">fragment_start</span>) {
                 (<span class="prelude-val">Some</span>(<span class="ident">q</span>), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">q</span> <span class="kw">as</span> <span class="ident">usize</span>,
                 (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">f</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span> <span class="kw">as</span> <span class="ident">usize</span>,
                 (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">len</span>(),
             },
 
-            <span class="ident">Position</span>::<span class="ident">BeforeQuery</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">query_start</span>, <span class="self">self</span>.<span class="ident">fragment_start</span>) {
+            <span class="ident">Position::BeforeQuery</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">query_start</span>, <span class="self">self</span>.<span class="ident">fragment_start</span>) {
                 (<span class="prelude-val">Some</span>(<span class="ident">q</span>), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;?&#39;</span>);
+                    <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="ident">q</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;?&#39;</span>);
                     <span class="ident">q</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="string">&quot;?&quot;</span>.<span class="ident">len</span>()
                 }
                 (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">f</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span> <span class="kw">as</span> <span class="ident">usize</span>,
                 (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">len</span>(),
             },
 
-            <span class="ident">Position</span>::<span class="ident">AfterQuery</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">fragment_start</span> {
+            <span class="ident">Position::AfterQuery</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">fragment_start</span> {
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">len</span>(),
                 <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span> <span class="kw">as</span> <span class="ident">usize</span>,
             },
 
-            <span class="ident">Position</span>::<span class="ident">BeforeFragment</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">fragment_start</span> {
+            <span class="ident">Position::BeforeFragment</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">fragment_start</span> {
                 <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;#&#39;</span>);
+                    <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">byte_at</span>(<span class="ident">f</span>) <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;#&#39;</span>);
                     <span class="ident">f</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="string">&quot;#&quot;</span>.<span class="ident">len</span>()
                 }
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">len</span>(),
             },
 
-            <span class="ident">Position</span>::<span class="ident">AfterFragment</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">len</span>(),
+            <span class="ident">Position::AfterFragment</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">serialization</span>.<span class="ident">len</span>(),
         }
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="url" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="url" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

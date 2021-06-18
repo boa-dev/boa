@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.95/src/unix/linux_like/linux/gnu/b64/x86_64/not_x32.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>not_x32.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../../../../../storage.js"></script><script src="../../../../../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../../../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../../../../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../../../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../../../../../libc/index.html'><div class='logo-container rust-logo'><img src='../../../../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../../../../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../../../../../libc/index.html'><div class='logo-container rust-logo'><img src='../../../../../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../../../../../../settings.html"><img src="../../../../../../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -448,29 +448,29 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">c_long</span> <span class="op">=</span> <span class="ident">i64</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">c_ulong</span> <span class="op">=</span> <span class="ident">u64</span>;
 
-<span class="macro">s</span><span class="macro">!</span> {
+<span class="macro">s!</span> {
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">statvfs</span> {
-        <span class="kw">pub</span> <span class="ident">f_bsize</span>: ::<span class="ident">c_ulong</span>,
-        <span class="kw">pub</span> <span class="ident">f_frsize</span>: ::<span class="ident">c_ulong</span>,
-        <span class="kw">pub</span> <span class="ident">f_blocks</span>: ::<span class="ident">fsblkcnt_t</span>,
-        <span class="kw">pub</span> <span class="ident">f_bfree</span>: ::<span class="ident">fsblkcnt_t</span>,
-        <span class="kw">pub</span> <span class="ident">f_bavail</span>: ::<span class="ident">fsblkcnt_t</span>,
-        <span class="kw">pub</span> <span class="ident">f_files</span>: ::<span class="ident">fsfilcnt_t</span>,
-        <span class="kw">pub</span> <span class="ident">f_ffree</span>: ::<span class="ident">fsfilcnt_t</span>,
-        <span class="kw">pub</span> <span class="ident">f_favail</span>: ::<span class="ident">fsfilcnt_t</span>,
-        <span class="kw">pub</span> <span class="ident">f_fsid</span>: ::<span class="ident">c_ulong</span>,
-        <span class="kw">pub</span> <span class="ident">f_flag</span>: ::<span class="ident">c_ulong</span>,
-        <span class="kw">pub</span> <span class="ident">f_namemax</span>: ::<span class="ident">c_ulong</span>,
-        <span class="ident">__f_spare</span>: [::<span class="ident">c_int</span>; <span class="number">6</span>],
+        <span class="kw">pub</span> <span class="ident">f_bsize</span>: <span class="ident">::c_ulong</span>,
+        <span class="kw">pub</span> <span class="ident">f_frsize</span>: <span class="ident">::c_ulong</span>,
+        <span class="kw">pub</span> <span class="ident">f_blocks</span>: <span class="ident">::fsblkcnt_t</span>,
+        <span class="kw">pub</span> <span class="ident">f_bfree</span>: <span class="ident">::fsblkcnt_t</span>,
+        <span class="kw">pub</span> <span class="ident">f_bavail</span>: <span class="ident">::fsblkcnt_t</span>,
+        <span class="kw">pub</span> <span class="ident">f_files</span>: <span class="ident">::fsfilcnt_t</span>,
+        <span class="kw">pub</span> <span class="ident">f_ffree</span>: <span class="ident">::fsfilcnt_t</span>,
+        <span class="kw">pub</span> <span class="ident">f_favail</span>: <span class="ident">::fsfilcnt_t</span>,
+        <span class="kw">pub</span> <span class="ident">f_fsid</span>: <span class="ident">::c_ulong</span>,
+        <span class="kw">pub</span> <span class="ident">f_flag</span>: <span class="ident">::c_ulong</span>,
+        <span class="kw">pub</span> <span class="ident">f_namemax</span>: <span class="ident">::c_ulong</span>,
+        <span class="ident">__f_spare</span>: [<span class="ident">::c_int</span>; <span class="number">6</span>],
     }
 }
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">__SIZEOF_PTHREAD_MUTEX_T</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">40</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">__SIZEOF_PTHREAD_RWLOCK_T</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">56</span>;
 
-<span class="macro">align_const</span><span class="macro">!</span> {
+<span class="macro">align_const!</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP</span>: ::<span class="ident">pthread_mutex_t</span> <span class="op">=</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP</span>: <span class="ident">::pthread_mutex_t</span> <span class="op">=</span>
         <span class="ident">pthread_mutex_t</span> {
             <span class="ident">size</span>: [
                 <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>,
@@ -478,7 +478,7 @@
             ],
         };
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP</span>: ::<span class="ident">pthread_mutex_t</span> <span class="op">=</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP</span>: <span class="ident">::pthread_mutex_t</span> <span class="op">=</span>
         <span class="ident">pthread_mutex_t</span> {
             <span class="ident">size</span>: [
                 <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>,
@@ -486,7 +486,7 @@
             ],
         };
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP</span>: ::<span class="ident">pthread_mutex_t</span> <span class="op">=</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP</span>: <span class="ident">::pthread_mutex_t</span> <span class="op">=</span>
         <span class="ident">pthread_mutex_t</span> {
             <span class="ident">size</span>: [
                 <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>,
@@ -494,7 +494,7 @@
             ],
         };
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP</span>: ::<span class="ident">pthread_mutex_t</span> <span class="op">=</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP</span>: <span class="ident">::pthread_mutex_t</span> <span class="op">=</span>
         <span class="ident">pthread_mutex_t</span> {
             <span class="ident">size</span>: [
                 <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>,
@@ -502,7 +502,7 @@
             ],
         };
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP</span>: ::<span class="ident">pthread_mutex_t</span> <span class="op">=</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP</span>: <span class="ident">::pthread_mutex_t</span> <span class="op">=</span>
         <span class="ident">pthread_mutex_t</span> {
             <span class="ident">size</span>: [
                 <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>,
@@ -510,7 +510,7 @@
             ],
         };
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;big&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP</span>: ::<span class="ident">pthread_mutex_t</span> <span class="op">=</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PTHREAD_ADAPTIVE_MUTEX_INITIALIZER_NP</span>: <span class="ident">::pthread_mutex_t</span> <span class="op">=</span>
         <span class="ident">pthread_mutex_t</span> {
             <span class="ident">size</span>: [
                 <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">3</span>, <span class="number">0</span>,
@@ -521,369 +521,369 @@
 
 <span class="comment">// Syscall table</span>
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_read</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">0</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_write</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">1</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_open</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">2</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_close</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">3</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_stat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">4</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fstat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">5</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_lstat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">6</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_poll</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">7</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_lseek</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">8</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mmap</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">9</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mprotect</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">10</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_munmap</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">11</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_brk</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">12</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rt_sigaction</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">13</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rt_sigprocmask</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">14</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rt_sigreturn</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">15</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_ioctl</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">16</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pread64</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">17</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pwrite64</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">18</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_readv</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">19</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_writev</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">20</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_access</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">21</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pipe</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">22</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_select</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">23</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_yield</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">24</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mremap</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">25</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_msync</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">26</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mincore</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">27</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_madvise</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">28</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_shmget</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">29</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_shmat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">30</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_shmctl</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">31</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_dup</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">32</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_dup2</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">33</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pause</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">34</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_nanosleep</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">35</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getitimer</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">36</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_alarm</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">37</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setitimer</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">38</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getpid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">39</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sendfile</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">40</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_socket</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">41</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_connect</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">42</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_accept</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">43</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sendto</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">44</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_recvfrom</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">45</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sendmsg</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">46</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_recvmsg</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">47</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_shutdown</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">48</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_bind</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">49</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_listen</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">50</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getsockname</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">51</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getpeername</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">52</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_socketpair</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">53</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setsockopt</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">54</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getsockopt</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">55</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_clone</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">56</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fork</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">57</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_vfork</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">58</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_execve</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">59</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_exit</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">60</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_wait4</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">61</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_kill</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">62</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_uname</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">63</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_semget</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">64</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_semop</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">65</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_semctl</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">66</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_shmdt</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">67</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_msgget</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">68</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_msgsnd</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">69</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_msgrcv</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">70</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_msgctl</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">71</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fcntl</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">72</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_flock</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">73</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fsync</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">74</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fdatasync</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">75</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_truncate</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">76</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_ftruncate</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">77</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getdents</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">78</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getcwd</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">79</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_chdir</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">80</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fchdir</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">81</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rename</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">82</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mkdir</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">83</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rmdir</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">84</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_creat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">85</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_link</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">86</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_unlink</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">87</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_symlink</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">88</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_readlink</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">89</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_chmod</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">90</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fchmod</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">91</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_chown</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">92</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fchown</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">93</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_lchown</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">94</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_umask</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">95</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_gettimeofday</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">96</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getrlimit</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">97</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getrusage</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">98</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sysinfo</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">99</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_times</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">100</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_ptrace</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">101</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getuid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">102</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_syslog</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">103</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getgid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">104</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setuid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">105</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setgid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">106</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_geteuid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">107</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getegid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">108</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setpgid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">109</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getppid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">110</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getpgrp</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">111</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setsid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">112</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setreuid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">113</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setregid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">114</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getgroups</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">115</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setgroups</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">116</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setresuid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">117</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getresuid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">118</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setresgid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">119</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getresgid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">120</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getpgid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">121</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setfsuid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">122</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setfsgid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">123</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getsid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">124</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_capget</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">125</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_capset</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">126</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rt_sigpending</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">127</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rt_sigtimedwait</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">128</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rt_sigqueueinfo</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">129</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rt_sigsuspend</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">130</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sigaltstack</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">131</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_utime</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">132</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mknod</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">133</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_uselib</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">134</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_personality</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">135</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_ustat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">136</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_statfs</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">137</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fstatfs</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">138</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sysfs</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">139</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getpriority</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">140</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setpriority</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">141</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_setparam</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">142</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_getparam</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">143</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_setscheduler</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">144</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_getscheduler</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">145</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_get_priority_max</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">146</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_get_priority_min</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">147</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_rr_get_interval</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">148</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mlock</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">149</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_munlock</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">150</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mlockall</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">151</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_munlockall</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">152</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_vhangup</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">153</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_modify_ldt</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">154</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pivot_root</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">155</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS__sysctl</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">156</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_prctl</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">157</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_arch_prctl</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">158</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_adjtimex</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">159</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setrlimit</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">160</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_chroot</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">161</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sync</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">162</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_acct</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">163</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_settimeofday</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">164</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mount</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">165</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_umount2</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">166</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_swapon</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">167</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_swapoff</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">168</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_reboot</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">169</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sethostname</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">170</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setdomainname</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">171</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_iopl</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">172</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_ioperm</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">173</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_create_module</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">174</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_init_module</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">175</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_delete_module</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">176</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_get_kernel_syms</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">177</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_query_module</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">178</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_quotactl</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">179</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_nfsservctl</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">180</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getpmsg</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">181</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_putpmsg</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">182</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_afs_syscall</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">183</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_tuxcall</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">184</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_security</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">185</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_gettid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">186</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_readahead</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">187</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setxattr</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">188</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_lsetxattr</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">189</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fsetxattr</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">190</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getxattr</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">191</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_lgetxattr</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">192</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fgetxattr</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">193</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_listxattr</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">194</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_llistxattr</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">195</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_flistxattr</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">196</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_removexattr</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">197</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_lremovexattr</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">198</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fremovexattr</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">199</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_tkill</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">200</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_time</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">201</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_futex</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">202</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_setaffinity</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">203</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_getaffinity</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">204</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_set_thread_area</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">205</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_io_setup</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">206</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_io_destroy</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">207</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_io_getevents</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">208</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_io_submit</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">209</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_io_cancel</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">210</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_get_thread_area</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">211</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_lookup_dcookie</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">212</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_epoll_create</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">213</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_epoll_ctl_old</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">214</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_epoll_wait_old</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">215</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_remap_file_pages</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">216</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getdents64</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">217</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_set_tid_address</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">218</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_restart_syscall</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">219</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_semtimedop</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">220</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fadvise64</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">221</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_timer_create</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">222</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_timer_settime</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">223</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_timer_gettime</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">224</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_timer_getoverrun</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">225</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_timer_delete</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">226</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_clock_settime</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">227</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_clock_gettime</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">228</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_clock_getres</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">229</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_clock_nanosleep</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">230</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_exit_group</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">231</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_epoll_wait</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">232</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_epoll_ctl</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">233</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_tgkill</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">234</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_utimes</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">235</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_vserver</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">236</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mbind</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">237</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_set_mempolicy</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">238</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_get_mempolicy</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">239</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mq_open</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">240</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mq_unlink</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">241</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mq_timedsend</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">242</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mq_timedreceive</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">243</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mq_notify</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">244</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mq_getsetattr</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">245</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_kexec_load</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">246</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_waitid</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">247</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_add_key</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">248</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_request_key</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">249</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_keyctl</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">250</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_ioprio_set</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">251</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_ioprio_get</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">252</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_inotify_init</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">253</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_inotify_add_watch</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">254</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_inotify_rm_watch</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">255</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_migrate_pages</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">256</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_openat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">257</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mkdirat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">258</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mknodat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">259</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fchownat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">260</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_futimesat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">261</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_newfstatat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">262</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_unlinkat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">263</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_renameat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">264</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_linkat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">265</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_symlinkat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">266</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_readlinkat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">267</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fchmodat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">268</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_faccessat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">269</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pselect6</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">270</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_ppoll</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">271</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_unshare</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">272</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_set_robust_list</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">273</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_get_robust_list</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">274</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_splice</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">275</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_tee</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">276</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sync_file_range</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">277</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_vmsplice</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">278</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_move_pages</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">279</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_utimensat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">280</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_epoll_pwait</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">281</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_signalfd</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">282</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_timerfd_create</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">283</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_eventfd</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">284</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fallocate</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">285</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_timerfd_settime</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">286</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_timerfd_gettime</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">287</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_accept4</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">288</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_signalfd4</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">289</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_eventfd2</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">290</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_epoll_create1</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">291</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_dup3</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">292</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pipe2</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">293</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_inotify_init1</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">294</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_preadv</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">295</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pwritev</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">296</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rt_tgsigqueueinfo</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">297</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_perf_event_open</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">298</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_recvmmsg</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">299</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fanotify_init</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">300</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fanotify_mark</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">301</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_prlimit64</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">302</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_name_to_handle_at</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">303</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_open_by_handle_at</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">304</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_clock_adjtime</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">305</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_syncfs</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">306</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sendmmsg</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">307</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setns</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">308</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getcpu</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">309</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_process_vm_readv</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">310</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_process_vm_writev</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">311</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_kcmp</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">312</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_finit_module</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">313</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_setattr</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">314</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_getattr</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">315</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_renameat2</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">316</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_seccomp</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">317</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getrandom</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">318</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_memfd_create</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">319</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_kexec_file_load</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">320</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_bpf</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">321</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_execveat</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">322</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_userfaultfd</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">323</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_membarrier</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">324</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mlock2</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">325</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_copy_file_range</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">326</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_preadv2</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">327</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pwritev2</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">328</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pkey_mprotect</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">329</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pkey_alloc</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">330</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pkey_free</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">331</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_statx</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">332</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pidfd_send_signal</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">424</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_io_uring_setup</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">425</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_io_uring_enter</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">426</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_io_uring_register</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">427</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_open_tree</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">428</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_move_mount</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">429</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fsopen</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">430</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fsconfig</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">431</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fsmount</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">432</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fspick</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">433</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pidfd_open</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">434</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_clone3</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">435</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_close_range</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">436</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_openat2</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">437</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pidfd_getfd</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">438</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_faccessat2</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">439</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_process_madvise</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">440</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_epoll_pwait2</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">441</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mount_setattr</span>: ::<span class="ident">c_long</span> <span class="op">=</span> <span class="number">442</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_read</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_write</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_open</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_close</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">3</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_stat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">4</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fstat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">5</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_lstat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">6</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_poll</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">7</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_lseek</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">8</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mmap</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">9</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mprotect</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">10</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_munmap</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">11</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_brk</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">12</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rt_sigaction</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">13</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rt_sigprocmask</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">14</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rt_sigreturn</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">15</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_ioctl</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">16</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pread64</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">17</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pwrite64</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">18</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_readv</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">19</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_writev</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">20</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_access</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">21</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pipe</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">22</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_select</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">23</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_yield</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">24</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mremap</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">25</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_msync</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">26</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mincore</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">27</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_madvise</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">28</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_shmget</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">29</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_shmat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">30</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_shmctl</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">31</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_dup</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">32</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_dup2</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">33</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pause</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">34</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_nanosleep</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">35</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getitimer</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">36</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_alarm</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">37</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setitimer</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">38</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getpid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">39</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sendfile</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">40</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_socket</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">41</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_connect</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">42</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_accept</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">43</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sendto</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">44</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_recvfrom</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">45</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sendmsg</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">46</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_recvmsg</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">47</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_shutdown</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">48</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_bind</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">49</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_listen</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">50</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getsockname</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">51</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getpeername</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">52</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_socketpair</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">53</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setsockopt</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">54</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getsockopt</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">55</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_clone</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">56</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fork</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">57</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_vfork</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">58</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_execve</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">59</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_exit</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">60</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_wait4</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">61</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_kill</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">62</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_uname</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">63</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_semget</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">64</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_semop</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">65</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_semctl</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">66</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_shmdt</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">67</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_msgget</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">68</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_msgsnd</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">69</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_msgrcv</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">70</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_msgctl</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">71</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fcntl</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">72</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_flock</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">73</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fsync</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">74</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fdatasync</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">75</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_truncate</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">76</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_ftruncate</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">77</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getdents</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">78</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getcwd</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">79</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_chdir</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">80</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fchdir</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">81</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rename</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">82</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mkdir</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">83</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rmdir</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">84</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_creat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">85</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_link</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">86</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_unlink</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">87</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_symlink</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">88</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_readlink</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">89</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_chmod</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">90</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fchmod</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">91</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_chown</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">92</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fchown</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">93</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_lchown</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">94</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_umask</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">95</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_gettimeofday</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">96</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getrlimit</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">97</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getrusage</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">98</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sysinfo</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">99</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_times</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">100</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_ptrace</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">101</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getuid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">102</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_syslog</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">103</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getgid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">104</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setuid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">105</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setgid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">106</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_geteuid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">107</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getegid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">108</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setpgid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">109</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getppid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">110</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getpgrp</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">111</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setsid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">112</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setreuid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">113</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setregid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">114</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getgroups</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">115</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setgroups</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">116</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setresuid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">117</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getresuid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">118</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setresgid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">119</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getresgid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">120</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getpgid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">121</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setfsuid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">122</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setfsgid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">123</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getsid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">124</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_capget</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">125</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_capset</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">126</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rt_sigpending</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">127</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rt_sigtimedwait</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">128</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rt_sigqueueinfo</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">129</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rt_sigsuspend</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">130</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sigaltstack</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">131</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_utime</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">132</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mknod</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">133</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_uselib</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">134</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_personality</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">135</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_ustat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">136</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_statfs</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">137</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fstatfs</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">138</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sysfs</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">139</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getpriority</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">140</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setpriority</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">141</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_setparam</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">142</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_getparam</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">143</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_setscheduler</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">144</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_getscheduler</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">145</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_get_priority_max</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">146</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_get_priority_min</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">147</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_rr_get_interval</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">148</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mlock</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">149</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_munlock</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">150</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mlockall</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">151</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_munlockall</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">152</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_vhangup</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">153</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_modify_ldt</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">154</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pivot_root</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">155</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS__sysctl</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">156</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_prctl</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">157</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_arch_prctl</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">158</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_adjtimex</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">159</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setrlimit</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">160</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_chroot</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">161</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sync</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">162</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_acct</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">163</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_settimeofday</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">164</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mount</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">165</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_umount2</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">166</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_swapon</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">167</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_swapoff</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">168</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_reboot</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">169</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sethostname</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">170</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setdomainname</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">171</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_iopl</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">172</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_ioperm</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">173</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_create_module</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">174</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_init_module</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">175</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_delete_module</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">176</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_get_kernel_syms</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">177</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_query_module</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">178</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_quotactl</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">179</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_nfsservctl</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">180</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getpmsg</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">181</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_putpmsg</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">182</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_afs_syscall</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">183</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_tuxcall</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">184</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_security</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">185</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_gettid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">186</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_readahead</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">187</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setxattr</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">188</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_lsetxattr</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">189</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fsetxattr</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">190</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getxattr</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">191</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_lgetxattr</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">192</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fgetxattr</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">193</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_listxattr</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">194</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_llistxattr</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">195</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_flistxattr</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">196</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_removexattr</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">197</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_lremovexattr</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">198</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fremovexattr</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">199</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_tkill</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">200</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_time</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">201</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_futex</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">202</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_setaffinity</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">203</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_getaffinity</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">204</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_set_thread_area</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">205</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_io_setup</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">206</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_io_destroy</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">207</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_io_getevents</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">208</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_io_submit</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">209</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_io_cancel</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">210</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_get_thread_area</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">211</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_lookup_dcookie</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">212</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_epoll_create</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">213</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_epoll_ctl_old</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">214</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_epoll_wait_old</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">215</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_remap_file_pages</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">216</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getdents64</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">217</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_set_tid_address</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">218</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_restart_syscall</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">219</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_semtimedop</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">220</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fadvise64</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">221</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_timer_create</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">222</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_timer_settime</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">223</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_timer_gettime</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">224</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_timer_getoverrun</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">225</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_timer_delete</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">226</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_clock_settime</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">227</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_clock_gettime</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">228</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_clock_getres</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">229</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_clock_nanosleep</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">230</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_exit_group</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">231</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_epoll_wait</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">232</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_epoll_ctl</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">233</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_tgkill</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">234</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_utimes</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">235</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_vserver</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">236</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mbind</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">237</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_set_mempolicy</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">238</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_get_mempolicy</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">239</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mq_open</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">240</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mq_unlink</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">241</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mq_timedsend</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">242</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mq_timedreceive</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">243</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mq_notify</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">244</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mq_getsetattr</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">245</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_kexec_load</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">246</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_waitid</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">247</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_add_key</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">248</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_request_key</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">249</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_keyctl</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">250</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_ioprio_set</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">251</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_ioprio_get</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">252</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_inotify_init</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">253</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_inotify_add_watch</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">254</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_inotify_rm_watch</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">255</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_migrate_pages</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">256</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_openat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">257</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mkdirat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">258</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mknodat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">259</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fchownat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">260</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_futimesat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">261</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_newfstatat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">262</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_unlinkat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">263</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_renameat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">264</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_linkat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">265</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_symlinkat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">266</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_readlinkat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">267</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fchmodat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">268</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_faccessat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">269</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pselect6</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">270</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_ppoll</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">271</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_unshare</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">272</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_set_robust_list</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">273</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_get_robust_list</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">274</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_splice</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">275</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_tee</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">276</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sync_file_range</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">277</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_vmsplice</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">278</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_move_pages</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">279</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_utimensat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">280</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_epoll_pwait</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">281</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_signalfd</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">282</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_timerfd_create</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">283</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_eventfd</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">284</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fallocate</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">285</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_timerfd_settime</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">286</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_timerfd_gettime</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">287</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_accept4</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">288</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_signalfd4</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">289</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_eventfd2</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">290</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_epoll_create1</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">291</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_dup3</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">292</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pipe2</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">293</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_inotify_init1</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">294</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_preadv</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">295</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pwritev</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">296</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_rt_tgsigqueueinfo</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">297</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_perf_event_open</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">298</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_recvmmsg</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">299</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fanotify_init</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">300</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fanotify_mark</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">301</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_prlimit64</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">302</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_name_to_handle_at</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">303</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_open_by_handle_at</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">304</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_clock_adjtime</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">305</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_syncfs</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">306</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sendmmsg</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">307</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_setns</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">308</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getcpu</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">309</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_process_vm_readv</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">310</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_process_vm_writev</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">311</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_kcmp</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">312</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_finit_module</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">313</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_setattr</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">314</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_sched_getattr</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">315</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_renameat2</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">316</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_seccomp</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">317</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_getrandom</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">318</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_memfd_create</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">319</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_kexec_file_load</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">320</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_bpf</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">321</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_execveat</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">322</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_userfaultfd</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">323</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_membarrier</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">324</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mlock2</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">325</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_copy_file_range</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">326</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_preadv2</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">327</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pwritev2</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">328</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pkey_mprotect</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">329</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pkey_alloc</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">330</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pkey_free</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">331</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_statx</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">332</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pidfd_send_signal</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">424</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_io_uring_setup</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">425</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_io_uring_enter</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">426</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_io_uring_register</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">427</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_open_tree</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">428</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_move_mount</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">429</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fsopen</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">430</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fsconfig</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">431</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fsmount</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">432</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_fspick</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">433</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pidfd_open</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">434</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_clone3</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">435</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_close_range</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">436</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_openat2</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">437</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_pidfd_getfd</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">438</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_faccessat2</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">439</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_process_madvise</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">440</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_epoll_pwait2</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">441</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SYS_mount_setattr</span>: <span class="ident">::c_long</span> <span class="op">=</span> <span class="number">442</span>;
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sysctl</span>(
-        <span class="ident">name</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">c_int</span>,
-        <span class="ident">namelen</span>: ::<span class="ident">c_int</span>,
-        <span class="ident">oldp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">c_void</span>,
-        <span class="ident">oldlenp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">size_t</span>,
-        <span class="ident">newp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">c_void</span>,
-        <span class="ident">newlen</span>: ::<span class="ident">size_t</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> ::<span class="ident">c_int</span>;
+        <span class="ident">name</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::c_int</span>,
+        <span class="ident">namelen</span>: <span class="ident">::c_int</span>,
+        <span class="ident">oldp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::c_void</span>,
+        <span class="ident">oldlenp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::size_t</span>,
+        <span class="ident">newp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::c_void</span>,
+        <span class="ident">newlen</span>: <span class="ident">::size_t</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">::c_int</span>;
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../../../../../" data-current-crate="libc" data-search-js="../../../../../../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../../../../../" data-current-crate="libc" data-search-index-js="../../../../../../../../search-index.js" data-search-js="../../../../../../../../search.js"></div>
     <script src="../../../../../../../../main.js"></script><script src="../../../../../../../../source-script.js"></script><script src="../../../../../../../../source-files.js"></script></body></html>

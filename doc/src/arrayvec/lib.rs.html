@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/arrayvec-0.4.12/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../arrayvec/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../arrayvec/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1119,23 +1119,23 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">has_manually_drop_in_union</span>))]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">nodrop</span>;
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">iter</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ptr</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::{
+<span class="kw">use</span> <span class="ident">std::cmp</span>;
+<span class="kw">use</span> <span class="ident">std::iter</span>;
+<span class="kw">use</span> <span class="ident">std::mem</span>;
+<span class="kw">use</span> <span class="ident">std::ptr</span>;
+<span class="kw">use</span> <span class="ident">std::ops</span>::{
     <span class="ident">Deref</span>,
     <span class="ident">DerefMut</span>,
 };
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">slice</span>;
+<span class="kw">use</span> <span class="ident">std::slice</span>;
 
 <span class="comment">// extra traits</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">borrow</span>::{<span class="ident">Borrow</span>, <span class="ident">BorrowMut</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
+<span class="kw">use</span> <span class="ident">std::borrow</span>::{<span class="ident">Borrow</span>, <span class="ident">BorrowMut</span>};
+<span class="kw">use</span> <span class="ident">std::hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
+<span class="kw">use</span> <span class="ident">std::fmt</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
+<span class="kw">use</span> <span class="ident">std::io</span>;
 
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_stable_maybe_uninit</span>)]</span>
@@ -1147,7 +1147,7 @@
 <span class="attribute">#[<span class="ident">path</span><span class="op">=</span><span class="string">&quot;maybe_uninit_nodrop.rs&quot;</span>]</span>
 <span class="kw">mod</span> <span class="ident">maybe_uninit</span>;
 
-<span class="kw">use</span> <span class="ident">maybe_uninit</span>::<span class="ident">MaybeUninit</span>;
+<span class="kw">use</span> <span class="ident">maybe_uninit::MaybeUninit</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;serde-1&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">Serializer</span>, <span class="ident">Deserializer</span>};
@@ -1158,11 +1158,11 @@
 <span class="kw">mod</span> <span class="ident">range</span>;
 <span class="kw">mod</span> <span class="ident">errors</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">array</span>::<span class="ident">Array</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">range</span>::<span class="ident">RangeArgument</span>;
-<span class="kw">use</span> <span class="ident">array</span>::<span class="ident">Index</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">array_string</span>::<span class="ident">ArrayString</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">errors</span>::<span class="ident">CapacityError</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">array::Array</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">range::RangeArgument</span>;
+<span class="kw">use</span> <span class="ident">array::Index</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">array_string::ArrayString</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">errors::CapacityError</span>;
 
 
 <span class="doccomment">/// A vector with a fixed capacity.</span>
@@ -1179,7 +1179,7 @@
 <span class="doccomment">/// ArrayVec can be converted into a by value iterator.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> {
     <span class="ident">xs</span>: <span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>,
-    <span class="ident">len</span>: <span class="ident">A</span>::<span class="ident">Index</span>,
+    <span class="ident">len</span>: <span class="ident">A::Index</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
@@ -1192,9 +1192,9 @@
     }
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">panic_oob</span> {
+<span class="macro">macro_rules!</span> <span class="ident">panic_oob</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">method_name</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">index</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">len</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">panic</span><span class="macro">!</span>(<span class="macro">concat</span><span class="macro">!</span>(<span class="string">&quot;ArrayVec::&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method_name</span>, <span class="string">&quot;: index {} is out of bounds in vector of length {}&quot;</span>),
+        <span class="macro">panic!</span>(<span class="macro">concat!</span>(<span class="string">&quot;ArrayVec::&quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method_name</span>, <span class="string">&quot;: index {} is out of bounds in vector of length {}&quot;</span>),
                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">index</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">len</span>)
     }
 }
@@ -1215,7 +1215,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="ident">ArrayVec</span> { <span class="ident">xs</span>: <span class="ident">MaybeUninit</span>::<span class="ident">uninitialized</span>(), <span class="ident">len</span>: <span class="ident">Index</span>::<span class="ident">from</span>(<span class="number">0</span>) }
+            <span class="ident">ArrayVec</span> { <span class="ident">xs</span>: <span class="ident">MaybeUninit::uninitialized</span>(), <span class="ident">len</span>: <span class="ident">Index::from</span>(<span class="number">0</span>) }
         }
     }
 
@@ -1240,7 +1240,7 @@
     <span class="doccomment">/// assert_eq!(array.capacity(), 3);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capacity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> { <span class="ident">A</span>::<span class="ident">capacity</span>() }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capacity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> { <span class="ident">A::capacity</span>() }
 
     <span class="doccomment">/// Return if the `ArrayVec` is completely filled.</span>
     <span class="doccomment">///</span>
@@ -1268,7 +1268,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(&amp;array[..], &amp;[1, 2]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">element</span>: <span class="ident">A</span>::<span class="ident">Item</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">element</span>: <span class="ident">A::Item</span>) {
         <span class="self">self</span>.<span class="ident">try_push</span>(<span class="ident">element</span>).<span class="ident">unwrap</span>()
     }
 
@@ -1294,14 +1294,14 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(overflow.is_err());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_push</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">element</span>: <span class="ident">A</span>::<span class="ident">Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CapacityError</span><span class="op">&lt;</span><span class="ident">A</span>::<span class="ident">Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">A</span>::<span class="ident">capacity</span>() {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_push</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">element</span>: <span class="ident">A::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CapacityError</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">A::capacity</span>() {
             <span class="kw">unsafe</span> {
                 <span class="self">self</span>.<span class="ident">push_unchecked</span>(<span class="ident">element</span>);
             }
             <span class="prelude-val">Ok</span>(())
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">CapacityError</span>::<span class="ident">new</span>(<span class="ident">element</span>))
+            <span class="prelude-val">Err</span>(<span class="ident">CapacityError::new</span>(<span class="ident">element</span>))
         }
     }
 
@@ -1328,15 +1328,15 @@
     <span class="doccomment">/// assert_eq!(&amp;array[..], &amp;[1, 2]);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">push_unchecked</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">element</span>: <span class="ident">A</span>::<span class="ident">Item</span>) {
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">push_unchecked</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">element</span>: <span class="ident">A::Item</span>) {
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span>();
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">len</span> <span class="op">&lt;</span> <span class="ident">A</span>::<span class="ident">capacity</span>());
-        <span class="ident">ptr</span>::<span class="ident">write</span>(<span class="self">self</span>.<span class="ident">get_unchecked_ptr</span>(<span class="ident">len</span>), <span class="ident">element</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">len</span> <span class="op">&lt;</span> <span class="ident">A::capacity</span>());
+        <span class="ident">ptr::write</span>(<span class="self">self</span>.<span class="ident">get_unchecked_ptr</span>(<span class="ident">len</span>), <span class="ident">element</span>);
         <span class="self">self</span>.<span class="ident">set_len</span>(<span class="ident">len</span> <span class="op">+</span> <span class="number">1</span>);
     }
 
     <span class="doccomment">/// Get pointer to where element at `index` would be</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_unchecked_ptr</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">A</span>::<span class="ident">Item</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_unchecked_ptr</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">A::Item</span> {
         <span class="self">self</span>.<span class="ident">xs</span>.<span class="ident">ptr_mut</span>().<span class="ident">offset</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="ident">isize</span>)
     }
 
@@ -1360,7 +1360,7 @@
     <span class="doccomment">/// assert_eq!(&amp;array[..], &amp;[&quot;y&quot;, &quot;x&quot;]);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>, <span class="ident">element</span>: <span class="ident">A</span>::<span class="ident">Item</span>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>, <span class="ident">element</span>: <span class="ident">A::Item</span>) {
         <span class="self">self</span>.<span class="ident">try_insert</span>(<span class="ident">index</span>, <span class="ident">element</span>).<span class="ident">unwrap</span>()
     }
 
@@ -1384,12 +1384,12 @@
     <span class="doccomment">/// assert_eq!(&amp;array[..], &amp;[&quot;y&quot;, &quot;x&quot;]);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_insert</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>, <span class="ident">element</span>: <span class="ident">A</span>::<span class="ident">Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CapacityError</span><span class="op">&lt;</span><span class="ident">A</span>::<span class="ident">Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_insert</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>, <span class="ident">element</span>: <span class="ident">A::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CapacityError</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">index</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">len</span>() {
-            <span class="macro">panic_oob</span><span class="macro">!</span>(<span class="string">&quot;try_insert&quot;</span>, <span class="ident">index</span>, <span class="self">self</span>.<span class="ident">len</span>())
+            <span class="macro">panic_oob!</span>(<span class="string">&quot;try_insert&quot;</span>, <span class="ident">index</span>, <span class="self">self</span>.<span class="ident">len</span>())
         }
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">capacity</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CapacityError</span>::<span class="ident">new</span>(<span class="ident">element</span>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CapacityError::new</span>(<span class="ident">element</span>));
         }
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span>();
 
@@ -1400,10 +1400,10 @@
                 <span class="kw">let</span> <span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_unchecked_ptr</span>(<span class="ident">index</span>);
                 <span class="comment">// Shift everything over to make space. (Duplicating the</span>
                 <span class="comment">// `index`th element into two consecutive places.)</span>
-                <span class="ident">ptr</span>::<span class="ident">copy</span>(<span class="ident">p</span>, <span class="ident">p</span>.<span class="ident">offset</span>(<span class="number">1</span>), <span class="ident">len</span> <span class="op">-</span> <span class="ident">index</span>);
+                <span class="ident">ptr::copy</span>(<span class="ident">p</span>, <span class="ident">p</span>.<span class="ident">offset</span>(<span class="number">1</span>), <span class="ident">len</span> <span class="op">-</span> <span class="ident">index</span>);
                 <span class="comment">// Write it in, overwriting the first copy of the `index`th</span>
                 <span class="comment">// element.</span>
-                <span class="ident">ptr</span>::<span class="ident">write</span>(<span class="ident">p</span>, <span class="ident">element</span>);
+                <span class="ident">ptr::write</span>(<span class="ident">p</span>, <span class="ident">element</span>);
             }
             <span class="self">self</span>.<span class="ident">set_len</span>(<span class="ident">len</span> <span class="op">+</span> <span class="number">1</span>);
         }
@@ -1424,14 +1424,14 @@
     <span class="doccomment">/// assert_eq!(array.pop(), Some(1));</span>
     <span class="doccomment">/// assert_eq!(array.pop(), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">None</span>
         }
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">new_len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
             <span class="self">self</span>.<span class="ident">set_len</span>(<span class="ident">new_len</span>);
-            <span class="prelude-val">Some</span>(<span class="ident">ptr</span>::<span class="ident">read</span>(<span class="self">self</span>.<span class="ident">get_unchecked_ptr</span>(<span class="ident">new_len</span>)))
+            <span class="prelude-val">Some</span>(<span class="ident">ptr::read</span>(<span class="self">self</span>.<span class="ident">get_unchecked_ptr</span>(<span class="ident">new_len</span>)))
         }
     }
 
@@ -1454,10 +1454,10 @@
     <span class="doccomment">/// assert_eq!(array.swap_remove(1), 2);</span>
     <span class="doccomment">/// assert_eq!(&amp;array[..], &amp;[3]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_remove</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">A</span>::<span class="ident">Item</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_remove</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">A::Item</span> {
         <span class="self">self</span>.<span class="ident">swap_pop</span>(<span class="ident">index</span>)
             .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="macro">panic_oob</span><span class="macro">!</span>(<span class="string">&quot;swap_remove&quot;</span>, <span class="ident">index</span>, <span class="self">self</span>.<span class="ident">len</span>())
+                <span class="macro">panic_oob!</span>(<span class="string">&quot;swap_remove&quot;</span>, <span class="ident">index</span>, <span class="self">self</span>.<span class="ident">len</span>())
             })
     }
 
@@ -1478,7 +1478,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(array.swap_pop(10), None);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_pop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span>();
         <span class="kw">if</span> <span class="ident">index</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">len</span> {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
@@ -1502,10 +1502,10 @@
     <span class="doccomment">/// assert_eq!(removed_elt, 1);</span>
     <span class="doccomment">/// assert_eq!(&amp;array[..], &amp;[2, 3]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">A</span>::<span class="ident">Item</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">A::Item</span> {
         <span class="self">self</span>.<span class="ident">pop_at</span>(<span class="ident">index</span>)
             .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="macro">panic_oob</span><span class="macro">!</span>(<span class="string">&quot;remove&quot;</span>, <span class="ident">index</span>, <span class="self">self</span>.<span class="ident">len</span>())
+                <span class="macro">panic_oob!</span>(<span class="string">&quot;remove&quot;</span>, <span class="ident">index</span>, <span class="self">self</span>.<span class="ident">len</span>())
             })
     }
 
@@ -1525,7 +1525,7 @@
     <span class="doccomment">/// assert!(array.pop_at(2).is_none());</span>
     <span class="doccomment">/// assert!(array.pop_at(10).is_none());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop_at</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop_at</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">index</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span>() {
             <span class="prelude-val">None</span>
         } <span class="kw">else</span> {
@@ -1571,7 +1571,7 @@
     <span class="doccomment">/// assert_eq!(&amp;array[..], &amp;[1, 3]);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">retain</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>)
-        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">A</span>::<span class="ident">Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
+        <span class="kw">where</span> <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">A::Item</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
     {
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">del</span> <span class="op">=</span> <span class="number">0</span>;
@@ -1600,8 +1600,8 @@
     <span class="doccomment">/// not greater than the capacity.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_len</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">length</span>: <span class="ident">usize</span>) {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">length</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">capacity</span>());
-        <span class="self">self</span>.<span class="ident">len</span> <span class="op">=</span> <span class="ident">Index</span>::<span class="ident">from</span>(<span class="ident">length</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">length</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">capacity</span>());
+        <span class="self">self</span>.<span class="ident">len</span> <span class="op">=</span> <span class="ident">Index::from</span>(<span class="ident">length</span>);
     }
 
     <span class="doccomment">/// Create a draining iterator that removes the specified range in the vector</span>
@@ -1663,8 +1663,8 @@
             <span class="prelude-val">Err</span>(<span class="self">self</span>)
         } <span class="kw">else</span> {
             <span class="kw">unsafe</span> {
-                <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">ptr</span>::<span class="ident">read</span>(<span class="self">self</span>.<span class="ident">xs</span>.<span class="ident">ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">A</span>);
-                <span class="ident">mem</span>::<span class="ident">forget</span>(<span class="self">self</span>);
+                <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">ptr::read</span>(<span class="self">self</span>.<span class="ident">xs</span>.<span class="ident">ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">A</span>);
+                <span class="ident">mem::forget</span>(<span class="self">self</span>);
                 <span class="prelude-val">Ok</span>(<span class="ident">array</span>)
             }
         }
@@ -1673,36 +1673,36 @@
     <span class="doccomment">/// Dispose of `self` without the overwriting that is needed in Drop.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dispose</span>(<span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">clear</span>();
-        <span class="ident">mem</span>::<span class="ident">forget</span>(<span class="self">self</span>);
+        <span class="ident">mem::forget</span>(<span class="self">self</span>);
     }
 
     <span class="doccomment">/// Return a slice containing all elements of the vector.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">A</span>::<span class="ident">Item</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">A::Item</span>] {
         <span class="self">self</span>
     }
 
     <span class="doccomment">/// Return a mutable slice containing all elements of the vector.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_slice</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">A</span>::<span class="ident">Item</span>] {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mut_slice</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">A::Item</span>] {
         <span class="self">self</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> [<span class="ident">A</span>::<span class="ident">Item</span>];
+    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> [<span class="ident">A::Item</span>];
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">A</span>::<span class="ident">Item</span>] {
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">A::Item</span>] {
         <span class="kw">unsafe</span> {
-            <span class="ident">slice</span>::<span class="ident">from_raw_parts</span>(<span class="self">self</span>.<span class="ident">xs</span>.<span class="ident">ptr</span>(), <span class="self">self</span>.<span class="ident">len</span>())
+            <span class="ident">slice::from_raw_parts</span>(<span class="self">self</span>.<span class="ident">xs</span>.<span class="ident">ptr</span>(), <span class="self">self</span>.<span class="ident">len</span>())
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">DerefMut</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">A</span>::<span class="ident">Item</span>] {
+    <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">A::Item</span>] {
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span>();
         <span class="kw">unsafe</span> {
-            <span class="ident">slice</span>::<span class="ident">from_raw_parts_mut</span>(<span class="self">self</span>.<span class="ident">xs</span>.<span class="ident">ptr_mut</span>(), <span class="ident">len</span>)
+            <span class="ident">slice::from_raw_parts_mut</span>(<span class="self">self</span>.<span class="ident">xs</span>.<span class="ident">ptr_mut</span>(), <span class="ident">len</span>)
         }
     }
 }
@@ -1718,7 +1718,7 @@
 <span class="doccomment">/// ```</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">array</span>: <span class="ident">A</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">ArrayVec</span> { <span class="ident">xs</span>: <span class="ident">MaybeUninit</span>::<span class="ident">from</span>(<span class="ident">array</span>), <span class="ident">len</span>: <span class="ident">Index</span>::<span class="ident">from</span>(<span class="ident">A</span>::<span class="ident">capacity</span>()) }
+        <span class="ident">ArrayVec</span> { <span class="ident">xs</span>: <span class="ident">MaybeUninit::from</span>(<span class="ident">array</span>), <span class="ident">len</span>: <span class="ident">Index::from</span>(<span class="ident">A::capacity</span>()) }
     }
 }
 
@@ -1735,9 +1735,9 @@
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">IntoIterator</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">A</span>::<span class="ident">Item</span>;
-    <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">slice</span>::<span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>::<span class="ident">Item</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">IntoIter</span> { <span class="self">self</span>.<span class="ident">iter</span>() }
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">A::Item</span>;
+    <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A::Item</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::IntoIter</span> { <span class="self">self</span>.<span class="ident">iter</span>() }
 }
 
 <span class="doccomment">/// Iterate the `ArrayVec` with mutable references to each element.</span>
@@ -1752,9 +1752,9 @@
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">IntoIterator</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">A</span>::<span class="ident">Item</span>;
-    <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">slice</span>::<span class="ident">IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>::<span class="ident">Item</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">IntoIter</span> { <span class="self">self</span>.<span class="ident">iter_mut</span>() }
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">A::Item</span>;
+    <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">slice::IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A::Item</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::IntoIter</span> { <span class="self">self</span>.<span class="ident">iter_mut</span>() }
 }
 
 <span class="doccomment">/// Iterate the `ArrayVec` with each element by value.</span>
@@ -1769,32 +1769,32 @@
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">IntoIterator</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">A</span>::<span class="ident">Item</span>;
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">A::Item</span>;
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>;
     <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-        <span class="ident">IntoIter</span> { <span class="ident">index</span>: <span class="ident">Index</span>::<span class="ident">from</span>(<span class="number">0</span>), <span class="ident">v</span>: <span class="self">self</span>, }
+        <span class="ident">IntoIter</span> { <span class="ident">index</span>: <span class="ident">Index::from</span>(<span class="number">0</span>), <span class="ident">v</span>: <span class="self">self</span>, }
     }
 }
 
 
 <span class="doccomment">/// By-value iterator for `ArrayVec`.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> {
-    <span class="ident">index</span>: <span class="ident">A</span>::<span class="ident">Index</span>,
+    <span class="ident">index</span>: <span class="ident">A::Index</span>,
     <span class="ident">v</span>: <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">A</span>::<span class="ident">Item</span>;
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">A::Item</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">index</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">len</span> {
             <span class="prelude-val">None</span>
         } <span class="kw">else</span> {
             <span class="kw">unsafe</span> {
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">to_usize</span>();
-                <span class="self">self</span>.<span class="ident">index</span> <span class="op">=</span> <span class="ident">Index</span>::<span class="ident">from</span>(<span class="ident">index</span> <span class="op">+</span> <span class="number">1</span>);
-                <span class="prelude-val">Some</span>(<span class="ident">ptr</span>::<span class="ident">read</span>(<span class="self">self</span>.<span class="ident">v</span>.<span class="ident">get_unchecked_ptr</span>(<span class="ident">index</span>)))
+                <span class="self">self</span>.<span class="ident">index</span> <span class="op">=</span> <span class="ident">Index::from</span>(<span class="ident">index</span> <span class="op">+</span> <span class="number">1</span>);
+                <span class="prelude-val">Some</span>(<span class="ident">ptr::read</span>(<span class="self">self</span>.<span class="ident">v</span>.<span class="ident">get_unchecked_ptr</span>(<span class="ident">index</span>)))
             }
         }
     }
@@ -1807,14 +1807,14 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">index</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">len</span> {
             <span class="prelude-val">None</span>
         } <span class="kw">else</span> {
             <span class="kw">unsafe</span> {
                 <span class="kw">let</span> <span class="ident">new_len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
                 <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">set_len</span>(<span class="ident">new_len</span>);
-                <span class="prelude-val">Some</span>(<span class="ident">ptr</span>::<span class="ident">read</span>(<span class="self">self</span>.<span class="ident">v</span>.<span class="ident">get_unchecked_ptr</span>(<span class="ident">new_len</span>)))
+                <span class="prelude-val">Some</span>(<span class="ident">ptr::read</span>(<span class="self">self</span>.<span class="ident">v</span>.<span class="ident">get_unchecked_ptr</span>(<span class="ident">new_len</span>)))
             }
         }
     }
@@ -1829,17 +1829,17 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">len</span>();
         <span class="kw">unsafe</span> {
             <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">set_len</span>(<span class="number">0</span>);
-            <span class="kw">let</span> <span class="ident">elements</span> <span class="op">=</span> <span class="ident">slice</span>::<span class="ident">from_raw_parts_mut</span>(
+            <span class="kw">let</span> <span class="ident">elements</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts_mut</span>(
                 <span class="self">self</span>.<span class="ident">v</span>.<span class="ident">get_unchecked_ptr</span>(<span class="ident">index</span>),
                 <span class="ident">len</span> <span class="op">-</span> <span class="ident">index</span>);
-            <span class="ident">ptr</span>::<span class="ident">drop_in_place</span>(<span class="ident">elements</span>);
+            <span class="ident">ptr::drop_in_place</span>(<span class="ident">elements</span>);
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">A</span>::<span class="ident">Item</span>: <span class="ident">Clone</span>,
+    <span class="ident">A::Item</span>: <span class="ident">Clone</span>,
 {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">v</span>[<span class="self">self</span>.<span class="ident">index</span>.<span class="ident">to_usize</span>()..]
@@ -1850,11 +1850,11 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">A</span>::<span class="ident">Item</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span>,
+    <span class="ident">A::Item</span>: <span class="ident">fmt::Debug</span>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_list</span>()
             .<span class="ident">entries</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">v</span>[<span class="self">self</span>.<span class="ident">index</span>.<span class="ident">to_usize</span>()..])
             .<span class="ident">finish</span>()
@@ -1864,14 +1864,14 @@
 <span class="doccomment">/// A draining iterator for `ArrayVec`.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span><span class="op">&gt;</span> 
     <span class="kw">where</span> <span class="ident">A</span>: <span class="ident">Array</span>,
-          <span class="ident">A</span>::<span class="ident">Item</span>: <span class="lifetime">&#39;a</span>,
+          <span class="ident">A::Item</span>: <span class="lifetime">&#39;a</span>,
 {
     <span class="doccomment">/// Index of tail to preserve</span>
     <span class="ident">tail_start</span>: <span class="ident">usize</span>,
     <span class="doccomment">/// Length of tail</span>
     <span class="ident">tail_len</span>: <span class="ident">usize</span>,
     <span class="doccomment">/// Current remaining range to remove</span>
-    <span class="ident">iter</span>: <span class="ident">slice</span>::<span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>::<span class="ident">Item</span><span class="op">&gt;</span>,
+    <span class="ident">iter</span>: <span class="ident">slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A::Item</span><span class="op">&gt;</span>,
     <span class="ident">vec</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>,
 }
 
@@ -1879,15 +1879,15 @@
 <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>: <span class="ident">Array</span> <span class="op">+</span> <span class="ident">Send</span><span class="op">&gt;</span> <span class="ident">Send</span> <span class="kw">for</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span><span class="op">&gt;</span> {}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">A</span>::<span class="ident">Item</span>: <span class="lifetime">&#39;a</span>,
+    <span class="kw">where</span> <span class="ident">A::Item</span>: <span class="lifetime">&#39;a</span>,
 {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">A</span>::<span class="ident">Item</span>;
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">A::Item</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">elt</span><span class="op">|</span>
             <span class="kw">unsafe</span> {
-                <span class="ident">ptr</span>::<span class="ident">read</span>(<span class="ident">elt</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>)
+                <span class="ident">ptr::read</span>(<span class="ident">elt</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>)
             }
         )
     }
@@ -1899,22 +1899,22 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">A</span>::<span class="ident">Item</span>: <span class="lifetime">&#39;a</span>,
+    <span class="kw">where</span> <span class="ident">A::Item</span>: <span class="lifetime">&#39;a</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">elt</span><span class="op">|</span>
             <span class="kw">unsafe</span> {
-                <span class="ident">ptr</span>::<span class="ident">read</span>(<span class="ident">elt</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>)
+                <span class="ident">ptr::read</span>(<span class="ident">elt</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>)
             }
         )
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">A</span>::<span class="ident">Item</span>: <span class="lifetime">&#39;a</span> {}
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">ExactSizeIterator</span> <span class="kw">for</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">A::Item</span>: <span class="lifetime">&#39;a</span> {}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span><span class="op">&gt;</span> 
-    <span class="kw">where</span> <span class="ident">A</span>::<span class="ident">Item</span>: <span class="lifetime">&#39;a</span>
+    <span class="kw">where</span> <span class="ident">A::Item</span>: <span class="lifetime">&#39;a</span>
 {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="comment">// len is currently 0 so panicking while dropping will not cause a double drop.</span>
@@ -1930,7 +1930,7 @@
                 <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">tail_start</span>;
                 <span class="kw">let</span> <span class="ident">src</span> <span class="op">=</span> <span class="ident">source_vec</span>.<span class="ident">as_ptr</span>().<span class="ident">offset</span>(<span class="ident">tail</span> <span class="kw">as</span> <span class="ident">isize</span>);
                 <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">source_vec</span>.<span class="ident">as_mut_ptr</span>().<span class="ident">offset</span>(<span class="ident">start</span> <span class="kw">as</span> <span class="ident">isize</span>);
-                <span class="ident">ptr</span>::<span class="ident">copy</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="self">self</span>.<span class="ident">tail_len</span>);
+                <span class="ident">ptr::copy</span>(<span class="ident">src</span>, <span class="ident">dst</span>, <span class="self">self</span>.<span class="ident">tail_len</span>);
                 <span class="ident">source_vec</span>.<span class="ident">set_len</span>(<span class="ident">start</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">tail_len</span>);
             }
         }
@@ -1959,8 +1959,8 @@
 <span class="doccomment">/// </span>
 <span class="doccomment">/// Does not extract more items than there is space for. No error</span>
 <span class="doccomment">/// occurs if there are more iterator elements.</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Extend</span><span class="op">&lt;</span><span class="ident">A</span>::<span class="ident">Item</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">extend</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">A</span>::<span class="ident">Item</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">iter</span>: <span class="ident">T</span>) {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Extend</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">extend</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">A::Item</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">iter</span>: <span class="ident">T</span>) {
         <span class="kw">let</span> <span class="ident">take</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">capacity</span>() <span class="op">-</span> <span class="self">self</span>.<span class="ident">len</span>();
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span>();
@@ -1977,7 +1977,7 @@
                 }
             };
             <span class="kw">for</span> <span class="ident">elt</span> <span class="kw">in</span> <span class="ident">iter</span>.<span class="ident">into_iter</span>().<span class="ident">take</span>(<span class="ident">take</span>) {
-                <span class="ident">ptr</span>::<span class="ident">write</span>(<span class="ident">ptr</span>, <span class="ident">elt</span>);
+                <span class="ident">ptr::write</span>(<span class="ident">ptr</span>, <span class="ident">elt</span>);
                 <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ptr</span>.<span class="ident">offset</span>(<span class="number">1</span>);
                 <span class="ident">guard</span>.<span class="ident">data</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             }
@@ -1989,16 +1989,16 @@
 <span class="doccomment">/// </span>
 <span class="doccomment">/// Does not extract more items than there is space for. No error</span>
 <span class="doccomment">/// occurs if there are more iterator elements.</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">iter</span>::<span class="ident">FromIterator</span><span class="op">&lt;</span><span class="ident">A</span>::<span class="ident">Item</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">A</span>::<span class="ident">Item</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">ArrayVec</span>::<span class="ident">new</span>();
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">iter::FromIterator</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">A::Item</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">ArrayVec::new</span>();
         <span class="ident">array</span>.<span class="ident">extend</span>(<span class="ident">iter</span>);
         <span class="ident">array</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">A</span>::<span class="ident">Item</span>: <span class="ident">Clone</span>
+    <span class="kw">where</span> <span class="ident">A::Item</span>: <span class="ident">Clone</span>
 {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>()
@@ -2006,7 +2006,7 @@
 
     <span class="kw">fn</span> <span class="ident">clone_from</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
         <span class="comment">// recursive case for the common prefix</span>
-        <span class="kw">let</span> <span class="ident">prefix</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">min</span>(<span class="self">self</span>.<span class="ident">len</span>(), <span class="ident">rhs</span>.<span class="ident">len</span>());
+        <span class="kw">let</span> <span class="ident">prefix</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<span class="self">self</span>.<span class="ident">len</span>(), <span class="ident">rhs</span>.<span class="ident">len</span>());
         <span class="self">self</span>[..<span class="ident">prefix</span>].<span class="ident">clone_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">rhs</span>[..<span class="ident">prefix</span>]);
 
         <span class="kw">if</span> <span class="ident">prefix</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">len</span>() {
@@ -2022,61 +2022,61 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">A</span>::<span class="ident">Item</span>: <span class="ident">Hash</span>
+    <span class="kw">where</span> <span class="ident">A::Item</span>: <span class="ident">Hash</span>
 {
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) {
-        <span class="ident">Hash</span>::<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>, <span class="ident">state</span>)
+        <span class="ident">Hash::hash</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>, <span class="ident">state</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">A</span>::<span class="ident">Item</span>: <span class="ident">PartialEq</span>
+    <span class="kw">where</span> <span class="ident">A::Item</span>: <span class="ident">PartialEq</span>
 {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">other</span>
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">PartialEq</span><span class="op">&lt;</span>[<span class="ident">A</span>::<span class="ident">Item</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
-    <span class="kw">where</span> <span class="ident">A</span>::<span class="ident">Item</span>: <span class="ident">PartialEq</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">PartialEq</span><span class="op">&lt;</span>[<span class="ident">A::Item</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
+    <span class="kw">where</span> <span class="ident">A::Item</span>: <span class="ident">PartialEq</span>
 {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span>[<span class="ident">A</span>::<span class="ident">Item</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span>[<span class="ident">A::Item</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">other</span>
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">A</span>::<span class="ident">Item</span>: <span class="ident">Eq</span> { }
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">A::Item</span>: <span class="ident">Eq</span> { }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Borrow</span><span class="op">&lt;</span>[<span class="ident">A</span>::<span class="ident">Item</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">A</span>::<span class="ident">Item</span>] { <span class="self">self</span> }
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Borrow</span><span class="op">&lt;</span>[<span class="ident">A::Item</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">A::Item</span>] { <span class="self">self</span> }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">BorrowMut</span><span class="op">&lt;</span>[<span class="ident">A</span>::<span class="ident">Item</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">borrow_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">A</span>::<span class="ident">Item</span>] { <span class="self">self</span> }
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">BorrowMut</span><span class="op">&lt;</span>[<span class="ident">A::Item</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">borrow_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">A::Item</span>] { <span class="self">self</span> }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">A</span>::<span class="ident">Item</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">A</span>::<span class="ident">Item</span>] { <span class="self">self</span> }
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">A::Item</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="ident">A::Item</span>] { <span class="self">self</span> }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">AsMut</span><span class="op">&lt;</span>[<span class="ident">A</span>::<span class="ident">Item</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">A</span>::<span class="ident">Item</span>] { <span class="self">self</span> }
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">AsMut</span><span class="op">&lt;</span>[<span class="ident">A::Item</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">as_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">A::Item</span>] { <span class="self">self</span> }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">A</span>::<span class="ident">Item</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> { (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">fmt</span>(<span class="ident">f</span>) }
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">A::Item</span>: <span class="ident">fmt::Debug</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> { (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">fmt</span>(<span class="ident">f</span>) }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Return an empty array</span>
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-        <span class="ident">ArrayVec</span>::<span class="ident">new</span>()
+        <span class="ident">ArrayVec::new</span>()
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">PartialOrd</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">A</span>::<span class="ident">Item</span>: <span class="ident">PartialOrd</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">PartialOrd</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">A::Item</span>: <span class="ident">PartialOrd</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">cmp</span>::<span class="ident">Ordering</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">cmp::Ordering</span><span class="op">&gt;</span> {
         (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">partial_cmp</span>(<span class="ident">other</span>)
     }
 
@@ -2101,8 +2101,8 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Ord</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">A</span>::<span class="ident">Item</span>: <span class="ident">Ord</span> {
-    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cmp</span>::<span class="ident">Ordering</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Ord</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">A::Item</span>: <span class="ident">Ord</span> {
+    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">cmp::Ordering</span> {
         (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">cmp</span>(<span class="ident">other</span>)
     }
 }
@@ -2111,23 +2111,23 @@
 <span class="doccomment">/// `Write` appends written data to the end of the vector.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Requires `features=&quot;std&quot;`.</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="ident">Write</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">io::Write</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span>();
-            <span class="kw">let</span> <span class="ident">write_len</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">A</span>::<span class="ident">capacity</span>() <span class="op">-</span> <span class="ident">len</span>, <span class="ident">data</span>.<span class="ident">len</span>());
-            <span class="ident">ptr</span>::<span class="ident">copy_nonoverlapping</span>(<span class="ident">data</span>.<span class="ident">as_ptr</span>(), <span class="self">self</span>.<span class="ident">get_unchecked_ptr</span>(<span class="ident">len</span>), <span class="ident">write_len</span>);
+            <span class="kw">let</span> <span class="ident">write_len</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<span class="ident">A::capacity</span>() <span class="op">-</span> <span class="ident">len</span>, <span class="ident">data</span>.<span class="ident">len</span>());
+            <span class="ident">ptr::copy_nonoverlapping</span>(<span class="ident">data</span>.<span class="ident">as_ptr</span>(), <span class="self">self</span>.<span class="ident">get_unchecked_ptr</span>(<span class="ident">len</span>), <span class="ident">write_len</span>);
             <span class="self">self</span>.<span class="ident">set_len</span>(<span class="ident">len</span> <span class="op">+</span> <span class="ident">write_len</span>);
             <span class="prelude-val">Ok</span>(<span class="ident">write_len</span>)
         }
     }
-    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> { <span class="prelude-val">Ok</span>(()) }
+    <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> { <span class="prelude-val">Ok</span>(()) }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;serde-1&quot;</span>)]</span>
 <span class="doccomment">/// Requires crate feature `&quot;serde-1&quot;`</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Serialize</span>, <span class="ident">A</span>: <span class="ident">Array</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">Serialize</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="prelude-val">Ok</span>, <span class="ident">S</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span> <span class="ident">S</span>: <span class="ident">Serializer</span>
     {
         <span class="ident">serializer</span>.<span class="ident">collect_seq</span>(<span class="self">self</span>)
@@ -2137,29 +2137,29 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span><span class="op">=</span><span class="string">&quot;serde-1&quot;</span>)]</span>
 <span class="doccomment">/// Requires crate feature `&quot;serde-1&quot;`</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">T</span>: <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>, <span class="ident">A</span>: <span class="ident">Array</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span> <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>
     {
-        <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">de</span>::{<span class="ident">Visitor</span>, <span class="ident">SeqAccess</span>, <span class="ident">Error</span>};
-        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
+        <span class="kw">use</span> <span class="ident">serde::de</span>::{<span class="ident">Visitor</span>, <span class="ident">SeqAccess</span>, <span class="ident">Error</span>};
+        <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
 
         <span class="kw">struct</span> <span class="ident">ArrayVecVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">T</span>: <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>, <span class="ident">A</span>: <span class="ident">Array</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;de</span> (), <span class="ident">T</span>, <span class="ident">A</span>)<span class="op">&gt;</span>);
 
         <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">T</span>: <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>, <span class="ident">A</span>: <span class="ident">Array</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayVecVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">T</span>, <span class="ident">A</span><span class="op">&gt;</span> {
             <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>;
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-                <span class="macro">write</span><span class="macro">!</span>(<span class="ident">formatter</span>, <span class="string">&quot;an array with no more than {} items&quot;</span>, <span class="ident">A</span>::<span class="ident">capacity</span>())
+            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+                <span class="macro">write!</span>(<span class="ident">formatter</span>, <span class="string">&quot;an array with no more than {} items&quot;</span>, <span class="ident">A::capacity</span>())
             }
 
-            <span class="kw">fn</span> <span class="ident">visit_seq</span><span class="op">&lt;</span><span class="ident">SA</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">seq</span>: <span class="ident">SA</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Value</span>, <span class="ident">SA</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+            <span class="kw">fn</span> <span class="ident">visit_seq</span><span class="op">&lt;</span><span class="ident">SA</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">seq</span>: <span class="ident">SA</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Value</span>, <span class="ident">SA::Error</span><span class="op">&gt;</span>
                 <span class="kw">where</span> <span class="ident">SA</span>: <span class="ident">SeqAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
             {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">ArrayVec</span>::<span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>::<span class="ident">new</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">ArrayVec</span>::<span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span><span class="ident">::new</span>();
 
-                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="macro">try</span><span class="macro">!</span>(<span class="ident">seq</span>.<span class="ident">next_element</span>()) {
+                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="macro">try!</span>(<span class="ident">seq</span>.<span class="ident">next_element</span>()) {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">values</span>.<span class="ident">try_push</span>(<span class="ident">value</span>) {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SA</span>::<span class="ident">Error</span>::<span class="ident">invalid_length</span>(<span class="ident">A</span>::<span class="ident">capacity</span>() <span class="op">+</span> <span class="number">1</span>, <span class="kw-2">&amp;</span><span class="self">self</span>));
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">SA::Error::invalid_length</span>(<span class="ident">A::capacity</span>() <span class="op">+</span> <span class="number">1</span>, <span class="kw-2">&amp;</span><span class="self">self</span>));
                     }
                 }
 
@@ -2171,5 +2171,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="arrayvec" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="arrayvec" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

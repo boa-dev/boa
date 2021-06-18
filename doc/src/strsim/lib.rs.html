@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/strsim-0.8.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../strsim/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../strsim/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -790,9 +790,9 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This library implements string similarity metrics.</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">char</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>::{<span class="ident">max</span>, <span class="ident">min</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
+<span class="kw">use</span> <span class="ident">std::char</span>;
+<span class="kw">use</span> <span class="ident">std::cmp</span>::{<span class="ident">max</span>, <span class="ident">min</span>};
+<span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">StrSimError</span> {
@@ -818,7 +818,7 @@
         <span class="kw">match</span> (<span class="ident">ita</span>.<span class="ident">next</span>(), <span class="ident">itb</span>.<span class="ident">next</span>()){
             (<span class="prelude-val">Some</span>(<span class="ident">x</span>), <span class="prelude-val">Some</span>(<span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">!</span><span class="op">=</span> <span class="ident">y</span> { <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span> },
             (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">count</span>),
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">StrSimError</span>::<span class="ident">DifferentLengthArgs</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">StrSimError::DifferentLengthArgs</span>),
         }
     }
 }
@@ -846,7 +846,7 @@
 
     <span class="kw">let</span> <span class="ident">search_range</span> <span class="op">=</span> (<span class="ident">max</span>(<span class="ident">a_len</span>, <span class="ident">b_len</span>) <span class="op">/</span> <span class="number">2</span>) <span class="op">-</span> <span class="number">1</span>;
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b_consumed</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">b_len</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b_consumed</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">b_len</span>);
     <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">b_len</span> {
         <span class="ident">b_consumed</span>.<span class="ident">push</span>(<span class="bool-val">false</span>);
     }
@@ -995,12 +995,12 @@
     <span class="kw">else</span> <span class="kw">if</span> <span class="ident">a_len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">b_len</span>; }
     <span class="kw">else</span> <span class="kw">if</span> <span class="ident">b_len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">a_len</span>; }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_two_distances</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">b_len</span> <span class="op">+</span> <span class="number">1</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_distances</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">b_len</span> <span class="op">+</span> <span class="number">1</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr_distances</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">b_len</span> <span class="op">+</span> <span class="number">1</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_two_distances</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">b_len</span> <span class="op">+</span> <span class="number">1</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_distances</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">b_len</span> <span class="op">+</span> <span class="number">1</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr_distances</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">b_len</span> <span class="op">+</span> <span class="number">1</span>);
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_a_char</span> <span class="op">=</span> <span class="ident">char</span>::<span class="ident">MAX</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_b_char</span> <span class="op">=</span> <span class="ident">char</span>::<span class="ident">MAX</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_a_char</span> <span class="op">=</span> <span class="ident">char::MAX</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_b_char</span> <span class="op">=</span> <span class="ident">char::MAX</span>;
 
     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..(<span class="ident">b_len</span> <span class="op">+</span> <span class="number">1</span>) {
         <span class="ident">prev_two_distances</span>.<span class="ident">push</span>(<span class="ident">i</span>);
@@ -1053,7 +1053,7 @@
     <span class="kw">if</span> <span class="ident">a_len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">b_len</span>; }
     <span class="kw">if</span> <span class="ident">b_len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">a_len</span>; }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">distances</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>; <span class="ident">b_len</span> <span class="op">+</span> <span class="number">2</span>]; <span class="ident">a_len</span> <span class="op">+</span> <span class="number">2</span>];
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">distances</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="macro">vec!</span>[<span class="number">0</span>; <span class="ident">b_len</span> <span class="op">+</span> <span class="number">2</span>]; <span class="ident">a_len</span> <span class="op">+</span> <span class="number">2</span>];
     <span class="kw">let</span> <span class="ident">max_distance</span> <span class="op">=</span> <span class="ident">a_len</span> <span class="op">+</span> <span class="ident">b_len</span>;
     <span class="ident">distances</span>[<span class="number">0</span>][<span class="number">0</span>] <span class="op">=</span> <span class="ident">max_distance</span>;
 
@@ -1067,7 +1067,7 @@
         <span class="ident">distances</span>[<span class="number">1</span>][<span class="ident">j</span> <span class="op">+</span> <span class="number">1</span>] <span class="op">=</span> <span class="ident">j</span>;
     }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">char</span>, <span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashMap</span>::<span class="ident">new</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">char</span>, <span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
 
     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">1</span>..(<span class="ident">a_len</span> <span class="op">+</span> <span class="number">1</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">db</span> <span class="op">=</span> <span class="number">0</span>;
@@ -1130,450 +1130,450 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">hamming_empty</span>() {
         <span class="kw">match</span> <span class="ident">hamming</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0</span>, <span class="ident">distance</span>); },
-            <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
+            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">distance</span>); },
+            <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">hamming_same</span>() {
         <span class="kw">match</span> <span class="ident">hamming</span>(<span class="string">&quot;hamming&quot;</span>, <span class="string">&quot;hamming&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0</span>, <span class="ident">distance</span>); },
-            <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
+            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">distance</span>); },
+            <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">hamming_diff</span>() {
         <span class="kw">match</span> <span class="ident">hamming</span>(<span class="string">&quot;hamming&quot;</span>, <span class="string">&quot;hammers&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">3</span>, <span class="ident">distance</span>); },
-            <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
+            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">distance</span>); },
+            <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">hamming_diff_multibyte</span>() {
         <span class="kw">match</span> <span class="ident">hamming</span>(<span class="string">&quot;hamming&quot;</span>, <span class="string">&quot;h香mmüng&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">2</span>, <span class="ident">distance</span>); },
-            <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
+            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">assert_eq!</span>(<span class="number">2</span>, <span class="ident">distance</span>); },
+            <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">hamming_unequal_length</span>() {
         <span class="kw">match</span> <span class="ident">hamming</span>(<span class="string">&quot;ham&quot;</span>, <span class="string">&quot;hamming&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">panic</span><span class="macro">!</span>(); },
-            <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">why</span>, <span class="ident">StrSimError</span>::<span class="ident">DifferentLengthArgs</span>); }
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">panic!</span>(); },
+            <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">assert_eq!</span>(<span class="ident">why</span>, <span class="ident">StrSimError::DifferentLengthArgs</span>); }
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">hamming_names</span>() {
         <span class="kw">match</span> <span class="ident">hamming</span>(<span class="string">&quot;Friedrich Nietzs&quot;</span>, <span class="string">&quot;Jean-Paul Sartre&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">14</span>, <span class="ident">distance</span>); },
-            <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
+            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">assert_eq!</span>(<span class="number">14</span>, <span class="ident">distance</span>); },
+            <span class="prelude-val">Err</span>(<span class="ident">why</span>) <span class="op">=</span><span class="op">&gt;</span> { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_both_empty</span>() {
-       <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">1.0</span>, <span class="ident">jaro</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>));
+       <span class="macro">assert_eq!</span>(<span class="number">1.0</span>, <span class="ident">jaro</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_first_empty</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0.0</span>, <span class="ident">jaro</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;jaro&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0.0</span>, <span class="ident">jaro</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;jaro&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_second_empty</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0.0</span>, <span class="ident">jaro</span>(<span class="string">&quot;distance&quot;</span>, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0.0</span>, <span class="ident">jaro</span>(<span class="string">&quot;distance&quot;</span>, <span class="string">&quot;&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_same</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">1.0</span>, <span class="ident">jaro</span>(<span class="string">&quot;jaro&quot;</span>, <span class="string">&quot;jaro&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">1.0</span>, <span class="ident">jaro</span>(<span class="string">&quot;jaro&quot;</span>, <span class="string">&quot;jaro&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_multibyte</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="number">0.818</span> <span class="op">-</span> <span class="ident">jaro</span>(<span class="string">&quot;testabctest&quot;</span>, <span class="string">&quot;testöঙ香test&quot;</span>)) <span class="op">&lt;</span> <span class="number">0.001</span>);
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="number">0.818</span> <span class="op">-</span> <span class="ident">jaro</span>(<span class="string">&quot;testöঙ香test&quot;</span>, <span class="string">&quot;testabctest&quot;</span>)) <span class="op">&lt;</span> <span class="number">0.001</span>);
+        <span class="macro">assert!</span>((<span class="number">0.818</span> <span class="op">-</span> <span class="ident">jaro</span>(<span class="string">&quot;testabctest&quot;</span>, <span class="string">&quot;testöঙ香test&quot;</span>)) <span class="op">&lt;</span> <span class="number">0.001</span>);
+        <span class="macro">assert!</span>((<span class="number">0.818</span> <span class="op">-</span> <span class="ident">jaro</span>(<span class="string">&quot;testöঙ香test&quot;</span>, <span class="string">&quot;testabctest&quot;</span>)) <span class="op">&lt;</span> <span class="number">0.001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_diff_short</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="number">0.767</span> <span class="op">-</span> <span class="ident">jaro</span>(<span class="string">&quot;dixon&quot;</span>, <span class="string">&quot;dicksonx&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
+        <span class="macro">assert!</span>((<span class="number">0.767</span> <span class="op">-</span> <span class="ident">jaro</span>(<span class="string">&quot;dixon&quot;</span>, <span class="string">&quot;dicksonx&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_diff_one_character</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0.0</span>, <span class="ident">jaro</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0.0</span>, <span class="ident">jaro</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_diff_one_and_two</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="number">0.83</span> <span class="op">-</span> <span class="ident">jaro</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;ab&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.01</span>);
+        <span class="macro">assert!</span>((<span class="number">0.83</span> <span class="op">-</span> <span class="ident">jaro</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;ab&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.01</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_diff_two_and_one</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="number">0.83</span> <span class="op">-</span> <span class="ident">jaro</span>(<span class="string">&quot;ab&quot;</span>, <span class="string">&quot;a&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.01</span>);
+        <span class="macro">assert!</span>((<span class="number">0.83</span> <span class="op">-</span> <span class="ident">jaro</span>(<span class="string">&quot;ab&quot;</span>, <span class="string">&quot;a&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.01</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_diff_no_transposition</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="number">0.822</span> <span class="op">-</span> <span class="ident">jaro</span>(<span class="string">&quot;dwayne&quot;</span>, <span class="string">&quot;duane&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
+        <span class="macro">assert!</span>((<span class="number">0.822</span> <span class="op">-</span> <span class="ident">jaro</span>(<span class="string">&quot;dwayne&quot;</span>, <span class="string">&quot;duane&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_diff_with_transposition</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="number">0.944</span> <span class="op">-</span> <span class="ident">jaro</span>(<span class="string">&quot;martha&quot;</span>, <span class="string">&quot;marhta&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
+        <span class="macro">assert!</span>((<span class="number">0.944</span> <span class="op">-</span> <span class="ident">jaro</span>(<span class="string">&quot;martha&quot;</span>, <span class="string">&quot;marhta&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_names</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="number">0.392</span> <span class="op">-</span> <span class="ident">jaro</span>(<span class="string">&quot;Friedrich Nietzsche&quot;</span>,
+        <span class="macro">assert!</span>((<span class="number">0.392</span> <span class="op">-</span> <span class="ident">jaro</span>(<span class="string">&quot;Friedrich Nietzsche&quot;</span>,
                               <span class="string">&quot;Jean-Paul Sartre&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_winkler_both_empty</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">1.0</span>, <span class="ident">jaro_winkler</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">1.0</span>, <span class="ident">jaro_winkler</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_winkler_first_empty</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0.0</span>, <span class="ident">jaro_winkler</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;jaro-winkler&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0.0</span>, <span class="ident">jaro_winkler</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;jaro-winkler&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_winkler_second_empty</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0.0</span>, <span class="ident">jaro_winkler</span>(<span class="string">&quot;distance&quot;</span>, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0.0</span>, <span class="ident">jaro_winkler</span>(<span class="string">&quot;distance&quot;</span>, <span class="string">&quot;&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_winkler_same</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">1.0</span>, <span class="ident">jaro_winkler</span>(<span class="string">&quot;Jaro-Winkler&quot;</span>, <span class="string">&quot;Jaro-Winkler&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">1.0</span>, <span class="ident">jaro_winkler</span>(<span class="string">&quot;Jaro-Winkler&quot;</span>, <span class="string">&quot;Jaro-Winkler&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_winkler_multibyte</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="number">0.89</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;testabctest&quot;</span>, <span class="string">&quot;testöঙ香test&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span>
+        <span class="macro">assert!</span>((<span class="number">0.89</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;testabctest&quot;</span>, <span class="string">&quot;testöঙ香test&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span>
                 <span class="number">0.001</span>);
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="number">0.89</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;testöঙ香test&quot;</span>, <span class="string">&quot;testabctest&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span>
+        <span class="macro">assert!</span>((<span class="number">0.89</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;testöঙ香test&quot;</span>, <span class="string">&quot;testabctest&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span>
                 <span class="number">0.001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_winkler_diff_short</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="number">0.813</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;dixon&quot;</span>, <span class="string">&quot;dicksonx&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="number">0.813</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;dicksonx&quot;</span>, <span class="string">&quot;dixon&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
+        <span class="macro">assert!</span>((<span class="number">0.813</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;dixon&quot;</span>, <span class="string">&quot;dicksonx&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
+        <span class="macro">assert!</span>((<span class="number">0.813</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;dicksonx&quot;</span>, <span class="string">&quot;dixon&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_winkler_diff_one_character</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0.0</span>, <span class="ident">jaro_winkler</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0.0</span>, <span class="ident">jaro_winkler</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_winkler_diff_no_transposition</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="number">0.840</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;dwayne&quot;</span>, <span class="string">&quot;duane&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
+        <span class="macro">assert!</span>((<span class="number">0.840</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;dwayne&quot;</span>, <span class="string">&quot;duane&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_winkler_diff_with_transposition</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="number">0.961</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;martha&quot;</span>, <span class="string">&quot;marhta&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
+        <span class="macro">assert!</span>((<span class="number">0.961</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;martha&quot;</span>, <span class="string">&quot;marhta&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_winkler_names</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="number">0.562</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;Friedrich Nietzsche&quot;</span>,
+        <span class="macro">assert!</span>((<span class="number">0.562</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;Friedrich Nietzsche&quot;</span>,
                                       <span class="string">&quot;Fran-Paul Sartre&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_winkler_long_prefix</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="number">0.911</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;cheeseburger&quot;</span>, <span class="string">&quot;cheese fries&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span>
+        <span class="macro">assert!</span>((<span class="number">0.911</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;cheeseburger&quot;</span>, <span class="string">&quot;cheese fries&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span>
                 <span class="number">0.001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_winkler_more_names</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="number">0.868</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;Thorkel&quot;</span>, <span class="string">&quot;Thorgier&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
+        <span class="macro">assert!</span>((<span class="number">0.868</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;Thorkel&quot;</span>, <span class="string">&quot;Thorgier&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_winkler_length_of_one</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="number">0.738</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;Dinsdale&quot;</span>, <span class="string">&quot;D&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
+        <span class="macro">assert!</span>((<span class="number">0.738</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;Dinsdale&quot;</span>, <span class="string">&quot;D&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_winkler_very_long_prefix</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="number">1.0</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;thequickbrownfoxjumpedoverx&quot;</span>,
+        <span class="macro">assert!</span>((<span class="number">1.0</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;thequickbrownfoxjumpedoverx&quot;</span>,
                                     <span class="string">&quot;thequickbrownfoxjumpedovery&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span>
                 <span class="number">0.001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">levenshtein_empty</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0</span>, <span class="ident">levenshtein</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">levenshtein</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">levenshtein_same</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0</span>, <span class="ident">levenshtein</span>(<span class="string">&quot;levenshtein&quot;</span>, <span class="string">&quot;levenshtein&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">levenshtein</span>(<span class="string">&quot;levenshtein&quot;</span>, <span class="string">&quot;levenshtein&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">levenshtein_diff_short</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">3</span>, <span class="ident">levenshtein</span>(<span class="string">&quot;kitten&quot;</span>, <span class="string">&quot;sitting&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">levenshtein</span>(<span class="string">&quot;kitten&quot;</span>, <span class="string">&quot;sitting&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">levenshtein_diff_with_space</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">5</span>, <span class="ident">levenshtein</span>(<span class="string">&quot;hello, world&quot;</span>, <span class="string">&quot;bye, world&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">5</span>, <span class="ident">levenshtein</span>(<span class="string">&quot;hello, world&quot;</span>, <span class="string">&quot;bye, world&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">levenshtein_diff_multibyte</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">3</span>, <span class="ident">levenshtein</span>(<span class="string">&quot;öঙ香&quot;</span>, <span class="string">&quot;abc&quot;</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">3</span>, <span class="ident">levenshtein</span>(<span class="string">&quot;abc&quot;</span>, <span class="string">&quot;öঙ香&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">levenshtein</span>(<span class="string">&quot;öঙ香&quot;</span>, <span class="string">&quot;abc&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">levenshtein</span>(<span class="string">&quot;abc&quot;</span>, <span class="string">&quot;öঙ香&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">levenshtein_diff_longer</span>() {
         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="string">&quot;The quick brown fox jumped over the angry dog.&quot;</span>;
         <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="string">&quot;Lorem ipsum dolor sit amet, dicta latine an eam.&quot;</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">37</span>, <span class="ident">levenshtein</span>(<span class="ident">a</span>, <span class="ident">b</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">37</span>, <span class="ident">levenshtein</span>(<span class="ident">a</span>, <span class="ident">b</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">levenshtein_first_empty</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">7</span>, <span class="ident">levenshtein</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;sitting&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">7</span>, <span class="ident">levenshtein</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;sitting&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">levenshtein_second_empty</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">6</span>, <span class="ident">levenshtein</span>(<span class="string">&quot;kitten&quot;</span>, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">6</span>, <span class="ident">levenshtein</span>(<span class="string">&quot;kitten&quot;</span>, <span class="string">&quot;&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">normalized_levenshtein_diff_short</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">normalized_levenshtein</span>(<span class="string">&quot;kitten&quot;</span>, <span class="string">&quot;sitting&quot;</span>) <span class="op">-</span> <span class="number">0.57142</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
+        <span class="macro">assert!</span>((<span class="ident">normalized_levenshtein</span>(<span class="string">&quot;kitten&quot;</span>, <span class="string">&quot;sitting&quot;</span>) <span class="op">-</span> <span class="number">0.57142</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">normalized_levenshtein_for_empty_strings</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">normalized_levenshtein</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>) <span class="op">-</span> <span class="number">1.0</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
+        <span class="macro">assert!</span>((<span class="ident">normalized_levenshtein</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>) <span class="op">-</span> <span class="number">1.0</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">normalized_levenshtein_first_empty</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">normalized_levenshtein</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;second&quot;</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
+        <span class="macro">assert!</span>(<span class="ident">normalized_levenshtein</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;second&quot;</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">normalized_levenshtein_second_empty</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">normalized_levenshtein</span>(<span class="string">&quot;first&quot;</span>, <span class="string">&quot;&quot;</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
+        <span class="macro">assert!</span>(<span class="ident">normalized_levenshtein</span>(<span class="string">&quot;first&quot;</span>, <span class="string">&quot;&quot;</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">normalized_levenshtein_identical_strings</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">normalized_levenshtein</span>(<span class="string">&quot;identical&quot;</span>, <span class="string">&quot;identical&quot;</span>) <span class="op">-</span> <span class="number">1.0</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
+        <span class="macro">assert!</span>((<span class="ident">normalized_levenshtein</span>(<span class="string">&quot;identical&quot;</span>, <span class="string">&quot;identical&quot;</span>) <span class="op">-</span> <span class="number">1.0</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">osa_distance_empty</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">osa_distance_same</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;damerau&quot;</span>, <span class="string">&quot;damerau&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;damerau&quot;</span>, <span class="string">&quot;damerau&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">osa_distance_first_empty</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">7</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;damerau&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">7</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;damerau&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">osa_distance_second_empty</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">7</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;damerau&quot;</span>, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">7</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;damerau&quot;</span>, <span class="string">&quot;&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">osa_distance_diff</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">3</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;ca&quot;</span>, <span class="string">&quot;abc&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;ca&quot;</span>, <span class="string">&quot;abc&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">osa_distance_diff_short</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">3</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;damerau&quot;</span>, <span class="string">&quot;aderua&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;damerau&quot;</span>, <span class="string">&quot;aderua&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">osa_distance_diff_reversed</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">3</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;aderua&quot;</span>, <span class="string">&quot;damerau&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;aderua&quot;</span>, <span class="string">&quot;damerau&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">osa_distance_diff_multibyte</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">3</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;öঙ香&quot;</span>, <span class="string">&quot;abc&quot;</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">3</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;abc&quot;</span>, <span class="string">&quot;öঙ香&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;öঙ香&quot;</span>, <span class="string">&quot;abc&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;abc&quot;</span>, <span class="string">&quot;öঙ香&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">osa_distance_diff_unequal_length</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">6</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;damerau&quot;</span>, <span class="string">&quot;aderuaxyz&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">6</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;damerau&quot;</span>, <span class="string">&quot;aderuaxyz&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">osa_distance_diff_unequal_length_reversed</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">6</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;aderuaxyz&quot;</span>, <span class="string">&quot;damerau&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">6</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;aderuaxyz&quot;</span>, <span class="string">&quot;damerau&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">osa_distance_diff_comedians</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">5</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;Stewart&quot;</span>, <span class="string">&quot;Colbert&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">5</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;Stewart&quot;</span>, <span class="string">&quot;Colbert&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">osa_distance_many_transpositions</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">4</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;abcdefghijkl&quot;</span>, <span class="string">&quot;bacedfgihjlk&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">4</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;abcdefghijkl&quot;</span>, <span class="string">&quot;bacedfgihjlk&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">osa_distance_diff_longer</span>() {
         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="string">&quot;The quick brown fox jumped over the angry dog.&quot;</span>;
         <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="string">&quot;Lehem ipsum dolor sit amet, dicta latine an eam.&quot;</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">36</span>, <span class="ident">osa_distance</span>(<span class="ident">a</span>, <span class="ident">b</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">36</span>, <span class="ident">osa_distance</span>(<span class="ident">a</span>, <span class="ident">b</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">osa_distance_beginning_transposition</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">1</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;foobar&quot;</span>, <span class="string">&quot;ofobar&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">1</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;foobar&quot;</span>, <span class="string">&quot;ofobar&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">osa_distance_end_transposition</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">1</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;specter&quot;</span>, <span class="string">&quot;spectre&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">1</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;specter&quot;</span>, <span class="string">&quot;spectre&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">osa_distance_restricted_edit</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">4</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;a cat&quot;</span>, <span class="string">&quot;an abct&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">4</span>, <span class="ident">osa_distance</span>(<span class="string">&quot;a cat&quot;</span>, <span class="string">&quot;an abct&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">damerau_levenshtein_empty</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">damerau_levenshtein_same</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">0</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;damerau&quot;</span>, <span class="string">&quot;damerau&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;damerau&quot;</span>, <span class="string">&quot;damerau&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">damerau_levenshtein_first_empty</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">7</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;damerau&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">7</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;damerau&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">damerau_levenshtein_second_empty</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">7</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;damerau&quot;</span>, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">7</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;damerau&quot;</span>, <span class="string">&quot;&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">damerau_levenshtein_diff</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">2</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;ca&quot;</span>, <span class="string">&quot;abc&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">2</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;ca&quot;</span>, <span class="string">&quot;abc&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">damerau_levenshtein_diff_short</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">3</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;damerau&quot;</span>, <span class="string">&quot;aderua&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;damerau&quot;</span>, <span class="string">&quot;aderua&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">damerau_levenshtein_diff_reversed</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">3</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;aderua&quot;</span>, <span class="string">&quot;damerau&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;aderua&quot;</span>, <span class="string">&quot;damerau&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">damerau_levenshtein_diff_multibyte</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">3</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;öঙ香&quot;</span>, <span class="string">&quot;abc&quot;</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">3</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;abc&quot;</span>, <span class="string">&quot;öঙ香&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;öঙ香&quot;</span>, <span class="string">&quot;abc&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;abc&quot;</span>, <span class="string">&quot;öঙ香&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">damerau_levenshtein_diff_unequal_length</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">6</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;damerau&quot;</span>, <span class="string">&quot;aderuaxyz&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">6</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;damerau&quot;</span>, <span class="string">&quot;aderuaxyz&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">damerau_levenshtein_diff_unequal_length_reversed</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">6</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;aderuaxyz&quot;</span>, <span class="string">&quot;damerau&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">6</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;aderuaxyz&quot;</span>, <span class="string">&quot;damerau&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">damerau_levenshtein_diff_comedians</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">5</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;Stewart&quot;</span>, <span class="string">&quot;Colbert&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">5</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;Stewart&quot;</span>, <span class="string">&quot;Colbert&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">damerau_levenshtein_many_transpositions</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">4</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;abcdefghijkl&quot;</span>, <span class="string">&quot;bacedfgihjlk&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">4</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;abcdefghijkl&quot;</span>, <span class="string">&quot;bacedfgihjlk&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">damerau_levenshtein_diff_longer</span>() {
         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="string">&quot;The quick brown fox jumped over the angry dog.&quot;</span>;
         <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="string">&quot;Lehem ipsum dolor sit amet, dicta latine an eam.&quot;</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">36</span>, <span class="ident">damerau_levenshtein</span>(<span class="ident">a</span>, <span class="ident">b</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">36</span>, <span class="ident">damerau_levenshtein</span>(<span class="ident">a</span>, <span class="ident">b</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">damerau_levenshtein_beginning_transposition</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">1</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;foobar&quot;</span>, <span class="string">&quot;ofobar&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">1</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;foobar&quot;</span>, <span class="string">&quot;ofobar&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">damerau_levenshtein_end_transposition</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">1</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;specter&quot;</span>, <span class="string">&quot;spectre&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">1</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;specter&quot;</span>, <span class="string">&quot;spectre&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">damerau_levenshtein_unrestricted_edit</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="number">3</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;a cat&quot;</span>, <span class="string">&quot;an abct&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">damerau_levenshtein</span>(<span class="string">&quot;a cat&quot;</span>, <span class="string">&quot;an abct&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">normalized_damerau_levenshtein_diff_short</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">normalized_damerau_levenshtein</span>(<span class="string">&quot;levenshtein&quot;</span>, <span class="string">&quot;löwenbräu&quot;</span>) <span class="op">-</span> <span class="number">0.27272</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
+        <span class="macro">assert!</span>((<span class="ident">normalized_damerau_levenshtein</span>(<span class="string">&quot;levenshtein&quot;</span>, <span class="string">&quot;löwenbräu&quot;</span>) <span class="op">-</span> <span class="number">0.27272</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">normalized_damerau_levenshtein_for_empty_strings</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">normalized_damerau_levenshtein</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>) <span class="op">-</span> <span class="number">1.0</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
+        <span class="macro">assert!</span>((<span class="ident">normalized_damerau_levenshtein</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>) <span class="op">-</span> <span class="number">1.0</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">normalized_damerau_levenshtein_first_empty</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">normalized_damerau_levenshtein</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;flower&quot;</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
+        <span class="macro">assert!</span>(<span class="ident">normalized_damerau_levenshtein</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;flower&quot;</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">normalized_damerau_levenshtein_second_empty</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">normalized_damerau_levenshtein</span>(<span class="string">&quot;tree&quot;</span>, <span class="string">&quot;&quot;</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
+        <span class="macro">assert!</span>(<span class="ident">normalized_damerau_levenshtein</span>(<span class="string">&quot;tree&quot;</span>, <span class="string">&quot;&quot;</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">normalized_damerau_levenshtein_identical_strings</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>((<span class="ident">normalized_damerau_levenshtein</span>(<span class="string">&quot;sunglasses&quot;</span>, <span class="string">&quot;sunglasses&quot;</span>) <span class="op">-</span> <span class="number">1.0</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
+        <span class="macro">assert!</span>((<span class="ident">normalized_damerau_levenshtein</span>(<span class="string">&quot;sunglasses&quot;</span>, <span class="string">&quot;sunglasses&quot;</span>) <span class="op">-</span> <span class="number">1.0</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="strsim" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="strsim" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

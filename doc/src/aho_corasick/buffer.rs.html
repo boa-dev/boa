@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.18/src/buffer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buffer.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../aho_corasick/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../aho_corasick/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -134,9 +134,9 @@
 <span id="131">131</span>
 <span id="132">132</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ptr</span>;
+<span class="kw">use</span> <span class="ident">std::cmp</span>;
+<span class="kw">use</span> <span class="ident">std::io</span>;
+<span class="kw">use</span> <span class="ident">std::ptr</span>;
 
 <span class="doccomment">/// The default buffer capacity that we use for the stream buffer.</span>
 <span class="kw">const</span> <span class="ident">DEFAULT_BUFFER_CAPACITY</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">8</span> <span class="op">*</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">10</span>); <span class="comment">// 8 KB</span>
@@ -177,7 +177,7 @@
     <span class="doccomment">/// Create a new buffer for stream searching. The minimum buffer length</span>
     <span class="doccomment">/// given should be the size of the maximum possible match length.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">min_buffer_len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Buffer</span> {
-        <span class="kw">let</span> <span class="ident">min</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">max</span>(<span class="number">1</span>, <span class="ident">min_buffer_len</span>);
+        <span class="kw">let</span> <span class="ident">min</span> <span class="op">=</span> <span class="ident">cmp::max</span>(<span class="number">1</span>, <span class="ident">min_buffer_len</span>);
         <span class="comment">// The minimum buffer amount is also the amount that we roll our</span>
         <span class="comment">// buffer in order to support incremental searching. To this end,</span>
         <span class="comment">// our actual capacity needs to be at least 1 byte bigger than our</span>
@@ -189,8 +189,8 @@
         <span class="comment">// implementation with the minimal buffer size. For now, we just</span>
         <span class="comment">// uncomment out the next line and comment out the subsequent line.</span>
         <span class="comment">// let capacity = 1 + min;</span>
-        <span class="kw">let</span> <span class="ident">capacity</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">max</span>(<span class="ident">min</span> <span class="op">*</span> <span class="number">8</span>, <span class="ident">DEFAULT_BUFFER_CAPACITY</span>);
-        <span class="ident">Buffer</span> { <span class="ident">buf</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>; <span class="ident">capacity</span>], <span class="ident">min</span>, <span class="ident">end</span>: <span class="number">0</span> }
+        <span class="kw">let</span> <span class="ident">capacity</span> <span class="op">=</span> <span class="ident">cmp::max</span>(<span class="ident">min</span> <span class="op">*</span> <span class="number">8</span>, <span class="ident">DEFAULT_BUFFER_CAPACITY</span>);
+        <span class="ident">Buffer</span> { <span class="ident">buf</span>: <span class="macro">vec!</span>[<span class="number">0</span>; <span class="ident">capacity</span>], <span class="ident">min</span>, <span class="ident">end</span>: <span class="number">0</span> }
     }
 
     <span class="doccomment">/// Return the contents of this buffer.</span>
@@ -222,7 +222,7 @@
     <span class="doccomment">/// this buffer&#39;s free capacity. If no more bytes could be read, then this</span>
     <span class="doccomment">/// returns false. Otherwise, this reads until it has filled the buffer</span>
     <span class="doccomment">/// past the minimum amount.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">io</span>::<span class="ident">Read</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">rdr</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">io::Read</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">rdr</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">io::Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">readany</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">readlen</span> <span class="op">=</span> <span class="ident">rdr</span>.<span class="ident">read</span>(<span class="self">self</span>.<span class="ident">free_buffer</span>())<span class="question-mark">?</span>;
@@ -250,14 +250,14 @@
             .<span class="ident">expect</span>(<span class="string">&quot;buffer capacity should be bigger than minimum amount&quot;</span>);
         <span class="kw">let</span> <span class="ident">roll_len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">min</span>;
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">roll_start</span> <span class="op">+</span> <span class="ident">roll_len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">end</span>);
+        <span class="macro">assert!</span>(<span class="ident">roll_start</span> <span class="op">+</span> <span class="ident">roll_len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">end</span>);
         <span class="kw">unsafe</span> {
             <span class="comment">// SAFETY: A buffer contains Copy data, so there&#39;s no problem</span>
             <span class="comment">// moving it around. Safety also depends on our indices being in</span>
             <span class="comment">// bounds, which they always should be, given the assert above.</span>
             <span class="comment">//</span>
             <span class="comment">// TODO: Switch to [T]::copy_within once our MSRV is high enough.</span>
-            <span class="ident">ptr</span>::<span class="ident">copy</span>(
+            <span class="ident">ptr::copy</span>(
                 <span class="self">self</span>.<span class="ident">buf</span>[<span class="ident">roll_start</span>..].<span class="ident">as_ptr</span>(),
                 <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">as_mut_ptr</span>(),
                 <span class="ident">roll_len</span>,
@@ -267,5 +267,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

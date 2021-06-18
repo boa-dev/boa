@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-bidi-0.3.5/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../unicode_bidi/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../unicode_bidi/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -948,17 +948,17 @@
 <span class="kw">mod</span> <span class="ident">implicit</span>;
 <span class="kw">mod</span> <span class="ident">prepare</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">char_data</span>::{<span class="ident">BidiClass</span>, <span class="ident">bidi_class</span>, <span class="ident">UNICODE_VERSION</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">level</span>::{<span class="ident">Level</span>, <span class="ident">LTR_LEVEL</span>, <span class="ident">RTL_LEVEL</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prepare</span>::<span class="ident">LevelRun</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::char_data</span>::{<span class="ident">BidiClass</span>, <span class="ident">bidi_class</span>, <span class="ident">UNICODE_VERSION</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::level</span>::{<span class="ident">Level</span>, <span class="ident">LTR_LEVEL</span>, <span class="ident">RTL_LEVEL</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::prepare::LevelRun</span>;
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">borrow</span>::<span class="ident">Cow</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>::{<span class="ident">max</span>, <span class="ident">min</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">iter</span>::<span class="ident">repeat</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Range</span>;
+<span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
+<span class="kw">use</span> <span class="ident">std::cmp</span>::{<span class="ident">max</span>, <span class="ident">min</span>};
+<span class="kw">use</span> <span class="ident">std::iter::repeat</span>;
+<span class="kw">use</span> <span class="ident">std::ops::Range</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">BidiClass</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">format_chars</span> <span class="kw">as</span> <span class="ident">chars</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::BidiClass</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::format_chars</span> <span class="kw">as</span> <span class="ident">chars</span>;
 
 <span class="doccomment">/// Bidi information about a single paragraph</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
@@ -998,27 +998,27 @@
     <span class="doccomment">/// Also sets the class for each First Strong Isolate initiator (FSI) to LRI or RLI if a strong</span>
     <span class="doccomment">/// character is found before the matching PDI.  If no strong character is found, the class will</span>
     <span class="doccomment">/// remain FSI, and it&#39;s up to later stages to treat these as LRI when needed.</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flamer</span>::<span class="ident">flame</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flamer::flame</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">default_para_level</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">InitialInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">original_classes</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">text</span>.<span class="ident">len</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">original_classes</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">text</span>.<span class="ident">len</span>());
 
         <span class="comment">// The stack contains the starting byte index for each nested isolate we&#39;re inside.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">isolate_stack</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">paragraphs</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">isolate_stack</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">paragraphs</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">para_start</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">para_level</span> <span class="op">=</span> <span class="ident">default_para_level</span>;
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>)]</span> <span class="ident">flame</span>::<span class="ident">start</span>(<span class="string">&quot;InitialInfo::new(): iter text.char_indices()&quot;</span>);
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>)]</span> <span class="ident">flame::start</span>(<span class="string">&quot;InitialInfo::new(): iter text.char_indices()&quot;</span>);
 
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">c</span>) <span class="kw">in</span> <span class="ident">text</span>.<span class="ident">char_indices</span>() {
             <span class="kw">let</span> <span class="ident">class</span> <span class="op">=</span> <span class="ident">bidi_class</span>(<span class="ident">c</span>);
 
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>)]</span> <span class="ident">flame</span>::<span class="ident">start</span>(<span class="string">&quot;original_classes.extend()&quot;</span>);
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>)]</span> <span class="ident">flame::start</span>(<span class="string">&quot;original_classes.extend()&quot;</span>);
 
             <span class="ident">original_classes</span>.<span class="ident">extend</span>(<span class="ident">repeat</span>(<span class="ident">class</span>).<span class="ident">take</span>(<span class="ident">c</span>.<span class="ident">len_utf8</span>()));
 
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>)]</span> <span class="ident">flame</span>::<span class="ident">end</span>(<span class="string">&quot;original_classes.extend()&quot;</span>);
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>)]</span> <span class="ident">flame::end</span>(<span class="string">&quot;original_classes.extend()&quot;</span>);
 
             <span class="kw">match</span> <span class="ident">class</span> {
 
@@ -1046,7 +1046,7 @@
                             <span class="kw">if</span> <span class="ident">original_classes</span>[<span class="ident">start</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">FSI</span> {
                                 <span class="comment">// X5c. If the first strong character between FSI and its matching</span>
                                 <span class="comment">// PDI is R or AL, treat it as RLI. Otherwise, treat it as LRI.</span>
-                                <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">chars</span>::<span class="ident">FSI</span>.<span class="ident">len_utf8</span>() {
+                                <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">chars::FSI</span>.<span class="ident">len_utf8</span>() {
                                     <span class="ident">original_classes</span>[<span class="ident">start</span> <span class="op">+</span> <span class="ident">j</span>] <span class="op">=</span>
                                         <span class="kw">if</span> <span class="ident">class</span> <span class="op">=</span><span class="op">=</span> <span class="ident">L</span> { <span class="ident">LRI</span> } <span class="kw">else</span> { <span class="ident">RLI</span> };
                                 }
@@ -1081,9 +1081,9 @@
                 <span class="ident">level</span>: <span class="ident">para_level</span>.<span class="ident">unwrap_or</span>(<span class="ident">LTR_LEVEL</span>),
             });
         }
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">original_classes</span>.<span class="ident">len</span>(), <span class="ident">text</span>.<span class="ident">len</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">original_classes</span>.<span class="ident">len</span>(), <span class="ident">text</span>.<span class="ident">len</span>());
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>)]</span> <span class="ident">flame</span>::<span class="ident">end</span>(<span class="string">&quot;InitialInfo::new(): iter text.char_indices()&quot;</span>);
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>)]</span> <span class="ident">flame::end</span>(<span class="string">&quot;InitialInfo::new(): iter text.char_indices()&quot;</span>);
 
         <span class="ident">InitialInfo</span> {
             <span class="ident">text</span>,
@@ -1124,15 +1124,15 @@
     <span class="doccomment">/// text that is entirely LTR.  See the `nsBidi` class from Gecko for comparison.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// TODO: Support auto-RTL base direction</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flamer</span>::<span class="ident">flame</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flamer::flame</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">default_para_level</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BidiInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">InitialInfo</span> {
             <span class="ident">original_classes</span>,
             <span class="ident">paragraphs</span>,
             ..
-        } <span class="op">=</span> <span class="ident">InitialInfo</span>::<span class="ident">new</span>(<span class="ident">text</span>, <span class="ident">default_para_level</span>);
+        } <span class="op">=</span> <span class="ident">InitialInfo::new</span>(<span class="ident">text</span>, <span class="ident">default_para_level</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">levels</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span>::<span class="ident">with_capacity</span>(<span class="ident">text</span>.<span class="ident">len</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">levels</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span><span class="ident">::with_capacity</span>(<span class="ident">text</span>.<span class="ident">len</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">processing_classes</span> <span class="op">=</span> <span class="ident">original_classes</span>.<span class="ident">clone</span>();
 
         <span class="kw">for</span> <span class="ident">para</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">paragraphs</span> {
@@ -1144,7 +1144,7 @@
             <span class="ident">levels</span>.<span class="ident">resize</span>(<span class="ident">new_len</span>, <span class="ident">para</span>.<span class="ident">level</span>);
             <span class="kw">let</span> <span class="ident">levels</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">levels</span>[<span class="ident">para</span>.<span class="ident">range</span>.<span class="ident">clone</span>()];
 
-            <span class="ident">explicit</span>::<span class="ident">compute</span>(
+            <span class="ident">explicit::compute</span>(
                 <span class="ident">text</span>,
                 <span class="ident">para</span>.<span class="ident">level</span>,
                 <span class="ident">original_classes</span>,
@@ -1152,12 +1152,12 @@
                 <span class="ident">processing_classes</span>,
             );
 
-            <span class="kw">let</span> <span class="ident">sequences</span> <span class="op">=</span> <span class="ident">prepare</span>::<span class="ident">isolating_run_sequences</span>(<span class="ident">para</span>.<span class="ident">level</span>, <span class="ident">original_classes</span>, <span class="ident">levels</span>);
+            <span class="kw">let</span> <span class="ident">sequences</span> <span class="op">=</span> <span class="ident">prepare::isolating_run_sequences</span>(<span class="ident">para</span>.<span class="ident">level</span>, <span class="ident">original_classes</span>, <span class="ident">levels</span>);
             <span class="kw">for</span> <span class="ident">sequence</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">sequences</span> {
-                <span class="ident">implicit</span>::<span class="ident">resolve_weak</span>(<span class="ident">sequence</span>, <span class="ident">processing_classes</span>);
-                <span class="ident">implicit</span>::<span class="ident">resolve_neutral</span>(<span class="ident">sequence</span>, <span class="ident">levels</span>, <span class="ident">processing_classes</span>);
+                <span class="ident">implicit::resolve_weak</span>(<span class="ident">sequence</span>, <span class="ident">processing_classes</span>);
+                <span class="ident">implicit::resolve_neutral</span>(<span class="ident">sequence</span>, <span class="ident">levels</span>, <span class="ident">processing_classes</span>);
             }
-            <span class="ident">implicit</span>::<span class="ident">resolve_levels</span>(<span class="ident">processing_classes</span>, <span class="ident">levels</span>);
+            <span class="ident">implicit::resolve_levels</span>(<span class="ident">processing_classes</span>, <span class="ident">levels</span>);
 
             <span class="ident">assign_levels_to_removed_chars</span>(<span class="ident">para</span>.<span class="ident">level</span>, <span class="ident">original_classes</span>, <span class="ident">levels</span>);
         }
@@ -1172,7 +1172,7 @@
 
     <span class="doccomment">/// Re-order a line based on resolved levels and return only the embedding levels, one `Level`</span>
     <span class="doccomment">/// per *byte*.</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flamer</span>::<span class="ident">flame</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flamer::flame</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reordered_levels</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">para</span>: <span class="kw-2">&amp;</span><span class="ident">ParagraphInfo</span>, <span class="ident">line</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">levels</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">visual_runs</span>(<span class="ident">para</span>, <span class="ident">line</span>);
         <span class="ident">levels</span>
@@ -1180,7 +1180,7 @@
 
     <span class="doccomment">/// Re-order a line based on resolved levels and return only the embedding levels, one `Level`</span>
     <span class="doccomment">/// per *character*.</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flamer</span>::<span class="ident">flame</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flamer::flame</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reordered_levels_per_char</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">para</span>: <span class="kw-2">&amp;</span><span class="ident">ParagraphInfo</span>,
@@ -1192,7 +1192,7 @@
 
 
     <span class="doccomment">/// Re-order a line based on resolved levels and return the line in display order.</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flamer</span>::<span class="ident">flame</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flamer::flame</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reorder_line</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">para</span>: <span class="kw-2">&amp;</span><span class="ident">ParagraphInfo</span>, <span class="ident">line</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;text</span>, <span class="ident">str</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">levels</span>, <span class="ident">runs</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">visual_runs</span>(<span class="ident">para</span>, <span class="ident">line</span>.<span class="ident">clone</span>());
 
@@ -1201,7 +1201,7 @@
             <span class="kw">return</span> <span class="self">self</span>.<span class="ident">text</span>[<span class="ident">line</span>].<span class="ident">into</span>();
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">with_capacity</span>(<span class="ident">line</span>.<span class="ident">len</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">String::with_capacity</span>(<span class="ident">line</span>.<span class="ident">len</span>());
         <span class="kw">for</span> <span class="ident">run</span> <span class="kw">in</span> <span class="ident">runs</span> {
             <span class="kw">if</span> <span class="ident">levels</span>[<span class="ident">run</span>.<span class="ident">start</span>].<span class="ident">is_rtl</span>() {
                 <span class="ident">result</span>.<span class="ident">extend</span>(<span class="self">self</span>.<span class="ident">text</span>[<span class="ident">run</span>].<span class="ident">chars</span>().<span class="ident">rev</span>());
@@ -1217,14 +1217,14 @@
     <span class="doccomment">/// `line` is a range of bytes indices within `levels`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// &lt;http://www.unicode.org/reports/tr9/#Reordering_Resolved_Levels&gt;</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flamer</span>::<span class="ident">flame</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flamer::flame</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visual_runs</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">para</span>: <span class="kw-2">&amp;</span><span class="ident">ParagraphInfo</span>,
         <span class="ident">line</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">LevelRun</span><span class="op">&gt;</span>) {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">line</span>.<span class="ident">start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">levels</span>.<span class="ident">len</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">line</span>.<span class="ident">end</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">levels</span>.<span class="ident">len</span>());
+        <span class="macro">assert!</span>(<span class="ident">line</span>.<span class="ident">start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">levels</span>.<span class="ident">len</span>());
+        <span class="macro">assert!</span>(<span class="ident">line</span>.<span class="ident">end</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">levels</span>.<span class="ident">len</span>());
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">levels</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">levels</span>.<span class="ident">clone</span>();
         <span class="kw">let</span> <span class="ident">line_classes</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">original_classes</span>[<span class="ident">line</span>.<span class="ident">clone</span>()];
@@ -1241,7 +1241,7 @@
                 <span class="ident">RLE</span> <span class="op">|</span> <span class="ident">LRE</span> <span class="op">|</span> <span class="ident">RLO</span> <span class="op">|</span> <span class="ident">LRO</span> <span class="op">|</span> <span class="ident">PDF</span> <span class="op">|</span> <span class="ident">BN</span> <span class="op">=</span><span class="op">&gt;</span> {}
                 <span class="comment">// Segment separator, Paragraph separator</span>
                 <span class="ident">B</span> <span class="op">|</span> <span class="ident">S</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">reset_to</span>, <span class="prelude-val">None</span>);
+                    <span class="macro">assert_eq!</span>(<span class="ident">reset_to</span>, <span class="prelude-val">None</span>);
                     <span class="ident">reset_to</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">i</span> <span class="op">+</span> <span class="ident">c</span>.<span class="ident">len_utf8</span>());
                     <span class="kw">if</span> <span class="ident">reset_from</span> <span class="op">=</span><span class="op">=</span> <span class="prelude-val">None</span> {
                         <span class="ident">reset_from</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>);
@@ -1272,7 +1272,7 @@
         }
 
         <span class="comment">// Find consecutive level runs.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">runs</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">runs</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">line</span>.<span class="ident">start</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">run_level</span> <span class="op">=</span> <span class="ident">levels</span>[<span class="ident">start</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">min_level</span> <span class="op">=</span> <span class="ident">run_level</span>;
@@ -1334,7 +1334,7 @@
     <span class="doccomment">/// This information is usually used to skip re-ordering of text when no RTL level is present</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_rtl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="ident">level</span>::<span class="ident">has_rtl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">levels</span>)
+        <span class="ident">level::has_rtl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">levels</span>)
     }
 }
 
@@ -1342,10 +1342,10 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// The levels assigned to these characters are not specified by the algorithm.  This function</span>
 <span class="doccomment">/// assigns each one the level of the previous character, to avoid breaking level runs.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flamer</span>::<span class="ident">flame</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;flame_it&quot;</span>, <span class="ident">flamer::flame</span>)]</span>
 <span class="kw">fn</span> <span class="ident">assign_levels_to_removed_chars</span>(<span class="ident">para_level</span>: <span class="ident">Level</span>, <span class="ident">classes</span>: <span class="kw-2">&amp;</span>[<span class="ident">BidiClass</span>], <span class="ident">levels</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">Level</span>]) {
     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">levels</span>.<span class="ident">len</span>() {
-        <span class="kw">if</span> <span class="ident">prepare</span>::<span class="ident">removed_by_x9</span>(<span class="ident">classes</span>[<span class="ident">i</span>]) {
+        <span class="kw">if</span> <span class="ident">prepare::removed_by_x9</span>(<span class="ident">classes</span>[<span class="ident">i</span>]) {
             <span class="ident">levels</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="number">0</span> { <span class="ident">levels</span>[<span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>] } <span class="kw">else</span> { <span class="ident">para_level</span> };
         }
     }
@@ -1359,12 +1359,12 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_initial_text_info</span>() {
         <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="string">&quot;a1&quot;</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">InitialInfo</span>::<span class="ident">new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>),
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">InitialInfo::new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>),
             <span class="ident">InitialInfo</span> {
                 <span class="ident">text</span>,
-                <span class="ident">original_classes</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">L</span>, <span class="ident">EN</span>],
-                <span class="ident">paragraphs</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">original_classes</span>: <span class="macro">vec!</span>[<span class="ident">L</span>, <span class="ident">EN</span>],
+                <span class="ident">paragraphs</span>: <span class="macro">vec!</span>[
                     <span class="ident">ParagraphInfo</span> {
                         <span class="ident">range</span>: <span class="number">0</span>..<span class="number">2</span>,
                         <span class="ident">level</span>: <span class="ident">LTR_LEVEL</span>,
@@ -1374,12 +1374,12 @@
         );
 
         <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="string">&quot;غ א&quot;</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">InitialInfo</span>::<span class="ident">new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>),
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">InitialInfo::new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>),
             <span class="ident">InitialInfo</span> {
                 <span class="ident">text</span>,
-                <span class="ident">original_classes</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">AL</span>, <span class="ident">AL</span>, <span class="ident">WS</span>, <span class="ident">R</span>, <span class="ident">R</span>],
-                <span class="ident">paragraphs</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">original_classes</span>: <span class="macro">vec!</span>[<span class="ident">AL</span>, <span class="ident">AL</span>, <span class="ident">WS</span>, <span class="ident">R</span>, <span class="ident">R</span>],
+                <span class="ident">paragraphs</span>: <span class="macro">vec!</span>[
                     <span class="ident">ParagraphInfo</span> {
                         <span class="ident">range</span>: <span class="number">0</span>..<span class="number">5</span>,
                         <span class="ident">level</span>: <span class="ident">RTL_LEVEL</span>,
@@ -1389,12 +1389,12 @@
         );
 
         <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="string">&quot;a\u{2029}b&quot;</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">InitialInfo</span>::<span class="ident">new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>),
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">InitialInfo::new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>),
             <span class="ident">InitialInfo</span> {
                 <span class="ident">text</span>,
-                <span class="ident">original_classes</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">L</span>, <span class="ident">B</span>, <span class="ident">B</span>, <span class="ident">B</span>, <span class="ident">L</span>],
-                <span class="ident">paragraphs</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">original_classes</span>: <span class="macro">vec!</span>[<span class="ident">L</span>, <span class="ident">B</span>, <span class="ident">B</span>, <span class="ident">B</span>, <span class="ident">L</span>],
+                <span class="ident">paragraphs</span>: <span class="macro">vec!</span>[
                     <span class="ident">ParagraphInfo</span> {
                         <span class="ident">range</span>: <span class="number">0</span>..<span class="number">4</span>,
                         <span class="ident">level</span>: <span class="ident">LTR_LEVEL</span>,
@@ -1407,13 +1407,13 @@
             }
         );
 
-        <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}א{}a&quot;</span>, <span class="ident">chars</span>::<span class="ident">FSI</span>, <span class="ident">chars</span>::<span class="ident">PDI</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">InitialInfo</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="ident">text</span>, <span class="prelude-val">None</span>),
+        <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}א{}a&quot;</span>, <span class="ident">chars::FSI</span>, <span class="ident">chars::PDI</span>);
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">InitialInfo::new</span>(<span class="kw-2">&amp;</span><span class="ident">text</span>, <span class="prelude-val">None</span>),
             <span class="ident">InitialInfo</span> {
                 <span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">text</span>,
-                <span class="ident">original_classes</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">RLI</span>, <span class="ident">RLI</span>, <span class="ident">RLI</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">PDI</span>, <span class="ident">PDI</span>, <span class="ident">PDI</span>, <span class="ident">L</span>],
-                <span class="ident">paragraphs</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">original_classes</span>: <span class="macro">vec!</span>[<span class="ident">RLI</span>, <span class="ident">RLI</span>, <span class="ident">RLI</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">PDI</span>, <span class="ident">PDI</span>, <span class="ident">PDI</span>, <span class="ident">L</span>],
+                <span class="ident">paragraphs</span>: <span class="macro">vec!</span>[
                     <span class="ident">ParagraphInfo</span> {
                         <span class="ident">range</span>: <span class="number">0</span>..<span class="number">9</span>,
                         <span class="ident">level</span>: <span class="ident">LTR_LEVEL</span>,
@@ -1426,13 +1426,13 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_process_text</span>() {
         <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="string">&quot;abc123&quot;</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="ident">text</span>, <span class="prelude-val">Some</span>(<span class="ident">LTR_LEVEL</span>)),
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">BidiInfo::new</span>(<span class="ident">text</span>, <span class="prelude-val">Some</span>(<span class="ident">LTR_LEVEL</span>)),
             <span class="ident">BidiInfo</span> {
                 <span class="ident">text</span>,
-                <span class="ident">levels</span>: <span class="ident">Level</span>::<span class="ident">vec</span>(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>]),
-                <span class="ident">original_classes</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">L</span>, <span class="ident">L</span>, <span class="ident">L</span>, <span class="ident">EN</span>, <span class="ident">EN</span>, <span class="ident">EN</span>],
-                <span class="ident">paragraphs</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">levels</span>: <span class="ident">Level::vec</span>(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>]),
+                <span class="ident">original_classes</span>: <span class="macro">vec!</span>[<span class="ident">L</span>, <span class="ident">L</span>, <span class="ident">L</span>, <span class="ident">EN</span>, <span class="ident">EN</span>, <span class="ident">EN</span>],
+                <span class="ident">paragraphs</span>: <span class="macro">vec!</span>[
                     <span class="ident">ParagraphInfo</span> {
                         <span class="ident">range</span>: <span class="number">0</span>..<span class="number">6</span>,
                         <span class="ident">level</span>: <span class="ident">LTR_LEVEL</span>,
@@ -1442,13 +1442,13 @@
         );
 
         <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="string">&quot;abc אבג&quot;</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="ident">text</span>, <span class="prelude-val">Some</span>(<span class="ident">LTR_LEVEL</span>)),
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">BidiInfo::new</span>(<span class="ident">text</span>, <span class="prelude-val">Some</span>(<span class="ident">LTR_LEVEL</span>)),
             <span class="ident">BidiInfo</span> {
                 <span class="ident">text</span>,
-                <span class="ident">levels</span>: <span class="ident">Level</span>::<span class="ident">vec</span>(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>]),
-                <span class="ident">original_classes</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">L</span>, <span class="ident">L</span>, <span class="ident">L</span>, <span class="ident">WS</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>],
-                <span class="ident">paragraphs</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">levels</span>: <span class="ident">Level::vec</span>(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>]),
+                <span class="ident">original_classes</span>: <span class="macro">vec!</span>[<span class="ident">L</span>, <span class="ident">L</span>, <span class="ident">L</span>, <span class="ident">WS</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>],
+                <span class="ident">paragraphs</span>: <span class="macro">vec!</span>[
                     <span class="ident">ParagraphInfo</span> {
                         <span class="ident">range</span>: <span class="number">0</span>..<span class="number">10</span>,
                         <span class="ident">level</span>: <span class="ident">LTR_LEVEL</span>,
@@ -1456,13 +1456,13 @@
                 ],
             }
         );
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="ident">text</span>, <span class="prelude-val">Some</span>(<span class="ident">RTL_LEVEL</span>)),
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">BidiInfo::new</span>(<span class="ident">text</span>, <span class="prelude-val">Some</span>(<span class="ident">RTL_LEVEL</span>)),
             <span class="ident">BidiInfo</span> {
                 <span class="ident">text</span>,
-                <span class="ident">levels</span>: <span class="ident">Level</span>::<span class="ident">vec</span>(<span class="kw-2">&amp;</span>[<span class="number">2</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>]),
-                <span class="ident">original_classes</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">L</span>, <span class="ident">L</span>, <span class="ident">L</span>, <span class="ident">WS</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>],
-                <span class="ident">paragraphs</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">levels</span>: <span class="ident">Level::vec</span>(<span class="kw-2">&amp;</span>[<span class="number">2</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>]),
+                <span class="ident">original_classes</span>: <span class="macro">vec!</span>[<span class="ident">L</span>, <span class="ident">L</span>, <span class="ident">L</span>, <span class="ident">WS</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>],
+                <span class="ident">paragraphs</span>: <span class="macro">vec!</span>[
                     <span class="ident">ParagraphInfo</span> {
                         <span class="ident">range</span>: <span class="number">0</span>..<span class="number">10</span>,
                         <span class="ident">level</span>: <span class="ident">RTL_LEVEL</span>,
@@ -1472,13 +1472,13 @@
         );
 
         <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="string">&quot;אבג abc&quot;</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="ident">text</span>, <span class="prelude-val">Some</span>(<span class="ident">LTR_LEVEL</span>)),
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">BidiInfo::new</span>(<span class="ident">text</span>, <span class="prelude-val">Some</span>(<span class="ident">LTR_LEVEL</span>)),
             <span class="ident">BidiInfo</span> {
                 <span class="ident">text</span>,
-                <span class="ident">levels</span>: <span class="ident">Level</span>::<span class="ident">vec</span>(<span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>]),
-                <span class="ident">original_classes</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">WS</span>, <span class="ident">L</span>, <span class="ident">L</span>, <span class="ident">L</span>],
-                <span class="ident">paragraphs</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">levels</span>: <span class="ident">Level::vec</span>(<span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>]),
+                <span class="ident">original_classes</span>: <span class="macro">vec!</span>[<span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">WS</span>, <span class="ident">L</span>, <span class="ident">L</span>, <span class="ident">L</span>],
+                <span class="ident">paragraphs</span>: <span class="macro">vec!</span>[
                     <span class="ident">ParagraphInfo</span> {
                         <span class="ident">range</span>: <span class="number">0</span>..<span class="number">10</span>,
                         <span class="ident">level</span>: <span class="ident">LTR_LEVEL</span>,
@@ -1486,13 +1486,13 @@
                 ],
             }
         );
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>),
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">BidiInfo::new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>),
             <span class="ident">BidiInfo</span> {
                 <span class="ident">text</span>,
-                <span class="ident">levels</span>: <span class="ident">Level</span>::<span class="ident">vec</span>(<span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">2</span>]),
-                <span class="ident">original_classes</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">WS</span>, <span class="ident">L</span>, <span class="ident">L</span>, <span class="ident">L</span>],
-                <span class="ident">paragraphs</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">levels</span>: <span class="ident">Level::vec</span>(<span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">2</span>]),
+                <span class="ident">original_classes</span>: <span class="macro">vec!</span>[<span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">WS</span>, <span class="ident">L</span>, <span class="ident">L</span>, <span class="ident">L</span>],
+                <span class="ident">paragraphs</span>: <span class="macro">vec!</span>[
                     <span class="ident">ParagraphInfo</span> {
                         <span class="ident">range</span>: <span class="number">0</span>..<span class="number">10</span>,
                         <span class="ident">level</span>: <span class="ident">RTL_LEVEL</span>,
@@ -1502,13 +1502,13 @@
         );
 
         <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="string">&quot;غ2ظ א2ג&quot;</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="ident">text</span>, <span class="prelude-val">Some</span>(<span class="ident">LTR_LEVEL</span>)),
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">BidiInfo::new</span>(<span class="ident">text</span>, <span class="prelude-val">Some</span>(<span class="ident">LTR_LEVEL</span>)),
             <span class="ident">BidiInfo</span> {
                 <span class="ident">text</span>,
-                <span class="ident">levels</span>: <span class="ident">Level</span>::<span class="ident">vec</span>(<span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">1</span>]),
-                <span class="ident">original_classes</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">AL</span>, <span class="ident">AL</span>, <span class="ident">EN</span>, <span class="ident">AL</span>, <span class="ident">AL</span>, <span class="ident">WS</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">EN</span>, <span class="ident">R</span>, <span class="ident">R</span>],
-                <span class="ident">paragraphs</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">levels</span>: <span class="ident">Level::vec</span>(<span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">1</span>]),
+                <span class="ident">original_classes</span>: <span class="macro">vec!</span>[<span class="ident">AL</span>, <span class="ident">AL</span>, <span class="ident">EN</span>, <span class="ident">AL</span>, <span class="ident">AL</span>, <span class="ident">WS</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">EN</span>, <span class="ident">R</span>, <span class="ident">R</span>],
+                <span class="ident">paragraphs</span>: <span class="macro">vec!</span>[
                     <span class="ident">ParagraphInfo</span> {
                         <span class="ident">range</span>: <span class="number">0</span>..<span class="number">11</span>,
                         <span class="ident">level</span>: <span class="ident">LTR_LEVEL</span>,
@@ -1518,13 +1518,13 @@
         );
 
         <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="string">&quot;a א.\nג&quot;</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>),
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">BidiInfo::new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>),
             <span class="ident">BidiInfo</span> {
                 <span class="ident">text</span>,
-                <span class="ident">original_classes</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">L</span>, <span class="ident">WS</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">CS</span>, <span class="ident">B</span>, <span class="ident">R</span>, <span class="ident">R</span>],
-                <span class="ident">levels</span>: <span class="ident">Level</span>::<span class="ident">vec</span>(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>]),
-                <span class="ident">paragraphs</span>: <span class="macro">vec</span><span class="macro">!</span>[
+                <span class="ident">original_classes</span>: <span class="macro">vec!</span>[<span class="ident">L</span>, <span class="ident">WS</span>, <span class="ident">R</span>, <span class="ident">R</span>, <span class="ident">CS</span>, <span class="ident">B</span>, <span class="ident">R</span>, <span class="ident">R</span>],
+                <span class="ident">levels</span>: <span class="ident">Level::vec</span>(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>]),
+                <span class="ident">paragraphs</span>: <span class="macro">vec!</span>[
                     <span class="ident">ParagraphInfo</span> {
                         <span class="ident">range</span>: <span class="number">0</span>..<span class="number">6</span>,
                         <span class="ident">level</span>: <span class="ident">LTR_LEVEL</span>,
@@ -1538,36 +1538,36 @@
         );
 
         <span class="comment">// BidiTest:69635 (AL ET EN)</span>
-        <span class="kw">let</span> <span class="ident">bidi_info</span> <span class="op">=</span> <span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="string">&quot;\u{060B}\u{20CF}\u{06F9}&quot;</span>, <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">bidi_info</span>.<span class="ident">original_classes</span>, <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">AL</span>, <span class="ident">AL</span>, <span class="ident">ET</span>, <span class="ident">ET</span>, <span class="ident">ET</span>, <span class="ident">EN</span>, <span class="ident">EN</span>]);
+        <span class="kw">let</span> <span class="ident">bidi_info</span> <span class="op">=</span> <span class="ident">BidiInfo::new</span>(<span class="string">&quot;\u{060B}\u{20CF}\u{06F9}&quot;</span>, <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">bidi_info</span>.<span class="ident">original_classes</span>, <span class="macro">vec!</span>[<span class="ident">AL</span>, <span class="ident">AL</span>, <span class="ident">ET</span>, <span class="ident">ET</span>, <span class="ident">ET</span>, <span class="ident">EN</span>, <span class="ident">EN</span>]);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_bidi_info_has_rtl</span>() {
         <span class="comment">// ASCII only</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="string">&quot;123&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="string">&quot;123&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">LTR_LEVEL</span>)).<span class="ident">has_rtl</span>(), <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="string">&quot;123&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">RTL_LEVEL</span>)).<span class="ident">has_rtl</span>(), <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="string">&quot;abc&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="string">&quot;abc&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">LTR_LEVEL</span>)).<span class="ident">has_rtl</span>(), <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="string">&quot;abc&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">RTL_LEVEL</span>)).<span class="ident">has_rtl</span>(), <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="string">&quot;abc 123&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">false</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="string">&quot;abc\n123&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">BidiInfo::new</span>(<span class="string">&quot;123&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">BidiInfo::new</span>(<span class="string">&quot;123&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">LTR_LEVEL</span>)).<span class="ident">has_rtl</span>(), <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">BidiInfo::new</span>(<span class="string">&quot;123&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">RTL_LEVEL</span>)).<span class="ident">has_rtl</span>(), <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">BidiInfo::new</span>(<span class="string">&quot;abc&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">BidiInfo::new</span>(<span class="string">&quot;abc&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">LTR_LEVEL</span>)).<span class="ident">has_rtl</span>(), <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">BidiInfo::new</span>(<span class="string">&quot;abc&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">RTL_LEVEL</span>)).<span class="ident">has_rtl</span>(), <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">BidiInfo::new</span>(<span class="string">&quot;abc 123&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">BidiInfo::new</span>(<span class="string">&quot;abc\n123&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">false</span>);
 
         <span class="comment">// With Hebrew</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="string">&quot;אבּג&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">true</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="string">&quot;אבּג&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">LTR_LEVEL</span>)).<span class="ident">has_rtl</span>(), <span class="bool-val">true</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="string">&quot;אבּג&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">RTL_LEVEL</span>)).<span class="ident">has_rtl</span>(), <span class="bool-val">true</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="string">&quot;abc אבּג&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">true</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="string">&quot;abc\nאבּג&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">true</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="string">&quot;אבּג abc&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">true</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="string">&quot;אבּג\nabc&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">true</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="string">&quot;אבּג 123&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">true</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="string">&quot;אבּג\n123&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">BidiInfo::new</span>(<span class="string">&quot;אבּג&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">BidiInfo::new</span>(<span class="string">&quot;אבּג&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">LTR_LEVEL</span>)).<span class="ident">has_rtl</span>(), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">BidiInfo::new</span>(<span class="string">&quot;אבּג&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">RTL_LEVEL</span>)).<span class="ident">has_rtl</span>(), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">BidiInfo::new</span>(<span class="string">&quot;abc אבּג&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">BidiInfo::new</span>(<span class="string">&quot;abc\nאבּג&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">BidiInfo::new</span>(<span class="string">&quot;אבּג abc&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">BidiInfo::new</span>(<span class="string">&quot;אבּג\nabc&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">BidiInfo::new</span>(<span class="string">&quot;אבּג 123&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">BidiInfo::new</span>(<span class="string">&quot;אבּג\n123&quot;</span>, <span class="prelude-val">None</span>).<span class="ident">has_rtl</span>(), <span class="bool-val">true</span>);
     }
 
     <span class="kw">fn</span> <span class="ident">reorder_paras</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">bidi_info</span> <span class="op">=</span> <span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>);
+        <span class="kw">let</span> <span class="ident">bidi_info</span> <span class="op">=</span> <span class="ident">BidiInfo::new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>);
         <span class="ident">bidi_info</span>
             .<span class="ident">paragraphs</span>
             .<span class="ident">iter</span>()
@@ -1578,82 +1578,82 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_reorder_line</span>() {
         <span class="comment">// Bidi_Class: L L L B L L L B L L L</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">reorder_paras</span>(<span class="string">&quot;abc\ndef\nghi&quot;</span>),
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;abc\n&quot;</span>, <span class="string">&quot;def\n&quot;</span>, <span class="string">&quot;ghi&quot;</span>]
+            <span class="macro">vec!</span>[<span class="string">&quot;abc\n&quot;</span>, <span class="string">&quot;def\n&quot;</span>, <span class="string">&quot;ghi&quot;</span>]
         );
 
         <span class="comment">// Bidi_Class: L L EN B L L EN B L L EN</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">reorder_paras</span>(<span class="string">&quot;ab1\nde2\ngh3&quot;</span>),
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;ab1\n&quot;</span>, <span class="string">&quot;de2\n&quot;</span>, <span class="string">&quot;gh3&quot;</span>]
+            <span class="macro">vec!</span>[<span class="string">&quot;ab1\n&quot;</span>, <span class="string">&quot;de2\n&quot;</span>, <span class="string">&quot;gh3&quot;</span>]
         );
 
         <span class="comment">// Bidi_Class: L L L B AL AL AL</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;abc\nابج&quot;</span>), <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;abc\n&quot;</span>, <span class="string">&quot;جبا&quot;</span>]);
+        <span class="macro">assert_eq!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;abc\nابج&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;abc\n&quot;</span>, <span class="string">&quot;جبا&quot;</span>]);
 
         <span class="comment">// Bidi_Class: AL AL AL B L L L</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;ابج\nabc&quot;</span>), <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;\nجبا&quot;</span>, <span class="string">&quot;abc&quot;</span>]);
+        <span class="macro">assert_eq!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;ابج\nabc&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;\nجبا&quot;</span>, <span class="string">&quot;abc&quot;</span>]);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;1.-2&quot;</span>), <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;1.-2&quot;</span>]);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;1-.2&quot;</span>), <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;1-.2&quot;</span>]);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;abc אבג&quot;</span>), <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;abc גבא&quot;</span>]);
+        <span class="macro">assert_eq!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;1.-2&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;1.-2&quot;</span>]);
+        <span class="macro">assert_eq!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;1-.2&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;1-.2&quot;</span>]);
+        <span class="macro">assert_eq!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;abc אבג&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;abc גבא&quot;</span>]);
 
         <span class="comment">// Numbers being weak LTR characters, cannot reorder strong RTL</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;123 אבג&quot;</span>), <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;גבא 123&quot;</span>]);
+        <span class="macro">assert_eq!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;123 אבג&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;גבא 123&quot;</span>]);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;abc\u{202A}def&quot;</span>), <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;abc\u{202A}def&quot;</span>]);
+        <span class="macro">assert_eq!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;abc\u{202A}def&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;abc\u{202A}def&quot;</span>]);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">reorder_paras</span>(<span class="string">&quot;abc\u{202A}def\u{202C}ghi&quot;</span>),
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;abc\u{202A}def\u{202C}ghi&quot;</span>]
+            <span class="macro">vec!</span>[<span class="string">&quot;abc\u{202A}def\u{202C}ghi&quot;</span>]
         );
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">reorder_paras</span>(<span class="string">&quot;abc\u{2066}def\u{2069}ghi&quot;</span>),
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;abc\u{2066}def\u{2069}ghi&quot;</span>]
+            <span class="macro">vec!</span>[<span class="string">&quot;abc\u{2066}def\u{2069}ghi&quot;</span>]
         );
 
         <span class="comment">// Testing for RLE Character</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">reorder_paras</span>(<span class="string">&quot;\u{202B}abc אבג\u{202C}&quot;</span>),
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;\u{202B}\u{202C}גבא abc&quot;</span>]
+            <span class="macro">vec!</span>[<span class="string">&quot;\u{202B}\u{202C}גבא abc&quot;</span>]
         );
 
         <span class="comment">// Testing neutral characters</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;אבג? אבג&quot;</span>), <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;גבא ?גבא&quot;</span>]);
+        <span class="macro">assert_eq!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;אבג? אבג&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;גבא ?גבא&quot;</span>]);
 
         <span class="comment">// Testing neutral characters with special case</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;A אבג?&quot;</span>), <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;A גבא?&quot;</span>]);
+        <span class="macro">assert_eq!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;A אבג?&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;A גבא?&quot;</span>]);
 
         <span class="comment">// Testing neutral characters with Implicit RTL Marker</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">reorder_paras</span>(<span class="string">&quot;A אבג?\u{200F}&quot;</span>),
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;A \u{200F}?גבא&quot;</span>]
+            <span class="macro">vec!</span>[<span class="string">&quot;A \u{200F}?גבא&quot;</span>]
         );
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;אבג abc&quot;</span>), <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;abc גבא&quot;</span>]);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;אבג abc&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;abc גבא&quot;</span>]);
+        <span class="macro">assert_eq!</span>(
             <span class="ident">reorder_paras</span>(<span class="string">&quot;abc\u{2067}.-\u{2069}ghi&quot;</span>),
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;abc\u{2067}-.\u{2069}ghi&quot;</span>]
+            <span class="macro">vec!</span>[<span class="string">&quot;abc\u{2067}-.\u{2069}ghi&quot;</span>]
         );
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">reorder_paras</span>(<span class="string">&quot;Hello, \u{2068}\u{202E}world\u{202C}\u{2069}!&quot;</span>),
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;Hello, \u{2068}\u{202E}\u{202C}dlrow\u{2069}!&quot;</span>]
+            <span class="macro">vec!</span>[<span class="string">&quot;Hello, \u{2068}\u{202E}\u{202C}dlrow\u{2069}!&quot;</span>]
         );
 
         <span class="comment">// With mirrorable characters in RTL run</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;א(ב)ג.&quot;</span>), <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;.ג)ב(א&quot;</span>]);
+        <span class="macro">assert_eq!</span>(<span class="ident">reorder_paras</span>(<span class="string">&quot;א(ב)ג.&quot;</span>), <span class="macro">vec!</span>[<span class="string">&quot;.ג)ב(א&quot;</span>]);
 
         <span class="comment">// With mirrorable characters on level boundry</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">reorder_paras</span>(<span class="string">&quot;אב(גד[&amp;ef].)gh&quot;</span>),
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;ef].)gh&amp;[דג(בא&quot;</span>]
+            <span class="macro">vec!</span>[<span class="string">&quot;ef].)gh&amp;[דג(בא&quot;</span>]
         );
     }
 
     <span class="kw">fn</span> <span class="ident">reordered_levels_for_paras</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">bidi_info</span> <span class="op">=</span> <span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>);
+        <span class="kw">let</span> <span class="ident">bidi_info</span> <span class="op">=</span> <span class="ident">BidiInfo::new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>);
         <span class="ident">bidi_info</span>
             .<span class="ident">paragraphs</span>
             .<span class="ident">iter</span>()
@@ -1662,7 +1662,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">reordered_levels_per_char_for_paras</span>(<span class="ident">text</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Level</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">bidi_info</span> <span class="op">=</span> <span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>);
+        <span class="kw">let</span> <span class="ident">bidi_info</span> <span class="op">=</span> <span class="ident">BidiInfo::new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>);
         <span class="ident">bidi_info</span>
             .<span class="ident">paragraphs</span>
             .<span class="ident">iter</span>()
@@ -1677,20 +1677,20 @@
 
         <span class="comment">// BidiTest:946 (LRI PDI)</span>
         <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="string">&quot;\u{2067}\u{2069}&quot;</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">reordered_levels_for_paras</span>(<span class="ident">text</span>),
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Level</span>::<span class="ident">vec</span>(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>])]
+            <span class="macro">vec!</span>[<span class="ident">Level::vec</span>(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>])]
         );
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">reordered_levels_per_char_for_paras</span>(<span class="ident">text</span>),
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">Level</span>::<span class="ident">vec</span>(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>])]
+            <span class="macro">vec!</span>[<span class="ident">Level::vec</span>(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>])]
         );
 
         <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="string">&quot;aa טֶ&quot;</span>;
-        <span class="kw">let</span> <span class="ident">bidi_info</span> <span class="op">=</span> <span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="kw">let</span> <span class="ident">bidi_info</span> <span class="op">=</span> <span class="ident">BidiInfo::new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(
             <span class="ident">bidi_info</span>.<span class="ident">reordered_levels</span>(<span class="kw-2">&amp;</span><span class="ident">bidi_info</span>.<span class="ident">paragraphs</span>[<span class="number">0</span>], <span class="number">3</span>..<span class="number">7</span>),
-            <span class="ident">Level</span>::<span class="ident">vec</span>(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>]),
+            <span class="ident">Level::vec</span>(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>]),
         )
 
         <span class="comment">/* TODO
@@ -1725,39 +1725,39 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_levels</span>() {
         <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="string">&quot;abc אבג&quot;</span>;
-        <span class="kw">let</span> <span class="ident">bidi_info</span> <span class="op">=</span> <span class="ident">BidiInfo</span>::<span class="ident">new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>);
+        <span class="kw">let</span> <span class="ident">bidi_info</span> <span class="op">=</span> <span class="ident">BidiInfo::new</span>(<span class="ident">text</span>, <span class="prelude-val">None</span>);
         <span class="kw">let</span> <span class="ident">levels</span> <span class="op">=</span> <span class="ident">bidi_info</span>.<span class="ident">levels</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">text</span>.<span class="ident">as_bytes</span>().<span class="ident">len</span>(), <span class="number">10</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">levels</span>.<span class="ident">len</span>(), <span class="number">10</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">text</span>.<span class="ident">as_bytes</span>().<span class="ident">len</span>(), <span class="number">10</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">levels</span>.<span class="ident">len</span>(), <span class="number">10</span>);
         <span class="ident">assert_tokens</span>(
             <span class="kw-2">&amp;</span><span class="ident">levels</span>,
             <span class="kw-2">&amp;</span>[
-                <span class="ident">Token</span>::<span class="ident">Seq</span> { <span class="ident">len</span>: <span class="prelude-val">Some</span>(<span class="number">10</span>) },
-                <span class="ident">Token</span>::<span class="ident">NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
-                <span class="ident">Token</span>::<span class="ident">U8</span>(<span class="number">0</span>),
-                <span class="ident">Token</span>::<span class="ident">NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
-                <span class="ident">Token</span>::<span class="ident">U8</span>(<span class="number">0</span>),
-                <span class="ident">Token</span>::<span class="ident">NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
-                <span class="ident">Token</span>::<span class="ident">U8</span>(<span class="number">0</span>),
-                <span class="ident">Token</span>::<span class="ident">NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
-                <span class="ident">Token</span>::<span class="ident">U8</span>(<span class="number">0</span>),
-                <span class="ident">Token</span>::<span class="ident">NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
-                <span class="ident">Token</span>::<span class="ident">U8</span>(<span class="number">1</span>),
-                <span class="ident">Token</span>::<span class="ident">NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
-                <span class="ident">Token</span>::<span class="ident">U8</span>(<span class="number">1</span>),
-                <span class="ident">Token</span>::<span class="ident">NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
-                <span class="ident">Token</span>::<span class="ident">U8</span>(<span class="number">1</span>),
-                <span class="ident">Token</span>::<span class="ident">NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
-                <span class="ident">Token</span>::<span class="ident">U8</span>(<span class="number">1</span>),
-                <span class="ident">Token</span>::<span class="ident">NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
-                <span class="ident">Token</span>::<span class="ident">U8</span>(<span class="number">1</span>),
-                <span class="ident">Token</span>::<span class="ident">NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
-                <span class="ident">Token</span>::<span class="ident">U8</span>(<span class="number">1</span>),
-                <span class="ident">Token</span>::<span class="ident">SeqEnd</span>,
+                <span class="ident">Token::Seq</span> { <span class="ident">len</span>: <span class="prelude-val">Some</span>(<span class="number">10</span>) },
+                <span class="ident">Token::NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
+                <span class="ident">Token::U8</span>(<span class="number">0</span>),
+                <span class="ident">Token::NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
+                <span class="ident">Token::U8</span>(<span class="number">0</span>),
+                <span class="ident">Token::NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
+                <span class="ident">Token::U8</span>(<span class="number">0</span>),
+                <span class="ident">Token::NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
+                <span class="ident">Token::U8</span>(<span class="number">0</span>),
+                <span class="ident">Token::NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
+                <span class="ident">Token::U8</span>(<span class="number">1</span>),
+                <span class="ident">Token::NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
+                <span class="ident">Token::U8</span>(<span class="number">1</span>),
+                <span class="ident">Token::NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
+                <span class="ident">Token::U8</span>(<span class="number">1</span>),
+                <span class="ident">Token::NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
+                <span class="ident">Token::U8</span>(<span class="number">1</span>),
+                <span class="ident">Token::NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
+                <span class="ident">Token::U8</span>(<span class="number">1</span>),
+                <span class="ident">Token::NewtypeStruct</span> { <span class="ident">name</span>: <span class="string">&quot;Level&quot;</span> },
+                <span class="ident">Token::U8</span>(<span class="number">1</span>),
+                <span class="ident">Token::SeqEnd</span>,
             ],
         );
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unicode_bidi" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unicode_bidi" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

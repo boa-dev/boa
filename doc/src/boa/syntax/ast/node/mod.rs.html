@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa/src/syntax/ast/node/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../../storage.js"></script><script src="../../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa/src/syntax/ast/node/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../../storage.js"></script><script src="../../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../../../settings.html"><img src="../../../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -589,6 +589,55 @@
 <span id="588">588</span>
 <span id="589">589</span>
 <span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `Node` structure, which composes the AST.</span>
 
@@ -614,38 +663,38 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">try_node</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{
-    <span class="ident">array</span>::<span class="ident">ArrayDecl</span>,
-    <span class="ident">await_expr</span>::<span class="ident">AwaitExpr</span>,
-    <span class="ident">block</span>::<span class="ident">Block</span>,
-    <span class="ident">break_node</span>::<span class="ident">Break</span>,
-    <span class="ident">call</span>::<span class="ident">Call</span>,
+    <span class="ident">array::ArrayDecl</span>,
+    <span class="ident">await_expr::AwaitExpr</span>,
+    <span class="ident">block::Block</span>,
+    <span class="ident">break_node::Break</span>,
+    <span class="ident">call::Call</span>,
     <span class="ident">conditional</span>::{<span class="ident">ConditionalOp</span>, <span class="ident">If</span>},
     <span class="ident">declaration</span>::{
         <span class="ident">ArrowFunctionDecl</span>, <span class="ident">AsyncFunctionDecl</span>, <span class="ident">AsyncFunctionExpr</span>, <span class="ident">Declaration</span>, <span class="ident">DeclarationList</span>,
         <span class="ident">FunctionDecl</span>, <span class="ident">FunctionExpr</span>,
     },
     <span class="ident">field</span>::{<span class="ident">GetConstField</span>, <span class="ident">GetField</span>},
-    <span class="ident">identifier</span>::<span class="ident">Identifier</span>,
+    <span class="ident">identifier::Identifier</span>,
     <span class="ident">iteration</span>::{<span class="ident">Continue</span>, <span class="ident">DoWhileLoop</span>, <span class="ident">ForInLoop</span>, <span class="ident">ForLoop</span>, <span class="ident">ForOfLoop</span>, <span class="ident">WhileLoop</span>},
-    <span class="ident">new</span>::<span class="ident">New</span>,
-    <span class="ident">object</span>::<span class="ident">Object</span>,
+    <span class="ident">new::New</span>,
+    <span class="ident">object::Object</span>,
     <span class="ident">operator</span>::{<span class="ident">Assign</span>, <span class="ident">BinOp</span>, <span class="ident">UnaryOp</span>},
-    <span class="ident">return_smt</span>::<span class="ident">Return</span>,
-    <span class="ident">spread</span>::<span class="ident">Spread</span>,
+    <span class="ident">return_smt::Return</span>,
+    <span class="ident">spread::Spread</span>,
     <span class="ident">statement_list</span>::{<span class="ident">RcStatementList</span>, <span class="ident">StatementList</span>},
     <span class="ident">switch</span>::{<span class="ident">Case</span>, <span class="ident">Switch</span>},
     <span class="ident">template</span>::{<span class="ident">TaggedTemplate</span>, <span class="ident">TemplateLit</span>},
-    <span class="ident">throw</span>::<span class="ident">Throw</span>,
+    <span class="ident">throw::Throw</span>,
     <span class="ident">try_node</span>::{<span class="ident">Catch</span>, <span class="ident">Finally</span>, <span class="ident">Try</span>},
 };
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">Const</span>;
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::Const</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">exec</span>::<span class="ident">Executable</span>,
+    <span class="ident">exec::Executable</span>,
     <span class="ident">gc</span>::{<span class="ident">empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
 <span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">cmp</span>::<span class="ident">Ordering</span>,
+    <span class="ident">cmp::Ordering</span>,
     <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>},
 };
 
@@ -803,14 +852,14 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Node</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="self">self</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="number">0</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Const</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Node</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">c</span>: <span class="ident">Const</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">Const</span>(<span class="ident">c</span>)
+        <span class="self">Self</span><span class="ident">::Const</span>(<span class="ident">c</span>)
     }
 }
 
@@ -818,134 +867,148 @@
     <span class="doccomment">/// Returns a node ordering based on the hoistability of each node.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">hoistable_order</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ordering</span> {
         <span class="kw">match</span> (<span class="ident">a</span>, <span class="ident">b</span>) {
-            (<span class="ident">Node</span>::<span class="ident">FunctionDecl</span>(<span class="kw">_</span>), <span class="ident">Node</span>::<span class="ident">FunctionDecl</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ordering</span>::<span class="ident">Equal</span>,
-            (<span class="kw">_</span>, <span class="ident">Node</span>::<span class="ident">FunctionDecl</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ordering</span>::<span class="ident">Greater</span>,
-            (<span class="ident">Node</span>::<span class="ident">FunctionDecl</span>(<span class="kw">_</span>), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ordering</span>::<span class="ident">Less</span>,
+            (<span class="ident">Node::FunctionDecl</span>(<span class="kw">_</span>), <span class="ident">Node::FunctionDecl</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ordering::Equal</span>,
+            (<span class="kw">_</span>, <span class="ident">Node::FunctionDecl</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ordering::Greater</span>,
+            (<span class="ident">Node::FunctionDecl</span>(<span class="kw">_</span>), <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ordering::Less</span>,
 
-            (<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ordering</span>::<span class="ident">Equal</span>,
+            (<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Ordering::Equal</span>,
         }
     }
 
     <span class="doccomment">/// Creates a `This` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">this</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">This</span>
+        <span class="self">Self</span><span class="ident">::This</span>
     }
 
-    <span class="doccomment">/// Implements the display formatting with indentation.</span>
-    <span class="kw">fn</span> <span class="ident">display</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="doccomment">/// Displays the value of the node with the given indentation. For example, an indent</span>
+    <span class="doccomment">/// level of 2 would produce this:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```js</span>
+    <span class="doccomment">///         function hello() {</span>
+    <span class="doccomment">///             console.log(&quot;hello&quot;);</span>
+    <span class="doccomment">///         }</span>
+    <span class="doccomment">///         hello();</span>
+    <span class="doccomment">///         a = 2;</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">fn</span> <span class="ident">display</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">indent</span> <span class="op">=</span> <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indentation</span>);
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="self">Self</span>::<span class="ident">Block</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">indent</span>)<span class="question-mark">?</span>,
+            <span class="self">Self</span><span class="ident">::Block</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">indent</span>)<span class="question-mark">?</span>,
         }
+        <span class="self">self</span>.<span class="ident">display_no_indent</span>(<span class="ident">f</span>, <span class="ident">indentation</span>)
+    }
 
+    <span class="doccomment">/// Implements the display formatting with indentation. This will not prefix the value with</span>
+    <span class="doccomment">/// any indentation. If you want to prefix this with proper indents, use [`display`](Self::display).</span>
+    <span class="kw">fn</span> <span class="ident">display_no_indent</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="self">Self</span>::<span class="ident">Call</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">expr</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">Const</span>(<span class="kw-2">ref</span> <span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">c</span>),
-            <span class="self">Self</span>::<span class="ident">ConditionalOp</span>(<span class="kw-2">ref</span> <span class="ident">cond_op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">cond_op</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">ForLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_loop</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="self">Self</span>::<span class="ident">ForOfLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_of</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_of</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="self">Self</span>::<span class="ident">ForInLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_in</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_in</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="self">Self</span>::<span class="ident">This</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;this&quot;</span>),
-            <span class="self">Self</span>::<span class="ident">Try</span>(<span class="kw-2">ref</span> <span class="ident">try_catch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">try_catch</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="self">Self</span>::<span class="ident">Break</span>(<span class="kw-2">ref</span> <span class="ident">break_smt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">break_smt</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">Continue</span>(<span class="kw-2">ref</span> <span class="ident">cont</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">cont</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">Spread</span>(<span class="kw-2">ref</span> <span class="ident">spread</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">spread</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">Block</span>(<span class="kw-2">ref</span> <span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">block</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="self">Self</span>::<span class="ident">Identifier</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">s</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">New</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">expr</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">GetConstField</span>(<span class="kw-2">ref</span> <span class="ident">get_const_field</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">get_const_field</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">GetField</span>(<span class="kw-2">ref</span> <span class="ident">get_field</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">get_field</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">WhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">while_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">while_loop</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="self">Self</span>::<span class="ident">DoWhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">do_while</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">do_while</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="self">Self</span>::<span class="ident">If</span>(<span class="kw-2">ref</span> <span class="ident">if_smt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">if_smt</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="self">Self</span>::<span class="ident">Switch</span>(<span class="kw-2">ref</span> <span class="ident">switch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">switch</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="self">Self</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="self">Self</span>::<span class="ident">ArrayDecl</span>(<span class="kw-2">ref</span> <span class="ident">arr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">arr</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">VarDeclList</span>(<span class="kw-2">ref</span> <span class="ident">list</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">list</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">FunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="self">Self</span>::<span class="ident">FunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="self">Self</span>::<span class="ident">ArrowFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="self">Self</span>::<span class="ident">BinOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">op</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">UnaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">op</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">Return</span>(<span class="kw-2">ref</span> <span class="ident">ret</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">ret</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">TaggedTemplate</span>(<span class="kw-2">ref</span> <span class="ident">template</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">template</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">TemplateLit</span>(<span class="kw-2">ref</span> <span class="ident">template</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">template</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">Throw</span>(<span class="kw-2">ref</span> <span class="ident">throw</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">throw</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">Assign</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">op</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">LetDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">decl</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">ConstDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">decl</span>, <span class="ident">f</span>),
-            <span class="self">Self</span>::<span class="ident">AsyncFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="self">Self</span>::<span class="ident">AsyncFunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="self">Self</span>::<span class="ident">AwaitExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
-            <span class="self">Self</span>::<span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;;&quot;</span>),
+            <span class="self">Self</span><span class="ident">::Call</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">expr</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::Const</span>(<span class="kw-2">ref</span> <span class="ident">c</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">c</span>),
+            <span class="self">Self</span><span class="ident">::ConditionalOp</span>(<span class="kw-2">ref</span> <span class="ident">cond_op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">cond_op</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::ForLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_loop</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="self">Self</span><span class="ident">::ForOfLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_of</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_of</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="self">Self</span><span class="ident">::ForInLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_in</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_in</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="self">Self</span><span class="ident">::This</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;this&quot;</span>),
+            <span class="self">Self</span><span class="ident">::Try</span>(<span class="kw-2">ref</span> <span class="ident">try_catch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">try_catch</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="self">Self</span><span class="ident">::Break</span>(<span class="kw-2">ref</span> <span class="ident">break_smt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">break_smt</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::Continue</span>(<span class="kw-2">ref</span> <span class="ident">cont</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">cont</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::Spread</span>(<span class="kw-2">ref</span> <span class="ident">spread</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">spread</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::Block</span>(<span class="kw-2">ref</span> <span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">block</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="self">Self</span><span class="ident">::Identifier</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">s</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::New</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">expr</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::GetConstField</span>(<span class="kw-2">ref</span> <span class="ident">get_const_field</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">get_const_field</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::GetField</span>(<span class="kw-2">ref</span> <span class="ident">get_field</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">get_field</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::WhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">while_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">while_loop</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="self">Self</span><span class="ident">::DoWhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">do_while</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">do_while</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="self">Self</span><span class="ident">::If</span>(<span class="kw-2">ref</span> <span class="ident">if_smt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">if_smt</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="self">Self</span><span class="ident">::Switch</span>(<span class="kw-2">ref</span> <span class="ident">switch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">switch</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="self">Self</span><span class="ident">::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="self">Self</span><span class="ident">::ArrayDecl</span>(<span class="kw-2">ref</span> <span class="ident">arr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">arr</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::VarDeclList</span>(<span class="kw-2">ref</span> <span class="ident">list</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">list</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::FunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="self">Self</span><span class="ident">::FunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="self">Self</span><span class="ident">::ArrowFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="self">Self</span><span class="ident">::BinOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">op</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::UnaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">op</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::Return</span>(<span class="kw-2">ref</span> <span class="ident">ret</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">ret</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::TaggedTemplate</span>(<span class="kw-2">ref</span> <span class="ident">template</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">template</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::TemplateLit</span>(<span class="kw-2">ref</span> <span class="ident">template</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">template</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::Throw</span>(<span class="kw-2">ref</span> <span class="ident">throw</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">throw</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::Assign</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">op</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::LetDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">decl</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::ConstDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">decl</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::AsyncFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="self">Self</span><span class="ident">::AsyncFunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>.<span class="ident">display</span>(<span class="ident">f</span>, <span class="ident">indentation</span>),
+            <span class="self">Self</span><span class="ident">::AwaitExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">expr</span>, <span class="ident">f</span>),
+            <span class="self">Self</span><span class="ident">::Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;;&quot;</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">Node</span> {
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Executable&quot;</span>, <span class="string">&quot;exec&quot;</span>);
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Executable&quot;</span>, <span class="string">&quot;exec&quot;</span>);
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Node</span>::<span class="ident">AsyncFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">AsyncFunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">function_expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">function_expr</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">AwaitExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">Call</span>(<span class="kw-2">ref</span> <span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">call</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Null</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">null</span>()),
-            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Num</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">rational</span>(<span class="ident">num</span>)),
-            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Int</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">integer</span>(<span class="ident">num</span>)),
-            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">num</span>.<span class="ident">clone</span>())),
-            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Undefined</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">Undefined</span>),
+            <span class="ident">Node::AsyncFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::AsyncFunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">function_expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">function_expr</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::AwaitExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::Call</span>(<span class="kw-2">ref</span> <span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">call</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::Const</span>(<span class="ident">Const::Null</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::null</span>()),
+            <span class="ident">Node::Const</span>(<span class="ident">Const::Num</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::rational</span>(<span class="ident">num</span>)),
+            <span class="ident">Node::Const</span>(<span class="ident">Const::Int</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::integer</span>(<span class="ident">num</span>)),
+            <span class="ident">Node::Const</span>(<span class="ident">Const::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">num</span>.<span class="ident">clone</span>())),
+            <span class="ident">Node::Const</span>(<span class="ident">Const::Undefined</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::Undefined</span>),
             <span class="comment">// we can&#39;t move String from Const into value, because const is a garbage collected value</span>
             <span class="comment">// Which means Drop() get&#39;s called on Const, but str will be gone at that point.</span>
             <span class="comment">// Do Const values need to be garbage collected? We no longer need them once we&#39;ve generated Values</span>
-            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">string</span>(<span class="ident">value</span>.<span class="ident">to_string</span>())),
-            <span class="ident">Node</span>::<span class="ident">Const</span>(<span class="ident">Const</span>::<span class="ident">Bool</span>(<span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">boolean</span>(<span class="ident">value</span>)),
-            <span class="ident">Node</span>::<span class="ident">Block</span>(<span class="kw-2">ref</span> <span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">block</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">Identifier</span>(<span class="kw-2">ref</span> <span class="ident">identifier</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">identifier</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">GetConstField</span>(<span class="kw-2">ref</span> <span class="ident">get_const_field_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">get_const_field_node</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">GetField</span>(<span class="kw-2">ref</span> <span class="ident">get_field</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">get_field</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">WhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">while_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">while_loop</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">DoWhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">do_while</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">do_while</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">ForLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_loop</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">ForOfLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_of_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_of_loop</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">ForInLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_in_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_in_loop</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">If</span>(<span class="kw-2">ref</span> <span class="ident">if_smt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">if_smt</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">ConditionalOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">Switch</span>(<span class="kw-2">ref</span> <span class="ident">switch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">switch</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">ArrayDecl</span>(<span class="kw-2">ref</span> <span class="ident">arr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arr</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::Const</span>(<span class="ident">Const::String</span>(<span class="kw-2">ref</span> <span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::string</span>(<span class="ident">value</span>.<span class="ident">to_string</span>())),
+            <span class="ident">Node::Const</span>(<span class="ident">Const::Bool</span>(<span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::boolean</span>(<span class="ident">value</span>)),
+            <span class="ident">Node::Block</span>(<span class="kw-2">ref</span> <span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">block</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::Identifier</span>(<span class="kw-2">ref</span> <span class="ident">identifier</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">identifier</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::GetConstField</span>(<span class="kw-2">ref</span> <span class="ident">get_const_field_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">get_const_field_node</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::GetField</span>(<span class="kw-2">ref</span> <span class="ident">get_field</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">get_field</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::WhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">while_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">while_loop</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::DoWhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">do_while</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">do_while</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::ForLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_loop</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::ForOfLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_of_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_of_loop</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::ForInLoop</span>(<span class="kw-2">ref</span> <span class="ident">for_in_loop</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">for_in_loop</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::If</span>(<span class="kw-2">ref</span> <span class="ident">if_smt</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">if_smt</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::ConditionalOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::Switch</span>(<span class="kw-2">ref</span> <span class="ident">switch</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">switch</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::ArrayDecl</span>(<span class="kw-2">ref</span> <span class="ident">arr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arr</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="comment">// &lt;https://tc39.es/ecma262/#sec-createdynamicfunction&gt;</span>
-            <span class="ident">Node</span>::<span class="ident">FunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::FunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="comment">// &lt;https://tc39.es/ecma262/#sec-createdynamicfunction&gt;</span>
-            <span class="ident">Node</span>::<span class="ident">FunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">function_expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">function_expr</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">ArrowFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">BinOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">UnaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">New</span>(<span class="kw-2">ref</span> <span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">call</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">Return</span>(<span class="kw-2">ref</span> <span class="ident">ret</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ret</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">TaggedTemplate</span>(<span class="kw-2">ref</span> <span class="ident">template</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">template</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">TemplateLit</span>(<span class="kw-2">ref</span> <span class="ident">template</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">template</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">Throw</span>(<span class="kw-2">ref</span> <span class="ident">throw</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">throw</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">Assign</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">VarDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">LetDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">ConstDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">Spread</span>(<span class="kw-2">ref</span> <span class="ident">spread</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">spread</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">This</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Node::FunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">function_expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">function_expr</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::ArrowFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::BinOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::UnaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::New</span>(<span class="kw-2">ref</span> <span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">call</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::Return</span>(<span class="kw-2">ref</span> <span class="ident">ret</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ret</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::TaggedTemplate</span>(<span class="kw-2">ref</span> <span class="ident">template</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">template</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::TemplateLit</span>(<span class="kw-2">ref</span> <span class="ident">template</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">template</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::Throw</span>(<span class="kw-2">ref</span> <span class="ident">throw</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">throw</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::Assign</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">op</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::VarDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::LetDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::ConstDeclList</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::Spread</span>(<span class="kw-2">ref</span> <span class="ident">spread</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">spread</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::This</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// Will either return `this` binding or undefined</span>
                 <span class="ident">context</span>.<span class="ident">get_this_binding</span>()
             }
-            <span class="ident">Node</span>::<span class="ident">Try</span>(<span class="kw-2">ref</span> <span class="ident">try_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">try_node</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">Break</span>(<span class="kw-2">ref</span> <span class="ident">break_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">break_node</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">Continue</span>(<span class="kw-2">ref</span> <span class="ident">continue_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">continue_node</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node</span>::<span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">Undefined</span>),
+            <span class="ident">Node::Try</span>(<span class="kw-2">ref</span> <span class="ident">try_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">try_node</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::Break</span>(<span class="kw-2">ref</span> <span class="ident">break_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">break_node</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::Continue</span>(<span class="kw-2">ref</span> <span class="ident">continue_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">continue_node</span>.<span class="ident">run</span>(<span class="ident">context</span>),
+            <span class="ident">Node::Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::Undefined</span>),
         }
     }
 }
 
 <span class="doccomment">/// Utility to join multiple Nodes into a single string.</span>
-<span class="kw">fn</span> <span class="ident">join_nodes</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">nodes</span>: <span class="kw-2">&amp;</span>[<span class="ident">N</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span>
+<span class="kw">fn</span> <span class="ident">join_nodes</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">nodes</span>: <span class="kw-2">&amp;</span>[<span class="ident">N</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span>
 <span class="kw">where</span>
     <span class="ident">N</span>: <span class="ident">Display</span>,
 {
@@ -955,7 +1018,7 @@
             <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;, &quot;</span>)<span class="question-mark">?</span>;
         }
         <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">e</span>, <span class="ident">f</span>)<span class="question-mark">?</span>;
+        <span class="ident">Display::fmt</span>(<span class="ident">e</span>, <span class="ident">f</span>)<span class="question-mark">?</span>;
     }
     <span class="prelude-val">Ok</span>(())
 }
@@ -985,7 +1048,7 @@
 
 <span class="kw">impl</span> <span class="ident">FormalParameter</span> {
     <span class="doccomment">/// Creates a new formal parameter.</span>
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="kw">crate</span>::<span class="ident">syntax</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>, <span class="ident">is_rest_param</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span>(<span class="kw">in</span> <span class="kw">crate</span><span class="ident">::syntax</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>, <span class="ident">is_rest_param</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
@@ -1013,13 +1076,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">FormalParameter</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_rest_param</span> {
-            <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;...&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;...&quot;</span>)<span class="question-mark">?</span>;
         }
-        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">name</span>)<span class="question-mark">?</span>;
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">name</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">init</span>.<span class="ident">as_ref</span>() {
-            <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot; = {}&quot;</span>, <span class="ident">n</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot; = {}&quot;</span>, <span class="ident">n</span>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -1091,7 +1154,7 @@
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="self">Self</span>::<span class="ident">IdentifierReference</span>(<span class="ident">ident</span>.<span class="ident">into</span>())
+        <span class="self">Self</span><span class="ident">::IdentifierReference</span>(<span class="ident">ident</span>.<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Creates a `Property` definition.</span>
@@ -1100,7 +1163,7 @@
         <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">V</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
     {
-        <span class="self">Self</span>::<span class="ident">Property</span>(<span class="ident">name</span>.<span class="ident">into</span>(), <span class="ident">value</span>.<span class="ident">into</span>())
+        <span class="self">Self</span><span class="ident">::Property</span>(<span class="ident">name</span>.<span class="ident">into</span>(), <span class="ident">value</span>.<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Creates a `MethodDefinition`.</span>
@@ -1108,7 +1171,7 @@
     <span class="kw">where</span>
         <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="self">Self</span>::<span class="ident">MethodDefinition</span>(<span class="ident">kind</span>, <span class="ident">name</span>.<span class="ident">into</span>(), <span class="ident">body</span>)
+        <span class="self">Self</span><span class="ident">::MethodDefinition</span>(<span class="ident">kind</span>, <span class="ident">name</span>.<span class="ident">into</span>(), <span class="ident">body</span>)
     }
 
     <span class="doccomment">/// Creates a `SpreadObject`.</span>
@@ -1116,7 +1179,7 @@
     <span class="kw">where</span>
         <span class="ident">O</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
     {
-        <span class="self">Self</span>::<span class="ident">SpreadObject</span>(<span class="ident">obj</span>.<span class="ident">into</span>())
+        <span class="self">Self</span><span class="ident">::SpreadObject</span>(<span class="ident">obj</span>.<span class="ident">into</span>())
     }
 }
 
@@ -1178,8 +1241,43 @@
 }
 
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">MethodDefinitionKind</span> {
-    <span class="macro">empty_trace</span><span class="macro">!</span>();
+    <span class="macro">empty_trace!</span>();
+}
+
+<span class="doccomment">/// This parses the given source code, and then makes sure that</span>
+<span class="doccomment">/// the resulting StatementList is formatted in the same manner</span>
+<span class="doccomment">/// as the source code. This is expected to have a preceding</span>
+<span class="doccomment">/// newline.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This is a utility function for tests. It was made in case people</span>
+<span class="doccomment">/// are using different indents in their source files. This fixes</span>
+<span class="doccomment">/// any strings which may have been changed in a different indent</span>
+<span class="doccomment">/// level.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">fn</span> <span class="ident">test_formatting</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) {
+    <span class="comment">// Remove preceding newline.</span>
+    <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">source</span>[<span class="number">1</span>..];
+
+    <span class="comment">// Find out how much the code is indented</span>
+    <span class="kw">let</span> <span class="ident">first_line</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">source</span>[..<span class="ident">source</span>.<span class="ident">find</span>(<span class="string">&#39;\n&#39;</span>).<span class="ident">unwrap</span>()];
+    <span class="kw">let</span> <span class="ident">trimmed_first_line</span> <span class="op">=</span> <span class="ident">first_line</span>.<span class="ident">trim</span>();
+    <span class="kw">let</span> <span class="ident">characters_to_remove</span> <span class="op">=</span> <span class="ident">first_line</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">trimmed_first_line</span>.<span class="ident">len</span>();
+
+    <span class="kw">let</span> <span class="ident">scenario</span> <span class="op">=</span> <span class="ident">source</span>
+        .<span class="ident">lines</span>()
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">l</span>[<span class="ident">characters_to_remove</span>..]) <span class="comment">// Remove preceding whitespace from each line</span>
+        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+        .<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
+    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="kw">crate</span><span class="ident">::parse</span>(<span class="kw-2">&amp;</span><span class="ident">scenario</span>, <span class="bool-val">false</span>).<span class="ident">unwrap</span>());
+    <span class="kw">if</span> <span class="ident">scenario</span> <span class="op">!</span><span class="op">=</span> <span class="ident">result</span> {
+        <span class="macro">eprint!</span>(<span class="string">&quot;========= Expected:\n{}&quot;</span>, <span class="ident">scenario</span>);
+        <span class="macro">eprint!</span>(<span class="string">&quot;========= Got:\n{}&quot;</span>, <span class="ident">result</span>);
+        <span class="comment">// Might be helpful to find differing whitespace</span>
+        <span class="macro">eprintln!</span>(<span class="string">&quot;========= Expected: {:?}&quot;</span>, <span class="ident">scenario</span>);
+        <span class="macro">eprintln!</span>(<span class="string">&quot;========= Got:      {:?}&quot;</span>, <span class="ident">result</span>);
+        <span class="macro">panic!</span>(<span class="string">&quot;parsing test did not give the correct result (see above)&quot;</span>);
+    }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa" data-search-js="../../../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa" data-search-index-js="../../../../../search-index.js" data-search-js="../../../../../search.js"></div>
     <script src="../../../../../main.js"></script><script src="../../../../../source-script.js"></script><script src="../../../../../source-files.js"></script></body></html>

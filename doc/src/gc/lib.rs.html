@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gc-0.4.1/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../gc/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../gc/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -981,22 +981,22 @@
 
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>, <span class="ident">feature</span>(<span class="ident">coerce_unsized</span>, <span class="ident">unsize</span>))]</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">gc</span>::{<span class="ident">GcBox</span>, <span class="ident">GcBoxHeader</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">alloc</span>::<span class="ident">Layout</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cell</span>::{<span class="ident">Cell</span>, <span class="ident">UnsafeCell</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">Ordering</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ptr</span>::{<span class="self">self</span>, <span class="ident">NonNull</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::gc</span>::{<span class="ident">GcBox</span>, <span class="ident">GcBoxHeader</span>};
+<span class="kw">use</span> <span class="ident">std::alloc::Layout</span>;
+<span class="kw">use</span> <span class="ident">std::cell</span>::{<span class="ident">Cell</span>, <span class="ident">UnsafeCell</span>};
+<span class="kw">use</span> <span class="ident">std::cmp::Ordering</span>;
+<span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>};
+<span class="kw">use</span> <span class="ident">std::hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
+<span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
+<span class="kw">use</span> <span class="ident">std::mem</span>;
+<span class="kw">use</span> <span class="ident">std::ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>};
+<span class="kw">use</span> <span class="ident">std::ptr</span>::{<span class="self">self</span>, <span class="ident">NonNull</span>};
+<span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">marker</span>::<span class="ident">Unsize</span>;
+<span class="kw">use</span> <span class="ident">std::marker::Unsize</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">CoerceUnsized</span>;
+<span class="kw">use</span> <span class="ident">std::ops::CoerceUnsized</span>;
 
 <span class="kw">mod</span> <span class="ident">gc</span>;
 <span class="kw">mod</span> <span class="ident">trace</span>;
@@ -1006,8 +1006,8 @@
 
 <span class="comment">// We re-export the Trace method, as well as some useful internal methods for</span>
 <span class="comment">// managing collections or configuring the garbage collector.</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">gc</span>::{<span class="ident">finalizer_safe</span>, <span class="ident">force_collect</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">trace</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::gc</span>::{<span class="ident">finalizer_safe</span>, <span class="ident">force_collect</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::trace</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 
 <span class="comment">////////</span>
 <span class="comment">// Gc //</span>
@@ -1040,17 +1040,17 @@
     <span class="doccomment">/// assert_eq!(*five, 5);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">mem</span>::<span class="ident">align_of</span>::<span class="op">&lt;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&gt;</span> <span class="number">1</span>);
+        <span class="macro">assert!</span>(<span class="ident">mem::align_of</span>::<span class="op">&lt;</span><span class="ident">GcBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">&gt;</span> <span class="number">1</span>);
 
         <span class="kw">unsafe</span> {
             <span class="comment">// Allocate the memory for the object</span>
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">GcBox</span>::<span class="ident">new</span>(<span class="ident">value</span>);
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">GcBox::new</span>(<span class="ident">value</span>);
 
             <span class="comment">// When we create a Gc&lt;T&gt;, all pointers which have been moved to the</span>
             <span class="comment">// heap no longer need to be rooted, so we unroot them.</span>
             (<span class="kw-2">*</span><span class="ident">ptr</span>.<span class="ident">as_ptr</span>()).<span class="ident">value</span>().<span class="ident">unroot</span>();
             <span class="kw">let</span> <span class="ident">gc</span> <span class="op">=</span> <span class="ident">Gc</span> {
-                <span class="ident">ptr_root</span>: <span class="ident">Cell</span>::<span class="ident">new</span>(<span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>())),
+                <span class="ident">ptr_root</span>: <span class="ident">Cell::new</span>(<span class="ident">NonNull::new_unchecked</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>())),
                 <span class="ident">marker</span>: <span class="ident">PhantomData</span>,
             };
             <span class="ident">gc</span>.<span class="ident">set_root</span>();
@@ -1062,7 +1062,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Returns `true` if the two `Gc`s point to the same allocation.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr_eq</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="ident">GcBox</span>::<span class="ident">ptr_eq</span>(<span class="ident">this</span>.<span class="ident">inner</span>(), <span class="ident">other</span>.<span class="ident">inner</span>())
+        <span class="ident">GcBox::ptr_eq</span>(<span class="ident">this</span>.<span class="ident">inner</span>(), <span class="ident">other</span>.<span class="ident">inner</span>())
     }
 }
 
@@ -1071,7 +1071,7 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ptr</span>.<span class="ident">as_ptr</span>();
     <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">usize</span>) <span class="op">&amp;=</span> <span class="op">!</span><span class="number">1</span>;
     <span class="comment">// *(&amp;mut ptr as *mut *const GcBox&lt;T&gt; as *mut usize) &amp;= !1;</span>
-    <span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">ptr</span>)
+    <span class="ident">NonNull::new_unchecked</span>(<span class="ident">ptr</span>)
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
@@ -1082,7 +1082,7 @@
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_root</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ptr_root</span>.<span class="ident">get</span>().<span class="ident">as_ptr</span>();
         <span class="kw-2">*</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">GcBox</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">usize</span>) <span class="op">|</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="self">self</span>.<span class="ident">ptr_root</span>.<span class="ident">set</span>(<span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">ptr</span>));
+        <span class="self">self</span>.<span class="ident">ptr_root</span>.<span class="ident">set</span>(<span class="ident">NonNull::new_unchecked</span>(<span class="ident">ptr</span>));
     }
 
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">clear_root</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
@@ -1097,7 +1097,7 @@
         <span class="comment">// within your drop method, meaning that it should be safe.</span>
         <span class="comment">//</span>
         <span class="comment">// This assert exists just in case.</span>
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">finalizer_safe</span>());
+        <span class="macro">assert!</span>(<span class="ident">finalizer_safe</span>());
 
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">clear_root_bit</span>(<span class="self">self</span>.<span class="ident">ptr_root</span>.<span class="ident">get</span>()).<span class="ident">as_ptr</span>() }
     }
@@ -1122,7 +1122,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_raw</span>(<span class="ident">this</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T</span> {
         <span class="kw">let</span> <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">this</span>;
-        <span class="ident">mem</span>::<span class="ident">forget</span>(<span class="ident">this</span>);
+        <span class="ident">mem::forget</span>(<span class="ident">this</span>);
         <span class="ident">ptr</span>
     }
 
@@ -1159,8 +1159,8 @@
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="comment">// Find the offset of T in GcBox&lt;T&gt;. Note that Layout::extend</span>
         <span class="comment">// relies on GcBox being repr(C).</span>
-        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">offset</span>) <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">new</span>::<span class="op">&lt;</span><span class="ident">GcBoxHeader</span><span class="op">&gt;</span>()
-            .<span class="ident">extend</span>(<span class="ident">Layout</span>::<span class="ident">for_value</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">ptr</span>))
+        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">offset</span>) <span class="op">=</span> <span class="ident">Layout::new</span>::<span class="op">&lt;</span><span class="ident">GcBoxHeader</span><span class="op">&gt;</span>()
+            .<span class="ident">extend</span>(<span class="ident">Layout::for_value</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">ptr</span>))
             .<span class="ident">unwrap</span>();
 
         <span class="comment">// Reverse the offset to find the original GcBox.</span>
@@ -1168,7 +1168,7 @@
         <span class="kw">let</span> <span class="ident">rc_ptr</span> <span class="op">=</span> <span class="ident">set_data_ptr</span>(<span class="ident">fake_ptr</span>, (<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>).<span class="ident">offset</span>(<span class="op">-</span>(<span class="ident">offset</span> <span class="kw">as</span> <span class="ident">isize</span>)));
 
         <span class="kw">let</span> <span class="ident">gc</span> <span class="op">=</span> <span class="ident">Gc</span> {
-            <span class="ident">ptr_root</span>: <span class="ident">Cell</span>::<span class="ident">new</span>(<span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">rc_ptr</span>)),
+            <span class="ident">ptr_root</span>: <span class="ident">Cell::new</span>(<span class="ident">NonNull::new_unchecked</span>(<span class="ident">rc_ptr</span>)),
             <span class="ident">marker</span>: <span class="ident">PhantomData</span>,
         };
         <span class="ident">gc</span>.<span class="ident">set_root</span>();
@@ -1186,7 +1186,7 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">root</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">rooted</span>(), <span class="string">&quot;Can&#39;t double-root a Gc&lt;T&gt;&quot;</span>);
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">rooted</span>(), <span class="string">&quot;Can&#39;t double-root a Gc&lt;T&gt;&quot;</span>);
 
         <span class="comment">// Try to get inner before modifying our state. Inner may be</span>
         <span class="comment">// inaccessible due to this method being invoked during the sweeping</span>
@@ -1198,7 +1198,7 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unroot</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">rooted</span>(), <span class="string">&quot;Can&#39;t double-unroot a Gc&lt;T&gt;&quot;</span>);
+        <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">rooted</span>(), <span class="string">&quot;Can&#39;t double-unroot a Gc&lt;T&gt;&quot;</span>);
 
         <span class="comment">// Try to get inner before modifying our state. Inner may be</span>
         <span class="comment">// inaccessible due to this method being invoked during the sweeping</span>
@@ -1210,7 +1210,7 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">finalize_glue</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="ident">Finalize</span>::<span class="ident">finalize</span>(<span class="self">self</span>);
+        <span class="ident">Finalize::finalize</span>(<span class="self">self</span>);
     }
 }
 
@@ -1220,7 +1220,7 @@
         <span class="kw">unsafe</span> {
             <span class="self">self</span>.<span class="ident">inner</span>().<span class="ident">root_inner</span>();
             <span class="kw">let</span> <span class="ident">gc</span> <span class="op">=</span> <span class="ident">Gc</span> {
-                <span class="ident">ptr_root</span>: <span class="ident">Cell</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">ptr_root</span>.<span class="ident">get</span>()),
+                <span class="ident">ptr_root</span>: <span class="ident">Cell::new</span>(<span class="self">self</span>.<span class="ident">ptr_root</span>.<span class="ident">get</span>()),
                 <span class="ident">marker</span>: <span class="ident">PhantomData</span>,
             };
             <span class="ident">gc</span>.<span class="ident">set_root</span>();
@@ -1253,7 +1253,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="ident">Default</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">Default</span>::<span class="ident">default</span>())
+        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">Default::default</span>())
     }
 }
 
@@ -1307,36 +1307,36 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Display</span><span class="op">&gt;</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>, <span class="ident">f</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>, <span class="ident">f</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Debug</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>, <span class="ident">f</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">Debug::fmt</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>, <span class="ident">f</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Pointer</span> <span class="kw">for</span> <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">fmt</span>::<span class="ident">Pointer</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>(), <span class="ident">f</span>)
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">fmt::Pointer</span> <span class="kw">for</span> <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">fmt::Pointer::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>(), <span class="ident">f</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">t</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">t</span>)
+        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">t</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">borrow</span>::<span class="ident">Borrow</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">std::borrow::Borrow</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">std::convert::AsRef</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">T</span> {
         <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>
     }
@@ -1373,9 +1373,9 @@
 <span class="kw">impl</span> <span class="ident">BorrowFlag</span> {
     <span class="kw">fn</span> <span class="ident">borrowed</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BorrowState</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">ROOT</span> {
-            <span class="ident">UNUSED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BorrowState</span>::<span class="ident">Unused</span>,
-            <span class="ident">WRITING</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BorrowState</span>::<span class="ident">Writing</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BorrowState</span>::<span class="ident">Reading</span>,
+            <span class="ident">UNUSED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BorrowState::Unused</span>,
+            <span class="ident">WRITING</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BorrowState::Writing</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BorrowState::Reading</span>,
         }
     }
 
@@ -1397,7 +1397,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">add_reading</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">borrowed</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">BorrowState</span>::<span class="ident">Writing</span>);
+        <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">borrowed</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">BorrowState::Writing</span>);
         <span class="comment">// Add 1 to the integer starting at the second binary digit. As our</span>
         <span class="comment">// borrowstate is not writing, we know that overflow cannot happen, so</span>
         <span class="comment">// this is equivalent to the following, more complicated, expression:</span>
@@ -1407,7 +1407,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">sub_reading</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">borrowed</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">BorrowState</span>::<span class="ident">Reading</span>);
+        <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">borrowed</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">BorrowState::Reading</span>);
         <span class="comment">// Subtract 1 from the integer starting at the second binary digit. As</span>
         <span class="comment">// our borrowstate is not writing or unused, we know that overflow or</span>
         <span class="comment">// undeflow cannot happen, so this is equivalent to the following, more</span>
@@ -1437,8 +1437,8 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">GcCell</span> {
-            <span class="ident">flags</span>: <span class="ident">Cell</span>::<span class="ident">new</span>(<span class="ident">BORROWFLAG_INIT</span>),
-            <span class="ident">cell</span>: <span class="ident">UnsafeCell</span>::<span class="ident">new</span>(<span class="ident">value</span>),
+            <span class="ident">flags</span>: <span class="ident">Cell::new</span>(<span class="ident">BORROWFLAG_INIT</span>),
+            <span class="ident">cell</span>: <span class="ident">UnsafeCell::new</span>(<span class="ident">value</span>),
         }
     }
 
@@ -1462,7 +1462,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcCellRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">try_borrow</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>),
         }
     }
 
@@ -1478,7 +1478,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">borrow_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcCellRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">try_borrow_mut</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>),
         }
     }
 
@@ -1508,14 +1508,14 @@
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">GcCellRef</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">BorrowError</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">borrowed</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">BorrowState</span>::<span class="ident">Writing</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">borrowed</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">BorrowState::Writing</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">BorrowError</span>);
         }
         <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">set</span>(<span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">add_reading</span>());
 
         <span class="comment">// This will fail if the borrow count overflows, which shouldn&#39;t happen,</span>
         <span class="comment">// but let&#39;s be safe</span>
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">borrowed</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">BorrowState</span>::<span class="ident">Reading</span>);
+        <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">borrowed</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">BorrowState::Reading</span>);
 
         <span class="kw">unsafe</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">GcCellRef</span> {
@@ -1547,7 +1547,7 @@
     <span class="doccomment">/// assert!(c.try_borrow_mut().is_ok());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_borrow_mut</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">GcCellRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">BorrowMutError</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">borrowed</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">BorrowState</span>::<span class="ident">Unused</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">borrowed</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">BorrowState::Unused</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">BorrowMutError</span>);
         }
         <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">set</span>(<span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">set_writing</span>());
@@ -1571,9 +1571,9 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Default</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BorrowError</span>;
 
-<span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">BorrowError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="string">&quot;GcCell&lt;T&gt; already mutably borrowed&quot;</span>, <span class="ident">f</span>)
+<span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">BorrowError</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::fmt::Result</span> {
+        <span class="ident">Display::fmt</span>(<span class="string">&quot;GcCell&lt;T&gt; already mutably borrowed&quot;</span>, <span class="ident">f</span>)
     }
 }
 
@@ -1581,9 +1581,9 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Default</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BorrowMutError</span>;
 
-<span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">BorrowMutError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="string">&quot;GcCell&lt;T&gt; already borrowed&quot;</span>, <span class="ident">f</span>)
+<span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">BorrowMutError</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::fmt::Result</span> {
+        <span class="ident">Display::fmt</span>(<span class="string">&quot;GcCell&lt;T&gt; already borrowed&quot;</span>, <span class="ident">f</span>)
     }
 }
 
@@ -1593,38 +1593,38 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">trace</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">borrowed</span>() {
-            <span class="ident">BorrowState</span>::<span class="ident">Writing</span> <span class="op">=</span><span class="op">&gt;</span> (),
+            <span class="ident">BorrowState::Writing</span> <span class="op">=</span><span class="op">&gt;</span> (),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">cell</span>.<span class="ident">get</span>()).<span class="ident">trace</span>(),
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">root</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">rooted</span>(), <span class="string">&quot;Can&#39;t root a GcCell twice!&quot;</span>);
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">rooted</span>(), <span class="string">&quot;Can&#39;t root a GcCell twice!&quot;</span>);
         <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">set</span>(<span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">set_rooted</span>(<span class="bool-val">true</span>));
 
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">borrowed</span>() {
-            <span class="ident">BorrowState</span>::<span class="ident">Writing</span> <span class="op">=</span><span class="op">&gt;</span> (),
+            <span class="ident">BorrowState::Writing</span> <span class="op">=</span><span class="op">&gt;</span> (),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">cell</span>.<span class="ident">get</span>()).<span class="ident">root</span>(),
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unroot</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">rooted</span>(), <span class="string">&quot;Can&#39;t unroot a GcCell twice!&quot;</span>);
+        <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">rooted</span>(), <span class="string">&quot;Can&#39;t unroot a GcCell twice!&quot;</span>);
         <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">set</span>(<span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">set_rooted</span>(<span class="bool-val">false</span>));
 
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">borrowed</span>() {
-            <span class="ident">BorrowState</span>::<span class="ident">Writing</span> <span class="op">=</span><span class="op">&gt;</span> (),
+            <span class="ident">BorrowState::Writing</span> <span class="op">=</span><span class="op">&gt;</span> (),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">cell</span>.<span class="ident">get</span>()).<span class="ident">unroot</span>(),
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">finalize_glue</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="ident">Finalize</span>::<span class="ident">finalize</span>(<span class="self">self</span>);
+        <span class="ident">Finalize::finalize</span>(<span class="self">self</span>);
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">borrowed</span>() {
-            <span class="ident">BorrowState</span>::<span class="ident">Writing</span> <span class="op">=</span><span class="op">&gt;</span> (),
+            <span class="ident">BorrowState::Writing</span> <span class="op">=</span><span class="op">&gt;</span> (),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">cell</span>.<span class="ident">get</span>()).<span class="ident">finalize_glue</span>() },
         }
     }
@@ -1685,7 +1685,7 @@
 
         <span class="comment">// We have to tell the compiler not to call the destructor of GcCellRef,</span>
         <span class="comment">// because it will update the borrow flags.</span>
-        <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">forget</span>(<span class="ident">orig</span>);
+        <span class="ident">std::mem::forget</span>(<span class="ident">orig</span>);
 
         <span class="ident">ret</span>
     }
@@ -1732,7 +1732,7 @@
 
         <span class="comment">// We have to tell the compiler not to call the destructor of GcCellRef,</span>
         <span class="comment">// because it will update the borrow flags.</span>
-        <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">forget</span>(<span class="ident">orig</span>);
+        <span class="ident">std::mem::forget</span>(<span class="ident">orig</span>);
 
         <span class="ident">ret</span>
     }
@@ -1749,20 +1749,20 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">GcCellRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">borrowed</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">BorrowState</span>::<span class="ident">Reading</span>);
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">borrowed</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">BorrowState::Reading</span>);
         <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">set</span>(<span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">sub_reading</span>());
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">GcCellRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Debug</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>, <span class="ident">f</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">Debug::fmt</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>, <span class="ident">f</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Display</span><span class="op">&gt;</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">GcCellRef</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>, <span class="ident">f</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>, <span class="ident">f</span>)
     }
 }
 
@@ -1811,7 +1811,7 @@
 
         <span class="comment">// We have to tell the compiler not to call the destructor of GcCellRefMut,</span>
         <span class="comment">// because it will update the borrow flags.</span>
-        <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">forget</span>(<span class="ident">orig</span>);
+        <span class="ident">std::mem::forget</span>(<span class="ident">orig</span>);
 
         <span class="ident">ret</span>
     }
@@ -1836,7 +1836,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">U</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">GcCellRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">gc_cell</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">borrowed</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">BorrowState</span>::<span class="ident">Writing</span>);
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">gc_cell</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">borrowed</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">BorrowState::Writing</span>);
         <span class="comment">// Restore the rooted state of the GcCell&#39;s contents to the state of the GcCell.</span>
         <span class="comment">// During the lifetime of the GcCellRefMut, the GcCell&#39;s contents are rooted.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">gc_cell</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">rooted</span>() {
@@ -1851,14 +1851,14 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">U</span>: <span class="ident">Debug</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">GcCellRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Debug</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="self">self</span>.<span class="ident">deref</span>()), <span class="ident">f</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">Debug::fmt</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="self">self</span>.<span class="ident">deref</span>()), <span class="ident">f</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">U</span>: <span class="ident">Display</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">GcCellRefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">U</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>, <span class="ident">f</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>, <span class="ident">f</span>)
     }
 }
 
@@ -1867,14 +1867,14 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="ident">Clone</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">clone</span>())
+        <span class="self">Self</span><span class="ident">::new</span>(<span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">clone</span>())
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="ident">Default</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">new</span>(<span class="ident">Default</span>::<span class="ident">default</span>())
+        <span class="self">Self</span><span class="ident">::new</span>(<span class="ident">Default::default</span>())
     }
 }
 
@@ -1922,13 +1922,13 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Trace</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">get</span>().<span class="ident">borrowed</span>() {
-            <span class="ident">BorrowState</span>::<span class="ident">Unused</span> <span class="op">|</span> <span class="ident">BorrowState</span>::<span class="ident">Reading</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
+            <span class="ident">BorrowState::Unused</span> <span class="op">|</span> <span class="ident">BorrowState::Reading</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
                 .<span class="ident">debug_struct</span>(<span class="string">&quot;GcCell&quot;</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">borrow</span>())
                 .<span class="ident">finish</span>(),
-            <span class="ident">BorrowState</span>::<span class="ident">Writing</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
+            <span class="ident">BorrowState::Writing</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">f</span>
                 .<span class="ident">debug_struct</span>(<span class="string">&quot;GcCell&quot;</span>)
                 .<span class="ident">field</span>(<span class="string">&quot;value&quot;</span>, <span class="kw-2">&amp;</span><span class="string">&quot;&lt;borrowed&gt;&quot;</span>)
                 .<span class="ident">finish</span>(),
@@ -1941,9 +1941,9 @@
 <span class="comment">// For a slice/trait object, this sets the `data` field and leaves the rest</span>
 <span class="comment">// unchanged. For a sized raw pointer, this simply sets the pointer.</span>
 <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_data_ptr</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span>, <span class="ident">U</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">ptr</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident">data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">U</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span> {
-    <span class="ident">ptr</span>::<span class="ident">write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">data</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>);
+    <span class="ident">ptr::write</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>, <span class="ident">data</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>);
     <span class="ident">ptr</span>
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="gc" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="gc" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

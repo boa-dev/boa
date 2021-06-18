@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/colored-2.0.0/src/style.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>style.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../colored/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../colored/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -306,14 +306,14 @@
 <span class="kw">const</span> <span class="ident">STRIKETHROUGH</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">0b1000_0000</span>;
 
 <span class="kw">static</span> <span class="ident">STYLES</span>: [(<span class="ident">u8</span>, <span class="ident">Styles</span>); <span class="number">8</span>] <span class="op">=</span> [
-    (<span class="ident">BOLD</span>, <span class="ident">Styles</span>::<span class="ident">Bold</span>),
-    (<span class="ident">DIMMED</span>, <span class="ident">Styles</span>::<span class="ident">Dimmed</span>),
-    (<span class="ident">UNDERLINE</span>, <span class="ident">Styles</span>::<span class="ident">Underline</span>),
-    (<span class="ident">REVERSED</span>, <span class="ident">Styles</span>::<span class="ident">Reversed</span>),
-    (<span class="ident">ITALIC</span>, <span class="ident">Styles</span>::<span class="ident">Italic</span>),
-    (<span class="ident">BLINK</span>, <span class="ident">Styles</span>::<span class="ident">Blink</span>),
-    (<span class="ident">HIDDEN</span>, <span class="ident">Styles</span>::<span class="ident">Hidden</span>),
-    (<span class="ident">STRIKETHROUGH</span>, <span class="ident">Styles</span>::<span class="ident">Strikethrough</span>),
+    (<span class="ident">BOLD</span>, <span class="ident">Styles::Bold</span>),
+    (<span class="ident">DIMMED</span>, <span class="ident">Styles::Dimmed</span>),
+    (<span class="ident">UNDERLINE</span>, <span class="ident">Styles::Underline</span>),
+    (<span class="ident">REVERSED</span>, <span class="ident">Styles::Reversed</span>),
+    (<span class="ident">ITALIC</span>, <span class="ident">Styles::Italic</span>),
+    (<span class="ident">BLINK</span>, <span class="ident">Styles::Blink</span>),
+    (<span class="ident">HIDDEN</span>, <span class="ident">Styles::Hidden</span>),
+    (<span class="ident">STRIKETHROUGH</span>, <span class="ident">Styles::Strikethrough</span>),
 ];
 
 <span class="kw">pub</span> <span class="kw">static</span> <span class="ident">CLEAR</span>: <span class="ident">Style</span> <span class="op">=</span> <span class="ident">Style</span>(<span class="ident">CLEARV</span>);
@@ -339,29 +339,29 @@
 <span class="kw">impl</span> <span class="ident">Styles</span> {
     <span class="kw">fn</span> <span class="ident">to_str</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Styles</span>::<span class="ident">Clear</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&quot;</span>, <span class="comment">// unreachable, but we don&#39;t want to panic</span>
-            <span class="ident">Styles</span>::<span class="ident">Bold</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;1&quot;</span>,
-            <span class="ident">Styles</span>::<span class="ident">Dimmed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;2&quot;</span>,
-            <span class="ident">Styles</span>::<span class="ident">Italic</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;3&quot;</span>,
-            <span class="ident">Styles</span>::<span class="ident">Underline</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;4&quot;</span>,
-            <span class="ident">Styles</span>::<span class="ident">Blink</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;5&quot;</span>,
-            <span class="ident">Styles</span>::<span class="ident">Reversed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;7&quot;</span>,
-            <span class="ident">Styles</span>::<span class="ident">Hidden</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;8&quot;</span>,
-            <span class="ident">Styles</span>::<span class="ident">Strikethrough</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;9&quot;</span>,
+            <span class="ident">Styles::Clear</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&quot;</span>, <span class="comment">// unreachable, but we don&#39;t want to panic</span>
+            <span class="ident">Styles::Bold</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;1&quot;</span>,
+            <span class="ident">Styles::Dimmed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;2&quot;</span>,
+            <span class="ident">Styles::Italic</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;3&quot;</span>,
+            <span class="ident">Styles::Underline</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;4&quot;</span>,
+            <span class="ident">Styles::Blink</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;5&quot;</span>,
+            <span class="ident">Styles::Reversed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;7&quot;</span>,
+            <span class="ident">Styles::Hidden</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;8&quot;</span>,
+            <span class="ident">Styles::Strikethrough</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;9&quot;</span>,
         }
     }
 
     <span class="kw">fn</span> <span class="ident">to_u8</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Styles</span>::<span class="ident">Clear</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">CLEARV</span>,
-            <span class="ident">Styles</span>::<span class="ident">Bold</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BOLD</span>,
-            <span class="ident">Styles</span>::<span class="ident">Dimmed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DIMMED</span>,
-            <span class="ident">Styles</span>::<span class="ident">Italic</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ITALIC</span>,
-            <span class="ident">Styles</span>::<span class="ident">Underline</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">UNDERLINE</span>,
-            <span class="ident">Styles</span>::<span class="ident">Blink</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BLINK</span>,
-            <span class="ident">Styles</span>::<span class="ident">Reversed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">REVERSED</span>,
-            <span class="ident">Styles</span>::<span class="ident">Hidden</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HIDDEN</span>,
-            <span class="ident">Styles</span>::<span class="ident">Strikethrough</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">STRIKETHROUGH</span>,
+            <span class="ident">Styles::Clear</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">CLEARV</span>,
+            <span class="ident">Styles::Bold</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BOLD</span>,
+            <span class="ident">Styles::Dimmed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">DIMMED</span>,
+            <span class="ident">Styles::Italic</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ITALIC</span>,
+            <span class="ident">Styles::Underline</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">UNDERLINE</span>,
+            <span class="ident">Styles::Blink</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BLINK</span>,
+            <span class="ident">Styles::Reversed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">REVERSED</span>,
+            <span class="ident">Styles::Hidden</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">HIDDEN</span>,
+            <span class="ident">Styles::Strikethrough</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">STRIKETHROUGH</span>,
         }
     }
 
@@ -399,7 +399,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_str</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-        <span class="kw">let</span> <span class="ident">styles</span> <span class="op">=</span> <span class="ident">Styles</span>::<span class="ident">from_u8</span>(<span class="self">self</span>.<span class="number">0</span>).<span class="ident">unwrap_or_default</span>();
+        <span class="kw">let</span> <span class="ident">styles</span> <span class="op">=</span> <span class="ident">Styles::from_u8</span>(<span class="self">self</span>.<span class="number">0</span>).<span class="ident">unwrap_or_default</span>();
         <span class="ident">styles</span>
             .<span class="ident">iter</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">to_str</span>())
@@ -417,59 +417,59 @@
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
     <span class="kw">mod</span> <span class="ident">u8_to_styles_invalid_is_none</span> {
-        <span class="kw">use</span> <span class="kw">super</span>::<span class="kw">super</span>::<span class="ident">Styles</span>;
-        <span class="kw">use</span> <span class="kw">super</span>::<span class="kw">super</span>::<span class="ident">CLEARV</span>;
+        <span class="kw">use</span> <span class="kw">super</span>::<span class="kw">super</span><span class="ident">::Styles</span>;
+        <span class="kw">use</span> <span class="kw">super</span>::<span class="kw">super</span><span class="ident">::CLEARV</span>;
 
         <span class="attribute">#[<span class="ident">test</span>]</span>
         <span class="kw">fn</span> <span class="ident">empty_is_none</span>() {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="prelude-val">None</span>, <span class="ident">Styles</span>::<span class="ident">from_u8</span>(<span class="ident">CLEARV</span>))
+            <span class="macro">assert_eq!</span>(<span class="prelude-val">None</span>, <span class="ident">Styles::from_u8</span>(<span class="ident">CLEARV</span>))
         }
     }
 
     <span class="kw">mod</span> <span class="ident">u8_to_styles_isomorphism</span> {
-        <span class="kw">use</span> <span class="kw">super</span>::<span class="kw">super</span>::<span class="ident">Styles</span>;
+        <span class="kw">use</span> <span class="kw">super</span>::<span class="kw">super</span><span class="ident">::Styles</span>;
         <span class="kw">use</span> <span class="kw">super</span>::<span class="kw">super</span>::{
             <span class="ident">BLINK</span>, <span class="ident">BOLD</span>, <span class="ident">DIMMED</span>, <span class="ident">HIDDEN</span>, <span class="ident">ITALIC</span>, <span class="ident">REVERSED</span>, <span class="ident">STRIKETHROUGH</span>, <span class="ident">UNDERLINE</span>,
         };
 
-        <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">value_isomorph</span> {
+        <span class="macro">macro_rules!</span> <span class="ident">value_isomorph</span> {
             (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="attribute">#[<span class="ident">test</span>]</span>
                 <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>() {
-                    <span class="kw">let</span> <span class="ident">u</span> <span class="op">=</span> <span class="ident">Styles</span>::<span class="ident">from_u8</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>);
-                    <span class="macro">assert</span><span class="macro">!</span>(
+                    <span class="kw">let</span> <span class="ident">u</span> <span class="op">=</span> <span class="ident">Styles::from_u8</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>);
+                    <span class="macro">assert!</span>(
                         <span class="ident">u</span>.<span class="ident">is_some</span>(),
                         <span class="string">&quot;{}: Styles::from_u8 -&gt; None&quot;</span>,
-                        <span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>)
+                        <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>)
                     );
                     <span class="kw">let</span> <span class="ident">u</span> <span class="op">=</span> <span class="ident">u</span>.<span class="ident">unwrap</span>();
-                    <span class="macro">assert</span><span class="macro">!</span>(
+                    <span class="macro">assert!</span>(
                         <span class="ident">u</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span>,
                         <span class="string">&quot;{}: Styles::from_u8 found {} styles (expected 1)&quot;</span>,
-                        <span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>),
+                        <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>),
                         <span class="ident">u</span>.<span class="ident">len</span>()
                     );
-                    <span class="macro">assert</span><span class="macro">!</span>(
+                    <span class="macro">assert!</span>(
                         <span class="ident">u</span>[<span class="number">0</span>].<span class="ident">to_u8</span>() <span class="op">=</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>,
                         <span class="string">&quot;{}: to_u8() doesn&#39;t match its const value&quot;</span>,
-                        <span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>)
+                        <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>)
                     );
                 }
             };
         }
 
-        <span class="macro">value_isomorph</span><span class="macro">!</span>(<span class="ident">bold</span>, <span class="ident">BOLD</span>);
-        <span class="macro">value_isomorph</span><span class="macro">!</span>(<span class="ident">underline</span>, <span class="ident">UNDERLINE</span>);
-        <span class="macro">value_isomorph</span><span class="macro">!</span>(<span class="ident">reversed</span>, <span class="ident">REVERSED</span>);
-        <span class="macro">value_isomorph</span><span class="macro">!</span>(<span class="ident">italic</span>, <span class="ident">ITALIC</span>);
-        <span class="macro">value_isomorph</span><span class="macro">!</span>(<span class="ident">blink</span>, <span class="ident">BLINK</span>);
-        <span class="macro">value_isomorph</span><span class="macro">!</span>(<span class="ident">hidden</span>, <span class="ident">HIDDEN</span>);
-        <span class="macro">value_isomorph</span><span class="macro">!</span>(<span class="ident">dimmed</span>, <span class="ident">DIMMED</span>);
-        <span class="macro">value_isomorph</span><span class="macro">!</span>(<span class="ident">strikethrough</span>, <span class="ident">STRIKETHROUGH</span>);
+        <span class="macro">value_isomorph!</span>(<span class="ident">bold</span>, <span class="ident">BOLD</span>);
+        <span class="macro">value_isomorph!</span>(<span class="ident">underline</span>, <span class="ident">UNDERLINE</span>);
+        <span class="macro">value_isomorph!</span>(<span class="ident">reversed</span>, <span class="ident">REVERSED</span>);
+        <span class="macro">value_isomorph!</span>(<span class="ident">italic</span>, <span class="ident">ITALIC</span>);
+        <span class="macro">value_isomorph!</span>(<span class="ident">blink</span>, <span class="ident">BLINK</span>);
+        <span class="macro">value_isomorph!</span>(<span class="ident">hidden</span>, <span class="ident">HIDDEN</span>);
+        <span class="macro">value_isomorph!</span>(<span class="ident">dimmed</span>, <span class="ident">DIMMED</span>);
+        <span class="macro">value_isomorph!</span>(<span class="ident">strikethrough</span>, <span class="ident">STRIKETHROUGH</span>);
     }
 
     <span class="kw">mod</span> <span class="ident">styles_combine_complex</span> {
-        <span class="kw">use</span> <span class="kw">super</span>::<span class="kw">super</span>::<span class="ident">Styles</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="kw">super</span>::<span class="kw">super</span><span class="ident">::Styles</span>::<span class="kw-2">*</span>;
         <span class="kw">use</span> <span class="kw">super</span>::<span class="kw">super</span>::{<span class="ident">Style</span>, <span class="ident">Styles</span>};
 
         <span class="kw">fn</span> <span class="ident">style_from_multiples</span>(<span class="ident">styles</span>: <span class="kw-2">&amp;</span>[<span class="ident">Styles</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Style</span> {
@@ -480,86 +480,86 @@
             <span class="ident">res</span>
         }
 
-        <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">test_aggreg</span> {
+        <span class="macro">macro_rules!</span> <span class="ident">test_aggreg</span> {
             (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">styles</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expect</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
                 <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">style_from_multiples</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">styles</span>);
-                <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">Styles</span>::<span class="ident">from_u8</span>(<span class="ident">v</span>.<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;should find styles&quot;</span>);
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">expect</span> <span class="kw">as</span> <span class="kw-2">&amp;</span>[<span class="ident">Styles</span>], <span class="kw-2">&amp;</span><span class="ident">r</span>[..])
+                <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">Styles::from_u8</span>(<span class="ident">v</span>.<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;should find styles&quot;</span>);
+                <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">expect</span> <span class="kw">as</span> <span class="kw-2">&amp;</span>[<span class="ident">Styles</span>], <span class="kw-2">&amp;</span><span class="ident">r</span>[..])
             }};
         }
 
         <span class="attribute">#[<span class="ident">test</span>]</span>
         <span class="kw">fn</span> <span class="ident">aggreg1</span>() {
             <span class="kw">let</span> <span class="ident">styles</span>: <span class="kw-2">&amp;</span>[<span class="ident">Styles</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="ident">Bold</span>, <span class="ident">Bold</span>, <span class="ident">Bold</span>];
-            <span class="macro">test_aggreg</span><span class="macro">!</span>(<span class="ident">styles</span>, [<span class="ident">Bold</span>])
+            <span class="macro">test_aggreg!</span>(<span class="ident">styles</span>, [<span class="ident">Bold</span>])
         }
 
         <span class="attribute">#[<span class="ident">test</span>]</span>
         <span class="kw">fn</span> <span class="ident">aggreg2</span>() {
             <span class="kw">let</span> <span class="ident">styles</span>: <span class="kw-2">&amp;</span>[<span class="ident">Styles</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="ident">Italic</span>, <span class="ident">Italic</span>, <span class="ident">Bold</span>, <span class="ident">Bold</span>];
-            <span class="macro">test_aggreg</span><span class="macro">!</span>(<span class="ident">styles</span>, [<span class="ident">Bold</span>, <span class="ident">Italic</span>])
+            <span class="macro">test_aggreg!</span>(<span class="ident">styles</span>, [<span class="ident">Bold</span>, <span class="ident">Italic</span>])
         }
 
         <span class="attribute">#[<span class="ident">test</span>]</span>
         <span class="kw">fn</span> <span class="ident">aggreg3</span>() {
             <span class="kw">let</span> <span class="ident">styles</span>: <span class="kw-2">&amp;</span>[<span class="ident">Styles</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="ident">Bold</span>, <span class="ident">Italic</span>, <span class="ident">Bold</span>];
-            <span class="macro">test_aggreg</span><span class="macro">!</span>(<span class="ident">styles</span>, [<span class="ident">Bold</span>, <span class="ident">Italic</span>])
+            <span class="macro">test_aggreg!</span>(<span class="ident">styles</span>, [<span class="ident">Bold</span>, <span class="ident">Italic</span>])
         }
 
-        <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">test_combine</span> {
+        <span class="macro">macro_rules!</span> <span class="ident">test_combine</span> {
             (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">styles</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {{
                 <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">style_from_multiples</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">styles</span>);
-                <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">Styles</span>::<span class="ident">from_u8</span>(<span class="ident">v</span>.<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;should find styles&quot;</span>);
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">styles</span>, <span class="kw-2">&amp;</span><span class="ident">r</span>[..])
+                <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">Styles::from_u8</span>(<span class="ident">v</span>.<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;should find styles&quot;</span>);
+                <span class="macro">assert_eq!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">styles</span>, <span class="kw-2">&amp;</span><span class="ident">r</span>[..])
             }};
         }
 
         <span class="attribute">#[<span class="ident">test</span>]</span>
         <span class="kw">fn</span> <span class="ident">two1</span>() {
             <span class="kw">let</span> <span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">Styles</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="ident">Bold</span>, <span class="ident">Underline</span>];
-            <span class="macro">test_combine</span><span class="macro">!</span>(<span class="ident">s</span>)
+            <span class="macro">test_combine!</span>(<span class="ident">s</span>)
         }
 
         <span class="attribute">#[<span class="ident">test</span>]</span>
         <span class="kw">fn</span> <span class="ident">two2</span>() {
             <span class="kw">let</span> <span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">Styles</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="ident">Underline</span>, <span class="ident">Italic</span>];
-            <span class="macro">test_combine</span><span class="macro">!</span>(<span class="ident">s</span>)
+            <span class="macro">test_combine!</span>(<span class="ident">s</span>)
         }
 
         <span class="attribute">#[<span class="ident">test</span>]</span>
         <span class="kw">fn</span> <span class="ident">two3</span>() {
             <span class="kw">let</span> <span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">Styles</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="ident">Bold</span>, <span class="ident">Italic</span>];
-            <span class="macro">test_combine</span><span class="macro">!</span>(<span class="ident">s</span>)
+            <span class="macro">test_combine!</span>(<span class="ident">s</span>)
         }
 
         <span class="attribute">#[<span class="ident">test</span>]</span>
         <span class="kw">fn</span> <span class="ident">three1</span>() {
             <span class="kw">let</span> <span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">Styles</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="ident">Bold</span>, <span class="ident">Underline</span>, <span class="ident">Italic</span>];
-            <span class="macro">test_combine</span><span class="macro">!</span>(<span class="ident">s</span>)
+            <span class="macro">test_combine!</span>(<span class="ident">s</span>)
         }
 
         <span class="attribute">#[<span class="ident">test</span>]</span>
         <span class="kw">fn</span> <span class="ident">three2</span>() {
             <span class="kw">let</span> <span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">Styles</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="ident">Dimmed</span>, <span class="ident">Underline</span>, <span class="ident">Italic</span>];
-            <span class="macro">test_combine</span><span class="macro">!</span>(<span class="ident">s</span>)
+            <span class="macro">test_combine!</span>(<span class="ident">s</span>)
         }
 
         <span class="attribute">#[<span class="ident">test</span>]</span>
         <span class="kw">fn</span> <span class="ident">four</span>() {
             <span class="kw">let</span> <span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">Styles</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="ident">Dimmed</span>, <span class="ident">Underline</span>, <span class="ident">Italic</span>, <span class="ident">Hidden</span>];
-            <span class="macro">test_combine</span><span class="macro">!</span>(<span class="ident">s</span>)
+            <span class="macro">test_combine!</span>(<span class="ident">s</span>)
         }
 
         <span class="attribute">#[<span class="ident">test</span>]</span>
         <span class="kw">fn</span> <span class="ident">five</span>() {
             <span class="kw">let</span> <span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">Styles</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="ident">Dimmed</span>, <span class="ident">Underline</span>, <span class="ident">Italic</span>, <span class="ident">Blink</span>, <span class="ident">Hidden</span>];
-            <span class="macro">test_combine</span><span class="macro">!</span>(<span class="ident">s</span>)
+            <span class="macro">test_combine!</span>(<span class="ident">s</span>)
         }
 
         <span class="attribute">#[<span class="ident">test</span>]</span>
         <span class="kw">fn</span> <span class="ident">six</span>() {
             <span class="kw">let</span> <span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">Styles</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="ident">Bold</span>, <span class="ident">Dimmed</span>, <span class="ident">Underline</span>, <span class="ident">Italic</span>, <span class="ident">Blink</span>, <span class="ident">Hidden</span>];
-            <span class="macro">test_combine</span><span class="macro">!</span>(<span class="ident">s</span>)
+            <span class="macro">test_combine!</span>(<span class="ident">s</span>)
         }
 
         <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -574,20 +574,20 @@
                 <span class="ident">Hidden</span>,
                 <span class="ident">Strikethrough</span>,
             ];
-            <span class="macro">test_combine</span><span class="macro">!</span>(<span class="ident">s</span>)
+            <span class="macro">test_combine!</span>(<span class="ident">s</span>)
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_style_contains</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">style</span> <span class="op">=</span> <span class="ident">Style</span>(<span class="ident">Styles</span>::<span class="ident">Bold</span>.<span class="ident">to_u8</span>());
-        <span class="ident">style</span>.<span class="ident">add</span>(<span class="ident">Styles</span>::<span class="ident">Italic</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">style</span> <span class="op">=</span> <span class="ident">Style</span>(<span class="ident">Styles::Bold</span>.<span class="ident">to_u8</span>());
+        <span class="ident">style</span>.<span class="ident">add</span>(<span class="ident">Styles::Italic</span>);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">style</span>.<span class="ident">contains</span>(<span class="ident">Styles</span>::<span class="ident">Bold</span>), <span class="bool-val">true</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">style</span>.<span class="ident">contains</span>(<span class="ident">Styles</span>::<span class="ident">Italic</span>), <span class="bool-val">true</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">style</span>.<span class="ident">contains</span>(<span class="ident">Styles</span>::<span class="ident">Dimmed</span>), <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">style</span>.<span class="ident">contains</span>(<span class="ident">Styles::Bold</span>), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">style</span>.<span class="ident">contains</span>(<span class="ident">Styles::Italic</span>), <span class="bool-val">true</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">style</span>.<span class="ident">contains</span>(<span class="ident">Styles::Dimmed</span>), <span class="bool-val">false</span>);
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="colored" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="colored" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

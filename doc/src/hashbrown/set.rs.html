@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hashbrown-0.9.1/src/set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>set.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../hashbrown/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../hashbrown/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -2121,16 +2121,16 @@
 <span id="2118">2118</span>
 <span id="2119">2119</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">TryReserveError</span>;
-<span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">borrow</span>::<span class="ident">ToOwned</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">borrow</span>::<span class="ident">Borrow</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">hash</span>::{<span class="ident">BuildHasher</span>, <span class="ident">Hash</span>};
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">iter</span>::{<span class="ident">Chain</span>, <span class="ident">FromIterator</span>, <span class="ident">FusedIterator</span>};
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">mem</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::{<span class="ident">BitAnd</span>, <span class="ident">BitOr</span>, <span class="ident">BitXor</span>, <span class="ident">Sub</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::TryReserveError</span>;
+<span class="kw">use</span> <span class="ident">alloc::borrow::ToOwned</span>;
+<span class="kw">use</span> <span class="ident">core::borrow::Borrow</span>;
+<span class="kw">use</span> <span class="ident">core::fmt</span>;
+<span class="kw">use</span> <span class="ident">core::hash</span>::{<span class="ident">BuildHasher</span>, <span class="ident">Hash</span>};
+<span class="kw">use</span> <span class="ident">core::iter</span>::{<span class="ident">Chain</span>, <span class="ident">FromIterator</span>, <span class="ident">FusedIterator</span>};
+<span class="kw">use</span> <span class="ident">core::mem</span>;
+<span class="kw">use</span> <span class="ident">core::ops</span>::{<span class="ident">BitAnd</span>, <span class="ident">BitOr</span>, <span class="ident">BitXor</span>, <span class="ident">Sub</span>};
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">map</span>::{<span class="self">self</span>, <span class="ident">ConsumeAllOnDrop</span>, <span class="ident">DefaultHashBuilder</span>, <span class="ident">DrainFilterInner</span>, <span class="ident">HashMap</span>, <span class="ident">Keys</span>};
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::map</span>::{<span class="self">self</span>, <span class="ident">ConsumeAllOnDrop</span>, <span class="ident">DefaultHashBuilder</span>, <span class="ident">DrainFilterInner</span>, <span class="ident">HashMap</span>, <span class="ident">Keys</span>};
 
 <span class="comment">// Future Optimization (FIXME!)</span>
 <span class="comment">// =============================</span>
@@ -2266,7 +2266,7 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">map</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
+            <span class="ident">map</span>: <span class="ident">HashMap::new</span>(),
         }
     }
 
@@ -2285,7 +2285,7 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">capacity</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">map</span>: <span class="ident">HashMap</span>::<span class="ident">with_capacity</span>(<span class="ident">capacity</span>),
+            <span class="ident">map</span>: <span class="ident">HashMap::with_capacity</span>(<span class="ident">capacity</span>),
         }
     }
 }
@@ -2320,7 +2320,7 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">with_hasher</span>(<span class="ident">hasher</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">map</span>: <span class="ident">HashMap</span>::<span class="ident">with_hasher</span>(<span class="ident">hasher</span>),
+            <span class="ident">map</span>: <span class="ident">HashMap::with_hasher</span>(<span class="ident">hasher</span>),
         }
     }
 
@@ -2353,7 +2353,7 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity_and_hasher</span>(<span class="ident">capacity</span>: <span class="ident">usize</span>, <span class="ident">hasher</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">map</span>: <span class="ident">HashMap</span>::<span class="ident">with_capacity_and_hasher</span>(<span class="ident">capacity</span>, <span class="ident">hasher</span>),
+            <span class="ident">map</span>: <span class="ident">HashMap::with_capacity_and_hasher</span>(<span class="ident">capacity</span>, <span class="ident">hasher</span>),
         }
     }
 
@@ -3020,8 +3020,8 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">entry</span>(<span class="ident">value</span>) {
-            <span class="ident">map</span>::<span class="ident">Entry</span>::<span class="ident">Occupied</span>(<span class="ident">occupied</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">occupied</span>.<span class="ident">replace_key</span>()),
-            <span class="ident">map</span>::<span class="ident">Entry</span>::<span class="ident">Vacant</span>(<span class="ident">vacant</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">map::Entry::Occupied</span>(<span class="ident">occupied</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">occupied</span>.<span class="ident">replace_key</span>()),
+            <span class="ident">map::Entry::Vacant</span>(<span class="ident">vacant</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">vacant</span>.<span class="ident">insert</span>(());
                 <span class="prelude-val">None</span>
             }
@@ -3111,12 +3111,12 @@
 {
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">fmt</span>::<span class="ident">Debug</span>,
+    <span class="ident">T</span>: <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">fmt::Debug</span>,
     <span class="ident">S</span>: <span class="ident">BuildHasher</span>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_set</span>().<span class="ident">entries</span>(<span class="self">self</span>.<span class="ident">iter</span>()).<span class="ident">finish</span>()
     }
 }
@@ -3128,7 +3128,7 @@
 {
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
     <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">with_hasher</span>(<span class="ident">Default</span>::<span class="ident">default</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::with_hasher</span>(<span class="ident">Default::default</span>());
         <span class="ident">set</span>.<span class="ident">extend</span>(<span class="ident">iter</span>);
         <span class="ident">set</span>
     }
@@ -3153,7 +3153,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">extend_reserve</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">additional</span>: <span class="ident">usize</span>) {
-        <span class="ident">Extend</span>::<span class="op">&lt;</span>(<span class="ident">T</span>, ())<span class="op">&gt;</span>::<span class="ident">extend_reserve</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">map</span>, <span class="ident">additional</span>);
+        <span class="ident">Extend</span>::<span class="op">&lt;</span>(<span class="ident">T</span>, ())<span class="op">&gt;</span><span class="ident">::extend_reserve</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">map</span>, <span class="ident">additional</span>);
     }
 }
 
@@ -3176,7 +3176,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">extend_reserve</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">additional</span>: <span class="ident">usize</span>) {
-        <span class="ident">Extend</span>::<span class="op">&lt;</span>(<span class="ident">T</span>, ())<span class="op">&gt;</span>::<span class="ident">extend_reserve</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">map</span>, <span class="ident">additional</span>);
+        <span class="ident">Extend</span>::<span class="op">&lt;</span>(<span class="ident">T</span>, ())<span class="op">&gt;</span><span class="ident">::extend_reserve</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">map</span>, <span class="ident">additional</span>);
     }
 }
 
@@ -3188,7 +3188,7 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">map</span>: <span class="ident">HashMap</span>::<span class="ident">default</span>(),
+            <span class="ident">map</span>: <span class="ident">HashMap::default</span>(),
         }
     }
 }
@@ -3340,7 +3340,7 @@
 <span class="doccomment">/// [`HashSet`]: struct.HashSet.html</span>
 <span class="doccomment">/// [`into_iter`]: struct.HashSet.html#method.into_iter</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span> {
-    <span class="ident">iter</span>: <span class="ident">map</span>::<span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">K</span>, ()<span class="op">&gt;</span>,
+    <span class="ident">iter</span>: <span class="ident">map::IntoIter</span><span class="op">&lt;</span><span class="ident">K</span>, ()<span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// A draining iterator over the items of a `HashSet`.</span>
@@ -3351,7 +3351,7 @@
 <span class="doccomment">/// [`HashSet`]: struct.HashSet.html</span>
 <span class="doccomment">/// [`drain`]: struct.HashSet.html#method.drain</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span><span class="op">&gt;</span> {
-    <span class="ident">iter</span>: <span class="ident">map</span>::<span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, ()<span class="op">&gt;</span>,
+    <span class="ident">iter</span>: <span class="ident">map::Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, ()<span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// A draining iterator over entries of a `HashSet` which don&#39;t satisfy the predicate `f`.</span>
@@ -3489,8 +3489,8 @@
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span><span class="op">&gt;</span> {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">fmt::Debug</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<span class="self">self</span>.<span class="ident">clone</span>()).<span class="ident">finish</span>()
     }
 }
@@ -3519,8 +3519,8 @@
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span> {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">fmt::Debug</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">entries_iter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">k</span>);
         <span class="ident">f</span>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<span class="ident">entries_iter</span>).<span class="ident">finish</span>()
     }
@@ -3550,8 +3550,8 @@
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span><span class="op">&gt;</span> {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">fmt::Debug</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">entries_iter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">k</span>);
         <span class="ident">f</span>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<span class="ident">entries_iter</span>).<span class="ident">finish</span>()
     }
@@ -3566,7 +3566,7 @@
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">item</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span>() {
             <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">ConsumeAllOnDrop</span>(<span class="self">self</span>);
             <span class="ident">drop</span>(<span class="ident">item</span>);
-            <span class="ident">mem</span>::<span class="ident">forget</span>(<span class="ident">guard</span>);
+            <span class="ident">mem::forget</span>(<span class="ident">guard</span>);
         }
     }
 }
@@ -3578,7 +3578,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">K</span>;
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">f</span>;
         <span class="kw">let</span> (<span class="ident">k</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">k</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">f</span>(<span class="ident">k</span>))<span class="question-mark">?</span>;
         <span class="prelude-val">Some</span>(<span class="ident">k</span>)
@@ -3626,12 +3626,12 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Intersection</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Intersection</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span>,
+    <span class="ident">T</span>: <span class="ident">fmt::Debug</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span>,
     <span class="ident">S</span>: <span class="ident">BuildHasher</span>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<span class="self">self</span>.<span class="ident">clone</span>()).<span class="ident">finish</span>()
     }
 }
@@ -3684,12 +3684,12 @@
 {
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Difference</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Difference</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span>,
+    <span class="ident">T</span>: <span class="ident">fmt::Debug</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span>,
     <span class="ident">S</span>: <span class="ident">BuildHasher</span>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<span class="self">self</span>.<span class="ident">clone</span>()).<span class="ident">finish</span>()
     }
 }
@@ -3727,12 +3727,12 @@
 {
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">SymmetricDifference</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">SymmetricDifference</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span>,
+    <span class="ident">T</span>: <span class="ident">fmt::Debug</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span>,
     <span class="ident">S</span>: <span class="ident">BuildHasher</span>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<span class="self">self</span>.<span class="ident">clone</span>()).<span class="ident">finish</span>()
     }
 }
@@ -3753,12 +3753,12 @@
 {
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Union</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Union</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span>,
+    <span class="ident">T</span>: <span class="ident">fmt::Debug</span> <span class="op">+</span> <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span>,
     <span class="ident">S</span>: <span class="ident">BuildHasher</span>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<span class="self">self</span>.<span class="ident">clone</span>()).<span class="ident">finish</span>()
     }
 }
@@ -3818,213 +3818,213 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test_set</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw">super</span>::<span class="ident">map</span>::<span class="ident">DefaultHashBuilder</span>;
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">HashSet</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">vec</span>::<span class="ident">Vec</span>;
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw">super</span><span class="ident">::map::DefaultHashBuilder</span>;
+    <span class="kw">use</span> <span class="kw">super</span><span class="ident">::HashSet</span>;
+    <span class="kw">use</span> <span class="ident">std::vec::Vec</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_zero_capacities</span>() {
         <span class="kw">type</span> <span class="ident">HS</span> <span class="op">=</span> <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>;
 
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HS</span>::<span class="ident">new</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HS::new</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">s</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HS</span>::<span class="ident">default</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HS::default</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">s</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HS</span>::<span class="ident">with_hasher</span>(<span class="ident">DefaultHashBuilder</span>::<span class="ident">default</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HS::with_hasher</span>(<span class="ident">DefaultHashBuilder::default</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">s</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HS</span>::<span class="ident">with_capacity</span>(<span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HS::with_capacity</span>(<span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">s</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HS</span>::<span class="ident">with_capacity_and_hasher</span>(<span class="number">0</span>, <span class="ident">DefaultHashBuilder</span>::<span class="ident">default</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HS::with_capacity_and_hasher</span>(<span class="number">0</span>, <span class="ident">DefaultHashBuilder::default</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">s</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HS</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HS::new</span>();
         <span class="ident">s</span>.<span class="ident">insert</span>(<span class="number">1</span>);
         <span class="ident">s</span>.<span class="ident">insert</span>(<span class="number">2</span>);
         <span class="ident">s</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="number">1</span>);
         <span class="ident">s</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="number">2</span>);
         <span class="ident">s</span>.<span class="ident">shrink_to_fit</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">s</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HS</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HS::new</span>();
         <span class="ident">s</span>.<span class="ident">reserve</span>(<span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">s</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_disjoint</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">xs</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ys</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">xs</span>.<span class="ident">is_disjoint</span>(<span class="kw-2">&amp;</span><span class="ident">ys</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">ys</span>.<span class="ident">is_disjoint</span>(<span class="kw-2">&amp;</span><span class="ident">xs</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">xs</span>.<span class="ident">insert</span>(<span class="number">5</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">ys</span>.<span class="ident">insert</span>(<span class="number">11</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">xs</span>.<span class="ident">is_disjoint</span>(<span class="kw-2">&amp;</span><span class="ident">ys</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">ys</span>.<span class="ident">is_disjoint</span>(<span class="kw-2">&amp;</span><span class="ident">xs</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">xs</span>.<span class="ident">insert</span>(<span class="number">7</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">xs</span>.<span class="ident">insert</span>(<span class="number">19</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">xs</span>.<span class="ident">insert</span>(<span class="number">4</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">ys</span>.<span class="ident">insert</span>(<span class="number">2</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">ys</span>.<span class="ident">insert</span>(<span class="op">-</span><span class="number">11</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">xs</span>.<span class="ident">is_disjoint</span>(<span class="kw-2">&amp;</span><span class="ident">ys</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">ys</span>.<span class="ident">is_disjoint</span>(<span class="kw-2">&amp;</span><span class="ident">xs</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">ys</span>.<span class="ident">insert</span>(<span class="number">7</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">xs</span>.<span class="ident">is_disjoint</span>(<span class="kw-2">&amp;</span><span class="ident">ys</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">ys</span>.<span class="ident">is_disjoint</span>(<span class="kw-2">&amp;</span><span class="ident">xs</span>));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">xs</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ys</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
+        <span class="macro">assert!</span>(<span class="ident">xs</span>.<span class="ident">is_disjoint</span>(<span class="kw-2">&amp;</span><span class="ident">ys</span>));
+        <span class="macro">assert!</span>(<span class="ident">ys</span>.<span class="ident">is_disjoint</span>(<span class="kw-2">&amp;</span><span class="ident">xs</span>));
+        <span class="macro">assert!</span>(<span class="ident">xs</span>.<span class="ident">insert</span>(<span class="number">5</span>));
+        <span class="macro">assert!</span>(<span class="ident">ys</span>.<span class="ident">insert</span>(<span class="number">11</span>));
+        <span class="macro">assert!</span>(<span class="ident">xs</span>.<span class="ident">is_disjoint</span>(<span class="kw-2">&amp;</span><span class="ident">ys</span>));
+        <span class="macro">assert!</span>(<span class="ident">ys</span>.<span class="ident">is_disjoint</span>(<span class="kw-2">&amp;</span><span class="ident">xs</span>));
+        <span class="macro">assert!</span>(<span class="ident">xs</span>.<span class="ident">insert</span>(<span class="number">7</span>));
+        <span class="macro">assert!</span>(<span class="ident">xs</span>.<span class="ident">insert</span>(<span class="number">19</span>));
+        <span class="macro">assert!</span>(<span class="ident">xs</span>.<span class="ident">insert</span>(<span class="number">4</span>));
+        <span class="macro">assert!</span>(<span class="ident">ys</span>.<span class="ident">insert</span>(<span class="number">2</span>));
+        <span class="macro">assert!</span>(<span class="ident">ys</span>.<span class="ident">insert</span>(<span class="op">-</span><span class="number">11</span>));
+        <span class="macro">assert!</span>(<span class="ident">xs</span>.<span class="ident">is_disjoint</span>(<span class="kw-2">&amp;</span><span class="ident">ys</span>));
+        <span class="macro">assert!</span>(<span class="ident">ys</span>.<span class="ident">is_disjoint</span>(<span class="kw-2">&amp;</span><span class="ident">xs</span>));
+        <span class="macro">assert!</span>(<span class="ident">ys</span>.<span class="ident">insert</span>(<span class="number">7</span>));
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">xs</span>.<span class="ident">is_disjoint</span>(<span class="kw-2">&amp;</span><span class="ident">ys</span>));
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">ys</span>.<span class="ident">is_disjoint</span>(<span class="kw-2">&amp;</span><span class="ident">xs</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_subset_and_superset</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">0</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">5</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">11</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">7</span>));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">0</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">5</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">11</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">7</span>));
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">0</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">7</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">19</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">250</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">11</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">200</span>));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">0</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">7</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">19</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">250</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">11</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">200</span>));
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">a</span>.<span class="ident">is_subset</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">a</span>.<span class="ident">is_superset</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">b</span>.<span class="ident">is_subset</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">b</span>.<span class="ident">is_superset</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>));
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">a</span>.<span class="ident">is_subset</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>));
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">a</span>.<span class="ident">is_superset</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>));
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">b</span>.<span class="ident">is_subset</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>));
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">b</span>.<span class="ident">is_superset</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>));
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">5</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">5</span>));
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">is_subset</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">a</span>.<span class="ident">is_superset</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">b</span>.<span class="ident">is_subset</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">is_superset</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">is_subset</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>));
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">a</span>.<span class="ident">is_superset</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>));
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">b</span>.<span class="ident">is_subset</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">is_superset</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_iterate</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">32</span> {
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="ident">i</span>));
+            <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="ident">i</span>));
         }
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">observed</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">for</span> <span class="ident">k</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">a</span> {
             <span class="ident">observed</span> <span class="op">|</span><span class="op">=</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="kw-2">*</span><span class="ident">k</span>;
         }
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">observed</span>, <span class="number">0xFFFF_FFFF</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">observed</span>, <span class="number">0xFFFF_FFFF</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_intersection</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">11</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">1</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">3</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">77</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">103</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">5</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="op">-</span><span class="number">5</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">11</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">1</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">3</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">77</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">103</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">5</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="op">-</span><span class="number">5</span>));
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">2</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">11</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">77</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="op">-</span><span class="number">9</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="op">-</span><span class="number">42</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">5</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">3</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">2</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">11</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">77</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="op">-</span><span class="number">9</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="op">-</span><span class="number">42</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">5</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">3</span>));
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> [<span class="number">3</span>, <span class="number">5</span>, <span class="number">11</span>, <span class="number">77</span>];
         <span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="ident">a</span>.<span class="ident">intersection</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>) {
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">expected</span>.<span class="ident">contains</span>(<span class="ident">x</span>));
+            <span class="macro">assert!</span>(<span class="ident">expected</span>.<span class="ident">contains</span>(<span class="ident">x</span>));
             <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>
         }
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">i</span>, <span class="ident">expected</span>.<span class="ident">len</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">i</span>, <span class="ident">expected</span>.<span class="ident">len</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_difference</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">1</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">3</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">5</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">9</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">11</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">1</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">3</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">5</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">9</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">11</span>));
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">3</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">9</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">3</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">9</span>));
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> [<span class="number">1</span>, <span class="number">5</span>, <span class="number">11</span>];
         <span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="ident">a</span>.<span class="ident">difference</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>) {
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">expected</span>.<span class="ident">contains</span>(<span class="ident">x</span>));
+            <span class="macro">assert!</span>(<span class="ident">expected</span>.<span class="ident">contains</span>(<span class="ident">x</span>));
             <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>
         }
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">i</span>, <span class="ident">expected</span>.<span class="ident">len</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">i</span>, <span class="ident">expected</span>.<span class="ident">len</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_symmetric_difference</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">1</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">3</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">5</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">9</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">11</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">1</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">3</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">5</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">9</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">11</span>));
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="op">-</span><span class="number">2</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">3</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">9</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">14</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">22</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="op">-</span><span class="number">2</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">3</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">9</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">14</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">22</span>));
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> [<span class="op">-</span><span class="number">2</span>, <span class="number">1</span>, <span class="number">5</span>, <span class="number">11</span>, <span class="number">14</span>, <span class="number">22</span>];
         <span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="ident">a</span>.<span class="ident">symmetric_difference</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>) {
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">expected</span>.<span class="ident">contains</span>(<span class="ident">x</span>));
+            <span class="macro">assert!</span>(<span class="ident">expected</span>.<span class="ident">contains</span>(<span class="ident">x</span>));
             <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>
         }
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">i</span>, <span class="ident">expected</span>.<span class="ident">len</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">i</span>, <span class="ident">expected</span>.<span class="ident">len</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_union</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">1</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">3</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">5</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">9</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">11</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">16</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">19</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">24</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">1</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">3</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">5</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">9</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">11</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">16</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">19</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">24</span>));
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="op">-</span><span class="number">2</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">1</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">5</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">9</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">13</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">19</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="op">-</span><span class="number">2</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">1</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">5</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">9</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">13</span>));
+        <span class="macro">assert!</span>(<span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">19</span>));
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> [<span class="op">-</span><span class="number">2</span>, <span class="number">1</span>, <span class="number">3</span>, <span class="number">5</span>, <span class="number">9</span>, <span class="number">11</span>, <span class="number">13</span>, <span class="number">16</span>, <span class="number">19</span>, <span class="number">24</span>];
         <span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="ident">a</span>.<span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>) {
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">expected</span>.<span class="ident">contains</span>(<span class="ident">x</span>));
+            <span class="macro">assert!</span>(<span class="ident">expected</span>.<span class="ident">contains</span>(<span class="ident">x</span>));
             <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>
         }
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">i</span>, <span class="ident">expected</span>.<span class="ident">len</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">i</span>, <span class="ident">expected</span>.<span class="ident">len</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4034,16 +4034,16 @@
         <span class="kw">let</span> <span class="ident">set</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">xs</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>();
 
         <span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">xs</span> {
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">contains</span>(<span class="ident">x</span>));
+            <span class="macro">assert!</span>(<span class="ident">set</span>.<span class="ident">contains</span>(<span class="ident">x</span>));
         }
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">iter</span>().<span class="ident">len</span>(), <span class="ident">xs</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">iter</span>().<span class="ident">len</span>(), <span class="ident">xs</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_move_iter</span>() {
         <span class="kw">let</span> <span class="ident">hs</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hs</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hs</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
 
             <span class="ident">hs</span>.<span class="ident">insert</span>(<span class="string">&#39;a&#39;</span>);
             <span class="ident">hs</span>.<span class="ident">insert</span>(<span class="string">&#39;b&#39;</span>);
@@ -4052,55 +4052,55 @@
         };
 
         <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">hs</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">v</span> <span class="op">=</span><span class="op">=</span> [<span class="string">&#39;a&#39;</span>, <span class="string">&#39;b&#39;</span>] <span class="op">|</span><span class="op">|</span> <span class="ident">v</span> <span class="op">=</span><span class="op">=</span> [<span class="string">&#39;b&#39;</span>, <span class="string">&#39;a&#39;</span>]);
+        <span class="macro">assert!</span>(<span class="ident">v</span> <span class="op">=</span><span class="op">=</span> [<span class="string">&#39;a&#39;</span>, <span class="string">&#39;b&#39;</span>] <span class="op">|</span><span class="op">|</span> <span class="ident">v</span> <span class="op">=</span><span class="op">=</span> [<span class="string">&#39;b&#39;</span>, <span class="string">&#39;a&#39;</span>]);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_eq</span>() {
         <span class="comment">// These constants once happened to expose a bug in insert().</span>
         <span class="comment">// I&#39;m keeping them around to prevent a regression.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s1</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s1</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
 
         <span class="ident">s1</span>.<span class="ident">insert</span>(<span class="number">1</span>);
         <span class="ident">s1</span>.<span class="ident">insert</span>(<span class="number">2</span>);
         <span class="ident">s1</span>.<span class="ident">insert</span>(<span class="number">3</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s2</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s2</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
 
         <span class="ident">s2</span>.<span class="ident">insert</span>(<span class="number">1</span>);
         <span class="ident">s2</span>.<span class="ident">insert</span>(<span class="number">2</span>);
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">s1</span> <span class="op">!</span><span class="op">=</span> <span class="ident">s2</span>);
+        <span class="macro">assert!</span>(<span class="ident">s1</span> <span class="op">!</span><span class="op">=</span> <span class="ident">s2</span>);
 
         <span class="ident">s2</span>.<span class="ident">insert</span>(<span class="number">3</span>);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s1</span>, <span class="ident">s2</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">s1</span>, <span class="ident">s2</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_show</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
-        <span class="kw">let</span> <span class="ident">empty</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
+        <span class="kw">let</span> <span class="ident">empty</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span><span class="ident">::new</span>();
 
         <span class="ident">set</span>.<span class="ident">insert</span>(<span class="number">1</span>);
         <span class="ident">set</span>.<span class="ident">insert</span>(<span class="number">2</span>);
 
-        <span class="kw">let</span> <span class="ident">set_str</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">set</span>);
+        <span class="kw">let</span> <span class="ident">set_str</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">set</span>);
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">set_str</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;{1, 2}&quot;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">set_str</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;{2, 1}&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">empty</span>), <span class="string">&quot;{}&quot;</span>);
+        <span class="macro">assert!</span>(<span class="ident">set_str</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;{1, 2}&quot;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">set_str</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;{2, 1}&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">empty</span>), <span class="string">&quot;{}&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_trivial_drain</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span><span class="ident">::new</span>();
         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">drain</span>() {}
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">s</span>.<span class="ident">is_empty</span>());
+        <span class="macro">assert!</span>(<span class="ident">s</span>.<span class="ident">is_empty</span>());
         <span class="ident">drop</span>(<span class="ident">s</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span><span class="ident">::new</span>();
         <span class="ident">drop</span>(<span class="ident">s</span>.<span class="ident">drain</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">s</span>.<span class="ident">is_empty</span>());
+        <span class="macro">assert!</span>(<span class="ident">s</span>.<span class="ident">is_empty</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4109,20 +4109,20 @@
 
         <span class="comment">// try this a bunch of times to make sure we don&#39;t screw up internal state.</span>
         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">20</span> {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>.<span class="ident">len</span>(), <span class="number">99</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">s</span>.<span class="ident">len</span>(), <span class="number">99</span>);
 
             {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_i</span> <span class="op">=</span> <span class="number">0</span>;
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">d</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">drain</span>();
                 <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">x</span>) <span class="kw">in</span> <span class="ident">d</span>.<span class="ident">by_ref</span>().<span class="ident">take</span>(<span class="number">50</span>).<span class="ident">enumerate</span>() {
                     <span class="ident">last_i</span> <span class="op">=</span> <span class="ident">i</span>;
-                    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">x</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>);
+                    <span class="macro">assert!</span>(<span class="ident">x</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>);
                 }
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">last_i</span>, <span class="number">49</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">last_i</span>, <span class="number">49</span>);
             }
 
             <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">s</span> {
-                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;s should be empty!&quot;</span>);
+                <span class="macro">panic!</span>(<span class="string">&quot;s should be empty!&quot;</span>);
             }
 
             <span class="comment">// reset to try again.</span>
@@ -4132,7 +4132,7 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_replace</span>() {
-        <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">hash</span>;
+        <span class="kw">use</span> <span class="ident">core::hash</span>;
 
         <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
         <span class="kw">struct</span> <span class="ident">Foo</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">i32</span>);
@@ -4145,49 +4145,49 @@
 
         <span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">Foo</span> {}
 
-        <span class="kw">impl</span> <span class="ident">hash</span>::<span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">Foo</span> {
-            <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">hash</span>::<span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">h</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) {
+        <span class="kw">impl</span> <span class="ident">hash::Hash</span> <span class="kw">for</span> <span class="ident">Foo</span> {
+            <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">hash::Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">h</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) {
                 <span class="self">self</span>.<span class="number">0</span>.<span class="ident">hash</span>(<span class="ident">h</span>);
             }
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>.<span class="ident">replace</span>(<span class="ident">Foo</span>(<span class="string">&quot;a&quot;</span>, <span class="number">1</span>)), <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>.<span class="ident">replace</span>(<span class="ident">Foo</span>(<span class="string">&quot;a&quot;</span>, <span class="number">2</span>)), <span class="prelude-val">Some</span>(<span class="ident">Foo</span>(<span class="string">&quot;a&quot;</span>, <span class="number">1</span>)));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">s</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">s</span>.<span class="ident">replace</span>(<span class="ident">Foo</span>(<span class="string">&quot;a&quot;</span>, <span class="number">1</span>)), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">s</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">s</span>.<span class="ident">replace</span>(<span class="ident">Foo</span>(<span class="string">&quot;a&quot;</span>, <span class="number">2</span>)), <span class="prelude-val">Some</span>(<span class="ident">Foo</span>(<span class="string">&quot;a&quot;</span>, <span class="number">1</span>)));
+        <span class="macro">assert_eq!</span>(<span class="ident">s</span>.<span class="ident">len</span>(), <span class="number">1</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">it</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">iter</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">it</span>.<span class="ident">next</span>(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Foo</span>(<span class="string">&quot;a&quot;</span>, <span class="number">2</span>)));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">it</span>.<span class="ident">next</span>(), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">it</span>.<span class="ident">next</span>(), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Foo</span>(<span class="string">&quot;a&quot;</span>, <span class="number">2</span>)));
+        <span class="macro">assert_eq!</span>(<span class="ident">it</span>.<span class="ident">next</span>(), <span class="prelude-val">None</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_extend_ref</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
         <span class="ident">a</span>.<span class="ident">insert</span>(<span class="number">1</span>);
 
         <span class="ident">a</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span>[<span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">len</span>(), <span class="number">4</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">1</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">2</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">3</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">4</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">a</span>.<span class="ident">len</span>(), <span class="number">4</span>);
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">1</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">2</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">3</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">4</span>));
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
         <span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">5</span>);
         <span class="ident">b</span>.<span class="ident">insert</span>(<span class="number">6</span>);
 
         <span class="ident">a</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">len</span>(), <span class="number">6</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">1</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">2</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">3</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">4</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">5</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">6</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">a</span>.<span class="ident">len</span>(), <span class="number">6</span>);
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">1</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">2</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">3</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">4</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">5</span>));
+        <span class="macro">assert!</span>(<span class="ident">a</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">6</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4195,10 +4195,10 @@
         <span class="kw">let</span> <span class="ident">xs</span> <span class="op">=</span> [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">xs</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>();
         <span class="ident">set</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">k</span><span class="op">|</span> <span class="ident">k</span> <span class="op">%</span> <span class="number">2</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="number">3</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">2</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">4</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">6</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="number">3</span>);
+        <span class="macro">assert!</span>(<span class="ident">set</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">2</span>));
+        <span class="macro">assert!</span>(<span class="ident">set</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">4</span>));
+        <span class="macro">assert!</span>(<span class="ident">set</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">6</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4208,20 +4208,20 @@
             <span class="kw">let</span> <span class="ident">drained</span> <span class="op">=</span> <span class="ident">set</span>.<span class="ident">drain_filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">k</span><span class="op">|</span> <span class="ident">k</span> <span class="op">%</span> <span class="number">2</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">drained</span>.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
             <span class="ident">out</span>.<span class="ident">sort_unstable</span>();
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>, <span class="number">2</span>, <span class="number">4</span>, <span class="number">6</span>], <span class="ident">out</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="number">4</span>);
+            <span class="macro">assert_eq!</span>(<span class="macro">vec!</span>[<span class="number">0</span>, <span class="number">2</span>, <span class="number">4</span>, <span class="number">6</span>], <span class="ident">out</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="number">4</span>);
         }
         {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">0</span>..<span class="number">8</span>).<span class="ident">collect</span>();
             <span class="ident">drop</span>(<span class="ident">set</span>.<span class="ident">drain_filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">k</span><span class="op">|</span> <span class="ident">k</span> <span class="op">%</span> <span class="number">2</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>));
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="number">4</span>, <span class="string">&quot;Removes non-matching items on drop&quot;</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="number">4</span>, <span class="string">&quot;Removes non-matching items on drop&quot;</span>);
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_const_with_hasher</span>() {
-        <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">hash</span>::<span class="ident">BuildHasher</span>;
-        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">hash_map</span>::<span class="ident">DefaultHasher</span>;
+        <span class="kw">use</span> <span class="ident">core::hash::BuildHasher</span>;
+        <span class="kw">use</span> <span class="ident">std::collections::hash_map::DefaultHasher</span>;
 
         <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
         <span class="kw">struct</span> <span class="ident">MyHasher</span>;
@@ -4229,17 +4229,17 @@
             <span class="kw">type</span> <span class="ident">Hasher</span> <span class="op">=</span> <span class="ident">DefaultHasher</span>;
 
             <span class="kw">fn</span> <span class="ident">build_hasher</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DefaultHasher</span> {
-                <span class="ident">DefaultHasher</span>::<span class="ident">new</span>()
+                <span class="ident">DefaultHasher::new</span>()
             }
         }
 
-        <span class="kw">const</span> <span class="ident">EMPTY_SET</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">MyHasher</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">with_hasher</span>(<span class="ident">MyHasher</span>);
+        <span class="kw">const</span> <span class="ident">EMPTY_SET</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">MyHasher</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashSet::with_hasher</span>(<span class="ident">MyHasher</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">EMPTY_SET</span>.<span class="ident">clone</span>();
         <span class="ident">set</span>.<span class="ident">insert</span>(<span class="number">19</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">19</span>));
+        <span class="macro">assert!</span>(<span class="ident">set</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">19</span>));
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="hashbrown" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="hashbrown" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

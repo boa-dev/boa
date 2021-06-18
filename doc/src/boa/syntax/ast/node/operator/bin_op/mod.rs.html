@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa/src/syntax/ast/node/operator/bin_op/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../../../../storage.js"></script><script src="../../../../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa/src/syntax/ast/node/operator/bin_op/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../../../../storage.js"></script><script src="../../../../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../../../../../settings.html"><img src="../../../../../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -293,24 +293,24 @@
 <span id="292">292</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">exec</span>::<span class="ident">Executable</span>,
+    <span class="ident">exec::Executable</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
-    <span class="ident">symbol</span>::<span class="ident">WellKnownSymbols</span>,
-    <span class="ident">syntax</span>::<span class="ident">ast</span>::{
-        <span class="ident">node</span>::<span class="ident">Node</span>,
+    <span class="ident">symbol::WellKnownSymbols</span>,
+    <span class="ident">syntax::ast</span>::{
+        <span class="ident">node::Node</span>,
         <span class="ident">op</span>::{<span class="self">self</span>, <span class="ident">AssignOp</span>, <span class="ident">BitOp</span>, <span class="ident">CompOp</span>, <span class="ident">LogOp</span>, <span class="ident">NumOp</span>},
     },
     <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
+<span class="kw">use</span> <span class="ident">std::fmt</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">profiler</span>::<span class="ident">BoaProfiler</span>,
-    <span class="ident">vm</span>::{<span class="ident">compilation</span>::<span class="ident">CodeGen</span>, <span class="ident">Compiler</span>, <span class="ident">Instruction</span>},
+    <span class="ident">profiler::BoaProfiler</span>,
+    <span class="ident">vm</span>::{<span class="ident">compilation::CodeGen</span>, <span class="ident">Compiler</span>, <span class="ident">Instruction</span>},
 };
 
 <span class="doccomment">/// Binary operators requires two operands, one before the operator and one after the operator.</span>
@@ -322,28 +322,28 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BinOp</span> {
-    <span class="ident">op</span>: <span class="ident">op</span>::<span class="ident">BinOp</span>,
+    <span class="ident">op</span>: <span class="ident">op::BinOp</span>,
     <span class="ident">lhs</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
     <span class="ident">rhs</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">BinOp</span> {
     <span class="doccomment">/// Creates a `BinOp` AST node.</span>
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="kw">crate</span>::<span class="ident">syntax</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">O</span>, <span class="ident">L</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">op</span>: <span class="ident">O</span>, <span class="ident">lhs</span>: <span class="ident">L</span>, <span class="ident">rhs</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
+    <span class="kw">pub</span>(<span class="kw">in</span> <span class="kw">crate</span><span class="ident">::syntax</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">O</span>, <span class="ident">L</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">op</span>: <span class="ident">O</span>, <span class="ident">lhs</span>: <span class="ident">L</span>, <span class="ident">rhs</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">O</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">op</span>::<span class="ident">BinOp</span><span class="op">&gt;</span>,
+        <span class="ident">O</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">op::BinOp</span><span class="op">&gt;</span>,
         <span class="ident">L</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
         <span class="ident">R</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span> {
             <span class="ident">op</span>: <span class="ident">op</span>.<span class="ident">into</span>(),
-            <span class="ident">lhs</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">lhs</span>.<span class="ident">into</span>()),
-            <span class="ident">rhs</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">rhs</span>.<span class="ident">into</span>()),
+            <span class="ident">lhs</span>: <span class="ident">Box::new</span>(<span class="ident">lhs</span>.<span class="ident">into</span>()),
+            <span class="ident">rhs</span>: <span class="ident">Box::new</span>(<span class="ident">rhs</span>.<span class="ident">into</span>()),
         }
     }
 
     <span class="doccomment">/// Gets the binary operation of the node.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">op</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">op</span>::<span class="ident">BinOp</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">op</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">op::BinOp</span> {
         <span class="self">self</span>.<span class="ident">op</span>
     }
 
@@ -360,33 +360,33 @@
     <span class="doccomment">/// Runs the assignment operators.</span>
     <span class="kw">fn</span> <span class="ident">run_assign</span>(<span class="ident">op</span>: <span class="ident">AssignOp</span>, <span class="ident">x</span>: <span class="ident">Value</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">op</span> {
-            <span class="ident">AssignOp</span>::<span class="ident">Add</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
-            <span class="ident">AssignOp</span>::<span class="ident">Sub</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">sub</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
-            <span class="ident">AssignOp</span>::<span class="ident">Mul</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">mul</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
-            <span class="ident">AssignOp</span>::<span class="ident">Exp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">pow</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
-            <span class="ident">AssignOp</span>::<span class="ident">Div</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">div</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
-            <span class="ident">AssignOp</span>::<span class="ident">Mod</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">rem</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
-            <span class="ident">AssignOp</span>::<span class="ident">And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">bitand</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
-            <span class="ident">AssignOp</span>::<span class="ident">Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">bitor</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
-            <span class="ident">AssignOp</span>::<span class="ident">Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">bitxor</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
-            <span class="ident">AssignOp</span>::<span class="ident">Shl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">shl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
-            <span class="ident">AssignOp</span>::<span class="ident">Shr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">shr</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
-            <span class="ident">AssignOp</span>::<span class="ident">Ushr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">ushr</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
-            <span class="ident">AssignOp</span>::<span class="ident">BoolAnd</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AssignOp::Add</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
+            <span class="ident">AssignOp::Sub</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">sub</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
+            <span class="ident">AssignOp::Mul</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">mul</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
+            <span class="ident">AssignOp::Exp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">pow</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
+            <span class="ident">AssignOp::Div</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">div</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
+            <span class="ident">AssignOp::Mod</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">rem</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
+            <span class="ident">AssignOp::And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">bitand</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
+            <span class="ident">AssignOp::Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">bitor</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
+            <span class="ident">AssignOp::Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">bitxor</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
+            <span class="ident">AssignOp::Shl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">shl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
+            <span class="ident">AssignOp::Shr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">shr</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
+            <span class="ident">AssignOp::Ushr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">ushr</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>),
+            <span class="ident">AssignOp::BoolAnd</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">to_boolean</span>() {
                     <span class="prelude-val">Ok</span>(<span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">Ok</span>(<span class="ident">x</span>)
                 }
             }
-            <span class="ident">AssignOp</span>::<span class="ident">BoolOr</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AssignOp::BoolOr</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">to_boolean</span>() {
                     <span class="prelude-val">Ok</span>(<span class="ident">x</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">Ok</span>(<span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>)
                 }
             }
-            <span class="ident">AssignOp</span>::<span class="ident">Coalesce</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">AssignOp::Coalesce</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_null_or_undefined</span>() {
                     <span class="prelude-val">Ok</span>(<span class="ident">y</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>)
                 } <span class="kw">else</span> {
@@ -400,45 +400,45 @@
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">op</span>() {
-            <span class="ident">op</span>::<span class="ident">BinOp</span>::<span class="ident">Num</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">op::BinOp::Num</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lhs</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="kw">match</span> <span class="ident">op</span> {
-                    <span class="ident">NumOp</span>::<span class="ident">Add</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
-                    <span class="ident">NumOp</span>::<span class="ident">Sub</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">sub</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
-                    <span class="ident">NumOp</span>::<span class="ident">Mul</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">mul</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
-                    <span class="ident">NumOp</span>::<span class="ident">Exp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">pow</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
-                    <span class="ident">NumOp</span>::<span class="ident">Div</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">div</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
-                    <span class="ident">NumOp</span>::<span class="ident">Mod</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">rem</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
+                    <span class="ident">NumOp::Add</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
+                    <span class="ident">NumOp::Sub</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">sub</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
+                    <span class="ident">NumOp::Mul</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">mul</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
+                    <span class="ident">NumOp::Exp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">pow</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
+                    <span class="ident">NumOp::Div</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">div</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
+                    <span class="ident">NumOp::Mod</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">rem</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
                 }
             }
-            <span class="ident">op</span>::<span class="ident">BinOp</span>::<span class="ident">Bit</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">op::BinOp::Bit</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lhs</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="kw">match</span> <span class="ident">op</span> {
-                    <span class="ident">BitOp</span>::<span class="ident">And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">bitand</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
-                    <span class="ident">BitOp</span>::<span class="ident">Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">bitor</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
-                    <span class="ident">BitOp</span>::<span class="ident">Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">bitxor</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
-                    <span class="ident">BitOp</span>::<span class="ident">Shl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">shl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
-                    <span class="ident">BitOp</span>::<span class="ident">Shr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">shr</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
-                    <span class="ident">BitOp</span>::<span class="ident">UShr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">ushr</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
+                    <span class="ident">BitOp::And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">bitand</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
+                    <span class="ident">BitOp::Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">bitor</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
+                    <span class="ident">BitOp::Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">bitxor</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
+                    <span class="ident">BitOp::Shl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">shl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
+                    <span class="ident">BitOp::Shr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">shr</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
+                    <span class="ident">BitOp::UShr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">ushr</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>),
                 }
             }
-            <span class="ident">op</span>::<span class="ident">BinOp</span>::<span class="ident">Comp</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">op::BinOp::Comp</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lhs</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw">match</span> <span class="ident">op</span> {
-                    <span class="ident">CompOp</span>::<span class="ident">Equal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">equals</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-                    <span class="ident">CompOp</span>::<span class="ident">NotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="op">!</span><span class="ident">x</span>.<span class="ident">equals</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-                    <span class="ident">CompOp</span>::<span class="ident">StrictEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">strict_equals</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>),
-                    <span class="ident">CompOp</span>::<span class="ident">StrictNotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="op">!</span><span class="ident">x</span>.<span class="ident">strict_equals</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>),
-                    <span class="ident">CompOp</span>::<span class="ident">GreaterThan</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">gt</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-                    <span class="ident">CompOp</span>::<span class="ident">GreaterThanOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">ge</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-                    <span class="ident">CompOp</span>::<span class="ident">LessThan</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">lt</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-                    <span class="ident">CompOp</span>::<span class="ident">LessThanOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">le</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-                    <span class="ident">CompOp</span>::<span class="ident">In</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="kw">match</span> <span class="ident">op</span> {
+                    <span class="ident">CompOp::Equal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">equals</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+                    <span class="ident">CompOp::NotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="op">!</span><span class="ident">x</span>.<span class="ident">equals</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+                    <span class="ident">CompOp::StrictEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">strict_equals</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>),
+                    <span class="ident">CompOp::StrictNotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="op">!</span><span class="ident">x</span>.<span class="ident">strict_equals</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>),
+                    <span class="ident">CompOp::GreaterThan</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">gt</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+                    <span class="ident">CompOp::GreaterThanOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">ge</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+                    <span class="ident">CompOp::LessThan</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">lt</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+                    <span class="ident">CompOp::LessThanOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">x</span>.<span class="ident">le</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+                    <span class="ident">CompOp::In</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">y</span>.<span class="ident">is_object</span>() {
-                            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format</span><span class="macro">!</span>(
+                            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
                                 <span class="string">&quot;right-hand side of &#39;in&#39; should be an object, got {}&quot;</span>,
                                 <span class="ident">y</span>.<span class="ident">get_type</span>().<span class="ident">as_str</span>()
                             ));
@@ -446,9 +446,9 @@
                         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                         <span class="ident">context</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>)
                     }
-                    <span class="ident">CompOp</span>::<span class="ident">InstanceOf</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">CompOp::InstanceOf</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">y</span>.<span class="ident">as_object</span>() {
-                            <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">WellKnownSymbols</span>::<span class="ident">has_instance</span>();
+                            <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::has_instance</span>();
 
                             <span class="kw">match</span> <span class="ident">object</span>.<span class="ident">get_method</span>(<span class="ident">context</span>, <span class="ident">key</span>)<span class="question-mark">?</span> {
                                 <span class="prelude-val">Some</span>(<span class="ident">instance_of_handler</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -464,7 +464,7 @@
                                 }
                             }
                         } <span class="kw">else</span> {
-                            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format</span><span class="macro">!</span>(
+                            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
                                 <span class="string">&quot;right-hand side of &#39;instanceof&#39; should be an object, got {}&quot;</span>,
                                 <span class="ident">y</span>.<span class="ident">get_type</span>().<span class="ident">as_str</span>()
                             ));
@@ -472,8 +472,8 @@
                     }
                 }))
             }
-            <span class="ident">op</span>::<span class="ident">BinOp</span>::<span class="ident">Log</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">op</span> {
-                <span class="ident">LogOp</span>::<span class="ident">And</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">op::BinOp::Log</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">op</span> {
+                <span class="ident">LogOp::And</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lhs</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">left</span>.<span class="ident">to_boolean</span>() {
                         <span class="ident">left</span>
@@ -481,7 +481,7 @@
                         <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
                     }
                 }
-                <span class="ident">LogOp</span>::<span class="ident">Or</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">LogOp::Or</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lhs</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                     <span class="kw">if</span> <span class="ident">left</span>.<span class="ident">to_boolean</span>() {
                         <span class="ident">left</span>
@@ -489,7 +489,7 @@
                         <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
                     }
                 }
-                <span class="ident">LogOp</span>::<span class="ident">Coalesce</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">LogOp::Coalesce</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">left</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lhs</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                     <span class="kw">if</span> <span class="ident">left</span>.<span class="ident">is_null_or_undefined</span>() {
                         <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
@@ -498,24 +498,24 @@
                     }
                 }
             }),
-            <span class="ident">op</span>::<span class="ident">BinOp</span>::<span class="ident">Assign</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">lhs</span>() {
-                <span class="ident">Node</span>::<span class="ident">Identifier</span>(<span class="kw-2">ref</span> <span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">op::BinOp::Assign</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">lhs</span>() {
+                <span class="ident">Node::Identifier</span>(<span class="kw-2">ref</span> <span class="ident">name</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">get_binding_value</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>())<span class="question-mark">?</span>;
 
-                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">run_assign</span>(<span class="ident">op</span>, <span class="ident">v_a</span>, <span class="self">self</span>.<span class="ident">rhs</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::run_assign</span>(<span class="ident">op</span>, <span class="ident">v_a</span>, <span class="self">self</span>.<span class="ident">rhs</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
                     <span class="ident">context</span>.<span class="ident">set_mutable_binding</span>(<span class="ident">name</span>.<span class="ident">as_ref</span>(), <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                     <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
                 }
-                <span class="ident">Node</span>::<span class="ident">GetConstField</span>(<span class="kw-2">ref</span> <span class="ident">get_const_field</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Node::GetConstField</span>(<span class="kw-2">ref</span> <span class="ident">get_const_field</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">v_r_a</span> <span class="op">=</span> <span class="ident">get_const_field</span>.<span class="ident">obj</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">v_a</span> <span class="op">=</span> <span class="ident">v_r_a</span>.<span class="ident">get_field</span>(<span class="ident">get_const_field</span>.<span class="ident">field</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">run_assign</span>(<span class="ident">op</span>, <span class="ident">v_a</span>, <span class="self">self</span>.<span class="ident">rhs</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::run_assign</span>(<span class="ident">op</span>, <span class="ident">v_a</span>, <span class="self">self</span>.<span class="ident">rhs</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
                     <span class="ident">v_r_a</span>.<span class="ident">set_field</span>(<span class="ident">get_const_field</span>.<span class="ident">field</span>(), <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
                     <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::undefined</span>()),
             },
-            <span class="ident">op</span>::<span class="ident">BinOp</span>::<span class="ident">Comma</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">op::BinOp::Comma</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">lhs</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>)
             }
@@ -526,64 +526,64 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
 <span class="kw">impl</span> <span class="ident">CodeGen</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
     <span class="kw">fn</span> <span class="ident">compile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">compiler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Compiler</span>) {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="string">&quot;binOp&quot;</span>, <span class="string">&quot;codeGen&quot;</span>);
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;binOp&quot;</span>, <span class="string">&quot;codeGen&quot;</span>);
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">op</span>() {
-            <span class="ident">op</span>::<span class="ident">BinOp</span>::<span class="ident">Num</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">op::BinOp::Num</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">lhs</span>().<span class="ident">compile</span>(<span class="ident">compiler</span>);
                 <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">compile</span>(<span class="ident">compiler</span>);
                 <span class="kw">match</span> <span class="ident">op</span> {
-                    <span class="ident">NumOp</span>::<span class="ident">Add</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Add</span>),
-                    <span class="ident">NumOp</span>::<span class="ident">Sub</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Sub</span>),
-                    <span class="ident">NumOp</span>::<span class="ident">Mul</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Mul</span>),
-                    <span class="ident">NumOp</span>::<span class="ident">Div</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Div</span>),
-                    <span class="ident">NumOp</span>::<span class="ident">Exp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Pow</span>),
-                    <span class="ident">NumOp</span>::<span class="ident">Mod</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Mod</span>),
+                    <span class="ident">NumOp::Add</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::Add</span>),
+                    <span class="ident">NumOp::Sub</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::Sub</span>),
+                    <span class="ident">NumOp::Mul</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::Mul</span>),
+                    <span class="ident">NumOp::Div</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::Div</span>),
+                    <span class="ident">NumOp::Exp</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::Pow</span>),
+                    <span class="ident">NumOp::Mod</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::Mod</span>),
                 }
             }
-            <span class="ident">op</span>::<span class="ident">BinOp</span>::<span class="ident">Bit</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">op::BinOp::Bit</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">lhs</span>().<span class="ident">compile</span>(<span class="ident">compiler</span>);
                 <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">compile</span>(<span class="ident">compiler</span>);
                 <span class="kw">match</span> <span class="ident">op</span> {
-                    <span class="ident">BitOp</span>::<span class="ident">And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">BitAnd</span>),
-                    <span class="ident">BitOp</span>::<span class="ident">Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">BitOr</span>),
-                    <span class="ident">BitOp</span>::<span class="ident">Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">BitXor</span>),
-                    <span class="ident">BitOp</span>::<span class="ident">Shl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Shl</span>),
-                    <span class="ident">BitOp</span>::<span class="ident">Shr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Shr</span>),
-                    <span class="ident">BitOp</span>::<span class="ident">UShr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">UShr</span>),
+                    <span class="ident">BitOp::And</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::BitAnd</span>),
+                    <span class="ident">BitOp::Or</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::BitOr</span>),
+                    <span class="ident">BitOp::Xor</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::BitXor</span>),
+                    <span class="ident">BitOp::Shl</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::Shl</span>),
+                    <span class="ident">BitOp::Shr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::Shr</span>),
+                    <span class="ident">BitOp::UShr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::UShr</span>),
                 }
             }
-            <span class="ident">op</span>::<span class="ident">BinOp</span>::<span class="ident">Comp</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">op::BinOp::Comp</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">lhs</span>().<span class="ident">compile</span>(<span class="ident">compiler</span>);
                 <span class="self">self</span>.<span class="ident">rhs</span>().<span class="ident">compile</span>(<span class="ident">compiler</span>);
                 <span class="kw">match</span> <span class="ident">op</span> {
-                    <span class="ident">CompOp</span>::<span class="ident">Equal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Eq</span>),
-                    <span class="ident">CompOp</span>::<span class="ident">NotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">NotEq</span>),
-                    <span class="ident">CompOp</span>::<span class="ident">StrictEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">StrictEq</span>),
-                    <span class="ident">CompOp</span>::<span class="ident">StrictNotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">StrictNotEq</span>),
-                    <span class="ident">CompOp</span>::<span class="ident">GreaterThan</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Gt</span>),
-                    <span class="ident">CompOp</span>::<span class="ident">GreaterThanOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Ge</span>),
-                    <span class="ident">CompOp</span>::<span class="ident">LessThan</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Lt</span>),
-                    <span class="ident">CompOp</span>::<span class="ident">LessThanOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">Le</span>),
-                    <span class="ident">CompOp</span>::<span class="ident">In</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">In</span>),
-                    <span class="ident">CompOp</span>::<span class="ident">InstanceOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction</span>::<span class="ident">InstanceOf</span>),
+                    <span class="ident">CompOp::Equal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::Eq</span>),
+                    <span class="ident">CompOp::NotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::NotEq</span>),
+                    <span class="ident">CompOp::StrictEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::StrictEq</span>),
+                    <span class="ident">CompOp::StrictNotEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::StrictNotEq</span>),
+                    <span class="ident">CompOp::GreaterThan</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::Gt</span>),
+                    <span class="ident">CompOp::GreaterThanOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::Ge</span>),
+                    <span class="ident">CompOp::LessThan</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::Lt</span>),
+                    <span class="ident">CompOp::LessThanOrEqual</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::Le</span>),
+                    <span class="ident">CompOp::In</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::In</span>),
+                    <span class="ident">CompOp::InstanceOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::InstanceOf</span>),
                 }
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented</span><span class="macro">!</span>(),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unimplemented!</span>(),
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{} {} {}&quot;</span>, <span class="self">self</span>.<span class="ident">lhs</span>, <span class="self">self</span>.<span class="ident">op</span>, <span class="self">self</span>.<span class="ident">rhs</span>)
+<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{} {} {}&quot;</span>, <span class="self">self</span>.<span class="ident">lhs</span>, <span class="self">self</span>.<span class="ident">op</span>, <span class="self">self</span>.<span class="ident">rhs</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">BinOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Node</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">BinOp</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">BinOp</span>(<span class="ident">op</span>)
+        <span class="self">Self</span><span class="ident">::BinOp</span>(<span class="ident">op</span>)
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../../../../" data-current-crate="boa" data-search-js="../../../../../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../../../../" data-current-crate="boa" data-search-index-js="../../../../../../../search-index.js" data-search-js="../../../../../../../search.js"></div>
     <script src="../../../../../../../main.js"></script><script src="../../../../../../../source-script.js"></script><script src="../../../../../../../source-files.js"></script></body></html>

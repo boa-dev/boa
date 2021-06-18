@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.25/src/ast/visitor.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>visitor.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../regex_syntax/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../regex_syntax/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -521,9 +521,9 @@
 <span id="518">518</span>
 <span id="519">519</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
+<span class="kw">use</span> <span class="ident">std::fmt</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">Ast</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ast</span>::{<span class="self">self</span>, <span class="ident">Ast</span>};
 
 <span class="doccomment">/// A trait for visiting an abstract syntax tree (AST) in depth first order.</span>
 <span class="doccomment">///</span>
@@ -551,26 +551,26 @@
 
     <span class="doccomment">/// All implementors of `Visitor` must provide a `finish` method, which</span>
     <span class="doccomment">/// yields the result of visiting the AST or an error.</span>
-    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Output</span>, <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Output</span>, <span class="self">Self</span><span class="ident">::Err</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// This method is called before beginning traversal of the AST.</span>
     <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {}
 
     <span class="doccomment">/// This method is called on an `Ast` before descending into child `Ast`</span>
     <span class="doccomment">/// nodes.</span>
-    <span class="kw">fn</span> <span class="ident">visit_pre</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">visit_pre</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span><span class="ident">::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// This method is called on an `Ast` after descending all of its child</span>
     <span class="doccomment">/// `Ast` nodes.</span>
-    <span class="kw">fn</span> <span class="ident">visit_post</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">visit_post</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span><span class="ident">::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// This method is called between child nodes of an</span>
     <span class="doccomment">/// [`Alternation`](struct.Alternation.html).</span>
-    <span class="kw">fn</span> <span class="ident">visit_alternation_in</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">visit_alternation_in</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span><span class="ident">::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -579,8 +579,8 @@
     <span class="doccomment">/// before descending into child nodes.</span>
     <span class="kw">fn</span> <span class="ident">visit_class_set_item_pre</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassSetItem</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
+        <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast::ClassSetItem</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span><span class="ident">::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -589,8 +589,8 @@
     <span class="doccomment">/// after descending into child nodes.</span>
     <span class="kw">fn</span> <span class="ident">visit_class_set_item_post</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassSetItem</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
+        <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast::ClassSetItem</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span><span class="ident">::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -599,8 +599,8 @@
     <span class="doccomment">/// before descending into child nodes.</span>
     <span class="kw">fn</span> <span class="ident">visit_class_set_binary_op_pre</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassSetBinaryOp</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
+        <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast::ClassSetBinaryOp</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span><span class="ident">::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -609,8 +609,8 @@
     <span class="doccomment">/// after descending into child nodes.</span>
     <span class="kw">fn</span> <span class="ident">visit_class_set_binary_op_post</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassSetBinaryOp</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
+        <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast::ClassSetBinaryOp</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span><span class="ident">::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -618,8 +618,8 @@
     <span class="doccomment">/// of a [`ClassSetBinaryOp`](struct.ClassSetBinaryOp.html).</span>
     <span class="kw">fn</span> <span class="ident">visit_class_set_binary_op_in</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassSetBinaryOp</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
+        <span class="ident">_ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast::ClassSetBinaryOp</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="self">Self</span><span class="ident">::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -639,8 +639,8 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// If the visitor returns an error at any point, then visiting is stopped and</span>
 <span class="doccomment">/// the error is returned.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&gt;</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V</span>::<span class="ident">Output</span>, <span class="ident">V</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
-    <span class="ident">HeapVisitor</span>::<span class="ident">new</span>().<span class="ident">visit</span>(<span class="ident">ast</span>, <span class="ident">visitor</span>)
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">visit</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&gt;</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">Ast</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Output</span>, <span class="ident">V::Err</span><span class="op">&gt;</span> {
+    <span class="ident">HeapVisitor::new</span>().<span class="ident">visit</span>(<span class="ident">ast</span>, <span class="ident">visitor</span>)
 }
 
 <span class="doccomment">/// HeapVisitor visits every item in an `Ast` recursively using constant stack</span>
@@ -660,10 +660,10 @@
 <span class="kw">enum</span> <span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// A stack frame allocated just before descending into a repetition</span>
     <span class="doccomment">/// operator&#39;s child node.</span>
-    <span class="ident">Repetition</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">Repetition</span>),
+    <span class="ident">Repetition</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::Repetition</span>),
     <span class="doccomment">/// A stack frame allocated just before descending into a group&#39;s child</span>
     <span class="doccomment">/// node.</span>
-    <span class="ident">Group</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">Group</span>),
+    <span class="ident">Group</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::Group</span>),
     <span class="doccomment">/// The stack frame used while visiting every child node of a concatenation</span>
     <span class="doccomment">/// of expressions.</span>
     <span class="ident">Concat</span> {
@@ -689,22 +689,22 @@
     <span class="doccomment">/// character class items.</span>
     <span class="ident">Union</span> {
         <span class="doccomment">/// The child node we are currently visiting.</span>
-        <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>,
+        <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ClassSetItem</span>,
         <span class="doccomment">/// The remaining child nodes to visit (which may be empty).</span>
-        <span class="ident">tail</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">ast</span>::<span class="ident">ClassSetItem</span>],
+        <span class="ident">tail</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">ast::ClassSetItem</span>],
     },
     <span class="doccomment">/// The stack frame used while a binary class operation.</span>
-    <span class="ident">Binary</span> { <span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">ClassSetBinaryOp</span> },
+    <span class="ident">Binary</span> { <span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ClassSetBinaryOp</span> },
     <span class="doccomment">/// A stack frame allocated just before descending into a binary operator&#39;s</span>
     <span class="doccomment">/// left hand child node.</span>
     <span class="ident">BinaryLHS</span> {
-        <span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">ClassSetBinaryOp</span>,
-        <span class="ident">lhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">ClassSet</span>,
-        <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">ClassSet</span>,
+        <span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ClassSetBinaryOp</span>,
+        <span class="ident">lhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ClassSet</span>,
+        <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ClassSet</span>,
     },
     <span class="doccomment">/// A stack frame allocated just before descending into a binary operator&#39;s</span>
     <span class="doccomment">/// right hand child node.</span>
-    <span class="ident">BinaryRHS</span> { <span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">ClassSetBinaryOp</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">ClassSet</span> },
+    <span class="ident">BinaryRHS</span> { <span class="ident">op</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ClassSetBinaryOp</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ClassSet</span> },
 }
 
 <span class="doccomment">/// A representation of the inductive step when performing structural induction</span>
@@ -717,20 +717,20 @@
 <span class="doccomment">/// because that would imply binary operations can be unioned in the concrete</span>
 <span class="doccomment">/// syntax, which is not possible.)</span>
 <span class="kw">enum</span> <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">Item</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>),
-    <span class="ident">BinaryOp</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">ClassSetBinaryOp</span>),
+    <span class="ident">Item</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ClassSetItem</span>),
+    <span class="ident">BinaryOp</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ClassSetBinaryOp</span>),
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">HeapVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">HeapVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="ident">HeapVisitor</span> { <span class="ident">stack</span>: <span class="macro">vec</span><span class="macro">!</span>[], <span class="ident">stack_class</span>: <span class="macro">vec</span><span class="macro">!</span>[] }
+        <span class="ident">HeapVisitor</span> { <span class="ident">stack</span>: <span class="macro">vec!</span>[], <span class="ident">stack_class</span>: <span class="macro">vec!</span>[] }
     }
 
     <span class="kw">fn</span> <span class="ident">visit</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="kw-2">mut</span> <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ast</span>,
         <span class="kw-2">mut</span> <span class="ident">visitor</span>: <span class="ident">V</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V</span>::<span class="ident">Output</span>, <span class="ident">V</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Output</span>, <span class="ident">V::Err</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">clear</span>();
         <span class="self">self</span>.<span class="ident">stack_class</span>.<span class="ident">clear</span>();
 
@@ -757,7 +757,7 @@
                 <span class="comment">// If this is a concat/alternate, then we might have additional</span>
                 <span class="comment">// inductive steps to process.</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop</span>(<span class="ident">frame</span>) {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Frame</span>::<span class="ident">Alternation</span> { .. } <span class="op">=</span> <span class="ident">x</span> {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Frame::Alternation</span> { .. } <span class="op">=</span> <span class="ident">x</span> {
                         <span class="ident">visitor</span>.<span class="ident">visit_alternation_in</span>()<span class="question-mark">?</span>;
                     }
                     <span class="ident">ast</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">child</span>();
@@ -780,20 +780,20 @@
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ast</span>,
         <span class="ident">visitor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">V</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">V::Err</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ast</span> {
-            <span class="ident">Ast</span>::<span class="ident">Class</span>(<span class="ident">ast</span>::<span class="ident">Class</span>::<span class="ident">Bracketed</span>(<span class="kw-2">ref</span> <span class="ident">x</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Ast::Class</span>(<span class="ident">ast::Class::Bracketed</span>(<span class="kw-2">ref</span> <span class="ident">x</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">visit_class</span>(<span class="ident">x</span>, <span class="ident">visitor</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">None</span>
             }
-            <span class="ident">Ast</span>::<span class="ident">Repetition</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Frame</span>::<span class="ident">Repetition</span>(<span class="ident">x</span>)),
-            <span class="ident">Ast</span>::<span class="ident">Group</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Frame</span>::<span class="ident">Group</span>(<span class="ident">x</span>)),
-            <span class="ident">Ast</span>::<span class="ident">Concat</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">asts</span>.<span class="ident">is_empty</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Ast</span>::<span class="ident">Concat</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">Frame</span>::<span class="ident">Concat</span> { <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">asts</span>[<span class="number">0</span>], <span class="ident">tail</span>: <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">asts</span>[<span class="number">1</span>..] })
+            <span class="ident">Ast::Repetition</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Frame::Repetition</span>(<span class="ident">x</span>)),
+            <span class="ident">Ast::Group</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Frame::Group</span>(<span class="ident">x</span>)),
+            <span class="ident">Ast::Concat</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">asts</span>.<span class="ident">is_empty</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Ast::Concat</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">Frame::Concat</span> { <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">asts</span>[<span class="number">0</span>], <span class="ident">tail</span>: <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">asts</span>[<span class="number">1</span>..] })
             }
-            <span class="ident">Ast</span>::<span class="ident">Alternation</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">asts</span>.<span class="ident">is_empty</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Ast</span>::<span class="ident">Alternation</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Frame</span>::<span class="ident">Alternation</span> {
+            <span class="ident">Ast::Alternation</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">asts</span>.<span class="ident">is_empty</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Ast::Alternation</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">Frame::Alternation</span> {
                 <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">asts</span>[<span class="number">0</span>],
                 <span class="ident">tail</span>: <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">asts</span>[<span class="number">1</span>..],
             }),
@@ -805,20 +805,20 @@
     <span class="doccomment">/// then return it, otherwise return `None`.</span>
     <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">induct</span>: <span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Frame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">induct</span> {
-            <span class="ident">Frame</span>::<span class="ident">Repetition</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Frame</span>::<span class="ident">Group</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">Frame</span>::<span class="ident">Concat</span> { <span class="ident">tail</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Frame::Repetition</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Frame::Group</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">Frame::Concat</span> { <span class="ident">tail</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">tail</span>.<span class="ident">is_empty</span>() {
                     <span class="prelude-val">None</span>
                 } <span class="kw">else</span> {
-                    <span class="prelude-val">Some</span>(<span class="ident">Frame</span>::<span class="ident">Concat</span> { <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="ident">tail</span>[<span class="number">0</span>], <span class="ident">tail</span>: <span class="kw-2">&amp;</span><span class="ident">tail</span>[<span class="number">1</span>..] })
+                    <span class="prelude-val">Some</span>(<span class="ident">Frame::Concat</span> { <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="ident">tail</span>[<span class="number">0</span>], <span class="ident">tail</span>: <span class="kw-2">&amp;</span><span class="ident">tail</span>[<span class="number">1</span>..] })
                 }
             }
-            <span class="ident">Frame</span>::<span class="ident">Alternation</span> { <span class="ident">tail</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Frame::Alternation</span> { <span class="ident">tail</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">tail</span>.<span class="ident">is_empty</span>() {
                     <span class="prelude-val">None</span>
                 } <span class="kw">else</span> {
-                    <span class="prelude-val">Some</span>(<span class="ident">Frame</span>::<span class="ident">Alternation</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">Frame::Alternation</span> {
                         <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="ident">tail</span>[<span class="number">0</span>],
                         <span class="ident">tail</span>: <span class="kw-2">&amp;</span><span class="ident">tail</span>[<span class="number">1</span>..],
                     })
@@ -829,10 +829,10 @@
 
     <span class="kw">fn</span> <span class="ident">visit_class</span><span class="op">&lt;</span><span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">ClassBracketed</span>,
+        <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ClassBracketed</span>,
         <span class="ident">visitor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">V</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ast</span> <span class="op">=</span> <span class="ident">ClassInduct</span>::<span class="ident">from_bracketed</span>(<span class="ident">ast</span>);
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">V::Err</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ast</span> <span class="op">=</span> <span class="ident">ClassInduct::from_bracketed</span>(<span class="ident">ast</span>);
         <span class="kw">loop</span> {
             <span class="self">self</span>.<span class="ident">visit_class_pre</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>, <span class="ident">visitor</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">induct_class</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>) {
@@ -853,7 +853,7 @@
                 <span class="comment">// If this is a union or a binary op, then we might have</span>
                 <span class="comment">// additional inductive steps to process.</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop_class</span>(<span class="ident">frame</span>) {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ClassFrame</span>::<span class="ident">BinaryRHS</span> { <span class="kw-2">ref</span> <span class="ident">op</span>, .. } <span class="op">=</span> <span class="ident">x</span> {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ClassFrame::BinaryRHS</span> { <span class="kw-2">ref</span> <span class="ident">op</span>, .. } <span class="op">=</span> <span class="ident">x</span> {
                         <span class="ident">visitor</span>.<span class="ident">visit_class_set_binary_op_in</span>(<span class="ident">op</span>)<span class="question-mark">?</span>;
                     }
                     <span class="ident">ast</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">child</span>();
@@ -872,12 +872,12 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
         <span class="ident">visitor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">V</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">V::Err</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ast</span> {
-            <span class="ident">ClassInduct</span>::<span class="ident">Item</span>(<span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassInduct::Item</span>(<span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">visitor</span>.<span class="ident">visit_class_set_item_pre</span>(<span class="ident">item</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">ClassInduct</span>::<span class="ident">BinaryOp</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassInduct::BinaryOp</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">visitor</span>.<span class="ident">visit_class_set_binary_op_pre</span>(<span class="ident">op</span>)<span class="question-mark">?</span>;
             }
         }
@@ -889,12 +889,12 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
         <span class="ident">visitor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">V</span>::<span class="prelude-val">Err</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">V::Err</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ast</span> {
-            <span class="ident">ClassInduct</span>::<span class="ident">Item</span>(<span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassInduct::Item</span>(<span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">visitor</span>.<span class="ident">visit_class_set_item_post</span>(<span class="ident">item</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">ClassInduct</span>::<span class="ident">BinaryOp</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassInduct::BinaryOp</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">visitor</span>.<span class="ident">visit_class_set_binary_op_post</span>(<span class="ident">op</span>)<span class="question-mark">?</span>;
             }
         }
@@ -905,27 +905,27 @@
     <span class="doccomment">/// occurs if and only if there are child nodes). Otherwise, return None.</span>
     <span class="kw">fn</span> <span class="ident">induct_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ast</span> {
-            <span class="ident">ClassInduct</span>::<span class="ident">Item</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Bracketed</span>(<span class="kw-2">ref</span> <span class="ident">x</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassInduct::Item</span>(<span class="kw-2">&amp;</span><span class="ident">ast::ClassSetItem::Bracketed</span>(<span class="kw-2">ref</span> <span class="ident">x</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">match</span> <span class="ident">x</span>.<span class="ident">kind</span> {
-                    <span class="ident">ast</span>::<span class="ident">ClassSet</span>::<span class="ident">Item</span>(<span class="kw-2">ref</span> <span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="prelude-val">Some</span>(<span class="ident">ClassFrame</span>::<span class="ident">Union</span> { <span class="ident">head</span>: <span class="ident">item</span>, <span class="ident">tail</span>: <span class="kw-2">&amp;</span>[] })
+                    <span class="ident">ast::ClassSet::Item</span>(<span class="kw-2">ref</span> <span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Some</span>(<span class="ident">ClassFrame::Union</span> { <span class="ident">head</span>: <span class="ident">item</span>, <span class="ident">tail</span>: <span class="kw-2">&amp;</span>[] })
                     }
-                    <span class="ident">ast</span>::<span class="ident">ClassSet</span>::<span class="ident">BinaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="prelude-val">Some</span>(<span class="ident">ClassFrame</span>::<span class="ident">Binary</span> { <span class="ident">op</span>: <span class="ident">op</span> })
+                    <span class="ident">ast::ClassSet::BinaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="prelude-val">Some</span>(<span class="ident">ClassFrame::Binary</span> { <span class="ident">op</span>: <span class="ident">op</span> })
                     }
                 }
             }
-            <span class="ident">ClassInduct</span>::<span class="ident">Item</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Union</span>(<span class="kw-2">ref</span> <span class="ident">x</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassInduct::Item</span>(<span class="kw-2">&amp;</span><span class="ident">ast::ClassSetItem::Union</span>(<span class="kw-2">ref</span> <span class="ident">x</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">items</span>.<span class="ident">is_empty</span>() {
                     <span class="prelude-val">None</span>
                 } <span class="kw">else</span> {
-                    <span class="prelude-val">Some</span>(<span class="ident">ClassFrame</span>::<span class="ident">Union</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">ClassFrame::Union</span> {
                         <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">items</span>[<span class="number">0</span>],
                         <span class="ident">tail</span>: <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">items</span>[<span class="number">1</span>..],
                     })
                 }
             }
-            <span class="ident">ClassInduct</span>::<span class="ident">BinaryOp</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ClassFrame</span>::<span class="ident">BinaryLHS</span> {
+            <span class="ident">ClassInduct::BinaryOp</span>(<span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ClassFrame::BinaryLHS</span> {
                 <span class="ident">op</span>: <span class="ident">op</span>,
                 <span class="ident">lhs</span>: <span class="kw-2">&amp;</span><span class="ident">op</span>.<span class="ident">lhs</span>,
                 <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="ident">op</span>.<span class="ident">rhs</span>,
@@ -938,21 +938,21 @@
     <span class="doccomment">/// then return it, otherwise return `None`.</span>
     <span class="kw">fn</span> <span class="ident">pop_class</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">induct</span>: <span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">induct</span> {
-            <span class="ident">ClassFrame</span>::<span class="ident">Union</span> { <span class="ident">tail</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassFrame::Union</span> { <span class="ident">tail</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="ident">tail</span>.<span class="ident">is_empty</span>() {
                     <span class="prelude-val">None</span>
                 } <span class="kw">else</span> {
-                    <span class="prelude-val">Some</span>(<span class="ident">ClassFrame</span>::<span class="ident">Union</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">ClassFrame::Union</span> {
                         <span class="ident">head</span>: <span class="kw-2">&amp;</span><span class="ident">tail</span>[<span class="number">0</span>],
                         <span class="ident">tail</span>: <span class="kw-2">&amp;</span><span class="ident">tail</span>[<span class="number">1</span>..],
                     })
                 }
             }
-            <span class="ident">ClassFrame</span>::<span class="ident">Binary</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
-            <span class="ident">ClassFrame</span>::<span class="ident">BinaryLHS</span> { <span class="ident">op</span>, <span class="ident">rhs</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">ClassFrame</span>::<span class="ident">BinaryRHS</span> { <span class="ident">op</span>: <span class="ident">op</span>, <span class="ident">rhs</span>: <span class="ident">rhs</span> })
+            <span class="ident">ClassFrame::Binary</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">ClassFrame::BinaryLHS</span> { <span class="ident">op</span>, <span class="ident">rhs</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">ClassFrame::BinaryRHS</span> { <span class="ident">op</span>: <span class="ident">op</span>, <span class="ident">rhs</span>: <span class="ident">rhs</span> })
             }
-            <span class="ident">ClassFrame</span>::<span class="ident">BinaryRHS</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+            <span class="ident">ClassFrame::BinaryRHS</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 }
@@ -962,10 +962,10 @@
     <span class="doccomment">/// child AST node to visit.</span>
     <span class="kw">fn</span> <span class="ident">child</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Ast</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Frame</span>::<span class="ident">Repetition</span>(<span class="ident">rep</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">rep</span>.<span class="ident">ast</span>,
-            <span class="ident">Frame</span>::<span class="ident">Group</span>(<span class="ident">group</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">group</span>.<span class="ident">ast</span>,
-            <span class="ident">Frame</span>::<span class="ident">Concat</span> { <span class="ident">head</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">head</span>,
-            <span class="ident">Frame</span>::<span class="ident">Alternation</span> { <span class="ident">head</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">head</span>,
+            <span class="ident">Frame::Repetition</span>(<span class="ident">rep</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">rep</span>.<span class="ident">ast</span>,
+            <span class="ident">Frame::Group</span>(<span class="ident">group</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="ident">group</span>.<span class="ident">ast</span>,
+            <span class="ident">Frame::Concat</span> { <span class="ident">head</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">head</span>,
+            <span class="ident">Frame::Alternation</span> { <span class="ident">head</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">head</span>,
         }
     }
 }
@@ -975,71 +975,71 @@
     <span class="doccomment">/// child class node to visit.</span>
     <span class="kw">fn</span> <span class="ident">child</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">ClassFrame</span>::<span class="ident">Union</span> { <span class="ident">head</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ClassInduct</span>::<span class="ident">Item</span>(<span class="ident">head</span>),
-            <span class="ident">ClassFrame</span>::<span class="ident">Binary</span> { <span class="ident">op</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ClassInduct</span>::<span class="ident">BinaryOp</span>(<span class="ident">op</span>),
-            <span class="ident">ClassFrame</span>::<span class="ident">BinaryLHS</span> { <span class="kw-2">ref</span> <span class="ident">lhs</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">ClassInduct</span>::<span class="ident">from_set</span>(<span class="ident">lhs</span>)
+            <span class="ident">ClassFrame::Union</span> { <span class="ident">head</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ClassInduct::Item</span>(<span class="ident">head</span>),
+            <span class="ident">ClassFrame::Binary</span> { <span class="ident">op</span>, .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ClassInduct::BinaryOp</span>(<span class="ident">op</span>),
+            <span class="ident">ClassFrame::BinaryLHS</span> { <span class="kw-2">ref</span> <span class="ident">lhs</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ClassInduct::from_set</span>(<span class="ident">lhs</span>)
             }
-            <span class="ident">ClassFrame</span>::<span class="ident">BinaryRHS</span> { <span class="kw-2">ref</span> <span class="ident">rhs</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">ClassInduct</span>::<span class="ident">from_set</span>(<span class="ident">rhs</span>)
+            <span class="ident">ClassFrame::BinaryRHS</span> { <span class="kw-2">ref</span> <span class="ident">rhs</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ClassInduct::from_set</span>(<span class="ident">rhs</span>)
             }
         }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from_bracketed</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">ClassBracketed</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="ident">ClassInduct</span>::<span class="ident">from_set</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">kind</span>)
+    <span class="kw">fn</span> <span class="ident">from_bracketed</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ClassBracketed</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+        <span class="ident">ClassInduct::from_set</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">kind</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">from_set</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast</span>::<span class="ident">ClassSet</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_set</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ClassSet</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">ast</span> {
-            <span class="ident">ast</span>::<span class="ident">ClassSet</span>::<span class="ident">Item</span>(<span class="kw-2">ref</span> <span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ClassInduct</span>::<span class="ident">Item</span>(<span class="ident">item</span>),
-            <span class="ident">ast</span>::<span class="ident">ClassSet</span>::<span class="ident">BinaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ClassInduct</span>::<span class="ident">BinaryOp</span>(<span class="ident">op</span>),
+            <span class="ident">ast::ClassSet::Item</span>(<span class="kw-2">ref</span> <span class="ident">item</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ClassInduct::Item</span>(<span class="ident">item</span>),
+            <span class="ident">ast::ClassSet::BinaryOp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ClassInduct::BinaryOp</span>(<span class="ident">op</span>),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ClassFrame</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">ClassFrame</span>::<span class="ident">Union</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Union&quot;</span>,
-            <span class="ident">ClassFrame</span>::<span class="ident">Binary</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Binary&quot;</span>,
-            <span class="ident">ClassFrame</span>::<span class="ident">BinaryLHS</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;BinaryLHS&quot;</span>,
-            <span class="ident">ClassFrame</span>::<span class="ident">BinaryRHS</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;BinaryRHS&quot;</span>,
+            <span class="ident">ClassFrame::Union</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Union&quot;</span>,
+            <span class="ident">ClassFrame::Binary</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Binary&quot;</span>,
+            <span class="ident">ClassFrame::BinaryLHS</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;BinaryLHS&quot;</span>,
+            <span class="ident">ClassFrame::BinaryRHS</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;BinaryRHS&quot;</span>,
         };
-        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">x</span>)
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">x</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ClassInduct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">ClassInduct</span>::<span class="ident">Item</span>(<span class="ident">it</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">it</span> {
-                <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Empty</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Empty)&quot;</span>,
-                <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Literal</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Literal)&quot;</span>,
-                <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Range</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Range)&quot;</span>,
-                <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Ascii</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Ascii)&quot;</span>,
-                <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Perl</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Perl)&quot;</span>,
-                <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Unicode</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Unicode)&quot;</span>,
-                <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Bracketed</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Bracketed)&quot;</span>,
-                <span class="ident">ast</span>::<span class="ident">ClassSetItem</span>::<span class="ident">Union</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Union)&quot;</span>,
+            <span class="ident">ClassInduct::Item</span>(<span class="ident">it</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">it</span> {
+                <span class="ident">ast::ClassSetItem::Empty</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Empty)&quot;</span>,
+                <span class="ident">ast::ClassSetItem::Literal</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Literal)&quot;</span>,
+                <span class="ident">ast::ClassSetItem::Range</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Range)&quot;</span>,
+                <span class="ident">ast::ClassSetItem::Ascii</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Ascii)&quot;</span>,
+                <span class="ident">ast::ClassSetItem::Perl</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Perl)&quot;</span>,
+                <span class="ident">ast::ClassSetItem::Unicode</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Unicode)&quot;</span>,
+                <span class="ident">ast::ClassSetItem::Bracketed</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Bracketed)&quot;</span>,
+                <span class="ident">ast::ClassSetItem::Union</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Item(Union)&quot;</span>,
             },
-            <span class="ident">ClassInduct</span>::<span class="ident">BinaryOp</span>(<span class="ident">it</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">it</span>.<span class="ident">kind</span> {
-                <span class="ident">ast</span>::<span class="ident">ClassSetBinaryOpKind</span>::<span class="ident">Intersection</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">ClassInduct::BinaryOp</span>(<span class="ident">it</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">it</span>.<span class="ident">kind</span> {
+                <span class="ident">ast::ClassSetBinaryOpKind::Intersection</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="string">&quot;BinaryOp(Intersection)&quot;</span>
                 }
-                <span class="ident">ast</span>::<span class="ident">ClassSetBinaryOpKind</span>::<span class="ident">Difference</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ast::ClassSetBinaryOpKind::Difference</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="string">&quot;BinaryOp(Difference)&quot;</span>
                 }
-                <span class="ident">ast</span>::<span class="ident">ClassSetBinaryOpKind</span>::<span class="ident">SymmetricDifference</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ast::ClassSetBinaryOpKind::SymmetricDifference</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="string">&quot;BinaryOp(SymmetricDifference)&quot;</span>
                 }
             },
         };
-        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">x</span>)
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">x</span>)
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex_syntax" data-search-js="../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex_syntax" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

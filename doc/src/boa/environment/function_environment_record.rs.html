@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa/src/environment/function_environment_record.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>function_environment_record.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa/src/environment/function_environment_record.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>function_environment_record.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -241,16 +241,16 @@
 <span class="doccomment">//! from within the function.</span>
 <span class="doccomment">//! More info: &lt;https://tc39.es/ecma262/#sec-function-environment-records&gt;</span>
 
-<span class="kw">use</span> <span class="ident">gc</span>::<span class="ident">Gc</span>;
+<span class="kw">use</span> <span class="ident">gc::Gc</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">environment</span>::{
-        <span class="ident">declarative_environment_record</span>::<span class="ident">DeclarativeEnvironmentRecord</span>,
-        <span class="ident">environment_record_trait</span>::<span class="ident">EnvironmentRecordTrait</span>,
+        <span class="ident">declarative_environment_record::DeclarativeEnvironmentRecord</span>,
+        <span class="ident">environment_record_trait::EnvironmentRecordTrait</span>,
         <span class="ident">lexical_environment</span>::{<span class="ident">Environment</span>, <span class="ident">EnvironmentType</span>, <span class="ident">VariableScope</span>},
     },
     <span class="ident">gc</span>::{<span class="ident">empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>},
-    <span class="ident">object</span>::<span class="ident">GcObject</span>,
+    <span class="ident">object::GcObject</span>,
     <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
 
@@ -267,7 +267,7 @@
 }
 
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">BindingStatus</span> {
-    <span class="macro">empty_trace</span><span class="macro">!</span>();
+    <span class="macro">empty_trace!</span>();
 }
 
 <span class="doccomment">/// &lt;https://tc39.es/ecma262/#table-16&gt;</span>
@@ -299,12 +299,12 @@
         <span class="ident">new_target</span>: <span class="ident">Value</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">FunctionEnvironmentRecord</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">func_env</span> <span class="op">=</span> <span class="ident">FunctionEnvironmentRecord</span> {
-            <span class="ident">declarative_record</span>: <span class="ident">DeclarativeEnvironmentRecord</span>::<span class="ident">new</span>(<span class="ident">outer</span>), <span class="comment">// the outer environment will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects</span>
+            <span class="ident">declarative_record</span>: <span class="ident">DeclarativeEnvironmentRecord::new</span>(<span class="ident">outer</span>), <span class="comment">// the outer environment will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects</span>
             <span class="ident">function</span>: <span class="ident">f</span>,
             <span class="ident">this_binding_status</span>: <span class="ident">binding_status</span>,
-            <span class="ident">home_object</span>: <span class="ident">Value</span>::<span class="ident">undefined</span>(),
+            <span class="ident">home_object</span>: <span class="ident">Value::undefined</span>(),
             <span class="ident">new_target</span>,
-            <span class="ident">this_value</span>: <span class="ident">Value</span>::<span class="ident">undefined</span>(),
+            <span class="ident">this_value</span>: <span class="ident">Value::undefined</span>(),
         };
         <span class="comment">// If a `this` value has been passed, bind it to the environment</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">this</span> {
@@ -316,17 +316,17 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bind_this_value</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">this_binding_status</span> {
             <span class="comment">// You can not bind an arrow function, their `this` value comes from the lexical scope above</span>
-            <span class="ident">BindingStatus</span>::<span class="ident">Lexical</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Cannot bind to an arrow function!&quot;</span>);
+            <span class="ident">BindingStatus::Lexical</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">panic!</span>(<span class="string">&quot;Cannot bind to an arrow function!&quot;</span>);
             }
             <span class="comment">// You can not bind a function twice</span>
-            <span class="ident">BindingStatus</span>::<span class="ident">Initialized</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">todo</span><span class="macro">!</span>();
+            <span class="ident">BindingStatus::Initialized</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">todo!</span>();
                 <span class="comment">// context.throw_reference_error(&quot;Cannot bind to an initialised function!&quot;)</span>
             }
-            <span class="ident">BindingStatus</span>::<span class="ident">Uninitialized</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BindingStatus::Uninitialized</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">this_value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">clone</span>();
-                <span class="self">self</span>.<span class="ident">this_binding_status</span> <span class="op">=</span> <span class="ident">BindingStatus</span>::<span class="ident">Initialized</span>;
+                <span class="self">self</span>.<span class="ident">this_binding_status</span> <span class="op">=</span> <span class="ident">BindingStatus::Initialized</span>;
                 <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
             }
         }
@@ -335,9 +335,9 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_super_base</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
         <span class="kw">let</span> <span class="ident">home</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">home_object</span>;
         <span class="kw">if</span> <span class="ident">home</span>.<span class="ident">is_undefined</span>() {
-            <span class="ident">Value</span>::<span class="ident">Undefined</span>
+            <span class="ident">Value::Undefined</span>
         } <span class="kw">else</span> {
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">home</span>.<span class="ident">is_object</span>());
+            <span class="macro">assert!</span>(<span class="ident">home</span>.<span class="ident">is_object</span>());
             <span class="ident">home</span>.<span class="ident">as_object</span>()
                 .<span class="ident">expect</span>(<span class="string">&quot;home_object must be an Object&quot;</span>)
                 .<span class="ident">prototype_instance</span>()
@@ -397,23 +397,23 @@
     }
 
     <span class="kw">fn</span> <span class="ident">has_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="op">!</span><span class="macro">matches</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">this_binding_status</span>, <span class="ident">BindingStatus</span>::<span class="ident">Lexical</span>)
+        <span class="op">!</span><span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">this_binding_status</span>, <span class="ident">BindingStatus::Lexical</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">get_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">this_binding_status</span> {
-            <span class="ident">BindingStatus</span>::<span class="ident">Lexical</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;There is no this for a lexical function record&quot;</span>);
+            <span class="ident">BindingStatus::Lexical</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">panic!</span>(<span class="string">&quot;There is no this for a lexical function record&quot;</span>);
             }
-            <span class="ident">BindingStatus</span>::<span class="ident">Uninitialized</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">BindingStatus::Uninitialized</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">context</span>.<span class="ident">throw_reference_error</span>(<span class="string">&quot;Uninitialised binding for this function&quot;</span>)
             }
-            <span class="ident">BindingStatus</span>::<span class="ident">Initialized</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">this_value</span>.<span class="ident">clone</span>()),
+            <span class="ident">BindingStatus::Initialized</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">this_value</span>.<span class="ident">clone</span>()),
         }
     }
 
     <span class="kw">fn</span> <span class="ident">has_super_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BindingStatus</span>::<span class="ident">Lexical</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">this_binding_status</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">BindingStatus::Lexical</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">this_binding_status</span> {
             <span class="bool-val">false</span>
         } <span class="kw">else</span> {
             <span class="op">!</span><span class="self">self</span>.<span class="ident">home_object</span>.<span class="ident">is_undefined</span>()
@@ -433,7 +433,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">get_environment_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">EnvironmentType</span> {
-        <span class="ident">EnvironmentType</span>::<span class="ident">Function</span>
+        <span class="ident">EnvironmentType::Function</span>
     }
 
     <span class="kw">fn</span> <span class="ident">recursive_create_mutable_binding</span>(
@@ -459,9 +459,9 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">FunctionEnvironmentRecord</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Environment</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">env</span>: <span class="ident">FunctionEnvironmentRecord</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Environment</span> {
-        <span class="ident">Gc</span>::<span class="ident">new</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">env</span>))
+        <span class="ident">Gc::new</span>(<span class="ident">Box::new</span>(<span class="ident">env</span>))
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa" data-search-js="../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

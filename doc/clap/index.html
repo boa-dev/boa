@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="`clap` is a simple-to-use, efficient, and full-featured library for parsing command line arguments and subcommands when writing console/terminal applications."><meta name="keywords" content="rust, rustlang, rust-lang, clap"><title>clap - Rust</title><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../ayu.css" disabled ><script id="default-settings"></script><script src="../storage.js"></script><script src="../crates.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../clap/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><p class="location">Crate clap</p><div class="block version"><p>Version 2.33.3</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all clap's items</p></a><div class="block items"><ul><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#types">Type Definitions</a></li></ul></div><p class="location"></p><div id="sidebar-vars" data-name="clap" data-ty="mod" data-relpath="../"></div></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="">clap</a></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/clap/lib.rs.html#6-639" title="goto source code">[src]</a></span></h1><div class="docblock"><p><code>clap</code> is a simple-to-use, efficient, and full-featured library for parsing command line
+<link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../down-arrow.svg");}</style></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../clap/index.html'><div class='logo-container rust-logo'><img src='../rust-logo.png' alt='logo'></div></a><p class="location">Crate clap</p><div class="block version"><p>Version 2.33.3</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all clap's items</p></a><div class="block items"><ul><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#types">Type Definitions</a></li></ul></div><p class="location"></p><div id="sidebar-vars" data-name="clap" data-ty="mod" data-relpath="../"></div><script defer src="../sidebar-items.js"></script></div></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+                <a id="settings-menu" href="../settings.html"><img src="../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="">clap</a><button id="copy-path" onclick="copy_path(this)">⎘</button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/clap/lib.rs.html#6-639" title="goto source code">[src]</a></span></h1><div class="docblock"><p><code>clap</code> is a simple-to-use, efficient, and full-featured library for parsing command line
 arguments and subcommands when writing console/terminal applications.</p>
 <h2 id="about" class="section-header"><a href="#about">About</a></h2>
 <p><code>clap</code> is used to parse <em>and validate</em> the string of command line arguments provided by the user
@@ -38,57 +38,57 @@ more verbose.</p>
 <span class="kw">use</span> <span class="ident">clap</span>::{<span class="ident">Arg</span>, <span class="ident">App</span>, <span class="ident">SubCommand</span>};
 
 <span class="kw">fn</span> <span class="ident">main</span>() {
-    <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>(<span class="string">&quot;My Super Program&quot;</span>)
+    <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">App::new</span>(<span class="string">&quot;My Super Program&quot;</span>)
                           .<span class="ident">version</span>(<span class="string">&quot;1.0&quot;</span>)
                           .<span class="ident">author</span>(<span class="string">&quot;Kevin K. &lt;kbknapp@gmail.com&gt;&quot;</span>)
                           .<span class="ident">about</span>(<span class="string">&quot;Does awesome things&quot;</span>)
-                          .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;config&quot;</span>)
+                          .<span class="ident">arg</span>(<span class="ident">Arg::with_name</span>(<span class="string">&quot;config&quot;</span>)
                                .<span class="ident">short</span>(<span class="string">&quot;c&quot;</span>)
                                .<span class="ident">long</span>(<span class="string">&quot;config&quot;</span>)
                                .<span class="ident">value_name</span>(<span class="string">&quot;FILE&quot;</span>)
                                .<span class="ident">help</span>(<span class="string">&quot;Sets a custom config file&quot;</span>)
                                .<span class="ident">takes_value</span>(<span class="bool-val">true</span>))
-                          .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;INPUT&quot;</span>)
+                          .<span class="ident">arg</span>(<span class="ident">Arg::with_name</span>(<span class="string">&quot;INPUT&quot;</span>)
                                .<span class="ident">help</span>(<span class="string">&quot;Sets the input file to use&quot;</span>)
                                .<span class="ident">required</span>(<span class="bool-val">true</span>)
                                .<span class="ident">index</span>(<span class="number">1</span>))
-                          .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;v&quot;</span>)
+                          .<span class="ident">arg</span>(<span class="ident">Arg::with_name</span>(<span class="string">&quot;v&quot;</span>)
                                .<span class="ident">short</span>(<span class="string">&quot;v&quot;</span>)
                                .<span class="ident">multiple</span>(<span class="bool-val">true</span>)
                                .<span class="ident">help</span>(<span class="string">&quot;Sets the level of verbosity&quot;</span>))
-                          .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;test&quot;</span>)
+                          .<span class="ident">subcommand</span>(<span class="ident">SubCommand::with_name</span>(<span class="string">&quot;test&quot;</span>)
                                       .<span class="ident">about</span>(<span class="string">&quot;controls testing features&quot;</span>)
                                       .<span class="ident">version</span>(<span class="string">&quot;1.3&quot;</span>)
                                       .<span class="ident">author</span>(<span class="string">&quot;Someone E. &lt;someone_else@other.com&gt;&quot;</span>)
-                                      .<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">with_name</span>(<span class="string">&quot;debug&quot;</span>)
+                                      .<span class="ident">arg</span>(<span class="ident">Arg::with_name</span>(<span class="string">&quot;debug&quot;</span>)
                                           .<span class="ident">short</span>(<span class="string">&quot;d&quot;</span>)
                                           .<span class="ident">help</span>(<span class="string">&quot;print debug information verbosely&quot;</span>)))
                           .<span class="ident">get_matches</span>();
 
     <span class="comment">// Gets a value for config if supplied by user, or defaults to &quot;default.conf&quot;</span>
     <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;config&quot;</span>).<span class="ident">unwrap_or</span>(<span class="string">&quot;default.conf&quot;</span>);
-    <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Value for config: {}&quot;</span>, <span class="ident">config</span>);
+    <span class="macro">println!</span>(<span class="string">&quot;Value for config: {}&quot;</span>, <span class="ident">config</span>);
 
     <span class="comment">// Calling .unwrap() is safe here because &quot;INPUT&quot; is required (if &quot;INPUT&quot; wasn&#39;t</span>
     <span class="comment">// required we could have used an &#39;if let&#39; to conditionally get the value)</span>
-    <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Using input file: {}&quot;</span>, <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;INPUT&quot;</span>).<span class="ident">unwrap</span>());
+    <span class="macro">println!</span>(<span class="string">&quot;Using input file: {}&quot;</span>, <span class="ident">matches</span>.<span class="ident">value_of</span>(<span class="string">&quot;INPUT&quot;</span>).<span class="ident">unwrap</span>());
 
     <span class="comment">// Vary the output based on how many times the user used the &quot;verbose&quot; flag</span>
     <span class="comment">// (i.e. &#39;myprog -v -v -v&#39; or &#39;myprog -vvv&#39; vs &#39;myprog -v&#39;</span>
     <span class="kw">match</span> <span class="ident">matches</span>.<span class="ident">occurrences_of</span>(<span class="string">&quot;v&quot;</span>) {
-        <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;No verbose info&quot;</span>),
-        <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Some verbose info&quot;</span>),
-        <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Tons of verbose info&quot;</span>),
-        <span class="number">3</span> <span class="op">|</span> <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Don&#39;t be crazy&quot;</span>),
+        <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">println!</span>(<span class="string">&quot;No verbose info&quot;</span>),
+        <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">println!</span>(<span class="string">&quot;Some verbose info&quot;</span>),
+        <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">println!</span>(<span class="string">&quot;Tons of verbose info&quot;</span>),
+        <span class="number">3</span> <span class="op">|</span> <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">println!</span>(<span class="string">&quot;Don&#39;t be crazy&quot;</span>),
     }
 
     <span class="comment">// You can handle information about subcommands by requesting their matches by name</span>
     <span class="comment">// (as below), requesting just the name used, or both at the same time</span>
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matches</span>) <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">subcommand_matches</span>(<span class="string">&quot;test&quot;</span>) {
         <span class="kw">if</span> <span class="ident">matches</span>.<span class="ident">is_present</span>(<span class="string">&quot;debug&quot;</span>) {
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Printing debug info...&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">&quot;Printing debug info...&quot;</span>);
         } <span class="kw">else</span> {
-            <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;Printing normally...&quot;</span>);
+            <span class="macro">println!</span>(<span class="string">&quot;Printing normally...&quot;</span>);
         }
     }
 
@@ -107,7 +107,7 @@ runtime penalty.</p>
 <span class="kw">use</span> <span class="ident">clap</span>::{<span class="ident">Arg</span>, <span class="ident">App</span>, <span class="ident">SubCommand</span>};
 
 <span class="kw">fn</span> <span class="ident">main</span>() {
-    <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">new</span>(<span class="string">&quot;myapp&quot;</span>)
+    <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">App::new</span>(<span class="string">&quot;myapp&quot;</span>)
                           .<span class="ident">version</span>(<span class="string">&quot;1.0&quot;</span>)
                           .<span class="ident">author</span>(<span class="string">&quot;Kevin K. &lt;kbknapp@gmail.com&gt;&quot;</span>)
                           .<span class="ident">about</span>(<span class="string">&quot;Does awesome things&quot;</span>)
@@ -115,7 +115,7 @@ runtime penalty.</p>
                               <span class="string">&quot;-c, --config=[FILE] &#39;Sets a custom config file&#39;
                               &lt;INPUT&gt;              &#39;Sets the input file to use&#39;
                               -v...                &#39;Sets the level of verbosity&#39;&quot;</span>)
-                          .<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">with_name</span>(<span class="string">&quot;test&quot;</span>)
+                          .<span class="ident">subcommand</span>(<span class="ident">SubCommand::with_name</span>(<span class="string">&quot;test&quot;</span>)
                                       .<span class="ident">about</span>(<span class="string">&quot;controls testing features&quot;</span>)
                                       .<span class="ident">version</span>(<span class="string">&quot;1.3&quot;</span>)
                                       .<span class="ident">author</span>(<span class="string">&quot;Someone E. &lt;someone_else@other.com&gt;&quot;</span>)
@@ -170,12 +170,12 @@ compiled in by default and we need to enable a feature flag in Cargo.toml:</p>
 <span class="comment">// more clean, but takes a very small performance hit compared to the other two methods.</span>
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">clap</span>;
-<span class="kw">use</span> <span class="ident">clap</span>::<span class="ident">App</span>;
+<span class="kw">use</span> <span class="ident">clap::App</span>;
 
 <span class="kw">fn</span> <span class="ident">main</span>() {
     <span class="comment">// The YAML file is found relative to the current file, similar to how modules are found</span>
-    <span class="kw">let</span> <span class="ident">yaml</span> <span class="op">=</span> <span class="macro">load_yaml</span><span class="macro">!</span>(<span class="string">&quot;cli.yml&quot;</span>);
-    <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">App</span>::<span class="ident">from_yaml</span>(<span class="ident">yaml</span>).<span class="ident">get_matches</span>();
+    <span class="kw">let</span> <span class="ident">yaml</span> <span class="op">=</span> <span class="macro">load_yaml!</span>(<span class="string">&quot;cli.yml&quot;</span>);
+    <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">App::from_yaml</span>(<span class="ident">yaml</span>).<span class="ident">get_matches</span>();
 
     <span class="comment">// Same as previous examples...</span>
 }</pre></div>
@@ -187,7 +187,7 @@ builder pattern (the first example), but without all the verbosity.</p>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">clap</span>;
 
 <span class="kw">fn</span> <span class="ident">main</span>() {
-    <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="macro">clap_app</span><span class="macro">!</span>(<span class="ident">myapp</span> <span class="op">=</span><span class="op">&gt;</span>
+    <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="macro">clap_app!</span>(<span class="ident">myapp</span> <span class="op">=</span><span class="op">&gt;</span>
         (<span class="ident">version</span>: <span class="string">&quot;1.0&quot;</span>)
         (<span class="ident">author</span>: <span class="string">&quot;Kevin K. &lt;kbknapp@gmail.com&gt;&quot;</span>)
         (<span class="ident">about</span>: <span class="string">&quot;Does awesome things&quot;</span>)
@@ -254,10 +254,10 @@ clap = &quot;2&quot;
 
 <div class="example-wrap"><pre class="rust rust-example-rendered">
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">clap</span>;
-<span class="kw">use</span> <span class="ident">clap</span>::<span class="ident">App</span>;
+<span class="kw">use</span> <span class="ident">clap::App</span>;
 
 <span class="kw">fn</span> <span class="ident">main</span>() {
-  <span class="ident">App</span>::<span class="ident">new</span>(<span class="string">&quot;fake&quot;</span>).<span class="ident">version</span>(<span class="string">&quot;v1.0-beta&quot;</span>).<span class="ident">get_matches</span>();
+  <span class="ident">App::new</span>(<span class="string">&quot;fake&quot;</span>).<span class="ident">version</span>(<span class="string">&quot;v1.0-beta&quot;</span>).<span class="ident">get_matches</span>();
 }</pre></div>
 <ul>
 <li>Build your program <code>$ cargo build --release</code></li>
@@ -480,5 +480,5 @@ methods <a href="./struct.Arg.html#method.set"><code>Arg::set</code></a>, <a hre
 </td></tr><tr class="module-item"><td><a class="enum" href="enum.Shell.html" title="clap::Shell enum">Shell</a></td><td class="docblock-short"><p>Describes which shell to produce a completions file for</p>
 </td></tr></table><h2 id="types" class="section-header"><a href="#types">Type Definitions</a></h2>
 <table><tr class="module-item"><td><a class="type" href="type.Result.html" title="clap::Result type">Result</a></td><td class="docblock-short"><p>Short hand for <a href="https://doc.rust-lang.org/std/result/enum.Result.html"><code>Result</code></a> type</p>
-</td></tr></table></section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="clap" data-search-js="../search-index.js"></div>
+</td></tr></table></section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../" data-current-crate="clap" data-search-index-js="../search-index.js" data-search-js="../search.js"></div>
     <script src="../main.js"></script></body></html>

@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.5.4/src/compile.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>compile.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../regex/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../regex/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1246,25 +1246,25 @@
 <span id="1243">1243</span>
 <span id="1244">1244</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">iter</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">result</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
+<span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
+<span class="kw">use</span> <span class="ident">std::fmt</span>;
+<span class="kw">use</span> <span class="ident">std::iter</span>;
+<span class="kw">use</span> <span class="ident">std::result</span>;
+<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
-<span class="kw">use</span> <span class="ident">regex_syntax</span>::<span class="ident">hir</span>::{<span class="self">self</span>, <span class="ident">Hir</span>};
-<span class="kw">use</span> <span class="ident">regex_syntax</span>::<span class="ident">is_word_byte</span>;
-<span class="kw">use</span> <span class="ident">regex_syntax</span>::<span class="ident">utf8</span>::{<span class="ident">Utf8Range</span>, <span class="ident">Utf8Sequence</span>, <span class="ident">Utf8Sequences</span>};
+<span class="kw">use</span> <span class="ident">regex_syntax::hir</span>::{<span class="self">self</span>, <span class="ident">Hir</span>};
+<span class="kw">use</span> <span class="ident">regex_syntax::is_word_byte</span>;
+<span class="kw">use</span> <span class="ident">regex_syntax::utf8</span>::{<span class="ident">Utf8Range</span>, <span class="ident">Utf8Sequence</span>, <span class="ident">Utf8Sequences</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prog</span>::{
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::prog</span>::{
     <span class="ident">EmptyLook</span>, <span class="ident">Inst</span>, <span class="ident">InstBytes</span>, <span class="ident">InstChar</span>, <span class="ident">InstEmptyLook</span>, <span class="ident">InstPtr</span>, <span class="ident">InstRanges</span>,
     <span class="ident">InstSave</span>, <span class="ident">InstSplit</span>, <span class="ident">Program</span>,
 };
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Error</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::Error</span>;
 
-<span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Patch</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
-<span class="kw">type</span> <span class="ident">ResultOrEmpty</span> <span class="op">=</span> <span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Patch</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
+<span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident">Patch</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
+<span class="kw">type</span> <span class="ident">ResultOrEmpty</span> <span class="op">=</span> <span class="ident">result::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Patch</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Patch</span> {
@@ -1295,14 +1295,14 @@
     <span class="doccomment">/// Various options can be set before calling `compile` on an expression.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Compiler</span> {
-            <span class="ident">insts</span>: <span class="macro">vec</span><span class="macro">!</span>[],
-            <span class="ident">compiled</span>: <span class="ident">Program</span>::<span class="ident">new</span>(),
-            <span class="ident">capture_name_idx</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
+            <span class="ident">insts</span>: <span class="macro">vec!</span>[],
+            <span class="ident">compiled</span>: <span class="ident">Program::new</span>(),
+            <span class="ident">capture_name_idx</span>: <span class="ident">HashMap::new</span>(),
             <span class="ident">num_exprs</span>: <span class="number">0</span>,
             <span class="ident">size_limit</span>: <span class="number">10</span> <span class="op">*</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">20</span>),
-            <span class="ident">suffix_cache</span>: <span class="ident">SuffixCache</span>::<span class="ident">new</span>(<span class="number">1000</span>),
-            <span class="ident">utf8_seqs</span>: <span class="prelude-val">Some</span>(<span class="ident">Utf8Sequences</span>::<span class="ident">new</span>(<span class="string">&#39;\x00&#39;</span>, <span class="string">&#39;\x00&#39;</span>)),
-            <span class="ident">byte_classes</span>: <span class="ident">ByteClassSet</span>::<span class="ident">new</span>(),
+            <span class="ident">suffix_cache</span>: <span class="ident">SuffixCache::new</span>(<span class="number">1000</span>),
+            <span class="ident">utf8_seqs</span>: <span class="prelude-val">Some</span>(<span class="ident">Utf8Sequences::new</span>(<span class="string">&#39;\x00&#39;</span>, <span class="string">&#39;\x00&#39;</span>)),
+            <span class="ident">byte_classes</span>: <span class="ident">ByteClassSet::new</span>(),
             <span class="ident">extra_inst_bytes</span>: <span class="number">0</span>,
         }
     }
@@ -1364,8 +1364,8 @@
     <span class="doccomment">/// The compiler is guaranteed to succeed unless the program exceeds the</span>
     <span class="doccomment">/// specified size limit. If the size limit is exceeded, then compilation</span>
     <span class="doccomment">/// stops and returns an error.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">exprs</span>: <span class="kw-2">&amp;</span>[<span class="ident">Hir</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Program</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">exprs</span>.<span class="ident">is_empty</span>());
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">exprs</span>: <span class="kw-2">&amp;</span>[<span class="ident">Hir</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident">Program</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">exprs</span>.<span class="ident">is_empty</span>());
         <span class="self">self</span>.<span class="ident">num_exprs</span> <span class="op">=</span> <span class="ident">exprs</span>.<span class="ident">len</span>();
         <span class="kw">if</span> <span class="ident">exprs</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
             <span class="self">self</span>.<span class="ident">compile_one</span>(<span class="kw-2">&amp;</span><span class="ident">exprs</span>[<span class="number">0</span>])
@@ -1374,19 +1374,19 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">compile_one</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Program</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">compile_one</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident">Program</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="comment">// If we&#39;re compiling a forward DFA and we aren&#39;t anchored, then</span>
         <span class="comment">// add a `.*?` before the first capture group.</span>
         <span class="comment">// Other matching engines handle this by baking the logic into the</span>
         <span class="comment">// matching engine itself.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dotstar_patch</span> <span class="op">=</span> <span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">Hole</span>::<span class="prelude-val">None</span>, <span class="ident">entry</span>: <span class="number">0</span> };
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dotstar_patch</span> <span class="op">=</span> <span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">Hole::None</span>, <span class="ident">entry</span>: <span class="number">0</span> };
         <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">is_anchored_start</span> <span class="op">=</span> <span class="ident">expr</span>.<span class="ident">is_anchored_start</span>();
         <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">is_anchored_end</span> <span class="op">=</span> <span class="ident">expr</span>.<span class="ident">is_anchored_end</span>();
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">needs_dotstar</span>() {
             <span class="ident">dotstar_patch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">c_dotstar</span>()<span class="question-mark">?</span>;
             <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">start</span> <span class="op">=</span> <span class="ident">dotstar_patch</span>.<span class="ident">entry</span>;
         }
-        <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">captures</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="prelude-val">None</span>];
+        <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">captures</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="prelude-val">None</span>];
         <span class="kw">let</span> <span class="ident">patch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">c_capture</span>(<span class="number">0</span>, <span class="ident">expr</span>)<span class="question-mark">?</span>.<span class="ident">unwrap_or</span>(<span class="self">self</span>.<span class="ident">next_inst</span>());
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">needs_dotstar</span>() {
             <span class="self">self</span>.<span class="ident">fill</span>(<span class="ident">dotstar_patch</span>.<span class="ident">hole</span>, <span class="ident">patch</span>.<span class="ident">entry</span>);
@@ -1394,22 +1394,22 @@
             <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">start</span> <span class="op">=</span> <span class="ident">patch</span>.<span class="ident">entry</span>;
         }
         <span class="self">self</span>.<span class="ident">fill_to_next</span>(<span class="ident">patch</span>.<span class="ident">hole</span>);
-        <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">matches</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">len</span>()];
-        <span class="self">self</span>.<span class="ident">push_compiled</span>(<span class="ident">Inst</span>::<span class="ident">Match</span>(<span class="number">0</span>));
+        <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">matches</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">len</span>()];
+        <span class="self">self</span>.<span class="ident">push_compiled</span>(<span class="ident">Inst::Match</span>(<span class="number">0</span>));
         <span class="self">self</span>.<span class="ident">compile_finish</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">compile_many</span>(
         <span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">exprs</span>: <span class="kw-2">&amp;</span>[<span class="ident">Hir</span>],
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Program</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">exprs</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span>);
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident">Program</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="macro">debug_assert!</span>(<span class="ident">exprs</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span>);
 
         <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">is_anchored_start</span> <span class="op">=</span>
             <span class="ident">exprs</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">is_anchored_start</span>());
         <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">is_anchored_end</span> <span class="op">=</span>
             <span class="ident">exprs</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">is_anchored_end</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dotstar_patch</span> <span class="op">=</span> <span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">Hole</span>::<span class="prelude-val">None</span>, <span class="ident">entry</span>: <span class="number">0</span> };
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dotstar_patch</span> <span class="op">=</span> <span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">Hole::None</span>, <span class="ident">entry</span>: <span class="number">0</span> };
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">needs_dotstar</span>() {
             <span class="ident">dotstar_patch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">c_dotstar</span>()<span class="question-mark">?</span>;
             <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">start</span> <span class="op">=</span> <span class="ident">dotstar_patch</span>.<span class="ident">entry</span>;
@@ -1418,7 +1418,7 @@
         }
         <span class="self">self</span>.<span class="ident">fill_to_next</span>(<span class="ident">dotstar_patch</span>.<span class="ident">hole</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_hole</span> <span class="op">=</span> <span class="ident">Hole</span>::<span class="prelude-val">None</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_hole</span> <span class="op">=</span> <span class="ident">Hole::None</span>;
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">expr</span>) <span class="kw">in</span> <span class="ident">exprs</span>[<span class="number">0</span>..<span class="ident">exprs</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>].<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="self">self</span>.<span class="ident">fill_to_next</span>(<span class="ident">prev_hole</span>);
             <span class="kw">let</span> <span class="ident">split</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">push_split_hole</span>();
@@ -1426,7 +1426,7 @@
                 <span class="self">self</span>.<span class="ident">c_capture</span>(<span class="number">0</span>, <span class="ident">expr</span>)<span class="question-mark">?</span>.<span class="ident">unwrap_or</span>(<span class="self">self</span>.<span class="ident">next_inst</span>());
             <span class="self">self</span>.<span class="ident">fill_to_next</span>(<span class="ident">hole</span>);
             <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">matches</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">len</span>());
-            <span class="self">self</span>.<span class="ident">push_compiled</span>(<span class="ident">Inst</span>::<span class="ident">Match</span>(<span class="ident">i</span>));
+            <span class="self">self</span>.<span class="ident">push_compiled</span>(<span class="ident">Inst::Match</span>(<span class="ident">i</span>));
             <span class="ident">prev_hole</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">fill_split</span>(<span class="ident">split</span>, <span class="prelude-val">Some</span>(<span class="ident">entry</span>), <span class="prelude-val">None</span>);
         }
         <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">exprs</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
@@ -1435,15 +1435,15 @@
         <span class="self">self</span>.<span class="ident">fill</span>(<span class="ident">prev_hole</span>, <span class="ident">entry</span>);
         <span class="self">self</span>.<span class="ident">fill_to_next</span>(<span class="ident">hole</span>);
         <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">matches</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">len</span>());
-        <span class="self">self</span>.<span class="ident">push_compiled</span>(<span class="ident">Inst</span>::<span class="ident">Match</span>(<span class="ident">i</span>));
+        <span class="self">self</span>.<span class="ident">push_compiled</span>(<span class="ident">Inst::Match</span>(<span class="ident">i</span>));
         <span class="self">self</span>.<span class="ident">compile_finish</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">compile_finish</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Program</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">compile_finish</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident">Program</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">insts</span> <span class="op">=</span>
             <span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">inst</span><span class="op">|</span> <span class="ident">inst</span>.<span class="ident">unwrap</span>()).<span class="ident">collect</span>();
         <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">byte_classes</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">byte_classes</span>.<span class="ident">byte_classes</span>();
-        <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">capture_name_idx</span> <span class="op">=</span> <span class="ident">Arc</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">capture_name_idx</span>);
+        <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">capture_name_idx</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="self">self</span>.<span class="ident">capture_name_idx</span>);
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">compiled</span>)
     }
 
@@ -1503,62 +1503,62 @@
     <span class="doccomment">/// Ok(None) is returned when an expression is compiled to no</span>
     <span class="doccomment">/// instruction, and so no patch.entry value makes sense.</span>
     <span class="kw">fn</span> <span class="ident">c</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultOrEmpty</span> {
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prog</span>;
-        <span class="kw">use</span> <span class="ident">regex_syntax</span>::<span class="ident">hir</span>::<span class="ident">HirKind</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::prog</span>;
+        <span class="kw">use</span> <span class="ident">regex_syntax::hir::HirKind</span>::<span class="kw-2">*</span>;
 
         <span class="self">self</span>.<span class="ident">check_size</span>()<span class="question-mark">?</span>;
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">expr</span>.<span class="ident">kind</span>() {
             <span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
-            <span class="ident">Literal</span>(<span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Unicode</span>(<span class="ident">c</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">c_char</span>(<span class="ident">c</span>),
-            <span class="ident">Literal</span>(<span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Byte</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">uses_bytes</span>());
+            <span class="ident">Literal</span>(<span class="ident">hir::Literal::Unicode</span>(<span class="ident">c</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">c_char</span>(<span class="ident">c</span>),
+            <span class="ident">Literal</span>(<span class="ident">hir::Literal::Byte</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">assert!</span>(<span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">uses_bytes</span>());
                 <span class="self">self</span>.<span class="ident">c_byte</span>(<span class="ident">b</span>)
             }
-            <span class="ident">Class</span>(<span class="ident">hir</span>::<span class="ident">Class</span>::<span class="ident">Unicode</span>(<span class="kw-2">ref</span> <span class="ident">cls</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">c_class</span>(<span class="ident">cls</span>.<span class="ident">ranges</span>()),
-            <span class="ident">Class</span>(<span class="ident">hir</span>::<span class="ident">Class</span>::<span class="ident">Bytes</span>(<span class="kw-2">ref</span> <span class="ident">cls</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Class</span>(<span class="ident">hir::Class::Unicode</span>(<span class="kw-2">ref</span> <span class="ident">cls</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">c_class</span>(<span class="ident">cls</span>.<span class="ident">ranges</span>()),
+            <span class="ident">Class</span>(<span class="ident">hir::Class::Bytes</span>(<span class="kw-2">ref</span> <span class="ident">cls</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">uses_bytes</span>() {
                     <span class="self">self</span>.<span class="ident">c_class_bytes</span>(<span class="ident">cls</span>.<span class="ident">ranges</span>())
                 } <span class="kw">else</span> {
-                    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">cls</span>.<span class="ident">is_all_ascii</span>());
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">char_ranges</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+                    <span class="macro">assert!</span>(<span class="ident">cls</span>.<span class="ident">is_all_ascii</span>());
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">char_ranges</span> <span class="op">=</span> <span class="macro">vec!</span>[];
                     <span class="kw">for</span> <span class="ident">r</span> <span class="kw">in</span> <span class="ident">cls</span>.<span class="ident">iter</span>() {
                         <span class="kw">let</span> (<span class="ident">s</span>, <span class="ident">e</span>) <span class="op">=</span> (<span class="ident">r</span>.<span class="ident">start</span>() <span class="kw">as</span> <span class="ident">char</span>, <span class="ident">r</span>.<span class="ident">end</span>() <span class="kw">as</span> <span class="ident">char</span>);
-                        <span class="ident">char_ranges</span>.<span class="ident">push</span>(<span class="ident">hir</span>::<span class="ident">ClassUnicodeRange</span>::<span class="ident">new</span>(<span class="ident">s</span>, <span class="ident">e</span>));
+                        <span class="ident">char_ranges</span>.<span class="ident">push</span>(<span class="ident">hir::ClassUnicodeRange::new</span>(<span class="ident">s</span>, <span class="ident">e</span>));
                     }
                     <span class="self">self</span>.<span class="ident">c_class</span>(<span class="kw-2">&amp;</span><span class="ident">char_ranges</span>)
                 }
             }
-            <span class="ident">Anchor</span>(<span class="ident">hir</span>::<span class="ident">Anchor</span>::<span class="ident">StartLine</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">is_reverse</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Anchor</span>(<span class="ident">hir::Anchor::StartLine</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">is_reverse</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">byte_classes</span>.<span class="ident">set_range</span>(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
-                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog</span>::<span class="ident">EmptyLook</span>::<span class="ident">EndLine</span>)
+                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog::EmptyLook::EndLine</span>)
             }
-            <span class="ident">Anchor</span>(<span class="ident">hir</span>::<span class="ident">Anchor</span>::<span class="ident">StartLine</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Anchor</span>(<span class="ident">hir::Anchor::StartLine</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">byte_classes</span>.<span class="ident">set_range</span>(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
-                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog</span>::<span class="ident">EmptyLook</span>::<span class="ident">StartLine</span>)
+                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog::EmptyLook::StartLine</span>)
             }
-            <span class="ident">Anchor</span>(<span class="ident">hir</span>::<span class="ident">Anchor</span>::<span class="ident">EndLine</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">is_reverse</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Anchor</span>(<span class="ident">hir::Anchor::EndLine</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">is_reverse</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">byte_classes</span>.<span class="ident">set_range</span>(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
-                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog</span>::<span class="ident">EmptyLook</span>::<span class="ident">StartLine</span>)
+                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog::EmptyLook::StartLine</span>)
             }
-            <span class="ident">Anchor</span>(<span class="ident">hir</span>::<span class="ident">Anchor</span>::<span class="ident">EndLine</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Anchor</span>(<span class="ident">hir::Anchor::EndLine</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">byte_classes</span>.<span class="ident">set_range</span>(<span class="string">b&#39;\n&#39;</span>, <span class="string">b&#39;\n&#39;</span>);
-                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog</span>::<span class="ident">EmptyLook</span>::<span class="ident">EndLine</span>)
+                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog::EmptyLook::EndLine</span>)
             }
-            <span class="ident">Anchor</span>(<span class="ident">hir</span>::<span class="ident">Anchor</span>::<span class="ident">StartText</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">is_reverse</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog</span>::<span class="ident">EmptyLook</span>::<span class="ident">EndText</span>)
+            <span class="ident">Anchor</span>(<span class="ident">hir::Anchor::StartText</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">is_reverse</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog::EmptyLook::EndText</span>)
             }
-            <span class="ident">Anchor</span>(<span class="ident">hir</span>::<span class="ident">Anchor</span>::<span class="ident">StartText</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog</span>::<span class="ident">EmptyLook</span>::<span class="ident">StartText</span>)
+            <span class="ident">Anchor</span>(<span class="ident">hir::Anchor::StartText</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog::EmptyLook::StartText</span>)
             }
-            <span class="ident">Anchor</span>(<span class="ident">hir</span>::<span class="ident">Anchor</span>::<span class="ident">EndText</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">is_reverse</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog</span>::<span class="ident">EmptyLook</span>::<span class="ident">StartText</span>)
+            <span class="ident">Anchor</span>(<span class="ident">hir::Anchor::EndText</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">is_reverse</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog::EmptyLook::StartText</span>)
             }
-            <span class="ident">Anchor</span>(<span class="ident">hir</span>::<span class="ident">Anchor</span>::<span class="ident">EndText</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog</span>::<span class="ident">EmptyLook</span>::<span class="ident">EndText</span>)
+            <span class="ident">Anchor</span>(<span class="ident">hir::Anchor::EndText</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog::EmptyLook::EndText</span>)
             }
-            <span class="ident">WordBoundary</span>(<span class="ident">hir</span>::<span class="ident">WordBoundary</span>::<span class="ident">Unicode</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="op">!</span><span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-perl&quot;</span>) {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">Syntax</span>(
+            <span class="ident">WordBoundary</span>(<span class="ident">hir::WordBoundary::Unicode</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="op">!</span><span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-perl&quot;</span>) {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::Syntax</span>(
                         <span class="string">&quot;Unicode word boundaries are unavailable when \
                          the unicode-perl feature is disabled&quot;</span>
                             .<span class="ident">to_string</span>(),
@@ -1573,11 +1573,11 @@
                 <span class="comment">// when it sees an ASCII byte that maps to a byte class with</span>
                 <span class="comment">// non-ASCII bytes. This ensures that never happens.</span>
                 <span class="self">self</span>.<span class="ident">byte_classes</span>.<span class="ident">set_range</span>(<span class="number">0</span>, <span class="number">0x7F</span>);
-                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog</span>::<span class="ident">EmptyLook</span>::<span class="ident">WordBoundary</span>)
+                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog::EmptyLook::WordBoundary</span>)
             }
-            <span class="ident">WordBoundary</span>(<span class="ident">hir</span>::<span class="ident">WordBoundary</span>::<span class="ident">UnicodeNegate</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="op">!</span><span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-perl&quot;</span>) {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">Syntax</span>(
+            <span class="ident">WordBoundary</span>(<span class="ident">hir::WordBoundary::UnicodeNegate</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="op">!</span><span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unicode-perl&quot;</span>) {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::Syntax</span>(
                         <span class="string">&quot;Unicode word boundaries are unavailable when \
                          the unicode-perl feature is disabled&quot;</span>
                             .<span class="ident">to_string</span>(),
@@ -1587,25 +1587,25 @@
                 <span class="self">self</span>.<span class="ident">byte_classes</span>.<span class="ident">set_word_boundary</span>();
                 <span class="comment">// See comments above for why we set the ASCII range here.</span>
                 <span class="self">self</span>.<span class="ident">byte_classes</span>.<span class="ident">set_range</span>(<span class="number">0</span>, <span class="number">0x7F</span>);
-                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog</span>::<span class="ident">EmptyLook</span>::<span class="ident">NotWordBoundary</span>)
+                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog::EmptyLook::NotWordBoundary</span>)
             }
-            <span class="ident">WordBoundary</span>(<span class="ident">hir</span>::<span class="ident">WordBoundary</span>::<span class="ident">Ascii</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">WordBoundary</span>(<span class="ident">hir::WordBoundary::Ascii</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">byte_classes</span>.<span class="ident">set_word_boundary</span>();
-                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog</span>::<span class="ident">EmptyLook</span>::<span class="ident">WordBoundaryAscii</span>)
+                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog::EmptyLook::WordBoundaryAscii</span>)
             }
-            <span class="ident">WordBoundary</span>(<span class="ident">hir</span>::<span class="ident">WordBoundary</span>::<span class="ident">AsciiNegate</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">WordBoundary</span>(<span class="ident">hir::WordBoundary::AsciiNegate</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">byte_classes</span>.<span class="ident">set_word_boundary</span>();
-                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog</span>::<span class="ident">EmptyLook</span>::<span class="ident">NotWordBoundaryAscii</span>)
+                <span class="self">self</span>.<span class="ident">c_empty_look</span>(<span class="ident">prog::EmptyLook::NotWordBoundaryAscii</span>)
             }
             <span class="ident">Group</span>(<span class="kw-2">ref</span> <span class="ident">g</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">g</span>.<span class="ident">kind</span> {
-                <span class="ident">hir</span>::<span class="ident">GroupKind</span>::<span class="ident">NonCapturing</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">c</span>(<span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">hir</span>),
-                <span class="ident">hir</span>::<span class="ident">GroupKind</span>::<span class="ident">CaptureIndex</span>(<span class="ident">index</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">hir::GroupKind::NonCapturing</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">c</span>(<span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">hir</span>),
+                <span class="ident">hir::GroupKind::CaptureIndex</span>(<span class="ident">index</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">captures</span>.<span class="ident">len</span>() {
                         <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">captures</span>.<span class="ident">push</span>(<span class="prelude-val">None</span>);
                     }
                     <span class="self">self</span>.<span class="ident">c_capture</span>(<span class="number">2</span> <span class="op">*</span> <span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">hir</span>)
                 }
-                <span class="ident">hir</span>::<span class="ident">GroupKind</span>::<span class="ident">CaptureName</span> { <span class="ident">index</span>, <span class="kw-2">ref</span> <span class="ident">name</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">hir::GroupKind::CaptureName</span> { <span class="ident">index</span>, <span class="kw-2">ref</span> <span class="ident">name</span> } <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">captures</span>.<span class="ident">len</span>() {
                         <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">to_string</span>();
                         <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">captures</span>.<span class="ident">push</span>(<span class="prelude-val">Some</span>(<span class="ident">n</span>.<span class="ident">clone</span>()));
@@ -1634,28 +1634,28 @@
             <span class="self">self</span>.<span class="ident">c</span>(<span class="ident">expr</span>)
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">len</span>();
-            <span class="kw">let</span> <span class="ident">hole</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole</span>::<span class="ident">Save</span> { <span class="ident">slot</span>: <span class="ident">first_slot</span> });
+            <span class="kw">let</span> <span class="ident">hole</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole::Save</span> { <span class="ident">slot</span>: <span class="ident">first_slot</span> });
             <span class="kw">let</span> <span class="ident">patch</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">c</span>(<span class="ident">expr</span>)<span class="question-mark">?</span>.<span class="ident">unwrap_or</span>(<span class="self">self</span>.<span class="ident">next_inst</span>());
             <span class="self">self</span>.<span class="ident">fill</span>(<span class="ident">hole</span>, <span class="ident">patch</span>.<span class="ident">entry</span>);
             <span class="self">self</span>.<span class="ident">fill_to_next</span>(<span class="ident">patch</span>.<span class="ident">hole</span>);
-            <span class="kw">let</span> <span class="ident">hole</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole</span>::<span class="ident">Save</span> { <span class="ident">slot</span>: <span class="ident">first_slot</span> <span class="op">+</span> <span class="number">1</span> });
+            <span class="kw">let</span> <span class="ident">hole</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole::Save</span> { <span class="ident">slot</span>: <span class="ident">first_slot</span> <span class="op">+</span> <span class="number">1</span> });
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">hole</span>, <span class="ident">entry</span>: <span class="ident">entry</span> }))
         }
     }
 
     <span class="kw">fn</span> <span class="ident">c_dotstar</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">only_utf8</span>() {
-            <span class="self">self</span>.<span class="ident">c</span>(<span class="kw-2">&amp;</span><span class="ident">Hir</span>::<span class="ident">repetition</span>(<span class="ident">hir</span>::<span class="ident">Repetition</span> {
-                <span class="ident">kind</span>: <span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="ident">ZeroOrMore</span>,
+            <span class="self">self</span>.<span class="ident">c</span>(<span class="kw-2">&amp;</span><span class="ident">Hir::repetition</span>(<span class="ident">hir::Repetition</span> {
+                <span class="ident">kind</span>: <span class="ident">hir::RepetitionKind::ZeroOrMore</span>,
                 <span class="ident">greedy</span>: <span class="bool-val">false</span>,
-                <span class="ident">hir</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Hir</span>::<span class="ident">any</span>(<span class="bool-val">true</span>)),
+                <span class="ident">hir</span>: <span class="ident">Box::new</span>(<span class="ident">Hir::any</span>(<span class="bool-val">true</span>)),
             }))<span class="question-mark">?</span>
             .<span class="ident">unwrap</span>()
         } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">c</span>(<span class="kw-2">&amp;</span><span class="ident">Hir</span>::<span class="ident">repetition</span>(<span class="ident">hir</span>::<span class="ident">Repetition</span> {
-                <span class="ident">kind</span>: <span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="ident">ZeroOrMore</span>,
+            <span class="self">self</span>.<span class="ident">c</span>(<span class="kw-2">&amp;</span><span class="ident">Hir::repetition</span>(<span class="ident">hir::Repetition</span> {
+                <span class="ident">kind</span>: <span class="ident">hir::RepetitionKind::ZeroOrMore</span>,
                 <span class="ident">greedy</span>: <span class="bool-val">false</span>,
-                <span class="ident">hir</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Hir</span>::<span class="ident">any</span>(<span class="bool-val">false</span>)),
+                <span class="ident">hir</span>: <span class="ident">Box::new</span>(<span class="ident">Hir::any</span>(<span class="bool-val">false</span>)),
             }))<span class="question-mark">?</span>
             .<span class="ident">unwrap</span>()
         })
@@ -1666,57 +1666,57 @@
             <span class="kw">if</span> <span class="ident">c</span>.<span class="ident">is_ascii</span>() {
                 <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">c</span> <span class="kw">as</span> <span class="ident">u8</span>;
                 <span class="kw">let</span> <span class="ident">hole</span> <span class="op">=</span>
-                    <span class="self">self</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole</span>::<span class="ident">Bytes</span> { <span class="ident">start</span>: <span class="ident">b</span>, <span class="ident">end</span>: <span class="ident">b</span> });
+                    <span class="self">self</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole::Bytes</span> { <span class="ident">start</span>: <span class="ident">b</span>, <span class="ident">end</span>: <span class="ident">b</span> });
                 <span class="self">self</span>.<span class="ident">byte_classes</span>.<span class="ident">set_range</span>(<span class="ident">b</span>, <span class="ident">b</span>);
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Patch</span> { <span class="ident">hole</span>, <span class="ident">entry</span>: <span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> }))
             } <span class="kw">else</span> {
-                <span class="self">self</span>.<span class="ident">c_class</span>(<span class="kw-2">&amp;</span>[<span class="ident">hir</span>::<span class="ident">ClassUnicodeRange</span>::<span class="ident">new</span>(<span class="ident">c</span>, <span class="ident">c</span>)])
+                <span class="self">self</span>.<span class="ident">c_class</span>(<span class="kw-2">&amp;</span>[<span class="ident">hir::ClassUnicodeRange::new</span>(<span class="ident">c</span>, <span class="ident">c</span>)])
             }
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">hole</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole</span>::<span class="ident">Char</span> { <span class="ident">c</span>: <span class="ident">c</span> });
+            <span class="kw">let</span> <span class="ident">hole</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole::Char</span> { <span class="ident">c</span>: <span class="ident">c</span> });
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Patch</span> { <span class="ident">hole</span>, <span class="ident">entry</span>: <span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> }))
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">c_class</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ranges</span>: <span class="kw-2">&amp;</span>[<span class="ident">hir</span>::<span class="ident">ClassUnicodeRange</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultOrEmpty</span> {
-        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">size_of</span>;
+    <span class="kw">fn</span> <span class="ident">c_class</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ranges</span>: <span class="kw-2">&amp;</span>[<span class="ident">hir::ClassUnicodeRange</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultOrEmpty</span> {
+        <span class="kw">use</span> <span class="ident">std::mem::size_of</span>;
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">ranges</span>.<span class="ident">is_empty</span>());
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">ranges</span>.<span class="ident">is_empty</span>());
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">compiled</span>.<span class="ident">uses_bytes</span>() {
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">CompileClass</span> { <span class="ident">c</span>: <span class="self">self</span>, <span class="ident">ranges</span>: <span class="ident">ranges</span> }.<span class="ident">compile</span>()<span class="question-mark">?</span>))
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">ranges</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">char</span>, <span class="ident">char</span>)<span class="op">&gt;</span> <span class="op">=</span>
                 <span class="ident">ranges</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">r</span><span class="op">|</span> (<span class="ident">r</span>.<span class="ident">start</span>(), <span class="ident">r</span>.<span class="ident">end</span>())).<span class="ident">collect</span>();
             <span class="kw">let</span> <span class="ident">hole</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">ranges</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="ident">ranges</span>[<span class="number">0</span>].<span class="number">0</span> <span class="op">=</span><span class="op">=</span> <span class="ident">ranges</span>[<span class="number">0</span>].<span class="number">1</span> {
-                <span class="self">self</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole</span>::<span class="ident">Char</span> { <span class="ident">c</span>: <span class="ident">ranges</span>[<span class="number">0</span>].<span class="number">0</span> })
+                <span class="self">self</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole::Char</span> { <span class="ident">c</span>: <span class="ident">ranges</span>[<span class="number">0</span>].<span class="number">0</span> })
             } <span class="kw">else</span> {
                 <span class="self">self</span>.<span class="ident">extra_inst_bytes</span> <span class="op">+</span><span class="op">=</span>
                     <span class="ident">ranges</span>.<span class="ident">len</span>() <span class="op">*</span> (<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="number">2</span>);
-                <span class="self">self</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole</span>::<span class="ident">Ranges</span> { <span class="ident">ranges</span>: <span class="ident">ranges</span> })
+                <span class="self">self</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole::Ranges</span> { <span class="ident">ranges</span>: <span class="ident">ranges</span> })
             };
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">hole</span>, <span class="ident">entry</span>: <span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> }))
         }
     }
 
     <span class="kw">fn</span> <span class="ident">c_byte</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultOrEmpty</span> {
-        <span class="self">self</span>.<span class="ident">c_class_bytes</span>(<span class="kw-2">&amp;</span>[<span class="ident">hir</span>::<span class="ident">ClassBytesRange</span>::<span class="ident">new</span>(<span class="ident">b</span>, <span class="ident">b</span>)])
+        <span class="self">self</span>.<span class="ident">c_class_bytes</span>(<span class="kw-2">&amp;</span>[<span class="ident">hir::ClassBytesRange::new</span>(<span class="ident">b</span>, <span class="ident">b</span>)])
     }
 
     <span class="kw">fn</span> <span class="ident">c_class_bytes</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">ranges</span>: <span class="kw-2">&amp;</span>[<span class="ident">hir</span>::<span class="ident">ClassBytesRange</span>],
+        <span class="ident">ranges</span>: <span class="kw-2">&amp;</span>[<span class="ident">hir::ClassBytesRange</span>],
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultOrEmpty</span> {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">ranges</span>.<span class="ident">is_empty</span>());
+        <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">ranges</span>.<span class="ident">is_empty</span>());
 
         <span class="kw">let</span> <span class="ident">first_split_entry</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">len</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">holes</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_hole</span> <span class="op">=</span> <span class="ident">Hole</span>::<span class="prelude-val">None</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">holes</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_hole</span> <span class="op">=</span> <span class="ident">Hole::None</span>;
         <span class="kw">for</span> <span class="ident">r</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">ranges</span>[<span class="number">0</span>..<span class="ident">ranges</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>] {
             <span class="self">self</span>.<span class="ident">fill_to_next</span>(<span class="ident">prev_hole</span>);
             <span class="kw">let</span> <span class="ident">split</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">push_split_hole</span>();
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">len</span>();
             <span class="self">self</span>.<span class="ident">byte_classes</span>.<span class="ident">set_range</span>(<span class="ident">r</span>.<span class="ident">start</span>(), <span class="ident">r</span>.<span class="ident">end</span>());
-            <span class="ident">holes</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole</span>::<span class="ident">Bytes</span> {
+            <span class="ident">holes</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole::Bytes</span> {
                 <span class="ident">start</span>: <span class="ident">r</span>.<span class="ident">start</span>(),
                 <span class="ident">end</span>: <span class="ident">r</span>.<span class="ident">end</span>(),
             }));
@@ -1726,14 +1726,14 @@
         <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">ranges</span>[<span class="ident">ranges</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>];
         <span class="self">self</span>.<span class="ident">byte_classes</span>.<span class="ident">set_range</span>(<span class="ident">r</span>.<span class="ident">start</span>(), <span class="ident">r</span>.<span class="ident">end</span>());
         <span class="ident">holes</span>.<span class="ident">push</span>(
-            <span class="self">self</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole</span>::<span class="ident">Bytes</span> { <span class="ident">start</span>: <span class="ident">r</span>.<span class="ident">start</span>(), <span class="ident">end</span>: <span class="ident">r</span>.<span class="ident">end</span>() }),
+            <span class="self">self</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole::Bytes</span> { <span class="ident">start</span>: <span class="ident">r</span>.<span class="ident">start</span>(), <span class="ident">end</span>: <span class="ident">r</span>.<span class="ident">end</span>() }),
         );
         <span class="self">self</span>.<span class="ident">fill</span>(<span class="ident">prev_hole</span>, <span class="ident">next</span>);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">Hole</span>::<span class="ident">Many</span>(<span class="ident">holes</span>), <span class="ident">entry</span>: <span class="ident">first_split_entry</span> }))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">Hole::Many</span>(<span class="ident">holes</span>), <span class="ident">entry</span>: <span class="ident">first_split_entry</span> }))
     }
 
     <span class="kw">fn</span> <span class="ident">c_empty_look</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">look</span>: <span class="ident">EmptyLook</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultOrEmpty</span> {
-        <span class="kw">let</span> <span class="ident">hole</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole</span>::<span class="ident">EmptyLook</span> { <span class="ident">look</span>: <span class="ident">look</span> });
+        <span class="kw">let</span> <span class="ident">hole</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole::EmptyLook</span> { <span class="ident">look</span>: <span class="ident">look</span> });
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">hole</span>, <span class="ident">entry</span>: <span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> }))
     }
 
@@ -1762,7 +1762,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">c_alternate</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">exprs</span>: <span class="kw-2">&amp;</span>[<span class="ident">Hir</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultOrEmpty</span> {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(
+        <span class="macro">debug_assert!</span>(
             <span class="ident">exprs</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span>,
             <span class="string">&quot;alternates must have at least 2 exprs&quot;</span>
         );
@@ -1772,11 +1772,11 @@
 
         <span class="comment">// Save up all of the holes from each alternate. They will all get</span>
         <span class="comment">// patched to point to the same location.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">holes</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">holes</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
         <span class="comment">// true indicates that the hole is a split where we want to fill</span>
         <span class="comment">// the second branch.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_hole</span> <span class="op">=</span> (<span class="ident">Hole</span>::<span class="prelude-val">None</span>, <span class="bool-val">false</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_hole</span> <span class="op">=</span> (<span class="ident">Hole::None</span>, <span class="bool-val">false</span>);
         <span class="kw">for</span> <span class="ident">e</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">exprs</span>[<span class="number">0</span>..<span class="ident">exprs</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>] {
             <span class="kw">if</span> <span class="ident">prev_hole</span>.<span class="number">1</span> {
                 <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">len</span>();
@@ -1807,22 +1807,22 @@
             <span class="comment">// branches will go to the same place anyway.</span>
             <span class="ident">holes</span>.<span class="ident">push</span>(<span class="ident">prev_hole</span>.<span class="number">0</span>);
         }
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">Hole</span>::<span class="ident">Many</span>(<span class="ident">holes</span>), <span class="ident">entry</span>: <span class="ident">first_split_entry</span> }))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">Hole::Many</span>(<span class="ident">holes</span>), <span class="ident">entry</span>: <span class="ident">first_split_entry</span> }))
     }
 
-    <span class="kw">fn</span> <span class="ident">c_repeat</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rep</span>: <span class="kw-2">&amp;</span><span class="ident">hir</span>::<span class="ident">Repetition</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultOrEmpty</span> {
-        <span class="kw">use</span> <span class="ident">regex_syntax</span>::<span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="kw-2">*</span>;
+    <span class="kw">fn</span> <span class="ident">c_repeat</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rep</span>: <span class="kw-2">&amp;</span><span class="ident">hir::Repetition</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultOrEmpty</span> {
+        <span class="kw">use</span> <span class="ident">regex_syntax::hir::RepetitionKind</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="ident">rep</span>.<span class="ident">kind</span> {
             <span class="ident">ZeroOrOne</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">c_repeat_zero_or_one</span>(<span class="kw-2">&amp;</span><span class="ident">rep</span>.<span class="ident">hir</span>, <span class="ident">rep</span>.<span class="ident">greedy</span>),
             <span class="ident">ZeroOrMore</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">c_repeat_zero_or_more</span>(<span class="kw-2">&amp;</span><span class="ident">rep</span>.<span class="ident">hir</span>, <span class="ident">rep</span>.<span class="ident">greedy</span>),
             <span class="ident">OneOrMore</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">c_repeat_one_or_more</span>(<span class="kw-2">&amp;</span><span class="ident">rep</span>.<span class="ident">hir</span>, <span class="ident">rep</span>.<span class="ident">greedy</span>),
-            <span class="ident">Range</span>(<span class="ident">hir</span>::<span class="ident">RepetitionRange</span>::<span class="ident">Exactly</span>(<span class="ident">min_max</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Range</span>(<span class="ident">hir::RepetitionRange::Exactly</span>(<span class="ident">min_max</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">c_repeat_range</span>(<span class="kw-2">&amp;</span><span class="ident">rep</span>.<span class="ident">hir</span>, <span class="ident">rep</span>.<span class="ident">greedy</span>, <span class="ident">min_max</span>, <span class="ident">min_max</span>)
             }
-            <span class="ident">Range</span>(<span class="ident">hir</span>::<span class="ident">RepetitionRange</span>::<span class="ident">AtLeast</span>(<span class="ident">min</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Range</span>(<span class="ident">hir::RepetitionRange::AtLeast</span>(<span class="ident">min</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">c_repeat_range_min_or_more</span>(<span class="kw-2">&amp;</span><span class="ident">rep</span>.<span class="ident">hir</span>, <span class="ident">rep</span>.<span class="ident">greedy</span>, <span class="ident">min</span>)
             }
-            <span class="ident">Range</span>(<span class="ident">hir</span>::<span class="ident">RepetitionRange</span>::<span class="ident">Bounded</span>(<span class="ident">min</span>, <span class="ident">max</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Range</span>(<span class="ident">hir::RepetitionRange::Bounded</span>(<span class="ident">min</span>, <span class="ident">max</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">c_repeat_range</span>(<span class="kw-2">&amp;</span><span class="ident">rep</span>.<span class="ident">hir</span>, <span class="ident">rep</span>.<span class="ident">greedy</span>, <span class="ident">min</span>, <span class="ident">max</span>)
             }
         }
@@ -1844,8 +1844,8 @@
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">fill_split</span>(<span class="ident">split</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">entry_rep</span>))
         };
-        <span class="kw">let</span> <span class="ident">holes</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">hole_rep</span>, <span class="ident">split_hole</span>];
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">Hole</span>::<span class="ident">Many</span>(<span class="ident">holes</span>), <span class="ident">entry</span>: <span class="ident">split_entry</span> }))
+        <span class="kw">let</span> <span class="ident">holes</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">hole_rep</span>, <span class="ident">split_hole</span>];
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">Hole::Many</span>(<span class="ident">holes</span>), <span class="ident">entry</span>: <span class="ident">split_entry</span> }))
     }
 
     <span class="kw">fn</span> <span class="ident">c_repeat_zero_or_more</span>(
@@ -1900,7 +1900,7 @@
         <span class="comment">// have to return Some(_) while c_repeat_range_min_or_more returns</span>
         <span class="comment">// None).</span>
         <span class="kw">let</span> <span class="ident">patch_concat</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">c_concat</span>(<span class="ident">iter</span>::<span class="ident">repeat</span>(<span class="ident">expr</span>).<span class="ident">take</span>(<span class="ident">min</span>))<span class="question-mark">?</span>
+            .<span class="ident">c_concat</span>(<span class="ident">iter::repeat</span>(<span class="ident">expr</span>).<span class="ident">take</span>(<span class="ident">min</span>))<span class="question-mark">?</span>
             .<span class="ident">unwrap_or</span>(<span class="self">self</span>.<span class="ident">next_inst</span>());
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">patch_rep</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">c_repeat_zero_or_more</span>(<span class="ident">expr</span>, <span class="ident">greedy</span>)<span class="question-mark">?</span> {
             <span class="self">self</span>.<span class="ident">fill</span>(<span class="ident">patch_concat</span>.<span class="ident">hole</span>, <span class="ident">patch_rep</span>.<span class="ident">entry</span>);
@@ -1918,8 +1918,8 @@
         <span class="ident">max</span>: <span class="ident">u32</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultOrEmpty</span> {
         <span class="kw">let</span> (<span class="ident">min</span>, <span class="ident">max</span>) <span class="op">=</span> (<span class="ident">u32_to_usize</span>(<span class="ident">min</span>), <span class="ident">u32_to_usize</span>(<span class="ident">max</span>));
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">min</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max</span>);
-        <span class="kw">let</span> <span class="ident">patch_concat</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">c_concat</span>(<span class="ident">iter</span>::<span class="ident">repeat</span>(<span class="ident">expr</span>).<span class="ident">take</span>(<span class="ident">min</span>))<span class="question-mark">?</span>;
+        <span class="macro">debug_assert!</span>(<span class="ident">min</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max</span>);
+        <span class="kw">let</span> <span class="ident">patch_concat</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">c_concat</span>(<span class="ident">iter::repeat</span>(<span class="ident">expr</span>).<span class="ident">take</span>(<span class="ident">min</span>))<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">min</span> <span class="op">=</span><span class="op">=</span> <span class="ident">max</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">patch_concat</span>);
         }
@@ -1946,7 +1946,7 @@
         <span class="comment">// This is *incredibly* inefficient because the splits end</span>
         <span class="comment">// up forming a chain, which has to be resolved everything a</span>
         <span class="comment">// transition is followed.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">holes</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">holes</span> <span class="op">=</span> <span class="macro">vec!</span>[];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_hole</span> <span class="op">=</span> <span class="ident">patch_concat</span>.<span class="ident">hole</span>;
         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="ident">min</span>..<span class="ident">max</span> {
             <span class="self">self</span>.<span class="ident">fill_to_next</span>(<span class="ident">prev_hole</span>);
@@ -1963,23 +1963,23 @@
             }
         }
         <span class="ident">holes</span>.<span class="ident">push</span>(<span class="ident">prev_hole</span>);
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">Hole</span>::<span class="ident">Many</span>(<span class="ident">holes</span>), <span class="ident">entry</span>: <span class="ident">initial_entry</span> }))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">Hole::Many</span>(<span class="ident">holes</span>), <span class="ident">entry</span>: <span class="ident">initial_entry</span> }))
     }
 
     <span class="doccomment">/// Can be used as a default value for the c_* functions when the call to</span>
     <span class="doccomment">/// c_function is followed by inserting at least one instruction that is</span>
     <span class="doccomment">/// always executed after the ones written by the c* function.</span>
     <span class="kw">fn</span> <span class="ident">next_inst</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Patch</span> {
-        <span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">Hole</span>::<span class="prelude-val">None</span>, <span class="ident">entry</span>: <span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">len</span>() }
+        <span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">Hole::None</span>, <span class="ident">entry</span>: <span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">len</span>() }
     }
 
     <span class="kw">fn</span> <span class="ident">fill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">hole</span>: <span class="ident">Hole</span>, <span class="ident">goto</span>: <span class="ident">InstPtr</span>) {
         <span class="kw">match</span> <span class="ident">hole</span> {
-            <span class="ident">Hole</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">Hole</span>::<span class="ident">One</span>(<span class="ident">pc</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Hole::None</span> <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">Hole::One</span>(<span class="ident">pc</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">insts</span>[<span class="ident">pc</span>].<span class="ident">fill</span>(<span class="ident">goto</span>);
             }
-            <span class="ident">Hole</span>::<span class="ident">Many</span>(<span class="ident">holes</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Hole::Many</span>(<span class="ident">holes</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">for</span> <span class="ident">hole</span> <span class="kw">in</span> <span class="ident">holes</span> {
                     <span class="self">self</span>.<span class="ident">fill</span>(<span class="ident">hole</span>, <span class="ident">goto</span>);
                 }
@@ -1999,55 +1999,55 @@
         <span class="ident">goto2</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">InstPtr</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hole</span> {
         <span class="kw">match</span> <span class="ident">hole</span> {
-            <span class="ident">Hole</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Hole</span>::<span class="prelude-val">None</span>,
-            <span class="ident">Hole</span>::<span class="ident">One</span>(<span class="ident">pc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> (<span class="ident">goto1</span>, <span class="ident">goto2</span>) {
+            <span class="ident">Hole::None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Hole::None</span>,
+            <span class="ident">Hole::One</span>(<span class="ident">pc</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> (<span class="ident">goto1</span>, <span class="ident">goto2</span>) {
                 (<span class="prelude-val">Some</span>(<span class="ident">goto1</span>), <span class="prelude-val">Some</span>(<span class="ident">goto2</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">insts</span>[<span class="ident">pc</span>].<span class="ident">fill_split</span>(<span class="ident">goto1</span>, <span class="ident">goto2</span>);
-                    <span class="ident">Hole</span>::<span class="prelude-val">None</span>
+                    <span class="ident">Hole::None</span>
                 }
                 (<span class="prelude-val">Some</span>(<span class="ident">goto1</span>), <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">insts</span>[<span class="ident">pc</span>].<span class="ident">half_fill_split_goto1</span>(<span class="ident">goto1</span>);
-                    <span class="ident">Hole</span>::<span class="ident">One</span>(<span class="ident">pc</span>)
+                    <span class="ident">Hole::One</span>(<span class="ident">pc</span>)
                 }
                 (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">goto2</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">insts</span>[<span class="ident">pc</span>].<span class="ident">half_fill_split_goto2</span>(<span class="ident">goto2</span>);
-                    <span class="ident">Hole</span>::<span class="ident">One</span>(<span class="ident">pc</span>)
+                    <span class="ident">Hole::One</span>(<span class="ident">pc</span>)
                 }
-                (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(
+                (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(
                     <span class="string">&quot;at least one of the split \
                      holes must be filled&quot;</span>
                 ),
             },
-            <span class="ident">Hole</span>::<span class="ident">Many</span>(<span class="ident">holes</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_holes</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+            <span class="ident">Hole::Many</span>(<span class="ident">holes</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_holes</span> <span class="op">=</span> <span class="macro">vec!</span>[];
                 <span class="kw">for</span> <span class="ident">hole</span> <span class="kw">in</span> <span class="ident">holes</span> {
                     <span class="ident">new_holes</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">fill_split</span>(<span class="ident">hole</span>, <span class="ident">goto1</span>, <span class="ident">goto2</span>));
                 }
                 <span class="kw">if</span> <span class="ident">new_holes</span>.<span class="ident">is_empty</span>() {
-                    <span class="ident">Hole</span>::<span class="prelude-val">None</span>
+                    <span class="ident">Hole::None</span>
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">new_holes</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
                     <span class="ident">new_holes</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>()
                 } <span class="kw">else</span> {
-                    <span class="ident">Hole</span>::<span class="ident">Many</span>(<span class="ident">new_holes</span>)
+                    <span class="ident">Hole::Many</span>(<span class="ident">new_holes</span>)
                 }
             }
         }
     }
 
     <span class="kw">fn</span> <span class="ident">push_compiled</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">inst</span>: <span class="ident">Inst</span>) {
-        <span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">push</span>(<span class="ident">MaybeInst</span>::<span class="ident">Compiled</span>(<span class="ident">inst</span>));
+        <span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">push</span>(<span class="ident">MaybeInst::Compiled</span>(<span class="ident">inst</span>));
     }
 
     <span class="kw">fn</span> <span class="ident">push_hole</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">inst</span>: <span class="ident">InstHole</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hole</span> {
         <span class="kw">let</span> <span class="ident">hole</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">len</span>();
-        <span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">push</span>(<span class="ident">MaybeInst</span>::<span class="ident">Uncompiled</span>(<span class="ident">inst</span>));
-        <span class="ident">Hole</span>::<span class="ident">One</span>(<span class="ident">hole</span>)
+        <span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">push</span>(<span class="ident">MaybeInst::Uncompiled</span>(<span class="ident">inst</span>));
+        <span class="ident">Hole::One</span>(<span class="ident">hole</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">push_split_hole</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Hole</span> {
         <span class="kw">let</span> <span class="ident">hole</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">len</span>();
-        <span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">push</span>(<span class="ident">MaybeInst</span>::<span class="ident">Split</span>);
-        <span class="ident">Hole</span>::<span class="ident">One</span>(<span class="ident">hole</span>)
+        <span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">push</span>(<span class="ident">MaybeInst::Split</span>);
+        <span class="ident">Hole::One</span>(<span class="ident">hole</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">pop_split_hole</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ResultOrEmpty</span> {
@@ -2055,13 +2055,13 @@
         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">check_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">result</span>::<span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">size_of</span>;
+    <span class="kw">fn</span> <span class="ident">check_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">result::Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">use</span> <span class="ident">std::mem::size_of</span>;
 
         <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span>
             <span class="self">self</span>.<span class="ident">extra_inst_bytes</span> <span class="op">+</span> (<span class="self">self</span>.<span class="ident">insts</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">Inst</span><span class="op">&gt;</span>());
         <span class="kw">if</span> <span class="ident">size</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">size_limit</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">CompiledTooBig</span>(<span class="self">self</span>.<span class="ident">size_limit</span>))
+            <span class="prelude-val">Err</span>(<span class="ident">Error::CompiledTooBig</span>(<span class="self">self</span>.<span class="ident">size_limit</span>))
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(())
         }
@@ -2078,9 +2078,9 @@
 <span class="kw">impl</span> <span class="ident">Hole</span> {
     <span class="kw">fn</span> <span class="ident">dup_one</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="self">Self</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Hole</span>::<span class="ident">One</span>(<span class="ident">pc</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Hole</span>::<span class="ident">One</span>(<span class="ident">pc</span>), <span class="ident">Hole</span>::<span class="ident">One</span>(<span class="ident">pc</span>)),
-            <span class="ident">Hole</span>::<span class="prelude-val">None</span> <span class="op">|</span> <span class="ident">Hole</span>::<span class="ident">Many</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;must be called on single hole&quot;</span>)
+            <span class="ident">Hole::One</span>(<span class="ident">pc</span>) <span class="op">=</span><span class="op">&gt;</span> (<span class="ident">Hole::One</span>(<span class="ident">pc</span>), <span class="ident">Hole::One</span>(<span class="ident">pc</span>)),
+            <span class="ident">Hole::None</span> <span class="op">|</span> <span class="ident">Hole::Many</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="macro">unreachable!</span>(<span class="string">&quot;must be called on single hole&quot;</span>)
             }
         }
     }
@@ -2098,23 +2098,23 @@
 <span class="kw">impl</span> <span class="ident">MaybeInst</span> {
     <span class="kw">fn</span> <span class="ident">fill</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">goto</span>: <span class="ident">InstPtr</span>) {
         <span class="kw">let</span> <span class="ident">maybeinst</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">MaybeInst</span>::<span class="ident">Split</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MaybeInst</span>::<span class="ident">Split1</span>(<span class="ident">goto</span>),
-            <span class="ident">MaybeInst</span>::<span class="ident">Uncompiled</span>(<span class="kw-2">ref</span> <span class="ident">inst</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">MaybeInst</span>::<span class="ident">Compiled</span>(<span class="ident">inst</span>.<span class="ident">fill</span>(<span class="ident">goto</span>))
+            <span class="ident">MaybeInst::Split</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">MaybeInst::Split1</span>(<span class="ident">goto</span>),
+            <span class="ident">MaybeInst::Uncompiled</span>(<span class="kw-2">ref</span> <span class="ident">inst</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">MaybeInst::Compiled</span>(<span class="ident">inst</span>.<span class="ident">fill</span>(<span class="ident">goto</span>))
             }
-            <span class="ident">MaybeInst</span>::<span class="ident">Split1</span>(<span class="ident">goto1</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">MaybeInst</span>::<span class="ident">Compiled</span>(<span class="ident">Inst</span>::<span class="ident">Split</span>(<span class="ident">InstSplit</span> {
+            <span class="ident">MaybeInst::Split1</span>(<span class="ident">goto1</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">MaybeInst::Compiled</span>(<span class="ident">Inst::Split</span>(<span class="ident">InstSplit</span> {
                     <span class="ident">goto1</span>: <span class="ident">goto1</span>,
                     <span class="ident">goto2</span>: <span class="ident">goto</span>,
                 }))
             }
-            <span class="ident">MaybeInst</span>::<span class="ident">Split2</span>(<span class="ident">goto2</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">MaybeInst</span>::<span class="ident">Compiled</span>(<span class="ident">Inst</span>::<span class="ident">Split</span>(<span class="ident">InstSplit</span> {
+            <span class="ident">MaybeInst::Split2</span>(<span class="ident">goto2</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">MaybeInst::Compiled</span>(<span class="ident">Inst::Split</span>(<span class="ident">InstSplit</span> {
                     <span class="ident">goto1</span>: <span class="ident">goto</span>,
                     <span class="ident">goto2</span>: <span class="ident">goto2</span>,
                 }))
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(
                 <span class="string">&quot;not all instructions were compiled! \
                  found uncompiled instruction: {:?}&quot;</span>,
                 <span class="self">self</span>
@@ -2125,46 +2125,46 @@
 
     <span class="kw">fn</span> <span class="ident">fill_split</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">goto1</span>: <span class="ident">InstPtr</span>, <span class="ident">goto2</span>: <span class="ident">InstPtr</span>) {
         <span class="kw">let</span> <span class="ident">filled</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">MaybeInst</span>::<span class="ident">Split</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">Inst</span>::<span class="ident">Split</span>(<span class="ident">InstSplit</span> { <span class="ident">goto1</span>: <span class="ident">goto1</span>, <span class="ident">goto2</span>: <span class="ident">goto2</span> })
+            <span class="ident">MaybeInst::Split</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Inst::Split</span>(<span class="ident">InstSplit</span> { <span class="ident">goto1</span>: <span class="ident">goto1</span>, <span class="ident">goto2</span>: <span class="ident">goto2</span> })
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(
                 <span class="string">&quot;must be called on Split instruction, \
                  instead it was called on: {:?}&quot;</span>,
                 <span class="self">self</span>
             ),
         };
-        <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">MaybeInst</span>::<span class="ident">Compiled</span>(<span class="ident">filled</span>);
+        <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">MaybeInst::Compiled</span>(<span class="ident">filled</span>);
     }
 
     <span class="kw">fn</span> <span class="ident">half_fill_split_goto1</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">goto1</span>: <span class="ident">InstPtr</span>) {
         <span class="kw">let</span> <span class="ident">half_filled</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">MaybeInst</span>::<span class="ident">Split</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">goto1</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(
+            <span class="ident">MaybeInst::Split</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">goto1</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(
                 <span class="string">&quot;must be called on Split instruction, \
                  instead it was called on: {:?}&quot;</span>,
                 <span class="self">self</span>
             ),
         };
-        <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">MaybeInst</span>::<span class="ident">Split1</span>(<span class="ident">half_filled</span>);
+        <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">MaybeInst::Split1</span>(<span class="ident">half_filled</span>);
     }
 
     <span class="kw">fn</span> <span class="ident">half_fill_split_goto2</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">goto2</span>: <span class="ident">InstPtr</span>) {
         <span class="kw">let</span> <span class="ident">half_filled</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">MaybeInst</span>::<span class="ident">Split</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">goto2</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(
+            <span class="ident">MaybeInst::Split</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">goto2</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(
                 <span class="string">&quot;must be called on Split instruction, \
                  instead it was called on: {:?}&quot;</span>,
                 <span class="self">self</span>
             ),
         };
-        <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">MaybeInst</span>::<span class="ident">Split2</span>(<span class="ident">half_filled</span>);
+        <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">MaybeInst::Split2</span>(<span class="ident">half_filled</span>);
     }
 
     <span class="kw">fn</span> <span class="ident">unwrap</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Inst</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">MaybeInst</span>::<span class="ident">Compiled</span>(<span class="ident">inst</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inst</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(
+            <span class="ident">MaybeInst::Compiled</span>(<span class="ident">inst</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">inst</span>,
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(
                 <span class="string">&quot;must be called on a compiled instruction, \
                  instead it was called on: {:?}&quot;</span>,
                 <span class="self">self</span>
@@ -2185,19 +2185,19 @@
 <span class="kw">impl</span> <span class="ident">InstHole</span> {
     <span class="kw">fn</span> <span class="ident">fill</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">goto</span>: <span class="ident">InstPtr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Inst</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">InstHole</span>::<span class="ident">Save</span> { <span class="ident">slot</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">Inst</span>::<span class="ident">Save</span>(<span class="ident">InstSave</span> { <span class="ident">goto</span>: <span class="ident">goto</span>, <span class="ident">slot</span>: <span class="ident">slot</span> })
+            <span class="ident">InstHole::Save</span> { <span class="ident">slot</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Inst::Save</span>(<span class="ident">InstSave</span> { <span class="ident">goto</span>: <span class="ident">goto</span>, <span class="ident">slot</span>: <span class="ident">slot</span> })
             }
-            <span class="ident">InstHole</span>::<span class="ident">EmptyLook</span> { <span class="ident">look</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">Inst</span>::<span class="ident">EmptyLook</span>(<span class="ident">InstEmptyLook</span> { <span class="ident">goto</span>: <span class="ident">goto</span>, <span class="ident">look</span>: <span class="ident">look</span> })
+            <span class="ident">InstHole::EmptyLook</span> { <span class="ident">look</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Inst::EmptyLook</span>(<span class="ident">InstEmptyLook</span> { <span class="ident">goto</span>: <span class="ident">goto</span>, <span class="ident">look</span>: <span class="ident">look</span> })
             }
-            <span class="ident">InstHole</span>::<span class="ident">Char</span> { <span class="ident">c</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Inst</span>::<span class="ident">Char</span>(<span class="ident">InstChar</span> { <span class="ident">goto</span>: <span class="ident">goto</span>, <span class="ident">c</span>: <span class="ident">c</span> }),
-            <span class="ident">InstHole</span>::<span class="ident">Ranges</span> { <span class="kw-2">ref</span> <span class="ident">ranges</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Inst</span>::<span class="ident">Ranges</span>(<span class="ident">InstRanges</span> {
+            <span class="ident">InstHole::Char</span> { <span class="ident">c</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Inst::Char</span>(<span class="ident">InstChar</span> { <span class="ident">goto</span>: <span class="ident">goto</span>, <span class="ident">c</span>: <span class="ident">c</span> }),
+            <span class="ident">InstHole::Ranges</span> { <span class="kw-2">ref</span> <span class="ident">ranges</span> } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Inst::Ranges</span>(<span class="ident">InstRanges</span> {
                 <span class="ident">goto</span>: <span class="ident">goto</span>,
                 <span class="ident">ranges</span>: <span class="ident">ranges</span>.<span class="ident">clone</span>().<span class="ident">into_boxed_slice</span>(),
             }),
-            <span class="ident">InstHole</span>::<span class="ident">Bytes</span> { <span class="ident">start</span>, <span class="ident">end</span> } <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">Inst</span>::<span class="ident">Bytes</span>(<span class="ident">InstBytes</span> { <span class="ident">goto</span>: <span class="ident">goto</span>, <span class="ident">start</span>: <span class="ident">start</span>, <span class="ident">end</span>: <span class="ident">end</span> })
+            <span class="ident">InstHole::Bytes</span> { <span class="ident">start</span>, <span class="ident">end</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Inst::Bytes</span>(<span class="ident">InstBytes</span> { <span class="ident">goto</span>: <span class="ident">goto</span>, <span class="ident">start</span>: <span class="ident">start</span>, <span class="ident">end</span>: <span class="ident">end</span> })
             }
         }
     }
@@ -2205,14 +2205,14 @@
 
 <span class="kw">struct</span> <span class="ident">CompileClass</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
     <span class="ident">c</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Compiler</span>,
-    <span class="ident">ranges</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">hir</span>::<span class="ident">ClassUnicodeRange</span>],
+    <span class="ident">ranges</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> [<span class="ident">hir::ClassUnicodeRange</span>],
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="ident">CompileClass</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">compile</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">holes</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">holes</span> <span class="op">=</span> <span class="macro">vec!</span>[];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">initial_entry</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_split</span> <span class="op">=</span> <span class="ident">Hole</span>::<span class="prelude-val">None</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_split</span> <span class="op">=</span> <span class="ident">Hole::None</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">utf8_seqs</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">c</span>.<span class="ident">utf8_seqs</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
         <span class="self">self</span>.<span class="ident">c</span>.<span class="ident">suffix_cache</span>.<span class="ident">clear</span>();
 
@@ -2229,7 +2229,7 @@
                     <span class="kw">let</span> <span class="ident">Patch</span> { <span class="ident">hole</span>, <span class="ident">entry</span> } <span class="op">=</span> <span class="self">self</span>.<span class="ident">c_utf8_seq</span>(<span class="kw-2">&amp;</span><span class="ident">utf8_seq</span>)<span class="question-mark">?</span>;
                     <span class="ident">holes</span>.<span class="ident">push</span>(<span class="ident">hole</span>);
                     <span class="self">self</span>.<span class="ident">c</span>.<span class="ident">fill</span>(<span class="ident">last_split</span>, <span class="ident">entry</span>);
-                    <span class="ident">last_split</span> <span class="op">=</span> <span class="ident">Hole</span>::<span class="prelude-val">None</span>;
+                    <span class="ident">last_split</span> <span class="op">=</span> <span class="ident">Hole::None</span>;
                     <span class="kw">if</span> <span class="ident">initial_entry</span>.<span class="ident">is_none</span>() {
                         <span class="ident">initial_entry</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">entry</span>);
                     }
@@ -2247,7 +2247,7 @@
             }
         }
         <span class="self">self</span>.<span class="ident">c</span>.<span class="ident">utf8_seqs</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">utf8_seqs</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">Hole</span>::<span class="ident">Many</span>(<span class="ident">holes</span>), <span class="ident">entry</span>: <span class="ident">initial_entry</span>.<span class="ident">unwrap</span>() })
+        <span class="prelude-val">Ok</span>(<span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">Hole::Many</span>(<span class="ident">holes</span>), <span class="ident">entry</span>: <span class="ident">initial_entry</span>.<span class="ident">unwrap</span>() })
     }
 
     <span class="kw">fn</span> <span class="ident">c_utf8_seq</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">seq</span>: <span class="kw-2">&amp;</span><span class="ident">Utf8Sequence</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span> {
@@ -2263,8 +2263,8 @@
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="ident">Utf8Range</span><span class="op">&gt;</span>,
     {
         <span class="comment">// The initial instruction for each UTF-8 sequence should be the same.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">from_inst</span> <span class="op">=</span> ::<span class="ident">std</span>::<span class="ident">usize</span>::<span class="ident">MAX</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_hole</span> <span class="op">=</span> <span class="ident">Hole</span>::<span class="prelude-val">None</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">from_inst</span> <span class="op">=</span> <span class="ident">::std::usize::MAX</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_hole</span> <span class="op">=</span> <span class="ident">Hole::None</span>;
         <span class="kw">for</span> <span class="ident">byte_range</span> <span class="kw">in</span> <span class="ident">seq</span> {
             <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">SuffixCacheKey</span> {
                 <span class="ident">from_inst</span>: <span class="ident">from_inst</span>,
@@ -2279,22 +2279,22 @@
                 }
             }
             <span class="self">self</span>.<span class="ident">c</span>.<span class="ident">byte_classes</span>.<span class="ident">set_range</span>(<span class="ident">byte_range</span>.<span class="ident">start</span>, <span class="ident">byte_range</span>.<span class="ident">end</span>);
-            <span class="kw">if</span> <span class="ident">from_inst</span> <span class="op">=</span><span class="op">=</span> ::<span class="ident">std</span>::<span class="ident">usize</span>::<span class="ident">MAX</span> {
-                <span class="ident">last_hole</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">c</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole</span>::<span class="ident">Bytes</span> {
+            <span class="kw">if</span> <span class="ident">from_inst</span> <span class="op">=</span><span class="op">=</span> <span class="ident">::std::usize::MAX</span> {
+                <span class="ident">last_hole</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">c</span>.<span class="ident">push_hole</span>(<span class="ident">InstHole::Bytes</span> {
                     <span class="ident">start</span>: <span class="ident">byte_range</span>.<span class="ident">start</span>,
                     <span class="ident">end</span>: <span class="ident">byte_range</span>.<span class="ident">end</span>,
                 });
             } <span class="kw">else</span> {
-                <span class="self">self</span>.<span class="ident">c</span>.<span class="ident">push_compiled</span>(<span class="ident">Inst</span>::<span class="ident">Bytes</span>(<span class="ident">InstBytes</span> {
+                <span class="self">self</span>.<span class="ident">c</span>.<span class="ident">push_compiled</span>(<span class="ident">Inst::Bytes</span>(<span class="ident">InstBytes</span> {
                     <span class="ident">goto</span>: <span class="ident">from_inst</span>,
                     <span class="ident">start</span>: <span class="ident">byte_range</span>.<span class="ident">start</span>,
                     <span class="ident">end</span>: <span class="ident">byte_range</span>.<span class="ident">end</span>,
                 }));
             }
             <span class="ident">from_inst</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">c</span>.<span class="ident">insts</span>.<span class="ident">len</span>().<span class="ident">checked_sub</span>(<span class="number">1</span>).<span class="ident">unwrap</span>();
-            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">from_inst</span> <span class="op">&lt;</span> ::<span class="ident">std</span>::<span class="ident">usize</span>::<span class="ident">MAX</span>);
+            <span class="macro">debug_assert!</span>(<span class="ident">from_inst</span> <span class="op">&lt;</span> <span class="ident">::std::usize::MAX</span>);
         }
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">from_inst</span> <span class="op">&lt;</span> ::<span class="ident">std</span>::<span class="ident">usize</span>::<span class="ident">MAX</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">from_inst</span> <span class="op">&lt;</span> <span class="ident">::std::usize::MAX</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">Patch</span> { <span class="ident">hole</span>: <span class="ident">last_hole</span>, <span class="ident">entry</span>: <span class="ident">from_inst</span> })
     }
 }
@@ -2343,8 +2343,8 @@
 <span class="kw">impl</span> <span class="ident">SuffixCache</span> {
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">size</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">SuffixCache</span> {
-            <span class="ident">sparse</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0usize</span>; <span class="ident">size</span>].<span class="ident">into</span>(),
-            <span class="ident">dense</span>: <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">size</span>),
+            <span class="ident">sparse</span>: <span class="macro">vec!</span>[<span class="number">0usize</span>; <span class="ident">size</span>].<span class="ident">into</span>(),
+            <span class="ident">dense</span>: <span class="ident">Vec::with_capacity</span>(<span class="ident">size</span>),
         }
     }
 
@@ -2385,7 +2385,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">set_range</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">start</span>: <span class="ident">u8</span>, <span class="ident">end</span>: <span class="ident">u8</span>) {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">end</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">end</span>);
         <span class="kw">if</span> <span class="ident">start</span> <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="self">self</span>.<span class="number">0</span>[<span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">=</span> <span class="bool-val">true</span>;
         }
@@ -2413,7 +2413,7 @@
         <span class="comment">// `(0..256).collect()`, which effectively removes the byte classes</span>
         <span class="comment">// and makes the transitions easier to read.</span>
         <span class="comment">// (0usize..256).map(|x| x as u8).collect()</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">byte_classes</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>; <span class="number">256</span>];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">byte_classes</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <span class="number">256</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">class</span> <span class="op">=</span> <span class="number">0u8</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">loop</span> {
@@ -2430,8 +2430,8 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">ByteClassSet</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ByteClassSet</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;ByteClassSet&quot;</span>).<span class="ident">field</span>(<span class="op">&amp;&amp;</span><span class="self">self</span>.<span class="number">0</span>[..]).<span class="ident">finish</span>()
     }
 }
@@ -2440,56 +2440,56 @@
     <span class="comment">// In case usize is less than 32 bits, we need to guard against overflow.</span>
     <span class="comment">// On most platforms this compiles to nothing.</span>
     <span class="comment">// TODO Use `std::convert::TryFrom` once it&#39;s stable.</span>
-    <span class="kw">if</span> (<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&gt;</span> (::<span class="ident">std</span>::<span class="ident">usize</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">u64</span>) {
-        <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;BUG: {} is too big to be pointer sized&quot;</span>, <span class="ident">n</span>)
+    <span class="kw">if</span> (<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&gt;</span> (<span class="ident">::std::usize::MAX</span> <span class="kw">as</span> <span class="ident">u64</span>) {
+        <span class="macro">panic!</span>(<span class="string">&quot;BUG: {} is too big to be pointer sized&quot;</span>, <span class="ident">n</span>)
     }
     <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">ByteClassSet</span>;
+    <span class="kw">use</span> <span class="kw">super</span><span class="ident">::ByteClassSet</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">byte_classes</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">ByteClassSet</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">ByteClassSet::new</span>();
         <span class="ident">set</span>.<span class="ident">set_range</span>(<span class="string">b&#39;a&#39;</span>, <span class="string">b&#39;z&#39;</span>);
         <span class="kw">let</span> <span class="ident">classes</span> <span class="op">=</span> <span class="ident">set</span>.<span class="ident">byte_classes</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">classes</span>[<span class="number">0</span>], <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">classes</span>[<span class="number">1</span>], <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">classes</span>[<span class="number">2</span>], <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">classes</span>[<span class="string">b&#39;a&#39;</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="number">1</span>], <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">classes</span>[<span class="string">b&#39;a&#39;</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="number">1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">classes</span>[<span class="string">b&#39;m&#39;</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="number">1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">classes</span>[<span class="string">b&#39;z&#39;</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="number">1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">classes</span>[<span class="string">b&#39;z&#39;</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="number">1</span>], <span class="number">2</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">classes</span>[<span class="number">254</span>], <span class="number">2</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">classes</span>[<span class="number">255</span>], <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">classes</span>[<span class="number">0</span>], <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">classes</span>[<span class="number">1</span>], <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">classes</span>[<span class="number">2</span>], <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">classes</span>[<span class="string">b&#39;a&#39;</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="number">1</span>], <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">classes</span>[<span class="string">b&#39;a&#39;</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">classes</span>[<span class="string">b&#39;m&#39;</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">classes</span>[<span class="string">b&#39;z&#39;</span> <span class="kw">as</span> <span class="ident">usize</span>], <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">classes</span>[<span class="string">b&#39;z&#39;</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="number">1</span>], <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">classes</span>[<span class="number">254</span>], <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">classes</span>[<span class="number">255</span>], <span class="number">2</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">ByteClassSet</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">ByteClassSet::new</span>();
         <span class="ident">set</span>.<span class="ident">set_range</span>(<span class="number">0</span>, <span class="number">2</span>);
         <span class="ident">set</span>.<span class="ident">set_range</span>(<span class="number">4</span>, <span class="number">6</span>);
         <span class="kw">let</span> <span class="ident">classes</span> <span class="op">=</span> <span class="ident">set</span>.<span class="ident">byte_classes</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">classes</span>[<span class="number">0</span>], <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">classes</span>[<span class="number">1</span>], <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">classes</span>[<span class="number">2</span>], <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">classes</span>[<span class="number">3</span>], <span class="number">1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">classes</span>[<span class="number">4</span>], <span class="number">2</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">classes</span>[<span class="number">5</span>], <span class="number">2</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">classes</span>[<span class="number">6</span>], <span class="number">2</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">classes</span>[<span class="number">7</span>], <span class="number">3</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">classes</span>[<span class="number">255</span>], <span class="number">3</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">classes</span>[<span class="number">0</span>], <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">classes</span>[<span class="number">1</span>], <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">classes</span>[<span class="number">2</span>], <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">classes</span>[<span class="number">3</span>], <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">classes</span>[<span class="number">4</span>], <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">classes</span>[<span class="number">5</span>], <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">classes</span>[<span class="number">6</span>], <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">classes</span>[<span class="number">7</span>], <span class="number">3</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">classes</span>[<span class="number">255</span>], <span class="number">3</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">full_byte_classes</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">ByteClassSet</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">ByteClassSet::new</span>();
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">256u16</span> {
             <span class="ident">set</span>.<span class="ident">set_range</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u8</span>);
         }
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">set</span>.<span class="ident">byte_classes</span>().<span class="ident">len</span>(), <span class="number">256</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">byte_classes</span>().<span class="ident">len</span>(), <span class="number">256</span>);
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

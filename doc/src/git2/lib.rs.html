@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.20/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1621,73 +1621,73 @@
 <span class="attribute">#![<span class="ident">warn</span>(<span class="ident">rust_2018_idioms</span>)]</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">test</span>, <span class="ident">deny</span>(<span class="ident">warnings</span>))]</span>
 
-<span class="kw">use</span> <span class="ident">bitflags</span>::<span class="ident">bitflags</span>;
+<span class="kw">use</span> <span class="ident">bitflags::bitflags</span>;
 <span class="kw">use</span> <span class="ident">libgit2_sys</span> <span class="kw">as</span> <span class="ident">raw</span>;
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Once</span>;
+<span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">CStr</span>, <span class="ident">CString</span>};
+<span class="kw">use</span> <span class="ident">std::fmt</span>;
+<span class="kw">use</span> <span class="ident">std::str</span>;
+<span class="kw">use</span> <span class="ident">std::sync::Once</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">apply</span>::{<span class="ident">ApplyLocation</span>, <span class="ident">ApplyOptions</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">attr</span>::<span class="ident">AttrValue</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">blame</span>::{<span class="ident">Blame</span>, <span class="ident">BlameHunk</span>, <span class="ident">BlameIter</span>, <span class="ident">BlameOptions</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">blob</span>::{<span class="ident">Blob</span>, <span class="ident">BlobWriter</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">branch</span>::{<span class="ident">Branch</span>, <span class="ident">Branches</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">buf</span>::<span class="ident">Buf</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">cherrypick</span>::<span class="ident">CherrypickOptions</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">commit</span>::{<span class="ident">Commit</span>, <span class="ident">Parents</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">config</span>::{<span class="ident">Config</span>, <span class="ident">ConfigEntries</span>, <span class="ident">ConfigEntry</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">cred</span>::{<span class="ident">Cred</span>, <span class="ident">CredentialHelper</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">describe</span>::{<span class="ident">Describe</span>, <span class="ident">DescribeFormatOptions</span>, <span class="ident">DescribeOptions</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">diff</span>::{<span class="ident">Deltas</span>, <span class="ident">Diff</span>, <span class="ident">DiffDelta</span>, <span class="ident">DiffFile</span>, <span class="ident">DiffOptions</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">diff</span>::{<span class="ident">DiffBinary</span>, <span class="ident">DiffBinaryFile</span>, <span class="ident">DiffBinaryKind</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">diff</span>::{<span class="ident">DiffFindOptions</span>, <span class="ident">DiffHunk</span>, <span class="ident">DiffLine</span>, <span class="ident">DiffLineType</span>, <span class="ident">DiffStats</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">index</span>::{
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::apply</span>::{<span class="ident">ApplyLocation</span>, <span class="ident">ApplyOptions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::attr::AttrValue</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::blame</span>::{<span class="ident">Blame</span>, <span class="ident">BlameHunk</span>, <span class="ident">BlameIter</span>, <span class="ident">BlameOptions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::blob</span>::{<span class="ident">Blob</span>, <span class="ident">BlobWriter</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::branch</span>::{<span class="ident">Branch</span>, <span class="ident">Branches</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::buf::Buf</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::cherrypick::CherrypickOptions</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::commit</span>::{<span class="ident">Commit</span>, <span class="ident">Parents</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::config</span>::{<span class="ident">Config</span>, <span class="ident">ConfigEntries</span>, <span class="ident">ConfigEntry</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::cred</span>::{<span class="ident">Cred</span>, <span class="ident">CredentialHelper</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::describe</span>::{<span class="ident">Describe</span>, <span class="ident">DescribeFormatOptions</span>, <span class="ident">DescribeOptions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::diff</span>::{<span class="ident">Deltas</span>, <span class="ident">Diff</span>, <span class="ident">DiffDelta</span>, <span class="ident">DiffFile</span>, <span class="ident">DiffOptions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::diff</span>::{<span class="ident">DiffBinary</span>, <span class="ident">DiffBinaryFile</span>, <span class="ident">DiffBinaryKind</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::diff</span>::{<span class="ident">DiffFindOptions</span>, <span class="ident">DiffHunk</span>, <span class="ident">DiffLine</span>, <span class="ident">DiffLineType</span>, <span class="ident">DiffStats</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::error::Error</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::index</span>::{
     <span class="ident">Index</span>, <span class="ident">IndexConflict</span>, <span class="ident">IndexConflicts</span>, <span class="ident">IndexEntries</span>, <span class="ident">IndexEntry</span>, <span class="ident">IndexMatchedPath</span>,
 };
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">indexer</span>::{<span class="ident">IndexerProgress</span>, <span class="ident">Progress</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">mailmap</span>::<span class="ident">Mailmap</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">mempack</span>::<span class="ident">Mempack</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">merge</span>::{<span class="ident">AnnotatedCommit</span>, <span class="ident">MergeOptions</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">message</span>::{<span class="ident">message_prettify</span>, <span class="ident">DEFAULT_COMMENT_CHAR</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">note</span>::{<span class="ident">Note</span>, <span class="ident">Notes</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">object</span>::<span class="ident">Object</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">odb</span>::{<span class="ident">Odb</span>, <span class="ident">OdbObject</span>, <span class="ident">OdbPackwriter</span>, <span class="ident">OdbReader</span>, <span class="ident">OdbWriter</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">oid</span>::<span class="ident">Oid</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">packbuilder</span>::{<span class="ident">PackBuilder</span>, <span class="ident">PackBuilderStage</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">patch</span>::<span class="ident">Patch</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">pathspec</span>::{<span class="ident">Pathspec</span>, <span class="ident">PathspecFailedEntries</span>, <span class="ident">PathspecMatchList</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">pathspec</span>::{<span class="ident">PathspecDiffEntries</span>, <span class="ident">PathspecEntries</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">proxy_options</span>::<span class="ident">ProxyOptions</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">rebase</span>::{<span class="ident">Rebase</span>, <span class="ident">RebaseOperation</span>, <span class="ident">RebaseOperationType</span>, <span class="ident">RebaseOptions</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">reference</span>::{<span class="ident">Reference</span>, <span class="ident">ReferenceNames</span>, <span class="ident">References</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">reflog</span>::{<span class="ident">Reflog</span>, <span class="ident">ReflogEntry</span>, <span class="ident">ReflogIter</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">refspec</span>::<span class="ident">Refspec</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">remote</span>::{
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::indexer</span>::{<span class="ident">IndexerProgress</span>, <span class="ident">Progress</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::mailmap::Mailmap</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::mempack::Mempack</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::merge</span>::{<span class="ident">AnnotatedCommit</span>, <span class="ident">MergeOptions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::message</span>::{<span class="ident">message_prettify</span>, <span class="ident">DEFAULT_COMMENT_CHAR</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::note</span>::{<span class="ident">Note</span>, <span class="ident">Notes</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::object::Object</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::odb</span>::{<span class="ident">Odb</span>, <span class="ident">OdbObject</span>, <span class="ident">OdbPackwriter</span>, <span class="ident">OdbReader</span>, <span class="ident">OdbWriter</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::oid::Oid</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::packbuilder</span>::{<span class="ident">PackBuilder</span>, <span class="ident">PackBuilderStage</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::patch::Patch</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::pathspec</span>::{<span class="ident">Pathspec</span>, <span class="ident">PathspecFailedEntries</span>, <span class="ident">PathspecMatchList</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::pathspec</span>::{<span class="ident">PathspecDiffEntries</span>, <span class="ident">PathspecEntries</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::proxy_options::ProxyOptions</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::rebase</span>::{<span class="ident">Rebase</span>, <span class="ident">RebaseOperation</span>, <span class="ident">RebaseOperationType</span>, <span class="ident">RebaseOptions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::reference</span>::{<span class="ident">Reference</span>, <span class="ident">ReferenceNames</span>, <span class="ident">References</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::reflog</span>::{<span class="ident">Reflog</span>, <span class="ident">ReflogEntry</span>, <span class="ident">ReflogIter</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::refspec::Refspec</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::remote</span>::{
     <span class="ident">FetchOptions</span>, <span class="ident">PushOptions</span>, <span class="ident">Refspecs</span>, <span class="ident">Remote</span>, <span class="ident">RemoteConnection</span>, <span class="ident">RemoteHead</span>,
 };
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">remote_callbacks</span>::{<span class="ident">Credentials</span>, <span class="ident">RemoteCallbacks</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">remote_callbacks</span>::{<span class="ident">TransportMessage</span>, <span class="ident">UpdateTips</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">repo</span>::{<span class="ident">Repository</span>, <span class="ident">RepositoryInitOptions</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">revert</span>::<span class="ident">RevertOptions</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">revspec</span>::<span class="ident">Revspec</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">revwalk</span>::<span class="ident">Revwalk</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">signature</span>::<span class="ident">Signature</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">stash</span>::{<span class="ident">StashApplyOptions</span>, <span class="ident">StashApplyProgressCb</span>, <span class="ident">StashCb</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">status</span>::{<span class="ident">StatusEntry</span>, <span class="ident">StatusIter</span>, <span class="ident">StatusOptions</span>, <span class="ident">StatusShow</span>, <span class="ident">Statuses</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">submodule</span>::{<span class="ident">Submodule</span>, <span class="ident">SubmoduleUpdateOptions</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">tag</span>::<span class="ident">Tag</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">time</span>::{<span class="ident">IndexTime</span>, <span class="ident">Time</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">transaction</span>::<span class="ident">Transaction</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">tree</span>::{<span class="ident">Tree</span>, <span class="ident">TreeEntry</span>, <span class="ident">TreeIter</span>, <span class="ident">TreeWalkMode</span>, <span class="ident">TreeWalkResult</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">treebuilder</span>::<span class="ident">TreeBuilder</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">IntoCString</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">worktree</span>::{<span class="ident">Worktree</span>, <span class="ident">WorktreeAddOptions</span>, <span class="ident">WorktreeLockStatus</span>, <span class="ident">WorktreePruneOptions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::remote_callbacks</span>::{<span class="ident">Credentials</span>, <span class="ident">RemoteCallbacks</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::remote_callbacks</span>::{<span class="ident">TransportMessage</span>, <span class="ident">UpdateTips</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::repo</span>::{<span class="ident">Repository</span>, <span class="ident">RepositoryInitOptions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::revert::RevertOptions</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::revspec::Revspec</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::revwalk::Revwalk</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::signature::Signature</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::stash</span>::{<span class="ident">StashApplyOptions</span>, <span class="ident">StashApplyProgressCb</span>, <span class="ident">StashCb</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::status</span>::{<span class="ident">StatusEntry</span>, <span class="ident">StatusIter</span>, <span class="ident">StatusOptions</span>, <span class="ident">StatusShow</span>, <span class="ident">Statuses</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::submodule</span>::{<span class="ident">Submodule</span>, <span class="ident">SubmoduleUpdateOptions</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::tag::Tag</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::time</span>::{<span class="ident">IndexTime</span>, <span class="ident">Time</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::transaction::Transaction</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::tree</span>::{<span class="ident">Tree</span>, <span class="ident">TreeEntry</span>, <span class="ident">TreeIter</span>, <span class="ident">TreeWalkMode</span>, <span class="ident">TreeWalkResult</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::treebuilder::TreeBuilder</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::util::IntoCString</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::worktree</span>::{<span class="ident">Worktree</span>, <span class="ident">WorktreeAddOptions</span>, <span class="ident">WorktreeLockStatus</span>, <span class="ident">WorktreePruneOptions</span>};
 
 <span class="comment">// Create a convinience method on bitflag struct which checks the given flag</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">is_bit_set</span> {
+<span class="macro">macro_rules!</span> <span class="ident">is_bit_set</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">flag</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -1953,232 +1953,232 @@
     <span class="ident">Union</span>,
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="doccomment">/// Orderings that may be specified for Revwalk iteration.</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sort</span>: <span class="ident">u32</span> {
         <span class="doccomment">/// Sort the repository contents in no particular ordering.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// This sorting is arbitrary, implementation-specific, and subject to</span>
         <span class="doccomment">/// change at any time. This is the default sorting for new walkers.</span>
-        <span class="kw">const</span> <span class="ident">NONE</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_SORT_NONE</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">NONE</span> <span class="op">=</span> <span class="ident">raw::GIT_SORT_NONE</span> <span class="kw">as</span> <span class="ident">u32</span>;
 
         <span class="doccomment">/// Sort the repository contents in topological order (children before</span>
         <span class="doccomment">/// parents).</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// This sorting mode can be combined with time sorting.</span>
-        <span class="kw">const</span> <span class="ident">TOPOLOGICAL</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_SORT_TOPOLOGICAL</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">TOPOLOGICAL</span> <span class="op">=</span> <span class="ident">raw::GIT_SORT_TOPOLOGICAL</span> <span class="kw">as</span> <span class="ident">u32</span>;
 
         <span class="doccomment">/// Sort the repository contents by commit time.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// This sorting mode can be combined with topological sorting.</span>
-        <span class="kw">const</span> <span class="ident">TIME</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_SORT_TIME</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">TIME</span> <span class="op">=</span> <span class="ident">raw::GIT_SORT_TIME</span> <span class="kw">as</span> <span class="ident">u32</span>;
 
         <span class="doccomment">/// Iterate through the repository contents in reverse order.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// This sorting mode can be combined with any others.</span>
-        <span class="kw">const</span> <span class="ident">REVERSE</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_SORT_REVERSE</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">REVERSE</span> <span class="op">=</span> <span class="ident">raw::GIT_SORT_REVERSE</span> <span class="kw">as</span> <span class="ident">u32</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Sort</span> {
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_none</span>, <span class="ident">Sort</span>::<span class="ident">NONE</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_topological</span>, <span class="ident">Sort</span>::<span class="ident">TOPOLOGICAL</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_time</span>, <span class="ident">Sort</span>::<span class="ident">TIME</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_reverse</span>, <span class="ident">Sort</span>::<span class="ident">REVERSE</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_none</span>, <span class="ident">Sort::NONE</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_topological</span>, <span class="ident">Sort::TOPOLOGICAL</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_time</span>, <span class="ident">Sort::TIME</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_reverse</span>, <span class="ident">Sort::REVERSE</span>);
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="doccomment">/// Types of credentials that can be requested by a credential callback.</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CredentialType</span>: <span class="ident">u32</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">USER_PASS_PLAINTEXT</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_CREDTYPE_USERPASS_PLAINTEXT</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">USER_PASS_PLAINTEXT</span> <span class="op">=</span> <span class="ident">raw::GIT_CREDTYPE_USERPASS_PLAINTEXT</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">SSH_KEY</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_CREDTYPE_SSH_KEY</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">SSH_KEY</span> <span class="op">=</span> <span class="ident">raw::GIT_CREDTYPE_SSH_KEY</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">SSH_MEMORY</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_CREDTYPE_SSH_MEMORY</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">SSH_MEMORY</span> <span class="op">=</span> <span class="ident">raw::GIT_CREDTYPE_SSH_MEMORY</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">SSH_CUSTOM</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_CREDTYPE_SSH_CUSTOM</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">SSH_CUSTOM</span> <span class="op">=</span> <span class="ident">raw::GIT_CREDTYPE_SSH_CUSTOM</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">DEFAULT</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_CREDTYPE_DEFAULT</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">DEFAULT</span> <span class="op">=</span> <span class="ident">raw::GIT_CREDTYPE_DEFAULT</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">SSH_INTERACTIVE</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_CREDTYPE_SSH_INTERACTIVE</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">SSH_INTERACTIVE</span> <span class="op">=</span> <span class="ident">raw::GIT_CREDTYPE_SSH_INTERACTIVE</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">USERNAME</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_CREDTYPE_USERNAME</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">USERNAME</span> <span class="op">=</span> <span class="ident">raw::GIT_CREDTYPE_USERNAME</span> <span class="kw">as</span> <span class="ident">u32</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">CredentialType</span> {
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_user_pass_plaintext</span>, <span class="ident">CredentialType</span>::<span class="ident">USER_PASS_PLAINTEXT</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_ssh_key</span>, <span class="ident">CredentialType</span>::<span class="ident">SSH_KEY</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_ssh_memory</span>, <span class="ident">CredentialType</span>::<span class="ident">SSH_MEMORY</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_ssh_custom</span>, <span class="ident">CredentialType</span>::<span class="ident">SSH_CUSTOM</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_default</span>, <span class="ident">CredentialType</span>::<span class="ident">DEFAULT</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_ssh_interactive</span>, <span class="ident">CredentialType</span>::<span class="ident">SSH_INTERACTIVE</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_username</span>, <span class="ident">CredentialType</span>::<span class="ident">USERNAME</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_user_pass_plaintext</span>, <span class="ident">CredentialType::USER_PASS_PLAINTEXT</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_ssh_key</span>, <span class="ident">CredentialType::SSH_KEY</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_ssh_memory</span>, <span class="ident">CredentialType::SSH_MEMORY</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_ssh_custom</span>, <span class="ident">CredentialType::SSH_CUSTOM</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_default</span>, <span class="ident">CredentialType::DEFAULT</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_ssh_interactive</span>, <span class="ident">CredentialType::SSH_INTERACTIVE</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_username</span>, <span class="ident">CredentialType::USERNAME</span>);
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">CredentialType</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">CredentialType</span>::<span class="ident">DEFAULT</span>
+        <span class="ident">CredentialType::DEFAULT</span>
     }
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="doccomment">/// Flags for the `flags` field of an IndexEntry.</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IndexEntryFlag</span>: <span class="ident">u16</span> {
         <span class="doccomment">/// Set when the `extended_flags` field is valid.</span>
-        <span class="kw">const</span> <span class="ident">EXTENDED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_INDEX_ENTRY_EXTENDED</span> <span class="kw">as</span> <span class="ident">u16</span>;
+        <span class="kw">const</span> <span class="ident">EXTENDED</span> <span class="op">=</span> <span class="ident">raw::GIT_INDEX_ENTRY_EXTENDED</span> <span class="kw">as</span> <span class="ident">u16</span>;
         <span class="doccomment">/// &quot;Assume valid&quot; flag</span>
-        <span class="kw">const</span> <span class="ident">VALID</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_INDEX_ENTRY_VALID</span> <span class="kw">as</span> <span class="ident">u16</span>;
+        <span class="kw">const</span> <span class="ident">VALID</span> <span class="op">=</span> <span class="ident">raw::GIT_INDEX_ENTRY_VALID</span> <span class="kw">as</span> <span class="ident">u16</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">IndexEntryFlag</span> {
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_extended</span>, <span class="ident">IndexEntryFlag</span>::<span class="ident">EXTENDED</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_valid</span>, <span class="ident">IndexEntryFlag</span>::<span class="ident">VALID</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_extended</span>, <span class="ident">IndexEntryFlag::EXTENDED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_valid</span>, <span class="ident">IndexEntryFlag::VALID</span>);
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="doccomment">/// Flags for the `extended_flags` field of an IndexEntry.</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IndexEntryExtendedFlag</span>: <span class="ident">u16</span> {
         <span class="doccomment">/// An &quot;intent to add&quot; entry from &quot;git add -N&quot;</span>
-        <span class="kw">const</span> <span class="ident">INTENT_TO_ADD</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_INDEX_ENTRY_INTENT_TO_ADD</span> <span class="kw">as</span> <span class="ident">u16</span>;
+        <span class="kw">const</span> <span class="ident">INTENT_TO_ADD</span> <span class="op">=</span> <span class="ident">raw::GIT_INDEX_ENTRY_INTENT_TO_ADD</span> <span class="kw">as</span> <span class="ident">u16</span>;
         <span class="doccomment">/// Skip the associated worktree file, for sparse checkouts</span>
-        <span class="kw">const</span> <span class="ident">SKIP_WORKTREE</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_INDEX_ENTRY_SKIP_WORKTREE</span> <span class="kw">as</span> <span class="ident">u16</span>;
+        <span class="kw">const</span> <span class="ident">SKIP_WORKTREE</span> <span class="op">=</span> <span class="ident">raw::GIT_INDEX_ENTRY_SKIP_WORKTREE</span> <span class="kw">as</span> <span class="ident">u16</span>;
 
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">UPTODATE</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_INDEX_ENTRY_UPTODATE</span> <span class="kw">as</span> <span class="ident">u16</span>;
+        <span class="kw">const</span> <span class="ident">UPTODATE</span> <span class="op">=</span> <span class="ident">raw::GIT_INDEX_ENTRY_UPTODATE</span> <span class="kw">as</span> <span class="ident">u16</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">IndexEntryExtendedFlag</span> {
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_intent_to_add</span>, <span class="ident">IndexEntryExtendedFlag</span>::<span class="ident">INTENT_TO_ADD</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_skip_worktree</span>, <span class="ident">IndexEntryExtendedFlag</span>::<span class="ident">SKIP_WORKTREE</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_up_to_date</span>, <span class="ident">IndexEntryExtendedFlag</span>::<span class="ident">UPTODATE</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_intent_to_add</span>, <span class="ident">IndexEntryExtendedFlag::INTENT_TO_ADD</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_skip_worktree</span>, <span class="ident">IndexEntryExtendedFlag::SKIP_WORKTREE</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_up_to_date</span>, <span class="ident">IndexEntryExtendedFlag::UPTODATE</span>);
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="doccomment">/// Flags for APIs that add files matching pathspec</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IndexAddOption</span>: <span class="ident">u32</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">DEFAULT</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_INDEX_ADD_DEFAULT</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">DEFAULT</span> <span class="op">=</span> <span class="ident">raw::GIT_INDEX_ADD_DEFAULT</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">FORCE</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_INDEX_ADD_FORCE</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">FORCE</span> <span class="op">=</span> <span class="ident">raw::GIT_INDEX_ADD_FORCE</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
         <span class="kw">const</span> <span class="ident">DISABLE_PATHSPEC_MATCH</span> <span class="op">=</span>
-                <span class="ident">raw</span>::<span class="ident">GIT_INDEX_ADD_DISABLE_PATHSPEC_MATCH</span> <span class="kw">as</span> <span class="ident">u32</span>;
+                <span class="ident">raw::GIT_INDEX_ADD_DISABLE_PATHSPEC_MATCH</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">CHECK_PATHSPEC</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_INDEX_ADD_CHECK_PATHSPEC</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">CHECK_PATHSPEC</span> <span class="op">=</span> <span class="ident">raw::GIT_INDEX_ADD_CHECK_PATHSPEC</span> <span class="kw">as</span> <span class="ident">u32</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">IndexAddOption</span> {
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_default</span>, <span class="ident">IndexAddOption</span>::<span class="ident">DEFAULT</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_force</span>, <span class="ident">IndexAddOption</span>::<span class="ident">FORCE</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_default</span>, <span class="ident">IndexAddOption::DEFAULT</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_force</span>, <span class="ident">IndexAddOption::FORCE</span>);
+    <span class="macro">is_bit_set!</span>(
         <span class="ident">is_disable_pathspec_match</span>,
-        <span class="ident">IndexAddOption</span>::<span class="ident">DISABLE_PATHSPEC_MATCH</span>
+        <span class="ident">IndexAddOption::DISABLE_PATHSPEC_MATCH</span>
     );
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_check_pathspec</span>, <span class="ident">IndexAddOption</span>::<span class="ident">CHECK_PATHSPEC</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_check_pathspec</span>, <span class="ident">IndexAddOption::CHECK_PATHSPEC</span>);
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">IndexAddOption</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">IndexAddOption</span>::<span class="ident">DEFAULT</span>
+        <span class="ident">IndexAddOption::DEFAULT</span>
     }
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="doccomment">/// Flags for `Repository::open_ext`</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RepositoryOpenFlags</span>: <span class="ident">u32</span> {
         <span class="doccomment">/// Only open the specified path; don&#39;t walk upward searching.</span>
-        <span class="kw">const</span> <span class="ident">NO_SEARCH</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_REPOSITORY_OPEN_NO_SEARCH</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">NO_SEARCH</span> <span class="op">=</span> <span class="ident">raw::GIT_REPOSITORY_OPEN_NO_SEARCH</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Search across filesystem boundaries.</span>
-        <span class="kw">const</span> <span class="ident">CROSS_FS</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_REPOSITORY_OPEN_CROSS_FS</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">CROSS_FS</span> <span class="op">=</span> <span class="ident">raw::GIT_REPOSITORY_OPEN_CROSS_FS</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Force opening as bare repository, and defer loading its config.</span>
-        <span class="kw">const</span> <span class="ident">BARE</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_REPOSITORY_OPEN_BARE</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">BARE</span> <span class="op">=</span> <span class="ident">raw::GIT_REPOSITORY_OPEN_BARE</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Don&#39;t try appending `/.git` to the specified repository path.</span>
-        <span class="kw">const</span> <span class="ident">NO_DOTGIT</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_REPOSITORY_OPEN_NO_DOTGIT</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">NO_DOTGIT</span> <span class="op">=</span> <span class="ident">raw::GIT_REPOSITORY_OPEN_NO_DOTGIT</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Respect environment variables like `$GIT_DIR`.</span>
-        <span class="kw">const</span> <span class="ident">FROM_ENV</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_REPOSITORY_OPEN_FROM_ENV</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">FROM_ENV</span> <span class="op">=</span> <span class="ident">raw::GIT_REPOSITORY_OPEN_FROM_ENV</span> <span class="kw">as</span> <span class="ident">u32</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">RepositoryOpenFlags</span> {
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_no_search</span>, <span class="ident">RepositoryOpenFlags</span>::<span class="ident">NO_SEARCH</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_cross_fs</span>, <span class="ident">RepositoryOpenFlags</span>::<span class="ident">CROSS_FS</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_bare</span>, <span class="ident">RepositoryOpenFlags</span>::<span class="ident">BARE</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_no_dotgit</span>, <span class="ident">RepositoryOpenFlags</span>::<span class="ident">NO_DOTGIT</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_from_env</span>, <span class="ident">RepositoryOpenFlags</span>::<span class="ident">FROM_ENV</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_no_search</span>, <span class="ident">RepositoryOpenFlags::NO_SEARCH</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_cross_fs</span>, <span class="ident">RepositoryOpenFlags::CROSS_FS</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_bare</span>, <span class="ident">RepositoryOpenFlags::BARE</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_no_dotgit</span>, <span class="ident">RepositoryOpenFlags::NO_DOTGIT</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_from_env</span>, <span class="ident">RepositoryOpenFlags::FROM_ENV</span>);
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="doccomment">/// Flags for the return value of `Repository::revparse`</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RevparseMode</span>: <span class="ident">u32</span> {
         <span class="doccomment">/// The spec targeted a single object</span>
-        <span class="kw">const</span> <span class="ident">SINGLE</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_REVPARSE_SINGLE</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">SINGLE</span> <span class="op">=</span> <span class="ident">raw::GIT_REVPARSE_SINGLE</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// The spec targeted a range of commits</span>
-        <span class="kw">const</span> <span class="ident">RANGE</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_REVPARSE_RANGE</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">RANGE</span> <span class="op">=</span> <span class="ident">raw::GIT_REVPARSE_RANGE</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// The spec used the `...` operator, which invokes special semantics.</span>
-        <span class="kw">const</span> <span class="ident">MERGE_BASE</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_REVPARSE_MERGE_BASE</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">MERGE_BASE</span> <span class="op">=</span> <span class="ident">raw::GIT_REVPARSE_MERGE_BASE</span> <span class="kw">as</span> <span class="ident">u32</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">RevparseMode</span> {
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_no_single</span>, <span class="ident">RevparseMode</span>::<span class="ident">SINGLE</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_range</span>, <span class="ident">RevparseMode</span>::<span class="ident">RANGE</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_merge_base</span>, <span class="ident">RevparseMode</span>::<span class="ident">MERGE_BASE</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_no_single</span>, <span class="ident">RevparseMode::SINGLE</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_range</span>, <span class="ident">RevparseMode::RANGE</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_merge_base</span>, <span class="ident">RevparseMode::MERGE_BASE</span>);
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="doccomment">/// The results of `merge_analysis` indicating the merge opportunities.</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MergeAnalysis</span>: <span class="ident">u32</span> {
         <span class="doccomment">/// No merge is possible.</span>
-        <span class="kw">const</span> <span class="ident">ANALYSIS_NONE</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_MERGE_ANALYSIS_NONE</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">ANALYSIS_NONE</span> <span class="op">=</span> <span class="ident">raw::GIT_MERGE_ANALYSIS_NONE</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// A &quot;normal&quot; merge; both HEAD and the given merge input have diverged</span>
         <span class="doccomment">/// from their common ancestor. The divergent commits must be merged.</span>
-        <span class="kw">const</span> <span class="ident">ANALYSIS_NORMAL</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_MERGE_ANALYSIS_NORMAL</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">ANALYSIS_NORMAL</span> <span class="op">=</span> <span class="ident">raw::GIT_MERGE_ANALYSIS_NORMAL</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// All given merge inputs are reachable from HEAD, meaning the</span>
         <span class="doccomment">/// repository is up-to-date and no merge needs to be performed.</span>
-        <span class="kw">const</span> <span class="ident">ANALYSIS_UP_TO_DATE</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_MERGE_ANALYSIS_UP_TO_DATE</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">ANALYSIS_UP_TO_DATE</span> <span class="op">=</span> <span class="ident">raw::GIT_MERGE_ANALYSIS_UP_TO_DATE</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// The given merge input is a fast-forward from HEAD and no merge</span>
         <span class="doccomment">/// needs to be performed.  Instead, the client can check out the</span>
         <span class="doccomment">/// given merge input.</span>
-        <span class="kw">const</span> <span class="ident">ANALYSIS_FASTFORWARD</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_MERGE_ANALYSIS_FASTFORWARD</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">ANALYSIS_FASTFORWARD</span> <span class="op">=</span> <span class="ident">raw::GIT_MERGE_ANALYSIS_FASTFORWARD</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// The HEAD of the current repository is &quot;unborn&quot; and does not point to</span>
         <span class="doccomment">/// a valid commit.  No merge can be performed, but the caller may wish</span>
         <span class="doccomment">/// to simply set HEAD to the target commit(s).</span>
-        <span class="kw">const</span> <span class="ident">ANALYSIS_UNBORN</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_MERGE_ANALYSIS_UNBORN</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">ANALYSIS_UNBORN</span> <span class="op">=</span> <span class="ident">raw::GIT_MERGE_ANALYSIS_UNBORN</span> <span class="kw">as</span> <span class="ident">u32</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">MergeAnalysis</span> {
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_none</span>, <span class="ident">MergeAnalysis</span>::<span class="ident">ANALYSIS_NONE</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_normal</span>, <span class="ident">MergeAnalysis</span>::<span class="ident">ANALYSIS_NORMAL</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_up_to_date</span>, <span class="ident">MergeAnalysis</span>::<span class="ident">ANALYSIS_UP_TO_DATE</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_fast_forward</span>, <span class="ident">MergeAnalysis</span>::<span class="ident">ANALYSIS_FASTFORWARD</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_unborn</span>, <span class="ident">MergeAnalysis</span>::<span class="ident">ANALYSIS_UNBORN</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_none</span>, <span class="ident">MergeAnalysis::ANALYSIS_NONE</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_normal</span>, <span class="ident">MergeAnalysis::ANALYSIS_NORMAL</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_up_to_date</span>, <span class="ident">MergeAnalysis::ANALYSIS_UP_TO_DATE</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_fast_forward</span>, <span class="ident">MergeAnalysis::ANALYSIS_FASTFORWARD</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_unborn</span>, <span class="ident">MergeAnalysis::ANALYSIS_UNBORN</span>);
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="doccomment">/// The user&#39;s stated preference for merges.</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MergePreference</span>: <span class="ident">u32</span> {
         <span class="doccomment">/// No configuration was found that suggests a preferred behavior for</span>
         <span class="doccomment">/// merge.</span>
-        <span class="kw">const</span> <span class="ident">NONE</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_MERGE_PREFERENCE_NONE</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">NONE</span> <span class="op">=</span> <span class="ident">raw::GIT_MERGE_PREFERENCE_NONE</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// There is a `merge.ff=false` configuration setting, suggesting that</span>
         <span class="doccomment">/// the user does not want to allow a fast-forward merge.</span>
-        <span class="kw">const</span> <span class="ident">NO_FAST_FORWARD</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_MERGE_PREFERENCE_NO_FASTFORWARD</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">NO_FAST_FORWARD</span> <span class="op">=</span> <span class="ident">raw::GIT_MERGE_PREFERENCE_NO_FASTFORWARD</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// There is a `merge.ff=only` configuration setting, suggesting that</span>
         <span class="doccomment">/// the user only wants fast-forward merges.</span>
-        <span class="kw">const</span> <span class="ident">FASTFORWARD_ONLY</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_MERGE_PREFERENCE_FASTFORWARD_ONLY</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">FASTFORWARD_ONLY</span> <span class="op">=</span> <span class="ident">raw::GIT_MERGE_PREFERENCE_FASTFORWARD_ONLY</span> <span class="kw">as</span> <span class="ident">u32</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">MergePreference</span> {
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_none</span>, <span class="ident">MergePreference</span>::<span class="ident">NONE</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_no_fast_forward</span>, <span class="ident">MergePreference</span>::<span class="ident">NO_FAST_FORWARD</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_fastforward_only</span>, <span class="ident">MergePreference</span>::<span class="ident">FASTFORWARD_ONLY</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_none</span>, <span class="ident">MergePreference::NONE</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_no_fast_forward</span>, <span class="ident">MergePreference::NO_FAST_FORWARD</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_fastforward_only</span>, <span class="ident">MergePreference::FASTFORWARD_ONLY</span>);
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -2246,13 +2246,13 @@
 <span class="kw">mod</span> <span class="ident">worktree</span>;
 
 <span class="kw">fn</span> <span class="ident">init</span>() {
-    <span class="kw">static</span> <span class="ident">INIT</span>: <span class="ident">Once</span> <span class="op">=</span> <span class="ident">Once</span>::<span class="ident">new</span>();
+    <span class="kw">static</span> <span class="ident">INIT</span>: <span class="ident">Once</span> <span class="op">=</span> <span class="ident">Once::new</span>();
 
     <span class="ident">INIT</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> {
         <span class="ident">openssl_env_init</span>();
     });
 
-    <span class="ident">raw</span>::<span class="ident">init</span>();
+    <span class="ident">raw::init</span>();
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
@@ -2373,7 +2373,7 @@
     <span class="comment">// OS X the OpenSSL binaries are stable enough that we can just rely on</span>
     <span class="comment">// dynamic linkage (plus they have some weird modifications to OpenSSL which</span>
     <span class="comment">// means we wouldn&#39;t want to link statically).</span>
-    <span class="ident">openssl_probe</span>::<span class="ident">init_ssl_cert_env_vars</span>();
+    <span class="ident">openssl_probe::init_ssl_cert_env_vars</span>();
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
@@ -2384,11 +2384,11 @@
 ))]</span>
 <span class="kw">fn</span> <span class="ident">openssl_env_init</span>() {}
 
-<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">opt_bytes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">_anchor</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>, <span class="ident">c</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">libc</span>::<span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]<span class="op">&gt;</span> {
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">opt_bytes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">_anchor</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>, <span class="ident">c</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">libc::c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]<span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">c</span>.<span class="ident">is_null</span>() {
         <span class="prelude-val">None</span>
     } <span class="kw">else</span> {
-        <span class="prelude-val">Some</span>(<span class="ident">CStr</span>::<span class="ident">from_ptr</span>(<span class="ident">c</span>).<span class="ident">to_bytes</span>())
+        <span class="prelude-val">Some</span>(<span class="ident">CStr::from_ptr</span>(<span class="ident">c</span>).<span class="ident">to_bytes</span>())
     }
 }
 
@@ -2403,43 +2403,43 @@
     <span class="doccomment">/// Convert an object type to its string representation.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="macro">call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_object_type2string</span>(<span class="kw-2">*</span><span class="self">self</span>)) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>;
-            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">CStr</span>::<span class="ident">from_ptr</span>(<span class="ident">ptr</span>).<span class="ident">to_bytes</span>();
-            <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="ident">data</span>).<span class="ident">unwrap</span>()
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="macro">call!</span>(<span class="ident">raw::git_object_type2string</span>(<span class="kw-2">*</span><span class="self">self</span>)) <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>;
+            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">CStr::from_ptr</span>(<span class="ident">ptr</span>).<span class="ident">to_bytes</span>();
+            <span class="ident">str::from_utf8</span>(<span class="ident">data</span>).<span class="ident">unwrap</span>()
         }
     }
 
     <span class="doccomment">/// Determine if the given git_object_t is a valid loose object type.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_loose</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> { <span class="macro">call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_object_typeisloose</span>(<span class="kw-2">*</span><span class="self">self</span>)) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> }
+        <span class="kw">unsafe</span> { <span class="macro">call!</span>(<span class="ident">raw::git_object_typeisloose</span>(<span class="kw-2">*</span><span class="self">self</span>)) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> }
     }
 
     <span class="doccomment">/// Convert a raw git_object_t to an ObjectType</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="ident">raw</span>::<span class="ident">git_object_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectType</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="ident">raw::git_object_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectType</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">raw</span> {
-            <span class="ident">raw</span>::<span class="ident">GIT_OBJECT_ANY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType</span>::<span class="ident">Any</span>),
-            <span class="ident">raw</span>::<span class="ident">GIT_OBJECT_COMMIT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType</span>::<span class="ident">Commit</span>),
-            <span class="ident">raw</span>::<span class="ident">GIT_OBJECT_TREE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType</span>::<span class="ident">Tree</span>),
-            <span class="ident">raw</span>::<span class="ident">GIT_OBJECT_BLOB</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType</span>::<span class="ident">Blob</span>),
-            <span class="ident">raw</span>::<span class="ident">GIT_OBJECT_TAG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType</span>::<span class="ident">Tag</span>),
+            <span class="ident">raw::GIT_OBJECT_ANY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType::Any</span>),
+            <span class="ident">raw::GIT_OBJECT_COMMIT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType::Commit</span>),
+            <span class="ident">raw::GIT_OBJECT_TREE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType::Tree</span>),
+            <span class="ident">raw::GIT_OBJECT_BLOB</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType::Blob</span>),
+            <span class="ident">raw::GIT_OBJECT_TAG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ObjectType::Tag</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 
     <span class="doccomment">/// Convert this kind into its raw representation</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">git_object_t</span> {
-        <span class="ident">call</span>::<span class="ident">convert</span>(<span class="self">self</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">raw::git_object_t</span> {
+        <span class="ident">call::convert</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Convert a string object type representation to its object type.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectType</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="macro">call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_object_string2type</span>(<span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">s</span>).<span class="ident">unwrap</span>())) };
-        <span class="ident">ObjectType</span>::<span class="ident">from_raw</span>(<span class="ident">raw</span>)
+        <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="macro">call!</span>(<span class="ident">raw::git_object_string2type</span>(<span class="ident">CString::new</span>(<span class="ident">s</span>).<span class="ident">unwrap</span>())) };
+        <span class="ident">ObjectType::from_raw</span>(<span class="ident">raw</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ObjectType</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ObjectType</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="self">self</span>.<span class="ident">str</span>().<span class="ident">fmt</span>(<span class="ident">f</span>)
     }
 }
@@ -2448,72 +2448,72 @@
     <span class="doccomment">/// Convert an object type to its string representation.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ReferenceType</span>::<span class="ident">Direct</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;direct&quot;</span>,
-            <span class="ident">ReferenceType</span>::<span class="ident">Symbolic</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;symbolic&quot;</span>,
+            <span class="ident">ReferenceType::Direct</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;direct&quot;</span>,
+            <span class="ident">ReferenceType::Symbolic</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;symbolic&quot;</span>,
         }
     }
 
     <span class="doccomment">/// Convert a raw git_reference_t to a ReferenceType.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="ident">raw</span>::<span class="ident">git_reference_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ReferenceType</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="ident">raw::git_reference_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ReferenceType</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">raw</span> {
-            <span class="ident">raw</span>::<span class="ident">GIT_REFERENCE_DIRECT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ReferenceType</span>::<span class="ident">Direct</span>),
-            <span class="ident">raw</span>::<span class="ident">GIT_REFERENCE_SYMBOLIC</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ReferenceType</span>::<span class="ident">Symbolic</span>),
+            <span class="ident">raw::GIT_REFERENCE_DIRECT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ReferenceType::Direct</span>),
+            <span class="ident">raw::GIT_REFERENCE_SYMBOLIC</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">ReferenceType::Symbolic</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ReferenceType</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ReferenceType</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="self">self</span>.<span class="ident">str</span>().<span class="ident">fmt</span>(<span class="ident">f</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">ConfigLevel</span> {
     <span class="doccomment">/// Converts a raw configuration level to a ConfigLevel</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="ident">raw</span>::<span class="ident">git_config_level_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ConfigLevel</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="ident">raw::git_config_level_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ConfigLevel</span> {
         <span class="kw">match</span> <span class="ident">raw</span> {
-            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_LEVEL_PROGRAMDATA</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">ProgramData</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_LEVEL_SYSTEM</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">System</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_LEVEL_XDG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">XDG</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_LEVEL_GLOBAL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">Global</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_LEVEL_LOCAL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">Local</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_LEVEL_APP</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">App</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_CONFIG_HIGHEST_LEVEL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel</span>::<span class="ident">Highest</span>,
-            <span class="ident">n</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;unknown config level: {}&quot;</span>, <span class="ident">n</span>),
+            <span class="ident">raw::GIT_CONFIG_LEVEL_PROGRAMDATA</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel::ProgramData</span>,
+            <span class="ident">raw::GIT_CONFIG_LEVEL_SYSTEM</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel::System</span>,
+            <span class="ident">raw::GIT_CONFIG_LEVEL_XDG</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel::XDG</span>,
+            <span class="ident">raw::GIT_CONFIG_LEVEL_GLOBAL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel::Global</span>,
+            <span class="ident">raw::GIT_CONFIG_LEVEL_LOCAL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel::Local</span>,
+            <span class="ident">raw::GIT_CONFIG_LEVEL_APP</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel::App</span>,
+            <span class="ident">raw::GIT_CONFIG_HIGHEST_LEVEL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">ConfigLevel::Highest</span>,
+            <span class="ident">n</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;unknown config level: {}&quot;</span>, <span class="ident">n</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">SubmoduleIgnore</span> {
     <span class="doccomment">/// Converts a [`raw::git_submodule_ignore_t`] to a [`SubmoduleIgnore`]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="ident">raw</span>::<span class="ident">git_submodule_ignore_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="ident">raw::git_submodule_ignore_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">raw</span> {
-            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_IGNORE_UNSPECIFIED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleIgnore</span>::<span class="ident">Unspecified</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_IGNORE_NONE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleIgnore</span>::<span class="prelude-val">None</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_IGNORE_UNTRACKED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleIgnore</span>::<span class="ident">Untracked</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_IGNORE_DIRTY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleIgnore</span>::<span class="ident">Dirty</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_IGNORE_ALL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleIgnore</span>::<span class="ident">All</span>,
-            <span class="ident">n</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;unknown submodule ignore rule: {}&quot;</span>, <span class="ident">n</span>),
+            <span class="ident">raw::GIT_SUBMODULE_IGNORE_UNSPECIFIED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleIgnore::Unspecified</span>,
+            <span class="ident">raw::GIT_SUBMODULE_IGNORE_NONE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleIgnore::None</span>,
+            <span class="ident">raw::GIT_SUBMODULE_IGNORE_UNTRACKED</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleIgnore::Untracked</span>,
+            <span class="ident">raw::GIT_SUBMODULE_IGNORE_DIRTY</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleIgnore::Dirty</span>,
+            <span class="ident">raw::GIT_SUBMODULE_IGNORE_ALL</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleIgnore::All</span>,
+            <span class="ident">n</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;unknown submodule ignore rule: {}&quot;</span>, <span class="ident">n</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">SubmoduleUpdate</span> {
     <span class="doccomment">/// Converts a [`raw::git_submodule_update_t`] to a [`SubmoduleUpdate`]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="ident">raw</span>::<span class="ident">git_submodule_update_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="ident">raw::git_submodule_update_t</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">raw</span> {
-            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_UPDATE_CHECKOUT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleUpdate</span>::<span class="ident">Checkout</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_UPDATE_REBASE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleUpdate</span>::<span class="ident">Rebase</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_UPDATE_MERGE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleUpdate</span>::<span class="ident">Merge</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_UPDATE_NONE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleUpdate</span>::<span class="prelude-val">None</span>,
-            <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_UPDATE_DEFAULT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleUpdate</span>::<span class="ident">Default</span>,
-            <span class="ident">n</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;unknown submodule update strategy: {}&quot;</span>, <span class="ident">n</span>),
+            <span class="ident">raw::GIT_SUBMODULE_UPDATE_CHECKOUT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleUpdate::Checkout</span>,
+            <span class="ident">raw::GIT_SUBMODULE_UPDATE_REBASE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleUpdate::Rebase</span>,
+            <span class="ident">raw::GIT_SUBMODULE_UPDATE_MERGE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleUpdate::Merge</span>,
+            <span class="ident">raw::GIT_SUBMODULE_UPDATE_NONE</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleUpdate::None</span>,
+            <span class="ident">raw::GIT_SUBMODULE_UPDATE_DEFAULT</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">SubmoduleUpdate::Default</span>,
+            <span class="ident">n</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;unknown submodule update strategy: {}&quot;</span>, <span class="ident">n</span>),
         }
     }
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="doccomment">/// Status flags for a single file</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A combination of these values will be returned to indicate the status of</span>
@@ -2524,69 +2524,69 @@
     <span class="doccomment">/// working directory relative to the index.</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Status</span>: <span class="ident">u32</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">CURRENT</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_STATUS_CURRENT</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">CURRENT</span> <span class="op">=</span> <span class="ident">raw::GIT_STATUS_CURRENT</span> <span class="kw">as</span> <span class="ident">u32</span>;
 
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">INDEX_NEW</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_STATUS_INDEX_NEW</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">INDEX_NEW</span> <span class="op">=</span> <span class="ident">raw::GIT_STATUS_INDEX_NEW</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">INDEX_MODIFIED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_STATUS_INDEX_MODIFIED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">INDEX_MODIFIED</span> <span class="op">=</span> <span class="ident">raw::GIT_STATUS_INDEX_MODIFIED</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">INDEX_DELETED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_STATUS_INDEX_DELETED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">INDEX_DELETED</span> <span class="op">=</span> <span class="ident">raw::GIT_STATUS_INDEX_DELETED</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">INDEX_RENAMED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_STATUS_INDEX_RENAMED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">INDEX_RENAMED</span> <span class="op">=</span> <span class="ident">raw::GIT_STATUS_INDEX_RENAMED</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">INDEX_TYPECHANGE</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_STATUS_INDEX_TYPECHANGE</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">INDEX_TYPECHANGE</span> <span class="op">=</span> <span class="ident">raw::GIT_STATUS_INDEX_TYPECHANGE</span> <span class="kw">as</span> <span class="ident">u32</span>;
 
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">WT_NEW</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_STATUS_WT_NEW</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">WT_NEW</span> <span class="op">=</span> <span class="ident">raw::GIT_STATUS_WT_NEW</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">WT_MODIFIED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_STATUS_WT_MODIFIED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">WT_MODIFIED</span> <span class="op">=</span> <span class="ident">raw::GIT_STATUS_WT_MODIFIED</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">WT_DELETED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_STATUS_WT_DELETED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">WT_DELETED</span> <span class="op">=</span> <span class="ident">raw::GIT_STATUS_WT_DELETED</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">WT_TYPECHANGE</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_STATUS_WT_TYPECHANGE</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">WT_TYPECHANGE</span> <span class="op">=</span> <span class="ident">raw::GIT_STATUS_WT_TYPECHANGE</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">WT_RENAMED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_STATUS_WT_RENAMED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">WT_RENAMED</span> <span class="op">=</span> <span class="ident">raw::GIT_STATUS_WT_RENAMED</span> <span class="kw">as</span> <span class="ident">u32</span>;
 
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">IGNORED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_STATUS_IGNORED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">IGNORED</span> <span class="op">=</span> <span class="ident">raw::GIT_STATUS_IGNORED</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">CONFLICTED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_STATUS_CONFLICTED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">CONFLICTED</span> <span class="op">=</span> <span class="ident">raw::GIT_STATUS_CONFLICTED</span> <span class="kw">as</span> <span class="ident">u32</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Status</span> {
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_index_new</span>, <span class="ident">Status</span>::<span class="ident">INDEX_NEW</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_index_modified</span>, <span class="ident">Status</span>::<span class="ident">INDEX_MODIFIED</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_index_deleted</span>, <span class="ident">Status</span>::<span class="ident">INDEX_DELETED</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_index_renamed</span>, <span class="ident">Status</span>::<span class="ident">INDEX_RENAMED</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_index_typechange</span>, <span class="ident">Status</span>::<span class="ident">INDEX_TYPECHANGE</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_wt_new</span>, <span class="ident">Status</span>::<span class="ident">WT_NEW</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_wt_modified</span>, <span class="ident">Status</span>::<span class="ident">WT_MODIFIED</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_wt_deleted</span>, <span class="ident">Status</span>::<span class="ident">WT_DELETED</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_wt_typechange</span>, <span class="ident">Status</span>::<span class="ident">WT_TYPECHANGE</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_wt_renamed</span>, <span class="ident">Status</span>::<span class="ident">WT_RENAMED</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_ignored</span>, <span class="ident">Status</span>::<span class="ident">IGNORED</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_conflicted</span>, <span class="ident">Status</span>::<span class="ident">CONFLICTED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_index_new</span>, <span class="ident">Status::INDEX_NEW</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_index_modified</span>, <span class="ident">Status::INDEX_MODIFIED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_index_deleted</span>, <span class="ident">Status::INDEX_DELETED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_index_renamed</span>, <span class="ident">Status::INDEX_RENAMED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_index_typechange</span>, <span class="ident">Status::INDEX_TYPECHANGE</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_wt_new</span>, <span class="ident">Status::WT_NEW</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_wt_modified</span>, <span class="ident">Status::WT_MODIFIED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_wt_deleted</span>, <span class="ident">Status::WT_DELETED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_wt_typechange</span>, <span class="ident">Status::WT_TYPECHANGE</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_wt_renamed</span>, <span class="ident">Status::WT_RENAMED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_ignored</span>, <span class="ident">Status::IGNORED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_conflicted</span>, <span class="ident">Status::CONFLICTED</span>);
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="doccomment">/// Mode options for RepositoryInitOptions</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RepositoryInitMode</span>: <span class="ident">u32</span> {
         <span class="doccomment">/// Use permissions configured by umask - the default</span>
-        <span class="kw">const</span> <span class="ident">SHARED_UMASK</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_REPOSITORY_INIT_SHARED_UMASK</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">SHARED_UMASK</span> <span class="op">=</span> <span class="ident">raw::GIT_REPOSITORY_INIT_SHARED_UMASK</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Use `--shared=group` behavior, chmod&#39;ing the new repo to be</span>
         <span class="doccomment">/// group writable and \&quot;g+sx\&quot; for sticky group assignment</span>
-        <span class="kw">const</span> <span class="ident">SHARED_GROUP</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_REPOSITORY_INIT_SHARED_GROUP</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">SHARED_GROUP</span> <span class="op">=</span> <span class="ident">raw::GIT_REPOSITORY_INIT_SHARED_GROUP</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Use `--shared=all` behavior, adding world readability.</span>
-        <span class="kw">const</span> <span class="ident">SHARED_ALL</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_REPOSITORY_INIT_SHARED_ALL</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">SHARED_ALL</span> <span class="op">=</span> <span class="ident">raw::GIT_REPOSITORY_INIT_SHARED_ALL</span> <span class="kw">as</span> <span class="ident">u32</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">RepositoryInitMode</span> {
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_shared_umask</span>, <span class="ident">RepositoryInitMode</span>::<span class="ident">SHARED_UMASK</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_shared_group</span>, <span class="ident">RepositoryInitMode</span>::<span class="ident">SHARED_GROUP</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_shared_all</span>, <span class="ident">RepositoryInitMode</span>::<span class="ident">SHARED_ALL</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_shared_umask</span>, <span class="ident">RepositoryInitMode::SHARED_UMASK</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_shared_group</span>, <span class="ident">RepositoryInitMode::SHARED_GROUP</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_shared_all</span>, <span class="ident">RepositoryInitMode::SHARED_ALL</span>);
 }
 
 <span class="doccomment">/// What type of change is described by a `DiffDelta`?</span>
@@ -2636,12 +2636,12 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">FileMode</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">i32</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">mode</span>: <span class="ident">FileMode</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
         <span class="kw">match</span> <span class="ident">mode</span> {
-            <span class="ident">FileMode</span>::<span class="ident">Unreadable</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_FILEMODE_UNREADABLE</span> <span class="kw">as</span> <span class="ident">i32</span>,
-            <span class="ident">FileMode</span>::<span class="ident">Tree</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_FILEMODE_TREE</span> <span class="kw">as</span> <span class="ident">i32</span>,
-            <span class="ident">FileMode</span>::<span class="ident">Blob</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_FILEMODE_BLOB</span> <span class="kw">as</span> <span class="ident">i32</span>,
-            <span class="ident">FileMode</span>::<span class="ident">BlobExecutable</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_FILEMODE_BLOB_EXECUTABLE</span> <span class="kw">as</span> <span class="ident">i32</span>,
-            <span class="ident">FileMode</span>::<span class="ident">Link</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_FILEMODE_LINK</span> <span class="kw">as</span> <span class="ident">i32</span>,
-            <span class="ident">FileMode</span>::<span class="ident">Commit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_FILEMODE_COMMIT</span> <span class="kw">as</span> <span class="ident">i32</span>,
+            <span class="ident">FileMode::Unreadable</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw::GIT_FILEMODE_UNREADABLE</span> <span class="kw">as</span> <span class="ident">i32</span>,
+            <span class="ident">FileMode::Tree</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw::GIT_FILEMODE_TREE</span> <span class="kw">as</span> <span class="ident">i32</span>,
+            <span class="ident">FileMode::Blob</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw::GIT_FILEMODE_BLOB</span> <span class="kw">as</span> <span class="ident">i32</span>,
+            <span class="ident">FileMode::BlobExecutable</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw::GIT_FILEMODE_BLOB_EXECUTABLE</span> <span class="kw">as</span> <span class="ident">i32</span>,
+            <span class="ident">FileMode::Link</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw::GIT_FILEMODE_LINK</span> <span class="kw">as</span> <span class="ident">i32</span>,
+            <span class="ident">FileMode::Commit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw::GIT_FILEMODE_COMMIT</span> <span class="kw">as</span> <span class="ident">i32</span>,
         }
     }
 }
@@ -2649,17 +2649,17 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">FileMode</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">mode</span>: <span class="ident">FileMode</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
         <span class="kw">match</span> <span class="ident">mode</span> {
-            <span class="ident">FileMode</span>::<span class="ident">Unreadable</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_FILEMODE_UNREADABLE</span> <span class="kw">as</span> <span class="ident">u32</span>,
-            <span class="ident">FileMode</span>::<span class="ident">Tree</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_FILEMODE_TREE</span> <span class="kw">as</span> <span class="ident">u32</span>,
-            <span class="ident">FileMode</span>::<span class="ident">Blob</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_FILEMODE_BLOB</span> <span class="kw">as</span> <span class="ident">u32</span>,
-            <span class="ident">FileMode</span>::<span class="ident">BlobExecutable</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_FILEMODE_BLOB_EXECUTABLE</span> <span class="kw">as</span> <span class="ident">u32</span>,
-            <span class="ident">FileMode</span>::<span class="ident">Link</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_FILEMODE_LINK</span> <span class="kw">as</span> <span class="ident">u32</span>,
-            <span class="ident">FileMode</span>::<span class="ident">Commit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">GIT_FILEMODE_COMMIT</span> <span class="kw">as</span> <span class="ident">u32</span>,
+            <span class="ident">FileMode::Unreadable</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw::GIT_FILEMODE_UNREADABLE</span> <span class="kw">as</span> <span class="ident">u32</span>,
+            <span class="ident">FileMode::Tree</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw::GIT_FILEMODE_TREE</span> <span class="kw">as</span> <span class="ident">u32</span>,
+            <span class="ident">FileMode::Blob</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw::GIT_FILEMODE_BLOB</span> <span class="kw">as</span> <span class="ident">u32</span>,
+            <span class="ident">FileMode::BlobExecutable</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw::GIT_FILEMODE_BLOB_EXECUTABLE</span> <span class="kw">as</span> <span class="ident">u32</span>,
+            <span class="ident">FileMode::Link</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw::GIT_FILEMODE_LINK</span> <span class="kw">as</span> <span class="ident">u32</span>,
+            <span class="ident">FileMode::Commit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">raw::GIT_FILEMODE_COMMIT</span> <span class="kw">as</span> <span class="ident">u32</span>,
         }
     }
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="doccomment">/// Return codes for submodule status.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A combination of these flags will be returned to describe the status of a</span>
@@ -2702,52 +2702,52 @@
     <span class="doccomment">/// * WD_UNTRACKED      - wd contains untracked files</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SubmoduleStatus</span>: <span class="ident">u32</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">IN_HEAD</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_STATUS_IN_HEAD</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">IN_HEAD</span> <span class="op">=</span> <span class="ident">raw::GIT_SUBMODULE_STATUS_IN_HEAD</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">IN_INDEX</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_STATUS_IN_INDEX</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">IN_INDEX</span> <span class="op">=</span> <span class="ident">raw::GIT_SUBMODULE_STATUS_IN_INDEX</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">IN_CONFIG</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_STATUS_IN_CONFIG</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">IN_CONFIG</span> <span class="op">=</span> <span class="ident">raw::GIT_SUBMODULE_STATUS_IN_CONFIG</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">IN_WD</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_STATUS_IN_WD</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">IN_WD</span> <span class="op">=</span> <span class="ident">raw::GIT_SUBMODULE_STATUS_IN_WD</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">INDEX_ADDED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_STATUS_INDEX_ADDED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">INDEX_ADDED</span> <span class="op">=</span> <span class="ident">raw::GIT_SUBMODULE_STATUS_INDEX_ADDED</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">INDEX_DELETED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_STATUS_INDEX_DELETED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">INDEX_DELETED</span> <span class="op">=</span> <span class="ident">raw::GIT_SUBMODULE_STATUS_INDEX_DELETED</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">INDEX_MODIFIED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_STATUS_INDEX_MODIFIED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">INDEX_MODIFIED</span> <span class="op">=</span> <span class="ident">raw::GIT_SUBMODULE_STATUS_INDEX_MODIFIED</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
         <span class="kw">const</span> <span class="ident">WD_UNINITIALIZED</span> <span class="op">=</span>
-                <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_STATUS_WD_UNINITIALIZED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+                <span class="ident">raw::GIT_SUBMODULE_STATUS_WD_UNINITIALIZED</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">WD_ADDED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_STATUS_WD_ADDED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">WD_ADDED</span> <span class="op">=</span> <span class="ident">raw::GIT_SUBMODULE_STATUS_WD_ADDED</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">WD_DELETED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_STATUS_WD_DELETED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">WD_DELETED</span> <span class="op">=</span> <span class="ident">raw::GIT_SUBMODULE_STATUS_WD_DELETED</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">WD_MODIFIED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_STATUS_WD_MODIFIED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">WD_MODIFIED</span> <span class="op">=</span> <span class="ident">raw::GIT_SUBMODULE_STATUS_WD_MODIFIED</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
         <span class="kw">const</span> <span class="ident">WD_INDEX_MODIFIED</span> <span class="op">=</span>
-                <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_STATUS_WD_INDEX_MODIFIED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+                <span class="ident">raw::GIT_SUBMODULE_STATUS_WD_INDEX_MODIFIED</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">WD_WD_MODIFIED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_STATUS_WD_WD_MODIFIED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">WD_WD_MODIFIED</span> <span class="op">=</span> <span class="ident">raw::GIT_SUBMODULE_STATUS_WD_WD_MODIFIED</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">WD_UNTRACKED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_SUBMODULE_STATUS_WD_UNTRACKED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">WD_UNTRACKED</span> <span class="op">=</span> <span class="ident">raw::GIT_SUBMODULE_STATUS_WD_UNTRACKED</span> <span class="kw">as</span> <span class="ident">u32</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">SubmoduleStatus</span> {
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_in_head</span>, <span class="ident">SubmoduleStatus</span>::<span class="ident">IN_HEAD</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_in_index</span>, <span class="ident">SubmoduleStatus</span>::<span class="ident">IN_INDEX</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_in_config</span>, <span class="ident">SubmoduleStatus</span>::<span class="ident">IN_CONFIG</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_in_wd</span>, <span class="ident">SubmoduleStatus</span>::<span class="ident">IN_WD</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_index_added</span>, <span class="ident">SubmoduleStatus</span>::<span class="ident">INDEX_ADDED</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_index_deleted</span>, <span class="ident">SubmoduleStatus</span>::<span class="ident">INDEX_DELETED</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_index_modified</span>, <span class="ident">SubmoduleStatus</span>::<span class="ident">INDEX_MODIFIED</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_wd_uninitialized</span>, <span class="ident">SubmoduleStatus</span>::<span class="ident">WD_UNINITIALIZED</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_wd_added</span>, <span class="ident">SubmoduleStatus</span>::<span class="ident">WD_ADDED</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_wd_deleted</span>, <span class="ident">SubmoduleStatus</span>::<span class="ident">WD_DELETED</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_wd_modified</span>, <span class="ident">SubmoduleStatus</span>::<span class="ident">WD_MODIFIED</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_wd_wd_modified</span>, <span class="ident">SubmoduleStatus</span>::<span class="ident">WD_WD_MODIFIED</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_wd_untracked</span>, <span class="ident">SubmoduleStatus</span>::<span class="ident">WD_UNTRACKED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_in_head</span>, <span class="ident">SubmoduleStatus::IN_HEAD</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_in_index</span>, <span class="ident">SubmoduleStatus::IN_INDEX</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_in_config</span>, <span class="ident">SubmoduleStatus::IN_CONFIG</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_in_wd</span>, <span class="ident">SubmoduleStatus::IN_WD</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_index_added</span>, <span class="ident">SubmoduleStatus::INDEX_ADDED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_index_deleted</span>, <span class="ident">SubmoduleStatus::INDEX_DELETED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_index_modified</span>, <span class="ident">SubmoduleStatus::INDEX_MODIFIED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_wd_uninitialized</span>, <span class="ident">SubmoduleStatus::WD_UNINITIALIZED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_wd_added</span>, <span class="ident">SubmoduleStatus::WD_ADDED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_wd_deleted</span>, <span class="ident">SubmoduleStatus::WD_DELETED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_wd_modified</span>, <span class="ident">SubmoduleStatus::WD_MODIFIED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_wd_wd_modified</span>, <span class="ident">SubmoduleStatus::WD_WD_MODIFIED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_wd_untracked</span>, <span class="ident">SubmoduleStatus::WD_UNTRACKED</span>);
 }
 
 <span class="doccomment">/// Submodule ignore values</span>
@@ -2794,73 +2794,73 @@
     <span class="ident">Default</span>,
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="doccomment">/// ...</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PathspecFlags</span>: <span class="ident">u32</span> {
         <span class="doccomment">/// Use the default pathspec matching configuration.</span>
-        <span class="kw">const</span> <span class="ident">DEFAULT</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_PATHSPEC_DEFAULT</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">DEFAULT</span> <span class="op">=</span> <span class="ident">raw::GIT_PATHSPEC_DEFAULT</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Force matching to ignore case, otherwise matching will use native</span>
         <span class="doccomment">/// case sensitivity fo the platform filesystem.</span>
-        <span class="kw">const</span> <span class="ident">IGNORE_CASE</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_PATHSPEC_IGNORE_CASE</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">IGNORE_CASE</span> <span class="op">=</span> <span class="ident">raw::GIT_PATHSPEC_IGNORE_CASE</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Force case sensitive matches, otherwise match will use the native</span>
         <span class="doccomment">/// case sensitivity of the platform filesystem.</span>
-        <span class="kw">const</span> <span class="ident">USE_CASE</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_PATHSPEC_USE_CASE</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">USE_CASE</span> <span class="op">=</span> <span class="ident">raw::GIT_PATHSPEC_USE_CASE</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Disable glob patterns and just use simple string comparison for</span>
         <span class="doccomment">/// matching.</span>
-        <span class="kw">const</span> <span class="ident">NO_GLOB</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_PATHSPEC_NO_GLOB</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">NO_GLOB</span> <span class="op">=</span> <span class="ident">raw::GIT_PATHSPEC_NO_GLOB</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Means that match functions return the error code `NotFound` if no</span>
         <span class="doccomment">/// matches are found. By default no matches is a success.</span>
-        <span class="kw">const</span> <span class="ident">NO_MATCH_ERROR</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_PATHSPEC_NO_MATCH_ERROR</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">NO_MATCH_ERROR</span> <span class="op">=</span> <span class="ident">raw::GIT_PATHSPEC_NO_MATCH_ERROR</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Means that the list returned should track which patterns matched</span>
         <span class="doccomment">/// which files so that at the end of the match we can identify patterns</span>
         <span class="doccomment">/// that did not match any files.</span>
-        <span class="kw">const</span> <span class="ident">FIND_FAILURES</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_PATHSPEC_FIND_FAILURES</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">FIND_FAILURES</span> <span class="op">=</span> <span class="ident">raw::GIT_PATHSPEC_FIND_FAILURES</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Means that the list returned does not need to keep the actual</span>
         <span class="doccomment">/// matching filenames. Use this to just test if there were any matches</span>
         <span class="doccomment">/// at all or in combination with `PATHSPEC_FAILURES` to validate a</span>
         <span class="doccomment">/// pathspec.</span>
-        <span class="kw">const</span> <span class="ident">FAILURES_ONLY</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_PATHSPEC_FAILURES_ONLY</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">FAILURES_ONLY</span> <span class="op">=</span> <span class="ident">raw::GIT_PATHSPEC_FAILURES_ONLY</span> <span class="kw">as</span> <span class="ident">u32</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">PathspecFlags</span> {
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_default</span>, <span class="ident">PathspecFlags</span>::<span class="ident">DEFAULT</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_ignore_case</span>, <span class="ident">PathspecFlags</span>::<span class="ident">IGNORE_CASE</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_use_case</span>, <span class="ident">PathspecFlags</span>::<span class="ident">USE_CASE</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_no_glob</span>, <span class="ident">PathspecFlags</span>::<span class="ident">NO_GLOB</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_no_match_error</span>, <span class="ident">PathspecFlags</span>::<span class="ident">NO_MATCH_ERROR</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_find_failures</span>, <span class="ident">PathspecFlags</span>::<span class="ident">FIND_FAILURES</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_failures_only</span>, <span class="ident">PathspecFlags</span>::<span class="ident">FAILURES_ONLY</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_default</span>, <span class="ident">PathspecFlags::DEFAULT</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_ignore_case</span>, <span class="ident">PathspecFlags::IGNORE_CASE</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_use_case</span>, <span class="ident">PathspecFlags::USE_CASE</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_no_glob</span>, <span class="ident">PathspecFlags::NO_GLOB</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_no_match_error</span>, <span class="ident">PathspecFlags::NO_MATCH_ERROR</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_find_failures</span>, <span class="ident">PathspecFlags::FIND_FAILURES</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_failures_only</span>, <span class="ident">PathspecFlags::FAILURES_ONLY</span>);
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">PathspecFlags</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">PathspecFlags</span>::<span class="ident">DEFAULT</span>
+        <span class="ident">PathspecFlags::DEFAULT</span>
     }
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="doccomment">/// Types of notifications emitted from checkouts.</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CheckoutNotificationType</span>: <span class="ident">u32</span> {
         <span class="doccomment">/// Notification about a conflict.</span>
-        <span class="kw">const</span> <span class="ident">CONFLICT</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_CHECKOUT_NOTIFY_CONFLICT</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">CONFLICT</span> <span class="op">=</span> <span class="ident">raw::GIT_CHECKOUT_NOTIFY_CONFLICT</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Notification about a dirty file.</span>
-        <span class="kw">const</span> <span class="ident">DIRTY</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_CHECKOUT_NOTIFY_DIRTY</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">DIRTY</span> <span class="op">=</span> <span class="ident">raw::GIT_CHECKOUT_NOTIFY_DIRTY</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Notification about an updated file.</span>
-        <span class="kw">const</span> <span class="ident">UPDATED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_CHECKOUT_NOTIFY_UPDATED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">UPDATED</span> <span class="op">=</span> <span class="ident">raw::GIT_CHECKOUT_NOTIFY_UPDATED</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Notification about an untracked file.</span>
-        <span class="kw">const</span> <span class="ident">UNTRACKED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_CHECKOUT_NOTIFY_UNTRACKED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">UNTRACKED</span> <span class="op">=</span> <span class="ident">raw::GIT_CHECKOUT_NOTIFY_UNTRACKED</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Notification about an ignored file.</span>
-        <span class="kw">const</span> <span class="ident">IGNORED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_CHECKOUT_NOTIFY_IGNORED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">IGNORED</span> <span class="op">=</span> <span class="ident">raw::GIT_CHECKOUT_NOTIFY_IGNORED</span> <span class="kw">as</span> <span class="ident">u32</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">CheckoutNotificationType</span> {
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_conflict</span>, <span class="ident">CheckoutNotificationType</span>::<span class="ident">CONFLICT</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_dirty</span>, <span class="ident">CheckoutNotificationType</span>::<span class="ident">DIRTY</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_updated</span>, <span class="ident">CheckoutNotificationType</span>::<span class="ident">UPDATED</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_untracked</span>, <span class="ident">CheckoutNotificationType</span>::<span class="ident">UNTRACKED</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_ignored</span>, <span class="ident">CheckoutNotificationType</span>::<span class="ident">IGNORED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_conflict</span>, <span class="ident">CheckoutNotificationType::CONFLICT</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_dirty</span>, <span class="ident">CheckoutNotificationType::DIRTY</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_updated</span>, <span class="ident">CheckoutNotificationType::UPDATED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_untracked</span>, <span class="ident">CheckoutNotificationType::UNTRACKED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_ignored</span>, <span class="ident">CheckoutNotificationType::IGNORED</span>);
 }
 
 <span class="doccomment">/// Possible output formats for diff data</span>
@@ -2880,29 +2880,29 @@
     <span class="ident">PatchId</span>,
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="doccomment">/// Formatting options for diff stats</span>
-    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DiffStatsFormat</span>: <span class="ident">raw</span>::<span class="ident">git_diff_stats_format_t</span> {
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DiffStatsFormat</span>: <span class="ident">raw::git_diff_stats_format_t</span> {
         <span class="doccomment">/// Don&#39;t generate any stats</span>
-        <span class="kw">const</span> <span class="ident">NONE</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_DIFF_STATS_NONE</span>;
+        <span class="kw">const</span> <span class="ident">NONE</span> <span class="op">=</span> <span class="ident">raw::GIT_DIFF_STATS_NONE</span>;
         <span class="doccomment">/// Equivalent of `--stat` in git</span>
-        <span class="kw">const</span> <span class="ident">FULL</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_DIFF_STATS_FULL</span>;
+        <span class="kw">const</span> <span class="ident">FULL</span> <span class="op">=</span> <span class="ident">raw::GIT_DIFF_STATS_FULL</span>;
         <span class="doccomment">/// Equivalent of `--shortstat` in git</span>
-        <span class="kw">const</span> <span class="ident">SHORT</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_DIFF_STATS_SHORT</span>;
+        <span class="kw">const</span> <span class="ident">SHORT</span> <span class="op">=</span> <span class="ident">raw::GIT_DIFF_STATS_SHORT</span>;
         <span class="doccomment">/// Equivalent of `--numstat` in git</span>
-        <span class="kw">const</span> <span class="ident">NUMBER</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_DIFF_STATS_NUMBER</span>;
+        <span class="kw">const</span> <span class="ident">NUMBER</span> <span class="op">=</span> <span class="ident">raw::GIT_DIFF_STATS_NUMBER</span>;
         <span class="doccomment">/// Extended header information such as creations, renames and mode</span>
         <span class="doccomment">/// changes, equivalent of `--summary` in git</span>
-        <span class="kw">const</span> <span class="ident">INCLUDE_SUMMARY</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_DIFF_STATS_INCLUDE_SUMMARY</span>;
+        <span class="kw">const</span> <span class="ident">INCLUDE_SUMMARY</span> <span class="op">=</span> <span class="ident">raw::GIT_DIFF_STATS_INCLUDE_SUMMARY</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">DiffStatsFormat</span> {
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_none</span>, <span class="ident">DiffStatsFormat</span>::<span class="ident">NONE</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_full</span>, <span class="ident">DiffStatsFormat</span>::<span class="ident">FULL</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_short</span>, <span class="ident">DiffStatsFormat</span>::<span class="ident">SHORT</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_number</span>, <span class="ident">DiffStatsFormat</span>::<span class="ident">NUMBER</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_include_summary</span>, <span class="ident">DiffStatsFormat</span>::<span class="ident">INCLUDE_SUMMARY</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_none</span>, <span class="ident">DiffStatsFormat::NONE</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_full</span>, <span class="ident">DiffStatsFormat::FULL</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_short</span>, <span class="ident">DiffStatsFormat::SHORT</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_number</span>, <span class="ident">DiffStatsFormat::NUMBER</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_include_summary</span>, <span class="ident">DiffStatsFormat::INCLUDE_SUMMARY</span>);
 }
 
 <span class="doccomment">/// Automatic tag following options.</span>
@@ -2948,130 +2948,130 @@
     <span class="ident">Done</span>,
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StashApplyFlags</span>: <span class="ident">u32</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">DEFAULT</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_STASH_APPLY_DEFAULT</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">DEFAULT</span> <span class="op">=</span> <span class="ident">raw::GIT_STASH_APPLY_DEFAULT</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Try to reinstate not only the working tree&#39;s changes,</span>
         <span class="doccomment">/// but also the index&#39;s changes.</span>
-        <span class="kw">const</span> <span class="ident">REINSTATE_INDEX</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_STASH_APPLY_REINSTATE_INDEX</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">REINSTATE_INDEX</span> <span class="op">=</span> <span class="ident">raw::GIT_STASH_APPLY_REINSTATE_INDEX</span> <span class="kw">as</span> <span class="ident">u32</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">StashApplyFlags</span> {
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_default</span>, <span class="ident">StashApplyFlags</span>::<span class="ident">DEFAULT</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_reinstate_index</span>, <span class="ident">StashApplyFlags</span>::<span class="ident">REINSTATE_INDEX</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_default</span>, <span class="ident">StashApplyFlags::DEFAULT</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_reinstate_index</span>, <span class="ident">StashApplyFlags::REINSTATE_INDEX</span>);
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">StashApplyFlags</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">StashApplyFlags</span>::<span class="ident">DEFAULT</span>
+        <span class="ident">StashApplyFlags::DEFAULT</span>
     }
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StashFlags</span>: <span class="ident">u32</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-        <span class="kw">const</span> <span class="ident">DEFAULT</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_STASH_DEFAULT</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">DEFAULT</span> <span class="op">=</span> <span class="ident">raw::GIT_STASH_DEFAULT</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// All changes already added to the index are left intact in</span>
         <span class="doccomment">/// the working directory</span>
-        <span class="kw">const</span> <span class="ident">KEEP_INDEX</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_STASH_KEEP_INDEX</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">KEEP_INDEX</span> <span class="op">=</span> <span class="ident">raw::GIT_STASH_KEEP_INDEX</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// All untracked files are also stashed and then cleaned up</span>
         <span class="doccomment">/// from the working directory</span>
-        <span class="kw">const</span> <span class="ident">INCLUDE_UNTRACKED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_STASH_INCLUDE_UNTRACKED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">INCLUDE_UNTRACKED</span> <span class="op">=</span> <span class="ident">raw::GIT_STASH_INCLUDE_UNTRACKED</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// All ignored files are also stashed and then cleaned up from</span>
         <span class="doccomment">/// the working directory</span>
-        <span class="kw">const</span> <span class="ident">INCLUDE_IGNORED</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_STASH_INCLUDE_IGNORED</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">INCLUDE_IGNORED</span> <span class="op">=</span> <span class="ident">raw::GIT_STASH_INCLUDE_IGNORED</span> <span class="kw">as</span> <span class="ident">u32</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">StashFlags</span> {
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_default</span>, <span class="ident">StashFlags</span>::<span class="ident">DEFAULT</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_keep_index</span>, <span class="ident">StashFlags</span>::<span class="ident">KEEP_INDEX</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_include_untracked</span>, <span class="ident">StashFlags</span>::<span class="ident">INCLUDE_UNTRACKED</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_include_ignored</span>, <span class="ident">StashFlags</span>::<span class="ident">INCLUDE_IGNORED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_default</span>, <span class="ident">StashFlags::DEFAULT</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_keep_index</span>, <span class="ident">StashFlags::KEEP_INDEX</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_include_untracked</span>, <span class="ident">StashFlags::INCLUDE_UNTRACKED</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_include_ignored</span>, <span class="ident">StashFlags::INCLUDE_IGNORED</span>);
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">StashFlags</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">StashFlags</span>::<span class="ident">DEFAULT</span>
+        <span class="ident">StashFlags::DEFAULT</span>
     }
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AttrCheckFlags</span>: <span class="ident">u32</span> {
         <span class="doccomment">/// Check the working directory, then the index.</span>
-        <span class="kw">const</span> <span class="ident">FILE_THEN_INDEX</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_ATTR_CHECK_FILE_THEN_INDEX</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">FILE_THEN_INDEX</span> <span class="op">=</span> <span class="ident">raw::GIT_ATTR_CHECK_FILE_THEN_INDEX</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Check the index, then the working directory.</span>
-        <span class="kw">const</span> <span class="ident">INDEX_THEN_FILE</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_ATTR_CHECK_INDEX_THEN_FILE</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">INDEX_THEN_FILE</span> <span class="op">=</span> <span class="ident">raw::GIT_ATTR_CHECK_INDEX_THEN_FILE</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Check the index only.</span>
-        <span class="kw">const</span> <span class="ident">INDEX_ONLY</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_ATTR_CHECK_INDEX_ONLY</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">INDEX_ONLY</span> <span class="op">=</span> <span class="ident">raw::GIT_ATTR_CHECK_INDEX_ONLY</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Do not use the system gitattributes file.</span>
-        <span class="kw">const</span> <span class="ident">NO_SYSTEM</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_ATTR_CHECK_NO_SYSTEM</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">NO_SYSTEM</span> <span class="op">=</span> <span class="ident">raw::GIT_ATTR_CHECK_NO_SYSTEM</span> <span class="kw">as</span> <span class="ident">u32</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">AttrCheckFlags</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">AttrCheckFlags</span>::<span class="ident">FILE_THEN_INDEX</span>
+        <span class="ident">AttrCheckFlags::FILE_THEN_INDEX</span>
     }
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DiffFlags</span>: <span class="ident">u32</span> {
         <span class="doccomment">/// File(s) treated as binary data.</span>
-        <span class="kw">const</span> <span class="ident">BINARY</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_DIFF_FLAG_BINARY</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">BINARY</span> <span class="op">=</span> <span class="ident">raw::GIT_DIFF_FLAG_BINARY</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// File(s) treated as text data.</span>
-        <span class="kw">const</span> <span class="ident">NOT_BINARY</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_DIFF_FLAG_NOT_BINARY</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">NOT_BINARY</span> <span class="op">=</span> <span class="ident">raw::GIT_DIFF_FLAG_NOT_BINARY</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// `id` value is known correct.</span>
-        <span class="kw">const</span> <span class="ident">VALID_ID</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_DIFF_FLAG_VALID_ID</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">VALID_ID</span> <span class="op">=</span> <span class="ident">raw::GIT_DIFF_FLAG_VALID_ID</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// File exists at this side of the delta.</span>
-        <span class="kw">const</span> <span class="ident">EXISTS</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_DIFF_FLAG_EXISTS</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">EXISTS</span> <span class="op">=</span> <span class="ident">raw::GIT_DIFF_FLAG_EXISTS</span> <span class="kw">as</span> <span class="ident">u32</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">DiffFlags</span> {
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_binary</span>, <span class="ident">DiffFlags</span>::<span class="ident">BINARY</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_not_binary</span>, <span class="ident">DiffFlags</span>::<span class="ident">NOT_BINARY</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">has_valid_id</span>, <span class="ident">DiffFlags</span>::<span class="ident">VALID_ID</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">exists</span>, <span class="ident">DiffFlags</span>::<span class="ident">EXISTS</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_binary</span>, <span class="ident">DiffFlags::BINARY</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_not_binary</span>, <span class="ident">DiffFlags::NOT_BINARY</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">has_valid_id</span>, <span class="ident">DiffFlags::VALID_ID</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">exists</span>, <span class="ident">DiffFlags::EXISTS</span>);
 }
 
-<span class="macro">bitflags</span><span class="macro">!</span> {
+<span class="macro">bitflags!</span> {
     <span class="doccomment">/// Options for [`Reference::normalize_name`].</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ReferenceFormat</span>: <span class="ident">u32</span> {
         <span class="doccomment">/// No particular normalization.</span>
-        <span class="kw">const</span> <span class="ident">NORMAL</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_REFERENCE_FORMAT_NORMAL</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">NORMAL</span> <span class="op">=</span> <span class="ident">raw::GIT_REFERENCE_FORMAT_NORMAL</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Constrol whether one-level refname are accepted (i.e., refnames that</span>
         <span class="doccomment">/// do not contain multiple `/`-separated components). Those are</span>
         <span class="doccomment">/// expected to be written only using uppercase letters and underscore</span>
         <span class="doccomment">/// (e.g. `HEAD`, `FETCH_HEAD`).</span>
-        <span class="kw">const</span> <span class="ident">ALLOW_ONELEVEL</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_REFERENCE_FORMAT_ALLOW_ONELEVEL</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">ALLOW_ONELEVEL</span> <span class="op">=</span> <span class="ident">raw::GIT_REFERENCE_FORMAT_ALLOW_ONELEVEL</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Interpret the provided name as a reference pattern for a refspec (as</span>
         <span class="doccomment">/// used with remote repositories). If this option is enabled, the name</span>
         <span class="doccomment">/// is allowed to contain a single `*` in place of a full pathname</span>
         <span class="doccomment">/// components (e.g., `foo/*/bar` but not `foo/bar*`).</span>
-        <span class="kw">const</span> <span class="ident">REFSPEC_PATTERN</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_REFERENCE_FORMAT_REFSPEC_PATTERN</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">REFSPEC_PATTERN</span> <span class="op">=</span> <span class="ident">raw::GIT_REFERENCE_FORMAT_REFSPEC_PATTERN</span> <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="doccomment">/// Interpret the name as part of a refspec in shorthand form so the</span>
         <span class="doccomment">/// `ALLOW_ONELEVEL` naming rules aren&#39;t enforced and `main` becomes a</span>
         <span class="doccomment">/// valid name.</span>
-        <span class="kw">const</span> <span class="ident">REFSPEC_SHORTHAND</span> <span class="op">=</span> <span class="ident">raw</span>::<span class="ident">GIT_REFERENCE_FORMAT_REFSPEC_SHORTHAND</span> <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">const</span> <span class="ident">REFSPEC_SHORTHAND</span> <span class="op">=</span> <span class="ident">raw::GIT_REFERENCE_FORMAT_REFSPEC_SHORTHAND</span> <span class="kw">as</span> <span class="ident">u32</span>;
     }
 }
 
 <span class="kw">impl</span> <span class="ident">ReferenceFormat</span> {
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_allow_onelevel</span>, <span class="ident">ReferenceFormat</span>::<span class="ident">ALLOW_ONELEVEL</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_refspec_pattern</span>, <span class="ident">ReferenceFormat</span>::<span class="ident">REFSPEC_PATTERN</span>);
-    <span class="macro">is_bit_set</span><span class="macro">!</span>(<span class="ident">is_refspec_shorthand</span>, <span class="ident">ReferenceFormat</span>::<span class="ident">REFSPEC_SHORTHAND</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_allow_onelevel</span>, <span class="ident">ReferenceFormat::ALLOW_ONELEVEL</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_refspec_pattern</span>, <span class="ident">ReferenceFormat::REFSPEC_PATTERN</span>);
+    <span class="macro">is_bit_set!</span>(<span class="ident">is_refspec_shorthand</span>, <span class="ident">ReferenceFormat::REFSPEC_SHORTHAND</span>);
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ReferenceFormat</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">ReferenceFormat</span>::<span class="ident">NORMAL</span>
+        <span class="ident">ReferenceFormat::NORMAL</span>
     }
 }
 
@@ -3081,19 +3081,19 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">convert</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">ObjectType</span>::<span class="ident">Blob</span>.<span class="ident">str</span>(), <span class="string">&quot;blob&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">ObjectType</span>::<span class="ident">from_str</span>(<span class="string">&quot;blob&quot;</span>), <span class="prelude-val">Some</span>(<span class="ident">ObjectType</span>::<span class="ident">Blob</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">ObjectType</span>::<span class="ident">Blob</span>.<span class="ident">is_loose</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">ObjectType::Blob</span>.<span class="ident">str</span>(), <span class="string">&quot;blob&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">ObjectType::from_str</span>(<span class="string">&quot;blob&quot;</span>), <span class="prelude-val">Some</span>(<span class="ident">ObjectType::Blob</span>));
+        <span class="macro">assert!</span>(<span class="ident">ObjectType::Blob</span>.<span class="ident">is_loose</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">convert_filemode</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">i32</span>::<span class="ident">from</span>(<span class="ident">FileMode</span>::<span class="ident">Blob</span>), <span class="number">0o100644</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">i32</span>::<span class="ident">from</span>(<span class="ident">FileMode</span>::<span class="ident">BlobExecutable</span>), <span class="number">0o100755</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">u32</span>::<span class="ident">from</span>(<span class="ident">FileMode</span>::<span class="ident">Blob</span>), <span class="number">0o100644</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">u32</span>::<span class="ident">from</span>(<span class="ident">FileMode</span>::<span class="ident">BlobExecutable</span>), <span class="number">0o100755</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">i32::from</span>(<span class="ident">FileMode::Blob</span>), <span class="number">0o100644</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">i32::from</span>(<span class="ident">FileMode::BlobExecutable</span>), <span class="number">0o100755</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">u32::from</span>(<span class="ident">FileMode::Blob</span>), <span class="number">0o100644</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">u32::from</span>(<span class="ident">FileMode::BlobExecutable</span>), <span class="number">0o100755</span>);
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

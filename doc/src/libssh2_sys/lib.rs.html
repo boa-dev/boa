@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libssh2-sys-0.2.21/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../libssh2_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../libssh2_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -780,7 +780,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">openssl_sys</span>;
 
-<span class="kw">use</span> <span class="ident">libc</span>::<span class="ident">ssize_t</span>;
+<span class="kw">use</span> <span class="ident">libc::ssize_t</span>;
 <span class="kw">use</span> <span class="ident">libc</span>::{<span class="ident">c_char</span>, <span class="ident">c_int</span>, <span class="ident">c_long</span>, <span class="ident">c_uchar</span>, <span class="ident">c_uint</span>, <span class="ident">c_ulong</span>, <span class="ident">c_void</span>, <span class="ident">size_t</span>};
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSH_DISCONNECT_HOST_NOT_ALLOWED_TO_CONNECT</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">1</span>;
@@ -988,12 +988,12 @@
 <span class="comment">// We cannot use `pub struct libssh2_struct_stat(pub libc::stat)` because</span>
 <span class="comment">// that triggers a `no tuple structs in FFI` error.</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">libssh2_struct_stat</span>(<span class="ident">libc</span>::<span class="ident">stat</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">libssh2_struct_stat</span>(<span class="ident">libc::stat</span>);
 
-<span class="kw">impl</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Deref</span> <span class="kw">for</span> <span class="ident">libssh2_struct_stat</span> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">libc</span>::<span class="ident">stat</span>;
+<span class="kw">impl</span> <span class="ident">std::ops::Deref</span> <span class="kw">for</span> <span class="ident">libssh2_struct_stat</span> {
+    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">libc::stat</span>;
 
-    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Target</span> {
+    <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Target</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>
     }
 }
@@ -1397,7 +1397,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">libssh2_scp_recv</span>(
         <span class="ident">sess</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LIBSSH2_SESSION</span>,
         <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
-        <span class="ident">sb</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">libc</span>::<span class="ident">stat</span>,
+        <span class="ident">sb</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">libc::stat</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LIBSSH2_CHANNEL</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">libssh2_scp_recv2</span>(
@@ -1411,8 +1411,8 @@
         <span class="ident">path</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
         <span class="ident">mode</span>: <span class="ident">c_int</span>,
         <span class="ident">size</span>: <span class="ident">libssh2_int64_t</span>,
-        <span class="ident">mtime</span>: <span class="ident">libc</span>::<span class="ident">time_t</span>,
-        <span class="ident">atime</span>: <span class="ident">libc</span>::<span class="ident">time_t</span>,
+        <span class="ident">mtime</span>: <span class="ident">libc::time_t</span>,
+        <span class="ident">atime</span>: <span class="ident">libc::time_t</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">LIBSSH2_CHANNEL</span>;
 
     <span class="comment">// sftp</span>
@@ -1508,12 +1508,12 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">issue_14344_workaround</span>() {}
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>() {
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Once</span>;
+    <span class="kw">use</span> <span class="ident">std::sync::Once</span>;
 
-    <span class="kw">static</span> <span class="ident">INIT</span>: <span class="ident">Once</span> <span class="op">=</span> <span class="ident">Once</span>::<span class="ident">new</span>();
+    <span class="kw">static</span> <span class="ident">INIT</span>: <span class="ident">Once</span> <span class="op">=</span> <span class="ident">Once::new</span>();
     <span class="ident">INIT</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
         <span class="ident">platform_init</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">libc</span>::<span class="ident">atexit</span>(<span class="ident">shutdown</span>), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">libc::atexit</span>(<span class="ident">shutdown</span>), <span class="number">0</span>);
     });
     <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span> <span class="ident">shutdown</span>() {
         <span class="kw">unsafe</span> {
@@ -1526,8 +1526,8 @@
         <span class="comment">// On Unix we want to funnel through openssl_sys to initialize OpenSSL,</span>
         <span class="comment">// so be sure to tell libssh2 to not do its own thing as we&#39;ve already</span>
         <span class="comment">// taken care of it.</span>
-        <span class="ident">openssl_sys</span>::<span class="ident">init</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">libssh2_init</span>(<span class="ident">LIBSSH2_INIT_NO_CRYPTO</span>), <span class="number">0</span>);
+        <span class="ident">openssl_sys::init</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">libssh2_init</span>(<span class="ident">LIBSSH2_INIT_NO_CRYPTO</span>), <span class="number">0</span>);
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
@@ -1535,9 +1535,9 @@
         <span class="comment">// On Windows we want to be sure to tell libssh2 to initialize</span>
         <span class="comment">// everything, as we&#39;re not managing crypto elsewhere ourselves. Also to</span>
         <span class="comment">// fix alexcrichton/git2-rs#202</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">libssh2_init</span>(<span class="number">0</span>), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">libssh2_init</span>(<span class="number">0</span>), <span class="number">0</span>);
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="libssh2_sys" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="libssh2_sys" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/memchr-2.4.0/src/memchr/x86/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../memchr/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../memchr/index.html'><div class='logo-container rust-logo'><img src='../../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -150,7 +150,7 @@
 <span id="147">147</span>
 <span id="148">148</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">super</span>::<span class="ident">fallback</span>;
+<span class="kw">use</span> <span class="kw">super</span><span class="ident">::fallback</span>;
 
 <span class="comment">// We only use AVX when we can detect at runtime whether it&#39;s available, which</span>
 <span class="comment">// requires std.</span>
@@ -184,30 +184,30 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Callers must ensure that fnty is function pointer type.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">unsafe_ifunc</span> {
+<span class="macro">macro_rules!</span> <span class="ident">unsafe_ifunc</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fnty</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">haystack</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">needle</span>:<span class="ident">ident</span>),<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {{
-        <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">mem</span>, <span class="ident">sync</span>::<span class="ident">atomic</span>::{<span class="ident">AtomicPtr</span>, <span class="ident">Ordering</span>}};
+        <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">mem</span>, <span class="ident">sync::atomic</span>::{<span class="ident">AtomicPtr</span>, <span class="ident">Ordering</span>}};
 
         <span class="kw">type</span> <span class="ident">FnRaw</span> <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">mut</span> ();
 
-        <span class="kw">static</span> <span class="ident">FN</span>: <span class="ident">AtomicPtr</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">AtomicPtr</span>::<span class="ident">new</span>(<span class="ident">detect</span> <span class="kw">as</span> <span class="ident">FnRaw</span>);
+        <span class="kw">static</span> <span class="ident">FN</span>: <span class="ident">AtomicPtr</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">AtomicPtr::new</span>(<span class="ident">detect</span> <span class="kw">as</span> <span class="ident">FnRaw</span>);
 
         <span class="kw">fn</span> <span class="ident">detect</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">needle</span>: <span class="ident">u8</span>),<span class="op">+</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">fun</span> <span class="op">=</span>
-                <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">memchr_runtime_avx</span>) <span class="op">&amp;&amp;</span> <span class="macro">is_x86_feature_detected</span><span class="macro">!</span>(<span class="string">&quot;avx2&quot;</span>) {
+                <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">memchr_runtime_avx</span>) <span class="op">&amp;&amp;</span> <span class="macro">is_x86_feature_detected!</span>(<span class="string">&quot;avx2&quot;</span>) {
                     <span class="ident">avx</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> <span class="kw">as</span> <span class="ident">FnRaw</span>
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">memchr_runtime_sse2</span>) {
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">memchr_runtime_sse2</span>) {
                     <span class="ident">sse2</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> <span class="kw">as</span> <span class="ident">FnRaw</span>
                 } <span class="kw">else</span> {
                     <span class="ident">fallback</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> <span class="kw">as</span> <span class="ident">FnRaw</span>
                 };
-            <span class="ident">FN</span>.<span class="ident">store</span>(<span class="ident">fun</span> <span class="kw">as</span> <span class="ident">FnRaw</span>, <span class="ident">Ordering</span>::<span class="ident">Relaxed</span>);
+            <span class="ident">FN</span>.<span class="ident">store</span>(<span class="ident">fun</span> <span class="kw">as</span> <span class="ident">FnRaw</span>, <span class="ident">Ordering::Relaxed</span>);
             <span class="comment">// SAFETY: By virtue of the caller contract, $fnty is a function</span>
             <span class="comment">// pointer, which is always safe to transmute with a *mut ().</span>
             <span class="comment">// Also, if &#39;fun is the AVX routine, then it is guaranteed to be</span>
             <span class="comment">// supported since we checked the avx2 feature.</span>
             <span class="kw">unsafe</span> {
-                <span class="ident">mem</span>::<span class="ident">transmute</span>::<span class="op">&lt;</span><span class="ident">FnRaw</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fnty</span><span class="op">&gt;</span>(<span class="ident">fun</span>)($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">needle</span>),<span class="op">+</span>, <span class="ident">haystack</span>)
+                <span class="ident">mem::transmute</span>::<span class="op">&lt;</span><span class="ident">FnRaw</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fnty</span><span class="op">&gt;</span>(<span class="ident">fun</span>)($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">needle</span>),<span class="op">+</span>, <span class="ident">haystack</span>)
             }
         }
 
@@ -216,8 +216,8 @@
         <span class="comment">// &#39;fun is the AVX routine, then it is guaranteed to be supported since</span>
         <span class="comment">// we checked the avx2 feature.</span>
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">fun</span> <span class="op">=</span> <span class="ident">FN</span>.<span class="ident">load</span>(<span class="ident">Ordering</span>::<span class="ident">Relaxed</span>);
-            <span class="ident">mem</span>::<span class="ident">transmute</span>::<span class="op">&lt;</span><span class="ident">FnRaw</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fnty</span><span class="op">&gt;</span>(<span class="ident">fun</span>)($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">needle</span>),<span class="op">+</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">haystack</span>)
+            <span class="kw">let</span> <span class="ident">fun</span> <span class="op">=</span> <span class="ident">FN</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
+            <span class="ident">mem::transmute</span>::<span class="op">&lt;</span><span class="ident">FnRaw</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">fnty</span><span class="op">&gt;</span>(<span class="ident">fun</span>)($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">needle</span>),<span class="op">+</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">haystack</span>)
         }
     }}
 }
@@ -233,9 +233,9 @@
 <span class="doccomment">/// safe for all inputs since it is restricted to either the fallback routine</span>
 <span class="doccomment">/// or the SSE routine, which is always safe to call on x86_64.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">unsafe_ifunc</span> {
+<span class="macro">macro_rules!</span> <span class="ident">unsafe_ifunc</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fnty</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">haystack</span>:<span class="ident">ident</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">needle</span>:<span class="ident">ident</span>),<span class="op">+</span>) <span class="op">=</span><span class="op">&gt;</span> {{
-        <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">memchr_runtime_sse2</span>) {
+        <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">memchr_runtime_sse2</span>) {
             <span class="kw">unsafe</span> { <span class="ident">sse2</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">needle</span>),<span class="op">+</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">haystack</span>) }
         } <span class="kw">else</span> {
             <span class="ident">fallback</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">needle</span>),<span class="op">+</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">haystack</span>)
@@ -245,12 +245,12 @@
 
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memchr</span>(<span class="ident">n1</span>: <span class="ident">u8</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-    <span class="macro">unsafe_ifunc</span><span class="macro">!</span>(<span class="kw">fn</span>(<span class="ident">u8</span>, <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>, <span class="ident">memchr</span>, <span class="ident">haystack</span>, <span class="ident">n1</span>)
+    <span class="macro">unsafe_ifunc!</span>(<span class="kw">fn</span>(<span class="ident">u8</span>, <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>, <span class="ident">memchr</span>, <span class="ident">haystack</span>, <span class="ident">n1</span>)
 }
 
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memchr2</span>(<span class="ident">n1</span>: <span class="ident">u8</span>, <span class="ident">n2</span>: <span class="ident">u8</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-    <span class="macro">unsafe_ifunc</span><span class="macro">!</span>(
+    <span class="macro">unsafe_ifunc!</span>(
         <span class="kw">fn</span>(<span class="ident">u8</span>, <span class="ident">u8</span>, <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
         <span class="ident">memchr2</span>,
         <span class="ident">haystack</span>,
@@ -261,7 +261,7 @@
 
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memchr3</span>(<span class="ident">n1</span>: <span class="ident">u8</span>, <span class="ident">n2</span>: <span class="ident">u8</span>, <span class="ident">n3</span>: <span class="ident">u8</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-    <span class="macro">unsafe_ifunc</span><span class="macro">!</span>(
+    <span class="macro">unsafe_ifunc!</span>(
         <span class="kw">fn</span>(<span class="ident">u8</span>, <span class="ident">u8</span>, <span class="ident">u8</span>, <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
         <span class="ident">memchr3</span>,
         <span class="ident">haystack</span>,
@@ -273,12 +273,12 @@
 
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memrchr</span>(<span class="ident">n1</span>: <span class="ident">u8</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-    <span class="macro">unsafe_ifunc</span><span class="macro">!</span>(<span class="kw">fn</span>(<span class="ident">u8</span>, <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>, <span class="ident">memrchr</span>, <span class="ident">haystack</span>, <span class="ident">n1</span>)
+    <span class="macro">unsafe_ifunc!</span>(<span class="kw">fn</span>(<span class="ident">u8</span>, <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>, <span class="ident">memrchr</span>, <span class="ident">haystack</span>, <span class="ident">n1</span>)
 }
 
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memrchr2</span>(<span class="ident">n1</span>: <span class="ident">u8</span>, <span class="ident">n2</span>: <span class="ident">u8</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-    <span class="macro">unsafe_ifunc</span><span class="macro">!</span>(
+    <span class="macro">unsafe_ifunc!</span>(
         <span class="kw">fn</span>(<span class="ident">u8</span>, <span class="ident">u8</span>, <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
         <span class="ident">memrchr2</span>,
         <span class="ident">haystack</span>,
@@ -289,7 +289,7 @@
 
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">memrchr3</span>(<span class="ident">n1</span>: <span class="ident">u8</span>, <span class="ident">n2</span>: <span class="ident">u8</span>, <span class="ident">n3</span>: <span class="ident">u8</span>, <span class="ident">haystack</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-    <span class="macro">unsafe_ifunc</span><span class="macro">!</span>(
+    <span class="macro">unsafe_ifunc!</span>(
         <span class="kw">fn</span>(<span class="ident">u8</span>, <span class="ident">u8</span>, <span class="ident">u8</span>, <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
         <span class="ident">memrchr3</span>,
         <span class="ident">haystack</span>,
@@ -299,5 +299,5 @@
     )
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="memchr" data-search-js="../../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="memchr" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>
     <script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa/src/value/display.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>display.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa/src/value/display.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>display.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -310,11 +310,11 @@
 <span class="doccomment">/// - The indentation for the current level (for nested objects)</span>
 <span class="doccomment">/// - A HashSet with the addresses of the already printed objects for the current branch</span>
 <span class="doccomment">///      (used to avoid infinite loops when there are cyclic deps)</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">print_obj_value</span> {
+<span class="macro">macro_rules!</span> <span class="ident">print_obj_value</span> {
     (<span class="ident">all</span> <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">internals</span> <span class="op">=</span> <span class="macro">print_obj_value</span><span class="macro">!</span>(<span class="ident">internals</span> <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">props</span> <span class="op">=</span> <span class="macro">print_obj_value</span><span class="macro">!</span>(<span class="ident">props</span> <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>, <span class="bool-val">true</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">internals</span> <span class="op">=</span> <span class="macro">print_obj_value!</span>(<span class="ident">internals</span> <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">props</span> <span class="op">=</span> <span class="macro">print_obj_value!</span>(<span class="ident">props</span> <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>, <span class="bool-val">true</span>);
 
             <span class="ident">props</span>.<span class="ident">reserve</span>(<span class="ident">internals</span>.<span class="ident">len</span>());
             <span class="ident">props</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">internals</span>);
@@ -326,14 +326,14 @@
         {
             <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>.<span class="ident">borrow</span>();
             <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">prototype_instance</span>().<span class="ident">is_object</span>() {
-                <span class="macro">vec</span><span class="macro">!</span>[<span class="macro">format</span><span class="macro">!</span>(
+                <span class="macro">vec!</span>[<span class="macro">format!</span>(
                     <span class="string">&quot;{:&gt;width$}: {}&quot;</span>,
                     <span class="string">&quot;__proto__&quot;</span>,
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>(<span class="ident">object</span>.<span class="ident">prototype_instance</span>(), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>.<span class="ident">wrapping_add</span>(<span class="number">4</span>), <span class="bool-val">true</span>),
                     <span class="ident">width</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>,
                 )]
             } <span class="kw">else</span> {
-                <span class="macro">vec</span><span class="macro">!</span>[<span class="macro">format</span><span class="macro">!</span>(
+                <span class="macro">vec!</span>[<span class="macro">format!</span>(
                     <span class="string">&quot;{:&gt;width$}: {}&quot;</span>,
                     <span class="string">&quot;__proto__&quot;</span>,
                     <span class="ident">object</span>.<span class="ident">prototype_instance</span>().<span class="ident">display</span>(),
@@ -343,13 +343,13 @@
         }
     };
     (<span class="ident">props</span> <span class="ident">of</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">print_internals</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">print_obj_value</span><span class="macro">!</span>(<span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>, <span class="op">|</span>(<span class="ident">key</span>, <span class="ident">val</span>)<span class="op">|</span> {
+        <span class="macro">print_obj_value!</span>(<span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">obj</span>, <span class="op">|</span>(<span class="ident">key</span>, <span class="ident">val</span>)<span class="op">|</span> {
             <span class="kw">if</span> <span class="ident">val</span>.<span class="ident">is_data_descriptor</span>() {
                 <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">val</span>
                     .<span class="ident">as_data_descriptor</span>()
                     .<span class="ident">unwrap</span>()
                     .<span class="ident">value</span>();
-                <span class="macro">format</span><span class="macro">!</span>(
+                <span class="macro">format!</span>(
                     <span class="string">&quot;{:&gt;width$}: {}&quot;</span>,
                     <span class="ident">key</span>,
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">display_fn</span>(<span class="ident">v</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">encounters</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>.<span class="ident">wrapping_add</span>(<span class="number">4</span>), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">print_internals</span>),
@@ -363,7 +363,7 @@
                     (<span class="bool-val">false</span>, <span class="bool-val">true</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;Getter&quot;</span>,
                     <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;No Getter/Setter&quot;</span>
                 };
-               <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:&gt;width$}: {}&quot;</span>, <span class="ident">key</span>, <span class="ident">display</span>, <span class="ident">width</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>)
+               <span class="macro">format!</span>(<span class="string">&quot;{:&gt;width$}: {}&quot;</span>, <span class="ident">key</span>, <span class="ident">display</span>, <span class="ident">width</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">indent</span>)
             }
         })
     };
@@ -382,23 +382,23 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">log_string_from</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">print_internals</span>: <span class="ident">bool</span>, <span class="ident">print_children</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
     <span class="kw">match</span> <span class="ident">x</span> {
         <span class="comment">// We don&#39;t want to print private (compiler) or prototype properties</span>
-        <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// Can use the private &quot;type&quot; field of an Object to match on</span>
             <span class="comment">// which type of Object it represents for special printing</span>
             <span class="kw">match</span> <span class="ident">v</span>.<span class="ident">borrow</span>().<span class="ident">data</span> {
-                <span class="ident">ObjectData</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;String {{ \&quot;{}\&quot; }}&quot;</span>, <span class="ident">string</span>),
-                <span class="ident">ObjectData</span>::<span class="ident">Boolean</span>(<span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Boolean {{ {} }}&quot;</span>, <span class="ident">boolean</span>),
-                <span class="ident">ObjectData</span>::<span class="ident">Number</span>(<span class="ident">rational</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ObjectData::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;String {{ \&quot;{}\&quot; }}&quot;</span>, <span class="ident">string</span>),
+                <span class="ident">ObjectData::Boolean</span>(<span class="ident">boolean</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;Boolean {{ {} }}&quot;</span>, <span class="ident">boolean</span>),
+                <span class="ident">ObjectData::Number</span>(<span class="ident">rational</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">if</span> <span class="ident">rational</span>.<span class="ident">is_sign_negative</span>() <span class="op">&amp;&amp;</span> <span class="ident">rational</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> {
                         <span class="string">&quot;Number { -0 }&quot;</span>.<span class="ident">to_string</span>()
                     } <span class="kw">else</span> {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">ryu_js</span>::<span class="ident">Buffer</span>::<span class="ident">new</span>();
-                        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Number {{ {} }}&quot;</span>, <span class="ident">buffer</span>.<span class="ident">format</span>(<span class="ident">rational</span>))
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">ryu_js::Buffer::new</span>();
+                        <span class="macro">format!</span>(<span class="string">&quot;Number {{ {} }}&quot;</span>, <span class="ident">buffer</span>.<span class="ident">format</span>(<span class="ident">rational</span>))
                     }
                 }
-                <span class="ident">ObjectData</span>::<span class="ident">Array</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ObjectData::Array</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">v</span>
-                        .<span class="ident">get_own_property</span>(<span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>::<span class="ident">from</span>(<span class="string">&quot;length&quot;</span>))
+                        .<span class="ident">get_own_property</span>(<span class="kw-2">&amp;</span><span class="ident">PropertyKey::from</span>(<span class="string">&quot;length&quot;</span>))
                         <span class="comment">// TODO: do this in a better way `unwrap`</span>
                         .<span class="ident">unwrap</span>()
                         <span class="comment">// FIXME: handle accessor descriptors</span>
@@ -411,7 +411,7 @@
 
                     <span class="kw">if</span> <span class="ident">print_children</span> {
                         <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-                            <span class="kw">return</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;[]&quot;</span>);
+                            <span class="kw">return</span> <span class="ident">String::from</span>(<span class="string">&quot;[]&quot;</span>);
                         }
 
                         <span class="kw">let</span> <span class="ident">arr</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">len</span>)
@@ -430,15 +430,15 @@
                             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>()
                             .<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>);
 
-                        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;[ {} ]&quot;</span>, <span class="ident">arr</span>)
+                        <span class="macro">format!</span>(<span class="string">&quot;[ {} ]&quot;</span>, <span class="ident">arr</span>)
                     } <span class="kw">else</span> {
-                        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Array({})&quot;</span>, <span class="ident">len</span>)
+                        <span class="macro">format!</span>(<span class="string">&quot;Array({})&quot;</span>, <span class="ident">len</span>)
                     }
                 }
-                <span class="ident">ObjectData</span>::<span class="ident">Map</span>(<span class="kw-2">ref</span> <span class="ident">map</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ObjectData::Map</span>(<span class="kw-2">ref</span> <span class="ident">map</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">len</span>();
                     <span class="kw">if</span> <span class="ident">size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-                        <span class="kw">return</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Map(0)&quot;</span>);
+                        <span class="kw">return</span> <span class="ident">String::from</span>(<span class="string">&quot;Map(0)&quot;</span>);
                     }
 
                     <span class="kw">if</span> <span class="ident">print_children</span> {
@@ -447,20 +447,20 @@
                             .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">key</span>, <span class="ident">value</span>)<span class="op">|</span> {
                                 <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">log_string_from</span>(<span class="ident">key</span>, <span class="ident">print_internals</span>, <span class="bool-val">false</span>);
                                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">log_string_from</span>(<span class="ident">value</span>, <span class="ident">print_internals</span>, <span class="bool-val">false</span>);
-                                <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} → {}&quot;</span>, <span class="ident">key</span>, <span class="ident">value</span>)
+                                <span class="macro">format!</span>(<span class="string">&quot;{} → {}&quot;</span>, <span class="ident">key</span>, <span class="ident">value</span>)
                             })
                             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>()
                             .<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>);
-                        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Map {{ {} }}&quot;</span>, <span class="ident">mappings</span>)
+                        <span class="macro">format!</span>(<span class="string">&quot;Map {{ {} }}&quot;</span>, <span class="ident">mappings</span>)
                     } <span class="kw">else</span> {
-                        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Map({})&quot;</span>, <span class="ident">size</span>)
+                        <span class="macro">format!</span>(<span class="string">&quot;Map({})&quot;</span>, <span class="ident">size</span>)
                     }
                 }
-                <span class="ident">ObjectData</span>::<span class="ident">Set</span>(<span class="kw-2">ref</span> <span class="ident">set</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ObjectData::Set</span>(<span class="kw-2">ref</span> <span class="ident">set</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">set</span>.<span class="ident">size</span>();
 
                     <span class="kw">if</span> <span class="ident">size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-                        <span class="kw">return</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;Set(0)&quot;</span>);
+                        <span class="kw">return</span> <span class="ident">String::from</span>(<span class="string">&quot;Set(0)&quot;</span>);
                     }
 
                     <span class="kw">if</span> <span class="ident">print_children</span> {
@@ -469,16 +469,16 @@
                             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">log_string_from</span>(<span class="ident">value</span>, <span class="ident">print_internals</span>, <span class="bool-val">false</span>))
                             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>()
                             .<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>);
-                        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Set {{ {} }}&quot;</span>, <span class="ident">entries</span>)
+                        <span class="macro">format!</span>(<span class="string">&quot;Set {{ {} }}&quot;</span>, <span class="ident">entries</span>)
                     } <span class="kw">else</span> {
-                        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;Set({})&quot;</span>, <span class="ident">size</span>)
+                        <span class="macro">format!</span>(<span class="string">&quot;Set({})&quot;</span>, <span class="ident">size</span>)
                     }
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">display_obj</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>, <span class="ident">print_internals</span>),
             }
         }
-        <span class="ident">Value</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">symbol</span>.<span class="ident">to_string</span>(),
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">x</span>.<span class="ident">display</span>()),
+        <span class="ident">Value::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">symbol</span>.<span class="ident">to_string</span>(),
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">x</span>.<span class="ident">display</span>()),
     }
 }
 
@@ -493,23 +493,23 @@
 
     <span class="comment">// We keep track of which objects we have encountered by keeping their</span>
     <span class="comment">// in-memory address in this set</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encounters</span> <span class="op">=</span> <span class="ident">HashSet</span>::<span class="ident">new</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encounters</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
 
-    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">v</span> {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value::Object</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">v</span> {
         <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">is_error</span>() {
             <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">v</span>
                 .<span class="ident">get_property</span>(<span class="string">&quot;name&quot;</span>)
                 .<span class="ident">as_ref</span>()
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">as_data_descriptor</span>())
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> <span class="ident">d</span>.<span class="ident">value</span>())
-                .<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
+                .<span class="ident">unwrap_or_else</span>(<span class="ident">Value::undefined</span>);
             <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">v</span>
                 .<span class="ident">get_property</span>(<span class="string">&quot;message&quot;</span>)
                 .<span class="ident">as_ref</span>()
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">as_data_descriptor</span>())
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> <span class="ident">d</span>.<span class="ident">value</span>())
-                .<span class="ident">unwrap_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>);
-            <span class="kw">return</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}: {}&quot;</span>, <span class="ident">name</span>.<span class="ident">display</span>(), <span class="ident">message</span>.<span class="ident">display</span>());
+                .<span class="ident">unwrap_or_else</span>(<span class="ident">Value::undefined</span>);
+            <span class="kw">return</span> <span class="macro">format!</span>(<span class="string">&quot;{}: {}&quot;</span>, <span class="ident">name</span>.<span class="ident">display</span>(), <span class="ident">message</span>.<span class="ident">display</span>());
         }
     }
 
@@ -519,23 +519,23 @@
         <span class="ident">indent</span>: <span class="ident">usize</span>,
         <span class="ident">print_internals</span>: <span class="ident">bool</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">data</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">data</span> {
             <span class="comment">// The in-memory address of the current object</span>
             <span class="kw">let</span> <span class="ident">addr</span> <span class="op">=</span> <span class="ident">address_of</span>(<span class="ident">v</span>.<span class="ident">as_ref</span>());
 
             <span class="comment">// We need not continue if this object has already been</span>
             <span class="comment">// printed up the current chain</span>
             <span class="kw">if</span> <span class="ident">encounters</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">addr</span>) {
-                <span class="kw">return</span> <span class="ident">String</span>::<span class="ident">from</span>(<span class="string">&quot;[Cycle]&quot;</span>);
+                <span class="kw">return</span> <span class="ident">String::from</span>(<span class="string">&quot;[Cycle]&quot;</span>);
             }
 
             <span class="comment">// Mark the current object as encountered</span>
             <span class="ident">encounters</span>.<span class="ident">insert</span>(<span class="ident">addr</span>);
 
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">print_internals</span> {
-                <span class="macro">print_obj_value</span><span class="macro">!</span>(<span class="ident">all</span> <span class="ident">of</span> <span class="ident">v</span>, <span class="ident">display_obj_internal</span>, <span class="ident">indent</span>, <span class="ident">encounters</span>).<span class="ident">join</span>(<span class="string">&quot;,\n&quot;</span>)
+                <span class="macro">print_obj_value!</span>(<span class="ident">all</span> <span class="ident">of</span> <span class="ident">v</span>, <span class="ident">display_obj_internal</span>, <span class="ident">indent</span>, <span class="ident">encounters</span>).<span class="ident">join</span>(<span class="string">&quot;,\n&quot;</span>)
             } <span class="kw">else</span> {
-                <span class="macro">print_obj_value</span><span class="macro">!</span>(<span class="ident">props</span> <span class="ident">of</span> <span class="ident">v</span>, <span class="ident">display_obj_internal</span>, <span class="ident">indent</span>, <span class="ident">encounters</span>, <span class="ident">print_internals</span>)
+                <span class="macro">print_obj_value!</span>(<span class="ident">props</span> <span class="ident">of</span> <span class="ident">v</span>, <span class="ident">display_obj_internal</span>, <span class="ident">indent</span>, <span class="ident">encounters</span>, <span class="ident">print_internals</span>)
                         .<span class="ident">join</span>(<span class="string">&quot;,\n&quot;</span>)
             };
 
@@ -543,13 +543,13 @@
             <span class="comment">// it will not cause an infinte printing loop, so it is safe to be printed again</span>
             <span class="ident">encounters</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">addr</span>);
 
-            <span class="kw">let</span> <span class="ident">closing_indent</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">from_utf8</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="string">b&#39; &#39;</span>; <span class="ident">indent</span>.<span class="ident">wrapping_sub</span>(<span class="number">4</span>)])
+            <span class="kw">let</span> <span class="ident">closing_indent</span> <span class="op">=</span> <span class="ident">String::from_utf8</span>(<span class="macro">vec!</span>[<span class="string">b&#39; &#39;</span>; <span class="ident">indent</span>.<span class="ident">wrapping_sub</span>(<span class="number">4</span>)])
                 .<span class="ident">expect</span>(<span class="string">&quot;Could not create the closing brace&#39;s indentation string&quot;</span>);
 
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{{\n{}\n{}}}&quot;</span>, <span class="ident">result</span>, <span class="ident">closing_indent</span>)
+            <span class="macro">format!</span>(<span class="string">&quot;{{\n{}\n{}}}&quot;</span>, <span class="ident">result</span>, <span class="ident">closing_indent</span>)
         } <span class="kw">else</span> {
             <span class="comment">// Every other type of data is printed with the display method</span>
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">data</span>.<span class="ident">display</span>())
+            <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">data</span>.<span class="ident">display</span>())
         }
     }
 
@@ -557,20 +557,20 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ValueDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">value</span> {
-            <span class="ident">Value</span>::<span class="ident">Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;null&quot;</span>),
-            <span class="ident">Value</span>::<span class="ident">Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;undefined&quot;</span>),
-            <span class="ident">Value</span>::<span class="ident">Boolean</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">v</span>),
-            <span class="ident">Value</span>::<span class="ident">Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">symbol</span>.<span class="ident">description</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">description</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol({})&quot;</span>, <span class="ident">description</span>),
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol()&quot;</span>),
+            <span class="ident">Value::Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;null&quot;</span>),
+            <span class="ident">Value::Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;undefined&quot;</span>),
+            <span class="ident">Value::Boolean</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">v</span>),
+            <span class="ident">Value::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">symbol</span>.<span class="ident">description</span>() {
+                <span class="prelude-val">Some</span>(<span class="ident">description</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol({})&quot;</span>, <span class="ident">description</span>),
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol()&quot;</span>),
             },
-            <span class="ident">Value</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;\&quot;{}\&quot;&quot;</span>, <span class="ident">v</span>),
-            <span class="ident">Value</span>::<span class="ident">Rational</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">format_rational</span>(<span class="kw-2">*</span><span class="ident">v</span>, <span class="ident">f</span>),
-            <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">log_string_from</span>(<span class="self">self</span>.<span class="ident">value</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>)),
-            <span class="ident">Value</span>::<span class="ident">Integer</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">v</span>),
-            <span class="ident">Value</span>::<span class="ident">BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}n&quot;</span>, <span class="ident">num</span>),
+            <span class="ident">Value::String</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\&quot;{}\&quot;&quot;</span>, <span class="ident">v</span>),
+            <span class="ident">Value::Rational</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">format_rational</span>(<span class="kw-2">*</span><span class="ident">v</span>, <span class="ident">f</span>),
+            <span class="ident">Value::Object</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">log_string_from</span>(<span class="self">self</span>.<span class="ident">value</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>)),
+            <span class="ident">Value::Integer</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">v</span>),
+            <span class="ident">Value::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}n&quot;</span>, <span class="ident">num</span>),
         }
     }
 }
@@ -580,14 +580,14 @@
 <span class="doccomment">/// This function prints `-0` as `-0` instead of pasitive `0` as the specification says.</span>
 <span class="doccomment">/// This is done to make it easer for the user of the REPL to identify what is a `-0` vs `0`,</span>
 <span class="doccomment">/// since the REPL is not bound to the ECMAScript specification we can do this.</span>
-<span class="kw">fn</span> <span class="ident">format_rational</span>(<span class="ident">v</span>: <span class="ident">f64</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">fn</span> <span class="ident">format_rational</span>(<span class="ident">v</span>: <span class="ident">f64</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
     <span class="kw">if</span> <span class="ident">v</span>.<span class="ident">is_sign_negative</span>() <span class="op">&amp;&amp;</span> <span class="ident">v</span> <span class="op">=</span><span class="op">=</span> <span class="number">0.0</span> {
         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;-0&quot;</span>)
     } <span class="kw">else</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">ryu_js</span>::<span class="ident">Buffer</span>::<span class="ident">new</span>();
-        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">buffer</span>.<span class="ident">format</span>(<span class="ident">v</span>))
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">ryu_js::Buffer::new</span>();
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">buffer</span>.<span class="ident">format</span>(<span class="ident">v</span>))
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa" data-search-js="../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bitflags-1.2.1/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../bitflags/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../bitflags/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1764,7 +1764,7 @@
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">macro_export</span>(<span class="ident">local_inner_macros</span>)]</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">bitflags</span> {
+<span class="macro">macro_rules!</span> <span class="ident">bitflags</span> {
     (
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span>
         <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ty</span> {
@@ -1774,7 +1774,7 @@
             )<span class="op">+</span>
         }
     ) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">__bitflags</span><span class="macro">!</span> {
+        <span class="macro">__bitflags!</span> {
             $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span>]</span>)<span class="op">*</span>
             (<span class="kw">pub</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
                 $(
@@ -1793,7 +1793,7 @@
             )<span class="op">+</span>
         }
     ) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">__bitflags</span><span class="macro">!</span> {
+        <span class="macro">__bitflags!</span> {
             $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span>]</span>)<span class="op">*</span>
             () <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
                 $(
@@ -1812,7 +1812,7 @@
             )<span class="op">+</span>
         }
     ) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">__bitflags</span><span class="macro">!</span> {
+        <span class="macro">__bitflags!</span> {
             $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span>]</span>)<span class="op">*</span>
             (<span class="kw">pub</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vis</span>)<span class="op">+</span>)) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
                 $(
@@ -1826,7 +1826,7 @@
 
 <span class="attribute">#[<span class="ident">macro_export</span>(<span class="ident">local_inner_macros</span>)]</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">__bitflags</span> {
+<span class="macro">macro_rules!</span> <span class="ident">__bitflags</span> {
     (
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span>
         ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">vis</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ty</span> {
@@ -1842,7 +1842,7 @@
             <span class="ident">bits</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>,
         }
 
-        <span class="macro">__impl_bitflags</span><span class="macro">!</span> {
+        <span class="macro">__impl_bitflags!</span> {
             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
                 $(
                     $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
@@ -1856,7 +1856,7 @@
 <span class="attribute">#[<span class="ident">macro_export</span>(<span class="ident">local_inner_macros</span>)]</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">bitflags_const_fn</span>)]</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">__fn_bitflags</span> {
+<span class="macro">macro_rules!</span> <span class="ident">__fn_bitflags</span> {
     (
         $(# <span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr_args</span>:<span class="ident">tt</span>)<span class="op">*</span>
         <span class="kw">const</span> <span class="kw">fn</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">tt</span>)<span class="op">*</span>
@@ -1883,7 +1883,7 @@
 <span class="attribute">#[<span class="ident">macro_export</span>(<span class="ident">local_inner_macros</span>)]</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">bitflags_const_fn</span>))]</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">__fn_bitflags</span> {
+<span class="macro">macro_rules!</span> <span class="ident">__fn_bitflags</span> {
     (
         $(# <span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr_args</span>:<span class="ident">tt</span>)<span class="op">*</span>
         <span class="kw">const</span> <span class="kw">fn</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">tt</span>)<span class="op">*</span>
@@ -1909,7 +1909,7 @@
 
 <span class="attribute">#[<span class="ident">macro_export</span>(<span class="ident">local_inner_macros</span>)]</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">__impl_bitflags</span> {
+<span class="macro">macro_rules!</span> <span class="ident">__impl_bitflags</span> {
     (
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ty</span> {
             $(
@@ -1918,8 +1918,8 @@
             )<span class="op">+</span>
         }
     ) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::Debug</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::Result</span> {
                 <span class="comment">// This convoluted approach is to handle #[cfg]-based flag</span>
                 <span class="comment">// omission correctly. For example it needs to support:</span>
                 <span class="comment">//</span>
@@ -1940,7 +1940,7 @@
                 <span class="comment">// are not #[cfg]ed away.</span>
                 <span class="kw">impl</span> <span class="ident">__BitFlags</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
                     $(
-                        <span class="macro">__impl_bitflags</span><span class="macro">!</span> {
+                        <span class="macro">__impl_bitflags!</span> {
                             <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
                             <span class="attribute">#[<span class="ident">inline</span>]</span>
                             $(<span class="question-mark">?</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
@@ -1962,17 +1962,17 @@
                             <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot; | &quot;</span>)<span class="question-mark">?</span>;
                         }
                         <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                        <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="macro">__bitflags_stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Flag</span>))<span class="question-mark">?</span>;
+                        <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="macro">__bitflags_stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Flag</span>))<span class="question-mark">?</span>;
                     }
                 )<span class="op">+</span>
-                <span class="kw">let</span> <span class="ident">extra_bits</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">bits</span> <span class="op">&amp;</span> <span class="op">!</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>::<span class="ident">all</span>().<span class="ident">bits</span>();
+                <span class="kw">let</span> <span class="ident">extra_bits</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">bits</span> <span class="op">&amp;</span> <span class="op">!</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags::all</span>().<span class="ident">bits</span>();
                 <span class="kw">if</span> <span class="ident">extra_bits</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">first</span> {
                         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot; | &quot;</span>)<span class="question-mark">?</span>;
                     }
                     <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">false</span>;
                     <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;0x&quot;</span>)<span class="question-mark">?</span>;
-                    <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="ident">LowerHex</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="ident">extra_bits</span>, <span class="ident">f</span>)<span class="question-mark">?</span>;
+                    <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::LowerHex::fmt</span>(<span class="kw-2">&amp;</span><span class="ident">extra_bits</span>, <span class="ident">f</span>)<span class="question-mark">?</span>;
                 }
                 <span class="kw">if</span> <span class="ident">first</span> {
                     <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;(empty)&quot;</span>)<span class="question-mark">?</span>;
@@ -1980,24 +1980,24 @@
                 <span class="prelude-val">Ok</span>(())
             }
         }
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="ident">Binary</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-                <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="ident">Binary</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bits</span>, <span class="ident">f</span>)
+        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::Binary</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::Result</span> {
+                <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::Binary::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bits</span>, <span class="ident">f</span>)
             }
         }
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="ident">Octal</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-                <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="ident">Octal</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bits</span>, <span class="ident">f</span>)
+        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::Octal</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::Result</span> {
+                <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::Octal::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bits</span>, <span class="ident">f</span>)
             }
         }
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="ident">LowerHex</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-                <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="ident">LowerHex</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bits</span>, <span class="ident">f</span>)
+        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::LowerHex</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::Result</span> {
+                <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::LowerHex::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bits</span>, <span class="ident">f</span>)
             }
         }
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="ident">UpperHex</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
-            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-                <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">fmt</span>::<span class="ident">UpperHex</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bits</span>, <span class="ident">f</span>)
+        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::UpperHex</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
+            <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::Result</span> {
+                <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::fmt::UpperHex::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">bits</span>, <span class="ident">f</span>)
             }
         }
 
@@ -2008,7 +2008,7 @@
                 <span class="kw">pub</span> <span class="kw">const</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Flag</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> { <span class="ident">bits</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span> };
             )<span class="op">+</span>
 
-            <span class="macro">__fn_bitflags</span><span class="macro">!</span> {
+            <span class="macro">__fn_bitflags!</span> {
                 <span class="doccomment">/// Returns an empty set of flags</span>
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
                 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">empty</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
@@ -2016,7 +2016,7 @@
                 }
             }
 
-            <span class="macro">__fn_bitflags</span><span class="macro">!</span> {
+            <span class="macro">__fn_bitflags!</span> {
                 <span class="doccomment">/// Returns the set containing all flags.</span>
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
                 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">all</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
@@ -2029,7 +2029,7 @@
                     }
                     <span class="kw">impl</span> <span class="ident">__BitFlags</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
                         $(
-                            <span class="macro">__impl_bitflags</span><span class="macro">!</span> {
+                            <span class="macro">__impl_bitflags!</span> {
                                 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
                                 $(<span class="question-mark">?</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">attr</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">args</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
                                 <span class="kw">const</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">Flag</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="op">=</span> <span class="self">Self</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">Flag</span>.<span class="ident">bits</span>;
@@ -2040,7 +2040,7 @@
                 }
             }
 
-            <span class="macro">__fn_bitflags</span><span class="macro">!</span> {
+            <span class="macro">__fn_bitflags!</span> {
                 <span class="doccomment">/// Returns the raw value of the flags currently stored.</span>
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
                 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">bits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
@@ -2051,24 +2051,24 @@
             <span class="doccomment">/// Convert from underlying bit representation, unless that</span>
             <span class="doccomment">/// representation contains bits that do not correspond to a flag.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_bits</span>(<span class="ident">bits</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">option</span>::<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> (<span class="ident">bits</span> <span class="op">&amp;</span> <span class="op">!</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>::<span class="ident">all</span>().<span class="ident">bits</span>()) <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-                    <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">option</span>::<span class="prelude-ty">Option</span>::<span class="prelude-val">Some</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> { <span class="ident">bits</span> })
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_bits</span>(<span class="ident">bits</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::option::Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> (<span class="ident">bits</span> <span class="op">&amp;</span> <span class="op">!</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags::all</span>().<span class="ident">bits</span>()) <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
+                    <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::option::Option::Some</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> { <span class="ident">bits</span> })
                 } <span class="kw">else</span> {
-                    <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">option</span>::<span class="prelude-ty">Option</span>::<span class="prelude-val">None</span>
+                    <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::option::Option::None</span>
                 }
             }
 
-            <span class="macro">__fn_bitflags</span><span class="macro">!</span> {
+            <span class="macro">__fn_bitflags!</span> {
                 <span class="doccomment">/// Convert from underlying bit representation, dropping any bits</span>
                 <span class="doccomment">/// that do not correspond to flags.</span>
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
                 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_bits_truncate</span>(<span class="ident">bits</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
-                    <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> { <span class="ident">bits</span>: <span class="ident">bits</span> <span class="op">&amp;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>::<span class="ident">all</span>().<span class="ident">bits</span> }
+                    <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> { <span class="ident">bits</span>: <span class="ident">bits</span> <span class="op">&amp;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags::all</span>().<span class="ident">bits</span> }
                 }
             }
 
-            <span class="macro">__fn_bitflags</span><span class="macro">!</span> {
+            <span class="macro">__fn_bitflags!</span> {
                 <span class="doccomment">/// Convert from underlying bit representation, preserving all</span>
                 <span class="doccomment">/// bits (even those not corresponding to a defined flag).</span>
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -2077,23 +2077,23 @@
                 }
             }
 
-            <span class="macro">__fn_bitflags</span><span class="macro">!</span> {
+            <span class="macro">__fn_bitflags!</span> {
                 <span class="doccomment">/// Returns `true` if no flags are currently stored.</span>
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
                 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-                    <span class="self">self</span>.<span class="ident">bits</span>() <span class="op">=</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>::<span class="ident">empty</span>().<span class="ident">bits</span>()
+                    <span class="self">self</span>.<span class="ident">bits</span>() <span class="op">=</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags::empty</span>().<span class="ident">bits</span>()
                 }
             }
 
-            <span class="macro">__fn_bitflags</span><span class="macro">!</span> {
+            <span class="macro">__fn_bitflags!</span> {
                 <span class="doccomment">/// Returns `true` if all flags are currently set.</span>
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
                 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">is_all</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-                    <span class="self">self</span>.<span class="ident">bits</span> <span class="op">=</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>::<span class="ident">all</span>().<span class="ident">bits</span>
+                    <span class="self">self</span>.<span class="ident">bits</span> <span class="op">=</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags::all</span>().<span class="ident">bits</span>
                 }
             }
 
-            <span class="macro">__fn_bitflags</span><span class="macro">!</span> {
+            <span class="macro">__fn_bitflags!</span> {
                 <span class="doccomment">/// Returns `true` if there are flags common to both `self` and `other`.</span>
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
                 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">intersects</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -2101,7 +2101,7 @@
                 }
             }
 
-            <span class="macro">__fn_bitflags</span><span class="macro">!</span> {
+            <span class="macro">__fn_bitflags!</span> {
                 <span class="doccomment">/// Returns `true` all of the flags in `other` are contained within `self`.</span>
                 <span class="attribute">#[<span class="ident">inline</span>]</span>
                 <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
@@ -2138,7 +2138,7 @@
             }
         }
 
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">ops</span>::<span class="ident">BitOr</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
+        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::ops::BitOr</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>;
 
             <span class="doccomment">/// Returns the union of the two sets of flags.</span>
@@ -2148,7 +2148,7 @@
             }
         }
 
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">ops</span>::<span class="ident">BitOrAssign</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
+        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::ops::BitOrAssign</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
 
             <span class="doccomment">/// Adds the set of flags.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -2157,7 +2157,7 @@
             }
         }
 
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">ops</span>::<span class="ident">BitXor</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
+        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::ops::BitXor</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>;
 
             <span class="doccomment">/// Returns the left flags, but with all the right flags toggled.</span>
@@ -2167,7 +2167,7 @@
             }
         }
 
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">ops</span>::<span class="ident">BitXorAssign</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
+        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::ops::BitXorAssign</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
 
             <span class="doccomment">/// Toggles the set of flags.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -2176,7 +2176,7 @@
             }
         }
 
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">ops</span>::<span class="ident">BitAnd</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
+        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::ops::BitAnd</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>;
 
             <span class="doccomment">/// Returns the intersection between the two sets of flags.</span>
@@ -2186,7 +2186,7 @@
             }
         }
 
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">ops</span>::<span class="ident">BitAndAssign</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
+        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::ops::BitAndAssign</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
 
             <span class="doccomment">/// Disables all flags disabled in the set.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -2195,7 +2195,7 @@
             }
         }
 
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">ops</span>::<span class="ident">Sub</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
+        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::ops::Sub</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>;
 
             <span class="doccomment">/// Returns the set difference of the two sets of flags.</span>
@@ -2205,7 +2205,7 @@
             }
         }
 
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">ops</span>::<span class="ident">SubAssign</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
+        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::ops::SubAssign</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
 
             <span class="doccomment">/// Disables all flags enabled in the set.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -2214,27 +2214,27 @@
             }
         }
 
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">ops</span>::<span class="ident">Not</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
+        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::ops::Not</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>;
 
             <span class="doccomment">/// Returns the complement of this set of flags.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">fn</span> <span class="ident">not</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
-                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> { <span class="ident">bits</span>: <span class="op">!</span><span class="self">self</span>.<span class="ident">bits</span> } <span class="op">&amp;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span>::<span class="ident">all</span>()
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> { <span class="ident">bits</span>: <span class="op">!</span><span class="self">self</span>.<span class="ident">bits</span> } <span class="op">&amp;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags::all</span>()
             }
         }
 
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">iter</span>::<span class="ident">Extend</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
-            <span class="kw">fn</span> <span class="ident">extend</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">iter</span>::<span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">iterator</span>: <span class="ident">T</span>) {
+        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::iter::Extend</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
+            <span class="kw">fn</span> <span class="ident">extend</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::iter::IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">iterator</span>: <span class="ident">T</span>) {
                 <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="ident">iterator</span> {
                     <span class="self">self</span>.<span class="ident">insert</span>(<span class="ident">item</span>)
                 }
             }
         }
 
-        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">iter</span>::<span class="ident">FromIterator</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
-            <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="macro-nonterminal">$</span><span class="kw">crate</span>::<span class="macro-nonterminal">_core</span>::<span class="ident">iter</span>::<span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iterator</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">empty</span>();
+        <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::iter::FromIterator</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
+            <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="macro-nonterminal">$</span><span class="kw">crate</span><span class="macro-nonterminal">::_core::iter::IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iterator</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">BitFlags</span> {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::empty</span>();
                 <span class="ident">result</span>.<span class="ident">extend</span>(<span class="ident">iterator</span>);
                 <span class="ident">result</span>
             }
@@ -2265,7 +2265,7 @@
         $(<span class="question-mark">?</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">restargs</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
         <span class="kw">fn</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">tt</span>)<span class="op">*</span>
     ) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">__impl_bitflags</span><span class="macro">!</span> {
+        <span class="macro">__impl_bitflags!</span> {
             $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filtered</span>]</span>)<span class="op">*</span>
             <span class="attribute">#[<span class="ident">cfg</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfgargs</span>)<span class="kw-2">*</span>]</span>
             $(<span class="question-mark">?</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">restargs</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
@@ -2279,7 +2279,7 @@
         $(<span class="question-mark">?</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">restargs</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
         <span class="kw">fn</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">tt</span>)<span class="op">*</span>
     ) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">__impl_bitflags</span><span class="macro">!</span> {
+        <span class="macro">__impl_bitflags!</span> {
             $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filtered</span>]</span>)<span class="op">*</span>
             <span class="comment">// $next filtered out</span>
             $(<span class="question-mark">?</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">restargs</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
@@ -2320,7 +2320,7 @@
         $(<span class="question-mark">?</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">restargs</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
         <span class="kw">const</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">tt</span>)<span class="op">*</span>
     ) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">__impl_bitflags</span><span class="macro">!</span> {
+        <span class="macro">__impl_bitflags!</span> {
             $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filtered</span>]</span>)<span class="op">*</span>
             <span class="attribute">#[<span class="ident">cfg</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfgargs</span>)<span class="kw-2">*</span>]</span>
             $(<span class="question-mark">?</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">restargs</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
@@ -2334,7 +2334,7 @@
         $(<span class="question-mark">?</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">restargs</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
         <span class="kw">const</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">tt</span>)<span class="op">*</span>
     ) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">__impl_bitflags</span><span class="macro">!</span> {
+        <span class="macro">__impl_bitflags!</span> {
             $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">filtered</span>]</span>)<span class="op">*</span>
             <span class="comment">// $next filtered out</span>
             $(<span class="question-mark">?</span> <span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">rest</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">restargs</span>)<span class="kw-2">*</span>]</span>)<span class="op">*</span>
@@ -2354,9 +2354,9 @@
 <span class="comment">// local_inner_macros so can only directly call macros from this crate.</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">__bitflags_stringify</span> {
+<span class="macro">macro_rules!</span> <span class="ident">__bitflags_stringify</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>)
+        <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>)
     };
 }
 
@@ -2365,10 +2365,10 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">hash_map</span>::<span class="ident">DefaultHasher</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
+    <span class="kw">use</span> <span class="ident">std::collections::hash_map::DefaultHasher</span>;
+    <span class="kw">use</span> <span class="ident">std::hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
 
-    <span class="macro">bitflags</span><span class="macro">!</span> {
+    <span class="macro">bitflags!</span> {
         <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;&gt; The first principle is that you must not fool yourself — and&quot;</span>]</span>
         <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;&gt; you are the easiest person to fool.&quot;</span>]</span>
         <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;&gt; &quot;</span>]</span>
@@ -2381,28 +2381,28 @@
             <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;* cmr bed&quot;</span>]</span>
             <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;* strcat table&quot;</span>]</span>
             <span class="attribute">#[<span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;&lt;strcat&gt; wait what?&quot;</span>]</span>
-            <span class="kw">const</span> <span class="ident">ABC</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">A</span>.<span class="ident">bits</span> <span class="op">|</span> <span class="self">Self</span>::<span class="ident">B</span>.<span class="ident">bits</span> <span class="op">|</span> <span class="self">Self</span>::<span class="ident">C</span>.<span class="ident">bits</span>;
+            <span class="kw">const</span> <span class="ident">ABC</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::A</span>.<span class="ident">bits</span> <span class="op">|</span> <span class="self">Self</span><span class="ident">::B</span>.<span class="ident">bits</span> <span class="op">|</span> <span class="self">Self</span><span class="ident">::C</span>.<span class="ident">bits</span>;
         }
     }
 
-    <span class="macro">bitflags</span><span class="macro">!</span> {
+    <span class="macro">bitflags!</span> {
         <span class="kw">struct</span> <span class="ident">_CfgFlags</span>: <span class="ident">u32</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
             <span class="kw">const</span> <span class="ident">_CFG_A</span> <span class="op">=</span> <span class="number">0b01</span>;
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
             <span class="kw">const</span> <span class="ident">_CFG_B</span> <span class="op">=</span> <span class="number">0b01</span>;
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-            <span class="kw">const</span> <span class="ident">_CFG_C</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">_CFG_A</span>.<span class="ident">bits</span> <span class="op">|</span> <span class="number">0b10</span>;
+            <span class="kw">const</span> <span class="ident">_CFG_C</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::_CFG_A</span>.<span class="ident">bits</span> <span class="op">|</span> <span class="number">0b10</span>;
         }
     }
 
-    <span class="macro">bitflags</span><span class="macro">!</span> {
+    <span class="macro">bitflags!</span> {
         <span class="kw">struct</span> <span class="ident">AnotherSetOfFlags</span>: <span class="ident">i8</span> {
             <span class="kw">const</span> <span class="ident">ANOTHER_FLAG</span> <span class="op">=</span> <span class="op">-</span><span class="number">1_i8</span>;
         }
     }
 
-    <span class="macro">bitflags</span><span class="macro">!</span> {
+    <span class="macro">bitflags!</span> {
         <span class="kw">struct</span> <span class="ident">LongFlags</span>: <span class="ident">u32</span> {
             <span class="kw">const</span> <span class="ident">LONG_A</span> <span class="op">=</span> <span class="number">0b1111111111111111</span>;
         }
@@ -2410,343 +2410,343 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_bits</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">empty</span>().<span class="ident">bits</span>(), <span class="number">0b00000000</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">A</span>.<span class="ident">bits</span>(), <span class="number">0b00000001</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">ABC</span>.<span class="ident">bits</span>(), <span class="number">0b00000111</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">Flags::empty</span>().<span class="ident">bits</span>(), <span class="number">0b00000000</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">Flags::A</span>.<span class="ident">bits</span>(), <span class="number">0b00000001</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">Flags::ABC</span>.<span class="ident">bits</span>(), <span class="number">0b00000111</span>);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">AnotherSetOfFlags</span>::<span class="ident">empty</span>().<span class="ident">bits</span>(), <span class="number">0b00</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">AnotherSetOfFlags</span>::<span class="ident">ANOTHER_FLAG</span>.<span class="ident">bits</span>(), <span class="op">!</span><span class="number">0_i8</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">AnotherSetOfFlags::empty</span>().<span class="ident">bits</span>(), <span class="number">0b00</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">AnotherSetOfFlags::ANOTHER_FLAG</span>.<span class="ident">bits</span>(), <span class="op">!</span><span class="number">0_i8</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_from_bits</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">from_bits</span>(<span class="number">0</span>), <span class="prelude-val">Some</span>(<span class="ident">Flags</span>::<span class="ident">empty</span>()));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">from_bits</span>(<span class="number">0b1</span>), <span class="prelude-val">Some</span>(<span class="ident">Flags</span>::<span class="ident">A</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">from_bits</span>(<span class="number">0b10</span>), <span class="prelude-val">Some</span>(<span class="ident">Flags</span>::<span class="ident">B</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">from_bits</span>(<span class="number">0b11</span>), <span class="prelude-val">Some</span>(<span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">B</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">from_bits</span>(<span class="number">0b1000</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">Flags::from_bits</span>(<span class="number">0</span>), <span class="prelude-val">Some</span>(<span class="ident">Flags::empty</span>()));
+        <span class="macro">assert_eq!</span>(<span class="ident">Flags::from_bits</span>(<span class="number">0b1</span>), <span class="prelude-val">Some</span>(<span class="ident">Flags::A</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">Flags::from_bits</span>(<span class="number">0b10</span>), <span class="prelude-val">Some</span>(<span class="ident">Flags::B</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">Flags::from_bits</span>(<span class="number">0b11</span>), <span class="prelude-val">Some</span>(<span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::B</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">Flags::from_bits</span>(<span class="number">0b1000</span>), <span class="prelude-val">None</span>);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">AnotherSetOfFlags</span>::<span class="ident">from_bits</span>(<span class="op">!</span><span class="number">0_i8</span>),
-            <span class="prelude-val">Some</span>(<span class="ident">AnotherSetOfFlags</span>::<span class="ident">ANOTHER_FLAG</span>)
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">AnotherSetOfFlags::from_bits</span>(<span class="op">!</span><span class="number">0_i8</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">AnotherSetOfFlags::ANOTHER_FLAG</span>)
         );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_from_bits_truncate</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">from_bits_truncate</span>(<span class="number">0</span>), <span class="ident">Flags</span>::<span class="ident">empty</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">from_bits_truncate</span>(<span class="number">0b1</span>), <span class="ident">Flags</span>::<span class="ident">A</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">from_bits_truncate</span>(<span class="number">0b10</span>), <span class="ident">Flags</span>::<span class="ident">B</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">from_bits_truncate</span>(<span class="number">0b11</span>), (<span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">B</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">from_bits_truncate</span>(<span class="number">0b1000</span>), <span class="ident">Flags</span>::<span class="ident">empty</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">from_bits_truncate</span>(<span class="number">0b1001</span>), <span class="ident">Flags</span>::<span class="ident">A</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">Flags::from_bits_truncate</span>(<span class="number">0</span>), <span class="ident">Flags::empty</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">Flags::from_bits_truncate</span>(<span class="number">0b1</span>), <span class="ident">Flags::A</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">Flags::from_bits_truncate</span>(<span class="number">0b10</span>), <span class="ident">Flags::B</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">Flags::from_bits_truncate</span>(<span class="number">0b11</span>), (<span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::B</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">Flags::from_bits_truncate</span>(<span class="number">0b1000</span>), <span class="ident">Flags::empty</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">Flags::from_bits_truncate</span>(<span class="number">0b1001</span>), <span class="ident">Flags::A</span>);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">AnotherSetOfFlags</span>::<span class="ident">from_bits_truncate</span>(<span class="number">0_i8</span>),
-            <span class="ident">AnotherSetOfFlags</span>::<span class="ident">empty</span>()
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">AnotherSetOfFlags::from_bits_truncate</span>(<span class="number">0_i8</span>),
+            <span class="ident">AnotherSetOfFlags::empty</span>()
         );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_from_bits_unchecked</span>() {
-        <span class="kw">let</span> <span class="ident">extra</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Flags</span>::<span class="ident">from_bits_unchecked</span>(<span class="number">0b1000</span>) };
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw">unsafe</span> { <span class="ident">Flags</span>::<span class="ident">from_bits_unchecked</span>(<span class="number">0</span>) }, <span class="ident">Flags</span>::<span class="ident">empty</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw">unsafe</span> { <span class="ident">Flags</span>::<span class="ident">from_bits_unchecked</span>(<span class="number">0b1</span>) }, <span class="ident">Flags</span>::<span class="ident">A</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw">unsafe</span> { <span class="ident">Flags</span>::<span class="ident">from_bits_unchecked</span>(<span class="number">0b10</span>) }, <span class="ident">Flags</span>::<span class="ident">B</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw">unsafe</span> { <span class="ident">Flags</span>::<span class="ident">from_bits_unchecked</span>(<span class="number">0b11</span>) }, (<span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">B</span>));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw">unsafe</span> { <span class="ident">Flags</span>::<span class="ident">from_bits_unchecked</span>(<span class="number">0b1000</span>) }, (<span class="ident">extra</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">empty</span>()));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw">unsafe</span> { <span class="ident">Flags</span>::<span class="ident">from_bits_unchecked</span>(<span class="number">0b1001</span>) }, (<span class="ident">extra</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">A</span>));
+        <span class="kw">let</span> <span class="ident">extra</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Flags::from_bits_unchecked</span>(<span class="number">0b1000</span>) };
+        <span class="macro">assert_eq!</span>(<span class="kw">unsafe</span> { <span class="ident">Flags::from_bits_unchecked</span>(<span class="number">0</span>) }, <span class="ident">Flags::empty</span>());
+        <span class="macro">assert_eq!</span>(<span class="kw">unsafe</span> { <span class="ident">Flags::from_bits_unchecked</span>(<span class="number">0b1</span>) }, <span class="ident">Flags::A</span>);
+        <span class="macro">assert_eq!</span>(<span class="kw">unsafe</span> { <span class="ident">Flags::from_bits_unchecked</span>(<span class="number">0b10</span>) }, <span class="ident">Flags::B</span>);
+        <span class="macro">assert_eq!</span>(<span class="kw">unsafe</span> { <span class="ident">Flags::from_bits_unchecked</span>(<span class="number">0b11</span>) }, (<span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::B</span>));
+        <span class="macro">assert_eq!</span>(<span class="kw">unsafe</span> { <span class="ident">Flags::from_bits_unchecked</span>(<span class="number">0b1000</span>) }, (<span class="ident">extra</span> <span class="op">|</span> <span class="ident">Flags::empty</span>()));
+        <span class="macro">assert_eq!</span>(<span class="kw">unsafe</span> { <span class="ident">Flags::from_bits_unchecked</span>(<span class="number">0b1001</span>) }, (<span class="ident">extra</span> <span class="op">|</span> <span class="ident">Flags::A</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_is_empty</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">empty</span>().<span class="ident">is_empty</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">Flags</span>::<span class="ident">A</span>.<span class="ident">is_empty</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">Flags</span>::<span class="ident">ABC</span>.<span class="ident">is_empty</span>());
+        <span class="macro">assert!</span>(<span class="ident">Flags::empty</span>().<span class="ident">is_empty</span>());
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">Flags::A</span>.<span class="ident">is_empty</span>());
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">Flags::ABC</span>.<span class="ident">is_empty</span>());
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">AnotherSetOfFlags</span>::<span class="ident">ANOTHER_FLAG</span>.<span class="ident">is_empty</span>());
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">AnotherSetOfFlags::ANOTHER_FLAG</span>.<span class="ident">is_empty</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_is_all</span>() {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">all</span>().<span class="ident">is_all</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">Flags</span>::<span class="ident">A</span>.<span class="ident">is_all</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">ABC</span>.<span class="ident">is_all</span>());
+        <span class="macro">assert!</span>(<span class="ident">Flags::all</span>().<span class="ident">is_all</span>());
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">Flags::A</span>.<span class="ident">is_all</span>());
+        <span class="macro">assert!</span>(<span class="ident">Flags::ABC</span>.<span class="ident">is_all</span>());
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">AnotherSetOfFlags</span>::<span class="ident">ANOTHER_FLAG</span>.<span class="ident">is_all</span>());
+        <span class="macro">assert!</span>(<span class="ident">AnotherSetOfFlags::ANOTHER_FLAG</span>.<span class="ident">is_all</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_two_empties_do_not_intersect</span>() {
-        <span class="kw">let</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">empty</span>();
-        <span class="kw">let</span> <span class="ident">e2</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">empty</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">e1</span>.<span class="ident">intersects</span>(<span class="ident">e2</span>));
+        <span class="kw">let</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags::empty</span>();
+        <span class="kw">let</span> <span class="ident">e2</span> <span class="op">=</span> <span class="ident">Flags::empty</span>();
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">e1</span>.<span class="ident">intersects</span>(<span class="ident">e2</span>));
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">AnotherSetOfFlags</span>::<span class="ident">ANOTHER_FLAG</span>.<span class="ident">intersects</span>(<span class="ident">AnotherSetOfFlags</span>::<span class="ident">ANOTHER_FLAG</span>));
+        <span class="macro">assert!</span>(<span class="ident">AnotherSetOfFlags::ANOTHER_FLAG</span>.<span class="ident">intersects</span>(<span class="ident">AnotherSetOfFlags::ANOTHER_FLAG</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_empty_does_not_intersect_with_full</span>() {
-        <span class="kw">let</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">empty</span>();
-        <span class="kw">let</span> <span class="ident">e2</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">ABC</span>;
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">e1</span>.<span class="ident">intersects</span>(<span class="ident">e2</span>));
+        <span class="kw">let</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags::empty</span>();
+        <span class="kw">let</span> <span class="ident">e2</span> <span class="op">=</span> <span class="ident">Flags::ABC</span>;
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">e1</span>.<span class="ident">intersects</span>(<span class="ident">e2</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_disjoint_intersects</span>() {
-        <span class="kw">let</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">A</span>;
-        <span class="kw">let</span> <span class="ident">e2</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">B</span>;
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">e1</span>.<span class="ident">intersects</span>(<span class="ident">e2</span>));
+        <span class="kw">let</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags::A</span>;
+        <span class="kw">let</span> <span class="ident">e2</span> <span class="op">=</span> <span class="ident">Flags::B</span>;
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">e1</span>.<span class="ident">intersects</span>(<span class="ident">e2</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_overlapping_intersects</span>() {
-        <span class="kw">let</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">A</span>;
-        <span class="kw">let</span> <span class="ident">e2</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">B</span>;
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">e1</span>.<span class="ident">intersects</span>(<span class="ident">e2</span>));
+        <span class="kw">let</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags::A</span>;
+        <span class="kw">let</span> <span class="ident">e2</span> <span class="op">=</span> <span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::B</span>;
+        <span class="macro">assert!</span>(<span class="ident">e1</span>.<span class="ident">intersects</span>(<span class="ident">e2</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_contains</span>() {
-        <span class="kw">let</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">A</span>;
-        <span class="kw">let</span> <span class="ident">e2</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">B</span>;
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">e1</span>.<span class="ident">contains</span>(<span class="ident">e2</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">e2</span>.<span class="ident">contains</span>(<span class="ident">e1</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">ABC</span>.<span class="ident">contains</span>(<span class="ident">e2</span>));
+        <span class="kw">let</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags::A</span>;
+        <span class="kw">let</span> <span class="ident">e2</span> <span class="op">=</span> <span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::B</span>;
+        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">e1</span>.<span class="ident">contains</span>(<span class="ident">e2</span>));
+        <span class="macro">assert!</span>(<span class="ident">e2</span>.<span class="ident">contains</span>(<span class="ident">e1</span>));
+        <span class="macro">assert!</span>(<span class="ident">Flags::ABC</span>.<span class="ident">contains</span>(<span class="ident">e2</span>));
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">AnotherSetOfFlags</span>::<span class="ident">ANOTHER_FLAG</span>.<span class="ident">contains</span>(<span class="ident">AnotherSetOfFlags</span>::<span class="ident">ANOTHER_FLAG</span>));
+        <span class="macro">assert!</span>(<span class="ident">AnotherSetOfFlags::ANOTHER_FLAG</span>.<span class="ident">contains</span>(<span class="ident">AnotherSetOfFlags::ANOTHER_FLAG</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_insert</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">A</span>;
-        <span class="kw">let</span> <span class="ident">e2</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">B</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags::A</span>;
+        <span class="kw">let</span> <span class="ident">e2</span> <span class="op">=</span> <span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::B</span>;
         <span class="ident">e1</span>.<span class="ident">insert</span>(<span class="ident">e2</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">e1</span>, <span class="ident">e2</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">e1</span>, <span class="ident">e2</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">e3</span> <span class="op">=</span> <span class="ident">AnotherSetOfFlags</span>::<span class="ident">empty</span>();
-        <span class="ident">e3</span>.<span class="ident">insert</span>(<span class="ident">AnotherSetOfFlags</span>::<span class="ident">ANOTHER_FLAG</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">e3</span>, <span class="ident">AnotherSetOfFlags</span>::<span class="ident">ANOTHER_FLAG</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">e3</span> <span class="op">=</span> <span class="ident">AnotherSetOfFlags::empty</span>();
+        <span class="ident">e3</span>.<span class="ident">insert</span>(<span class="ident">AnotherSetOfFlags::ANOTHER_FLAG</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">e3</span>, <span class="ident">AnotherSetOfFlags::ANOTHER_FLAG</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_remove</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">B</span>;
-        <span class="kw">let</span> <span class="ident">e2</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">C</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::B</span>;
+        <span class="kw">let</span> <span class="ident">e2</span> <span class="op">=</span> <span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::C</span>;
         <span class="ident">e1</span>.<span class="ident">remove</span>(<span class="ident">e2</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">e1</span>, <span class="ident">Flags</span>::<span class="ident">B</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">e1</span>, <span class="ident">Flags::B</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">e3</span> <span class="op">=</span> <span class="ident">AnotherSetOfFlags</span>::<span class="ident">ANOTHER_FLAG</span>;
-        <span class="ident">e3</span>.<span class="ident">remove</span>(<span class="ident">AnotherSetOfFlags</span>::<span class="ident">ANOTHER_FLAG</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">e3</span>, <span class="ident">AnotherSetOfFlags</span>::<span class="ident">empty</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">e3</span> <span class="op">=</span> <span class="ident">AnotherSetOfFlags::ANOTHER_FLAG</span>;
+        <span class="ident">e3</span>.<span class="ident">remove</span>(<span class="ident">AnotherSetOfFlags::ANOTHER_FLAG</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">e3</span>, <span class="ident">AnotherSetOfFlags::empty</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_operators</span>() {
-        <span class="kw">let</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">C</span>;
-        <span class="kw">let</span> <span class="ident">e2</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">B</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">C</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>((<span class="ident">e1</span> <span class="op">|</span> <span class="ident">e2</span>), <span class="ident">Flags</span>::<span class="ident">ABC</span>); <span class="comment">// union</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>((<span class="ident">e1</span> <span class="op">&amp;</span> <span class="ident">e2</span>), <span class="ident">Flags</span>::<span class="ident">C</span>); <span class="comment">// intersection</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>((<span class="ident">e1</span> <span class="op">-</span> <span class="ident">e2</span>), <span class="ident">Flags</span>::<span class="ident">A</span>); <span class="comment">// set difference</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">e2</span>, <span class="ident">Flags</span>::<span class="ident">A</span>); <span class="comment">// set complement</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">e1</span> <span class="op">^</span> <span class="ident">e2</span>, <span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">B</span>); <span class="comment">// toggle</span>
+        <span class="kw">let</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::C</span>;
+        <span class="kw">let</span> <span class="ident">e2</span> <span class="op">=</span> <span class="ident">Flags::B</span> <span class="op">|</span> <span class="ident">Flags::C</span>;
+        <span class="macro">assert_eq!</span>((<span class="ident">e1</span> <span class="op">|</span> <span class="ident">e2</span>), <span class="ident">Flags::ABC</span>); <span class="comment">// union</span>
+        <span class="macro">assert_eq!</span>((<span class="ident">e1</span> <span class="op">&amp;</span> <span class="ident">e2</span>), <span class="ident">Flags::C</span>); <span class="comment">// intersection</span>
+        <span class="macro">assert_eq!</span>((<span class="ident">e1</span> <span class="op">-</span> <span class="ident">e2</span>), <span class="ident">Flags::A</span>); <span class="comment">// set difference</span>
+        <span class="macro">assert_eq!</span>(<span class="op">!</span><span class="ident">e2</span>, <span class="ident">Flags::A</span>); <span class="comment">// set complement</span>
+        <span class="macro">assert_eq!</span>(<span class="ident">e1</span> <span class="op">^</span> <span class="ident">e2</span>, <span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::B</span>); <span class="comment">// toggle</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">e3</span> <span class="op">=</span> <span class="ident">e1</span>;
         <span class="ident">e3</span>.<span class="ident">toggle</span>(<span class="ident">e2</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">e3</span>, <span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">B</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">e3</span>, <span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::B</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m4</span> <span class="op">=</span> <span class="ident">AnotherSetOfFlags</span>::<span class="ident">empty</span>();
-        <span class="ident">m4</span>.<span class="ident">toggle</span>(<span class="ident">AnotherSetOfFlags</span>::<span class="ident">empty</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">m4</span>, <span class="ident">AnotherSetOfFlags</span>::<span class="ident">empty</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m4</span> <span class="op">=</span> <span class="ident">AnotherSetOfFlags::empty</span>();
+        <span class="ident">m4</span>.<span class="ident">toggle</span>(<span class="ident">AnotherSetOfFlags::empty</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">m4</span>, <span class="ident">AnotherSetOfFlags::empty</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_operators_unchecked</span>() {
-        <span class="kw">let</span> <span class="ident">extra</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Flags</span>::<span class="ident">from_bits_unchecked</span>(<span class="number">0b1000</span>) };
-        <span class="kw">let</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">C</span> <span class="op">|</span> <span class="ident">extra</span>;
-        <span class="kw">let</span> <span class="ident">e2</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">B</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">C</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>((<span class="ident">e1</span> <span class="op">|</span> <span class="ident">e2</span>), (<span class="ident">Flags</span>::<span class="ident">ABC</span> <span class="op">|</span> <span class="ident">extra</span>)); <span class="comment">// union</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>((<span class="ident">e1</span> <span class="op">&amp;</span> <span class="ident">e2</span>), <span class="ident">Flags</span>::<span class="ident">C</span>); <span class="comment">// intersection</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>((<span class="ident">e1</span> <span class="op">-</span> <span class="ident">e2</span>), (<span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">extra</span>)); <span class="comment">// set difference</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">e2</span>, <span class="ident">Flags</span>::<span class="ident">A</span>); <span class="comment">// set complement</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="op">!</span><span class="ident">e1</span>, <span class="ident">Flags</span>::<span class="ident">B</span>); <span class="comment">// set complement</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">e1</span> <span class="op">^</span> <span class="ident">e2</span>, <span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">B</span> <span class="op">|</span> <span class="ident">extra</span>); <span class="comment">// toggle</span>
+        <span class="kw">let</span> <span class="ident">extra</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Flags::from_bits_unchecked</span>(<span class="number">0b1000</span>) };
+        <span class="kw">let</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::C</span> <span class="op">|</span> <span class="ident">extra</span>;
+        <span class="kw">let</span> <span class="ident">e2</span> <span class="op">=</span> <span class="ident">Flags::B</span> <span class="op">|</span> <span class="ident">Flags::C</span>;
+        <span class="macro">assert_eq!</span>((<span class="ident">e1</span> <span class="op">|</span> <span class="ident">e2</span>), (<span class="ident">Flags::ABC</span> <span class="op">|</span> <span class="ident">extra</span>)); <span class="comment">// union</span>
+        <span class="macro">assert_eq!</span>((<span class="ident">e1</span> <span class="op">&amp;</span> <span class="ident">e2</span>), <span class="ident">Flags::C</span>); <span class="comment">// intersection</span>
+        <span class="macro">assert_eq!</span>((<span class="ident">e1</span> <span class="op">-</span> <span class="ident">e2</span>), (<span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">extra</span>)); <span class="comment">// set difference</span>
+        <span class="macro">assert_eq!</span>(<span class="op">!</span><span class="ident">e2</span>, <span class="ident">Flags::A</span>); <span class="comment">// set complement</span>
+        <span class="macro">assert_eq!</span>(<span class="op">!</span><span class="ident">e1</span>, <span class="ident">Flags::B</span>); <span class="comment">// set complement</span>
+        <span class="macro">assert_eq!</span>(<span class="ident">e1</span> <span class="op">^</span> <span class="ident">e2</span>, <span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::B</span> <span class="op">|</span> <span class="ident">extra</span>); <span class="comment">// toggle</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">e3</span> <span class="op">=</span> <span class="ident">e1</span>;
         <span class="ident">e3</span>.<span class="ident">toggle</span>(<span class="ident">e2</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">e3</span>, <span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">B</span> <span class="op">|</span> <span class="ident">extra</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">e3</span>, <span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::B</span> <span class="op">|</span> <span class="ident">extra</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_set</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">C</span>;
-        <span class="ident">e1</span>.<span class="ident">set</span>(<span class="ident">Flags</span>::<span class="ident">B</span>, <span class="bool-val">true</span>);
-        <span class="ident">e1</span>.<span class="ident">set</span>(<span class="ident">Flags</span>::<span class="ident">C</span>, <span class="bool-val">false</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::C</span>;
+        <span class="ident">e1</span>.<span class="ident">set</span>(<span class="ident">Flags::B</span>, <span class="bool-val">true</span>);
+        <span class="ident">e1</span>.<span class="ident">set</span>(<span class="ident">Flags::C</span>, <span class="bool-val">false</span>);
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">e1</span>, <span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">B</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">e1</span>, <span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::B</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_assignment_operators</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m1</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">empty</span>();
-        <span class="kw">let</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">C</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m1</span> <span class="op">=</span> <span class="ident">Flags::empty</span>();
+        <span class="kw">let</span> <span class="ident">e1</span> <span class="op">=</span> <span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::C</span>;
         <span class="comment">// union</span>
-        <span class="ident">m1</span> <span class="op">|</span><span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">A</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">m1</span>, <span class="ident">Flags</span>::<span class="ident">A</span>);
+        <span class="ident">m1</span> <span class="op">|</span><span class="op">=</span> <span class="ident">Flags::A</span>;
+        <span class="macro">assert_eq!</span>(<span class="ident">m1</span>, <span class="ident">Flags::A</span>);
         <span class="comment">// intersection</span>
         <span class="ident">m1</span> <span class="op">&amp;=</span> <span class="ident">e1</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">m1</span>, <span class="ident">Flags</span>::<span class="ident">A</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">m1</span>, <span class="ident">Flags::A</span>);
         <span class="comment">// set difference</span>
         <span class="ident">m1</span> <span class="op">-</span><span class="op">=</span> <span class="ident">m1</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">m1</span>, <span class="ident">Flags</span>::<span class="ident">empty</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">m1</span>, <span class="ident">Flags::empty</span>());
         <span class="comment">// toggle</span>
         <span class="ident">m1</span> <span class="op">^</span><span class="op">=</span> <span class="ident">e1</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">m1</span>, <span class="ident">e1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">m1</span>, <span class="ident">e1</span>);
     }
 
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">bitflags_const_fn</span>)]</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_const_fn</span>() {
-        <span class="kw">const</span> <span class="ident">_M1</span>: <span class="ident">Flags</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">empty</span>();
+        <span class="kw">const</span> <span class="ident">_M1</span>: <span class="ident">Flags</span> <span class="op">=</span> <span class="ident">Flags::empty</span>();
 
-        <span class="kw">const</span> <span class="ident">M2</span>: <span class="ident">Flags</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">A</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">M2</span>, <span class="ident">Flags</span>::<span class="ident">A</span>);
+        <span class="kw">const</span> <span class="ident">M2</span>: <span class="ident">Flags</span> <span class="op">=</span> <span class="ident">Flags::A</span>;
+        <span class="macro">assert_eq!</span>(<span class="ident">M2</span>, <span class="ident">Flags::A</span>);
 
-        <span class="kw">const</span> <span class="ident">M3</span>: <span class="ident">Flags</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">C</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">M3</span>, <span class="ident">Flags</span>::<span class="ident">C</span>);
+        <span class="kw">const</span> <span class="ident">M3</span>: <span class="ident">Flags</span> <span class="op">=</span> <span class="ident">Flags::C</span>;
+        <span class="macro">assert_eq!</span>(<span class="ident">M3</span>, <span class="ident">Flags::C</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_extend</span>() {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span>;
 
-        <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">empty</span>();
+        <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Flags::empty</span>();
         <span class="ident">flags</span>.<span class="ident">extend</span>([].<span class="ident">iter</span>().<span class="ident">cloned</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">flags</span>, <span class="ident">Flags</span>::<span class="ident">empty</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">flags</span>, <span class="ident">Flags::empty</span>());
 
-        <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">empty</span>();
-        <span class="ident">flags</span>.<span class="ident">extend</span>([<span class="ident">Flags</span>::<span class="ident">A</span>, <span class="ident">Flags</span>::<span class="ident">B</span>].<span class="ident">iter</span>().<span class="ident">cloned</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">flags</span>, <span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">B</span>);
+        <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Flags::empty</span>();
+        <span class="ident">flags</span>.<span class="ident">extend</span>([<span class="ident">Flags::A</span>, <span class="ident">Flags::B</span>].<span class="ident">iter</span>().<span class="ident">cloned</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">flags</span>, <span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::B</span>);
 
-        <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">A</span>;
-        <span class="ident">flags</span>.<span class="ident">extend</span>([<span class="ident">Flags</span>::<span class="ident">A</span>, <span class="ident">Flags</span>::<span class="ident">B</span>].<span class="ident">iter</span>().<span class="ident">cloned</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">flags</span>, <span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">B</span>);
+        <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Flags::A</span>;
+        <span class="ident">flags</span>.<span class="ident">extend</span>([<span class="ident">Flags::A</span>, <span class="ident">Flags::B</span>].<span class="ident">iter</span>().<span class="ident">cloned</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">flags</span>, <span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::B</span>);
 
-        <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">B</span>;
-        <span class="ident">flags</span>.<span class="ident">extend</span>([<span class="ident">Flags</span>::<span class="ident">A</span>, <span class="ident">Flags</span>::<span class="ident">ABC</span>].<span class="ident">iter</span>().<span class="ident">cloned</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">flags</span>, <span class="ident">Flags</span>::<span class="ident">ABC</span>);
+        <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Flags::B</span>;
+        <span class="ident">flags</span>.<span class="ident">extend</span>([<span class="ident">Flags::A</span>, <span class="ident">Flags::ABC</span>].<span class="ident">iter</span>().<span class="ident">cloned</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">flags</span>, <span class="ident">Flags::ABC</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_from_iterator</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>([].<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Flags</span><span class="op">&gt;</span>(), <span class="ident">Flags</span>::<span class="ident">empty</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            [<span class="ident">Flags</span>::<span class="ident">A</span>, <span class="ident">Flags</span>::<span class="ident">B</span>].<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Flags</span><span class="op">&gt;</span>(),
-            <span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">B</span>
+        <span class="macro">assert_eq!</span>([].<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Flags</span><span class="op">&gt;</span>(), <span class="ident">Flags::empty</span>());
+        <span class="macro">assert_eq!</span>(
+            [<span class="ident">Flags::A</span>, <span class="ident">Flags::B</span>].<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Flags</span><span class="op">&gt;</span>(),
+            <span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::B</span>
         );
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            [<span class="ident">Flags</span>::<span class="ident">A</span>, <span class="ident">Flags</span>::<span class="ident">ABC</span>].<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Flags</span><span class="op">&gt;</span>(),
-            <span class="ident">Flags</span>::<span class="ident">ABC</span>
+        <span class="macro">assert_eq!</span>(
+            [<span class="ident">Flags::A</span>, <span class="ident">Flags::ABC</span>].<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Flags</span><span class="op">&gt;</span>(),
+            <span class="ident">Flags::ABC</span>
         );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_lt</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">empty</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">empty</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Flags::empty</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Flags::empty</span>();
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span>(<span class="ident">a</span> <span class="op">&lt;</span> <span class="ident">b</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span>(<span class="ident">b</span> <span class="op">&lt;</span> <span class="ident">a</span>));
-        <span class="ident">b</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">B</span>;
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span> <span class="op">&lt;</span> <span class="ident">b</span>);
-        <span class="ident">a</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">C</span>;
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="op">!</span>(<span class="ident">a</span> <span class="op">&lt;</span> <span class="ident">b</span>) <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">&lt;</span> <span class="ident">a</span>);
-        <span class="ident">b</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">C</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">B</span>;
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span> <span class="op">&lt;</span> <span class="ident">b</span>);
+        <span class="macro">assert!</span>(<span class="op">!</span>(<span class="ident">a</span> <span class="op">&lt;</span> <span class="ident">b</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span>(<span class="ident">b</span> <span class="op">&lt;</span> <span class="ident">a</span>));
+        <span class="ident">b</span> <span class="op">=</span> <span class="ident">Flags::B</span>;
+        <span class="macro">assert!</span>(<span class="ident">a</span> <span class="op">&lt;</span> <span class="ident">b</span>);
+        <span class="ident">a</span> <span class="op">=</span> <span class="ident">Flags::C</span>;
+        <span class="macro">assert!</span>(<span class="op">!</span>(<span class="ident">a</span> <span class="op">&lt;</span> <span class="ident">b</span>) <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">&lt;</span> <span class="ident">a</span>);
+        <span class="ident">b</span> <span class="op">=</span> <span class="ident">Flags::C</span> <span class="op">|</span> <span class="ident">Flags::B</span>;
+        <span class="macro">assert!</span>(<span class="ident">a</span> <span class="op">&lt;</span> <span class="ident">b</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_ord</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">empty</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">empty</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Flags::empty</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Flags::empty</span>();
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">b</span> <span class="op">&amp;&amp;</span> <span class="ident">a</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">b</span>);
-        <span class="ident">a</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">A</span>;
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span> <span class="op">&gt;</span> <span class="ident">b</span> <span class="op">&amp;&amp;</span> <span class="ident">a</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">b</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span> <span class="op">&lt;</span> <span class="ident">a</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">a</span>);
-        <span class="ident">b</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">B</span>;
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">b</span> <span class="op">&gt;</span> <span class="ident">a</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">a</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">a</span> <span class="op">&lt;</span> <span class="ident">b</span> <span class="op">&amp;&amp;</span> <span class="ident">a</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">b</span>);
+        <span class="macro">assert!</span>(<span class="ident">a</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">b</span> <span class="op">&amp;&amp;</span> <span class="ident">a</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">b</span>);
+        <span class="ident">a</span> <span class="op">=</span> <span class="ident">Flags::A</span>;
+        <span class="macro">assert!</span>(<span class="ident">a</span> <span class="op">&gt;</span> <span class="ident">b</span> <span class="op">&amp;&amp;</span> <span class="ident">a</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">b</span>);
+        <span class="macro">assert!</span>(<span class="ident">b</span> <span class="op">&lt;</span> <span class="ident">a</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">a</span>);
+        <span class="ident">b</span> <span class="op">=</span> <span class="ident">Flags::B</span>;
+        <span class="macro">assert!</span>(<span class="ident">b</span> <span class="op">&gt;</span> <span class="ident">a</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">a</span>);
+        <span class="macro">assert!</span>(<span class="ident">a</span> <span class="op">&lt;</span> <span class="ident">b</span> <span class="op">&amp;&amp;</span> <span class="ident">a</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">b</span>);
     }
 
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Hash</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">DefaultHasher</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">DefaultHasher::new</span>();
         <span class="ident">t</span>.<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>);
         <span class="ident">s</span>.<span class="ident">finish</span>()
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_hash</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">empty</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">empty</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
-        <span class="ident">x</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">all</span>();
-        <span class="ident">y</span> <span class="op">=</span> <span class="ident">Flags</span>::<span class="ident">ABC</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">Flags::empty</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">Flags::empty</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
+        <span class="ident">x</span> <span class="op">=</span> <span class="ident">Flags::all</span>();
+        <span class="ident">y</span> <span class="op">=</span> <span class="ident">Flags::ABC</span>;
+        <span class="macro">assert_eq!</span>(<span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="ident">hash</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_debug</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">Flags</span>::<span class="ident">B</span>), <span class="string">&quot;A | B&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">Flags</span>::<span class="ident">empty</span>()), <span class="string">&quot;(empty)&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">Flags</span>::<span class="ident">ABC</span>), <span class="string">&quot;A | B | C | ABC&quot;</span>);
-        <span class="kw">let</span> <span class="ident">extra</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Flags</span>::<span class="ident">from_bits_unchecked</span>(<span class="number">0xb8</span>) };
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">extra</span>), <span class="string">&quot;0xb8&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">Flags</span>::<span class="ident">A</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;A | 0xb8&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">Flags</span>::<span class="ident">ABC</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;A | B | C | ABC | 0xb8&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">Flags::B</span>), <span class="string">&quot;A | B&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">Flags::empty</span>()), <span class="string">&quot;(empty)&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">Flags::ABC</span>), <span class="string">&quot;A | B | C | ABC&quot;</span>);
+        <span class="kw">let</span> <span class="ident">extra</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Flags::from_bits_unchecked</span>(<span class="number">0xb8</span>) };
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">extra</span>), <span class="string">&quot;0xb8&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">Flags::A</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;A | 0xb8&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">Flags::ABC</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;A | B | C | ABC | 0xb8&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_binary</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:b}&quot;</span>, <span class="ident">Flags</span>::<span class="ident">ABC</span>), <span class="string">&quot;111&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:#b}&quot;</span>, <span class="ident">Flags</span>::<span class="ident">ABC</span>), <span class="string">&quot;0b111&quot;</span>);
-        <span class="kw">let</span> <span class="ident">extra</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Flags</span>::<span class="ident">from_bits_unchecked</span>(<span class="number">0b1010000</span>) };
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:b}&quot;</span>, <span class="ident">Flags</span>::<span class="ident">ABC</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;1010111&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:#b}&quot;</span>, <span class="ident">Flags</span>::<span class="ident">ABC</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;0b1010111&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:b}&quot;</span>, <span class="ident">Flags::ABC</span>), <span class="string">&quot;111&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:#b}&quot;</span>, <span class="ident">Flags::ABC</span>), <span class="string">&quot;0b111&quot;</span>);
+        <span class="kw">let</span> <span class="ident">extra</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Flags::from_bits_unchecked</span>(<span class="number">0b1010000</span>) };
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:b}&quot;</span>, <span class="ident">Flags::ABC</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;1010111&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:#b}&quot;</span>, <span class="ident">Flags::ABC</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;0b1010111&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_octal</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:o}&quot;</span>, <span class="ident">LongFlags</span>::<span class="ident">LONG_A</span>), <span class="string">&quot;177777&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:#o}&quot;</span>, <span class="ident">LongFlags</span>::<span class="ident">LONG_A</span>), <span class="string">&quot;0o177777&quot;</span>);
-        <span class="kw">let</span> <span class="ident">extra</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LongFlags</span>::<span class="ident">from_bits_unchecked</span>(<span class="number">0o5000000</span>) };
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:o}&quot;</span>, <span class="ident">LongFlags</span>::<span class="ident">LONG_A</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;5177777&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:#o}&quot;</span>, <span class="ident">LongFlags</span>::<span class="ident">LONG_A</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;0o5177777&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:o}&quot;</span>, <span class="ident">LongFlags::LONG_A</span>), <span class="string">&quot;177777&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:#o}&quot;</span>, <span class="ident">LongFlags::LONG_A</span>), <span class="string">&quot;0o177777&quot;</span>);
+        <span class="kw">let</span> <span class="ident">extra</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LongFlags::from_bits_unchecked</span>(<span class="number">0o5000000</span>) };
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:o}&quot;</span>, <span class="ident">LongFlags::LONG_A</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;5177777&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:#o}&quot;</span>, <span class="ident">LongFlags::LONG_A</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;0o5177777&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_lowerhex</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:x}&quot;</span>, <span class="ident">LongFlags</span>::<span class="ident">LONG_A</span>), <span class="string">&quot;ffff&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:#x}&quot;</span>, <span class="ident">LongFlags</span>::<span class="ident">LONG_A</span>), <span class="string">&quot;0xffff&quot;</span>);
-        <span class="kw">let</span> <span class="ident">extra</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LongFlags</span>::<span class="ident">from_bits_unchecked</span>(<span class="number">0xe00000</span>) };
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:x}&quot;</span>, <span class="ident">LongFlags</span>::<span class="ident">LONG_A</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;e0ffff&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:#x}&quot;</span>, <span class="ident">LongFlags</span>::<span class="ident">LONG_A</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;0xe0ffff&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:x}&quot;</span>, <span class="ident">LongFlags::LONG_A</span>), <span class="string">&quot;ffff&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:#x}&quot;</span>, <span class="ident">LongFlags::LONG_A</span>), <span class="string">&quot;0xffff&quot;</span>);
+        <span class="kw">let</span> <span class="ident">extra</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LongFlags::from_bits_unchecked</span>(<span class="number">0xe00000</span>) };
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:x}&quot;</span>, <span class="ident">LongFlags::LONG_A</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;e0ffff&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:#x}&quot;</span>, <span class="ident">LongFlags::LONG_A</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;0xe0ffff&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_upperhex</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:X}&quot;</span>, <span class="ident">LongFlags</span>::<span class="ident">LONG_A</span>), <span class="string">&quot;FFFF&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:#X}&quot;</span>, <span class="ident">LongFlags</span>::<span class="ident">LONG_A</span>), <span class="string">&quot;0xFFFF&quot;</span>);
-        <span class="kw">let</span> <span class="ident">extra</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LongFlags</span>::<span class="ident">from_bits_unchecked</span>(<span class="number">0xe00000</span>) };
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:X}&quot;</span>, <span class="ident">LongFlags</span>::<span class="ident">LONG_A</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;E0FFFF&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:#X}&quot;</span>, <span class="ident">LongFlags</span>::<span class="ident">LONG_A</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;0xE0FFFF&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:X}&quot;</span>, <span class="ident">LongFlags::LONG_A</span>), <span class="string">&quot;FFFF&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:#X}&quot;</span>, <span class="ident">LongFlags::LONG_A</span>), <span class="string">&quot;0xFFFF&quot;</span>);
+        <span class="kw">let</span> <span class="ident">extra</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">LongFlags::from_bits_unchecked</span>(<span class="number">0xe00000</span>) };
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:X}&quot;</span>, <span class="ident">LongFlags::LONG_A</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;E0FFFF&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:#X}&quot;</span>, <span class="ident">LongFlags::LONG_A</span> <span class="op">|</span> <span class="ident">extra</span>), <span class="string">&quot;0xE0FFFF&quot;</span>);
     }
 
     <span class="kw">mod</span> <span class="ident">submodule</span> {
-        <span class="macro">bitflags</span><span class="macro">!</span> {
+        <span class="macro">bitflags!</span> {
             <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PublicFlags</span>: <span class="ident">i8</span> {
                 <span class="kw">const</span> <span class="ident">X</span> <span class="op">=</span> <span class="number">0</span>;
             }
         }
-        <span class="macro">bitflags</span><span class="macro">!</span> {
+        <span class="macro">bitflags!</span> {
             <span class="kw">struct</span> <span class="ident">PrivateFlags</span>: <span class="ident">i8</span> {
                 <span class="kw">const</span> <span class="ident">Y</span> <span class="op">=</span> <span class="number">0</span>;
             }
@@ -2754,13 +2754,13 @@
 
         <span class="attribute">#[<span class="ident">test</span>]</span>
         <span class="kw">fn</span> <span class="ident">test_private</span>() {
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">PrivateFlags</span>::<span class="ident">Y</span>;
+            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">PrivateFlags::Y</span>;
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_public</span>() {
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">submodule</span>::<span class="ident">PublicFlags</span>::<span class="ident">X</span>;
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">submodule::PublicFlags::X</span>;
     }
 
     <span class="kw">mod</span> <span class="ident">t1</span> {
@@ -2768,9 +2768,9 @@
             <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Bar</span> <span class="op">=</span> <span class="ident">i32</span>;
         }
 
-        <span class="macro">bitflags</span><span class="macro">!</span> {
+        <span class="macro">bitflags!</span> {
             <span class="doccomment">/// baz</span>
-            <span class="kw">struct</span> <span class="ident">Flags</span>: <span class="ident">foo</span>::<span class="ident">Bar</span> {
+            <span class="kw">struct</span> <span class="ident">Flags</span>: <span class="ident">foo::Bar</span> {
                 <span class="kw">const</span> <span class="ident">A</span> <span class="op">=</span> <span class="number">0b00000001</span>;
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">foo</span>)]</span>
                 <span class="kw">const</span> <span class="ident">B</span> <span class="op">=</span> <span class="number">0b00000010</span>;
@@ -2782,20 +2782,20 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_in_function</span>() {
-        <span class="macro">bitflags</span><span class="macro">!</span> {
+        <span class="macro">bitflags!</span> {
            <span class="kw">struct</span> <span class="ident">Flags</span>: <span class="ident">u8</span> {
                 <span class="kw">const</span> <span class="ident">A</span> <span class="op">=</span> <span class="number">1</span>;
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>())]</span> <span class="comment">// false</span>
                 <span class="kw">const</span> <span class="ident">B</span> <span class="op">=</span> <span class="number">2</span>;
             }
         }
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">all</span>(), <span class="ident">Flags</span>::<span class="ident">A</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">Flags</span>::<span class="ident">A</span>), <span class="string">&quot;A&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">Flags::all</span>(), <span class="ident">Flags::A</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">Flags::A</span>), <span class="string">&quot;A&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_deprecated</span>() {
-        <span class="macro">bitflags</span><span class="macro">!</span> {
+        <span class="macro">bitflags!</span> {
             <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TestFlags</span>: <span class="ident">u32</span> {
                 <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use something else.&quot;</span>)]</span>
                 <span class="kw">const</span> <span class="ident">ONE</span> <span class="op">=</span> <span class="number">1</span>;
@@ -2806,21 +2806,21 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_pub_crate</span>() {
         <span class="kw">mod</span> <span class="ident">module</span> {
-            <span class="macro">bitflags</span><span class="macro">!</span> {
+            <span class="macro">bitflags!</span> {
                 <span class="kw">pub</span> (<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Test</span>: <span class="ident">u8</span> {
                     <span class="kw">const</span> <span class="ident">FOO</span> <span class="op">=</span> <span class="number">1</span>;
                 }
             }
         }
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">module</span>::<span class="ident">Test</span>::<span class="ident">FOO</span>.<span class="ident">bits</span>(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">module::Test::FOO</span>.<span class="ident">bits</span>(), <span class="number">1</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_pub_in_module</span>() {
         <span class="kw">mod</span> <span class="ident">module</span> {
             <span class="kw">mod</span> <span class="ident">submodule</span> {
-                <span class="macro">bitflags</span><span class="macro">!</span> {
+                <span class="macro">bitflags!</span> {
                     <span class="comment">// `pub (in super)` means only the module `module` will</span>
                     <span class="comment">// be able to access this.</span>
                     <span class="kw">pub</span> (<span class="kw">in</span> <span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Test</span>: <span class="ident">u8</span> {
@@ -2833,35 +2833,35 @@
                 <span class="comment">// Note: due to `pub (in super)`,</span>
                 <span class="comment">// this cannot be accessed directly by the testing code.</span>
                 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
-                    <span class="kw">super</span>::<span class="ident">submodule</span>::<span class="ident">Test</span>::<span class="ident">FOO</span>.<span class="ident">bits</span>()
+                    <span class="kw">super</span><span class="ident">::submodule::Test::FOO</span>.<span class="ident">bits</span>()
                 }
             }
 
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span> {
-                <span class="ident">test</span>::<span class="ident">value</span>()
+                <span class="ident">test::value</span>()
             }
         }
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">module</span>::<span class="ident">value</span>(), <span class="number">1</span>)
+        <span class="macro">assert_eq!</span>(<span class="ident">module::value</span>(), <span class="number">1</span>)
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_zero_value_flags</span>() {
-        <span class="macro">bitflags</span><span class="macro">!</span> {
+        <span class="macro">bitflags!</span> {
             <span class="kw">struct</span> <span class="ident">Flags</span>: <span class="ident">u32</span> {
                 <span class="kw">const</span> <span class="ident">NONE</span> <span class="op">=</span> <span class="number">0b0</span>;
                 <span class="kw">const</span> <span class="ident">SOME</span> <span class="op">=</span> <span class="number">0b1</span>;
             }
         }
 
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">empty</span>().<span class="ident">contains</span>(<span class="ident">Flags</span>::<span class="ident">NONE</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">SOME</span>.<span class="ident">contains</span>(<span class="ident">Flags</span>::<span class="ident">NONE</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">Flags</span>::<span class="ident">NONE</span>.<span class="ident">is_empty</span>());
+        <span class="macro">assert!</span>(<span class="ident">Flags::empty</span>().<span class="ident">contains</span>(<span class="ident">Flags::NONE</span>));
+        <span class="macro">assert!</span>(<span class="ident">Flags::SOME</span>.<span class="ident">contains</span>(<span class="ident">Flags::NONE</span>));
+        <span class="macro">assert!</span>(<span class="ident">Flags::NONE</span>.<span class="ident">is_empty</span>());
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">Flags</span>::<span class="ident">empty</span>()), <span class="string">&quot;NONE&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">Flags</span>::<span class="ident">SOME</span>), <span class="string">&quot;SOME&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">Flags::empty</span>()), <span class="string">&quot;NONE&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">Flags::SOME</span>), <span class="string">&quot;SOME&quot;</span>);
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="bitflags" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="bitflags" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

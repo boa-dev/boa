@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regress-0.3.0/src/startpredicate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>startpredicate.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../regress/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../regress/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -223,39 +223,39 @@
 <span id="220">220</span>
 <span id="221">221</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">bytesearch</span>::<span class="ident">ByteBitmap</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">codepointset</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">insn</span>::<span class="ident">StartPredicate</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ir</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ir</span>::<span class="ident">Node</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">utf8_first_byte</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">convert</span>::<span class="ident">TryInto</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::bytesearch::ByteBitmap</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::codepointset</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::insn::StartPredicate</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ir</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ir::Node</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::util::utf8_first_byte</span>;
+<span class="kw">use</span> <span class="ident">std::cmp</span>;
+<span class="kw">use</span> <span class="ident">std::convert::TryInto</span>;
 
 <span class="doccomment">/// Support for quickly finding potential match locations.</span>
 
 <span class="doccomment">/// Convert the code point set to a first-byte bitmap.</span>
 <span class="doccomment">/// That is, make a list of all of the possible first bytes of every contained</span>
 <span class="doccomment">/// code point, and store that in a bitmap.</span>
-<span class="kw">fn</span> <span class="ident">cps_to_first_byte_bitmap</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">codepointset</span>::<span class="ident">CodePointSet</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ByteBitmap</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">cps_to_first_byte_bitmap</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">codepointset::CodePointSet</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ByteBitmap</span><span class="op">&gt;</span> {
     <span class="comment">// Rather than walking over all contained codepoints, which could be very</span>
     <span class="comment">// expensive, we perform searches over all bytes.</span>
     <span class="comment">// Note that UTF-8 first-bytes increase monotone and contiguously.</span>
     <span class="comment">// Increasing a code point will either increase the first byte by 1 or 0.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bitmap</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">ByteBitmap</span>::<span class="ident">default</span>());
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bitmap</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">ByteBitmap::default</span>());
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ivs</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">intervals</span>();
     <span class="kw">for</span> <span class="ident">target_byte</span> <span class="kw">in</span> <span class="number">0</span>..<span class="op">=</span><span class="number">255</span> {
         <span class="kw">let</span> <span class="ident">search</span> <span class="op">=</span> <span class="ident">ivs</span>.<span class="ident">binary_search_by</span>(<span class="op">|</span><span class="ident">iv</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">left_byte</span> <span class="op">=</span> <span class="ident">utf8_first_byte</span>(<span class="ident">iv</span>.<span class="ident">first</span>);
             <span class="kw">let</span> <span class="ident">right_byte</span> <span class="op">=</span> <span class="ident">utf8_first_byte</span>(<span class="ident">iv</span>.<span class="ident">last</span>);
-            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">left_byte</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">right_byte</span>);
+            <span class="macro">debug_assert!</span>(<span class="ident">left_byte</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">right_byte</span>);
             <span class="kw">if</span> <span class="ident">left_byte</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">target_byte</span> <span class="op">&amp;&amp;</span> <span class="ident">target_byte</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">right_byte</span> {
-                <span class="ident">cmp</span>::<span class="ident">Ordering</span>::<span class="ident">Equal</span>
+                <span class="ident">cmp::Ordering::Equal</span>
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">left_byte</span> <span class="op">&gt;</span> <span class="ident">target_byte</span> {
-                <span class="ident">cmp</span>::<span class="ident">Ordering</span>::<span class="ident">Greater</span>
+                <span class="ident">cmp::Ordering::Greater</span>
             } <span class="kw">else</span> {
-                <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">right_byte</span> <span class="op">&lt;</span> <span class="ident">target_byte</span>, <span class="string">&quot;Binary search logic is wrong&quot;</span>);
-                <span class="ident">cmp</span>::<span class="ident">Ordering</span>::<span class="ident">Less</span>
+                <span class="macro">debug_assert!</span>(<span class="ident">right_byte</span> <span class="op">&lt;</span> <span class="ident">target_byte</span>, <span class="string">&quot;Binary search logic is wrong&quot;</span>);
+                <span class="ident">cmp::Ordering::Less</span>
             }
         });
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">idx</span>) <span class="op">=</span> <span class="ident">search</span> {
@@ -285,36 +285,36 @@
     <span class="doccomment">/// That is, a predicate that matches x OR y.</span>
     <span class="kw">fn</span> <span class="ident">disjunction</span>(<span class="ident">x</span>: <span class="self">Self</span>, <span class="ident">y</span>: <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">match</span> (<span class="ident">x</span>, <span class="ident">y</span>) {
-            (<span class="self">Self</span>::<span class="ident">Arbitrary</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Arbitrary</span>,
-            (<span class="kw">_</span>, <span class="self">Self</span>::<span class="ident">Arbitrary</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">Arbitrary</span>,
+            (<span class="self">Self</span><span class="ident">::Arbitrary</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Arbitrary</span>,
+            (<span class="kw">_</span>, <span class="self">Self</span><span class="ident">::Arbitrary</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Arbitrary</span>,
 
-            (<span class="self">Self</span>::<span class="ident">Sequence</span>(<span class="ident">s1</span>), <span class="self">Self</span>::<span class="ident">Sequence</span>(<span class="ident">s2</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="self">Self</span><span class="ident">::Sequence</span>(<span class="ident">s1</span>), <span class="self">Self</span><span class="ident">::Sequence</span>(<span class="ident">s2</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// Compute the length of the shared prefix.</span>
                 <span class="kw">let</span> <span class="ident">shared_len</span> <span class="op">=</span> <span class="ident">s1</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">s2</span>.<span class="ident">iter</span>()).<span class="ident">take_while</span>(<span class="op">|</span>(<span class="ident">a</span>, <span class="ident">b</span>)<span class="op">|</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>).<span class="ident">count</span>();
-                <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">s1</span>[..<span class="ident">shared_len</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">s2</span>[..<span class="ident">shared_len</span>]);
+                <span class="macro">debug_assert!</span>(<span class="ident">s1</span>[..<span class="ident">shared_len</span>] <span class="op">=</span><span class="op">=</span> <span class="ident">s2</span>[..<span class="ident">shared_len</span>]);
                 <span class="kw">if</span> <span class="ident">shared_len</span> <span class="op">&gt;</span> <span class="number">0</span> {
                     <span class="comment">// Use the shared prefix.</span>
-                    <span class="self">Self</span>::<span class="ident">Sequence</span>(<span class="ident">s1</span>[..<span class="ident">shared_len</span>].<span class="ident">to_vec</span>())
+                    <span class="self">Self</span><span class="ident">::Sequence</span>(<span class="ident">s1</span>[..<span class="ident">shared_len</span>].<span class="ident">to_vec</span>())
                 } <span class="kw">else</span> {
                     <span class="comment">// Use a set of their first byte.</span>
-                    <span class="self">Self</span>::<span class="ident">Set</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">ByteBitmap</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span>[<span class="ident">s1</span>[<span class="number">0</span>], <span class="ident">s2</span>[<span class="number">0</span>]])))
+                    <span class="self">Self</span><span class="ident">::Set</span>(<span class="ident">Box::new</span>(<span class="ident">ByteBitmap::new</span>(<span class="kw-2">&amp;</span>[<span class="ident">s1</span>[<span class="number">0</span>], <span class="ident">s2</span>[<span class="number">0</span>]])))
                 }
             }
 
-            (<span class="self">Self</span>::<span class="ident">Set</span>(<span class="kw-2">mut</span> <span class="ident">s1</span>), <span class="self">Self</span>::<span class="ident">Set</span>(<span class="ident">s2</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="self">Self</span><span class="ident">::Set</span>(<span class="kw-2">mut</span> <span class="ident">s1</span>), <span class="self">Self</span><span class="ident">::Set</span>(<span class="ident">s2</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">s1</span>.<span class="ident">bitor</span>(<span class="ident">s2</span>.<span class="ident">as_ref</span>());
-                <span class="self">Self</span>::<span class="ident">Set</span>(<span class="ident">s1</span>)
+                <span class="self">Self</span><span class="ident">::Set</span>(<span class="ident">s1</span>)
             }
 
-            (<span class="self">Self</span>::<span class="ident">Set</span>(<span class="kw-2">mut</span> <span class="ident">s1</span>), <span class="self">Self</span>::<span class="ident">Sequence</span>(<span class="ident">s2</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="self">Self</span><span class="ident">::Set</span>(<span class="kw-2">mut</span> <span class="ident">s1</span>), <span class="self">Self</span><span class="ident">::Sequence</span>(<span class="ident">s2</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// Add first byte to set.</span>
                 <span class="ident">s1</span>.<span class="ident">set</span>(<span class="ident">s2</span>[<span class="number">0</span>]);
-                <span class="self">Self</span>::<span class="ident">Set</span>(<span class="ident">s1</span>)
+                <span class="self">Self</span><span class="ident">::Set</span>(<span class="ident">s1</span>)
             }
 
-            (<span class="self">Self</span>::<span class="ident">Sequence</span>(<span class="ident">s1</span>), <span class="self">Self</span>::<span class="ident">Set</span>(<span class="kw-2">mut</span> <span class="ident">s2</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            (<span class="self">Self</span><span class="ident">::Sequence</span>(<span class="ident">s1</span>), <span class="self">Self</span><span class="ident">::Set</span>(<span class="kw-2">mut</span> <span class="ident">s2</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">s2</span>.<span class="ident">set</span>(<span class="ident">s1</span>[<span class="number">0</span>]);
-                <span class="self">Self</span>::<span class="ident">Set</span>(<span class="ident">s2</span>)
+                <span class="self">Self</span><span class="ident">::Set</span>(<span class="ident">s2</span>)
             }
         }
     }
@@ -322,19 +322,19 @@
     <span class="doccomment">/// Resolve ourselves to a concrete start predicate.</span>
     <span class="kw">fn</span> <span class="ident">resolve_to_insn</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StartPredicate</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="self">Self</span>::<span class="ident">Arbitrary</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate</span>::<span class="ident">Arbitrary</span>,
-            <span class="self">Self</span>::<span class="ident">Sequence</span>(<span class="ident">vals</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">vals</span>.<span class="ident">len</span>() {
-                <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate</span>::<span class="ident">Arbitrary</span>,
-                <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate</span>::<span class="ident">ByteSeq1</span>(<span class="ident">vals</span>[..].<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate</span>::<span class="ident">ByteSeq2</span>(<span class="ident">vals</span>[..].<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate</span>::<span class="ident">ByteSeq3</span>(<span class="ident">vals</span>[..].<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate</span>::<span class="ident">ByteSeq4</span>(<span class="ident">vals</span>[..<span class="number">4</span>].<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+            <span class="self">Self</span><span class="ident">::Arbitrary</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate::Arbitrary</span>,
+            <span class="self">Self</span><span class="ident">::Sequence</span>(<span class="ident">vals</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">vals</span>.<span class="ident">len</span>() {
+                <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate::Arbitrary</span>,
+                <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate::ByteSeq1</span>(<span class="ident">vals</span>[..].<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate::ByteSeq2</span>(<span class="ident">vals</span>[..].<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                <span class="number">3</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate::ByteSeq3</span>(<span class="ident">vals</span>[..].<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate::ByteSeq4</span>(<span class="ident">vals</span>[..<span class="number">4</span>].<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
             },
-            <span class="self">Self</span>::<span class="ident">Set</span>(<span class="ident">bm</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">bm</span>.<span class="ident">count_bits</span>() {
-                <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate</span>::<span class="ident">Arbitrary</span>,
-                <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate</span>::<span class="ident">ByteSeq1</span>(<span class="ident">bm</span>.<span class="ident">to_vec</span>()[..].<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate</span>::<span class="ident">ByteSet2</span>(<span class="ident">bm</span>.<span class="ident">to_vec</span>()[..].<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate</span>::<span class="ident">ByteBracket</span>(<span class="kw-2">*</span><span class="ident">bm</span>),
+            <span class="self">Self</span><span class="ident">::Set</span>(<span class="ident">bm</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">bm</span>.<span class="ident">count_bits</span>() {
+                <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate::Arbitrary</span>,
+                <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate::ByteSeq1</span>(<span class="ident">bm</span>.<span class="ident">to_vec</span>()[..].<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                <span class="number">2</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate::ByteSet2</span>(<span class="ident">bm</span>.<span class="ident">to_vec</span>()[..].<span class="ident">try_into</span>().<span class="ident">unwrap</span>()),
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">StartPredicate::ByteBracket</span>(<span class="kw-2">*</span><span class="ident">bm</span>),
             },
         }
     }
@@ -345,24 +345,24 @@
 <span class="doccomment">/// lookahead assertion) and does not contribute to the predicate.</span>
 <span class="doccomment">/// If this returns StartPredicate::Arbitrary, then there is no predicate.</span>
 <span class="kw">fn</span> <span class="ident">compute_start_predicate</span>(<span class="ident">n</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AbstractStartPredicate</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">arbitrary</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">AbstractStartPredicate</span>::<span class="ident">Arbitrary</span>);
+    <span class="kw">let</span> <span class="ident">arbitrary</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">AbstractStartPredicate::Arbitrary</span>);
     <span class="kw">match</span> <span class="ident">n</span> {
-        <span class="ident">Node</span>::<span class="ident">ByteSequence</span>(<span class="ident">bytevec</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">AbstractStartPredicate</span>::<span class="ident">Sequence</span>(<span class="ident">bytevec</span>.<span class="ident">clone</span>())),
-        <span class="ident">Node</span>::<span class="ident">ByteSet</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">AbstractStartPredicate</span>::<span class="ident">Set</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">ByteBitmap</span>::<span class="ident">new</span>(
+        <span class="ident">Node::ByteSequence</span>(<span class="ident">bytevec</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">AbstractStartPredicate::Sequence</span>(<span class="ident">bytevec</span>.<span class="ident">clone</span>())),
+        <span class="ident">Node::ByteSet</span>(<span class="ident">bytes</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">AbstractStartPredicate::Set</span>(<span class="ident">Box::new</span>(<span class="ident">ByteBitmap::new</span>(
             <span class="ident">bytes</span>,
         )))),
 
-        <span class="ident">Node</span>::<span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arbitrary</span>,
-        <span class="ident">Node</span>::<span class="ident">Goal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arbitrary</span>,
-        <span class="ident">Node</span>::<span class="ident">BackRef</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arbitrary</span>,
+        <span class="ident">Node::Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arbitrary</span>,
+        <span class="ident">Node::Goal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arbitrary</span>,
+        <span class="ident">Node::BackRef</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arbitrary</span>,
 
-        <span class="ident">Node</span>::<span class="ident">CharSet</span>(<span class="ident">chars</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Node::CharSet</span>(<span class="ident">chars</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// Pick the first bytes out.</span>
             <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">chars</span>
                 .<span class="ident">iter</span>()
                 .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">c</span><span class="op">|</span> <span class="ident">utf8_first_byte</span>(<span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>))
                 .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-            <span class="prelude-val">Some</span>(<span class="ident">AbstractStartPredicate</span>::<span class="ident">Set</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">ByteBitmap</span>::<span class="ident">new</span>(
+            <span class="prelude-val">Some</span>(<span class="ident">AbstractStartPredicate::Set</span>(<span class="ident">Box::new</span>(<span class="ident">ByteBitmap::new</span>(
                 <span class="kw-2">&amp;</span><span class="ident">bytes</span>,
             ))))
         }
@@ -370,28 +370,28 @@
         <span class="comment">// We assume that most char nodes have been optimized to ByteSeq or AnyBytes2, so skip</span>
         <span class="comment">// these.</span>
         <span class="comment">// TODO: we could support icase through bitmap of defolded first bytes.</span>
-        <span class="ident">Node</span>::<span class="ident">Char</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arbitrary</span>,
+        <span class="ident">Node::Char</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arbitrary</span>,
 
         <span class="comment">// Cats return the first non-None value, if any.</span>
-        <span class="ident">Node</span>::<span class="ident">Cat</span>(<span class="ident">nodes</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">nodes</span>.<span class="ident">iter</span>().<span class="ident">filter_map</span>(<span class="ident">compute_start_predicate</span>).<span class="ident">next</span>(),
+        <span class="ident">Node::Cat</span>(<span class="ident">nodes</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">nodes</span>.<span class="ident">iter</span>().<span class="ident">filter_map</span>(<span class="ident">compute_start_predicate</span>).<span class="ident">next</span>(),
 
         <span class="comment">// MatchAny (aka .) is too common to do a fast prefix search for.</span>
-        <span class="ident">Node</span>::<span class="ident">MatchAny</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arbitrary</span>,
+        <span class="ident">Node::MatchAny</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arbitrary</span>,
 
         <span class="comment">// MatchAnyExceptLineTerminator (aka .) is too common to do a fast prefix search for.</span>
-        <span class="ident">Node</span>::<span class="ident">MatchAnyExceptLineTerminator</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arbitrary</span>,
+        <span class="ident">Node::MatchAnyExceptLineTerminator</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arbitrary</span>,
 
         <span class="comment">// TODO: can probably exploit some of these.</span>
-        <span class="ident">Node</span>::<span class="ident">Anchor</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arbitrary</span>,
-        <span class="ident">Node</span>::<span class="ident">WordBoundary</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arbitrary</span>,
+        <span class="ident">Node::Anchor</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arbitrary</span>,
+        <span class="ident">Node::WordBoundary</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">arbitrary</span>,
 
         <span class="comment">// Capture groups delegate to their contents.</span>
-        <span class="ident">Node</span>::<span class="ident">CaptureGroup</span>(<span class="ident">child</span>, <span class="ident">_cgid</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compute_start_predicate</span>(<span class="ident">child</span>),
+        <span class="ident">Node::CaptureGroup</span>(<span class="ident">child</span>, <span class="ident">_cgid</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compute_start_predicate</span>(<span class="ident">child</span>),
 
         <span class="comment">// Zero-width assertions are one of the few instructions that impose no start predicate.</span>
-        <span class="ident">Node</span>::<span class="ident">LookaroundAssertion</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
+        <span class="ident">Node::LookaroundAssertion</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
 
-        <span class="ident">Node</span>::<span class="ident">Loop</span> { <span class="ident">loopee</span>, <span class="ident">quant</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Node::Loop</span> { <span class="ident">loopee</span>, <span class="ident">quant</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// TODO: we could try to join two predicates if the loop were optional.</span>
             <span class="kw">if</span> <span class="ident">quant</span>.<span class="ident">min</span> <span class="op">&gt;</span> <span class="number">0</span> {
                 <span class="ident">compute_start_predicate</span>(<span class="ident">loopee</span>)
@@ -400,7 +400,7 @@
             }
         }
 
-        <span class="ident">Node</span>::<span class="ident">Loop1CharBody</span> { <span class="ident">loopee</span>, <span class="ident">quant</span> } <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Node::Loop1CharBody</span> { <span class="ident">loopee</span>, <span class="ident">quant</span> } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// TODO: we could try to join two predicates if the loop were optional.</span>
             <span class="kw">if</span> <span class="ident">quant</span>.<span class="ident">min</span> <span class="op">&gt;</span> <span class="number">0</span> {
                 <span class="ident">compute_start_predicate</span>(<span class="ident">loopee</span>)
@@ -410,12 +410,12 @@
         }
 
         <span class="comment">// This one is interesting - we compute the disjunction of the predicates of our two arms.</span>
-        <span class="ident">Node</span>::<span class="ident">Alt</span>(<span class="ident">left</span>, <span class="ident">right</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Node::Alt</span>(<span class="ident">left</span>, <span class="ident">right</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">Some</span>(<span class="ident">x</span>), <span class="prelude-val">Some</span>(<span class="ident">y</span>)) <span class="op">=</span> (
                 <span class="ident">compute_start_predicate</span>(<span class="ident">left</span>),
                 <span class="ident">compute_start_predicate</span>(<span class="ident">right</span>),
             ) {
-                <span class="prelude-val">Some</span>(<span class="ident">AbstractStartPredicate</span>::<span class="ident">disjunction</span>(<span class="ident">x</span>, <span class="ident">y</span>))
+                <span class="prelude-val">Some</span>(<span class="ident">AbstractStartPredicate::disjunction</span>(<span class="ident">x</span>, <span class="ident">y</span>))
             } <span class="kw">else</span> {
                 <span class="comment">// This indicates that one of our branches could match the empty string.</span>
                 <span class="ident">arbitrary</span>
@@ -423,7 +423,7 @@
         }
 
         <span class="comment">// Brackets get a bitmap.</span>
-        <span class="ident">Node</span>::<span class="ident">Bracket</span>(<span class="ident">bc</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Node::Bracket</span>(<span class="ident">bc</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// If our bracket is inverted, construct the set of code points not contained.</span>
             <span class="kw">let</span> <span class="ident">storage</span>;
             <span class="kw">let</span> <span class="ident">cps</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">bc</span>.<span class="ident">invert</span> {
@@ -433,17 +433,17 @@
                 <span class="kw-2">&amp;</span><span class="ident">bc</span>.<span class="ident">cps</span>
             };
             <span class="kw">let</span> <span class="ident">bitmap</span> <span class="op">=</span> <span class="ident">cps_to_first_byte_bitmap</span>(<span class="kw-2">&amp;</span><span class="ident">cps</span>);
-            <span class="prelude-val">Some</span>(<span class="ident">AbstractStartPredicate</span>::<span class="ident">Set</span>(<span class="ident">bitmap</span>))
+            <span class="prelude-val">Some</span>(<span class="ident">AbstractStartPredicate::Set</span>(<span class="ident">bitmap</span>))
         }
     }
 }
 
 <span class="doccomment">/// \return the start predicate for a Regex.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">predicate_for_re</span>(<span class="ident">re</span>: <span class="kw-2">&amp;</span><span class="ident">ir</span>::<span class="ident">Regex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StartPredicate</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">predicate_for_re</span>(<span class="ident">re</span>: <span class="kw-2">&amp;</span><span class="ident">ir::Regex</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StartPredicate</span> {
     <span class="ident">compute_start_predicate</span>(<span class="kw-2">&amp;</span><span class="ident">re</span>.<span class="ident">node</span>)
-        .<span class="ident">unwrap_or</span>(<span class="ident">AbstractStartPredicate</span>::<span class="ident">Arbitrary</span>)
+        .<span class="ident">unwrap_or</span>(<span class="ident">AbstractStartPredicate::Arbitrary</span>)
         .<span class="ident">resolve_to_insn</span>()
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regress" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regress" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

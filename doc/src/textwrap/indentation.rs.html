@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/textwrap-0.11.0/src/indentation.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>indentation.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../textwrap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../textwrap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -346,7 +346,7 @@
 <span class="doccomment">/// assert_eq!(indent(&quot; \t  Foo   &quot;, &quot;-&gt;&quot;), &quot;-&gt; \t  Foo   \n&quot;);</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">indent</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">prefix</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">String::new</span>();
     <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">lines</span>() {
         <span class="kw">if</span> <span class="ident">line</span>.<span class="ident">chars</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="op">!</span><span class="ident">c</span>.<span class="ident">is_whitespace</span>()) {
             <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">prefix</span>);
@@ -415,7 +415,7 @@
     }
 
     <span class="comment">// We now go over the lines a second time to build the result.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">String::new</span>();
     <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">lines</span>() {
         <span class="kw">if</span> <span class="ident">line</span>.<span class="ident">starts_with</span>(<span class="kw-2">&amp;</span><span class="ident">prefix</span>) <span class="op">&amp;&amp;</span> <span class="ident">line</span>.<span class="ident">chars</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="op">!</span><span class="ident">c</span>.<span class="ident">is_whitespace</span>()) {
             <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">tail</span>) <span class="op">=</span> <span class="ident">line</span>.<span class="ident">split_at</span>(<span class="ident">prefix</span>.<span class="ident">len</span>());
@@ -444,152 +444,152 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">indent_empty</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">indent</span>(<span class="string">&quot;\n&quot;</span>, <span class="string">&quot;  &quot;</span>), <span class="string">&quot;\n&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">indent</span>(<span class="string">&quot;\n&quot;</span>, <span class="string">&quot;  &quot;</span>), <span class="string">&quot;\n&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">rustfmt</span>, <span class="ident">rustfmt_skip</span>)]</span>
     <span class="kw">fn</span> <span class="ident">indent_nonempty</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;  foo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;  foo&quot;</span>,
                      <span class="string">&quot;bar&quot;</span>,
                      <span class="string">&quot;  baz&quot;</span>];
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;//  foo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;//  foo&quot;</span>,
                      <span class="string">&quot;//bar&quot;</span>,
                      <span class="string">&quot;//  baz&quot;</span>];
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">indent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="string">&quot;//&quot;</span>), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">indent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="string">&quot;//&quot;</span>), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">rustfmt</span>, <span class="ident">rustfmt_skip</span>)]</span>
     <span class="kw">fn</span> <span class="ident">indent_empty_line</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;  foo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;  foo&quot;</span>,
                      <span class="string">&quot;bar&quot;</span>,
                      <span class="string">&quot;&quot;</span>,
                      <span class="string">&quot;  baz&quot;</span>];
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;//  foo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;//  foo&quot;</span>,
                      <span class="string">&quot;//bar&quot;</span>,
                      <span class="string">&quot;&quot;</span>,
                      <span class="string">&quot;//  baz&quot;</span>];
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">indent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="string">&quot;//&quot;</span>), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">indent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="string">&quot;//&quot;</span>), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">dedent_empty</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dedent</span>(<span class="string">&quot;&quot;</span>), <span class="string">&quot;&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="string">&quot;&quot;</span>), <span class="string">&quot;&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">rustfmt</span>, <span class="ident">rustfmt_skip</span>)]</span>
     <span class="kw">fn</span> <span class="ident">dedent_multi_line</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;    foo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;    foo&quot;</span>,
                      <span class="string">&quot;  bar&quot;</span>,
                      <span class="string">&quot;    baz&quot;</span>];
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;  foo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;  foo&quot;</span>,
                      <span class="string">&quot;bar&quot;</span>,
                      <span class="string">&quot;  baz&quot;</span>];
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">rustfmt</span>, <span class="ident">rustfmt_skip</span>)]</span>
     <span class="kw">fn</span> <span class="ident">dedent_empty_line</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;    foo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;    foo&quot;</span>,
                      <span class="string">&quot;  bar&quot;</span>,
                      <span class="string">&quot;   &quot;</span>,
                      <span class="string">&quot;    baz&quot;</span>];
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;  foo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;  foo&quot;</span>,
                      <span class="string">&quot;bar&quot;</span>,
                      <span class="string">&quot;&quot;</span>,
                      <span class="string">&quot;  baz&quot;</span>];
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">rustfmt</span>, <span class="ident">rustfmt_skip</span>)]</span>
     <span class="kw">fn</span> <span class="ident">dedent_blank_line</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;      foo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;      foo&quot;</span>,
                      <span class="string">&quot;&quot;</span>,
                      <span class="string">&quot;        bar&quot;</span>,
                      <span class="string">&quot;          foo&quot;</span>,
                      <span class="string">&quot;          bar&quot;</span>,
                      <span class="string">&quot;          baz&quot;</span>];
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;foo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;foo&quot;</span>,
                      <span class="string">&quot;&quot;</span>,
                      <span class="string">&quot;  bar&quot;</span>,
                      <span class="string">&quot;    foo&quot;</span>,
                      <span class="string">&quot;    bar&quot;</span>,
                      <span class="string">&quot;    baz&quot;</span>];
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">rustfmt</span>, <span class="ident">rustfmt_skip</span>)]</span>
     <span class="kw">fn</span> <span class="ident">dedent_whitespace_line</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;      foo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;      foo&quot;</span>,
                      <span class="string">&quot; &quot;</span>,
                      <span class="string">&quot;        bar&quot;</span>,
                      <span class="string">&quot;          foo&quot;</span>,
                      <span class="string">&quot;          bar&quot;</span>,
                      <span class="string">&quot;          baz&quot;</span>];
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;foo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;foo&quot;</span>,
                      <span class="string">&quot;&quot;</span>,
                      <span class="string">&quot;  bar&quot;</span>,
                      <span class="string">&quot;    foo&quot;</span>,
                      <span class="string">&quot;    bar&quot;</span>,
                      <span class="string">&quot;    baz&quot;</span>];
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">rustfmt</span>, <span class="ident">rustfmt_skip</span>)]</span>
     <span class="kw">fn</span> <span class="ident">dedent_mixed_whitespace</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;\tfoo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;\tfoo&quot;</span>,
                      <span class="string">&quot;  bar&quot;</span>];
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;\tfoo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;\tfoo&quot;</span>,
                      <span class="string">&quot;  bar&quot;</span>];
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">rustfmt</span>, <span class="ident">rustfmt_skip</span>)]</span>
     <span class="kw">fn</span> <span class="ident">dedent_tabbed_whitespace</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;\t\tfoo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;\t\tfoo&quot;</span>,
                      <span class="string">&quot;\t\t\tbar&quot;</span>];
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;foo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;foo&quot;</span>,
                      <span class="string">&quot;\tbar&quot;</span>];
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">rustfmt</span>, <span class="ident">rustfmt_skip</span>)]</span>
     <span class="kw">fn</span> <span class="ident">dedent_mixed_tabbed_whitespace</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;\t  \tfoo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;\t  \tfoo&quot;</span>,
                      <span class="string">&quot;\t  \t\tbar&quot;</span>];
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;foo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;foo&quot;</span>,
                      <span class="string">&quot;\tbar&quot;</span>];
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">rustfmt</span>, <span class="ident">rustfmt_skip</span>)]</span>
     <span class="kw">fn</span> <span class="ident">dedent_mixed_tabbed_whitespace2</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;\t  \tfoo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;\t  \tfoo&quot;</span>,
                      <span class="string">&quot;\t    \tbar&quot;</span>];
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;\tfoo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;\tfoo&quot;</span>,
                      <span class="string">&quot;  \tbar&quot;</span>];
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)), <span class="ident">add_nl</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">rustfmt</span>, <span class="ident">rustfmt_skip</span>)]</span>
     <span class="kw">fn</span> <span class="ident">dedent_preserve_no_terminating_newline</span>() {
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;  foo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;  foo&quot;</span>,
                      <span class="string">&quot;    bar&quot;</span>].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="string">&quot;foo&quot;</span>,
+        <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&quot;foo&quot;</span>,
                      <span class="string">&quot;  bar&quot;</span>].<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="ident">y</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">dedent</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>), <span class="ident">y</span>);
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="textwrap" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="textwrap" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

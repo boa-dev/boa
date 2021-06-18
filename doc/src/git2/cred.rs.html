@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.13.20/src/cred.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cred.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../git2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -717,20 +717,20 @@
 <span id="714">714</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">trace</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::<span class="ident">CString</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">Write</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">process</span>::{<span class="ident">Command</span>, <span class="ident">Stdio</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ptr</span>;
+<span class="kw">use</span> <span class="ident">std::ffi::CString</span>;
+<span class="kw">use</span> <span class="ident">std::io::Write</span>;
+<span class="kw">use</span> <span class="ident">std::mem</span>;
+<span class="kw">use</span> <span class="ident">std::path::Path</span>;
+<span class="kw">use</span> <span class="ident">std::process</span>::{<span class="ident">Command</span>, <span class="ident">Stdio</span>};
+<span class="kw">use</span> <span class="ident">std::ptr</span>;
 <span class="kw">use</span> <span class="ident">url</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">Binding</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::util::Binding</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">raw</span>, <span class="ident">Config</span>, <span class="ident">Error</span>, <span class="ident">IntoCString</span>};
 
 <span class="doccomment">/// A structure to represent git credentials in libgit2.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Cred</span> {
-    <span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw</span>::<span class="ident">git_cred</span>,
+    <span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw::git_cred</span>,
 }
 
 <span class="doccomment">/// Management of the gitcredentials(7) interface.</span>
@@ -750,11 +750,11 @@
     <span class="doccomment">/// Create a &quot;default&quot; credential usable for Negotiate mechanisms like NTLM</span>
     <span class="doccomment">/// or Kerberos authentication.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cred</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">crate</span>::<span class="ident">init</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">ptr</span>::<span class="ident">null_mut</span>();
+        <span class="kw">crate</span><span class="ident">::init</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
         <span class="kw">unsafe</span> {
-            <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_cred_default_new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">out</span>));
-            <span class="prelude-val">Ok</span>(<span class="ident">Binding</span>::<span class="ident">from_raw</span>(<span class="ident">out</span>))
+            <span class="macro">try_call!</span>(<span class="ident">raw::git_cred_default_new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">out</span>));
+            <span class="prelude-val">Ok</span>(<span class="ident">Binding::from_raw</span>(<span class="ident">out</span>))
         }
     }
 
@@ -762,12 +762,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// The username specified is the username to authenticate.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ssh_key_from_agent</span>(<span class="ident">username</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cred</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">crate</span>::<span class="ident">init</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">ptr</span>::<span class="ident">null_mut</span>();
-        <span class="kw">let</span> <span class="ident">username</span> <span class="op">=</span> <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">username</span>)<span class="question-mark">?</span>;
+        <span class="kw">crate</span><span class="ident">::init</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
+        <span class="kw">let</span> <span class="ident">username</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">username</span>)<span class="question-mark">?</span>;
         <span class="kw">unsafe</span> {
-            <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_cred_ssh_key_from_agent</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">out</span>, <span class="ident">username</span>));
-            <span class="prelude-val">Ok</span>(<span class="ident">Binding</span>::<span class="ident">from_raw</span>(<span class="ident">out</span>))
+            <span class="macro">try_call!</span>(<span class="ident">raw::git_cred_ssh_key_from_agent</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">out</span>, <span class="ident">username</span>));
+            <span class="prelude-val">Ok</span>(<span class="ident">Binding::from_raw</span>(<span class="ident">out</span>))
         }
     }
 
@@ -778,17 +778,17 @@
         <span class="ident">privatekey</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>,
         <span class="ident">passphrase</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cred</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">crate</span>::<span class="ident">init</span>();
-        <span class="kw">let</span> <span class="ident">username</span> <span class="op">=</span> <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">username</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">publickey</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">opt_cstr</span>(<span class="ident">publickey</span>)<span class="question-mark">?</span>;
+        <span class="kw">crate</span><span class="ident">::init</span>();
+        <span class="kw">let</span> <span class="ident">username</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">username</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">publickey</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::opt_cstr</span>(<span class="ident">publickey</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">privatekey</span> <span class="op">=</span> <span class="ident">privatekey</span>.<span class="ident">into_c_string</span>()<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">passphrase</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">opt_cstr</span>(<span class="ident">passphrase</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">ptr</span>::<span class="ident">null_mut</span>();
+        <span class="kw">let</span> <span class="ident">passphrase</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::opt_cstr</span>(<span class="ident">passphrase</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
         <span class="kw">unsafe</span> {
-            <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_cred_ssh_key_new</span>(
+            <span class="macro">try_call!</span>(<span class="ident">raw::git_cred_ssh_key_new</span>(
                 <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">out</span>, <span class="ident">username</span>, <span class="ident">publickey</span>, <span class="ident">privatekey</span>, <span class="ident">passphrase</span>
             ));
-            <span class="prelude-val">Ok</span>(<span class="ident">Binding</span>::<span class="ident">from_raw</span>(<span class="ident">out</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">Binding::from_raw</span>(<span class="ident">out</span>))
         }
     }
 
@@ -799,31 +799,31 @@
         <span class="ident">privatekey</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">passphrase</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cred</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">crate</span>::<span class="ident">init</span>();
-        <span class="kw">let</span> <span class="ident">username</span> <span class="op">=</span> <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">username</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">publickey</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">opt_cstr</span>(<span class="ident">publickey</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">privatekey</span> <span class="op">=</span> <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">privatekey</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">passphrase</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">opt_cstr</span>(<span class="ident">passphrase</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">ptr</span>::<span class="ident">null_mut</span>();
+        <span class="kw">crate</span><span class="ident">::init</span>();
+        <span class="kw">let</span> <span class="ident">username</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">username</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">publickey</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::opt_cstr</span>(<span class="ident">publickey</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">privatekey</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">privatekey</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">passphrase</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::opt_cstr</span>(<span class="ident">passphrase</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
         <span class="kw">unsafe</span> {
-            <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_cred_ssh_key_memory_new</span>(
+            <span class="macro">try_call!</span>(<span class="ident">raw::git_cred_ssh_key_memory_new</span>(
                 <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">out</span>, <span class="ident">username</span>, <span class="ident">publickey</span>, <span class="ident">privatekey</span>, <span class="ident">passphrase</span>
             ));
-            <span class="prelude-val">Ok</span>(<span class="ident">Binding</span>::<span class="ident">from_raw</span>(<span class="ident">out</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">Binding::from_raw</span>(<span class="ident">out</span>))
         }
     }
 
     <span class="doccomment">/// Create a new plain-text username and password credential object.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">userpass_plaintext</span>(<span class="ident">username</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">password</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cred</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">crate</span>::<span class="ident">init</span>();
-        <span class="kw">let</span> <span class="ident">username</span> <span class="op">=</span> <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">username</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">password</span> <span class="op">=</span> <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">password</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">ptr</span>::<span class="ident">null_mut</span>();
+        <span class="kw">crate</span><span class="ident">::init</span>();
+        <span class="kw">let</span> <span class="ident">username</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">username</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">password</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">password</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
         <span class="kw">unsafe</span> {
-            <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_cred_userpass_plaintext_new</span>(
+            <span class="macro">try_call!</span>(<span class="ident">raw::git_cred_userpass_plaintext_new</span>(
                 <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">out</span>, <span class="ident">username</span>, <span class="ident">password</span>
             ));
-            <span class="prelude-val">Ok</span>(<span class="ident">Binding</span>::<span class="ident">from_raw</span>(<span class="ident">out</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">Binding::from_raw</span>(<span class="ident">out</span>))
         }
     }
 
@@ -842,13 +842,13 @@
         <span class="ident">url</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">username</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cred</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">CredentialHelper</span>::<span class="ident">new</span>(<span class="ident">url</span>)
+        <span class="kw">match</span> <span class="ident">CredentialHelper::new</span>(<span class="ident">url</span>)
             .<span class="ident">config</span>(<span class="ident">config</span>)
             .<span class="ident">username</span>(<span class="ident">username</span>)
             .<span class="ident">execute</span>()
         {
-            <span class="prelude-val">Some</span>((<span class="ident">username</span>, <span class="ident">password</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Cred</span>::<span class="ident">userpass_plaintext</span>(<span class="kw-2">&amp;</span><span class="ident">username</span>, <span class="kw-2">&amp;</span><span class="ident">password</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="ident">from_str</span>(
+            <span class="prelude-val">Some</span>((<span class="ident">username</span>, <span class="ident">password</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Cred::userpass_plaintext</span>(<span class="kw-2">&amp;</span><span class="ident">username</span>, <span class="kw-2">&amp;</span><span class="ident">password</span>),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">Error::from_str</span>(
                 <span class="string">&quot;failed to acquire username/password \
                  from local configuration&quot;</span>,
             )),
@@ -860,38 +860,38 @@
     <span class="doccomment">/// This is used with ssh authentication to query for the username if none is</span>
     <span class="doccomment">/// specified in the url.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">username</span>(<span class="ident">username</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cred</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">crate</span>::<span class="ident">init</span>();
-        <span class="kw">let</span> <span class="ident">username</span> <span class="op">=</span> <span class="ident">CString</span>::<span class="ident">new</span>(<span class="ident">username</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">ptr</span>::<span class="ident">null_mut</span>();
+        <span class="kw">crate</span><span class="ident">::init</span>();
+        <span class="kw">let</span> <span class="ident">username</span> <span class="op">=</span> <span class="ident">CString::new</span>(<span class="ident">username</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
         <span class="kw">unsafe</span> {
-            <span class="macro">try_call</span><span class="macro">!</span>(<span class="ident">raw</span>::<span class="ident">git_cred_username_new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">out</span>, <span class="ident">username</span>));
-            <span class="prelude-val">Ok</span>(<span class="ident">Binding</span>::<span class="ident">from_raw</span>(<span class="ident">out</span>))
+            <span class="macro">try_call!</span>(<span class="ident">raw::git_cred_username_new</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">out</span>, <span class="ident">username</span>));
+            <span class="prelude-val">Ok</span>(<span class="ident">Binding::from_raw</span>(<span class="ident">out</span>))
         }
     }
 
     <span class="doccomment">/// Check whether a credential object contains username information.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_username</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">unsafe</span> { <span class="ident">raw</span>::<span class="ident">git_cred_has_username</span>(<span class="self">self</span>.<span class="ident">raw</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> }
+        <span class="kw">unsafe</span> { <span class="ident">raw::git_cred_has_username</span>(<span class="self">self</span>.<span class="ident">raw</span>) <span class="op">=</span><span class="op">=</span> <span class="number">1</span> }
     }
 
     <span class="doccomment">/// Return the type of credentials that this object represents.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">credtype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">raw</span>::<span class="ident">git_credtype_t</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">credtype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">raw::git_credtype_t</span> {
         <span class="kw">unsafe</span> { (<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">raw</span>).<span class="ident">credtype</span> }
     }
 
     <span class="doccomment">/// Unwrap access to the underlying raw pointer, canceling the destructor</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unwrap</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw</span>::<span class="ident">git_cred</span> {
-        <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">ptr</span>::<span class="ident">null_mut</span>())
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">unwrap</span>(<span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw::git_cred</span> {
+        <span class="ident">mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">ptr::null_mut</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Binding</span> <span class="kw">for</span> <span class="ident">Cred</span> {
-    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw</span>::<span class="ident">git_cred</span>;
+    <span class="kw">type</span> <span class="ident">Raw</span> <span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw::git_cred</span>;
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw</span>::<span class="ident">git_cred</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Cred</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">raw</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw::git_cred</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Cred</span> {
         <span class="ident">Cred</span> { <span class="ident">raw</span>: <span class="ident">raw</span> }
     }
-    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw</span>::<span class="ident">git_cred</span> {
+    <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">raw::git_cred</span> {
         <span class="self">self</span>.<span class="ident">raw</span>
     }
 }
@@ -922,12 +922,12 @@
             <span class="ident">path</span>: <span class="prelude-val">None</span>,
             <span class="ident">username</span>: <span class="prelude-val">None</span>,
             <span class="ident">url</span>: <span class="ident">url</span>.<span class="ident">to_string</span>(),
-            <span class="ident">commands</span>: <span class="ident">Vec</span>::<span class="ident">new</span>(),
+            <span class="ident">commands</span>: <span class="ident">Vec::new</span>(),
         };
 
         <span class="comment">// Parse out the (protocol, host) if one is available</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">url</span>) <span class="op">=</span> <span class="ident">url</span>::<span class="ident">Url</span>::<span class="ident">parse</span>(<span class="ident">url</span>) {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">url</span>::<span class="ident">Host</span>::<span class="ident">Domain</span>(<span class="ident">s</span>)) <span class="op">=</span> <span class="ident">url</span>.<span class="ident">host</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">url</span>) <span class="op">=</span> <span class="ident">url::Url::parse</span>(<span class="ident">url</span>) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">url::Host::Domain</span>(<span class="ident">s</span>)) <span class="op">=</span> <span class="ident">url</span>.<span class="ident">host</span>() {
                 <span class="ident">ret</span>.<span class="ident">host</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>.<span class="ident">to_string</span>());
             }
             <span class="ident">ret</span>.<span class="ident">port</span> <span class="op">=</span> <span class="ident">url</span>.<span class="ident">port</span>();
@@ -998,7 +998,7 @@
         }
 
         <span class="kw">if</span> <span class="ident">use_http_path</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">url</span>) <span class="op">=</span> <span class="ident">url</span>::<span class="ident">Url</span>::<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">url</span>) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">url</span>) <span class="op">=</span> <span class="ident">url::Url::parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">url</span>) {
                 <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">url</span>.<span class="ident">path</span>();
                 <span class="comment">// Url::parse always includes a leading slash for rooted URLs, while git does not.</span>
                 <span class="self">self</span>.<span class="ident">path</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">path</span>.<span class="ident">strip_prefix</span>(<span class="string">&#39;/&#39;</span>).<span class="ident">unwrap_or</span>(<span class="ident">path</span>).<span class="ident">to_string</span>());
@@ -1021,18 +1021,18 @@
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">cmd</span>.<span class="ident">contains</span>(<span class="string">&quot;/&quot;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">cmd</span>.<span class="ident">contains</span>(<span class="string">&quot;\\&quot;</span>) {
             <span class="self">self</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="ident">cmd</span>.<span class="ident">to_string</span>());
         } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;git credential-{}&quot;</span>, <span class="ident">cmd</span>));
+            <span class="self">self</span>.<span class="ident">commands</span>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;git credential-{}&quot;</span>, <span class="ident">cmd</span>));
         }
     }
 
     <span class="kw">fn</span> <span class="ident">exact_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-        <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;credential.{}.{}&quot;</span>, <span class="self">self</span>.<span class="ident">url</span>, <span class="ident">name</span>)
+        <span class="macro">format!</span>(<span class="string">&quot;credential.{}.{}&quot;</span>, <span class="self">self</span>.<span class="ident">url</span>, <span class="ident">name</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">url_key</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
         <span class="kw">match</span> (<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">host</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">protocol</span>) {
             (<span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">host</span>), <span class="kw-2">&amp;</span><span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">protocol</span>)) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="prelude-val">Some</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;credential.{}://{}.{}&quot;</span>, <span class="ident">protocol</span>, <span class="ident">host</span>, <span class="ident">name</span>))
+                <span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;credential.{}://{}.{}&quot;</span>, <span class="ident">protocol</span>, <span class="ident">host</span>, <span class="ident">name</span>))
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
@@ -1071,11 +1071,11 @@
         <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">username</span>: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> (<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>) {
-        <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">my_try</span>( (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> (
+        <span class="macro">macro_rules!</span> <span class="ident">my_try</span>( (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> (
             <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">e</span>,
                 <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;{} failed with {}&quot;</span>, <span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>), <span class="ident">e</span>);
+                    <span class="macro">debug!</span>(<span class="string">&quot;{} failed with {}&quot;</span>, <span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>), <span class="ident">e</span>);
                     <span class="kw">return</span> (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
                 }
             }
@@ -1090,31 +1090,31 @@
         <span class="comment">//</span>
         <span class="comment">// If that fails then it&#39;s up to the user to put `sh` in path and make</span>
         <span class="comment">// sure it works.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Command</span>::<span class="ident">new</span>(<span class="string">&quot;sh&quot;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Command::new</span>(<span class="string">&quot;sh&quot;</span>);
         <span class="ident">c</span>.<span class="ident">arg</span>(<span class="string">&quot;-c&quot;</span>)
-            .<span class="ident">arg</span>(<span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} get&quot;</span>, <span class="ident">cmd</span>))
-            .<span class="ident">stdin</span>(<span class="ident">Stdio</span>::<span class="ident">piped</span>())
-            .<span class="ident">stdout</span>(<span class="ident">Stdio</span>::<span class="ident">piped</span>())
-            .<span class="ident">stderr</span>(<span class="ident">Stdio</span>::<span class="ident">piped</span>());
-        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;executing credential helper {:?}&quot;</span>, <span class="ident">c</span>);
+            .<span class="ident">arg</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{} get&quot;</span>, <span class="ident">cmd</span>))
+            .<span class="ident">stdin</span>(<span class="ident">Stdio::piped</span>())
+            .<span class="ident">stdout</span>(<span class="ident">Stdio::piped</span>())
+            .<span class="ident">stderr</span>(<span class="ident">Stdio::piped</span>());
+        <span class="macro">debug!</span>(<span class="string">&quot;executing credential helper {:?}&quot;</span>, <span class="ident">c</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">p</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">c</span>.<span class="ident">spawn</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">p</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">p</span>,
             <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;`sh` failed to spawn: {}&quot;</span>, <span class="ident">e</span>);
+                <span class="macro">debug!</span>(<span class="string">&quot;`sh` failed to spawn: {}&quot;</span>, <span class="ident">e</span>);
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parts</span> <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">split_whitespace</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Command</span>::<span class="ident">new</span>(<span class="ident">parts</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>());
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Command::new</span>(<span class="ident">parts</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>());
                 <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">parts</span> {
                     <span class="ident">c</span>.<span class="ident">arg</span>(<span class="ident">arg</span>);
                 }
                 <span class="ident">c</span>.<span class="ident">arg</span>(<span class="string">&quot;get&quot;</span>)
-                    .<span class="ident">stdin</span>(<span class="ident">Stdio</span>::<span class="ident">piped</span>())
-                    .<span class="ident">stdout</span>(<span class="ident">Stdio</span>::<span class="ident">piped</span>())
-                    .<span class="ident">stderr</span>(<span class="ident">Stdio</span>::<span class="ident">piped</span>());
-                <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;executing credential helper {:?}&quot;</span>, <span class="ident">c</span>);
+                    .<span class="ident">stdin</span>(<span class="ident">Stdio::piped</span>())
+                    .<span class="ident">stdout</span>(<span class="ident">Stdio::piped</span>())
+                    .<span class="ident">stderr</span>(<span class="ident">Stdio::piped</span>());
+                <span class="macro">debug!</span>(<span class="string">&quot;executing credential helper {:?}&quot;</span>, <span class="ident">c</span>);
                 <span class="kw">match</span> <span class="ident">c</span>.<span class="ident">spawn</span>() {
                     <span class="prelude-val">Ok</span>(<span class="ident">p</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">p</span>,
                     <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                        <span class="macro">debug</span><span class="macro">!</span>(<span class="string">&quot;fallback of {:?} failed with {}&quot;</span>, <span class="ident">cmd</span>, <span class="ident">e</span>);
+                        <span class="macro">debug!</span>(<span class="string">&quot;fallback of {:?} failed with {}&quot;</span>, <span class="ident">cmd</span>, <span class="ident">e</span>);
                         <span class="kw">return</span> (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
                     }
                 }
@@ -1126,35 +1126,35 @@
         {
             <span class="kw">let</span> <span class="ident">stdin</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">stdin</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>();
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">p</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">protocol</span> {
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">stdin</span>, <span class="string">&quot;protocol={}&quot;</span>, <span class="ident">p</span>);
+                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">writeln!</span>(<span class="ident">stdin</span>, <span class="string">&quot;protocol={}&quot;</span>, <span class="ident">p</span>);
             }
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">p</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">host</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">p2</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">port</span> {
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">stdin</span>, <span class="string">&quot;host={}:{}&quot;</span>, <span class="ident">p</span>, <span class="ident">p2</span>);
+                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">writeln!</span>(<span class="ident">stdin</span>, <span class="string">&quot;host={}:{}&quot;</span>, <span class="ident">p</span>, <span class="ident">p2</span>);
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">stdin</span>, <span class="string">&quot;host={}&quot;</span>, <span class="ident">p</span>);
+                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">writeln!</span>(<span class="ident">stdin</span>, <span class="string">&quot;host={}&quot;</span>, <span class="ident">p</span>);
                 }
             }
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">p</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">path</span> {
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">stdin</span>, <span class="string">&quot;path={}&quot;</span>, <span class="ident">p</span>);
+                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">writeln!</span>(<span class="ident">stdin</span>, <span class="string">&quot;path={}&quot;</span>, <span class="ident">p</span>);
             }
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">p</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">username</span> {
-                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">stdin</span>, <span class="string">&quot;username={}&quot;</span>, <span class="ident">p</span>);
+                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">writeln!</span>(<span class="ident">stdin</span>, <span class="string">&quot;username={}&quot;</span>, <span class="ident">p</span>);
             }
         }
-        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="macro">my_try</span><span class="macro">!</span>(<span class="ident">p</span>.<span class="ident">wait_with_output</span>());
+        <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="macro">my_try!</span>(<span class="ident">p</span>.<span class="ident">wait_with_output</span>());
         <span class="kw">if</span> <span class="op">!</span><span class="ident">output</span>.<span class="ident">status</span>.<span class="ident">success</span>() {
-            <span class="macro">debug</span><span class="macro">!</span>(
+            <span class="macro">debug!</span>(
                 <span class="string">&quot;credential helper failed: {}\nstdout ---\n{}\nstdout ---\n{}&quot;</span>,
                 <span class="ident">output</span>.<span class="ident">status</span>,
-                <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stdout</span>),
-                <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stderr</span>)
+                <span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stdout</span>),
+                <span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stderr</span>)
             );
             <span class="kw">return</span> (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>);
         }
-        <span class="macro">trace</span><span class="macro">!</span>(
+        <span class="macro">trace!</span>(
             <span class="string">&quot;credential helper stderr ---\n{}&quot;</span>,
-            <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stderr</span>)
+            <span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stderr</span>)
         );
         <span class="self">self</span>.<span class="ident">parse_output</span>(<span class="ident">output</span>.<span class="ident">stdout</span>)
     }
@@ -1170,11 +1170,11 @@
             <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">parts</span>.<span class="ident">next</span>() {
                 <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>,
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="macro">trace</span><span class="macro">!</span>(<span class="string">&quot;ignoring output line: {}&quot;</span>, <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="ident">line</span>));
+                    <span class="macro">trace!</span>(<span class="string">&quot;ignoring output line: {}&quot;</span>, <span class="ident">String::from_utf8_lossy</span>(<span class="ident">line</span>));
                     <span class="kw">continue</span>;
                 }
             };
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">String</span>::<span class="ident">from_utf8</span>(<span class="ident">value</span>.<span class="ident">to_vec</span>()) {
+            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">String::from_utf8</span>(<span class="ident">value</span>.<span class="ident">to_vec</span>()) {
                 <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">s</span>,
                 <span class="prelude-val">Err</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">continue</span>,
             };
@@ -1190,44 +1190,44 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">env</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>::<span class="ident">File</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
-    <span class="kw">use</span> <span class="ident">tempfile</span>::<span class="ident">TempDir</span>;
+    <span class="kw">use</span> <span class="ident">std::env</span>;
+    <span class="kw">use</span> <span class="ident">std::fs::File</span>;
+    <span class="kw">use</span> <span class="ident">std::io::prelude</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="ident">std::path::Path</span>;
+    <span class="kw">use</span> <span class="ident">tempfile::TempDir</span>;
 
     <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Config</span>, <span class="ident">ConfigLevel</span>, <span class="ident">Cred</span>, <span class="ident">CredentialHelper</span>};
 
-    <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">test_cfg</span>( ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span>:<span class="ident">expr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">expr</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ({
-        <span class="kw">let</span> <span class="ident">td</span> <span class="op">=</span> <span class="ident">TempDir</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="ident">Config</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
-        <span class="ident">cfg</span>.<span class="ident">add_file</span>(<span class="kw-2">&amp;</span><span class="ident">td</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;cfg&quot;</span>), <span class="ident">ConfigLevel</span>::<span class="ident">Highest</span>, <span class="bool-val">false</span>).<span class="ident">unwrap</span>();
+    <span class="macro">macro_rules!</span> <span class="ident">test_cfg</span>( ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span>:<span class="ident">expr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">expr</span>),<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ({
+        <span class="kw">let</span> <span class="ident">td</span> <span class="op">=</span> <span class="ident">TempDir::new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="ident">Config::new</span>().<span class="ident">unwrap</span>();
+        <span class="ident">cfg</span>.<span class="ident">add_file</span>(<span class="kw-2">&amp;</span><span class="ident">td</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;cfg&quot;</span>), <span class="ident">ConfigLevel::Highest</span>, <span class="bool-val">false</span>).<span class="ident">unwrap</span>();
         $(<span class="ident">cfg</span>.<span class="ident">set_str</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">k</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>).<span class="ident">unwrap</span>();)<span class="op">*</span>
         <span class="ident">cfg</span>
     }) );
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">smoke</span>() {
-        <span class="ident">Cred</span>::<span class="ident">default</span>().<span class="ident">unwrap</span>();
+        <span class="ident">Cred::default</span>().<span class="ident">unwrap</span>();
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">credential_helper1</span>() {
-        <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">test_cfg</span><span class="macro">!</span> {
+        <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">test_cfg!</span> {
             <span class="string">&quot;credential.helper&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;!f() { echo username=a; echo password=b; }; f&quot;</span>
         };
-        <span class="kw">let</span> (<span class="ident">u</span>, <span class="ident">p</span>) <span class="op">=</span> <span class="ident">CredentialHelper</span>::<span class="ident">new</span>(<span class="string">&quot;https://example.com/foo/bar&quot;</span>)
+        <span class="kw">let</span> (<span class="ident">u</span>, <span class="ident">p</span>) <span class="op">=</span> <span class="ident">CredentialHelper::new</span>(<span class="string">&quot;https://example.com/foo/bar&quot;</span>)
             .<span class="ident">config</span>(<span class="kw-2">&amp;</span><span class="ident">cfg</span>)
             .<span class="ident">execute</span>()
             .<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">u</span>, <span class="string">&quot;a&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">p</span>, <span class="string">&quot;b&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">u</span>, <span class="string">&quot;a&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">p</span>, <span class="string">&quot;b&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">credential_helper2</span>() {
-        <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">test_cfg</span><span class="macro">!</span> {};
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">CredentialHelper</span>::<span class="ident">new</span>(<span class="string">&quot;https://example.com/foo/bar&quot;</span>)
+        <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">test_cfg!</span> {};
+        <span class="macro">assert!</span>(<span class="ident">CredentialHelper::new</span>(<span class="string">&quot;https://example.com/foo/bar&quot;</span>)
             .<span class="ident">config</span>(<span class="kw-2">&amp;</span><span class="ident">cfg</span>)
             .<span class="ident">execute</span>()
             .<span class="ident">is_none</span>());
@@ -1235,28 +1235,28 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">credential_helper3</span>() {
-        <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">test_cfg</span><span class="macro">!</span> {
+        <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">test_cfg!</span> {
             <span class="string">&quot;credential.https://example.com.helper&quot;</span> <span class="op">=</span><span class="op">&gt;</span>
                     <span class="string">&quot;!f() { echo username=c; }; f&quot;</span>,
             <span class="string">&quot;credential.helper&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;!f() { echo username=a; echo password=b; }; f&quot;</span>
         };
-        <span class="kw">let</span> (<span class="ident">u</span>, <span class="ident">p</span>) <span class="op">=</span> <span class="ident">CredentialHelper</span>::<span class="ident">new</span>(<span class="string">&quot;https://example.com/foo/bar&quot;</span>)
+        <span class="kw">let</span> (<span class="ident">u</span>, <span class="ident">p</span>) <span class="op">=</span> <span class="ident">CredentialHelper::new</span>(<span class="string">&quot;https://example.com/foo/bar&quot;</span>)
             .<span class="ident">config</span>(<span class="kw-2">&amp;</span><span class="ident">cfg</span>)
             .<span class="ident">execute</span>()
             .<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">u</span>, <span class="string">&quot;c&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">p</span>, <span class="string">&quot;b&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">u</span>, <span class="string">&quot;c&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">p</span>, <span class="string">&quot;b&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">credential_helper4</span>() {
-        <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">windows</span>) {
+        <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">windows</span>) {
             <span class="kw">return</span>;
         } <span class="comment">// shell scripts don&#39;t work on Windows</span>
 
-        <span class="kw">let</span> <span class="ident">td</span> <span class="op">=</span> <span class="ident">TempDir</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">td</span> <span class="op">=</span> <span class="ident">TempDir::new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">td</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;script&quot;</span>);
-        <span class="ident">File</span>::<span class="ident">create</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)
+        <span class="ident">File::create</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)
             .<span class="ident">unwrap</span>()
             .<span class="ident">write</span>(
                 <span class="string">br&quot;\
@@ -1266,27 +1266,27 @@ echo username=c
             )
             .<span class="ident">unwrap</span>();
         <span class="ident">chmod</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>);
-        <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">test_cfg</span><span class="macro">!</span> {
+        <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">test_cfg!</span> {
             <span class="string">&quot;credential.https://example.com.helper&quot;</span> <span class="op">=</span><span class="op">&gt;</span>
                     <span class="kw-2">&amp;</span><span class="ident">path</span>.<span class="ident">display</span>().<span class="ident">to_string</span>()[..],
             <span class="string">&quot;credential.helper&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;!f() { echo username=a; echo password=b; }; f&quot;</span>
         };
-        <span class="kw">let</span> (<span class="ident">u</span>, <span class="ident">p</span>) <span class="op">=</span> <span class="ident">CredentialHelper</span>::<span class="ident">new</span>(<span class="string">&quot;https://example.com/foo/bar&quot;</span>)
+        <span class="kw">let</span> (<span class="ident">u</span>, <span class="ident">p</span>) <span class="op">=</span> <span class="ident">CredentialHelper::new</span>(<span class="string">&quot;https://example.com/foo/bar&quot;</span>)
             .<span class="ident">config</span>(<span class="kw-2">&amp;</span><span class="ident">cfg</span>)
             .<span class="ident">execute</span>()
             .<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">u</span>, <span class="string">&quot;c&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">p</span>, <span class="string">&quot;b&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">u</span>, <span class="string">&quot;c&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">p</span>, <span class="string">&quot;b&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">credential_helper5</span>() {
-        <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">windows</span>) {
+        <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">windows</span>) {
             <span class="kw">return</span>;
         } <span class="comment">// shell scripts don&#39;t work on Windows</span>
-        <span class="kw">let</span> <span class="ident">td</span> <span class="op">=</span> <span class="ident">TempDir</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">td</span> <span class="op">=</span> <span class="ident">TempDir::new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">td</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;git-credential-script&quot;</span>);
-        <span class="ident">File</span>::<span class="ident">create</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)
+        <span class="ident">File::create</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)
             .<span class="ident">unwrap</span>()
             .<span class="ident">write</span>(
                 <span class="string">br&quot;\
@@ -1297,29 +1297,29 @@ echo username=c
             .<span class="ident">unwrap</span>();
         <span class="ident">chmod</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>);
 
-        <span class="kw">let</span> <span class="ident">paths</span> <span class="op">=</span> <span class="ident">env</span>::<span class="ident">var</span>(<span class="string">&quot;PATH&quot;</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">paths</span> <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;PATH&quot;</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">paths</span> <span class="op">=</span>
-            <span class="ident">env</span>::<span class="ident">split_paths</span>(<span class="kw-2">&amp;</span><span class="ident">paths</span>).<span class="ident">chain</span>(<span class="ident">path</span>.<span class="ident">parent</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">to_path_buf</span>()).<span class="ident">into_iter</span>());
-        <span class="ident">env</span>::<span class="ident">set_var</span>(<span class="string">&quot;PATH&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">env</span>::<span class="ident">join_paths</span>(<span class="ident">paths</span>).<span class="ident">unwrap</span>());
+            <span class="ident">env::split_paths</span>(<span class="kw-2">&amp;</span><span class="ident">paths</span>).<span class="ident">chain</span>(<span class="ident">path</span>.<span class="ident">parent</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">to_path_buf</span>()).<span class="ident">into_iter</span>());
+        <span class="ident">env::set_var</span>(<span class="string">&quot;PATH&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">env::join_paths</span>(<span class="ident">paths</span>).<span class="ident">unwrap</span>());
 
-        <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">test_cfg</span><span class="macro">!</span> {
+        <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">test_cfg!</span> {
             <span class="string">&quot;credential.https://example.com.helper&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;script&quot;</span>,
             <span class="string">&quot;credential.helper&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;!f() { echo username=a; echo password=b; }; f&quot;</span>
         };
-        <span class="kw">let</span> (<span class="ident">u</span>, <span class="ident">p</span>) <span class="op">=</span> <span class="ident">CredentialHelper</span>::<span class="ident">new</span>(<span class="string">&quot;https://example.com/foo/bar&quot;</span>)
+        <span class="kw">let</span> (<span class="ident">u</span>, <span class="ident">p</span>) <span class="op">=</span> <span class="ident">CredentialHelper::new</span>(<span class="string">&quot;https://example.com/foo/bar&quot;</span>)
             .<span class="ident">config</span>(<span class="kw-2">&amp;</span><span class="ident">cfg</span>)
             .<span class="ident">execute</span>()
             .<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">u</span>, <span class="string">&quot;c&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">p</span>, <span class="string">&quot;b&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">u</span>, <span class="string">&quot;c&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">p</span>, <span class="string">&quot;b&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">credential_helper6</span>() {
-        <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">test_cfg</span><span class="macro">!</span> {
+        <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">test_cfg!</span> {
             <span class="string">&quot;credential.helper&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;&quot;</span>
         };
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">CredentialHelper</span>::<span class="ident">new</span>(<span class="string">&quot;https://example.com/foo/bar&quot;</span>)
+        <span class="macro">assert!</span>(<span class="ident">CredentialHelper::new</span>(<span class="string">&quot;https://example.com/foo/bar&quot;</span>)
             .<span class="ident">config</span>(<span class="kw-2">&amp;</span><span class="ident">cfg</span>)
             .<span class="ident">execute</span>()
             .<span class="ident">is_none</span>());
@@ -1327,12 +1327,12 @@ echo username=c
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">credential_helper7</span>() {
-        <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">windows</span>) {
+        <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">windows</span>) {
             <span class="kw">return</span>;
         } <span class="comment">// shell scripts don&#39;t work on Windows</span>
-        <span class="kw">let</span> <span class="ident">td</span> <span class="op">=</span> <span class="ident">TempDir</span>::<span class="ident">new</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">td</span> <span class="op">=</span> <span class="ident">TempDir::new</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">td</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;script&quot;</span>);
-        <span class="ident">File</span>::<span class="ident">create</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)
+        <span class="ident">File::create</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>)
             .<span class="ident">unwrap</span>()
             .<span class="ident">write</span>(
                 <span class="string">br&quot;\
@@ -1343,44 +1343,44 @@ echo password=$2
             )
             .<span class="ident">unwrap</span>();
         <span class="ident">chmod</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>);
-        <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">test_cfg</span><span class="macro">!</span> {
-            <span class="string">&quot;credential.helper&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} a b&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>())
+        <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">test_cfg!</span> {
+            <span class="string">&quot;credential.helper&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{} a b&quot;</span>, <span class="ident">path</span>.<span class="ident">display</span>())
         };
-        <span class="kw">let</span> (<span class="ident">u</span>, <span class="ident">p</span>) <span class="op">=</span> <span class="ident">CredentialHelper</span>::<span class="ident">new</span>(<span class="string">&quot;https://example.com/foo/bar&quot;</span>)
+        <span class="kw">let</span> (<span class="ident">u</span>, <span class="ident">p</span>) <span class="op">=</span> <span class="ident">CredentialHelper::new</span>(<span class="string">&quot;https://example.com/foo/bar&quot;</span>)
             .<span class="ident">config</span>(<span class="kw-2">&amp;</span><span class="ident">cfg</span>)
             .<span class="ident">execute</span>()
             .<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">u</span>, <span class="string">&quot;a&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">p</span>, <span class="string">&quot;b&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">u</span>, <span class="string">&quot;a&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">p</span>, <span class="string">&quot;b&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">credential_helper8</span>() {
-        <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">test_cfg</span><span class="macro">!</span> {
+        <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">test_cfg!</span> {
             <span class="string">&quot;credential.useHttpPath&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;true&quot;</span>
         };
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">helper</span> <span class="op">=</span> <span class="ident">CredentialHelper</span>::<span class="ident">new</span>(<span class="string">&quot;https://example.com/foo/bar&quot;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">helper</span> <span class="op">=</span> <span class="ident">CredentialHelper::new</span>(<span class="string">&quot;https://example.com/foo/bar&quot;</span>);
         <span class="ident">helper</span>.<span class="ident">config</span>(<span class="kw-2">&amp;</span><span class="ident">cfg</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">helper</span>.<span class="ident">path</span>.<span class="ident">as_deref</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo/bar&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">helper</span>.<span class="ident">path</span>.<span class="ident">as_deref</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;foo/bar&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">credential_helper9</span>() {
-        <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">test_cfg</span><span class="macro">!</span> {
+        <span class="kw">let</span> <span class="ident">cfg</span> <span class="op">=</span> <span class="macro">test_cfg!</span> {
             <span class="string">&quot;credential.helper&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;!f() { while read line; do eval $line; done; if [ \&quot;$host\&quot; = example.com:3000 ]; then echo username=a; echo password=b; fi; }; f&quot;</span>
         };
-        <span class="kw">let</span> (<span class="ident">u</span>, <span class="ident">p</span>) <span class="op">=</span> <span class="ident">CredentialHelper</span>::<span class="ident">new</span>(<span class="string">&quot;https://example.com:3000/foo/bar&quot;</span>)
+        <span class="kw">let</span> (<span class="ident">u</span>, <span class="ident">p</span>) <span class="op">=</span> <span class="ident">CredentialHelper::new</span>(<span class="string">&quot;https://example.com:3000/foo/bar&quot;</span>)
             .<span class="ident">config</span>(<span class="kw-2">&amp;</span><span class="ident">cfg</span>)
             .<span class="ident">execute</span>()
             .<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">u</span>, <span class="string">&quot;a&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">p</span>, <span class="string">&quot;b&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">u</span>, <span class="string">&quot;a&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">p</span>, <span class="string">&quot;b&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ssh&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">ssh_key_from_memory</span>() {
-        <span class="kw">let</span> <span class="ident">cred</span> <span class="op">=</span> <span class="ident">Cred</span>::<span class="ident">ssh_key_from_memory</span>(
+        <span class="kw">let</span> <span class="ident">cred</span> <span class="op">=</span> <span class="ident">Cred::ssh_key_from_memory</span>(
             <span class="string">&quot;test&quot;</span>,
             <span class="prelude-val">Some</span>(<span class="string">&quot;ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDByAO8uj+kXicj6C2ODMspgmUoVyl5eaw8vR6a1yEnFuJFzevabNlN6Ut+CPT3TRnYk5BW73pyXBtnSL2X95BOnbjMDXc4YIkgs3YYHWnxbqsD4Pj/RoGqhf+gwhOBtL0poh8tT8WqXZYxdJQKLQC7oBqf3ykCEYulE4oeRUmNh4IzEE+skD/zDkaJ+S1HRD8D8YCiTO01qQnSmoDFdmIZTi8MS8Cw+O/Qhym1271ThMlhD6PubSYJXfE6rVbE7A9RzH73A6MmKBlzK8VTb4SlNSrr/DOk+L0uq+wPkv+pm+D9WtxoqQ9yl6FaK1cPawa3+7yRNle3m+72KCtyMkQv&quot;</span>),
             <span class="string">r#&quot;
@@ -1416,20 +1416,20 @@ echo password=$2
                 -----END RSA PRIVATE KEY-----
             &quot;#</span>,
             <span class="prelude-val">Some</span>(<span class="string">&quot;test123&quot;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">cred</span>.<span class="ident">is_ok</span>());
+        <span class="macro">assert!</span>(<span class="ident">cred</span>.<span class="ident">is_ok</span>());
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
     <span class="kw">fn</span> <span class="ident">chmod</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) {
-        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fs</span>;
-        <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">os</span>::<span class="ident">unix</span>::<span class="ident">prelude</span>::<span class="kw-2">*</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">perms</span> <span class="op">=</span> <span class="ident">fs</span>::<span class="ident">metadata</span>(<span class="ident">path</span>).<span class="ident">unwrap</span>().<span class="ident">permissions</span>();
+        <span class="kw">use</span> <span class="ident">std::fs</span>;
+        <span class="kw">use</span> <span class="ident">std::os::unix::prelude</span>::<span class="kw-2">*</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">perms</span> <span class="op">=</span> <span class="ident">fs::metadata</span>(<span class="ident">path</span>).<span class="ident">unwrap</span>().<span class="ident">permissions</span>();
         <span class="ident">perms</span>.<span class="ident">set_mode</span>(<span class="number">0o755</span>);
-        <span class="ident">fs</span>::<span class="ident">set_permissions</span>(<span class="ident">path</span>, <span class="ident">perms</span>).<span class="ident">unwrap</span>();
+        <span class="ident">fs::set_permissions</span>(<span class="ident">path</span>, <span class="ident">perms</span>).<span class="ident">unwrap</span>();
     }
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span>
     <span class="kw">fn</span> <span class="ident">chmod</span>(<span class="ident">_path</span>: <span class="kw-2">&amp;</span><span class="ident">Path</span>) {}
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

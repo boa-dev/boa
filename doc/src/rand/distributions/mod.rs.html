@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.8.3/src/distributions/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../rand/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand-0.8.4/src/distributions/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../rand/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -217,160 +217,6 @@
 <span id="216">216</span>
 <span id="217">217</span>
 <span id="218">218</span>
-<span id="219">219</span>
-<span id="220">220</span>
-<span id="221">221</span>
-<span id="222">222</span>
-<span id="223">223</span>
-<span id="224">224</span>
-<span id="225">225</span>
-<span id="226">226</span>
-<span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
-<span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
-<span id="238">238</span>
-<span id="239">239</span>
-<span id="240">240</span>
-<span id="241">241</span>
-<span id="242">242</span>
-<span id="243">243</span>
-<span id="244">244</span>
-<span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-<span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
-<span id="303">303</span>
-<span id="304">304</span>
-<span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
-<span id="319">319</span>
-<span id="320">320</span>
-<span id="321">321</span>
-<span id="322">322</span>
-<span id="323">323</span>
-<span id="324">324</span>
-<span id="325">325</span>
-<span id="326">326</span>
-<span id="327">327</span>
-<span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
-<span id="335">335</span>
-<span id="336">336</span>
-<span id="337">337</span>
-<span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
-<span id="342">342</span>
-<span id="343">343</span>
-<span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
-<span id="347">347</span>
-<span id="348">348</span>
-<span id="349">349</span>
-<span id="350">350</span>
-<span id="351">351</span>
-<span id="352">352</span>
-<span id="353">353</span>
-<span id="354">354</span>
-<span id="355">355</span>
-<span id="356">356</span>
-<span id="357">357</span>
-<span id="358">358</span>
-<span id="359">359</span>
-<span id="360">360</span>
-<span id="361">361</span>
-<span id="362">362</span>
-<span id="363">363</span>
-<span id="364">364</span>
-<span id="365">365</span>
-<span id="366">366</span>
-<span id="367">367</span>
-<span id="368">368</span>
-<span id="369">369</span>
-<span id="370">370</span>
-<span id="371">371</span>
-<span id="372">372</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// Copyright 2018 Developers of the Rand project.</span>
 <span class="comment">// Copyright 2013-2017 The Rust Project Developers.</span>
@@ -467,163 +313,43 @@
 <span class="doccomment">//! [`rand_distr`]: https://crates.io/crates/rand_distr</span>
 <span class="doccomment">//! [`statrs`]: https://crates.io/crates/statrs</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Rng</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">iter</span>;
-
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">bernoulli</span>::{<span class="ident">Bernoulli</span>, <span class="ident">BernoulliError</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">float</span>::{<span class="ident">Open01</span>, <span class="ident">OpenClosed01</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">other</span>::<span class="ident">Alphanumeric</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span> <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">uniform</span>::<span class="ident">Uniform</span>;
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">weighted_index</span>::{<span class="ident">WeightedError</span>, <span class="ident">WeightedIndex</span>};
-
 <span class="kw">mod</span> <span class="ident">bernoulli</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">uniform</span>;
+<span class="kw">mod</span> <span class="ident">distribution</span>;
+<span class="kw">mod</span> <span class="ident">float</span>;
+<span class="kw">mod</span> <span class="ident">integer</span>;
+<span class="kw">mod</span> <span class="ident">other</span>;
+<span class="kw">mod</span> <span class="ident">slice</span>;
+<span class="kw">mod</span> <span class="ident">utils</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">mod</span> <span class="ident">weighted_index</span>;
 
-<span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.8.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use rand::distributions::{WeightedIndex, WeightedError} instead&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">hidden_export</span> {
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">super</span><span class="ident">::float::IntoFloat</span>; <span class="comment">// used by rand_distr</span>
+}
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">uniform</span>;
+<span class="attribute">#[<span class="ident">deprecated</span>(
+    <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.8.0&quot;</span>,
+    <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use rand::distributions::{WeightedIndex, WeightedError} instead&quot;</span>
+)]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)))]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">weighted</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span> <span class="kw">mod</span> <span class="ident">weighted_index</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::bernoulli</span>::{<span class="ident">Bernoulli</span>, <span class="ident">BernoulliError</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::distribution</span>::{<span class="ident">Distribution</span>, <span class="ident">DistIter</span>, <span class="ident">DistMap</span>};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::distribution::DistString</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::float</span>::{<span class="ident">Open01</span>, <span class="ident">OpenClosed01</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::other::Alphanumeric</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::slice::Slice</span>;
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::uniform::Uniform</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::weighted_index</span>::{<span class="ident">WeightedError</span>, <span class="ident">WeightedIndex</span>};
 
-<span class="kw">mod</span> <span class="ident">float</span>;
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">hidden_export</span> {
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">float</span>::<span class="ident">IntoFloat</span>; <span class="comment">// used by rand_distr</span>
-}
-<span class="kw">mod</span> <span class="ident">integer</span>;
-<span class="kw">mod</span> <span class="ident">other</span>;
-<span class="kw">mod</span> <span class="ident">utils</span>;
-
-<span class="doccomment">/// Types (distributions) that can be used to create a random instance of `T`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// It is possible to sample from a distribution through both the</span>
-<span class="doccomment">/// `Distribution` and [`Rng`] traits, via `distr.sample(&amp;mut rng)` and</span>
-<span class="doccomment">/// `rng.sample(distr)`. They also both offer the [`sample_iter`] method, which</span>
-<span class="doccomment">/// produces an iterator that samples from the distribution.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// All implementations are expected to be immutable; this has the significant</span>
-<span class="doccomment">/// advantage of not needing to consider thread safety, and for most</span>
-<span class="doccomment">/// distributions efficient state-less sampling algorithms are available.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Implementations are typically expected to be portable with reproducible</span>
-<span class="doccomment">/// results when used with a PRNG with fixed seed; see the</span>
-<span class="doccomment">/// [portability chapter](https://rust-random.github.io/book/portability.html)</span>
-<span class="doccomment">/// of The Rust Rand Book. In some cases this does not apply, e.g. the `usize`</span>
-<span class="doccomment">/// type requires different sampling on 32-bit and 64-bit machines.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`sample_iter`]: Distribution::method.sample_iter</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Generate a random value of `T`, using `rng` as the source of randomness.</span>
-    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>;
-
-    <span class="doccomment">/// Create an iterator that generates random values of `T`, using `rng` as</span>
-    <span class="doccomment">/// the source of randomness.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that this function takes `self` by value. This works since</span>
-    <span class="doccomment">/// `Distribution&lt;T&gt;` is impl&#39;d for `&amp;D` where `D: Distribution&lt;T&gt;`,</span>
-    <span class="doccomment">/// however borrowing is not automatic hence `distr.sample_iter(...)` may</span>
-    <span class="doccomment">/// need to be replaced with `(&amp;distr).sample_iter(...)` to borrow or</span>
-    <span class="doccomment">/// `(&amp;*distr).sample_iter(...)` to reborrow an existing reference.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Example</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use rand::thread_rng;</span>
-    <span class="doccomment">/// use rand::distributions::{Distribution, Alphanumeric, Uniform, Standard};</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut rng = thread_rng();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Vec of 16 x f32:</span>
-    <span class="doccomment">/// let v: Vec&lt;f32&gt; = Standard.sample_iter(&amp;mut rng).take(16).collect();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // String:</span>
-    <span class="doccomment">/// let s: String = Alphanumeric</span>
-    <span class="doccomment">///     .sample_iter(&amp;mut rng)</span>
-    <span class="doccomment">///     .take(7)</span>
-    <span class="doccomment">///     .map(char::from)</span>
-    <span class="doccomment">///     .collect();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // Dice-rolling:</span>
-    <span class="doccomment">/// let die_range = Uniform::new_inclusive(1, 6);</span>
-    <span class="doccomment">/// let mut roll_die = die_range.sample_iter(&amp;mut rng);</span>
-    <span class="doccomment">/// while roll_die.next().unwrap() != 6 {</span>
-    <span class="doccomment">///     println!(&quot;Not a 6; rolling again!&quot;);</span>
-    <span class="doccomment">/// }</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">sample_iter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">rng</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DistIter</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">R</span>: <span class="ident">Rng</span>,
-        <span class="self">Self</span>: <span class="ident">Sized</span>,
-    {
-        <span class="ident">DistIter</span> {
-            <span class="ident">distr</span>: <span class="self">self</span>,
-            <span class="ident">rng</span>,
-            <span class="ident">phantom</span>: ::<span class="ident">core</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>,
-        }
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">D</span>: <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">D</span> {
-    <span class="kw">fn</span> <span class="ident">sample</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Rng</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
-        (<span class="kw-2">*</span><span class="self">self</span>).<span class="ident">sample</span>(<span class="ident">rng</span>)
-    }
-}
-
-
-<span class="doccomment">/// An iterator that generates random values of `T` with distribution `D`,</span>
-<span class="doccomment">/// using `R` as the source of randomness.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This `struct` is created by the [`sample_iter`] method on [`Distribution`].</span>
-<span class="doccomment">/// See its documentation for more.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`sample_iter`]: Distribution::sample_iter</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DistIter</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="ident">distr</span>: <span class="ident">D</span>,
-    <span class="ident">rng</span>: <span class="ident">R</span>,
-    <span class="ident">phantom</span>: ::<span class="ident">core</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">DistIter</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">D</span>: <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="ident">R</span>: <span class="ident">Rng</span>,
-{
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span>;
-
-    <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="comment">// Here, self.rng may be a reference, but we must take &amp;mut anyway.</span>
-        <span class="comment">// Even if sample could take an R: Rng by value, we would need to do this</span>
-        <span class="comment">// since Rng is not copyable and we cannot enforce that this is &quot;reborrowable&quot;.</span>
-        <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">distr</span>.<span class="ident">sample</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">rng</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
-        (<span class="ident">usize</span>::<span class="ident">max_value</span>(), <span class="prelude-val">None</span>)
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">iter</span>::<span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">DistIter</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">D</span>: <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="ident">R</span>: <span class="ident">Rng</span>,
-{
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">features</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>)]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">iter</span>::<span class="ident">TrustedLen</span> <span class="kw">for</span> <span class="ident">DistIter</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">R</span>, <span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">D</span>: <span class="ident">Distribution</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="ident">R</span>: <span class="ident">Rng</span>,
-{
-}
-
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::Rng</span>;
 
 <span class="doccomment">/// A generic random value distribution, implemented for many primitive types.</span>
 <span class="doccomment">/// Usually generates values with a numerically uniform distribution, and with a</span>
@@ -653,6 +379,12 @@
 <span class="doccomment">/// *   Arrays (up to 32 elements): each element is generated sequentially;</span>
 <span class="doccomment">///     see also [`Rng::fill`] which supports arbitrary array length for integer</span>
 <span class="doccomment">///     types and tends to be faster for `u32` and smaller types.</span>
+<span class="doccomment">///     When using `rustc` ≥ 1.51, enable the `min_const_gen` feature to support</span>
+<span class="doccomment">///     arrays larger than 32 elements.</span>
+<span class="doccomment">///     Note that [`Rng::fill`] and `Standard`&#39;s array support are *not* equivalent:</span>
+<span class="doccomment">///     the former is optimised for integer types (using fewer RNG calls for</span>
+<span class="doccomment">///     element types smaller than the RNG word size), while the latter supports</span>
+<span class="doccomment">///     any element type supported by `Standard`.</span>
 <span class="doccomment">/// *   `Option&lt;T&gt;` first generates a `bool`, and if true generates and returns</span>
 <span class="doccomment">///     `Some(value)` where `value: T`, otherwise returning `None`.</span>
 <span class="doccomment">///</span>
@@ -702,48 +434,8 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`Uniform`]: uniform::Uniform</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Standard</span>;
-
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Distribution</span>, <span class="ident">Uniform</span>};
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Rng</span>;
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_distributions_iter</span>() {
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">distributions</span>::<span class="ident">Open01</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">test</span>::<span class="ident">rng</span>(<span class="number">210</span>);
-        <span class="kw">let</span> <span class="ident">distr</span> <span class="op">=</span> <span class="ident">Open01</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">Distribution</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>::<span class="ident">sample_iter</span>(<span class="ident">distr</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sum</span>: <span class="ident">f32</span> <span class="op">=</span> <span class="number">0.</span>;
-        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">100</span> {
-            <span class="ident">sum</span> <span class="op">+</span><span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">unwrap</span>();
-        }
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="number">0.</span> <span class="op">&lt;</span> <span class="ident">sum</span> <span class="op">&amp;&amp;</span> <span class="ident">sum</span> <span class="op">&lt;</span> <span class="number">100.</span>);
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_make_an_iter</span>() {
-        <span class="kw">fn</span> <span class="ident">ten_dice_rolls_other_than_five</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">R</span>: <span class="ident">Rng</span><span class="op">&gt;</span>(
-            <span class="ident">rng</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">R</span>,
-        ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">i32</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;a</span> {
-            <span class="ident">Uniform</span>::<span class="ident">new_inclusive</span>(<span class="number">1</span>, <span class="number">6</span>)
-                .<span class="ident">sample_iter</span>(<span class="ident">rng</span>)
-                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">!</span><span class="op">=</span> <span class="number">5</span>)
-                .<span class="ident">take</span>(<span class="number">10</span>)
-        }
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">test</span>::<span class="ident">rng</span>(<span class="number">211</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">for</span> <span class="ident">val</span> <span class="kw">in</span> <span class="ident">ten_dice_rolls_other_than_five</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">rng</span>) {
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">val</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="ident">val</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">6</span> <span class="op">&amp;&amp;</span> <span class="ident">val</span> <span class="op">!</span><span class="op">=</span> <span class="number">5</span>);
-            <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        }
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">count</span>, <span class="number">10</span>);
-    }
-}
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rand" data-search-js="../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rand" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

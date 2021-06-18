@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.25/src/hir/print.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>print.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../regex_syntax/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../regex_syntax/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -374,11 +374,11 @@
 This module provides a regular expression printer for `Hir`.
 */</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
+<span class="kw">use</span> <span class="ident">std::fmt</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">hir</span>::<span class="ident">visitor</span>::{<span class="self">self</span>, <span class="ident">Visitor</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">hir</span>::{<span class="self">self</span>, <span class="ident">Hir</span>, <span class="ident">HirKind</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">is_meta_character</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::hir::visitor</span>::{<span class="self">self</span>, <span class="ident">Visitor</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::hir</span>::{<span class="self">self</span>, <span class="ident">Hir</span>, <span class="ident">HirKind</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::is_meta_character</span>;
 
 <span class="doccomment">/// A builder for constructing a printer.</span>
 <span class="doccomment">///</span>
@@ -391,7 +391,7 @@ This module provides a regular expression printer for `Hir`.
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">PrinterBuilder</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PrinterBuilder</span> {
-        <span class="ident">PrinterBuilder</span>::<span class="ident">new</span>()
+        <span class="ident">PrinterBuilder::new</span>()
     }
 }
 
@@ -429,15 +429,15 @@ This module provides a regular expression printer for `Hir`.
 <span class="kw">impl</span> <span class="ident">Printer</span> {
     <span class="doccomment">/// Create a new printer.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Printer</span> {
-        <span class="ident">PrinterBuilder</span>::<span class="ident">new</span>().<span class="ident">build</span>()
+        <span class="ident">PrinterBuilder::new</span>().<span class="ident">build</span>()
     }
 
     <span class="doccomment">/// Print the given `Ast` to the given writer. The writer must implement</span>
     <span class="doccomment">/// `fmt::Write`. Typical implementations of `fmt::Write` that can be used</span>
     <span class="doccomment">/// here are a `fmt::Formatter` (which is available in `fmt::Display`</span>
     <span class="doccomment">/// implementations) or a `&amp;mut String`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">print</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt</span>::<span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">hir</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>, <span class="ident">wtr</span>: <span class="ident">W</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">visitor</span>::<span class="ident">visit</span>(<span class="ident">hir</span>, <span class="ident">Writer</span> { <span class="ident">printer</span>: <span class="self">self</span>, <span class="ident">wtr</span>: <span class="ident">wtr</span> })
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">print</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">hir</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>, <span class="ident">wtr</span>: <span class="ident">W</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">visitor::visit</span>(<span class="ident">hir</span>, <span class="ident">Writer</span> { <span class="ident">printer</span>: <span class="self">self</span>, <span class="ident">wtr</span>: <span class="ident">wtr</span> })
     }
 }
 
@@ -447,27 +447,27 @@ This module provides a regular expression printer for `Hir`.
     <span class="ident">wtr</span>: <span class="ident">W</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">W</span>: <span class="ident">fmt</span>::<span class="ident">Write</span><span class="op">&gt;</span> <span class="ident">Visitor</span> <span class="kw">for</span> <span class="ident">Writer</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">W</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">W</span>: <span class="ident">fmt::Write</span><span class="op">&gt;</span> <span class="ident">Visitor</span> <span class="kw">for</span> <span class="ident">Writer</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">W</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> ();
-    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">fmt</span>::<span class="ident">Error</span>;
+    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">fmt::Error</span>;
 
-    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_pre</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">hir</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">visit_pre</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">hir</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">hir</span>.<span class="ident">kind</span>() {
-            <span class="ident">HirKind</span>::<span class="ident">Empty</span>
-            <span class="op">|</span> <span class="ident">HirKind</span>::<span class="ident">Repetition</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">HirKind</span>::<span class="ident">Concat</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">HirKind</span>::<span class="ident">Alternation</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">HirKind</span>::<span class="ident">Literal</span>(<span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Unicode</span>(<span class="ident">c</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">HirKind::Empty</span>
+            <span class="op">|</span> <span class="ident">HirKind::Repetition</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">HirKind::Concat</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">HirKind::Alternation</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">HirKind::Literal</span>(<span class="ident">hir::Literal::Unicode</span>(<span class="ident">c</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">write_literal_char</span>(<span class="ident">c</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">HirKind</span>::<span class="ident">Literal</span>(<span class="ident">hir</span>::<span class="ident">Literal</span>::<span class="ident">Byte</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">HirKind::Literal</span>(<span class="ident">hir::Literal::Byte</span>(<span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">write_literal_byte</span>(<span class="ident">b</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="ident">hir</span>::<span class="ident">Class</span>::<span class="ident">Unicode</span>(<span class="kw-2">ref</span> <span class="ident">cls</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">HirKind::Class</span>(<span class="ident">hir::Class::Unicode</span>(<span class="kw-2">ref</span> <span class="ident">cls</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">&quot;[&quot;</span>)<span class="question-mark">?</span>;
                 <span class="kw">for</span> <span class="ident">range</span> <span class="kw">in</span> <span class="ident">cls</span>.<span class="ident">iter</span>() {
                     <span class="kw">if</span> <span class="ident">range</span>.<span class="ident">start</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">range</span>.<span class="ident">end</span>() {
@@ -480,7 +480,7 @@ This module provides a regular expression printer for `Hir`.
                 }
                 <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">&quot;]&quot;</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="ident">hir</span>::<span class="ident">Class</span>::<span class="ident">Bytes</span>(<span class="kw-2">ref</span> <span class="ident">cls</span>)) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">HirKind::Class</span>(<span class="ident">hir::Class::Bytes</span>(<span class="kw-2">ref</span> <span class="ident">cls</span>)) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">&quot;(?-u:[&quot;</span>)<span class="question-mark">?</span>;
                 <span class="kw">for</span> <span class="ident">range</span> <span class="kw">in</span> <span class="ident">cls</span>.<span class="ident">iter</span>() {
                     <span class="kw">if</span> <span class="ident">range</span>.<span class="ident">start</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">range</span>.<span class="ident">end</span>() {
@@ -493,38 +493,38 @@ This module provides a regular expression printer for `Hir`.
                 }
                 <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">&quot;])&quot;</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">HirKind</span>::<span class="ident">Anchor</span>(<span class="ident">hir</span>::<span class="ident">Anchor</span>::<span class="ident">StartLine</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">HirKind::Anchor</span>(<span class="ident">hir::Anchor::StartLine</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">&quot;(?m:^)&quot;</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">HirKind</span>::<span class="ident">Anchor</span>(<span class="ident">hir</span>::<span class="ident">Anchor</span>::<span class="ident">EndLine</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">HirKind::Anchor</span>(<span class="ident">hir::Anchor::EndLine</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">&quot;(?m:$)&quot;</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">HirKind</span>::<span class="ident">Anchor</span>(<span class="ident">hir</span>::<span class="ident">Anchor</span>::<span class="ident">StartText</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">HirKind::Anchor</span>(<span class="ident">hir::Anchor::StartText</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">r&quot;\A&quot;</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">HirKind</span>::<span class="ident">Anchor</span>(<span class="ident">hir</span>::<span class="ident">Anchor</span>::<span class="ident">EndText</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">HirKind::Anchor</span>(<span class="ident">hir::Anchor::EndText</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">r&quot;\z&quot;</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">HirKind</span>::<span class="ident">WordBoundary</span>(<span class="ident">hir</span>::<span class="ident">WordBoundary</span>::<span class="ident">Unicode</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">HirKind::WordBoundary</span>(<span class="ident">hir::WordBoundary::Unicode</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">r&quot;\b&quot;</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">HirKind</span>::<span class="ident">WordBoundary</span>(<span class="ident">hir</span>::<span class="ident">WordBoundary</span>::<span class="ident">UnicodeNegate</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">HirKind::WordBoundary</span>(<span class="ident">hir::WordBoundary::UnicodeNegate</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">r&quot;\B&quot;</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">HirKind</span>::<span class="ident">WordBoundary</span>(<span class="ident">hir</span>::<span class="ident">WordBoundary</span>::<span class="ident">Ascii</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">HirKind::WordBoundary</span>(<span class="ident">hir::WordBoundary::Ascii</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">r&quot;(?-u:\b)&quot;</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">HirKind</span>::<span class="ident">WordBoundary</span>(<span class="ident">hir</span>::<span class="ident">WordBoundary</span>::<span class="ident">AsciiNegate</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">HirKind::WordBoundary</span>(<span class="ident">hir::WordBoundary::AsciiNegate</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">r&quot;(?-u:\B)&quot;</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">HirKind</span>::<span class="ident">Group</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">x</span>.<span class="ident">kind</span> {
-                <span class="ident">hir</span>::<span class="ident">GroupKind</span>::<span class="ident">CaptureIndex</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">HirKind::Group</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">x</span>.<span class="ident">kind</span> {
+                <span class="ident">hir::GroupKind::CaptureIndex</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">&quot;(&quot;</span>)<span class="question-mark">?</span>;
                 }
-                <span class="ident">hir</span>::<span class="ident">GroupKind</span>::<span class="ident">CaptureName</span> { <span class="kw-2">ref</span> <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="macro">write</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">wtr</span>, <span class="string">&quot;(?P&lt;{}&gt;&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
+                <span class="ident">hir::GroupKind::CaptureName</span> { <span class="kw-2">ref</span> <span class="ident">name</span>, .. } <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">wtr</span>, <span class="string">&quot;(?P&lt;{}&gt;&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
                 }
-                <span class="ident">hir</span>::<span class="ident">GroupKind</span>::<span class="ident">NonCapturing</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">hir::GroupKind::NonCapturing</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">&quot;(?:&quot;</span>)<span class="question-mark">?</span>;
                 }
             },
@@ -532,36 +532,36 @@ This module provides a regular expression printer for `Hir`.
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_post</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">hir</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">visit_post</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">hir</span>: <span class="kw-2">&amp;</span><span class="ident">Hir</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">hir</span>.<span class="ident">kind</span>() {
             <span class="comment">// Handled during visit_pre</span>
-            <span class="ident">HirKind</span>::<span class="ident">Empty</span>
-            <span class="op">|</span> <span class="ident">HirKind</span>::<span class="ident">Literal</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">HirKind</span>::<span class="ident">Class</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">HirKind</span>::<span class="ident">Anchor</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">HirKind</span>::<span class="ident">WordBoundary</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">HirKind</span>::<span class="ident">Concat</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">HirKind</span>::<span class="ident">Alternation</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">HirKind</span>::<span class="ident">Repetition</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">HirKind::Empty</span>
+            <span class="op">|</span> <span class="ident">HirKind::Literal</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">HirKind::Class</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">HirKind::Anchor</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">HirKind::WordBoundary</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">HirKind::Concat</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">HirKind::Alternation</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
+            <span class="ident">HirKind::Repetition</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">match</span> <span class="ident">x</span>.<span class="ident">kind</span> {
-                    <span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="ident">ZeroOrOne</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">hir::RepetitionKind::ZeroOrOne</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">&quot;?&quot;</span>)<span class="question-mark">?</span>;
                     }
-                    <span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="ident">ZeroOrMore</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">hir::RepetitionKind::ZeroOrMore</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">&quot;*&quot;</span>)<span class="question-mark">?</span>;
                     }
-                    <span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="ident">OneOrMore</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">hir::RepetitionKind::OneOrMore</span> <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">&quot;+&quot;</span>)<span class="question-mark">?</span>;
                     }
-                    <span class="ident">hir</span>::<span class="ident">RepetitionKind</span>::<span class="ident">Range</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">x</span> {
-                        <span class="ident">hir</span>::<span class="ident">RepetitionRange</span>::<span class="ident">Exactly</span>(<span class="ident">m</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                            <span class="macro">write</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">wtr</span>, <span class="string">&quot;{{{}}}&quot;</span>, <span class="ident">m</span>)<span class="question-mark">?</span>;
+                    <span class="ident">hir::RepetitionKind::Range</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">x</span> {
+                        <span class="ident">hir::RepetitionRange::Exactly</span>(<span class="ident">m</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">wtr</span>, <span class="string">&quot;{{{}}}&quot;</span>, <span class="ident">m</span>)<span class="question-mark">?</span>;
                         }
-                        <span class="ident">hir</span>::<span class="ident">RepetitionRange</span>::<span class="ident">AtLeast</span>(<span class="ident">m</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                            <span class="macro">write</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">wtr</span>, <span class="string">&quot;{{{},}}&quot;</span>, <span class="ident">m</span>)<span class="question-mark">?</span>;
+                        <span class="ident">hir::RepetitionRange::AtLeast</span>(<span class="ident">m</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">wtr</span>, <span class="string">&quot;{{{},}}&quot;</span>, <span class="ident">m</span>)<span class="question-mark">?</span>;
                         }
-                        <span class="ident">hir</span>::<span class="ident">RepetitionRange</span>::<span class="ident">Bounded</span>(<span class="ident">m</span>, <span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                            <span class="macro">write</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">wtr</span>, <span class="string">&quot;{{{},{}}}&quot;</span>, <span class="ident">m</span>, <span class="ident">n</span>)<span class="question-mark">?</span>;
+                        <span class="ident">hir::RepetitionRange::Bounded</span>(<span class="ident">m</span>, <span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">wtr</span>, <span class="string">&quot;{{{},{}}}&quot;</span>, <span class="ident">m</span>, <span class="ident">n</span>)<span class="question-mark">?</span>;
                         }
                     },
                 }
@@ -569,49 +569,49 @@ This module provides a regular expression printer for `Hir`.
                     <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">&quot;?&quot;</span>)<span class="question-mark">?</span>;
                 }
             }
-            <span class="ident">HirKind</span>::<span class="ident">Group</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">HirKind::Group</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">&quot;)&quot;</span>)<span class="question-mark">?</span>;
             }
         }
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_alternation_in</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">visit_alternation_in</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">&quot;|&quot;</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">W</span>: <span class="ident">fmt</span>::<span class="ident">Write</span><span class="op">&gt;</span> <span class="ident">Writer</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">W</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">write_literal_char</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">W</span>: <span class="ident">fmt::Write</span><span class="op">&gt;</span> <span class="ident">Writer</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">W</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">write_literal_char</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">c</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">if</span> <span class="ident">is_meta_character</span>(<span class="ident">c</span>) {
             <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_str</span>(<span class="string">&quot;\\&quot;</span>)<span class="question-mark">?</span>;
         }
         <span class="self">self</span>.<span class="ident">wtr</span>.<span class="ident">write_char</span>(<span class="ident">c</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">write_literal_byte</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">write_literal_byte</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">b</span> <span class="kw">as</span> <span class="ident">char</span>;
         <span class="kw">if</span> <span class="ident">c</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7F</span> <span class="kw">as</span> <span class="ident">char</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">c</span>.<span class="ident">is_control</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">c</span>.<span class="ident">is_whitespace</span>() {
             <span class="self">self</span>.<span class="ident">write_literal_char</span>(<span class="ident">c</span>)
         } <span class="kw">else</span> {
-            <span class="macro">write</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">wtr</span>, <span class="string">&quot;(?-u:\\x{:02X})&quot;</span>, <span class="ident">b</span>)
+            <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">wtr</span>, <span class="string">&quot;(?-u:\\x{:02X})&quot;</span>, <span class="ident">b</span>)
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">write_literal_class_byte</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">write_literal_class_byte</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">b</span> <span class="kw">as</span> <span class="ident">char</span>;
         <span class="kw">if</span> <span class="ident">c</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7F</span> <span class="kw">as</span> <span class="ident">char</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">c</span>.<span class="ident">is_control</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">c</span>.<span class="ident">is_whitespace</span>() {
             <span class="self">self</span>.<span class="ident">write_literal_char</span>(<span class="ident">c</span>)
         } <span class="kw">else</span> {
-            <span class="macro">write</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">wtr</span>, <span class="string">&quot;\\x{:02X}&quot;</span>, <span class="ident">b</span>)
+            <span class="macro">write!</span>(<span class="self">self</span>.<span class="ident">wtr</span>, <span class="string">&quot;\\x{:02X}&quot;</span>, <span class="ident">b</span>)
         }
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">Printer</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ParserBuilder</span>;
+    <span class="kw">use</span> <span class="kw">super</span><span class="ident">::Printer</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ParserBuilder</span>;
 
     <span class="kw">fn</span> <span class="ident">roundtrip</span>(<span class="ident">given</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">expected</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
         <span class="ident">roundtrip_with</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span>, <span class="ident">given</span>, <span class="ident">expected</span>);
@@ -625,18 +625,18 @@ This module provides a regular expression printer for `Hir`.
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ParserBuilder</span>,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">ParserBuilder</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">ParserBuilder::new</span>();
         <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">builder</span>);
         <span class="kw">let</span> <span class="ident">hir</span> <span class="op">=</span> <span class="ident">builder</span>.<span class="ident">build</span>().<span class="ident">parse</span>(<span class="ident">given</span>).<span class="ident">unwrap</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">printer</span> <span class="op">=</span> <span class="ident">Printer</span>::<span class="ident">new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">printer</span> <span class="op">=</span> <span class="ident">Printer::new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dst</span> <span class="op">=</span> <span class="ident">String::new</span>();
         <span class="ident">printer</span>.<span class="ident">print</span>(<span class="kw-2">&amp;</span><span class="ident">hir</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">dst</span>).<span class="ident">unwrap</span>();
 
         <span class="comment">// Check that the result is actually valid.</span>
         <span class="ident">builder</span>.<span class="ident">build</span>().<span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="ident">dst</span>).<span class="ident">unwrap</span>();
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">expected</span>, <span class="ident">dst</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">expected</span>, <span class="ident">dst</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -739,5 +739,5 @@ This module provides a regular expression printer for `Hir`.
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex_syntax" data-search-js="../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex_syntax" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

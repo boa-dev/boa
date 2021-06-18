@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa/src/builtins/regexp/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa/src/builtins/regexp/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../../settings.html"><img src="../../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -820,15 +820,15 @@
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::<span class="ident">BuiltIn</span>,
+    <span class="ident">builtins::BuiltIn</span>,
     <span class="ident">gc</span>::{<span class="ident">empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>, <span class="ident">GcObject</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>},
-    <span class="ident">symbol</span>::<span class="ident">WellKnownSymbols</span>,
+    <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">value</span>::{<span class="ident">RcString</span>, <span class="ident">Value</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>,
 };
-<span class="kw">use</span> <span class="ident">regress</span>::<span class="ident">Regex</span>;
+<span class="kw">use</span> <span class="ident">regress::Regex</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -869,83 +869,83 @@
 
 <span class="comment">// Only safe while regress::Regex doesn&#39;t implement Trace itself.</span>
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">RegExp</span> {
-    <span class="macro">empty_trace</span><span class="macro">!</span>();
+    <span class="macro">empty_trace!</span>();
 }
 
 <span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">RegExp</span> {
     <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;RegExp&quot;</span>;
 
     <span class="kw">fn</span> <span class="ident">attribute</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Attribute</span> {
-        <span class="ident">Attribute</span>::<span class="ident">WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>
+        <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>
     }
 
     <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">Value</span>, <span class="ident">Attribute</span>) {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler</span>::<span class="ident">global</span>().<span class="ident">start_event</span>(<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="string">&quot;init&quot;</span>);
+        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="self">Self</span><span class="ident">::NAME</span>, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">get_species</span> <span class="op">=</span> <span class="ident">FunctionBuilder</span>::<span class="ident">new</span>(<span class="ident">context</span>, <span class="self">Self</span>::<span class="ident">get_species</span>)
+        <span class="kw">let</span> <span class="ident">get_species</span> <span class="op">=</span> <span class="ident">FunctionBuilder::new</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::get_species</span>)
             .<span class="ident">name</span>(<span class="string">&quot;get [Symbol.species]&quot;</span>)
             .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
             .<span class="ident">callable</span>(<span class="bool-val">true</span>)
             .<span class="ident">build</span>();
 
-        <span class="kw">let</span> <span class="ident">flag_attributes</span> <span class="op">=</span> <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span> <span class="op">|</span> <span class="ident">Attribute</span>::<span class="ident">NON_ENUMERABLE</span>;
+        <span class="kw">let</span> <span class="ident">flag_attributes</span> <span class="op">=</span> <span class="ident">Attribute::CONFIGURABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span>;
 
-        <span class="kw">let</span> <span class="ident">get_global</span> <span class="op">=</span> <span class="ident">FunctionBuilder</span>::<span class="ident">new</span>(<span class="ident">context</span>, <span class="self">Self</span>::<span class="ident">get_global</span>)
+        <span class="kw">let</span> <span class="ident">get_global</span> <span class="op">=</span> <span class="ident">FunctionBuilder::new</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::get_global</span>)
             .<span class="ident">name</span>(<span class="string">&quot;get global&quot;</span>)
             .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
             .<span class="ident">callable</span>(<span class="bool-val">true</span>)
             .<span class="ident">build</span>();
-        <span class="kw">let</span> <span class="ident">get_ignore_case</span> <span class="op">=</span> <span class="ident">FunctionBuilder</span>::<span class="ident">new</span>(<span class="ident">context</span>, <span class="self">Self</span>::<span class="ident">get_ignore_case</span>)
+        <span class="kw">let</span> <span class="ident">get_ignore_case</span> <span class="op">=</span> <span class="ident">FunctionBuilder::new</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::get_ignore_case</span>)
             .<span class="ident">name</span>(<span class="string">&quot;get ignoreCase&quot;</span>)
             .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
             .<span class="ident">callable</span>(<span class="bool-val">true</span>)
             .<span class="ident">build</span>();
-        <span class="kw">let</span> <span class="ident">get_multiline</span> <span class="op">=</span> <span class="ident">FunctionBuilder</span>::<span class="ident">new</span>(<span class="ident">context</span>, <span class="self">Self</span>::<span class="ident">get_multiline</span>)
+        <span class="kw">let</span> <span class="ident">get_multiline</span> <span class="op">=</span> <span class="ident">FunctionBuilder::new</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::get_multiline</span>)
             .<span class="ident">name</span>(<span class="string">&quot;get multiline&quot;</span>)
             .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
             .<span class="ident">callable</span>(<span class="bool-val">true</span>)
             .<span class="ident">build</span>();
-        <span class="kw">let</span> <span class="ident">get_dot_all</span> <span class="op">=</span> <span class="ident">FunctionBuilder</span>::<span class="ident">new</span>(<span class="ident">context</span>, <span class="self">Self</span>::<span class="ident">get_dot_all</span>)
+        <span class="kw">let</span> <span class="ident">get_dot_all</span> <span class="op">=</span> <span class="ident">FunctionBuilder::new</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::get_dot_all</span>)
             .<span class="ident">name</span>(<span class="string">&quot;get dotAll&quot;</span>)
             .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
             .<span class="ident">callable</span>(<span class="bool-val">true</span>)
             .<span class="ident">build</span>();
-        <span class="kw">let</span> <span class="ident">get_unicode</span> <span class="op">=</span> <span class="ident">FunctionBuilder</span>::<span class="ident">new</span>(<span class="ident">context</span>, <span class="self">Self</span>::<span class="ident">get_unicode</span>)
+        <span class="kw">let</span> <span class="ident">get_unicode</span> <span class="op">=</span> <span class="ident">FunctionBuilder::new</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::get_unicode</span>)
             .<span class="ident">name</span>(<span class="string">&quot;get unicode&quot;</span>)
             .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
             .<span class="ident">callable</span>(<span class="bool-val">true</span>)
             .<span class="ident">build</span>();
-        <span class="kw">let</span> <span class="ident">get_sticky</span> <span class="op">=</span> <span class="ident">FunctionBuilder</span>::<span class="ident">new</span>(<span class="ident">context</span>, <span class="self">Self</span>::<span class="ident">get_sticky</span>)
+        <span class="kw">let</span> <span class="ident">get_sticky</span> <span class="op">=</span> <span class="ident">FunctionBuilder::new</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::get_sticky</span>)
             .<span class="ident">name</span>(<span class="string">&quot;get sticky&quot;</span>)
             .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
             .<span class="ident">callable</span>(<span class="bool-val">true</span>)
             .<span class="ident">build</span>();
-        <span class="kw">let</span> <span class="ident">get_flags</span> <span class="op">=</span> <span class="ident">FunctionBuilder</span>::<span class="ident">new</span>(<span class="ident">context</span>, <span class="self">Self</span>::<span class="ident">get_flags</span>)
+        <span class="kw">let</span> <span class="ident">get_flags</span> <span class="op">=</span> <span class="ident">FunctionBuilder::new</span>(<span class="ident">context</span>, <span class="self">Self</span><span class="ident">::get_flags</span>)
             .<span class="ident">name</span>(<span class="string">&quot;get flags&quot;</span>)
             .<span class="ident">constructable</span>(<span class="bool-val">false</span>)
             .<span class="ident">callable</span>(<span class="bool-val">true</span>)
             .<span class="ident">build</span>();
 
-        <span class="kw">let</span> <span class="ident">regexp_object</span> <span class="op">=</span> <span class="ident">ConstructorBuilder</span>::<span class="ident">with_standard_object</span>(
+        <span class="kw">let</span> <span class="ident">regexp_object</span> <span class="op">=</span> <span class="ident">ConstructorBuilder::with_standard_object</span>(
             <span class="ident">context</span>,
-            <span class="self">Self</span>::<span class="ident">constructor</span>,
+            <span class="self">Self</span><span class="ident">::constructor</span>,
             <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">regexp_object</span>().<span class="ident">clone</span>(),
         )
-        .<span class="ident">name</span>(<span class="self">Self</span>::<span class="ident">NAME</span>)
-        .<span class="ident">length</span>(<span class="self">Self</span>::<span class="ident">LENGTH</span>)
+        .<span class="ident">name</span>(<span class="self">Self</span><span class="ident">::NAME</span>)
+        .<span class="ident">length</span>(<span class="self">Self</span><span class="ident">::LENGTH</span>)
         .<span class="ident">static_accessor</span>(
-            <span class="ident">WellKnownSymbols</span>::<span class="ident">species</span>(),
+            <span class="ident">WellKnownSymbols::species</span>(),
             <span class="prelude-val">Some</span>(<span class="ident">get_species</span>),
             <span class="prelude-val">None</span>,
-            <span class="ident">Attribute</span>::<span class="ident">CONFIGURABLE</span>,
+            <span class="ident">Attribute::CONFIGURABLE</span>,
         )
-        .<span class="ident">property</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="number">0</span>, <span class="ident">Attribute</span>::<span class="ident">all</span>())
-        .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">test</span>, <span class="string">&quot;test&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">exec</span>, <span class="string">&quot;exec&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">method</span>(<span class="self">Self</span>::<span class="ident">to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">property</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="number">0</span>, <span class="ident">Attribute::all</span>())
+        .<span class="ident">method</span>(<span class="self">Self</span><span class="ident">::test</span>, <span class="string">&quot;test&quot;</span>, <span class="number">1</span>)
+        .<span class="ident">method</span>(<span class="self">Self</span><span class="ident">::exec</span>, <span class="string">&quot;exec&quot;</span>, <span class="number">1</span>)
+        .<span class="ident">method</span>(<span class="self">Self</span><span class="ident">::to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
         .<span class="ident">method</span>(
-            <span class="self">Self</span>::<span class="ident">search</span>,
-            (<span class="ident">WellKnownSymbols</span>::<span class="ident">search</span>(), <span class="string">&quot;[Symbol.search]&quot;</span>),
+            <span class="self">Self</span><span class="ident">::search</span>,
+            (<span class="ident">WellKnownSymbols::search</span>(), <span class="string">&quot;[Symbol.search]&quot;</span>),
             <span class="number">1</span>,
         )
         .<span class="ident">accessor</span>(<span class="string">&quot;global&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">get_global</span>), <span class="prelude-val">None</span>, <span class="ident">flag_attributes</span>)
@@ -959,7 +959,7 @@
 
         <span class="comment">// TODO: add them RegExp accessor properties</span>
 
-        (<span class="self">Self</span>::<span class="ident">NAME</span>, <span class="ident">regexp_object</span>.<span class="ident">into</span>(), <span class="self">Self</span>::<span class="ident">attribute</span>())
+        (<span class="self">Self</span><span class="ident">::NAME</span>, <span class="ident">regexp_object</span>.<span class="ident">into</span>(), <span class="self">Self</span><span class="ident">::attribute</span>())
     }
 }
 
@@ -985,42 +985,42 @@
             })
             .<span class="ident">transpose</span>()<span class="question-mark">?</span>
             .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">ctx</span>.<span class="ident">standard_objects</span>().<span class="ident">regexp_object</span>().<span class="ident">prototype</span>());
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">new_object</span>(<span class="ident">ctx</span>);
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">Value::new_object</span>(<span class="ident">ctx</span>);
 
         <span class="ident">this</span>.<span class="ident">as_object</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;this should be an object&quot;</span>)
             .<span class="ident">set_prototype_instance</span>(<span class="ident">prototype</span>.<span class="ident">into</span>());
-        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">ok_or_else</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">ok_or_else</span>(<span class="ident">Value::undefined</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> (<span class="ident">regex_body</span>, <span class="kw-2">mut</span> <span class="ident">regex_flags</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">arg</span> {
-            <span class="ident">Value</span>::<span class="ident">String</span>(<span class="kw-2">ref</span> <span class="ident">body</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Value::String</span>(<span class="kw-2">ref</span> <span class="ident">body</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// first argument is a string -&gt; use it as regex pattern</span>
                 (
                     <span class="ident">body</span>.<span class="ident">to_string</span>().<span class="ident">into_boxed_str</span>(),
-                    <span class="ident">String</span>::<span class="ident">new</span>().<span class="ident">into_boxed_str</span>(),
+                    <span class="ident">String::new</span>().<span class="ident">into_boxed_str</span>(),
                 )
             }
-            <span class="ident">Value</span>::<span class="ident">Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">regex</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">as_regexp</span>() {
                     <span class="comment">// first argument is another `RegExp` object, so copy its pattern and flags</span>
                     (<span class="ident">regex</span>.<span class="ident">original_source</span>.<span class="ident">clone</span>(), <span class="ident">regex</span>.<span class="ident">original_flags</span>.<span class="ident">clone</span>())
                 } <span class="kw">else</span> {
                     (
-                        <span class="ident">String</span>::<span class="ident">new</span>().<span class="ident">into_boxed_str</span>(),
-                        <span class="ident">String</span>::<span class="ident">new</span>().<span class="ident">into_boxed_str</span>(),
+                        <span class="ident">String::new</span>().<span class="ident">into_boxed_str</span>(),
+                        <span class="ident">String::new</span>().<span class="ident">into_boxed_str</span>(),
                     )
                 }
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>()),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value::undefined</span>()),
         };
         <span class="comment">// if a second argument is given and it&#39;s a string, use it as flags</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">Value</span>::<span class="ident">String</span>(<span class="ident">flags</span>)) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">Value::String</span>(<span class="ident">flags</span>)) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
             <span class="ident">regex_flags</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">to_string</span>().<span class="ident">into_boxed_str</span>();
         }
 
         <span class="comment">// parse flags</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sorted_flags</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sorted_flags</span> <span class="op">=</span> <span class="ident">String::new</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dot_all</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">global</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ignore_case</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -1052,10 +1052,10 @@
             <span class="ident">sorted_flags</span>.<span class="ident">push</span>(<span class="string">&#39;y&#39;</span>);
         }
 
-        <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Regex</span>::<span class="ident">with_flags</span>(<span class="kw-2">&amp;</span><span class="ident">regex_body</span>, <span class="ident">sorted_flags</span>.<span class="ident">as_str</span>()) {
+        <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Regex::with_flags</span>(<span class="kw-2">&amp;</span><span class="ident">regex_body</span>, <span class="ident">sorted_flags</span>.<span class="ident">as_str</span>()) {
             <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(
-                    <span class="ident">ctx</span>.<span class="ident">construct_syntax_error</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;failed to create matcher: {}&quot;</span>, <span class="ident">error</span>.<span class="ident">text</span>))
+                    <span class="ident">ctx</span>.<span class="ident">construct_syntax_error</span>(<span class="macro">format!</span>(<span class="string">&quot;failed to create matcher: {}&quot;</span>, <span class="ident">error</span>.<span class="ident">text</span>))
                 );
             }
             <span class="prelude-val">Ok</span>(<span class="ident">val</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">val</span>,
@@ -1075,7 +1075,7 @@
             <span class="ident">original_flags</span>: <span class="ident">regex_flags</span>,
         };
 
-        <span class="ident">this</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData</span>::<span class="ident">RegExp</span>(<span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">regexp</span>)));
+        <span class="ident">this</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData::RegExp</span>(<span class="ident">Box::new</span>(<span class="ident">regexp</span>)));
 
         <span class="prelude-val">Ok</span>(<span class="ident">this</span>)
     }
@@ -1099,22 +1099,22 @@
     <span class="kw">fn</span> <span class="ident">regexp_has_flag</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">flag</span>: <span class="ident">char</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">regexp</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">as_regexp</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">boolean</span>(<span class="kw">match</span> <span class="ident">flag</span> {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::boolean</span>(<span class="kw">match</span> <span class="ident">flag</span> {
                     <span class="string">&#39;g&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">regexp</span>.<span class="ident">global</span>,
                     <span class="string">&#39;m&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">regexp</span>.<span class="ident">multiline</span>,
                     <span class="string">&#39;s&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">regexp</span>.<span class="ident">dot_all</span>,
                     <span class="string">&#39;i&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">regexp</span>.<span class="ident">ignore_case</span>,
                     <span class="string">&#39;u&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">regexp</span>.<span class="ident">unicode</span>,
                     <span class="string">&#39;y&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">regexp</span>.<span class="ident">sticky</span>,
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
                 }));
             }
 
-            <span class="kw">if</span> <span class="ident">GcObject</span>::<span class="ident">equals</span>(
+            <span class="kw">if</span> <span class="ident">GcObject::equals</span>(
                 <span class="kw-2">&amp;</span><span class="ident">object</span>,
                 <span class="kw-2">&amp;</span><span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">regexp_object</span>().<span class="ident">prototype</span>,
             ) {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>());
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::undefined</span>());
             }
         }
 
@@ -1125,10 +1125,10 @@
             <span class="string">&#39;i&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;ignoreCase&quot;</span>,
             <span class="string">&#39;u&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;unicode&quot;</span>,
             <span class="string">&#39;y&#39;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;sticky&quot;</span>,
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
         };
 
-        <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format</span><span class="macro">!</span>(
+        <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
             <span class="string">&quot;RegExp.prototype.{} getter called on non-RegExp object&quot;</span>,
             <span class="ident">name</span>
         ))
@@ -1145,7 +1145,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.global</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/global</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_global</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="self">Self</span>::<span class="ident">regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;g&#39;</span>, <span class="ident">context</span>)
+        <span class="self">Self</span><span class="ident">::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;g&#39;</span>, <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `get RegExp.prototype.ignoreCase`</span>
@@ -1163,7 +1163,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="self">Self</span>::<span class="ident">regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;i&#39;</span>, <span class="ident">context</span>)
+        <span class="self">Self</span><span class="ident">::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;i&#39;</span>, <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `get RegExp.prototype.multiline`</span>
@@ -1177,7 +1177,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.multiline</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/multiline</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_multiline</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="self">Self</span>::<span class="ident">regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;m&#39;</span>, <span class="ident">context</span>)
+        <span class="self">Self</span><span class="ident">::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;m&#39;</span>, <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `get RegExp.prototype.dotAll`</span>
@@ -1191,7 +1191,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.dotAll</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/dotAll</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_dot_all</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="self">Self</span>::<span class="ident">regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;s&#39;</span>, <span class="ident">context</span>)
+        <span class="self">Self</span><span class="ident">::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;s&#39;</span>, <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `get RegExp.prototype.unicode`</span>
@@ -1206,7 +1206,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.unicode</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/unicode</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_unicode</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="self">Self</span>::<span class="ident">regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;u&#39;</span>, <span class="ident">context</span>)
+        <span class="self">Self</span><span class="ident">::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;u&#39;</span>, <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `get RegExp.prototype.sticky`</span>
@@ -1221,7 +1221,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.sticky</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/sticky</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_sticky</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="self">Self</span>::<span class="ident">regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;y&#39;</span>, <span class="ident">context</span>)
+        <span class="self">Self</span><span class="ident">::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;y&#39;</span>, <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `get RegExp.prototype.flags`</span>
@@ -1237,7 +1237,7 @@
     <span class="doccomment">/// [flags]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Advanced_searching_with_flags_2</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_flags</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">String::new</span>();
             <span class="kw">if</span> <span class="ident">object</span>
                 .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="string">&quot;global&quot;</span>.<span class="ident">into</span>(), <span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
                 .<span class="ident">to_boolean</span>()
@@ -1336,7 +1336,7 @@
                     };
 
                 <span class="comment">// 5. If match is not null, return true; else return false.</span>
-                <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">boolean</span>(<span class="ident">result</span>))
+                <span class="prelude-val">Ok</span>(<span class="ident">Value::boolean</span>(<span class="ident">result</span>))
             } <span class="kw">else</span> {
                 <span class="kw">return</span> <span class="ident">context</span>
                     .<span class="ident">throw_type_error</span>(<span class="string">&quot;RegExp.prototype.exec method called on incompatible value&quot;</span>);
@@ -1346,7 +1346,7 @@
             <span class="kw">return</span> <span class="ident">context</span>
                 .<span class="ident">throw_type_error</span>(<span class="string">&quot;RegExp.prototype.exec method called on incompatible value&quot;</span>);
         };
-        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">last_index</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">Value::from</span>(<span class="ident">last_index</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="ident">result</span>
     }
 
@@ -1381,7 +1381,7 @@
                         <span class="kw">if</span> <span class="ident">regex</span>.<span class="ident">use_last_index</span> {
                             <span class="ident">last_index</span> <span class="op">=</span> <span class="number">0</span>;
                         }
-                        <span class="ident">Value</span>::<span class="ident">null</span>()
+                        <span class="ident">Value::null</span>()
                     } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">m</span>) <span class="op">=</span>
                         <span class="ident">regex</span>.<span class="ident">matcher</span>.<span class="ident">find_from</span>(<span class="ident">arg_str</span>.<span class="ident">as_str</span>(), <span class="ident">last_index</span>).<span class="ident">next</span>()
                     {
@@ -1389,30 +1389,30 @@
                             <span class="ident">last_index</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">end</span>();
                         }
                         <span class="kw">let</span> <span class="ident">groups</span> <span class="op">=</span> <span class="ident">m</span>.<span class="ident">captures</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>;
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">with_capacity</span>(<span class="ident">groups</span>);
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">groups</span>);
                         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">groups</span> {
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">range</span>) <span class="op">=</span> <span class="ident">m</span>.<span class="ident">group</span>(<span class="ident">i</span>) {
-                                <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">Value</span>::<span class="ident">from</span>(
+                                <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">Value::from</span>(
                                     <span class="ident">arg_str</span>.<span class="ident">get</span>(<span class="ident">range</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get slice&quot;</span>),
                                 ));
                             } <span class="kw">else</span> {
-                                <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">Value</span>::<span class="ident">undefined</span>());
+                                <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">Value::undefined</span>());
                             }
                         }
 
-                        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">result</span>);
+                        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Value::from</span>(<span class="ident">result</span>);
                         <span class="ident">result</span>.<span class="ident">set_property</span>(
                             <span class="string">&quot;index&quot;</span>,
-                            <span class="ident">DataDescriptor</span>::<span class="ident">new</span>(<span class="ident">m</span>.<span class="ident">start</span>(), <span class="ident">Attribute</span>::<span class="ident">all</span>()),
+                            <span class="ident">DataDescriptor::new</span>(<span class="ident">m</span>.<span class="ident">start</span>(), <span class="ident">Attribute::all</span>()),
                         );
                         <span class="ident">result</span>
-                            .<span class="ident">set_property</span>(<span class="string">&quot;input&quot;</span>, <span class="ident">DataDescriptor</span>::<span class="ident">new</span>(<span class="ident">arg_str</span>, <span class="ident">Attribute</span>::<span class="ident">all</span>()));
+                            .<span class="ident">set_property</span>(<span class="string">&quot;input&quot;</span>, <span class="ident">DataDescriptor::new</span>(<span class="ident">arg_str</span>, <span class="ident">Attribute::all</span>()));
                         <span class="ident">result</span>
                     } <span class="kw">else</span> {
                         <span class="kw">if</span> <span class="ident">regex</span>.<span class="ident">use_last_index</span> {
                             <span class="ident">last_index</span> <span class="op">=</span> <span class="number">0</span>;
                         }
-                        <span class="ident">Value</span>::<span class="ident">null</span>()
+                        <span class="ident">Value::null</span>()
                     }
                 };
 
@@ -1426,7 +1426,7 @@
             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;exec method called on incompatible value&quot;</span>);
         };
 
-        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">last_index</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">Value::from</span>(<span class="ident">last_index</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="ident">result</span>
     }
 
@@ -1454,16 +1454,16 @@
                 .<span class="ident">throw_type_error</span>(<span class="string">&quot;RegExp.prototype.match method called on incompatible value&quot;</span>);
         };
         <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="string">&#39;g&#39;</span>) {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
             <span class="kw">for</span> <span class="ident">mat</span> <span class="kw">in</span> <span class="ident">matcher</span>.<span class="ident">find_iter</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>) {
-                <span class="ident">matches</span>.<span class="ident">push</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>[<span class="ident">mat</span>.<span class="ident">range</span>()]));
+                <span class="ident">matches</span>.<span class="ident">push</span>(<span class="ident">Value::from</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>[<span class="ident">mat</span>.<span class="ident">range</span>()]));
             }
             <span class="kw">if</span> <span class="ident">matches</span>.<span class="ident">is_empty</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">null</span>());
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::null</span>());
             }
-            <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">matches</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">matches</span>))
         } <span class="kw">else</span> {
-            <span class="self">Self</span>::<span class="ident">exec</span>(<span class="ident">this</span>, <span class="kw-2">&amp;</span>[<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">arg</span>)], <span class="ident">context</span>)
+            <span class="self">Self</span><span class="ident">::exec</span>(<span class="ident">this</span>, <span class="kw-2">&amp;</span>[<span class="ident">Value::from</span>(<span class="ident">arg</span>)], <span class="ident">context</span>)
         }
     }
 
@@ -1477,24 +1477,24 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.tostring</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/toString</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">wrong_self_convention</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">body</span>, <span class="ident">flags</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
             <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>();
             <span class="kw">let</span> <span class="ident">regex</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_regexp</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="macro">format</span><span class="macro">!</span>(
+                <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="macro">format!</span>(
                     <span class="string">&quot;Method RegExp.prototype.toString called on incompatible receiver {}&quot;</span>,
                     <span class="ident">this</span>.<span class="ident">display</span>()
                 ))
             })<span class="question-mark">?</span>;
             (<span class="ident">regex</span>.<span class="ident">original_source</span>.<span class="ident">clone</span>(), <span class="ident">regex</span>.<span class="ident">flags</span>.<span class="ident">clone</span>())
         } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format</span><span class="macro">!</span>(
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
                 <span class="string">&quot;Method RegExp.prototype.toString called on incompatible receiver {}&quot;</span>,
                 <span class="ident">this</span>.<span class="ident">display</span>()
             ));
         };
-        <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;/{}/{}&quot;</span>, <span class="ident">body</span>, <span class="ident">flags</span>)))
+        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="macro">format!</span>(<span class="string">&quot;/{}/{}&quot;</span>, <span class="ident">body</span>, <span class="ident">flags</span>)))
     }
 
     <span class="doccomment">/// `RegExp.prototype[ @@matchAll ]( string )`</span>
@@ -1512,24 +1512,24 @@
         <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
             <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>();
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">regex</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_regexp</span>() {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
                 <span class="kw">for</span> <span class="ident">mat</span> <span class="kw">in</span> <span class="ident">regex</span>.<span class="ident">matcher</span>.<span class="ident">find_iter</span>(<span class="kw-2">&amp;</span><span class="ident">arg_str</span>) {
                     <span class="kw">let</span> <span class="ident">match_vec</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">mat</span>
                         .<span class="ident">groups</span>()
                         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">group</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">group</span> {
-                            <span class="prelude-val">Some</span>(<span class="ident">range</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">arg_str</span>[<span class="ident">range</span>]),
-                            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value</span>::<span class="ident">undefined</span>(),
+                            <span class="prelude-val">Some</span>(<span class="ident">range</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::from</span>(<span class="kw-2">&amp;</span><span class="ident">arg_str</span>[<span class="ident">range</span>]),
+                            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::undefined</span>(),
                         })
                         .<span class="ident">collect</span>();
 
-                    <span class="kw">let</span> <span class="ident">match_val</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">match_vec</span>);
+                    <span class="kw">let</span> <span class="ident">match_val</span> <span class="op">=</span> <span class="ident">Value::from</span>(<span class="ident">match_vec</span>);
 
                     <span class="ident">match_val</span>
-                        .<span class="ident">set_property</span>(<span class="string">&quot;index&quot;</span>, <span class="ident">DataDescriptor</span>::<span class="ident">new</span>(<span class="ident">mat</span>.<span class="ident">start</span>(), <span class="ident">Attribute</span>::<span class="ident">all</span>()));
+                        .<span class="ident">set_property</span>(<span class="string">&quot;index&quot;</span>, <span class="ident">DataDescriptor::new</span>(<span class="ident">mat</span>.<span class="ident">start</span>(), <span class="ident">Attribute::all</span>()));
                     <span class="ident">match_val</span>.<span class="ident">set_property</span>(
                         <span class="string">&quot;input&quot;</span>,
-                        <span class="ident">DataDescriptor</span>::<span class="ident">new</span>(<span class="ident">arg_str</span>.<span class="ident">clone</span>(), <span class="ident">Attribute</span>::<span class="ident">all</span>()),
+                        <span class="ident">DataDescriptor::new</span>(<span class="ident">arg_str</span>.<span class="ident">clone</span>(), <span class="ident">Attribute::all</span>()),
                     );
                     <span class="ident">matches</span>.<span class="ident">push</span>(<span class="ident">match_val</span>);
 
@@ -1551,9 +1551,9 @@
         };
 
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">len</span>();
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">matches</span>);
-        <span class="ident">result</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">length</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="ident">result</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData</span>::<span class="ident">Array</span>);
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Value::from</span>(<span class="ident">matches</span>);
+        <span class="ident">result</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value::from</span>(<span class="ident">length</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">result</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData::Array</span>);
 
         <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
     }
@@ -1594,7 +1594,7 @@
         }
 
         <span class="comment">// 6. Let result be ? RegExpExec(rx, S).</span>
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">exec</span>(<span class="ident">this</span>, <span class="kw-2">&amp;</span>[<span class="ident">Value</span>::<span class="ident">from</span>(<span class="ident">arg_str</span>)], <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::exec</span>(<span class="ident">this</span>, <span class="kw-2">&amp;</span>[<span class="ident">Value::from</span>(<span class="ident">arg_str</span>)], <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 7. Let currentLastIndex be ? Get(rx, &quot;lastIndex&quot;).</span>
         <span class="kw">let</span> <span class="ident">current_last_index</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -1608,7 +1608,7 @@
         <span class="comment">// 9. If result is null, return -1𝔽.</span>
         <span class="comment">// 10. Return ? Get(result, &quot;index&quot;).</span>
         <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">is_null</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">from</span>(<span class="op">-</span><span class="number">1</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="op">-</span><span class="number">1</span>))
         } <span class="kw">else</span> {
             <span class="ident">result</span>
                 .<span class="ident">get_field</span>(<span class="string">&quot;index&quot;</span>, <span class="ident">context</span>)
@@ -1617,5 +1617,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa" data-search-js="../../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa" data-search-index-js="../../../../search-index.js" data-search-js="../../../../search.js"></div>
     <script src="../../../../main.js"></script><script src="../../../../source-script.js"></script><script src="../../../../source-files.js"></script></body></html>

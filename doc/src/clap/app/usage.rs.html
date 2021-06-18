@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-2.33.3/src/app/usage.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>usage.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../clap/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../clap/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -498,20 +498,20 @@
 <span id="495">495</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="comment">// std</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::{<span class="ident">BTreeMap</span>, <span class="ident">VecDeque</span>};
+<span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">BTreeMap</span>, <span class="ident">VecDeque</span>};
 
 <span class="comment">// Internal</span>
-<span class="kw">use</span> <span class="ident">app</span>::<span class="ident">parser</span>::<span class="ident">Parser</span>;
-<span class="kw">use</span> <span class="ident">app</span>::<span class="ident">settings</span>::<span class="ident">AppSettings</span> <span class="kw">as</span> <span class="ident">AS</span>;
-<span class="kw">use</span> <span class="ident">args</span>::<span class="ident">settings</span>::<span class="ident">ArgSettings</span>;
+<span class="kw">use</span> <span class="ident">app::parser::Parser</span>;
+<span class="kw">use</span> <span class="ident">app::settings::AppSettings</span> <span class="kw">as</span> <span class="ident">AS</span>;
+<span class="kw">use</span> <span class="ident">args::settings::ArgSettings</span>;
 <span class="kw">use</span> <span class="ident">args</span>::{<span class="ident">AnyArg</span>, <span class="ident">ArgMatcher</span>, <span class="ident">PosBuilder</span>};
 <span class="kw">use</span> <span class="ident">INTERNAL_ERROR_MSG</span>;
 
 <span class="comment">// Creates a usage string for display. This happens just after all arguments were parsed, but before</span>
 <span class="comment">// any subcommands have been parsed (so as to give subcommands their own usage recursively)</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_usage_with_title</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">used</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::create_usage_with_title;&quot;</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">usage</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">with_capacity</span>(<span class="number">75</span>);
+    <span class="macro">debugln!</span>(<span class="string">&quot;usage::create_usage_with_title;&quot;</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">usage</span> <span class="op">=</span> <span class="ident">String::with_capacity</span>(<span class="number">75</span>);
     <span class="ident">usage</span>.<span class="ident">push_str</span>(<span class="string">&quot;USAGE:\n    &quot;</span>);
     <span class="ident">usage</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">create_usage_no_title</span>(<span class="ident">p</span>, <span class="ident">used</span>));
     <span class="ident">usage</span>
@@ -527,10 +527,10 @@
         .<span class="ident">arg_names</span>()
         .<span class="ident">iter</span>()
         .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>) <span class="op">=</span> <span class="macro">find_by_name</span><span class="macro">!</span>(<span class="ident">p</span>, <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">n</span>, <span class="ident">opts</span>, <span class="ident">iter</span>) {
-                <span class="op">!</span><span class="ident">o</span>.<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">o</span>.<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Hidden</span>)
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span> <span class="macro">find_by_name</span><span class="macro">!</span>(<span class="ident">p</span>, <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">n</span>, <span class="ident">positionals</span>, <span class="ident">values</span>) {
-                <span class="op">!</span><span class="ident">p</span>.<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>) <span class="op">&amp;&amp;</span> <span class="ident">p</span>.<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Hidden</span>)
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>) <span class="op">=</span> <span class="macro">find_by_name!</span>(<span class="ident">p</span>, <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">n</span>, <span class="ident">opts</span>, <span class="ident">iter</span>) {
+                <span class="op">!</span><span class="ident">o</span>.<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Required</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">o</span>.<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Hidden</span>)
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span> <span class="macro">find_by_name!</span>(<span class="ident">p</span>, <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">n</span>, <span class="ident">positionals</span>, <span class="ident">values</span>) {
+                <span class="op">!</span><span class="ident">p</span>.<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Required</span>) <span class="op">&amp;&amp;</span> <span class="ident">p</span>.<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Hidden</span>)
             } <span class="kw">else</span> {
                 <span class="bool-val">true</span> <span class="comment">// flags can&#39;t be required, so they&#39;re always true</span>
             }
@@ -545,9 +545,9 @@
 
 <span class="comment">// Creates a usage string (*without title*) if one was not provided by the user manually.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_usage_no_title</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">used</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::create_usage_no_title;&quot;</span>);
+    <span class="macro">debugln!</span>(<span class="string">&quot;usage::create_usage_no_title;&quot;</span>);
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">u</span>) <span class="op">=</span> <span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">usage_str</span> {
-        <span class="ident">String</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">u</span>)
+        <span class="ident">String::from</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">u</span>)
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">used</span>.<span class="ident">is_empty</span>() {
         <span class="ident">create_help_usage</span>(<span class="ident">p</span>, <span class="bool-val">true</span>)
     } <span class="kw">else</span> {
@@ -557,7 +557,7 @@
 
 <span class="comment">// Creates a usage string for display in help messages (i.e. not for errors)</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_help_usage</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">incl_reqs</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">usage</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">with_capacity</span>(<span class="number">75</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">usage</span> <span class="op">=</span> <span class="ident">String::with_capacity</span>(<span class="number">75</span>);
     <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">p</span>
         .<span class="ident">meta</span>
         .<span class="ident">usage</span>
@@ -570,42 +570,42 @@
         <span class="ident">reqs</span>.<span class="ident">dedup</span>();
         <span class="ident">get_required_usage_from</span>(<span class="ident">p</span>, <span class="kw-2">&amp;</span><span class="ident">reqs</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)
             .<span class="ident">iter</span>()
-            .<span class="ident">fold</span>(<span class="ident">String</span>::<span class="ident">new</span>(), <span class="op">|</span><span class="ident">a</span>, <span class="ident">s</span><span class="op">|</span> <span class="ident">a</span> <span class="op">+</span> <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot; {}&quot;</span>, <span class="ident">s</span>)[..])
+            .<span class="ident">fold</span>(<span class="ident">String::new</span>(), <span class="op">|</span><span class="ident">a</span>, <span class="ident">s</span><span class="op">|</span> <span class="ident">a</span> <span class="op">+</span> <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot; {}&quot;</span>, <span class="ident">s</span>)[..])
     } <span class="kw">else</span> {
-        <span class="ident">String</span>::<span class="ident">new</span>()
+        <span class="ident">String::new</span>()
     };
 
     <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">needs_flags_tag</span>(<span class="ident">p</span>);
-    <span class="kw">if</span> <span class="ident">flags</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS</span>::<span class="ident">UnifiedHelpMessage</span>) {
+    <span class="kw">if</span> <span class="ident">flags</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS::UnifiedHelpMessage</span>) {
         <span class="ident">usage</span>.<span class="ident">push_str</span>(<span class="string">&quot; [FLAGS]&quot;</span>);
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">flags</span> {
         <span class="ident">usage</span>.<span class="ident">push_str</span>(<span class="string">&quot; [OPTIONS]&quot;</span>);
     }
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS</span>::<span class="ident">UnifiedHelpMessage</span>)
+    <span class="kw">if</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS::UnifiedHelpMessage</span>)
         <span class="op">&amp;&amp;</span> <span class="ident">p</span>.<span class="ident">opts</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">any</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="op">!</span><span class="ident">o</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">o</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Hidden</span>))
+            .<span class="ident">any</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="op">!</span><span class="ident">o</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Required</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">o</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Hidden</span>))
     {
         <span class="ident">usage</span>.<span class="ident">push_str</span>(<span class="string">&quot; [OPTIONS]&quot;</span>);
     }
 
     <span class="ident">usage</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">req_string</span>[..]);
 
-    <span class="kw">let</span> <span class="ident">has_last</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Last</span>));
+    <span class="kw">let</span> <span class="ident">has_last</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Last</span>));
     <span class="comment">// places a &#39;--&#39; in the usage string if there are args and options</span>
     <span class="comment">// supporting multiple values</span>
-    <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">opts</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="ident">o</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Multiple</span>))
+    <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">opts</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="ident">o</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Multiple</span>))
         <span class="op">&amp;&amp;</span> <span class="ident">p</span>.<span class="ident">positionals</span>
             .<span class="ident">values</span>()
-            .<span class="ident">any</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>))
-        <span class="op">&amp;&amp;</span> <span class="op">!</span>(<span class="ident">p</span>.<span class="ident">has_visible_subcommands</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS</span>::<span class="ident">AllowExternalSubcommands</span>))
+            .<span class="ident">any</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Required</span>))
+        <span class="op">&amp;&amp;</span> <span class="op">!</span>(<span class="ident">p</span>.<span class="ident">has_visible_subcommands</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS::AllowExternalSubcommands</span>))
         <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">has_last</span>
     {
         <span class="ident">usage</span>.<span class="ident">push_str</span>(<span class="string">&quot; [--]&quot;</span>);
     }
     <span class="kw">let</span> <span class="ident">not_req_or_hidden</span> <span class="op">=</span> <span class="op">|</span><span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">PosBuilder</span><span class="op">|</span> {
-        (<span class="op">!</span><span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Last</span>))
-            <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Hidden</span>)
+        (<span class="op">!</span><span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Required</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Last</span>))
+            <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Hidden</span>)
     };
     <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">has_positionals</span>() <span class="op">&amp;&amp;</span> <span class="ident">p</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">any</span>(<span class="ident">not_req_or_hidden</span>) {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">args_tag</span>) <span class="op">=</span> <span class="ident">get_args_tag</span>(<span class="ident">p</span>, <span class="ident">incl_reqs</span>) {
@@ -617,14 +617,14 @@
             <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">p</span>
                 .<span class="ident">positionals</span>
                 .<span class="ident">values</span>()
-                .<span class="ident">find</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Last</span>))
+                .<span class="ident">find</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Last</span>))
                 .<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>);
-            <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::create_help_usage: &#39;{}&#39; has .last(true)&quot;</span>, <span class="ident">pos</span>.<span class="ident">name</span>());
-            <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>);
+            <span class="macro">debugln!</span>(<span class="string">&quot;usage::create_help_usage: &#39;{}&#39; has .last(true)&quot;</span>, <span class="ident">pos</span>.<span class="ident">name</span>());
+            <span class="kw">let</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Required</span>);
             <span class="kw">if</span> <span class="ident">req</span>
                 <span class="op">&amp;&amp;</span> <span class="ident">p</span>.<span class="ident">positionals</span>
                     .<span class="ident">values</span>()
-                    .<span class="ident">any</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>))
+                    .<span class="ident">any</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Required</span>))
             {
                 <span class="ident">usage</span>.<span class="ident">push_str</span>(<span class="string">&quot; -- &lt;&quot;</span>);
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">req</span> {
@@ -642,9 +642,9 @@
     }
 
     <span class="comment">// incl_reqs is only false when this function is called recursively</span>
-    <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">has_visible_subcommands</span>() <span class="op">&amp;&amp;</span> <span class="ident">incl_reqs</span> <span class="op">|</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS</span>::<span class="ident">AllowExternalSubcommands</span>) {
-        <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS</span>::<span class="ident">SubcommandsNegateReqs</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS</span>::<span class="ident">ArgsNegateSubcommands</span>) {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS</span>::<span class="ident">ArgsNegateSubcommands</span>) {
+    <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">has_visible_subcommands</span>() <span class="op">&amp;&amp;</span> <span class="ident">incl_reqs</span> <span class="op">|</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS::AllowExternalSubcommands</span>) {
+        <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS::SubcommandsNegateReqs</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS::ArgsNegateSubcommands</span>) {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS::ArgsNegateSubcommands</span>) {
                 <span class="ident">usage</span>.<span class="ident">push_str</span>(<span class="string">&quot;\n    &quot;</span>);
                 <span class="ident">usage</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">create_help_usage</span>(<span class="ident">p</span>, <span class="bool-val">false</span>));
                 <span class="ident">usage</span>.<span class="ident">push_str</span>(<span class="string">&quot; &lt;SUBCOMMAND&gt;&quot;</span>);
@@ -653,28 +653,28 @@
                 <span class="ident">usage</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">name</span>);
                 <span class="ident">usage</span>.<span class="ident">push_str</span>(<span class="string">&quot; &lt;SUBCOMMAND&gt;&quot;</span>);
             }
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS</span>::<span class="ident">SubcommandRequired</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS</span>::<span class="ident">SubcommandRequiredElseHelp</span>) {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS::SubcommandRequired</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS::SubcommandRequiredElseHelp</span>) {
             <span class="ident">usage</span>.<span class="ident">push_str</span>(<span class="string">&quot; &lt;SUBCOMMAND&gt;&quot;</span>);
         } <span class="kw">else</span> {
             <span class="ident">usage</span>.<span class="ident">push_str</span>(<span class="string">&quot; [SUBCOMMAND]&quot;</span>);
         }
     }
     <span class="ident">usage</span>.<span class="ident">shrink_to_fit</span>();
-    <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::create_help_usage: usage={}&quot;</span>, <span class="ident">usage</span>);
+    <span class="macro">debugln!</span>(<span class="string">&quot;usage::create_help_usage: usage={}&quot;</span>, <span class="ident">usage</span>);
     <span class="ident">usage</span>
 }
 
 <span class="comment">// Creates a context aware usage string, or &quot;smart usage&quot; from currently used</span>
 <span class="comment">// args, and requirements</span>
 <span class="kw">fn</span> <span class="ident">create_smart_usage</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">used</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::smart_usage;&quot;</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">usage</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">with_capacity</span>(<span class="number">75</span>);
+    <span class="macro">debugln!</span>(<span class="string">&quot;usage::smart_usage;&quot;</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">usage</span> <span class="op">=</span> <span class="ident">String::with_capacity</span>(<span class="number">75</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">hs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">required</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">s</span>).<span class="ident">collect</span>();
     <span class="ident">hs</span>.<span class="ident">extend_from_slice</span>(<span class="ident">used</span>);
 
     <span class="kw">let</span> <span class="ident">r_string</span> <span class="op">=</span> <span class="ident">get_required_usage_from</span>(<span class="ident">p</span>, <span class="kw-2">&amp;</span><span class="ident">hs</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)
         .<span class="ident">iter</span>()
-        .<span class="ident">fold</span>(<span class="ident">String</span>::<span class="ident">new</span>(), <span class="op">|</span><span class="ident">acc</span>, <span class="ident">s</span><span class="op">|</span> <span class="ident">acc</span> <span class="op">+</span> <span class="kw-2">&amp;</span><span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot; {}&quot;</span>, <span class="ident">s</span>)[..]);
+        .<span class="ident">fold</span>(<span class="ident">String::new</span>(), <span class="op">|</span><span class="ident">acc</span>, <span class="ident">s</span><span class="op">|</span> <span class="ident">acc</span> <span class="op">+</span> <span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot; {}&quot;</span>, <span class="ident">s</span>)[..]);
 
     <span class="ident">usage</span>.<span class="ident">push_str</span>(
         <span class="kw-2">&amp;</span><span class="ident">p</span>.<span class="ident">meta</span>
@@ -683,7 +683,7 @@
             .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">bin_name</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">name</span>))[..],
     );
     <span class="ident">usage</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">r_string</span>);
-    <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS</span>::<span class="ident">SubcommandRequired</span>) {
+    <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS::SubcommandRequired</span>) {
         <span class="ident">usage</span>.<span class="ident">push_str</span>(<span class="string">&quot; &lt;SUBCOMMAND&gt;&quot;</span>);
     }
     <span class="ident">usage</span>.<span class="ident">shrink_to_fit</span>();
@@ -692,19 +692,19 @@
 
 <span class="comment">// Gets the `[ARGS]` tag for the usage string</span>
 <span class="kw">fn</span> <span class="ident">get_args_tag</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>, <span class="ident">incl_reqs</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
-    <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::get_args_tag;&quot;</span>);
+    <span class="macro">debugln!</span>(<span class="string">&quot;usage::get_args_tag;&quot;</span>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="lifetime">&#39;outer</span>: <span class="kw">for</span> <span class="ident">pos</span> <span class="kw">in</span> <span class="ident">p</span>
         .<span class="ident">positionals</span>
         .<span class="ident">values</span>()
-        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>))
-        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Hidden</span>))
-        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Last</span>))
+        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Required</span>))
+        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Hidden</span>))
+        .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Last</span>))
     {
-        <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::get_args_tag:iter:{}:&quot;</span>, <span class="ident">pos</span>.<span class="ident">b</span>.<span class="ident">name</span>);
+        <span class="macro">debugln!</span>(<span class="string">&quot;usage::get_args_tag:iter:{}:&quot;</span>, <span class="ident">pos</span>.<span class="ident">b</span>.<span class="ident">name</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">g_vec</span>) <span class="op">=</span> <span class="ident">p</span>.<span class="ident">groups_for_arg</span>(<span class="ident">pos</span>.<span class="ident">b</span>.<span class="ident">name</span>) {
             <span class="kw">for</span> <span class="ident">grp_s</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">g_vec</span> {
-                <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::get_args_tag:iter:{}:iter:{};&quot;</span>, <span class="ident">pos</span>.<span class="ident">b</span>.<span class="ident">name</span>, <span class="ident">grp_s</span>);
+                <span class="macro">debugln!</span>(<span class="string">&quot;usage::get_args_tag:iter:{}:iter:{};&quot;</span>, <span class="ident">pos</span>.<span class="ident">b</span>.<span class="ident">name</span>, <span class="ident">grp_s</span>);
                 <span class="comment">// if it&#39;s part of a required group we don&#39;t want to count it</span>
                 <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="ident">g</span>.<span class="ident">required</span> <span class="op">&amp;&amp;</span> (<span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">grp_s</span>)) {
                     <span class="kw">continue</span> <span class="lifetime">&#39;outer</span>;
@@ -712,52 +712,52 @@
             }
         }
         <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="macro">debugln</span><span class="macro">!</span>(
+        <span class="macro">debugln!</span>(
             <span class="string">&quot;usage::get_args_tag:iter: {} Args not required or hidden&quot;</span>,
             <span class="ident">count</span>
         );
     }
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS</span>::<span class="ident">DontCollapseArgsInUsage</span>) <span class="op">&amp;&amp;</span> <span class="ident">count</span> <span class="op">&gt;</span> <span class="number">1</span> {
-        <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::get_args_tag:iter: More than one, returning [ARGS]&quot;</span>);
+    <span class="kw">if</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS::DontCollapseArgsInUsage</span>) <span class="op">&amp;&amp;</span> <span class="ident">count</span> <span class="op">&gt;</span> <span class="number">1</span> {
+        <span class="macro">debugln!</span>(<span class="string">&quot;usage::get_args_tag:iter: More than one, returning [ARGS]&quot;</span>);
         <span class="kw">return</span> <span class="prelude-val">None</span>; <span class="comment">// [ARGS]</span>
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">count</span> <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="ident">incl_reqs</span> {
         <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">p</span>
             .<span class="ident">positionals</span>
             .<span class="ident">values</span>()
             .<span class="ident">find</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> {
-                <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>)
-                    <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Hidden</span>)
-                    <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Last</span>)
+                <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Required</span>)
+                    <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Hidden</span>)
+                    <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Last</span>)
             })
             .<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>);
-        <span class="macro">debugln</span><span class="macro">!</span>(
+        <span class="macro">debugln!</span>(
             <span class="string">&quot;usage::get_args_tag:iter: Exactly one, returning &#39;{}&#39;&quot;</span>,
             <span class="ident">pos</span>.<span class="ident">name</span>()
         );
-        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="macro">format</span><span class="macro">!</span>(
+        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="macro">format!</span>(
             <span class="string">&quot; [{}]{}&quot;</span>,
             <span class="ident">pos</span>.<span class="ident">name_no_brackets</span>(),
             <span class="ident">pos</span>.<span class="ident">multiple_str</span>()
         ));
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS</span>::<span class="ident">DontCollapseArgsInUsage</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">positionals</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="ident">incl_reqs</span> {
-        <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::get_args_tag:iter: Don&#39;t collapse returning all&quot;</span>);
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AS::DontCollapseArgsInUsage</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">positionals</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="ident">incl_reqs</span> {
+        <span class="macro">debugln!</span>(<span class="string">&quot;usage::get_args_tag:iter: Don&#39;t collapse returning all&quot;</span>);
         <span class="kw">return</span> <span class="prelude-val">Some</span>(
             <span class="ident">p</span>.<span class="ident">positionals</span>
                 .<span class="ident">values</span>()
-                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>))
-                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Hidden</span>))
-                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Last</span>))
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot; [{}]{}&quot;</span>, <span class="ident">pos</span>.<span class="ident">name_no_brackets</span>(), <span class="ident">pos</span>.<span class="ident">multiple_str</span>()))
+                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Required</span>))
+                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Hidden</span>))
+                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Last</span>))
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot; [{}]{}&quot;</span>, <span class="ident">pos</span>.<span class="ident">name_no_brackets</span>(), <span class="ident">pos</span>.<span class="ident">multiple_str</span>()))
                 .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
                 .<span class="ident">join</span>(<span class="string">&quot;&quot;</span>),
         );
     } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">incl_reqs</span> {
-        <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::get_args_tag:iter: incl_reqs=false, building secondary usage string&quot;</span>);
+        <span class="macro">debugln!</span>(<span class="string">&quot;usage::get_args_tag:iter: incl_reqs=false, building secondary usage string&quot;</span>);
         <span class="kw">let</span> <span class="ident">highest_req_pos</span> <span class="op">=</span> <span class="ident">p</span>
             .<span class="ident">positionals</span>
             .<span class="ident">iter</span>()
             .<span class="ident">filter_map</span>(<span class="op">|</span>(<span class="ident">idx</span>, <span class="ident">pos</span>)<span class="op">|</span> {
-                <span class="kw">if</span> <span class="ident">pos</span>.<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Last</span>) {
+                <span class="kw">if</span> <span class="ident">pos</span>.<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Required</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">b</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Last</span>) {
                     <span class="prelude-val">Some</span>(<span class="ident">idx</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
@@ -775,10 +775,10 @@
                         <span class="prelude-val">None</span>
                     }
                 })
-                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Required</span>))
-                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Hidden</span>))
-                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Last</span>))
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot; [{}]{}&quot;</span>, <span class="ident">pos</span>.<span class="ident">name_no_brackets</span>(), <span class="ident">pos</span>.<span class="ident">multiple_str</span>()))
+                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Required</span>))
+                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Hidden</span>))
+                .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Last</span>))
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot; [{}]{}&quot;</span>, <span class="ident">pos</span>.<span class="ident">name_no_brackets</span>(), <span class="ident">pos</span>.<span class="ident">multiple_str</span>()))
                 .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
                 .<span class="ident">join</span>(<span class="string">&quot;&quot;</span>),
         );
@@ -788,9 +788,9 @@
 
 <span class="comment">// Determines if we need the `[FLAGS]` tag in the usage string</span>
 <span class="kw">fn</span> <span class="ident">needs_flags_tag</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">Parser</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::needs_flags_tag;&quot;</span>);
+    <span class="macro">debugln!</span>(<span class="string">&quot;usage::needs_flags_tag;&quot;</span>);
     <span class="lifetime">&#39;outer</span>: <span class="kw">for</span> <span class="ident">f</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">p</span>.<span class="ident">flags</span> {
-        <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::needs_flags_tag:iter: f={};&quot;</span>, <span class="ident">f</span>.<span class="ident">b</span>.<span class="ident">name</span>);
+        <span class="macro">debugln!</span>(<span class="string">&quot;usage::needs_flags_tag:iter: f={};&quot;</span>, <span class="ident">f</span>.<span class="ident">b</span>.<span class="ident">name</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>) <span class="op">=</span> <span class="ident">f</span>.<span class="ident">s</span>.<span class="ident">long</span> {
             <span class="kw">if</span> <span class="ident">l</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;help&quot;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">l</span> <span class="op">=</span><span class="op">=</span> <span class="string">&quot;version&quot;</span> {
                 <span class="comment">// Don&#39;t print `[FLAGS]` just for help or version</span>
@@ -799,21 +799,21 @@
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">g_vec</span>) <span class="op">=</span> <span class="ident">p</span>.<span class="ident">groups_for_arg</span>(<span class="ident">f</span>.<span class="ident">b</span>.<span class="ident">name</span>) {
             <span class="kw">for</span> <span class="ident">grp_s</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">g_vec</span> {
-                <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::needs_flags_tag:iter:iter: grp_s={};&quot;</span>, <span class="ident">grp_s</span>);
+                <span class="macro">debugln!</span>(<span class="string">&quot;usage::needs_flags_tag:iter:iter: grp_s={};&quot;</span>, <span class="ident">grp_s</span>);
                 <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">grp_s</span> <span class="op">&amp;&amp;</span> <span class="ident">g</span>.<span class="ident">required</span>) {
-                    <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::needs_flags_tag:iter:iter: Group is required&quot;</span>);
+                    <span class="macro">debugln!</span>(<span class="string">&quot;usage::needs_flags_tag:iter:iter: Group is required&quot;</span>);
                     <span class="kw">continue</span> <span class="lifetime">&#39;outer</span>;
                 }
             }
         }
-        <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Hidden</span>) {
+        <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Hidden</span>) {
             <span class="kw">continue</span>;
         }
-        <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::needs_flags_tag:iter: [FLAGS] required&quot;</span>);
+        <span class="macro">debugln!</span>(<span class="string">&quot;usage::needs_flags_tag:iter: [FLAGS] required&quot;</span>);
         <span class="kw">return</span> <span class="bool-val">true</span>;
     }
 
-    <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::needs_flags_tag: [FLAGS] not required&quot;</span>);
+    <span class="macro">debugln!</span>(<span class="string">&quot;usage::needs_flags_tag: [FLAGS] not required&quot;</span>);
     <span class="bool-val">false</span>
 }
 
@@ -825,15 +825,15 @@
     <span class="ident">extra</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
     <span class="ident">incl_last</span>: <span class="ident">bool</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
-    <span class="macro">debugln</span><span class="macro">!</span>(
+    <span class="macro">debugln!</span>(
         <span class="string">&quot;usage::get_required_usage_from: reqs={:?}, extra={:?}&quot;</span>,
         <span class="ident">reqs</span>,
         <span class="ident">extra</span>
     );
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">desc_reqs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">desc_reqs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
     <span class="ident">desc_reqs</span>.<span class="ident">extend</span>(<span class="ident">extra</span>);
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_reqs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
-    <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">get_requires</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_reqs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+    <span class="macro">macro_rules!</span> <span class="ident">get_requires</span> {
         (@<span class="ident">group</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>: <span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {{
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rl</span>) <span class="op">=</span> <span class="ident">p</span>
                 .<span class="ident">groups</span>
@@ -844,7 +844,7 @@
             {
                 <span class="kw">for</span> <span class="ident">r</span> <span class="kw">in</span> <span class="ident">rl</span> {
                     <span class="kw">if</span> <span class="op">!</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">r</span>) {
-                        <span class="macro">debugln</span><span class="macro">!</span>(
+                        <span class="macro">debugln!</span>(
                             <span class="string">&quot;usage::get_required_usage_from:iter:{}: adding group req={:?}&quot;</span>,
                             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>,
                             <span class="ident">r</span>
@@ -864,7 +864,7 @@
             {
                 <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="kw">_</span>, <span class="ident">r</span>) <span class="kw">in</span> <span class="ident">rl</span>.<span class="ident">iter</span>() {
                     <span class="kw">if</span> <span class="op">!</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">p</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">r</span>) {
-                        <span class="macro">debugln</span><span class="macro">!</span>(
+                        <span class="macro">debugln!</span>(
                             <span class="string">&quot;usage::get_required_usage_from:iter:{}: adding arg req={:?}&quot;</span>,
                             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>,
                             <span class="ident">r</span>
@@ -877,37 +877,37 @@
     }
     <span class="comment">// initialize new_reqs</span>
     <span class="kw">for</span> <span class="ident">a</span> <span class="kw">in</span> <span class="ident">reqs</span> {
-        <span class="macro">get_requires</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">flags</span>, <span class="ident">iter</span>, <span class="ident">new_reqs</span>, <span class="ident">reqs</span>);
-        <span class="macro">get_requires</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">opts</span>, <span class="ident">iter</span>, <span class="ident">new_reqs</span>, <span class="ident">reqs</span>);
-        <span class="macro">get_requires</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">positionals</span>, <span class="ident">values</span>, <span class="ident">new_reqs</span>, <span class="ident">reqs</span>);
-        <span class="macro">get_requires</span><span class="macro">!</span>(@<span class="ident">group</span> <span class="ident">a</span>, <span class="ident">new_reqs</span>, <span class="ident">reqs</span>);
+        <span class="macro">get_requires!</span>(<span class="ident">a</span>, <span class="ident">flags</span>, <span class="ident">iter</span>, <span class="ident">new_reqs</span>, <span class="ident">reqs</span>);
+        <span class="macro">get_requires!</span>(<span class="ident">a</span>, <span class="ident">opts</span>, <span class="ident">iter</span>, <span class="ident">new_reqs</span>, <span class="ident">reqs</span>);
+        <span class="macro">get_requires!</span>(<span class="ident">a</span>, <span class="ident">positionals</span>, <span class="ident">values</span>, <span class="ident">new_reqs</span>, <span class="ident">reqs</span>);
+        <span class="macro">get_requires!</span>(@<span class="ident">group</span> <span class="ident">a</span>, <span class="ident">new_reqs</span>, <span class="ident">reqs</span>);
     }
     <span class="ident">desc_reqs</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">new_reqs</span>);
-    <span class="macro">debugln</span><span class="macro">!</span>(
+    <span class="macro">debugln!</span>(
         <span class="string">&quot;usage::get_required_usage_from: after init desc_reqs={:?}&quot;</span>,
         <span class="ident">desc_reqs</span>
     );
     <span class="kw">loop</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp</span> <span class="op">=</span> <span class="macro">vec!</span>[];
         <span class="kw">for</span> <span class="ident">a</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">new_reqs</span> {
-            <span class="macro">get_requires</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">flags</span>, <span class="ident">iter</span>, <span class="ident">tmp</span>, <span class="ident">desc_reqs</span>);
-            <span class="macro">get_requires</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">opts</span>, <span class="ident">iter</span>, <span class="ident">tmp</span>, <span class="ident">desc_reqs</span>);
-            <span class="macro">get_requires</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">positionals</span>, <span class="ident">values</span>, <span class="ident">tmp</span>, <span class="ident">desc_reqs</span>);
-            <span class="macro">get_requires</span><span class="macro">!</span>(@<span class="ident">group</span> <span class="ident">a</span>, <span class="ident">tmp</span>, <span class="ident">desc_reqs</span>);
+            <span class="macro">get_requires!</span>(<span class="ident">a</span>, <span class="ident">flags</span>, <span class="ident">iter</span>, <span class="ident">tmp</span>, <span class="ident">desc_reqs</span>);
+            <span class="macro">get_requires!</span>(<span class="ident">a</span>, <span class="ident">opts</span>, <span class="ident">iter</span>, <span class="ident">tmp</span>, <span class="ident">desc_reqs</span>);
+            <span class="macro">get_requires!</span>(<span class="ident">a</span>, <span class="ident">positionals</span>, <span class="ident">values</span>, <span class="ident">tmp</span>, <span class="ident">desc_reqs</span>);
+            <span class="macro">get_requires!</span>(@<span class="ident">group</span> <span class="ident">a</span>, <span class="ident">tmp</span>, <span class="ident">desc_reqs</span>);
         }
         <span class="kw">if</span> <span class="ident">tmp</span>.<span class="ident">is_empty</span>() {
-            <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::get_required_usage_from: no more children&quot;</span>);
+            <span class="macro">debugln!</span>(<span class="string">&quot;usage::get_required_usage_from: no more children&quot;</span>);
             <span class="kw">break</span>;
         } <span class="kw">else</span> {
-            <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::get_required_usage_from: after iter tmp={:?}&quot;</span>, <span class="ident">tmp</span>);
-            <span class="macro">debugln</span><span class="macro">!</span>(
+            <span class="macro">debugln!</span>(<span class="string">&quot;usage::get_required_usage_from: after iter tmp={:?}&quot;</span>, <span class="ident">tmp</span>);
+            <span class="macro">debugln!</span>(
                 <span class="string">&quot;usage::get_required_usage_from: after iter new_reqs={:?}&quot;</span>,
                 <span class="ident">new_reqs</span>
             );
             <span class="ident">desc_reqs</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">new_reqs</span>);
             <span class="ident">new_reqs</span>.<span class="ident">clear</span>();
             <span class="ident">new_reqs</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">tmp</span>);
-            <span class="macro">debugln</span><span class="macro">!</span>(
+            <span class="macro">debugln!</span>(
                 <span class="string">&quot;usage::get_required_usage_from: after iter desc_reqs={:?}&quot;</span>,
                 <span class="ident">desc_reqs</span>
             );
@@ -916,11 +916,11 @@
     <span class="ident">desc_reqs</span>.<span class="ident">extend_from_slice</span>(<span class="ident">reqs</span>);
     <span class="ident">desc_reqs</span>.<span class="ident">sort</span>();
     <span class="ident">desc_reqs</span>.<span class="ident">dedup</span>();
-    <span class="macro">debugln</span><span class="macro">!</span>(
+    <span class="macro">debugln!</span>(
         <span class="string">&quot;usage::get_required_usage_from: final desc_reqs={:?}&quot;</span>,
         <span class="ident">desc_reqs</span>
     );
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ret_val</span> <span class="op">=</span> <span class="ident">VecDeque</span>::<span class="ident">new</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ret_val</span> <span class="op">=</span> <span class="ident">VecDeque::new</span>();
     <span class="kw">let</span> <span class="ident">args_in_groups</span> <span class="op">=</span> <span class="ident">p</span>
         .<span class="ident">groups</span>
         .<span class="ident">iter</span>()
@@ -934,7 +934,7 @@
             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="op">&amp;&amp;</span><span class="ident">p</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">a</span>))
             .<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">m</span>.<span class="ident">contains</span>(<span class="ident">pos</span>))
             .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">pos</span>))
-            .<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">pos</span><span class="op">|</span> <span class="ident">incl_last</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Last</span>))
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">pos</span><span class="op">|</span> <span class="ident">incl_last</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Last</span>))
             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">args_in_groups</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">pos</span>.<span class="ident">b</span>.<span class="ident">name</span>))
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> (<span class="ident">pos</span>.<span class="ident">index</span>, <span class="ident">pos</span>))
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="kw-2">&amp;</span><span class="ident">PosBuilder</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="comment">// sort by index</span>
@@ -943,12 +943,12 @@
             .<span class="ident">iter</span>()
             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">&amp;&amp;</span><span class="ident">pos</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">a</span>))
             .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">positionals</span>.<span class="ident">values</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">b</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">pos</span>))
-            .<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">pos</span><span class="op">|</span> <span class="ident">incl_last</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings</span>::<span class="ident">Last</span>))
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">pos</span><span class="op">|</span> <span class="ident">incl_last</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_set</span>(<span class="ident">ArgSettings::Last</span>))
             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> <span class="op">!</span><span class="ident">args_in_groups</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">pos</span>.<span class="ident">b</span>.<span class="ident">name</span>))
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pos</span><span class="op">|</span> (<span class="ident">pos</span>.<span class="ident">index</span>, <span class="ident">pos</span>))
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="kw-2">&amp;</span><span class="ident">PosBuilder</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="comment">// sort by index</span>
     };
-    <span class="macro">debugln</span><span class="macro">!</span>(
+    <span class="macro">debugln!</span>(
         <span class="string">&quot;usage::get_required_usage_from: args_in_groups={:?}&quot;</span>,
         <span class="ident">args_in_groups</span>
     );
@@ -965,23 +965,23 @@
         .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> <span class="op">!</span><span class="ident">args_in_groups</span>.<span class="ident">contains</span>(<span class="ident">name</span>))
         .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> <span class="op">!</span>(<span class="ident">matcher</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">matcher</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>().<span class="ident">contains</span>(<span class="ident">name</span>)))
     {
-        <span class="macro">debugln</span><span class="macro">!</span>(<span class="string">&quot;usage::get_required_usage_from:iter:{}:&quot;</span>, <span class="ident">a</span>);
-        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="macro">find_by_name</span><span class="macro">!</span>(<span class="ident">p</span>, <span class="kw-2">*</span><span class="ident">a</span>, <span class="ident">flags</span>, <span class="ident">iter</span>)
+        <span class="macro">debugln!</span>(<span class="string">&quot;usage::get_required_usage_from:iter:{}:&quot;</span>, <span class="ident">a</span>);
+        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="macro">find_by_name!</span>(<span class="ident">p</span>, <span class="kw-2">*</span><span class="ident">a</span>, <span class="ident">flags</span>, <span class="ident">iter</span>)
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <span class="ident">f</span>.<span class="ident">to_string</span>())
             .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="macro">find_by_name</span><span class="macro">!</span>(<span class="ident">p</span>, <span class="kw-2">*</span><span class="ident">a</span>, <span class="ident">opts</span>, <span class="ident">iter</span>)
+                <span class="macro">find_by_name!</span>(<span class="ident">p</span>, <span class="kw-2">*</span><span class="ident">a</span>, <span class="ident">opts</span>, <span class="ident">iter</span>)
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="ident">o</span>.<span class="ident">to_string</span>())
                     .<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>)
             });
         <span class="ident">ret_val</span>.<span class="ident">push_back</span>(<span class="ident">arg</span>);
     }
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">g_vec</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">g_vec</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
     <span class="kw">for</span> <span class="ident">g</span> <span class="kw">in</span> <span class="ident">desc_reqs</span>
         .<span class="ident">iter</span>()
         .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">groups</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="op">&amp;&amp;</span><span class="ident">g</span>.<span class="ident">name</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n</span>))
     {
         <span class="kw">let</span> <span class="ident">g_string</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">args_in_group</span>(<span class="ident">g</span>).<span class="ident">join</span>(<span class="string">&quot;|&quot;</span>);
-        <span class="kw">let</span> <span class="ident">elem</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;&lt;{}&gt;&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">g_string</span>[..<span class="ident">g_string</span>.<span class="ident">len</span>()]);
+        <span class="kw">let</span> <span class="ident">elem</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;&lt;{}&gt;&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">g_string</span>[..<span class="ident">g_string</span>.<span class="ident">len</span>()]);
         <span class="kw">if</span> <span class="op">!</span><span class="ident">g_vec</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">elem</span>) {
             <span class="ident">g_vec</span>.<span class="ident">push</span>(<span class="ident">elem</span>);
         }
@@ -993,5 +993,5 @@
     <span class="ident">ret_val</span>
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-search-js="../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

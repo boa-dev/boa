@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.63/src/ossl_typ.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ossl_typ.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../openssl_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../openssl_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1049,7 +1049,7 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ASN1_OCTET_STRING</span> {}
 
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">bio_st</span> {} <span class="comment">// FIXME remove</span>
-<span class="macro">cfg_if</span><span class="macro">!</span> {
+<span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> {
         <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BIO</span> {}
     } <span class="kw">else</span> {
@@ -1075,7 +1075,7 @@
         }
     }
 }
-<span class="macro">cfg_if</span><span class="macro">!</span> {
+<span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span> {
         <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BIGNUM</span> {}
     } <span class="kw">else</span> {
@@ -1095,7 +1095,7 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BN_CTX</span> {}
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BN_GENCB</span> {}
 
-<span class="macro">cfg_if</span><span class="macro">!</span> {
+<span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> {
         <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">EVP_CIPHER</span> {}
     } <span class="kw">else</span> {
@@ -1126,7 +1126,7 @@
 }
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">EVP_CIPHER_CTX</span> {}
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">EVP_MD</span> {}
-<span class="macro">cfg_if</span><span class="macro">!</span> {
+<span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> {
         <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">EVP_MD_CTX</span> {}
     } <span class="kw">else</span> {
@@ -1141,7 +1141,7 @@
         }
     }
 }
-<span class="macro">cfg_if</span><span class="macro">!</span> {
+<span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> {
         <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">EVP_PKEY</span> {}
     } <span class="kw">else</span> {
@@ -1165,7 +1165,7 @@
 
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">EVP_PKEY_CTX</span> {}
 
-<span class="macro">cfg_if</span><span class="macro">!</span> {
+<span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> {
         <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">HMAC_CTX</span> {}
     } <span class="kw">else</span> {
@@ -1181,7 +1181,7 @@
     }
 }
 
-<span class="macro">cfg_if</span><span class="macro">!</span> {
+<span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> {
         <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DH</span> {}
     } <span class="kw">else</span> {
@@ -1189,28 +1189,28 @@
         <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DH</span> {
             <span class="kw">pub</span> <span class="ident">pad</span>: <span class="ident">c_int</span>,
             <span class="kw">pub</span> <span class="ident">version</span>: <span class="ident">c_int</span>,
-            <span class="kw">pub</span> <span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
-            <span class="kw">pub</span> <span class="ident">g</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">g</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
             <span class="kw">pub</span> <span class="ident">length</span>: <span class="ident">c_long</span>,
-            <span class="kw">pub</span> <span class="ident">pub_key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
-            <span class="kw">pub</span> <span class="ident">priv_key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">pub_key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">priv_key</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
             <span class="kw">pub</span> <span class="ident">flags</span>: <span class="ident">c_int</span>,
-            <span class="kw">pub</span> <span class="ident">method_mont_p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BN_MONT_CTX</span>,
-            <span class="kw">pub</span> <span class="ident">q</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
-            <span class="kw">pub</span> <span class="ident">j</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">method_mont_p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BN_MONT_CTX</span>,
+            <span class="kw">pub</span> <span class="ident">q</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">j</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
             <span class="kw">pub</span> <span class="ident">seed</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
             <span class="kw">pub</span> <span class="ident">seedlen</span>: <span class="ident">c_int</span>,
-            <span class="kw">pub</span> <span class="ident">counter</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">counter</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
             <span class="kw">pub</span> <span class="ident">references</span>: <span class="ident">c_int</span>,
-            <span class="kw">pub</span> <span class="ident">ex_data</span>: ::<span class="ident">CRYPTO_EX_DATA</span>,
-            <span class="kw">pub</span> <span class="ident">meth</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">DH_METHOD</span>,
-            <span class="kw">pub</span> <span class="ident">engine</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">ENGINE</span>,
+            <span class="kw">pub</span> <span class="ident">ex_data</span>: <span class="ident">::CRYPTO_EX_DATA</span>,
+            <span class="kw">pub</span> <span class="ident">meth</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::DH_METHOD</span>,
+            <span class="kw">pub</span> <span class="ident">engine</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::ENGINE</span>,
         }
     }
 }
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DH_METHOD</span> {}
 
-<span class="macro">cfg_if</span><span class="macro">!</span> {
+<span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> {
         <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DSA</span> {}
     } <span class="kw">else</span> {
@@ -1239,7 +1239,7 @@
 }
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DSA_METHOD</span> {}
 
-<span class="macro">cfg_if</span><span class="macro">!</span> {
+<span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> {
         <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">RSA</span> {}
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">libressl</span>)]</span> {
@@ -1247,57 +1247,57 @@
         <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RSA</span> {
             <span class="kw">pub</span> <span class="ident">pad</span>: <span class="ident">c_int</span>,
             <span class="kw">pub</span> <span class="ident">version</span>: <span class="ident">c_long</span>,
-            <span class="kw">pub</span> <span class="ident">meth</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">RSA_METHOD</span>,
+            <span class="kw">pub</span> <span class="ident">meth</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::RSA_METHOD</span>,
 
-            <span class="kw">pub</span> <span class="ident">engine</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">ENGINE</span>,
-            <span class="kw">pub</span> <span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
-            <span class="kw">pub</span> <span class="ident">e</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
-            <span class="kw">pub</span> <span class="ident">d</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
-            <span class="kw">pub</span> <span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
-            <span class="kw">pub</span> <span class="ident">q</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
-            <span class="kw">pub</span> <span class="ident">dmp1</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
-            <span class="kw">pub</span> <span class="ident">dmq1</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
-            <span class="kw">pub</span> <span class="ident">iqmp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">engine</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::ENGINE</span>,
+            <span class="kw">pub</span> <span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">e</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">d</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">q</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">dmp1</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">dmq1</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">iqmp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
 
-            <span class="kw">pub</span> <span class="ident">ex_data</span>: ::<span class="ident">CRYPTO_EX_DATA</span>,
+            <span class="kw">pub</span> <span class="ident">ex_data</span>: <span class="ident">::CRYPTO_EX_DATA</span>,
             <span class="kw">pub</span> <span class="ident">references</span>: <span class="ident">c_int</span>,
             <span class="kw">pub</span> <span class="ident">flags</span>: <span class="ident">c_int</span>,
 
-            <span class="kw">pub</span> <span class="ident">_method_mod_n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BN_MONT_CTX</span>,
-            <span class="kw">pub</span> <span class="ident">_method_mod_p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BN_MONT_CTX</span>,
-            <span class="kw">pub</span> <span class="ident">_method_mod_q</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BN_MONT_CTX</span>,
+            <span class="kw">pub</span> <span class="ident">_method_mod_n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BN_MONT_CTX</span>,
+            <span class="kw">pub</span> <span class="ident">_method_mod_p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BN_MONT_CTX</span>,
+            <span class="kw">pub</span> <span class="ident">_method_mod_q</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BN_MONT_CTX</span>,
 
-            <span class="kw">pub</span> <span class="ident">blinding</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BN_BLINDING</span>,
-            <span class="kw">pub</span> <span class="ident">mt_blinding</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BN_BLINDING</span>,
+            <span class="kw">pub</span> <span class="ident">blinding</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BN_BLINDING</span>,
+            <span class="kw">pub</span> <span class="ident">mt_blinding</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BN_BLINDING</span>,
         }
     } <span class="kw">else</span> {
         <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
         <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RSA</span> {
             <span class="kw">pub</span> <span class="ident">pad</span>: <span class="ident">c_int</span>,
             <span class="kw">pub</span> <span class="ident">version</span>: <span class="ident">c_long</span>,
-            <span class="kw">pub</span> <span class="ident">meth</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">RSA_METHOD</span>,
+            <span class="kw">pub</span> <span class="ident">meth</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::RSA_METHOD</span>,
 
-            <span class="kw">pub</span> <span class="ident">engine</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">ENGINE</span>,
-            <span class="kw">pub</span> <span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
-            <span class="kw">pub</span> <span class="ident">e</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
-            <span class="kw">pub</span> <span class="ident">d</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
-            <span class="kw">pub</span> <span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
-            <span class="kw">pub</span> <span class="ident">q</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
-            <span class="kw">pub</span> <span class="ident">dmp1</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
-            <span class="kw">pub</span> <span class="ident">dmq1</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
-            <span class="kw">pub</span> <span class="ident">iqmp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">engine</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::ENGINE</span>,
+            <span class="kw">pub</span> <span class="ident">n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">e</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">d</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">q</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">dmp1</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">dmq1</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
+            <span class="kw">pub</span> <span class="ident">iqmp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIGNUM</span>,
 
-            <span class="kw">pub</span> <span class="ident">ex_data</span>: ::<span class="ident">CRYPTO_EX_DATA</span>,
+            <span class="kw">pub</span> <span class="ident">ex_data</span>: <span class="ident">::CRYPTO_EX_DATA</span>,
             <span class="kw">pub</span> <span class="ident">references</span>: <span class="ident">c_int</span>,
             <span class="kw">pub</span> <span class="ident">flags</span>: <span class="ident">c_int</span>,
 
-            <span class="kw">pub</span> <span class="ident">_method_mod_n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BN_MONT_CTX</span>,
-            <span class="kw">pub</span> <span class="ident">_method_mod_p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BN_MONT_CTX</span>,
-            <span class="kw">pub</span> <span class="ident">_method_mod_q</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BN_MONT_CTX</span>,
+            <span class="kw">pub</span> <span class="ident">_method_mod_n</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BN_MONT_CTX</span>,
+            <span class="kw">pub</span> <span class="ident">_method_mod_p</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BN_MONT_CTX</span>,
+            <span class="kw">pub</span> <span class="ident">_method_mod_q</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BN_MONT_CTX</span>,
 
             <span class="kw">pub</span> <span class="ident">bignum_data</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_char</span>,
-            <span class="kw">pub</span> <span class="ident">blinding</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BN_BLINDING</span>,
-            <span class="kw">pub</span> <span class="ident">mt_blinding</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BN_BLINDING</span>,
+            <span class="kw">pub</span> <span class="ident">blinding</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BN_BLINDING</span>,
+            <span class="kw">pub</span> <span class="ident">mt_blinding</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BN_BLINDING</span>,
         }
     }
 }
@@ -1305,19 +1305,19 @@
 
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">EC_KEY</span> {}
 
-<span class="macro">cfg_if</span><span class="macro">!</span> {
+<span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> {
         <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">X509</span> {}
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">libressl</span>)]</span> {
         <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
         <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509</span> {
             <span class="kw">pub</span> <span class="ident">cert_info</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_CINF</span>,
-            <span class="kw">pub</span> <span class="ident">sig_alg</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">X509_ALGOR</span>,
-            <span class="kw">pub</span> <span class="ident">signature</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">ASN1_BIT_STRING</span>,
+            <span class="kw">pub</span> <span class="ident">sig_alg</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::X509_ALGOR</span>,
+            <span class="kw">pub</span> <span class="ident">signature</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::ASN1_BIT_STRING</span>,
             <span class="kw">pub</span> <span class="ident">valid</span>: <span class="ident">c_int</span>,
             <span class="kw">pub</span> <span class="ident">references</span>: <span class="ident">c_int</span>,
             <span class="kw">pub</span> <span class="ident">name</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_char</span>,
-            <span class="kw">pub</span> <span class="ident">ex_data</span>: ::<span class="ident">CRYPTO_EX_DATA</span>,
+            <span class="kw">pub</span> <span class="ident">ex_data</span>: <span class="ident">::CRYPTO_EX_DATA</span>,
             <span class="kw">pub</span> <span class="ident">ex_pathlen</span>: <span class="ident">c_long</span>,
             <span class="kw">pub</span> <span class="ident">ex_pcpathlen</span>: <span class="ident">c_long</span>,
             <span class="kw">pub</span> <span class="ident">ex_flags</span>: <span class="ident">c_ulong</span>,
@@ -1366,13 +1366,13 @@
         }
     }
 }
-<span class="macro">cfg_if</span><span class="macro">!</span> {
+<span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span> {
         <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">X509_ALGOR</span> {}
     } <span class="kw">else</span> {
         <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
         <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">X509_ALGOR</span> {
-            <span class="kw">pub</span> <span class="ident">algorithm</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">ASN1_OBJECT</span>,
+            <span class="kw">pub</span> <span class="ident">algorithm</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::ASN1_OBJECT</span>,
             <span class="ident">parameter</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
         }
     }
@@ -1382,7 +1382,7 @@
 
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">X509_NAME</span> {}
 
-<span class="macro">cfg_if</span><span class="macro">!</span> {
+<span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl270</span>))]</span> {
         <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">X509_STORE</span> {}
     } <span class="kw">else</span> {
@@ -1420,7 +1420,7 @@
 
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">X509_STORE_CTX</span> {}
 
-<span class="macro">cfg_if</span><span class="macro">!</span> {
+<span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> {
         <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">X509_VERIFY_PARAM</span> {}
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">libressl251</span>)]</span> {
@@ -1483,17 +1483,17 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">OPENSSL_INIT_SETTINGS</span> {}
 
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ENGINE</span> {}
-<span class="macro">cfg_if</span><span class="macro">!</span> {
+<span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> {
         <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SSL</span> {}
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">libressl251</span>)]</span> {
         <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
         <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SSL</span> {
             <span class="ident">version</span>: <span class="ident">c_int</span>,
-            <span class="ident">method</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">SSL_METHOD</span>,
-            <span class="ident">rbio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIO</span>,
-            <span class="ident">wbio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIO</span>,
-            <span class="ident">bbio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">BIO</span>,
+            <span class="ident">method</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::SSL_METHOD</span>,
+            <span class="ident">rbio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIO</span>,
+            <span class="ident">wbio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIO</span>,
+            <span class="ident">bbio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::BIO</span>,
             <span class="kw">pub</span> <span class="ident">server</span>: <span class="ident">c_int</span>,
             <span class="ident">s3</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">d1</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
@@ -1501,20 +1501,20 @@
             <span class="ident">cipher_list</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_SSL_CIPHER</span>,
             <span class="ident">cert</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">sid_ctx_length</span>: <span class="ident">c_uint</span>,
-            <span class="ident">sid_ctx</span>: [<span class="ident">c_uchar</span>; ::<span class="ident">SSL_MAX_SID_CTX_LENGTH</span> <span class="kw">as</span> <span class="ident">usize</span>],
-            <span class="ident">session</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">SSL_SESSION</span>,
+            <span class="ident">sid_ctx</span>: [<span class="ident">c_uchar</span>; <span class="ident">::SSL_MAX_SID_CTX_LENGTH</span> <span class="kw">as</span> <span class="ident">usize</span>],
+            <span class="ident">session</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::SSL_SESSION</span>,
             <span class="ident">verify_mode</span>: <span class="ident">c_int</span>,
             <span class="ident">error</span>: <span class="ident">c_int</span>,
             <span class="ident">error_code</span>: <span class="ident">c_int</span>,
-            <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">SSL_CTX</span>,
+            <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::SSL_CTX</span>,
             <span class="ident">verify_result</span>: <span class="ident">c_long</span>,
             <span class="ident">references</span>: <span class="ident">c_int</span>,
             <span class="ident">client_version</span>: <span class="ident">c_int</span>,
             <span class="ident">max_send_fragment</span>: <span class="ident">c_uint</span>,
             <span class="ident">tlsext_hostname</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_char</span>,
             <span class="ident">tlsext_status_type</span>: <span class="ident">c_int</span>,
-            <span class="ident">initial_ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">SSL_CTX</span>,
-            <span class="ident">enc_read_ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">EVP_CIPHER_CTX</span>,
+            <span class="ident">initial_ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::SSL_CTX</span>,
+            <span class="ident">enc_read_ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::EVP_CIPHER_CTX</span>,
             <span class="ident">read_hash</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">EVP_MD_CTX</span>,
             <span class="ident">internal</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
         }
@@ -1523,7 +1523,7 @@
         <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SSL</span> {
             <span class="ident">version</span>: <span class="ident">c_int</span>,
             <span class="ident">type_</span>: <span class="ident">c_int</span>,
-            <span class="ident">method</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">SSL_METHOD</span>,
+            <span class="ident">method</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::SSL_METHOD</span>,
             <span class="ident">rbio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">wbio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">bbio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
@@ -1561,25 +1561,25 @@
             <span class="ident">cipher_list_by_id</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_SSL_CIPHER</span>,
             <span class="ident">mac_flags</span>: <span class="ident">c_int</span>,
             <span class="ident">aead_read_ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-            <span class="ident">enc_read_ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">EVP_CIPHER_CTX</span>,
-            <span class="ident">read_hash</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">EVP_MD_CTX</span>,
+            <span class="ident">enc_read_ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::EVP_CIPHER_CTX</span>,
+            <span class="ident">read_hash</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::EVP_MD_CTX</span>,
             <span class="ident">aead_write_ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-            <span class="ident">enc_write_ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">EVP_CIPHER_CTX</span>,
-            <span class="ident">write_hash</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">EVP_MD_CTX</span>,
+            <span class="ident">enc_write_ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::EVP_CIPHER_CTX</span>,
+            <span class="ident">write_hash</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::EVP_MD_CTX</span>,
             <span class="ident">cert</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">sid_ctx_length</span>: <span class="ident">c_uint</span>,
-            <span class="ident">sid_ctx</span>: [<span class="ident">c_uchar</span>; ::<span class="ident">SSL_MAX_SID_CTX_LENGTH</span> <span class="kw">as</span> <span class="ident">usize</span>],
-            <span class="ident">session</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">SSL_SESSION</span>,
-            <span class="ident">generate_session_id</span>: ::<span class="ident">GEN_SESSION_CB</span>,
+            <span class="ident">sid_ctx</span>: [<span class="ident">c_uchar</span>; <span class="ident">::SSL_MAX_SID_CTX_LENGTH</span> <span class="kw">as</span> <span class="ident">usize</span>],
+            <span class="ident">session</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::SSL_SESSION</span>,
+            <span class="ident">generate_session_id</span>: <span class="ident">::GEN_SESSION_CB</span>,
             <span class="ident">verify_mode</span>: <span class="ident">c_int</span>,
-            <span class="ident">verify_callback</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">c_int</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">X509_STORE_CTX</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span><span class="op">&gt;</span>,
+            <span class="ident">verify_callback</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">c_int</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::X509_STORE_CTX</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span><span class="op">&gt;</span>,
             <span class="ident">info_callback</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL</span>, <span class="ident">c_int</span>, <span class="ident">c_int</span>)<span class="op">&gt;</span>,
             <span class="ident">error</span>: <span class="ident">c_int</span>,
             <span class="ident">error_code</span>: <span class="ident">c_int</span>,
-            <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">SSL_CTX</span>,
+            <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::SSL_CTX</span>,
             <span class="ident">debug</span>: <span class="ident">c_int</span>,
             <span class="ident">verify_result</span>: <span class="ident">c_long</span>,
-            <span class="ident">ex_data</span>: ::<span class="ident">CRYPTO_EX_DATA</span>,
+            <span class="ident">ex_data</span>: <span class="ident">::CRYPTO_EX_DATA</span>,
             <span class="ident">client_CA</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_X509_NAME</span>,
             <span class="ident">references</span>: <span class="ident">c_int</span>,
             <span class="ident">options</span>: <span class="ident">c_ulong</span>,
@@ -1605,11 +1605,11 @@
             <span class="ident">tlsext_ellipticcurvelist_length</span>: <span class="ident">size_t</span>,
             <span class="ident">tlsext_ellipticcurvelist</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
             <span class="ident">tlsext_session_ticket</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-            <span class="ident">tlsext_session_ticket_ext_cb</span>: ::<span class="ident">tls_session_ticket_ext_cb_fn</span>,
+            <span class="ident">tlsext_session_ticket_ext_cb</span>: <span class="ident">::tls_session_ticket_ext_cb_fn</span>,
             <span class="ident">tls_session_ticket_ext_cb_arg</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-            <span class="ident">tls_session_secret_cb</span>: ::<span class="ident">tls_session_secret_cb_fn</span>,
+            <span class="ident">tls_session_secret_cb</span>: <span class="ident">::tls_session_secret_cb_fn</span>,
             <span class="ident">tls_session_secret_cb_arg</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-            <span class="ident">initial_ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">SSL_CTX</span>,
+            <span class="ident">initial_ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::SSL_CTX</span>,
             <span class="ident">next_proto_negotiated</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
             <span class="ident">next_proto_negotiated_len</span>: <span class="ident">c_uchar</span>,
             <span class="ident">srtp_profiles</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
@@ -1626,7 +1626,7 @@
         <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SSL</span> {
             <span class="ident">version</span>: <span class="ident">c_int</span>,
             <span class="ident">type_</span>: <span class="ident">c_int</span>,
-            <span class="ident">method</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">SSL_METHOD</span>,
+            <span class="ident">method</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::SSL_METHOD</span>,
             <span class="ident">rbio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">wbio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">bbio</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
@@ -1658,19 +1658,19 @@
             <span class="ident">cipher_list</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_SSL_CIPHER</span>,
             <span class="ident">cipher_list_by_id</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_SSL_CIPHER</span>,
             <span class="ident">mac_flags</span>: <span class="ident">c_int</span>,
-            <span class="ident">enc_read_ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">EVP_CIPHER_CTX</span>,
-            <span class="ident">read_hash</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">EVP_MD_CTX</span>,
+            <span class="ident">enc_read_ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::EVP_CIPHER_CTX</span>,
+            <span class="ident">read_hash</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::EVP_MD_CTX</span>,
             <span class="ident">expand</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-            <span class="ident">enc_write_ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">EVP_CIPHER_CTX</span>,
-            <span class="ident">write_hash</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">EVP_MD_CTX</span>,
+            <span class="ident">enc_write_ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::EVP_CIPHER_CTX</span>,
+            <span class="ident">write_hash</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::EVP_MD_CTX</span>,
             <span class="ident">compress</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">cert</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">sid_ctx_length</span>: <span class="ident">c_uint</span>,
-            <span class="ident">sid_ctx</span>: [<span class="ident">c_uchar</span>; ::<span class="ident">SSL_MAX_SID_CTX_LENGTH</span> <span class="kw">as</span> <span class="ident">usize</span>],
-            <span class="ident">session</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">SSL_SESSION</span>,
-            <span class="ident">generate_session_id</span>: ::<span class="ident">GEN_SESSION_CB</span>,
+            <span class="ident">sid_ctx</span>: [<span class="ident">c_uchar</span>; <span class="ident">::SSL_MAX_SID_CTX_LENGTH</span> <span class="kw">as</span> <span class="ident">usize</span>],
+            <span class="ident">session</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::SSL_SESSION</span>,
+            <span class="ident">generate_session_id</span>: <span class="ident">::GEN_SESSION_CB</span>,
             <span class="ident">verify_mode</span>: <span class="ident">c_int</span>,
-            <span class="ident">verify_callback</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">c_int</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">X509_STORE_CTX</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span><span class="op">&gt;</span>,
+            <span class="ident">verify_callback</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">c_int</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::X509_STORE_CTX</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span><span class="op">&gt;</span>,
             <span class="ident">info_callback</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL</span>, <span class="ident">c_int</span>, <span class="ident">c_int</span>)<span class="op">&gt;</span>,
             <span class="ident">error</span>: <span class="ident">c_int</span>,
             <span class="ident">error_code</span>: <span class="ident">c_int</span>,
@@ -1684,10 +1684,10 @@
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_PSK&quot;</span>))]</span>
             <span class="ident">psk_server_callback</span>:
                 <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">unsafe</span> <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL</span>, <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>, <span class="ident">c_uint</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_uint</span><span class="op">&gt;</span>,
-            <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">SSL_CTX</span>,
+            <span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::SSL_CTX</span>,
             <span class="ident">debug</span>: <span class="ident">c_int</span>,
             <span class="ident">verify_result</span>: <span class="ident">c_long</span>,
-            <span class="ident">ex_data</span>: ::<span class="ident">CRYPTO_EX_DATA</span>,
+            <span class="ident">ex_data</span>: <span class="ident">::CRYPTO_EX_DATA</span>,
             <span class="ident">client_CA</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_X509_NAME</span>,
             <span class="ident">references</span>: <span class="ident">c_int</span>,
             <span class="ident">options</span>: <span class="ident">c_ulong</span>,
@@ -1746,15 +1746,15 @@
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_TLSEXT&quot;</span>))]</span>
             <span class="ident">tlsext_session_ticket</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_TLSEXT&quot;</span>))]</span>
-            <span class="ident">tlsext_session_ticket_ext_cb</span>: ::<span class="ident">tls_session_ticket_ext_cb_fn</span>,
+            <span class="ident">tlsext_session_ticket_ext_cb</span>: <span class="ident">::tls_session_ticket_ext_cb_fn</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_TLSEXT&quot;</span>))]</span>
             <span class="ident">tls_session_ticket_ext_cb_arg</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_TLSEXT&quot;</span>))]</span>
-            <span class="ident">tls_session_secret_cb</span>: ::<span class="ident">tls_session_secret_cb_fn</span>,
+            <span class="ident">tls_session_secret_cb</span>: <span class="ident">::tls_session_secret_cb_fn</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_TLSEXT&quot;</span>))]</span>
             <span class="ident">tls_session_secret_cb_arg</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_TLSEXT&quot;</span>))]</span>
-            <span class="ident">initial_ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">SSL_CTX</span>,
+            <span class="ident">initial_ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::SSL_CTX</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
                 <span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_TLSEXT&quot;</span>),
                 <span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_NEXTPROTONEG&quot;</span>)
@@ -1777,7 +1777,7 @@
             <span class="ident">tlsext_hb_seq</span>: <span class="ident">c_uint</span>,
             <span class="ident">renegotiate</span>: <span class="ident">c_int</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_SRP&quot;</span>))]</span>
-            <span class="ident">srp_ctx</span>: ::<span class="ident">SRP_CTX</span>,
+            <span class="ident">srp_ctx</span>: <span class="ident">::SRP_CTX</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_TLSEXT&quot;</span>), <span class="ident">ossl102</span>))]</span>
             <span class="ident">alpn_client_proto_list</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_TLSEXT&quot;</span>), <span class="ident">ossl102</span>))]</span>
@@ -1785,13 +1785,13 @@
         }
     }
 }
-<span class="macro">cfg_if</span><span class="macro">!</span> {
+<span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> {
         <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SSL_CTX</span> {}
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">libressl251</span>)]</span> {
         <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
         <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SSL_CTX</span> {
-            <span class="ident">method</span>: <span class="kw-2">*</span><span class="kw">const</span> ::<span class="ident">SSL_METHOD</span>,
+            <span class="ident">method</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">::SSL_METHOD</span>,
             <span class="ident">cipher_list</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_SSL_CIPHER</span>,
             <span class="ident">cert_store</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">session_timeout</span>: <span class="ident">c_long</span>,
@@ -1799,8 +1799,8 @@
             <span class="ident">extra_certs</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_X509</span>,
             <span class="ident">verify_mode</span>: <span class="ident">c_int</span>,
             <span class="ident">sid_ctx_length</span>: <span class="ident">c_uint</span>,
-            <span class="ident">sid_ctx</span>: [<span class="ident">c_uchar</span>; ::<span class="ident">SSL_MAX_SID_CTX_LENGTH</span> <span class="kw">as</span> <span class="ident">usize</span>],
-            <span class="ident">param</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">X509_VERIFY_PARAM</span>,
+            <span class="ident">sid_ctx</span>: [<span class="ident">c_uchar</span>; <span class="ident">::SSL_MAX_SID_CTX_LENGTH</span> <span class="kw">as</span> <span class="ident">usize</span>],
+            <span class="ident">param</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::X509_VERIFY_PARAM</span>,
             <span class="ident">default_passwd_callback</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">default_passwd_callback_userdata</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">internal</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
@@ -1830,7 +1830,7 @@
             <span class="ident">client_cert_cb</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">app_gen_cookie_cb</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">app_verify_cookie_cb</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-            <span class="ident">ex_dat</span>: ::<span class="ident">CRYPTO_EX_DATA</span>,
+            <span class="ident">ex_dat</span>: <span class="ident">::CRYPTO_EX_DATA</span>,
             <span class="ident">rsa_md5</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">md5</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">sha1</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
@@ -1900,7 +1900,7 @@
             <span class="ident">client_cert_cb</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">app_gen_cookie_cb</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">app_verify_cookie_cb</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
-            <span class="ident">ex_dat</span>: ::<span class="ident">CRYPTO_EX_DATA</span>,
+            <span class="ident">ex_dat</span>: <span class="ident">::CRYPTO_EX_DATA</span>,
             <span class="ident">rsa_md5</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">md5</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
             <span class="ident">sha1</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>,
@@ -2048,13 +2048,13 @@
 
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">COMP_METHOD</span> {}
 
-<span class="macro">cfg_if</span><span class="macro">!</span> {
+<span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl280</span>))]</span> {
         <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CRYPTO_EX_DATA</span> {}
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">libressl</span>)]</span> {
         <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
         <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CRYPTO_EX_DATA</span> {
-            <span class="kw">pub</span> <span class="ident">sk</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> ::<span class="ident">stack_st_void</span>,
+            <span class="kw">pub</span> <span class="ident">sk</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::stack_st_void</span>,
         }
     } <span class="kw">else</span> {
         <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
@@ -2067,5 +2067,5 @@
 
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">OCSP_RESPONSE</span> {}
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl_sys" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl_sys" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

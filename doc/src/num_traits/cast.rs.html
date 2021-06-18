@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-traits-0.2.14/src/cast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cast.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../num_traits/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../num_traits/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -816,8 +816,8 @@
 <span id="813">813</span>
 <span id="814">814</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">mem</span>::<span class="ident">size_of</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">num</span>::<span class="ident">Wrapping</span>;
+<span class="kw">use</span> <span class="ident">core::mem::size_of</span>;
+<span class="kw">use</span> <span class="ident">core::num::Wrapping</span>;
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">f32</span>, <span class="ident">f64</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">i128</span>, <span class="ident">u128</span>};
@@ -839,28 +839,28 @@
     <span class="doccomment">/// represented by an `isize`, then `None` is returned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">to_isize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">isize</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">to_i64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive</span>::<span class="ident">to_isize</span>)
+        <span class="self">self</span>.<span class="ident">to_i64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive::to_isize</span>)
     }
 
     <span class="doccomment">/// Converts the value of `self` to an `i8`. If the value cannot be</span>
     <span class="doccomment">/// represented by an `i8`, then `None` is returned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">to_i8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i8</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">to_i64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive</span>::<span class="ident">to_i8</span>)
+        <span class="self">self</span>.<span class="ident">to_i64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive::to_i8</span>)
     }
 
     <span class="doccomment">/// Converts the value of `self` to an `i16`. If the value cannot be</span>
     <span class="doccomment">/// represented by an `i16`, then `None` is returned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">to_i16</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i16</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">to_i64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive</span>::<span class="ident">to_i16</span>)
+        <span class="self">self</span>.<span class="ident">to_i64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive::to_i16</span>)
     }
 
     <span class="doccomment">/// Converts the value of `self` to an `i32`. If the value cannot be</span>
     <span class="doccomment">/// represented by an `i32`, then `None` is returned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">to_i32</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">to_i64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive</span>::<span class="ident">to_i32</span>)
+        <span class="self">self</span>.<span class="ident">to_i64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive::to_i32</span>)
     }
 
     <span class="doccomment">/// Converts the value of `self` to an `i64`. If the value cannot be</span>
@@ -878,35 +878,35 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
     <span class="kw">fn</span> <span class="ident">to_i128</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i128</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">to_i64</span>().<span class="ident">map</span>(<span class="ident">From</span>::<span class="ident">from</span>)
+        <span class="self">self</span>.<span class="ident">to_i64</span>().<span class="ident">map</span>(<span class="ident">From::from</span>)
     }
 
     <span class="doccomment">/// Converts the value of `self` to a `usize`. If the value cannot be</span>
     <span class="doccomment">/// represented by a `usize`, then `None` is returned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">to_u64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive</span>::<span class="ident">to_usize</span>)
+        <span class="self">self</span>.<span class="ident">to_u64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive::to_usize</span>)
     }
 
     <span class="doccomment">/// Converts the value of `self` to a `u8`. If the value cannot be</span>
     <span class="doccomment">/// represented by a `u8`, then `None` is returned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">to_u8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">to_u64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive</span>::<span class="ident">to_u8</span>)
+        <span class="self">self</span>.<span class="ident">to_u64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive::to_u8</span>)
     }
 
     <span class="doccomment">/// Converts the value of `self` to a `u16`. If the value cannot be</span>
     <span class="doccomment">/// represented by a `u16`, then `None` is returned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">to_u16</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">to_u64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive</span>::<span class="ident">to_u16</span>)
+        <span class="self">self</span>.<span class="ident">to_u64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive::to_u16</span>)
     }
 
     <span class="doccomment">/// Converts the value of `self` to a `u32`. If the value cannot be</span>
     <span class="doccomment">/// represented by a `u32`, then `None` is returned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">to_u32</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">to_u64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive</span>::<span class="ident">to_u32</span>)
+        <span class="self">self</span>.<span class="ident">to_u64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive::to_u32</span>)
     }
 
     <span class="doccomment">/// Converts the value of `self` to a `u64`. If the value cannot be</span>
@@ -924,7 +924,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
     <span class="kw">fn</span> <span class="ident">to_u128</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">to_u64</span>().<span class="ident">map</span>(<span class="ident">From</span>::<span class="ident">from</span>)
+        <span class="self">self</span>.<span class="ident">to_u64</span>().<span class="ident">map</span>(<span class="ident">From::from</span>)
     }
 
     <span class="doccomment">/// Converts the value of `self` to an `f32`. Overflows may map to positive</span>
@@ -932,7 +932,7 @@
     <span class="doccomment">/// be represented by an `f32`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">to_f32</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">to_f64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive</span>::<span class="ident">to_f32</span>)
+        <span class="self">self</span>.<span class="ident">to_f64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive::to_f32</span>)
     }
 
     <span class="doccomment">/// Converts the value of `self` to an `f64`. Overflows may map to positive</span>
@@ -946,18 +946,18 @@
     <span class="kw">fn</span> <span class="ident">to_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">to_i64</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>.<span class="ident">to_f64</span>(),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">to_u64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive</span>::<span class="ident">to_f64</span>),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">to_u64</span>().<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="ident">ToPrimitive::to_f64</span>),
         }
     }
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_to_primitive_int_to_int</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_to_primitive_int_to_int</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">SrcT</span>:<span class="ident">ident</span> : $( $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span> <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span>:<span class="ident">ident</span> ; )<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {$(
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>]</span>)<span class="op">*</span>
         <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">min</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span>::<span class="ident">MIN</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">SrcT</span>;
-            <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">SrcT</span>;
+            <span class="kw">let</span> <span class="ident">min</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT::MIN</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">SrcT</span>;
+            <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT::MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">SrcT</span>;
             <span class="kw">if</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">SrcT</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span><span class="op">&gt;</span>() <span class="op">|</span><span class="op">|</span> (<span class="ident">min</span> <span class="op">&lt;</span><span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max</span>) {
                 <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span>)
             } <span class="kw">else</span> {
@@ -967,12 +967,12 @@
     )<span class="kw-2">*</span>}
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_to_primitive_int_to_uint</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_to_primitive_int_to_uint</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">SrcT</span>:<span class="ident">ident</span> : $( $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span> <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span>:<span class="ident">ident</span> ; )<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {$(
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>]</span>)<span class="op">*</span>
         <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">SrcT</span>;
+            <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT::MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">SrcT</span>;
             <span class="kw">if</span> <span class="number">0</span> <span class="op">&lt;</span><span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&amp;&amp;</span> (<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">SrcT</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span><span class="op">&gt;</span>() <span class="op">|</span><span class="op">|</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max</span>) {
                 <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span>)
             } <span class="kw">else</span> {
@@ -982,10 +982,10 @@
     )<span class="kw-2">*</span>}
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_to_primitive_int</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_to_primitive_int</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">ToPrimitive</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
-            <span class="macro">impl_to_primitive_int_to_int</span><span class="macro">!</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:
+            <span class="macro">impl_to_primitive_int_to_int!</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:
                 <span class="kw">fn</span> <span class="ident">to_isize</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">isize</span>;
                 <span class="kw">fn</span> <span class="ident">to_i8</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i8</span>;
                 <span class="kw">fn</span> <span class="ident">to_i16</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i16</span>;
@@ -995,7 +995,7 @@
                 <span class="kw">fn</span> <span class="ident">to_i128</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i128</span>;
             }
 
-            <span class="macro">impl_to_primitive_int_to_uint</span><span class="macro">!</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:
+            <span class="macro">impl_to_primitive_int_to_uint!</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:
                 <span class="kw">fn</span> <span class="ident">to_usize</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
                 <span class="kw">fn</span> <span class="ident">to_u8</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span>;
                 <span class="kw">fn</span> <span class="ident">to_u16</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u16</span>;
@@ -1017,20 +1017,20 @@
     };
 }
 
-<span class="macro">impl_to_primitive_int</span><span class="macro">!</span>(<span class="ident">isize</span>);
-<span class="macro">impl_to_primitive_int</span><span class="macro">!</span>(<span class="ident">i8</span>);
-<span class="macro">impl_to_primitive_int</span><span class="macro">!</span>(<span class="ident">i16</span>);
-<span class="macro">impl_to_primitive_int</span><span class="macro">!</span>(<span class="ident">i32</span>);
-<span class="macro">impl_to_primitive_int</span><span class="macro">!</span>(<span class="ident">i64</span>);
+<span class="macro">impl_to_primitive_int!</span>(<span class="ident">isize</span>);
+<span class="macro">impl_to_primitive_int!</span>(<span class="ident">i8</span>);
+<span class="macro">impl_to_primitive_int!</span>(<span class="ident">i16</span>);
+<span class="macro">impl_to_primitive_int!</span>(<span class="ident">i32</span>);
+<span class="macro">impl_to_primitive_int!</span>(<span class="ident">i64</span>);
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<span class="macro">impl_to_primitive_int</span><span class="macro">!</span>(<span class="ident">i128</span>);
+<span class="macro">impl_to_primitive_int!</span>(<span class="ident">i128</span>);
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_to_primitive_uint_to_int</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_to_primitive_uint_to_int</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">SrcT</span>:<span class="ident">ident</span> : $( $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span> <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span>:<span class="ident">ident</span> ; )<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {$(
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>]</span>)<span class="op">*</span>
         <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">SrcT</span>;
+            <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT::MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">SrcT</span>;
             <span class="kw">if</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">SrcT</span><span class="op">&gt;</span>() <span class="op">&lt;</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span><span class="op">&gt;</span>() <span class="op">|</span><span class="op">|</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max</span> {
                 <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span>)
             } <span class="kw">else</span> {
@@ -1040,12 +1040,12 @@
     )<span class="kw-2">*</span>}
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_to_primitive_uint_to_uint</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_to_primitive_uint_to_uint</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">SrcT</span>:<span class="ident">ident</span> : $( $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span> <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span>:<span class="ident">ident</span> ; )<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {$(
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>]</span>)<span class="op">*</span>
         <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">SrcT</span>;
+            <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT::MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">SrcT</span>;
             <span class="kw">if</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">SrcT</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span><span class="op">&gt;</span>() <span class="op">|</span><span class="op">|</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max</span> {
                 <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span>)
             } <span class="kw">else</span> {
@@ -1055,10 +1055,10 @@
     )<span class="kw-2">*</span>}
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_to_primitive_uint</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_to_primitive_uint</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">ToPrimitive</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
-            <span class="macro">impl_to_primitive_uint_to_int</span><span class="macro">!</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:
+            <span class="macro">impl_to_primitive_uint_to_int!</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:
                 <span class="kw">fn</span> <span class="ident">to_isize</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">isize</span>;
                 <span class="kw">fn</span> <span class="ident">to_i8</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i8</span>;
                 <span class="kw">fn</span> <span class="ident">to_i16</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i16</span>;
@@ -1068,7 +1068,7 @@
                 <span class="kw">fn</span> <span class="ident">to_i128</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i128</span>;
             }
 
-            <span class="macro">impl_to_primitive_uint_to_uint</span><span class="macro">!</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:
+            <span class="macro">impl_to_primitive_uint_to_uint!</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:
                 <span class="kw">fn</span> <span class="ident">to_usize</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
                 <span class="kw">fn</span> <span class="ident">to_u8</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span>;
                 <span class="kw">fn</span> <span class="ident">to_u16</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u16</span>;
@@ -1090,15 +1090,15 @@
     };
 }
 
-<span class="macro">impl_to_primitive_uint</span><span class="macro">!</span>(<span class="ident">usize</span>);
-<span class="macro">impl_to_primitive_uint</span><span class="macro">!</span>(<span class="ident">u8</span>);
-<span class="macro">impl_to_primitive_uint</span><span class="macro">!</span>(<span class="ident">u16</span>);
-<span class="macro">impl_to_primitive_uint</span><span class="macro">!</span>(<span class="ident">u32</span>);
-<span class="macro">impl_to_primitive_uint</span><span class="macro">!</span>(<span class="ident">u64</span>);
+<span class="macro">impl_to_primitive_uint!</span>(<span class="ident">usize</span>);
+<span class="macro">impl_to_primitive_uint!</span>(<span class="ident">u8</span>);
+<span class="macro">impl_to_primitive_uint!</span>(<span class="ident">u16</span>);
+<span class="macro">impl_to_primitive_uint!</span>(<span class="ident">u32</span>);
+<span class="macro">impl_to_primitive_uint!</span>(<span class="ident">u64</span>);
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<span class="macro">impl_to_primitive_uint</span><span class="macro">!</span>(<span class="ident">u128</span>);
+<span class="macro">impl_to_primitive_uint!</span>(<span class="ident">u128</span>);
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_to_primitive_float_to_float</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_to_primitive_float_to_float</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">SrcT</span>:<span class="ident">ident</span> : $( <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span> <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span>:<span class="ident">ident</span> ; )<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {$(
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">DstT</span><span class="op">&gt;</span> {
@@ -1110,7 +1110,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_to_int_unchecked</span>)]</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">float_to_int_unchecked</span> {
+<span class="macro">macro_rules!</span> <span class="ident">float_to_int_unchecked</span> {
     <span class="comment">// SAFETY: Must not be NaN or infinite; must be representable as the integer after truncating.</span>
     <span class="comment">// We already checked that the float is in the exclusive range `(MIN-1, MAX+1)`.</span>
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">float</span>:<span class="ident">expr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">int</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -1119,13 +1119,13 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">has_to_int_unchecked</span>))]</span>
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">float_to_int_unchecked</span> {
+<span class="macro">macro_rules!</span> <span class="ident">float_to_int_unchecked</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">float</span>:<span class="ident">expr</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">int</span>:<span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">float</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">int</span>
     };
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_to_primitive_float_to_signed_int</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_to_primitive_float_to_signed_int</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="ident">ident</span> : $( $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span> <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">ident</span> ; )<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {$(
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>]</span>)<span class="op">*</span>
@@ -1134,20 +1134,20 @@
             <span class="comment">// in the exclusive range `(MIN-1, MAX+1)`.</span>
             <span class="kw">if</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span><span class="op">&gt;</span>() <span class="op">&gt;</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span><span class="op">&gt;</span>() {
                 <span class="comment">// With a larger size, we can represent the range exactly.</span>
-                <span class="kw">const</span> <span class="ident">MIN_M1</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>::<span class="ident">MIN</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">-</span> <span class="number">1.0</span>;
-                <span class="kw">const</span> <span class="ident">MAX_P1</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">+</span> <span class="number">1.0</span>;
+                <span class="kw">const</span> <span class="ident">MIN_M1</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i::MIN</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">-</span> <span class="number">1.0</span>;
+                <span class="kw">const</span> <span class="ident">MAX_P1</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i::MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">+</span> <span class="number">1.0</span>;
                 <span class="kw">if</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&gt;</span> <span class="ident">MIN_M1</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&lt;</span> <span class="ident">MAX_P1</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="macro">float_to_int_unchecked</span><span class="macro">!</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>));
+                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="macro">float_to_int_unchecked!</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>));
                 }
             } <span class="kw">else</span> {
                 <span class="comment">// We can&#39;t represent `MIN-1` exactly, but there&#39;s no fractional part</span>
                 <span class="comment">// at this magnitude, so we can just use a `MIN` inclusive boundary.</span>
-                <span class="kw">const</span> <span class="ident">MIN</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>::<span class="ident">MIN</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>;
+                <span class="kw">const</span> <span class="ident">MIN</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i::MIN</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>;
                 <span class="comment">// We can&#39;t represent `MAX` exactly, but it will round up to exactly</span>
                 <span class="comment">// `MAX+1` (a power of two) when we cast it.</span>
-                <span class="kw">const</span> <span class="ident">MAX_P1</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>;
+                <span class="kw">const</span> <span class="ident">MAX_P1</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i::MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>;
                 <span class="kw">if</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">MIN</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&lt;</span> <span class="ident">MAX_P1</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="macro">float_to_int_unchecked</span><span class="macro">!</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>));
+                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="macro">float_to_int_unchecked!</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>));
                 }
             }
             <span class="prelude-val">None</span>
@@ -1155,7 +1155,7 @@
     )<span class="kw-2">*</span>}
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_to_primitive_float_to_unsigned_int</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_to_primitive_float_to_unsigned_int</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="ident">ident</span> : $( $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span> <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u</span>:<span class="ident">ident</span> ; )<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {$(
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>]</span>)<span class="op">*</span>
@@ -1164,17 +1164,17 @@
             <span class="comment">// in the exclusive range `(-1, MAX+1)`.</span>
             <span class="kw">if</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span><span class="op">&gt;</span>() <span class="op">&gt;</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">u</span><span class="op">&gt;</span>() {
                 <span class="comment">// With a larger size, we can represent the range exactly.</span>
-                <span class="kw">const</span> <span class="ident">MAX_P1</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">+</span> <span class="number">1.0</span>;
+                <span class="kw">const</span> <span class="ident">MAX_P1</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u::MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">+</span> <span class="number">1.0</span>;
                 <span class="kw">if</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&gt;</span> <span class="op">-</span><span class="number">1.0</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&lt;</span> <span class="ident">MAX_P1</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="macro">float_to_int_unchecked</span><span class="macro">!</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u</span>));
+                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="macro">float_to_int_unchecked!</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u</span>));
                 }
             } <span class="kw">else</span> {
                 <span class="comment">// We can&#39;t represent `MAX` exactly, but it will round up to exactly</span>
                 <span class="comment">// `MAX+1` (a power of two) when we cast it.</span>
                 <span class="comment">// (`u128::MAX as f32` is infinity, but this is still ok.)</span>
-                <span class="kw">const</span> <span class="ident">MAX_P1</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>;
+                <span class="kw">const</span> <span class="ident">MAX_P1</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u::MAX</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>;
                 <span class="kw">if</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&gt;</span> <span class="op">-</span><span class="number">1.0</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="self">self</span> <span class="op">&lt;</span> <span class="ident">MAX_P1</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="macro">float_to_int_unchecked</span><span class="macro">!</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u</span>));
+                    <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="macro">float_to_int_unchecked!</span>(<span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">u</span>));
                 }
             }
             <span class="prelude-val">None</span>
@@ -1182,10 +1182,10 @@
     )<span class="kw-2">*</span>}
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_to_primitive_float</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_to_primitive_float</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">ToPrimitive</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
-            <span class="macro">impl_to_primitive_float_to_signed_int</span><span class="macro">!</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:
+            <span class="macro">impl_to_primitive_float_to_signed_int!</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:
                 <span class="kw">fn</span> <span class="ident">to_isize</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">isize</span>;
                 <span class="kw">fn</span> <span class="ident">to_i8</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i8</span>;
                 <span class="kw">fn</span> <span class="ident">to_i16</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i16</span>;
@@ -1195,7 +1195,7 @@
                 <span class="kw">fn</span> <span class="ident">to_i128</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i128</span>;
             }
 
-            <span class="macro">impl_to_primitive_float_to_unsigned_int</span><span class="macro">!</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:
+            <span class="macro">impl_to_primitive_float_to_unsigned_int!</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:
                 <span class="kw">fn</span> <span class="ident">to_usize</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span>;
                 <span class="kw">fn</span> <span class="ident">to_u8</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u8</span>;
                 <span class="kw">fn</span> <span class="ident">to_u16</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u16</span>;
@@ -1205,7 +1205,7 @@
                 <span class="kw">fn</span> <span class="ident">to_u128</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u128</span>;
             }
 
-            <span class="macro">impl_to_primitive_float_to_float</span><span class="macro">!</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:
+            <span class="macro">impl_to_primitive_float_to_float!</span> { <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:
                 <span class="kw">fn</span> <span class="ident">to_f32</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f32</span>;
                 <span class="kw">fn</span> <span class="ident">to_f64</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">f64</span>;
             }
@@ -1213,8 +1213,8 @@
     };
 }
 
-<span class="macro">impl_to_primitive_float</span><span class="macro">!</span>(<span class="ident">f32</span>);
-<span class="macro">impl_to_primitive_float</span><span class="macro">!</span>(<span class="ident">f64</span>);
+<span class="macro">impl_to_primitive_float!</span>(<span class="ident">f32</span>);
+<span class="macro">impl_to_primitive_float!</span>(<span class="ident">f64</span>);
 
 <span class="doccomment">/// A generic trait for converting a number to a value.</span>
 <span class="doccomment">///</span>
@@ -1231,28 +1231,28 @@
     <span class="doccomment">/// value cannot be represented by this type, then `None` is returned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from_isize</span>(<span class="ident">n</span>: <span class="ident">isize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">n</span>.<span class="ident">to_i64</span>().<span class="ident">and_then</span>(<span class="ident">FromPrimitive</span>::<span class="ident">from_i64</span>)
+        <span class="ident">n</span>.<span class="ident">to_i64</span>().<span class="ident">and_then</span>(<span class="ident">FromPrimitive::from_i64</span>)
     }
 
     <span class="doccomment">/// Converts an `i8` to return an optional value of this type. If the</span>
     <span class="doccomment">/// value cannot be represented by this type, then `None` is returned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from_i8</span>(<span class="ident">n</span>: <span class="ident">i8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">FromPrimitive</span>::<span class="ident">from_i64</span>(<span class="ident">From</span>::<span class="ident">from</span>(<span class="ident">n</span>))
+        <span class="ident">FromPrimitive::from_i64</span>(<span class="ident">From::from</span>(<span class="ident">n</span>))
     }
 
     <span class="doccomment">/// Converts an `i16` to return an optional value of this type. If the</span>
     <span class="doccomment">/// value cannot be represented by this type, then `None` is returned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from_i16</span>(<span class="ident">n</span>: <span class="ident">i16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">FromPrimitive</span>::<span class="ident">from_i64</span>(<span class="ident">From</span>::<span class="ident">from</span>(<span class="ident">n</span>))
+        <span class="ident">FromPrimitive::from_i64</span>(<span class="ident">From::from</span>(<span class="ident">n</span>))
     }
 
     <span class="doccomment">/// Converts an `i32` to return an optional value of this type. If the</span>
     <span class="doccomment">/// value cannot be represented by this type, then `None` is returned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from_i32</span>(<span class="ident">n</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">FromPrimitive</span>::<span class="ident">from_i64</span>(<span class="ident">From</span>::<span class="ident">from</span>(<span class="ident">n</span>))
+        <span class="ident">FromPrimitive::from_i64</span>(<span class="ident">From::from</span>(<span class="ident">n</span>))
     }
 
     <span class="doccomment">/// Converts an `i64` to return an optional value of this type. If the</span>
@@ -1269,35 +1269,35 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
     <span class="kw">fn</span> <span class="ident">from_i128</span>(<span class="ident">n</span>: <span class="ident">i128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">n</span>.<span class="ident">to_i64</span>().<span class="ident">and_then</span>(<span class="ident">FromPrimitive</span>::<span class="ident">from_i64</span>)
+        <span class="ident">n</span>.<span class="ident">to_i64</span>().<span class="ident">and_then</span>(<span class="ident">FromPrimitive::from_i64</span>)
     }
 
     <span class="doccomment">/// Converts a `usize` to return an optional value of this type. If the</span>
     <span class="doccomment">/// value cannot be represented by this type, then `None` is returned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from_usize</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">n</span>.<span class="ident">to_u64</span>().<span class="ident">and_then</span>(<span class="ident">FromPrimitive</span>::<span class="ident">from_u64</span>)
+        <span class="ident">n</span>.<span class="ident">to_u64</span>().<span class="ident">and_then</span>(<span class="ident">FromPrimitive::from_u64</span>)
     }
 
     <span class="doccomment">/// Converts an `u8` to return an optional value of this type. If the</span>
     <span class="doccomment">/// value cannot be represented by this type, then `None` is returned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from_u8</span>(<span class="ident">n</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">FromPrimitive</span>::<span class="ident">from_u64</span>(<span class="ident">From</span>::<span class="ident">from</span>(<span class="ident">n</span>))
+        <span class="ident">FromPrimitive::from_u64</span>(<span class="ident">From::from</span>(<span class="ident">n</span>))
     }
 
     <span class="doccomment">/// Converts an `u16` to return an optional value of this type. If the</span>
     <span class="doccomment">/// value cannot be represented by this type, then `None` is returned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from_u16</span>(<span class="ident">n</span>: <span class="ident">u16</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">FromPrimitive</span>::<span class="ident">from_u64</span>(<span class="ident">From</span>::<span class="ident">from</span>(<span class="ident">n</span>))
+        <span class="ident">FromPrimitive::from_u64</span>(<span class="ident">From::from</span>(<span class="ident">n</span>))
     }
 
     <span class="doccomment">/// Converts an `u32` to return an optional value of this type. If the</span>
     <span class="doccomment">/// value cannot be represented by this type, then `None` is returned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from_u32</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">FromPrimitive</span>::<span class="ident">from_u64</span>(<span class="ident">From</span>::<span class="ident">from</span>(<span class="ident">n</span>))
+        <span class="ident">FromPrimitive::from_u64</span>(<span class="ident">From::from</span>(<span class="ident">n</span>))
     }
 
     <span class="doccomment">/// Converts an `u64` to return an optional value of this type. If the</span>
@@ -1314,14 +1314,14 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
     <span class="kw">fn</span> <span class="ident">from_u128</span>(<span class="ident">n</span>: <span class="ident">u128</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">n</span>.<span class="ident">to_u64</span>().<span class="ident">and_then</span>(<span class="ident">FromPrimitive</span>::<span class="ident">from_u64</span>)
+        <span class="ident">n</span>.<span class="ident">to_u64</span>().<span class="ident">and_then</span>(<span class="ident">FromPrimitive::from_u64</span>)
     }
 
     <span class="doccomment">/// Converts a `f32` to return an optional value of this type. If the</span>
     <span class="doccomment">/// value cannot be represented by this type, then `None` is returned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from_f32</span>(<span class="ident">n</span>: <span class="ident">f32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">FromPrimitive</span>::<span class="ident">from_f64</span>(<span class="ident">From</span>::<span class="ident">from</span>(<span class="ident">n</span>))
+        <span class="ident">FromPrimitive::from_f64</span>(<span class="ident">From::from</span>(<span class="ident">n</span>))
     }
 
     <span class="doccomment">/// Converts a `f64` to return an optional value of this type. If the</span>
@@ -1333,13 +1333,13 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from_f64</span>(<span class="ident">n</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">to_i64</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FromPrimitive</span>::<span class="ident">from_i64</span>(<span class="ident">i</span>),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>.<span class="ident">to_u64</span>().<span class="ident">and_then</span>(<span class="ident">FromPrimitive</span>::<span class="ident">from_u64</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FromPrimitive::from_i64</span>(<span class="ident">i</span>),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">n</span>.<span class="ident">to_u64</span>().<span class="ident">and_then</span>(<span class="ident">FromPrimitive::from_u64</span>),
         }
     }
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_from_primitive</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_from_primitive</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">to_ty</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
         <span class="kw">impl</span> <span class="ident">FromPrimitive</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
@@ -1407,24 +1407,24 @@
     };
 }
 
-<span class="macro">impl_from_primitive</span><span class="macro">!</span>(<span class="ident">isize</span>, <span class="ident">to_isize</span>);
-<span class="macro">impl_from_primitive</span><span class="macro">!</span>(<span class="ident">i8</span>, <span class="ident">to_i8</span>);
-<span class="macro">impl_from_primitive</span><span class="macro">!</span>(<span class="ident">i16</span>, <span class="ident">to_i16</span>);
-<span class="macro">impl_from_primitive</span><span class="macro">!</span>(<span class="ident">i32</span>, <span class="ident">to_i32</span>);
-<span class="macro">impl_from_primitive</span><span class="macro">!</span>(<span class="ident">i64</span>, <span class="ident">to_i64</span>);
+<span class="macro">impl_from_primitive!</span>(<span class="ident">isize</span>, <span class="ident">to_isize</span>);
+<span class="macro">impl_from_primitive!</span>(<span class="ident">i8</span>, <span class="ident">to_i8</span>);
+<span class="macro">impl_from_primitive!</span>(<span class="ident">i16</span>, <span class="ident">to_i16</span>);
+<span class="macro">impl_from_primitive!</span>(<span class="ident">i32</span>, <span class="ident">to_i32</span>);
+<span class="macro">impl_from_primitive!</span>(<span class="ident">i64</span>, <span class="ident">to_i64</span>);
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<span class="macro">impl_from_primitive</span><span class="macro">!</span>(<span class="ident">i128</span>, <span class="ident">to_i128</span>);
-<span class="macro">impl_from_primitive</span><span class="macro">!</span>(<span class="ident">usize</span>, <span class="ident">to_usize</span>);
-<span class="macro">impl_from_primitive</span><span class="macro">!</span>(<span class="ident">u8</span>, <span class="ident">to_u8</span>);
-<span class="macro">impl_from_primitive</span><span class="macro">!</span>(<span class="ident">u16</span>, <span class="ident">to_u16</span>);
-<span class="macro">impl_from_primitive</span><span class="macro">!</span>(<span class="ident">u32</span>, <span class="ident">to_u32</span>);
-<span class="macro">impl_from_primitive</span><span class="macro">!</span>(<span class="ident">u64</span>, <span class="ident">to_u64</span>);
+<span class="macro">impl_from_primitive!</span>(<span class="ident">i128</span>, <span class="ident">to_i128</span>);
+<span class="macro">impl_from_primitive!</span>(<span class="ident">usize</span>, <span class="ident">to_usize</span>);
+<span class="macro">impl_from_primitive!</span>(<span class="ident">u8</span>, <span class="ident">to_u8</span>);
+<span class="macro">impl_from_primitive!</span>(<span class="ident">u16</span>, <span class="ident">to_u16</span>);
+<span class="macro">impl_from_primitive!</span>(<span class="ident">u32</span>, <span class="ident">to_u32</span>);
+<span class="macro">impl_from_primitive!</span>(<span class="ident">u64</span>, <span class="ident">to_u64</span>);
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<span class="macro">impl_from_primitive</span><span class="macro">!</span>(<span class="ident">u128</span>, <span class="ident">to_u128</span>);
-<span class="macro">impl_from_primitive</span><span class="macro">!</span>(<span class="ident">f32</span>, <span class="ident">to_f32</span>);
-<span class="macro">impl_from_primitive</span><span class="macro">!</span>(<span class="ident">f64</span>, <span class="ident">to_f64</span>);
+<span class="macro">impl_from_primitive!</span>(<span class="ident">u128</span>, <span class="ident">to_u128</span>);
+<span class="macro">impl_from_primitive!</span>(<span class="ident">f32</span>, <span class="ident">to_f32</span>);
+<span class="macro">impl_from_primitive!</span>(<span class="ident">f64</span>, <span class="ident">to_f64</span>);
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_to_primitive_wrapping</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_to_primitive_wrapping</span> {
     ($( $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span> <span class="op">-</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">ident</span> ; )<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {$(
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>]</span>)<span class="op">*</span>
@@ -1435,7 +1435,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ToPrimitive</span><span class="op">&gt;</span> <span class="ident">ToPrimitive</span> <span class="kw">for</span> <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="macro">impl_to_primitive_wrapping</span><span class="macro">!</span> {
+    <span class="macro">impl_to_primitive_wrapping!</span> {
         <span class="kw">fn</span> <span class="ident">to_isize</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">isize</span>;
         <span class="kw">fn</span> <span class="ident">to_i8</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i8</span>;
         <span class="kw">fn</span> <span class="ident">to_i16</span> <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i16</span>;
@@ -1457,7 +1457,7 @@
     }
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_from_primitive_wrapping</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_from_primitive_wrapping</span> {
     ($( $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">method</span>:<span class="ident">ident</span> ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">ident</span> ); )<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> {$(
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>]</span>)<span class="op">*</span>
@@ -1468,7 +1468,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FromPrimitive</span><span class="op">&gt;</span> <span class="ident">FromPrimitive</span> <span class="kw">for</span> <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="macro">impl_from_primitive_wrapping</span><span class="macro">!</span> {
+    <span class="macro">impl_from_primitive_wrapping!</span> {
         <span class="kw">fn</span> <span class="ident">from_isize</span>(<span class="ident">isize</span>);
         <span class="kw">fn</span> <span class="ident">from_i8</span>(<span class="ident">i8</span>);
         <span class="kw">fn</span> <span class="ident">from_i16</span>(<span class="ident">i16</span>);
@@ -1502,7 +1502,7 @@
 <span class="doccomment">///</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cast</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">NumCast</span>, <span class="ident">U</span>: <span class="ident">NumCast</span><span class="op">&gt;</span>(<span class="ident">n</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span> {
-    <span class="ident">NumCast</span>::<span class="ident">from</span>(<span class="ident">n</span>)
+    <span class="ident">NumCast::from</span>(<span class="ident">n</span>)
 }
 
 <span class="doccomment">/// An interface for casting between machine scalars.</span>
@@ -1522,7 +1522,7 @@
     <span class="kw">fn</span> <span class="ident">from</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ToPrimitive</span><span class="op">&gt;</span>(<span class="ident">n</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_num_cast</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_num_cast</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">conv</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="kw">impl</span> <span class="ident">NumCast</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1536,26 +1536,26 @@
     };
 }
 
-<span class="macro">impl_num_cast</span><span class="macro">!</span>(<span class="ident">u8</span>, <span class="ident">to_u8</span>);
-<span class="macro">impl_num_cast</span><span class="macro">!</span>(<span class="ident">u16</span>, <span class="ident">to_u16</span>);
-<span class="macro">impl_num_cast</span><span class="macro">!</span>(<span class="ident">u32</span>, <span class="ident">to_u32</span>);
-<span class="macro">impl_num_cast</span><span class="macro">!</span>(<span class="ident">u64</span>, <span class="ident">to_u64</span>);
+<span class="macro">impl_num_cast!</span>(<span class="ident">u8</span>, <span class="ident">to_u8</span>);
+<span class="macro">impl_num_cast!</span>(<span class="ident">u16</span>, <span class="ident">to_u16</span>);
+<span class="macro">impl_num_cast!</span>(<span class="ident">u32</span>, <span class="ident">to_u32</span>);
+<span class="macro">impl_num_cast!</span>(<span class="ident">u64</span>, <span class="ident">to_u64</span>);
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<span class="macro">impl_num_cast</span><span class="macro">!</span>(<span class="ident">u128</span>, <span class="ident">to_u128</span>);
-<span class="macro">impl_num_cast</span><span class="macro">!</span>(<span class="ident">usize</span>, <span class="ident">to_usize</span>);
-<span class="macro">impl_num_cast</span><span class="macro">!</span>(<span class="ident">i8</span>, <span class="ident">to_i8</span>);
-<span class="macro">impl_num_cast</span><span class="macro">!</span>(<span class="ident">i16</span>, <span class="ident">to_i16</span>);
-<span class="macro">impl_num_cast</span><span class="macro">!</span>(<span class="ident">i32</span>, <span class="ident">to_i32</span>);
-<span class="macro">impl_num_cast</span><span class="macro">!</span>(<span class="ident">i64</span>, <span class="ident">to_i64</span>);
+<span class="macro">impl_num_cast!</span>(<span class="ident">u128</span>, <span class="ident">to_u128</span>);
+<span class="macro">impl_num_cast!</span>(<span class="ident">usize</span>, <span class="ident">to_usize</span>);
+<span class="macro">impl_num_cast!</span>(<span class="ident">i8</span>, <span class="ident">to_i8</span>);
+<span class="macro">impl_num_cast!</span>(<span class="ident">i16</span>, <span class="ident">to_i16</span>);
+<span class="macro">impl_num_cast!</span>(<span class="ident">i32</span>, <span class="ident">to_i32</span>);
+<span class="macro">impl_num_cast!</span>(<span class="ident">i64</span>, <span class="ident">to_i64</span>);
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<span class="macro">impl_num_cast</span><span class="macro">!</span>(<span class="ident">i128</span>, <span class="ident">to_i128</span>);
-<span class="macro">impl_num_cast</span><span class="macro">!</span>(<span class="ident">isize</span>, <span class="ident">to_isize</span>);
-<span class="macro">impl_num_cast</span><span class="macro">!</span>(<span class="ident">f32</span>, <span class="ident">to_f32</span>);
-<span class="macro">impl_num_cast</span><span class="macro">!</span>(<span class="ident">f64</span>, <span class="ident">to_f64</span>);
+<span class="macro">impl_num_cast!</span>(<span class="ident">i128</span>, <span class="ident">to_i128</span>);
+<span class="macro">impl_num_cast!</span>(<span class="ident">isize</span>, <span class="ident">to_isize</span>);
+<span class="macro">impl_num_cast!</span>(<span class="ident">f32</span>, <span class="ident">to_f32</span>);
+<span class="macro">impl_num_cast!</span>(<span class="ident">f64</span>, <span class="ident">to_f64</span>);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">NumCast</span><span class="op">&gt;</span> <span class="ident">NumCast</span> <span class="kw">for</span> <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span><span class="op">&lt;</span><span class="ident">U</span>: <span class="ident">ToPrimitive</span><span class="op">&gt;</span>(<span class="ident">n</span>: <span class="ident">U</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">T</span>::<span class="ident">from</span>(<span class="ident">n</span>).<span class="ident">map</span>(<span class="ident">Wrapping</span>)
+        <span class="ident">T::from</span>(<span class="ident">n</span>).<span class="ident">map</span>(<span class="ident">Wrapping</span>)
     }
 }
 
@@ -1593,7 +1593,7 @@
     <span class="kw">fn</span> <span class="ident">as_</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>;
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">impl_as_primitive</span> {
+<span class="macro">macro_rules!</span> <span class="ident">impl_as_primitive</span> {
     (@ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>: <span class="ident">ty</span> <span class="op">=</span><span class="op">&gt;</span> $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>:<span class="ident">meta</span>]</span>)<span class="op">*</span> <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">U</span>: <span class="ident">ty</span> ) <span class="op">=</span><span class="op">&gt;</span> {
         $(<span class="attribute">#[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">cfg</span>]</span>)<span class="op">*</span>
         <span class="kw">impl</span> <span class="ident">AsPrimitive</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">U</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> {
@@ -1601,35 +1601,35 @@
         }
     };
     (@ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>: <span class="ident">ty</span> <span class="op">=</span><span class="op">&gt;</span> { $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">U</span>: <span class="ident">ty</span> ),<span class="op">*</span> } ) <span class="op">=</span><span class="op">&gt;</span> {$(
-        <span class="macro">impl_as_primitive</span><span class="macro">!</span>(@ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">U</span>);
+        <span class="macro">impl_as_primitive!</span>(@ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">U</span>);
     )<span class="kw-2">*</span>};
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>: <span class="ident">ty</span> <span class="op">=</span><span class="op">&gt;</span> { $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">U</span>: <span class="ident">ty</span> ),<span class="op">*</span> } ) <span class="op">=</span><span class="op">&gt;</span> {
-        <span class="macro">impl_as_primitive</span><span class="macro">!</span>(@ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="op">=</span><span class="op">&gt;</span> { $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">U</span> ),<span class="op">*</span> });
-        <span class="macro">impl_as_primitive</span><span class="macro">!</span>(@ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">u8</span>, <span class="ident">u16</span>, <span class="ident">u32</span>, <span class="ident">u64</span>, <span class="ident">usize</span> });
-        <span class="macro">impl_as_primitive</span><span class="macro">!</span>(@ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="op">=</span><span class="op">&gt;</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span> <span class="kw">impl</span> <span class="ident">u128</span>);
-        <span class="macro">impl_as_primitive</span><span class="macro">!</span>(@ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">i8</span>, <span class="ident">i16</span>, <span class="ident">i32</span>, <span class="ident">i64</span>, <span class="ident">isize</span> });
-        <span class="macro">impl_as_primitive</span><span class="macro">!</span>(@ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="op">=</span><span class="op">&gt;</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span> <span class="kw">impl</span> <span class="ident">i128</span>);
+        <span class="macro">impl_as_primitive!</span>(@ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="op">=</span><span class="op">&gt;</span> { $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">U</span> ),<span class="op">*</span> });
+        <span class="macro">impl_as_primitive!</span>(@ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">u8</span>, <span class="ident">u16</span>, <span class="ident">u32</span>, <span class="ident">u64</span>, <span class="ident">usize</span> });
+        <span class="macro">impl_as_primitive!</span>(@ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="op">=</span><span class="op">&gt;</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span> <span class="kw">impl</span> <span class="ident">u128</span>);
+        <span class="macro">impl_as_primitive!</span>(@ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">i8</span>, <span class="ident">i16</span>, <span class="ident">i32</span>, <span class="ident">i64</span>, <span class="ident">isize</span> });
+        <span class="macro">impl_as_primitive!</span>(@ <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="op">=</span><span class="op">&gt;</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span> <span class="kw">impl</span> <span class="ident">i128</span>);
     };
 }
 
-<span class="macro">impl_as_primitive</span><span class="macro">!</span>(<span class="ident">u8</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">char</span>, <span class="ident">f32</span>, <span class="ident">f64</span> });
-<span class="macro">impl_as_primitive</span><span class="macro">!</span>(<span class="ident">i8</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
-<span class="macro">impl_as_primitive</span><span class="macro">!</span>(<span class="ident">u16</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
-<span class="macro">impl_as_primitive</span><span class="macro">!</span>(<span class="ident">i16</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
-<span class="macro">impl_as_primitive</span><span class="macro">!</span>(<span class="ident">u32</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
-<span class="macro">impl_as_primitive</span><span class="macro">!</span>(<span class="ident">i32</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
-<span class="macro">impl_as_primitive</span><span class="macro">!</span>(<span class="ident">u64</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
-<span class="macro">impl_as_primitive</span><span class="macro">!</span>(<span class="ident">i64</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
+<span class="macro">impl_as_primitive!</span>(<span class="ident">u8</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">char</span>, <span class="ident">f32</span>, <span class="ident">f64</span> });
+<span class="macro">impl_as_primitive!</span>(<span class="ident">i8</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
+<span class="macro">impl_as_primitive!</span>(<span class="ident">u16</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
+<span class="macro">impl_as_primitive!</span>(<span class="ident">i16</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
+<span class="macro">impl_as_primitive!</span>(<span class="ident">u32</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
+<span class="macro">impl_as_primitive!</span>(<span class="ident">i32</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
+<span class="macro">impl_as_primitive!</span>(<span class="ident">u64</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
+<span class="macro">impl_as_primitive!</span>(<span class="ident">i64</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<span class="macro">impl_as_primitive</span><span class="macro">!</span>(<span class="ident">u128</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
+<span class="macro">impl_as_primitive!</span>(<span class="ident">u128</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_i128</span>)]</span>
-<span class="macro">impl_as_primitive</span><span class="macro">!</span>(<span class="ident">i128</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
-<span class="macro">impl_as_primitive</span><span class="macro">!</span>(<span class="ident">usize</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
-<span class="macro">impl_as_primitive</span><span class="macro">!</span>(<span class="ident">isize</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
-<span class="macro">impl_as_primitive</span><span class="macro">!</span>(<span class="ident">f32</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
-<span class="macro">impl_as_primitive</span><span class="macro">!</span>(<span class="ident">f64</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
-<span class="macro">impl_as_primitive</span><span class="macro">!</span>(<span class="ident">char</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">char</span> });
-<span class="macro">impl_as_primitive</span><span class="macro">!</span>(<span class="ident">bool</span> <span class="op">=</span><span class="op">&gt;</span> {});
+<span class="macro">impl_as_primitive!</span>(<span class="ident">i128</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
+<span class="macro">impl_as_primitive!</span>(<span class="ident">usize</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
+<span class="macro">impl_as_primitive!</span>(<span class="ident">isize</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
+<span class="macro">impl_as_primitive!</span>(<span class="ident">f32</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
+<span class="macro">impl_as_primitive!</span>(<span class="ident">f64</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">f32</span>, <span class="ident">f64</span> });
+<span class="macro">impl_as_primitive!</span>(<span class="ident">char</span> <span class="op">=</span><span class="op">&gt;</span> { <span class="ident">char</span> });
+<span class="macro">impl_as_primitive!</span>(<span class="ident">bool</span> <span class="op">=</span><span class="op">&gt;</span> {});
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="num_traits" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="num_traits" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

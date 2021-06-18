@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/indexmap-1.6.2/src/map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>map.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../indexmap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../indexmap/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1715,28 +1715,28 @@
 
 <span class="kw">mod</span> <span class="ident">core</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">mutable_keys</span>::<span class="ident">MutableKeys</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::mutable_keys::MutableKeys</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rayon&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">rayon</span>::<span class="ident">map</span> <span class="kw">as</span> <span class="ident">rayon</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::rayon::map</span> <span class="kw">as</span> <span class="ident">rayon</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">vec</span>::{<span class="self">self</span>, <span class="ident">Vec</span>};
-<span class="kw">use</span> ::<span class="ident">core</span>::<span class="ident">cmp</span>::<span class="ident">Ordering</span>;
-<span class="kw">use</span> ::<span class="ident">core</span>::<span class="ident">fmt</span>;
-<span class="kw">use</span> ::<span class="ident">core</span>::<span class="ident">hash</span>::{<span class="ident">BuildHasher</span>, <span class="ident">Hash</span>, <span class="ident">Hasher</span>};
-<span class="kw">use</span> ::<span class="ident">core</span>::<span class="ident">iter</span>::<span class="ident">FromIterator</span>;
-<span class="kw">use</span> ::<span class="ident">core</span>::<span class="ident">ops</span>::{<span class="ident">Index</span>, <span class="ident">IndexMut</span>, <span class="ident">RangeBounds</span>};
-<span class="kw">use</span> ::<span class="ident">core</span>::<span class="ident">slice</span>::{<span class="ident">Iter</span> <span class="kw">as</span> <span class="ident">SliceIter</span>, <span class="ident">IterMut</span> <span class="kw">as</span> <span class="ident">SliceIterMut</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::vec</span>::{<span class="self">self</span>, <span class="ident">Vec</span>};
+<span class="kw">use</span> <span class="ident">::core::cmp::Ordering</span>;
+<span class="kw">use</span> <span class="ident">::core::fmt</span>;
+<span class="kw">use</span> <span class="ident">::core::hash</span>::{<span class="ident">BuildHasher</span>, <span class="ident">Hash</span>, <span class="ident">Hasher</span>};
+<span class="kw">use</span> <span class="ident">::core::iter::FromIterator</span>;
+<span class="kw">use</span> <span class="ident">::core::ops</span>::{<span class="ident">Index</span>, <span class="ident">IndexMut</span>, <span class="ident">RangeBounds</span>};
+<span class="kw">use</span> <span class="ident">::core::slice</span>::{<span class="ident">Iter</span> <span class="kw">as</span> <span class="ident">SliceIter</span>, <span class="ident">IterMut</span> <span class="kw">as</span> <span class="ident">SliceIterMut</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_std</span>)]</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">hash_map</span>::<span class="ident">RandomState</span>;
+<span class="kw">use</span> <span class="ident">std::collections::hash_map::RandomState</span>;
 
-<span class="kw">use</span> <span class="self">self</span>::<span class="ident">core</span>::<span class="ident">IndexMapCore</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">equivalent</span>::<span class="ident">Equivalent</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">third</span>;
+<span class="kw">use</span> <span class="self">self</span><span class="ident">::core::IndexMapCore</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::equivalent::Equivalent</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::util::third</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Bucket</span>, <span class="ident">Entries</span>, <span class="ident">HashValue</span>};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">core</span>::{<span class="ident">Entry</span>, <span class="ident">OccupiedEntry</span>, <span class="ident">VacantEntry</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::core</span>::{<span class="ident">Entry</span>, <span class="ident">OccupiedEntry</span>, <span class="ident">VacantEntry</span>};
 
 <span class="doccomment">/// A hash table where the iteration order of the key-value pairs is independent</span>
 <span class="doccomment">/// of the hash values of the keys.</span>
@@ -1813,35 +1813,35 @@
     <span class="kw">type</span> <span class="ident">Entry</span> <span class="op">=</span> <span class="ident">Bucket</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_entries</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Entry</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">into_entries</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Entry</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">core</span>.<span class="ident">into_entries</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">as_entries</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="self">Self</span>::<span class="ident">Entry</span>] {
+    <span class="kw">fn</span> <span class="ident">as_entries</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span>[<span class="self">Self</span><span class="ident">::Entry</span>] {
         <span class="self">self</span>.<span class="ident">core</span>.<span class="ident">as_entries</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">as_entries_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="self">Self</span>::<span class="ident">Entry</span>] {
+    <span class="kw">fn</span> <span class="ident">as_entries_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="self">Self</span><span class="ident">::Entry</span>] {
         <span class="self">self</span>.<span class="ident">core</span>.<span class="ident">as_entries_mut</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">with_entries</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>)
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="self">Self</span>::<span class="ident">Entry</span>]),
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="self">Self</span><span class="ident">::Entry</span>]),
     {
         <span class="self">self</span>.<span class="ident">core</span>.<span class="ident">with_entries</span>(<span class="ident">f</span>);
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>, <span class="ident">S</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>, <span class="ident">S</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">K</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span>,
-    <span class="ident">V</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span>,
+    <span class="ident">K</span>: <span class="ident">fmt::Debug</span>,
+    <span class="ident">V</span>: <span class="ident">fmt::Debug</span>,
 {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;test_debug&quot;</span>)) {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;test_debug&quot;</span>)) {
             <span class="ident">f</span>.<span class="ident">debug_map</span>().<span class="ident">entries</span>(<span class="self">self</span>.<span class="ident">iter</span>()).<span class="ident">finish</span>()
         } <span class="kw">else</span> {
             <span class="comment">// Let the inner `IndexMapCore` print all of its details</span>
@@ -1857,7 +1857,7 @@
     <span class="doccomment">/// Create a new map. (Does not allocate.)</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">with_capacity</span>(<span class="number">0</span>)
+        <span class="self">Self</span><span class="ident">::with_capacity</span>(<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Create a new map with capacity for `n` key-value pairs. (Does not</span>
@@ -1866,7 +1866,7 @@
     <span class="doccomment">/// Computes in **O(n)** time.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">with_capacity_and_hasher</span>(<span class="ident">n</span>, <span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>::<span class="ident">default</span>())
+        <span class="self">Self</span><span class="ident">::with_capacity_and_hasher</span>(<span class="ident">n</span>, <span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="ident">::default</span>())
     }
 }
 
@@ -1879,12 +1879,12 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity_and_hasher</span>(<span class="ident">n</span>: <span class="ident">usize</span>, <span class="ident">hash_builder</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">n</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
             <span class="ident">IndexMap</span> {
-                <span class="ident">core</span>: <span class="ident">IndexMapCore</span>::<span class="ident">new</span>(),
+                <span class="ident">core</span>: <span class="ident">IndexMapCore::new</span>(),
                 <span class="ident">hash_builder</span>,
             }
         } <span class="kw">else</span> {
             <span class="ident">IndexMap</span> {
-                <span class="ident">core</span>: <span class="ident">IndexMapCore</span>::<span class="ident">with_capacity</span>(<span class="ident">n</span>),
+                <span class="ident">core</span>: <span class="ident">IndexMapCore::with_capacity</span>(<span class="ident">n</span>),
                 <span class="ident">hash_builder</span>,
             }
         }
@@ -1892,7 +1892,7 @@
 
     <span class="doccomment">/// Create a new map with `hash_builder`</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_hasher</span>(<span class="ident">hash_builder</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">with_capacity_and_hasher</span>(<span class="number">0</span>, <span class="ident">hash_builder</span>)
+        <span class="self">Self</span><span class="ident">::with_capacity_and_hasher</span>(<span class="number">0</span>, <span class="ident">hash_builder</span>)
     }
 
     <span class="doccomment">/// Computes in **O(1)** time.</span>
@@ -2366,7 +2366,7 @@
         <span class="ident">K</span>: <span class="ident">Ord</span>,
     {
         <span class="self">self</span>.<span class="ident">with_entries</span>(<span class="op">|</span><span class="ident">entries</span><span class="op">|</span> {
-            <span class="ident">entries</span>.<span class="ident">sort_by</span>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">Ord</span>::<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">key</span>));
+            <span class="ident">entries</span>.<span class="ident">sort_by</span>(<span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">Ord::cmp</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">key</span>));
         });
     }
 
@@ -2417,7 +2417,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Computes in **O(1)** time.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">as_entries</span>().<span class="ident">get</span>(<span class="ident">index</span>).<span class="ident">map</span>(<span class="ident">Bucket</span>::<span class="ident">refs</span>)
+        <span class="self">self</span>.<span class="ident">as_entries</span>().<span class="ident">get</span>(<span class="ident">index</span>).<span class="ident">map</span>(<span class="ident">Bucket::refs</span>)
     }
 
     <span class="doccomment">/// Get a key-value pair by index</span>
@@ -2426,35 +2426,35 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Computes in **O(1)** time.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_index_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">as_entries_mut</span>().<span class="ident">get_mut</span>(<span class="ident">index</span>).<span class="ident">map</span>(<span class="ident">Bucket</span>::<span class="ident">muts</span>)
+        <span class="self">self</span>.<span class="ident">as_entries_mut</span>().<span class="ident">get_mut</span>(<span class="ident">index</span>).<span class="ident">map</span>(<span class="ident">Bucket::muts</span>)
     }
 
     <span class="doccomment">/// Get the first key-value pair</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Computes in **O(1)** time.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">first</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">as_entries</span>().<span class="ident">first</span>().<span class="ident">map</span>(<span class="ident">Bucket</span>::<span class="ident">refs</span>)
+        <span class="self">self</span>.<span class="ident">as_entries</span>().<span class="ident">first</span>().<span class="ident">map</span>(<span class="ident">Bucket::refs</span>)
     }
 
     <span class="doccomment">/// Get the first key-value pair, with mutable access to the value</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Computes in **O(1)** time.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">first_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">as_entries_mut</span>().<span class="ident">first_mut</span>().<span class="ident">map</span>(<span class="ident">Bucket</span>::<span class="ident">ref_mut</span>)
+        <span class="self">self</span>.<span class="ident">as_entries_mut</span>().<span class="ident">first_mut</span>().<span class="ident">map</span>(<span class="ident">Bucket::ref_mut</span>)
     }
 
     <span class="doccomment">/// Get the last key-value pair</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Computes in **O(1)** time.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="ident">V</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">as_entries</span>().<span class="ident">last</span>().<span class="ident">map</span>(<span class="ident">Bucket</span>::<span class="ident">refs</span>)
+        <span class="self">self</span>.<span class="ident">as_entries</span>().<span class="ident">last</span>().<span class="ident">map</span>(<span class="ident">Bucket::refs</span>)
     }
 
     <span class="doccomment">/// Get the last key-value pair, with mutable access to the value</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Computes in **O(1)** time.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">last_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">V</span>)<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">as_entries_mut</span>().<span class="ident">last_mut</span>().<span class="ident">map</span>(<span class="ident">Bucket</span>::<span class="ident">ref_mut</span>)
+        <span class="self">self</span>.<span class="ident">as_entries_mut</span>().<span class="ident">last_mut</span>().<span class="ident">map</span>(<span class="ident">Bucket::ref_mut</span>)
     }
 
     <span class="doccomment">/// Remove the key-value pair by index</span>
@@ -2505,12 +2505,12 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">Keys</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">K</span>;
 
-    <span class="macro">iterator_methods</span><span class="macro">!</span>(<span class="ident">Bucket</span>::<span class="ident">key_ref</span>);
+    <span class="macro">iterator_methods!</span>(<span class="ident">Bucket::key_ref</span>);
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">Keys</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket</span>::<span class="ident">key_ref</span>)
+    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket::key_ref</span>)
     }
 }
 
@@ -2529,8 +2529,8 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Keys</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">fmt::Debug</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Keys</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<span class="self">self</span>.<span class="ident">clone</span>()).<span class="ident">finish</span>()
     }
 }
@@ -2549,12 +2549,12 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">Values</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">V</span>;
 
-    <span class="macro">iterator_methods</span><span class="macro">!</span>(<span class="ident">Bucket</span>::<span class="ident">value_ref</span>);
+    <span class="macro">iterator_methods!</span>(<span class="ident">Bucket::value_ref</span>);
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">Values</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket</span>::<span class="ident">value_ref</span>)
+    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket::value_ref</span>)
     }
 }
 
@@ -2573,8 +2573,8 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Values</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>: <span class="ident">fmt::Debug</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Values</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<span class="self">self</span>.<span class="ident">clone</span>()).<span class="ident">finish</span>()
     }
 }
@@ -2593,12 +2593,12 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">ValuesMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">V</span>;
 
-    <span class="macro">iterator_methods</span><span class="macro">!</span>(<span class="ident">Bucket</span>::<span class="ident">value_mut</span>);
+    <span class="macro">iterator_methods!</span>(<span class="ident">Bucket::value_mut</span>);
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">ValuesMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket</span>::<span class="ident">value_mut</span>)
+    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket::value_mut</span>)
     }
 }
 
@@ -2622,12 +2622,12 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">V</span>);
 
-    <span class="macro">iterator_methods</span><span class="macro">!</span>(<span class="ident">Bucket</span>::<span class="ident">refs</span>);
+    <span class="macro">iterator_methods!</span>(<span class="ident">Bucket::refs</span>);
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket</span>::<span class="ident">refs</span>)
+    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket::refs</span>)
     }
 }
 
@@ -2646,8 +2646,8 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span>, <span class="ident">V</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">fmt::Debug</span>, <span class="ident">V</span>: <span class="ident">fmt::Debug</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<span class="self">self</span>.<span class="ident">clone</span>()).<span class="ident">finish</span>()
     }
 }
@@ -2666,12 +2666,12 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">V</span>);
 
-    <span class="macro">iterator_methods</span><span class="macro">!</span>(<span class="ident">Bucket</span>::<span class="ident">ref_mut</span>);
+    <span class="macro">iterator_methods!</span>(<span class="ident">Bucket::ref_mut</span>);
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket</span>::<span class="ident">ref_mut</span>)
+    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket::ref_mut</span>)
     }
 }
 
@@ -2689,18 +2689,18 @@
 <span class="doccomment">/// [`into_iter`]: struct.IndexMap.html#method.into_iter</span>
 <span class="doccomment">/// [`IndexMap`]: struct.IndexMap.html</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">iter</span>: <span class="ident">vec</span>::<span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">Bucket</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">iter</span>: <span class="ident">vec::IntoIter</span><span class="op">&lt;</span><span class="ident">Bucket</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">K</span>, <span class="ident">V</span>);
 
-    <span class="macro">iterator_methods</span><span class="macro">!</span>(<span class="ident">Bucket</span>::<span class="ident">key_value</span>);
+    <span class="macro">iterator_methods!</span>(<span class="ident">Bucket::key_value</span>);
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket</span>::<span class="ident">key_value</span>)
+    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next_back</span>().<span class="ident">map</span>(<span class="ident">Bucket::key_value</span>)
     }
 }
 
@@ -2710,9 +2710,9 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span>, <span class="ident">V</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">as_slice</span>().<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Bucket</span>::<span class="ident">refs</span>);
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">fmt::Debug</span>, <span class="ident">V</span>: <span class="ident">fmt::Debug</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">as_slice</span>().<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Bucket::refs</span>);
         <span class="ident">f</span>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<span class="ident">iter</span>).<span class="ident">finish</span>()
     }
 }
@@ -2725,23 +2725,23 @@
 <span class="doccomment">/// [`drain`]: struct.IndexMap.html#method.drain</span>
 <span class="doccomment">/// [`IndexMap`]: struct.IndexMap.html</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">iter</span>: <span class="ident">vec</span>::<span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Bucket</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">iter</span>: <span class="ident">vec::Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Bucket</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">K</span>, <span class="ident">V</span>);
 
-    <span class="macro">iterator_methods</span><span class="macro">!</span>(<span class="ident">Bucket</span>::<span class="ident">key_value</span>);
+    <span class="macro">iterator_methods!</span>(<span class="ident">Bucket::key_value</span>);
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">Drain</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="macro">double_ended_iterator_methods</span><span class="macro">!</span>(<span class="ident">Bucket</span>::<span class="ident">key_value</span>);
+    <span class="macro">double_ended_iterator_methods!</span>(<span class="ident">Bucket::key_value</span>);
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">V</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">IntoIterator</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">V</span>);
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">IntoIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::IntoIter</span> {
         <span class="self">self</span>.<span class="ident">iter</span>()
     }
 }
@@ -2749,7 +2749,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">V</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">IntoIterator</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">K</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">V</span>);
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">IntoIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::IntoIter</span> {
         <span class="self">self</span>.<span class="ident">iter_mut</span>()
     }
 }
@@ -2757,7 +2757,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">IntoIterator</span> <span class="kw">for</span> <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">K</span>, <span class="ident">V</span>);
     <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span>::<span class="ident">IntoIter</span> {
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::IntoIter</span> {
         <span class="ident">IntoIter</span> {
             <span class="ident">iter</span>: <span class="self">self</span>.<span class="ident">into_entries</span>().<span class="ident">into_iter</span>(),
         }
@@ -2939,7 +2939,7 @@
     <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">K</span>, <span class="ident">V</span>)<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">iterable</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">iterable</span>.<span class="ident">into_iter</span>();
         <span class="kw">let</span> (<span class="ident">low</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">size_hint</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">with_capacity_and_hasher</span>(<span class="ident">low</span>, <span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>::<span class="ident">default</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::with_capacity_and_hasher</span>(<span class="ident">low</span>, <span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="ident">::default</span>());
         <span class="ident">map</span>.<span class="ident">extend</span>(<span class="ident">iter</span>);
         <span class="ident">map</span>
     }
@@ -2998,7 +2998,7 @@
 {
     <span class="doccomment">/// Return an empty `IndexMap`</span>
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">with_capacity_and_hasher</span>(<span class="number">0</span>, <span class="ident">S</span>::<span class="ident">default</span>())
+        <span class="self">Self</span><span class="ident">::with_capacity_and_hasher</span>(<span class="number">0</span>, <span class="ident">S::default</span>())
     }
 }
 
@@ -3030,77 +3030,77 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">util</span>::<span class="ident">enumerate</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">string</span>::<span class="ident">String</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::util::enumerate</span>;
+    <span class="kw">use</span> <span class="ident">std::string::String</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">it_works</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="ident">new</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">is_empty</span>(), <span class="bool-val">true</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap::new</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">is_empty</span>(), <span class="bool-val">true</span>);
         <span class="ident">map</span>.<span class="ident">insert</span>(<span class="number">1</span>, ());
         <span class="ident">map</span>.<span class="ident">insert</span>(<span class="number">1</span>, ());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">1</span>).<span class="ident">is_some</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">is_empty</span>(), <span class="bool-val">false</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+        <span class="macro">assert!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">1</span>).<span class="ident">is_some</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">is_empty</span>(), <span class="bool-val">false</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">new</span>() {
-        <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span>::<span class="ident">new</span>();
-        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">map</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">is_empty</span>(), <span class="bool-val">true</span>);
+        <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span><span class="ident">::new</span>();
+        <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">map</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">is_empty</span>(), <span class="bool-val">true</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">insert</span>() {
         <span class="kw">let</span> <span class="ident">insert</span> <span class="op">=</span> [<span class="number">0</span>, <span class="number">4</span>, <span class="number">2</span>, <span class="number">12</span>, <span class="number">8</span>, <span class="number">7</span>, <span class="number">11</span>, <span class="number">5</span>];
         <span class="kw">let</span> <span class="ident">not_present</span> <span class="op">=</span> [<span class="number">1</span>, <span class="number">3</span>, <span class="number">6</span>, <span class="number">9</span>, <span class="number">10</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="ident">with_capacity</span>(<span class="ident">insert</span>.<span class="ident">len</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap::with_capacity</span>(<span class="ident">insert</span>.<span class="ident">len</span>());
 
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">enumerate</span>(<span class="kw-2">&amp;</span><span class="ident">insert</span>) {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
             <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">elt</span>, <span class="ident">elt</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>));
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>[<span class="kw-2">&amp;</span><span class="ident">elt</span>], <span class="ident">elt</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>));
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>[<span class="kw-2">&amp;</span><span class="ident">elt</span>], <span class="ident">elt</span>);
         }
-        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">map</span>);
+        <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">map</span>);
 
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">elt</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">not_present</span> {
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>).<span class="ident">is_none</span>());
+            <span class="macro">assert!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>).<span class="ident">is_none</span>());
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">insert_full</span>() {
-        <span class="kw">let</span> <span class="ident">insert</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">9</span>, <span class="number">2</span>, <span class="number">7</span>, <span class="number">1</span>, <span class="number">4</span>, <span class="number">6</span>, <span class="number">13</span>];
-        <span class="kw">let</span> <span class="ident">present</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="number">1</span>, <span class="number">6</span>, <span class="number">2</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="ident">with_capacity</span>(<span class="ident">insert</span>.<span class="ident">len</span>());
+        <span class="kw">let</span> <span class="ident">insert</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">9</span>, <span class="number">2</span>, <span class="number">7</span>, <span class="number">1</span>, <span class="number">4</span>, <span class="number">6</span>, <span class="number">13</span>];
+        <span class="kw">let</span> <span class="ident">present</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">6</span>, <span class="number">2</span>];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap::with_capacity</span>(<span class="ident">insert</span>.<span class="ident">len</span>());
 
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">enumerate</span>(<span class="kw-2">&amp;</span><span class="ident">insert</span>) {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
             <span class="kw">let</span> (<span class="ident">index</span>, <span class="ident">existing</span>) <span class="op">=</span> <span class="ident">map</span>.<span class="ident">insert_full</span>(<span class="ident">elt</span>, <span class="ident">elt</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">existing</span>, <span class="prelude-val">None</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="prelude-val">Some</span>(<span class="ident">index</span>), <span class="ident">map</span>.<span class="ident">get_full</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="number">0</span>));
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">existing</span>, <span class="prelude-val">None</span>);
+            <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="ident">index</span>), <span class="ident">map</span>.<span class="ident">get_full</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="number">0</span>));
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
         }
 
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">len</span>();
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">elt</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">present</span> {
             <span class="kw">let</span> (<span class="ident">index</span>, <span class="ident">existing</span>) <span class="op">=</span> <span class="ident">map</span>.<span class="ident">insert_full</span>(<span class="ident">elt</span>, <span class="ident">elt</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">existing</span>, <span class="prelude-val">Some</span>(<span class="ident">elt</span>));
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="prelude-val">Some</span>(<span class="ident">index</span>), <span class="ident">map</span>.<span class="ident">get_full</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="number">0</span>));
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">len</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">existing</span>, <span class="prelude-val">Some</span>(<span class="ident">elt</span>));
+            <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="ident">index</span>), <span class="ident">map</span>.<span class="ident">get_full</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="number">0</span>));
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">len</span>);
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">insert_2</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="ident">with_capacity</span>(<span class="number">16</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap::with_capacity</span>(<span class="number">16</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">keys</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">keys</span> <span class="op">=</span> <span class="macro">vec!</span>[];
         <span class="ident">keys</span>.<span class="ident">extend</span>(<span class="number">0</span>..<span class="number">16</span>);
         <span class="ident">keys</span>.<span class="ident">extend</span>(<span class="number">128</span>..<span class="number">267</span>);
 
@@ -3109,34 +3109,34 @@
             <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">i</span>, ());
             <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="ident">old_map</span>.<span class="ident">keys</span>() {
                 <span class="kw">if</span> <span class="ident">map</span>.<span class="ident">get</span>(<span class="ident">key</span>).<span class="ident">is_none</span>() {
-                    <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;old_map: {:?}&quot;</span>, <span class="ident">old_map</span>);
-                    <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;map: {:?}&quot;</span>, <span class="ident">map</span>);
-                    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;did not find {} in map&quot;</span>, <span class="ident">key</span>);
+                    <span class="macro">println!</span>(<span class="string">&quot;old_map: {:?}&quot;</span>, <span class="ident">old_map</span>);
+                    <span class="macro">println!</span>(<span class="string">&quot;map: {:?}&quot;</span>, <span class="ident">map</span>);
+                    <span class="macro">panic!</span>(<span class="string">&quot;did not find {} in map&quot;</span>, <span class="ident">key</span>);
                 }
             }
         }
 
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">i</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">keys</span> {
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>).<span class="ident">is_some</span>(), <span class="string">&quot;did not find {}&quot;</span>, <span class="ident">i</span>);
+            <span class="macro">assert!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>).<span class="ident">is_some</span>(), <span class="string">&quot;did not find {}&quot;</span>, <span class="ident">i</span>);
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">insert_order</span>() {
         <span class="kw">let</span> <span class="ident">insert</span> <span class="op">=</span> [<span class="number">0</span>, <span class="number">4</span>, <span class="number">2</span>, <span class="number">12</span>, <span class="number">8</span>, <span class="number">7</span>, <span class="number">11</span>, <span class="number">5</span>, <span class="number">3</span>, <span class="number">17</span>, <span class="number">19</span>, <span class="number">22</span>, <span class="number">23</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap::new</span>();
 
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">elt</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">insert</span> {
             <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">elt</span>, ());
         }
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">keys</span>().<span class="ident">count</span>(), <span class="ident">map</span>.<span class="ident">len</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">keys</span>().<span class="ident">count</span>(), <span class="ident">insert</span>.<span class="ident">len</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">keys</span>().<span class="ident">count</span>(), <span class="ident">map</span>.<span class="ident">len</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">keys</span>().<span class="ident">count</span>(), <span class="ident">insert</span>.<span class="ident">len</span>());
         <span class="kw">for</span> (<span class="ident">a</span>, <span class="ident">b</span>) <span class="kw">in</span> <span class="ident">insert</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">map</span>.<span class="ident">keys</span>()) {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">b</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">a</span>, <span class="ident">b</span>);
         }
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">k</span>) <span class="kw">in</span> (<span class="number">0</span>..<span class="ident">insert</span>.<span class="ident">len</span>()).<span class="ident">zip</span>(<span class="ident">map</span>.<span class="ident">keys</span>()) {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">get_index</span>(<span class="ident">i</span>).<span class="ident">unwrap</span>().<span class="number">0</span>, <span class="ident">k</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">get_index</span>(<span class="ident">i</span>).<span class="ident">unwrap</span>().<span class="number">0</span>, <span class="ident">k</span>);
         }
     }
 
@@ -3144,17 +3144,17 @@
     <span class="kw">fn</span> <span class="ident">grow</span>() {
         <span class="kw">let</span> <span class="ident">insert</span> <span class="op">=</span> [<span class="number">0</span>, <span class="number">4</span>, <span class="number">2</span>, <span class="number">12</span>, <span class="number">8</span>, <span class="number">7</span>, <span class="number">11</span>];
         <span class="kw">let</span> <span class="ident">not_present</span> <span class="op">=</span> [<span class="number">1</span>, <span class="number">3</span>, <span class="number">6</span>, <span class="number">9</span>, <span class="number">10</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="ident">with_capacity</span>(<span class="ident">insert</span>.<span class="ident">len</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap::with_capacity</span>(<span class="ident">insert</span>.<span class="ident">len</span>());
 
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">enumerate</span>(<span class="kw-2">&amp;</span><span class="ident">insert</span>) {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
             <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">elt</span>, <span class="ident">elt</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>));
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>[<span class="kw-2">&amp;</span><span class="ident">elt</span>], <span class="ident">elt</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>));
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>[<span class="kw-2">&amp;</span><span class="ident">elt</span>], <span class="ident">elt</span>);
         }
 
-        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">map</span>);
+        <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">map</span>);
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">elt</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">insert</span> {
             <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">elt</span> <span class="op">*</span> <span class="number">10</span>, <span class="ident">elt</span>);
         }
@@ -3164,98 +3164,98 @@
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">insert</span>.<span class="ident">iter</span>().<span class="ident">cycle</span>().<span class="ident">enumerate</span>().<span class="ident">take</span>(<span class="number">100</span>) {
             <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">elt</span> <span class="op">*</span> <span class="number">100</span> <span class="op">+</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">i32</span>, <span class="ident">elt</span>);
         }
-        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">map</span>);
+        <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">map</span>);
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">elt</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">not_present</span> {
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>).<span class="ident">is_none</span>());
+            <span class="macro">assert!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">elt</span>).<span class="ident">is_none</span>());
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">reserve</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span>::<span class="ident">new</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="ident">::new</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
         <span class="ident">map</span>.<span class="ident">reserve</span>(<span class="number">100</span>);
         <span class="kw">let</span> <span class="ident">capacity</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">capacity</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">capacity</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">100</span>);
+        <span class="macro">assert!</span>(<span class="ident">capacity</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">100</span>);
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">capacity</span> {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
             <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">i</span>, <span class="ident">i</span> <span class="op">*</span> <span class="ident">i</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">capacity</span>(), <span class="ident">capacity</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="ident">i</span> <span class="op">*</span> <span class="ident">i</span>)));
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">capacity</span>(), <span class="ident">capacity</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="ident">i</span> <span class="op">*</span> <span class="ident">i</span>)));
         }
-        <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">capacity</span>, <span class="ident">std</span>::<span class="ident">usize</span>::<span class="ident">MAX</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">capacity</span> <span class="op">+</span> <span class="number">1</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">capacity</span>() <span class="op">&gt;</span> <span class="ident">capacity</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">capacity</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">std</span>::<span class="ident">usize</span>::<span class="ident">MAX</span>));
+        <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">capacity</span>, <span class="ident">std::usize::MAX</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">capacity</span> <span class="op">+</span> <span class="number">1</span>);
+        <span class="macro">assert!</span>(<span class="ident">map</span>.<span class="ident">capacity</span>() <span class="op">&gt;</span> <span class="ident">capacity</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">capacity</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">std::usize::MAX</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">shrink_to_fit</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span>::<span class="ident">new</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="ident">::new</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">capacity</span>(), <span class="number">0</span>);
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">100</span> {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
             <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">i</span>, <span class="ident">i</span> <span class="op">*</span> <span class="ident">i</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">capacity</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="ident">i</span> <span class="op">*</span> <span class="ident">i</span>)));
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
+            <span class="macro">assert!</span>(<span class="ident">map</span>.<span class="ident">capacity</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="ident">i</span> <span class="op">*</span> <span class="ident">i</span>)));
             <span class="ident">map</span>.<span class="ident">shrink_to_fit</span>();
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">capacity</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="ident">i</span> <span class="op">*</span> <span class="ident">i</span>)));
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">capacity</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>), <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>(<span class="ident">i</span> <span class="op">*</span> <span class="ident">i</span>)));
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">remove</span>() {
         <span class="kw">let</span> <span class="ident">insert</span> <span class="op">=</span> [<span class="number">0</span>, <span class="number">4</span>, <span class="number">2</span>, <span class="number">12</span>, <span class="number">8</span>, <span class="number">7</span>, <span class="number">11</span>, <span class="number">5</span>, <span class="number">3</span>, <span class="number">17</span>, <span class="number">19</span>, <span class="number">22</span>, <span class="number">23</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap::new</span>();
 
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">elt</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">insert</span> {
             <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">elt</span>, <span class="ident">elt</span>);
         }
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">keys</span>().<span class="ident">count</span>(), <span class="ident">map</span>.<span class="ident">len</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">keys</span>().<span class="ident">count</span>(), <span class="ident">insert</span>.<span class="ident">len</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">keys</span>().<span class="ident">count</span>(), <span class="ident">map</span>.<span class="ident">len</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">keys</span>().<span class="ident">count</span>(), <span class="ident">insert</span>.<span class="ident">len</span>());
         <span class="kw">for</span> (<span class="ident">a</span>, <span class="ident">b</span>) <span class="kw">in</span> <span class="ident">insert</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">map</span>.<span class="ident">keys</span>()) {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">b</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">a</span>, <span class="ident">b</span>);
         }
 
         <span class="kw">let</span> <span class="ident">remove_fail</span> <span class="op">=</span> [<span class="number">99</span>, <span class="number">77</span>];
         <span class="kw">let</span> <span class="ident">remove</span> <span class="op">=</span> [<span class="number">4</span>, <span class="number">12</span>, <span class="number">8</span>, <span class="number">7</span>];
 
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">key</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">remove_fail</span> {
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">swap_remove_full</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">is_none</span>());
+            <span class="macro">assert!</span>(<span class="ident">map</span>.<span class="ident">swap_remove_full</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">is_none</span>());
         }
-        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">map</span>);
+        <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">map</span>);
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">key</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">remove</span> {
             <span class="comment">//println!(&quot;{:?}&quot;, map);</span>
             <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">get_full</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">unwrap</span>().<span class="number">0</span>;
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">swap_remove_full</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>), <span class="prelude-val">Some</span>((<span class="ident">index</span>, <span class="ident">key</span>, <span class="ident">key</span>)));
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">swap_remove_full</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>), <span class="prelude-val">Some</span>((<span class="ident">index</span>, <span class="ident">key</span>, <span class="ident">key</span>)));
         }
-        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">map</span>);
+        <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">map</span>);
 
         <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">insert</span> {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="ident">key</span>).<span class="ident">is_some</span>(), <span class="op">!</span><span class="ident">remove</span>.<span class="ident">contains</span>(<span class="ident">key</span>));
+            <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">get</span>(<span class="ident">key</span>).<span class="ident">is_some</span>(), <span class="op">!</span><span class="ident">remove</span>.<span class="ident">contains</span>(<span class="ident">key</span>));
         }
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">insert</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">remove</span>.<span class="ident">len</span>());
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">keys</span>().<span class="ident">count</span>(), <span class="ident">insert</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">remove</span>.<span class="ident">len</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">insert</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">remove</span>.<span class="ident">len</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">keys</span>().<span class="ident">count</span>(), <span class="ident">insert</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">remove</span>.<span class="ident">len</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">remove_to_empty</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="macro">indexmap</span><span class="macro">!</span> { <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>, <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>, <span class="number">5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span> };
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="macro">indexmap!</span> { <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>, <span class="number">4</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">4</span>, <span class="number">5</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">5</span> };
         <span class="ident">map</span>.<span class="ident">swap_remove</span>(<span class="kw-2">&amp;</span><span class="number">5</span>).<span class="ident">unwrap</span>();
         <span class="ident">map</span>.<span class="ident">swap_remove</span>(<span class="kw-2">&amp;</span><span class="number">4</span>).<span class="ident">unwrap</span>();
         <span class="ident">map</span>.<span class="ident">swap_remove</span>(<span class="kw-2">&amp;</span><span class="number">0</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">map</span>.<span class="ident">is_empty</span>());
+        <span class="macro">assert!</span>(<span class="ident">map</span>.<span class="ident">is_empty</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">swap_remove_index</span>() {
         <span class="kw">let</span> <span class="ident">insert</span> <span class="op">=</span> [<span class="number">0</span>, <span class="number">4</span>, <span class="number">2</span>, <span class="number">12</span>, <span class="number">8</span>, <span class="number">7</span>, <span class="number">11</span>, <span class="number">5</span>, <span class="number">3</span>, <span class="number">17</span>, <span class="number">19</span>, <span class="number">22</span>, <span class="number">23</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap::new</span>();
 
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">elt</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">insert</span> {
             <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">elt</span>, <span class="ident">elt</span> <span class="op">*</span> <span class="number">2</span>);
@@ -3269,78 +3269,78 @@
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">rm</span> <span class="kw">in</span> <span class="ident">remove_sequence</span> {
             <span class="kw">let</span> <span class="ident">out_vec</span> <span class="op">=</span> <span class="ident">vector</span>.<span class="ident">swap_remove</span>(<span class="ident">rm</span>);
             <span class="kw">let</span> (<span class="ident">out_map</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">map</span>.<span class="ident">swap_remove_index</span>(<span class="ident">rm</span>).<span class="ident">unwrap</span>();
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">out_vec</span>, <span class="ident">out_map</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">out_vec</span>, <span class="ident">out_map</span>);
         }
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">vector</span>.<span class="ident">len</span>(), <span class="ident">map</span>.<span class="ident">len</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">vector</span>.<span class="ident">len</span>(), <span class="ident">map</span>.<span class="ident">len</span>());
         <span class="kw">for</span> (<span class="ident">a</span>, <span class="ident">b</span>) <span class="kw">in</span> <span class="ident">vector</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="ident">map</span>.<span class="ident">keys</span>()) {
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">b</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">a</span>, <span class="ident">b</span>);
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">partial_eq_and_eq</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map_a</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map_a</span> <span class="op">=</span> <span class="ident">IndexMap::new</span>();
         <span class="ident">map_a</span>.<span class="ident">insert</span>(<span class="number">1</span>, <span class="string">&quot;1&quot;</span>);
         <span class="ident">map_a</span>.<span class="ident">insert</span>(<span class="number">2</span>, <span class="string">&quot;2&quot;</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map_b</span> <span class="op">=</span> <span class="ident">map_a</span>.<span class="ident">clone</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">map_a</span>, <span class="ident">map_b</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">map_a</span>, <span class="ident">map_b</span>);
         <span class="ident">map_b</span>.<span class="ident">swap_remove</span>(<span class="kw-2">&amp;</span><span class="number">1</span>);
-        <span class="macro">assert_ne</span><span class="macro">!</span>(<span class="ident">map_a</span>, <span class="ident">map_b</span>);
+        <span class="macro">assert_ne!</span>(<span class="ident">map_a</span>, <span class="ident">map_b</span>);
 
         <span class="kw">let</span> <span class="ident">map_c</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">map_b</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">k</span>, <span class="ident">v</span>)<span class="op">|</span> (<span class="ident">k</span>, <span class="ident">v</span>.<span class="ident">into</span>())).<span class="ident">collect</span>();
-        <span class="macro">assert_ne</span><span class="macro">!</span>(<span class="ident">map_a</span>, <span class="ident">map_c</span>);
-        <span class="macro">assert_ne</span><span class="macro">!</span>(<span class="ident">map_c</span>, <span class="ident">map_a</span>);
+        <span class="macro">assert_ne!</span>(<span class="ident">map_a</span>, <span class="ident">map_c</span>);
+        <span class="macro">assert_ne!</span>(<span class="ident">map_c</span>, <span class="ident">map_a</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">extend</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="ident">new</span>();
-        <span class="ident">map</span>.<span class="ident">extend</span>(<span class="macro">vec</span><span class="macro">!</span>[(<span class="kw-2">&amp;</span><span class="number">1</span>, <span class="kw-2">&amp;</span><span class="number">2</span>), (<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="kw-2">&amp;</span><span class="number">4</span>)]);
-        <span class="ident">map</span>.<span class="ident">extend</span>(<span class="macro">vec</span><span class="macro">!</span>[(<span class="number">5</span>, <span class="number">6</span>)]);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap::new</span>();
+        <span class="ident">map</span>.<span class="ident">extend</span>(<span class="macro">vec!</span>[(<span class="kw-2">&amp;</span><span class="number">1</span>, <span class="kw-2">&amp;</span><span class="number">2</span>), (<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="kw-2">&amp;</span><span class="number">4</span>)]);
+        <span class="ident">map</span>.<span class="ident">extend</span>(<span class="macro">vec!</span>[(<span class="number">5</span>, <span class="number">6</span>)]);
+        <span class="macro">assert_eq!</span>(
             <span class="ident">map</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
-            <span class="macro">vec</span><span class="macro">!</span>[(<span class="number">1</span>, <span class="number">2</span>), (<span class="number">3</span>, <span class="number">4</span>), (<span class="number">5</span>, <span class="number">6</span>)]
+            <span class="macro">vec!</span>[(<span class="number">1</span>, <span class="number">2</span>), (<span class="number">3</span>, <span class="number">4</span>), (<span class="number">5</span>, <span class="number">6</span>)]
         );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">entry</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap::new</span>();
 
         <span class="ident">map</span>.<span class="ident">insert</span>(<span class="number">1</span>, <span class="string">&quot;1&quot;</span>);
         <span class="ident">map</span>.<span class="ident">insert</span>(<span class="number">2</span>, <span class="string">&quot;2&quot;</span>);
         {
             <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">entry</span>(<span class="number">3</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">e</span>.<span class="ident">index</span>(), <span class="number">2</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">e</span>.<span class="ident">index</span>(), <span class="number">2</span>);
             <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">or_insert</span>(<span class="string">&quot;3&quot;</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">e</span>, <span class="kw-2">&amp;</span><span class="string">&quot;3&quot;</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">e</span>, <span class="kw-2">&amp;</span><span class="string">&quot;3&quot;</span>);
         }
 
         <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">entry</span>(<span class="number">2</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">e</span>.<span class="ident">index</span>(), <span class="number">1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">e</span>.<span class="ident">key</span>(), <span class="kw-2">&amp;</span><span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">e</span>.<span class="ident">index</span>(), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">e</span>.<span class="ident">key</span>(), <span class="kw-2">&amp;</span><span class="number">2</span>);
         <span class="kw">match</span> <span class="ident">e</span> {
-            <span class="ident">Entry</span>::<span class="ident">Occupied</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">e</span>.<span class="ident">get</span>(), <span class="kw-2">&amp;</span><span class="string">&quot;2&quot;</span>),
-            <span class="ident">Entry</span>::<span class="ident">Vacant</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(),
+            <span class="ident">Entry::Occupied</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">assert_eq!</span>(<span class="ident">e</span>.<span class="ident">get</span>(), <span class="kw-2">&amp;</span><span class="string">&quot;2&quot;</span>),
+            <span class="ident">Entry::Vacant</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(),
         }
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">e</span>.<span class="ident">or_insert</span>(<span class="string">&quot;4&quot;</span>), <span class="kw-2">&amp;</span><span class="string">&quot;2&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">e</span>.<span class="ident">or_insert</span>(<span class="string">&quot;4&quot;</span>), <span class="kw-2">&amp;</span><span class="string">&quot;2&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">entry_and_modify</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap::new</span>();
 
         <span class="ident">map</span>.<span class="ident">insert</span>(<span class="number">1</span>, <span class="string">&quot;1&quot;</span>);
         <span class="ident">map</span>.<span class="ident">entry</span>(<span class="number">1</span>).<span class="ident">and_modify</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">=</span> <span class="string">&quot;2&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">&quot;2&quot;</span>), <span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">1</span>));
+        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="string">&quot;2&quot;</span>), <span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">1</span>));
 
         <span class="ident">map</span>.<span class="ident">entry</span>(<span class="number">2</span>).<span class="ident">and_modify</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">=</span> <span class="string">&quot;doesn&#39;t exist&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="prelude-val">None</span>, <span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">2</span>));
+        <span class="macro">assert_eq!</span>(<span class="prelude-val">None</span>, <span class="ident">map</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">2</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">entry_or_default</span>() {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap::new</span>();
 
         <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
         <span class="kw">enum</span> <span class="ident">TestEnum</span> {
@@ -3350,14 +3350,14 @@
 
         <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">TestEnum</span> {
             <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-                <span class="ident">TestEnum</span>::<span class="ident">DefaultValue</span>
+                <span class="ident">TestEnum::DefaultValue</span>
             }
         }
 
-        <span class="ident">map</span>.<span class="ident">insert</span>(<span class="number">1</span>, <span class="ident">TestEnum</span>::<span class="ident">NonDefaultValue</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TestEnum</span>::<span class="ident">NonDefaultValue</span>, <span class="ident">map</span>.<span class="ident">entry</span>(<span class="number">1</span>).<span class="ident">or_default</span>());
+        <span class="ident">map</span>.<span class="ident">insert</span>(<span class="number">1</span>, <span class="ident">TestEnum::NonDefaultValue</span>);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TestEnum::NonDefaultValue</span>, <span class="ident">map</span>.<span class="ident">entry</span>(<span class="number">1</span>).<span class="ident">or_default</span>());
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TestEnum</span>::<span class="ident">DefaultValue</span>, <span class="ident">map</span>.<span class="ident">entry</span>(<span class="number">2</span>).<span class="ident">or_default</span>());
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TestEnum::DefaultValue</span>, <span class="ident">map</span>.<span class="ident">entry</span>(<span class="number">2</span>).<span class="ident">or_default</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -3366,58 +3366,58 @@
         <span class="kw">let</span> (<span class="ident">k1</span>, <span class="ident">k2</span>) <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="number">1</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="number">1</span>);
         <span class="kw">let</span> <span class="ident">k1_ptr</span> <span class="op">=</span> <span class="ident">k1</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">i32</span>;
         <span class="kw">let</span> <span class="ident">k2_ptr</span> <span class="op">=</span> <span class="ident">k2</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">i32</span>;
-        <span class="macro">assert_ne</span><span class="macro">!</span>(<span class="ident">k1_ptr</span>, <span class="ident">k2_ptr</span>);
+        <span class="macro">assert_ne!</span>(<span class="ident">k1_ptr</span>, <span class="ident">k2_ptr</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap::new</span>();
         <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">k1</span>, <span class="string">&quot;value&quot;</span>);
         <span class="kw">match</span> <span class="ident">map</span>.<span class="ident">entry</span>(<span class="ident">k2</span>) {
-            <span class="ident">Entry</span>::<span class="ident">Occupied</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Entry::Occupied</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// `OccupiedEntry::key` should reference the key in the map,</span>
                 <span class="comment">// not the key that was used to find the entry.</span>
                 <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">e</span>.<span class="ident">key</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">i32</span>;
-                <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">ptr</span>, <span class="ident">k1_ptr</span>);
-                <span class="macro">assert_ne</span><span class="macro">!</span>(<span class="ident">ptr</span>, <span class="ident">k2_ptr</span>);
+                <span class="macro">assert_eq!</span>(<span class="ident">ptr</span>, <span class="ident">k1_ptr</span>);
+                <span class="macro">assert_ne!</span>(<span class="ident">ptr</span>, <span class="ident">k2_ptr</span>);
             }
-            <span class="ident">Entry</span>::<span class="ident">Vacant</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(),
+            <span class="ident">Entry::Vacant</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(),
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">keys</span>() {
-        <span class="kw">let</span> <span class="ident">vec</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[(<span class="number">1</span>, <span class="string">&#39;a&#39;</span>), (<span class="number">2</span>, <span class="string">&#39;b&#39;</span>), (<span class="number">3</span>, <span class="string">&#39;c&#39;</span>)];
+        <span class="kw">let</span> <span class="ident">vec</span> <span class="op">=</span> <span class="macro">vec!</span>[(<span class="number">1</span>, <span class="string">&#39;a&#39;</span>), (<span class="number">2</span>, <span class="string">&#39;b&#39;</span>), (<span class="number">3</span>, <span class="string">&#39;c&#39;</span>)];
         <span class="kw">let</span> <span class="ident">map</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">vec</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>();
         <span class="kw">let</span> <span class="ident">keys</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">keys</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">keys</span>.<span class="ident">len</span>(), <span class="number">3</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">keys</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">1</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">keys</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">2</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">keys</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">3</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">keys</span>.<span class="ident">len</span>(), <span class="number">3</span>);
+        <span class="macro">assert!</span>(<span class="ident">keys</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">1</span>));
+        <span class="macro">assert!</span>(<span class="ident">keys</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">2</span>));
+        <span class="macro">assert!</span>(<span class="ident">keys</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">3</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">values</span>() {
-        <span class="kw">let</span> <span class="ident">vec</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[(<span class="number">1</span>, <span class="string">&#39;a&#39;</span>), (<span class="number">2</span>, <span class="string">&#39;b&#39;</span>), (<span class="number">3</span>, <span class="string">&#39;c&#39;</span>)];
+        <span class="kw">let</span> <span class="ident">vec</span> <span class="op">=</span> <span class="macro">vec!</span>[(<span class="number">1</span>, <span class="string">&#39;a&#39;</span>), (<span class="number">2</span>, <span class="string">&#39;b&#39;</span>), (<span class="number">3</span>, <span class="string">&#39;c&#39;</span>)];
         <span class="kw">let</span> <span class="ident">map</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">vec</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>();
         <span class="kw">let</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">values</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">values</span>.<span class="ident">len</span>(), <span class="number">3</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="string">&#39;a&#39;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="string">&#39;b&#39;</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="string">&#39;c&#39;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">values</span>.<span class="ident">len</span>(), <span class="number">3</span>);
+        <span class="macro">assert!</span>(<span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="string">&#39;a&#39;</span>));
+        <span class="macro">assert!</span>(<span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="string">&#39;b&#39;</span>));
+        <span class="macro">assert!</span>(<span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="string">&#39;c&#39;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">values_mut</span>() {
-        <span class="kw">let</span> <span class="ident">vec</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[(<span class="number">1</span>, <span class="number">1</span>), (<span class="number">2</span>, <span class="number">2</span>), (<span class="number">3</span>, <span class="number">3</span>)];
+        <span class="kw">let</span> <span class="ident">vec</span> <span class="op">=</span> <span class="macro">vec!</span>[(<span class="number">1</span>, <span class="number">1</span>), (<span class="number">2</span>, <span class="number">2</span>), (<span class="number">3</span>, <span class="number">3</span>)];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span>: <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">vec</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>();
         <span class="kw">for</span> <span class="ident">value</span> <span class="kw">in</span> <span class="ident">map</span>.<span class="ident">values_mut</span>() {
             <span class="kw-2">*</span><span class="ident">value</span> <span class="kw-2">*</span><span class="op">=</span> <span class="number">2</span>
         }
         <span class="kw">let</span> <span class="ident">values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">map</span>.<span class="ident">values</span>().<span class="ident">cloned</span>().<span class="ident">collect</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">values</span>.<span class="ident">len</span>(), <span class="number">3</span>);
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">2</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">4</span>));
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">6</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">values</span>.<span class="ident">len</span>(), <span class="number">3</span>);
+        <span class="macro">assert!</span>(<span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">2</span>));
+        <span class="macro">assert!</span>(<span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">4</span>));
+        <span class="macro">assert!</span>(<span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="number">6</span>));
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="indexmap" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="indexmap" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

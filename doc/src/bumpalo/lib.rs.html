@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bumpalo-3.7.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../bumpalo/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../bumpalo/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -2143,23 +2143,23 @@ to only do it deliberately and for good reasons.
 
 <span class="kw">mod</span> <span class="ident">alloc</span>;
 
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">cell</span>::<span class="ident">Cell</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>::<span class="ident">Display</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">iter</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">marker</span>::<span class="ident">PhantomData</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">mem</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ptr</span>::{<span class="self">self</span>, <span class="ident">NonNull</span>};
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">slice</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">str</span>;
-<span class="kw">use</span> <span class="ident">core_alloc</span>::<span class="ident">alloc</span>::{<span class="ident">alloc</span>, <span class="ident">dealloc</span>, <span class="ident">Layout</span>};
+<span class="kw">use</span> <span class="ident">core::cell::Cell</span>;
+<span class="kw">use</span> <span class="ident">core::fmt::Display</span>;
+<span class="kw">use</span> <span class="ident">core::iter</span>;
+<span class="kw">use</span> <span class="ident">core::marker::PhantomData</span>;
+<span class="kw">use</span> <span class="ident">core::mem</span>;
+<span class="kw">use</span> <span class="ident">core::ptr</span>::{<span class="self">self</span>, <span class="ident">NonNull</span>};
+<span class="kw">use</span> <span class="ident">core::slice</span>;
+<span class="kw">use</span> <span class="ident">core::str</span>;
+<span class="kw">use</span> <span class="ident">core_alloc::alloc</span>::{<span class="ident">alloc</span>, <span class="ident">dealloc</span>, <span class="ident">Layout</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;allocator_api&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">core_alloc</span>::<span class="ident">alloc</span>::{<span class="ident">AllocError</span>, <span class="ident">Allocator</span>};
+<span class="kw">use</span> <span class="ident">core_alloc::alloc</span>::{<span class="ident">AllocError</span>, <span class="ident">Allocator</span>};
 
 <span class="doccomment">/// An error returned from [`Bump::try_alloc_try_with`].</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AllocOrInitError</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Indicates that the initial allocation failed.</span>
-    <span class="ident">Alloc</span>(<span class="ident">alloc</span>::<span class="ident">AllocErr</span>),
+    <span class="ident">Alloc</span>(<span class="ident">alloc::AllocErr</span>),
     <span class="doccomment">/// Indicates that the initializer failed with the contained error after</span>
     <span class="doccomment">/// allocation.</span>
     <span class="doccomment">///</span>
@@ -2167,16 +2167,16 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">/// released back to the allocator at this point.</span>
     <span class="ident">Init</span>(<span class="ident">E</span>),
 }
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">alloc</span>::<span class="ident">AllocErr</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AllocOrInitError</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">alloc</span>::<span class="ident">AllocErr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">Self</span>::<span class="ident">Alloc</span>(<span class="ident">e</span>)
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">alloc::AllocErr</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AllocOrInitError</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">alloc::AllocErr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span><span class="ident">::Alloc</span>(<span class="ident">e</span>)
     }
 }
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident">Display</span><span class="op">&gt;</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">AllocOrInitError</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">core</span>::<span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core</span>::<span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">core::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">core::fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">AllocOrInitError</span>::<span class="ident">Alloc</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">err</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident">AllocOrInitError</span>::<span class="ident">Init</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;initialization failed: {}&quot;</span>, <span class="ident">err</span>),
+            <span class="ident">AllocOrInitError::Alloc</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">err</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident">AllocOrInitError::Init</span>(<span class="ident">err</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;initialization failed: {}&quot;</span>, <span class="ident">err</span>),
         }
     }
 }
@@ -2395,7 +2395,7 @@ to only do it deliberately and for good reasons.
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Bump</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Bump</span> {
-        <span class="ident">Bump</span>::<span class="ident">new</span>()
+        <span class="ident">Bump::new</span>()
     }
 }
 
@@ -2423,8 +2423,8 @@ to only do it deliberately and for good reasons.
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">round_up_to</span>(<span class="ident">n</span>: <span class="ident">usize</span>, <span class="ident">divisor</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">divisor</span> <span class="op">&gt;</span> <span class="number">0</span>);
-    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">divisor</span>.<span class="ident">is_power_of_two</span>());
+    <span class="macro">debug_assert!</span>(<span class="ident">divisor</span> <span class="op">&gt;</span> <span class="number">0</span>);
+    <span class="macro">debug_assert!</span>(<span class="ident">divisor</span>.<span class="ident">is_power_of_two</span>());
     <span class="prelude-val">Some</span>(<span class="ident">n</span>.<span class="ident">checked_add</span>(<span class="ident">divisor</span> <span class="op">-</span> <span class="number">1</span>)<span class="question-mark">?</span> <span class="op">&amp;</span> <span class="op">!</span>(<span class="ident">divisor</span> <span class="op">-</span> <span class="number">1</span>))
 }
 
@@ -2434,10 +2434,10 @@ to only do it deliberately and for good reasons.
 <span class="comment">// We only support alignments of up to 16 bytes for iter_allocated_chunks.</span>
 <span class="kw">const</span> <span class="ident">SUPPORTED_ITER_ALIGNMENT</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">16</span>;
 <span class="kw">const</span> <span class="ident">CHUNK_ALIGN</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">SUPPORTED_ITER_ALIGNMENT</span>;
-<span class="kw">const</span> <span class="ident">FOOTER_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">ChunkFooter</span><span class="op">&gt;</span>();
+<span class="kw">const</span> <span class="ident">FOOTER_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">ChunkFooter</span><span class="op">&gt;</span>();
 
 <span class="comment">// Assert that ChunkFooter is at most the supported alignment. This will give a compile time error if it is not the case</span>
-<span class="kw">const</span> <span class="ident">_FOOTER_ALIGN_ASSERTION</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="ident">mem</span>::<span class="ident">align_of</span>::<span class="op">&lt;</span><span class="ident">ChunkFooter</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CHUNK_ALIGN</span>;
+<span class="kw">const</span> <span class="ident">_FOOTER_ALIGN_ASSERTION</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="ident">mem::align_of</span>::<span class="op">&lt;</span><span class="ident">ChunkFooter</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">CHUNK_ALIGN</span>;
 <span class="kw">const</span> <span class="kw">_</span>: [(); <span class="ident">_FOOTER_ALIGN_ASSERTION</span> <span class="kw">as</span> <span class="ident">usize</span>] <span class="op">=</span> [()];
 
 <span class="comment">// Maximum typical overhead per allocation imposed by allocators.</span>
@@ -2464,16 +2464,16 @@ to only do it deliberately and for good reasons.
 <span class="doccomment">/// Wrapper around `Layout::from_size_align` that adds debug assertions.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">layout_from_size_align</span>(<span class="ident">size</span>: <span class="ident">usize</span>, <span class="ident">align</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Layout</span> {
-    <span class="kw">if</span> <span class="macro">cfg</span><span class="macro">!</span>(<span class="ident">debug_assertions</span>) {
-        <span class="ident">Layout</span>::<span class="ident">from_size_align</span>(<span class="ident">size</span>, <span class="ident">align</span>).<span class="ident">unwrap</span>()
+    <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">debug_assertions</span>) {
+        <span class="ident">Layout::from_size_align</span>(<span class="ident">size</span>, <span class="ident">align</span>).<span class="ident">unwrap</span>()
     } <span class="kw">else</span> {
-        <span class="ident">Layout</span>::<span class="ident">from_size_align_unchecked</span>(<span class="ident">size</span>, <span class="ident">align</span>)
+        <span class="ident">Layout::from_size_align_unchecked</span>(<span class="ident">size</span>, <span class="ident">align</span>)
     }
 }
 
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
 <span class="kw">fn</span> <span class="ident">allocation_size_overflow</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span> {
-    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;requested allocation size overflowed&quot;</span>)
+    <span class="macro">panic!</span>(<span class="string">&quot;requested allocation size overflowed&quot;</span>)
 }
 
 <span class="kw">impl</span> <span class="ident">Bump</span> {
@@ -2486,7 +2486,7 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">/// # let _ = bump;</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Bump</span> {
-        <span class="self">Self</span>::<span class="ident">with_capacity</span>(<span class="number">0</span>)
+        <span class="self">Self</span><span class="ident">::with_capacity</span>(<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Attempt to construct a new arena to bump allocate into.</span>
@@ -2497,8 +2497,8 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">/// let bump = bumpalo::Bump::try_new();</span>
     <span class="doccomment">/// # let _ = bump.unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Bump</span>, <span class="ident">alloc</span>::<span class="ident">AllocErr</span><span class="op">&gt;</span> {
-        <span class="ident">Bump</span>::<span class="ident">try_with_capacity</span>(<span class="number">0</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Bump</span>, <span class="ident">alloc::AllocErr</span><span class="op">&gt;</span> {
+        <span class="ident">Bump::try_with_capacity</span>(<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Construct a new arena with the specified byte capacity to bump allocate into.</span>
@@ -2510,7 +2510,7 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">/// # let _ = bump;</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">capacity</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Bump</span> {
-        <span class="ident">Bump</span>::<span class="ident">try_with_capacity</span>(<span class="ident">capacity</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">oom</span>())
+        <span class="ident">Bump::try_with_capacity</span>(<span class="ident">capacity</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">oom</span>())
     }
 
     <span class="doccomment">/// Attempt to construct a new arena with the specified byte capacity to bump allocate into.</span>
@@ -2521,16 +2521,16 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">/// let bump = bumpalo::Bump::try_with_capacity(100);</span>
     <span class="doccomment">/// # let _ = bump.unwrap();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_with_capacity</span>(<span class="ident">capacity</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">alloc</span>::<span class="ident">AllocErr</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">chunk_footer</span> <span class="op">=</span> <span class="self">Self</span>::<span class="ident">new_chunk</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_with_capacity</span>(<span class="ident">capacity</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">alloc::AllocErr</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">chunk_footer</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::new_chunk</span>(
             <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <span class="ident">layout_from_size_align</span>(<span class="ident">capacity</span>, <span class="number">1</span>) }),
             <span class="prelude-val">None</span>,
         )
-        .<span class="ident">ok_or</span>(<span class="ident">alloc</span>::<span class="ident">AllocErr</span> {})<span class="question-mark">?</span>;
+        .<span class="ident">ok_or</span>(<span class="ident">alloc::AllocErr</span> {})<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">Bump</span> {
-            <span class="ident">current_chunk_footer</span>: <span class="ident">Cell</span>::<span class="ident">new</span>(<span class="ident">chunk_footer</span>),
+            <span class="ident">current_chunk_footer</span>: <span class="ident">Cell::new</span>(<span class="ident">chunk_footer</span>),
         })
     }
 
@@ -2575,39 +2575,39 @@ to only do it deliberately and for good reasons.
                     <span class="ident">round_up_to</span>(<span class="ident">new_size_without_footer</span> <span class="op">+</span> <span class="ident">OVERHEAD</span>, <span class="number">0x1000</span>)<span class="question-mark">?</span> <span class="op">-</span> <span class="ident">OVERHEAD</span>;
             }
 
-            <span class="macro">debug_assert_eq</span><span class="macro">!</span>(<span class="ident">align</span> <span class="op">%</span> <span class="ident">CHUNK_ALIGN</span>, <span class="number">0</span>);
-            <span class="macro">debug_assert_eq</span><span class="macro">!</span>(<span class="ident">new_size_without_footer</span> <span class="op">%</span> <span class="ident">CHUNK_ALIGN</span>, <span class="number">0</span>);
+            <span class="macro">debug_assert_eq!</span>(<span class="ident">align</span> <span class="op">%</span> <span class="ident">CHUNK_ALIGN</span>, <span class="number">0</span>);
+            <span class="macro">debug_assert_eq!</span>(<span class="ident">new_size_without_footer</span> <span class="op">%</span> <span class="ident">CHUNK_ALIGN</span>, <span class="number">0</span>);
             <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">new_size_without_footer</span>
                 .<span class="ident">checked_add</span>(<span class="ident">FOOTER_SIZE</span>)
                 .<span class="ident">unwrap_or_else</span>(<span class="ident">allocation_size_overflow</span>);
             <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">layout_from_size_align</span>(<span class="ident">size</span>, <span class="ident">align</span>);
 
-            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">requested_layout</span>.<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">layout</span><span class="op">|</span> <span class="ident">size</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">layout</span>.<span class="ident">size</span>()));
+            <span class="macro">debug_assert!</span>(<span class="ident">requested_layout</span>.<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">layout</span><span class="op">|</span> <span class="ident">size</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">layout</span>.<span class="ident">size</span>()));
 
             <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">alloc</span>(<span class="ident">layout</span>);
-            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">NonNull</span>::<span class="ident">new</span>(<span class="ident">data</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">NonNull::new</span>(<span class="ident">data</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// The `ChunkFooter` is at the end of the chunk.</span>
             <span class="kw">let</span> <span class="ident">footer_ptr</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="ident">new_size_without_footer</span>;
-            <span class="macro">debug_assert_eq</span><span class="macro">!</span>((<span class="ident">data</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">%</span> <span class="ident">align</span>, <span class="number">0</span>);
-            <span class="macro">debug_assert_eq</span><span class="macro">!</span>(<span class="ident">footer_ptr</span> <span class="op">%</span> <span class="ident">CHUNK_ALIGN</span>, <span class="number">0</span>);
+            <span class="macro">debug_assert_eq!</span>((<span class="ident">data</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">%</span> <span class="ident">align</span>, <span class="number">0</span>);
+            <span class="macro">debug_assert_eq!</span>(<span class="ident">footer_ptr</span> <span class="op">%</span> <span class="ident">CHUNK_ALIGN</span>, <span class="number">0</span>);
             <span class="kw">let</span> <span class="ident">footer_ptr</span> <span class="op">=</span> <span class="ident">footer_ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">ChunkFooter</span>;
 
             <span class="comment">// The bump pointer is initialized to the end of the range we will</span>
             <span class="comment">// bump out of.</span>
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">Cell</span>::<span class="ident">new</span>(<span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">footer_ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>));
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">Cell::new</span>(<span class="ident">NonNull::new_unchecked</span>(<span class="ident">footer_ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>));
 
-            <span class="ident">ptr</span>::<span class="ident">write</span>(
+            <span class="ident">ptr::write</span>(
                 <span class="ident">footer_ptr</span>,
                 <span class="ident">ChunkFooter</span> {
                     <span class="ident">data</span>,
                     <span class="ident">layout</span>,
-                    <span class="ident">prev</span>: <span class="ident">Cell</span>::<span class="ident">new</span>(<span class="ident">prev</span>),
+                    <span class="ident">prev</span>: <span class="ident">Cell::new</span>(<span class="ident">prev</span>),
                     <span class="ident">ptr</span>,
                 },
             );
 
-            <span class="prelude-val">Some</span>(<span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">footer_ptr</span>))
+            <span class="prelude-val">Some</span>(<span class="ident">NonNull::new_unchecked</span>(<span class="ident">footer_ptr</span>))
         }
     }
 
@@ -2656,7 +2656,7 @@ to only do it deliberately and for good reasons.
             <span class="comment">// Reset the bump finger to the end of the chunk.</span>
             <span class="ident">cur_chunk</span>.<span class="ident">as_ref</span>().<span class="ident">ptr</span>.<span class="ident">set</span>(<span class="ident">cur_chunk</span>.<span class="ident">cast</span>());
 
-            <span class="macro">debug_assert</span><span class="macro">!</span>(
+            <span class="macro">debug_assert!</span>(
                 <span class="self">self</span>.<span class="ident">current_chunk_footer</span>
                     .<span class="ident">get</span>()
                     .<span class="ident">as_ref</span>()
@@ -2665,7 +2665,7 @@ to only do it deliberately and for good reasons.
                     .<span class="ident">is_none</span>(),
                 <span class="string">&quot;We should only have a single chunk&quot;</span>
             );
-            <span class="macro">debug_assert_eq</span><span class="macro">!</span>(
+            <span class="macro">debug_assert_eq!</span>(
                 <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>().<span class="ident">as_ref</span>().<span class="ident">ptr</span>.<span class="ident">get</span>(),
                 <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>().<span class="ident">cast</span>(),
                 <span class="string">&quot;Our chunk&#39;s bump finger should be reset to the start of its allocation&quot;</span>
@@ -2688,7 +2688,7 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">/// assert_eq!(*x, &quot;hello&quot;);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mut_from_ref</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::mut_from_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alloc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">val</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span> {
         <span class="self">self</span>.<span class="ident">alloc_with</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">val</span>)
     }
@@ -2708,8 +2708,8 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">/// assert_eq!(x, Ok(&amp;mut&quot;hello&quot;));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mut_from_ref</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_alloc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">val</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident">alloc</span>::<span class="ident">AllocErr</span><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::mut_from_ref</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_alloc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">val</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident">alloc::AllocErr</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">try_alloc_with</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">val</span>)
     }
 
@@ -2733,7 +2733,7 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">/// assert_eq!(*x, &quot;hello&quot;);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mut_from_ref</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::mut_from_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alloc_with</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>,
@@ -2753,10 +2753,10 @@ to only do it deliberately and for good reasons.
             <span class="comment">// directly into the heap instead. It seems we get it to realize</span>
             <span class="comment">// this most consistently if we put this critical line into it&#39;s</span>
             <span class="comment">// own function instead of inlining it into the surrounding code.</span>
-            <span class="ident">ptr</span>::<span class="ident">write</span>(<span class="ident">ptr</span>, <span class="ident">f</span>())
+            <span class="ident">ptr::write</span>(<span class="ident">ptr</span>, <span class="ident">f</span>())
         }
 
-        <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">new</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
+        <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout::new</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
 
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">alloc_layout</span>(<span class="ident">layout</span>);
@@ -2786,8 +2786,8 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">/// assert_eq!(x, Ok(&amp;mut &quot;hello&quot;));</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mut_from_ref</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_alloc_with</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident">alloc</span>::<span class="ident">AllocErr</span><span class="op">&gt;</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::mut_from_ref</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_alloc_with</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident">alloc::AllocErr</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>,
     {
@@ -2806,12 +2806,12 @@ to only do it deliberately and for good reasons.
             <span class="comment">// directly into the heap instead. It seems we get it to realize</span>
             <span class="comment">// this most consistently if we put this critical line into it&#39;s</span>
             <span class="comment">// own function instead of inlining it into the surrounding code.</span>
-            <span class="ident">ptr</span>::<span class="ident">write</span>(<span class="ident">ptr</span>, <span class="ident">f</span>())
+            <span class="ident">ptr::write</span>(<span class="ident">ptr</span>, <span class="ident">f</span>())
         }
 
         <span class="comment">//SAFETY: Self-contained:</span>
         <span class="comment">// `p` is allocated for `T` and then a `T` is written.</span>
-        <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">new</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
+        <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout::new</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
         <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_alloc_layout</span>(<span class="ident">layout</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">T</span>;
 
@@ -2854,14 +2854,14 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">/// # Result::&lt;_, ()&gt;::Ok(())</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mut_from_ref</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::mut_from_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alloc_try_with</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">rewind_footer</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
         <span class="kw">let</span> <span class="ident">rewind_ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">rewind_footer</span>.<span class="ident">as_ref</span>() }.<span class="ident">ptr</span>.<span class="ident">get</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_result_ptr</span> <span class="op">=</span> <span class="ident">NonNull</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">alloc_with</span>(<span class="ident">f</span>));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_result_ptr</span> <span class="op">=</span> <span class="ident">NonNull::from</span>(<span class="self">self</span>.<span class="ident">alloc_with</span>(<span class="ident">f</span>));
         <span class="kw">let</span> <span class="ident">inner_result_address</span> <span class="op">=</span> <span class="ident">inner_result_ptr</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>;
         <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="ident">inner_result_ptr</span>.<span class="ident">as_mut</span>() } {
             <span class="prelude-val">Ok</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> {
@@ -2884,7 +2884,7 @@ to only do it deliberately and for good reasons.
                 <span class="comment">// reclaim any alignment padding we might have added (which</span>
                 <span class="comment">// `dealloc` cannot do) if we didn&#39;t allocate a new chunk for</span>
                 <span class="comment">// this result.</span>
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_last_allocation</span>(<span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">inner_result_address</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>)) {
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_last_allocation</span>(<span class="ident">NonNull::new_unchecked</span>(<span class="ident">inner_result_address</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>)) {
                     <span class="kw">let</span> <span class="ident">current_footer_p</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
                     <span class="kw">let</span> <span class="ident">current_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">current_footer_p</span>.<span class="ident">as_ref</span>().<span class="ident">ptr</span>;
                     <span class="kw">if</span> <span class="ident">current_footer_p</span> <span class="op">=</span><span class="op">=</span> <span class="ident">rewind_footer</span> {
@@ -2920,7 +2920,7 @@ to only do it deliberately and for good reasons.
                 <span class="comment">//</span>
                 <span class="comment">// The order between this and the deallocation doesn&#39;t matter</span>
                 <span class="comment">// because `Self: !Sync`.</span>
-                <span class="prelude-val">Err</span>(<span class="ident">ptr</span>::<span class="ident">read</span>(<span class="ident">e</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>))
+                <span class="prelude-val">Err</span>(<span class="ident">ptr::read</span>(<span class="ident">e</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>))
             },
         }
     }
@@ -2960,14 +2960,14 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">/// # Result::&lt;_, bumpalo::AllocOrInitError&lt;()&gt;&gt;::Ok(())</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mut_from_ref</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::mut_from_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_alloc_try_with</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="ident">AllocOrInitError</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnOnce</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">rewind_footer</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
         <span class="kw">let</span> <span class="ident">rewind_ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">rewind_footer</span>.<span class="ident">as_ref</span>() }.<span class="ident">ptr</span>.<span class="ident">get</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_result_ptr</span> <span class="op">=</span> <span class="ident">NonNull</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">try_alloc_with</span>(<span class="ident">f</span>)<span class="question-mark">?</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_result_ptr</span> <span class="op">=</span> <span class="ident">NonNull::from</span>(<span class="self">self</span>.<span class="ident">try_alloc_with</span>(<span class="ident">f</span>)<span class="question-mark">?</span>);
         <span class="kw">let</span> <span class="ident">inner_result_address</span> <span class="op">=</span> <span class="ident">inner_result_ptr</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>;
         <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="ident">inner_result_ptr</span>.<span class="ident">as_mut</span>() } {
             <span class="prelude-val">Ok</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> {
@@ -2990,7 +2990,7 @@ to only do it deliberately and for good reasons.
                 <span class="comment">// reclaim any alignment padding we might have added (which</span>
                 <span class="comment">// `dealloc` cannot do) if we didn&#39;t allocate a new chunk for</span>
                 <span class="comment">// this result.</span>
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_last_allocation</span>(<span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">inner_result_address</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>)) {
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_last_allocation</span>(<span class="ident">NonNull::new_unchecked</span>(<span class="ident">inner_result_address</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw">_</span>)) {
                     <span class="kw">let</span> <span class="ident">current_footer_p</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
                     <span class="kw">let</span> <span class="ident">current_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">current_footer_p</span>.<span class="ident">as_ref</span>().<span class="ident">ptr</span>;
                     <span class="kw">if</span> <span class="ident">current_footer_p</span> <span class="op">=</span><span class="op">=</span> <span class="ident">rewind_footer</span> {
@@ -3026,7 +3026,7 @@ to only do it deliberately and for good reasons.
                 <span class="comment">//</span>
                 <span class="comment">// The order between this and the deallocation doesn&#39;t matter</span>
                 <span class="comment">// because `Self: !Sync`.</span>
-                <span class="prelude-val">Err</span>(<span class="ident">AllocOrInitError</span>::<span class="ident">Init</span>(<span class="ident">ptr</span>::<span class="ident">read</span>(<span class="ident">e</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>)))
+                <span class="prelude-val">Err</span>(<span class="ident">AllocOrInitError::Init</span>(<span class="ident">ptr::read</span>(<span class="ident">e</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span>)))
             },
         }
     }
@@ -3046,17 +3046,17 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">/// assert_eq!(x, &amp;[1, 2, 3]);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mut_from_ref</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::mut_from_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alloc_slice_copy</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>]
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">Copy</span>,
     {
-        <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">for_value</span>(<span class="ident">src</span>);
+        <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout::for_value</span>(<span class="ident">src</span>);
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">alloc_layout</span>(<span class="ident">layout</span>).<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
 
         <span class="kw">unsafe</span> {
-            <span class="ident">ptr</span>::<span class="ident">copy_nonoverlapping</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>(), <span class="ident">dst</span>.<span class="ident">as_ptr</span>(), <span class="ident">src</span>.<span class="ident">len</span>());
-            <span class="ident">slice</span>::<span class="ident">from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_ptr</span>(), <span class="ident">src</span>.<span class="ident">len</span>())
+            <span class="ident">ptr::copy_nonoverlapping</span>(<span class="ident">src</span>.<span class="ident">as_ptr</span>(), <span class="ident">dst</span>.<span class="ident">as_ptr</span>(), <span class="ident">src</span>.<span class="ident">len</span>());
+            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_ptr</span>(), <span class="ident">src</span>.<span class="ident">len</span>())
         }
     }
 
@@ -3086,20 +3086,20 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">/// assert_eq!(originals, clones);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mut_from_ref</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::mut_from_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alloc_slice_clone</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>]
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">Clone</span>,
     {
-        <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">for_value</span>(<span class="ident">src</span>);
+        <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout::for_value</span>(<span class="ident">src</span>);
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">alloc_layout</span>(<span class="ident">layout</span>).<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
 
         <span class="kw">unsafe</span> {
             <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">val</span>) <span class="kw">in</span> <span class="ident">src</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">enumerate</span>() {
-                <span class="ident">ptr</span>::<span class="ident">write</span>(<span class="ident">dst</span>.<span class="ident">as_ptr</span>().<span class="ident">add</span>(<span class="ident">i</span>), <span class="ident">val</span>);
+                <span class="ident">ptr::write</span>(<span class="ident">dst</span>.<span class="ident">as_ptr</span>().<span class="ident">add</span>(<span class="ident">i</span>), <span class="ident">val</span>);
             }
 
-            <span class="ident">slice</span>::<span class="ident">from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_ptr</span>(), <span class="ident">src</span>.<span class="ident">len</span>())
+            <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_ptr</span>(), <span class="ident">src</span>.<span class="ident">len</span>())
         }
     }
 
@@ -3117,12 +3117,12 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">/// assert_eq!(&quot;hello world&quot;, hello);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mut_from_ref</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::mut_from_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alloc_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">str</span> {
         <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">alloc_slice_copy</span>(<span class="ident">src</span>.<span class="ident">as_bytes</span>());
         <span class="kw">unsafe</span> {
             <span class="comment">// This is OK, because it already came in as str, so it is guaranteed to be utf8</span>
-            <span class="ident">str</span>::<span class="ident">from_utf8_unchecked_mut</span>(<span class="ident">buffer</span>)
+            <span class="ident">str::from_utf8_unchecked_mut</span>(<span class="ident">buffer</span>)
         }
     }
 
@@ -3144,21 +3144,21 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">/// assert_eq!(x, &amp;[5, 10, 15, 20, 25]);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mut_from_ref</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::mut_from_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alloc_slice_fill_with</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">len</span>: <span class="ident">usize</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>]
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">T</span>,
     {
-        <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">array</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">len</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">oom</span>());
+        <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout::array</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">len</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">oom</span>());
         <span class="kw">let</span> <span class="ident">dst</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">alloc_layout</span>(<span class="ident">layout</span>).<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
 
         <span class="kw">unsafe</span> {
             <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">len</span> {
-                <span class="ident">ptr</span>::<span class="ident">write</span>(<span class="ident">dst</span>.<span class="ident">as_ptr</span>().<span class="ident">add</span>(<span class="ident">i</span>), <span class="ident">f</span>(<span class="ident">i</span>));
+                <span class="ident">ptr::write</span>(<span class="ident">dst</span>.<span class="ident">as_ptr</span>().<span class="ident">add</span>(<span class="ident">i</span>), <span class="ident">f</span>(<span class="ident">i</span>));
             }
 
-            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">slice</span>::<span class="ident">from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_ptr</span>(), <span class="ident">len</span>);
-            <span class="macro">debug_assert_eq</span><span class="macro">!</span>(<span class="ident">Layout</span>::<span class="ident">for_value</span>(<span class="ident">result</span>), <span class="ident">layout</span>);
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">dst</span>.<span class="ident">as_ptr</span>(), <span class="ident">len</span>);
+            <span class="macro">debug_assert_eq!</span>(<span class="ident">Layout::for_value</span>(<span class="ident">result</span>), <span class="ident">layout</span>);
             <span class="ident">result</span>
         }
     }
@@ -3180,7 +3180,7 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">/// assert_eq!(x, &amp;[42, 42, 42, 42, 42]);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mut_from_ref</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::mut_from_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alloc_slice_fill_copy</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Copy</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">len</span>: <span class="ident">usize</span>, <span class="ident">value</span>: <span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>] {
         <span class="self">self</span>.<span class="ident">alloc_slice_fill_with</span>(<span class="ident">len</span>, <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">value</span>)
     }
@@ -3205,7 +3205,7 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">/// assert_eq!(&amp;x[1], &amp;s);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mut_from_ref</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::mut_from_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alloc_slice_fill_clone</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Clone</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">len</span>: <span class="ident">usize</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>] {
         <span class="self">self</span>.<span class="ident">alloc_slice_fill_with</span>(<span class="ident">len</span>, <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">clone</span>())
     }
@@ -3228,11 +3228,11 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">/// assert_eq!(x, [4, 9, 25]);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mut_from_ref</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::mut_from_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alloc_slice_fill_iter</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">I</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">iter</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>]
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="ident">I</span>::<span class="ident">IntoIter</span>: <span class="ident">ExactSizeIterator</span>,
+        <span class="ident">I::IntoIter</span>: <span class="ident">ExactSizeIterator</span>,
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">into_iter</span>();
         <span class="self">self</span>.<span class="ident">alloc_slice_fill_with</span>(<span class="ident">iter</span>.<span class="ident">len</span>(), <span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
@@ -3257,9 +3257,9 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">/// assert_eq!(x, &amp;[0, 0, 0, 0, 0]);</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">mut_from_ref</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::mut_from_ref</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">alloc_slice_fill_default</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Default</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">len</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>] {
-        <span class="self">self</span>.<span class="ident">alloc_slice_fill_with</span>(<span class="ident">len</span>, <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">T</span>::<span class="ident">default</span>())
+        <span class="self">self</span>.<span class="ident">alloc_slice_fill_with</span>(<span class="ident">len</span>, <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">T::default</span>())
     }
 
     <span class="doccomment">/// Allocate space for an object with the given `Layout`.</span>
@@ -3287,11 +3287,11 @@ to only do it deliberately and for good reasons.
     <span class="doccomment">///</span>
     <span class="doccomment">/// Errors if reserving space matching `layout` fails.</span>
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_alloc_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">alloc</span>::<span class="ident">AllocErr</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_alloc_layout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">alloc::AllocErr</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_alloc_layout_fast</span>(<span class="ident">layout</span>) {
             <span class="prelude-val">Ok</span>(<span class="ident">p</span>)
         } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">alloc_layout_slow</span>(<span class="ident">layout</span>).<span class="ident">ok_or</span>(<span class="ident">alloc</span>::<span class="ident">AllocErr</span> {})
+            <span class="self">self</span>.<span class="ident">alloc_layout_slow</span>(<span class="ident">layout</span>).<span class="ident">ok_or</span>(<span class="ident">alloc::AllocErr</span> {})
         }
     }
 
@@ -3306,14 +3306,14 @@ to only do it deliberately and for good reasons.
             <span class="kw">let</span> <span class="ident">footer</span> <span class="op">=</span> <span class="ident">footer</span>.<span class="ident">as_ref</span>();
             <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">footer</span>.<span class="ident">ptr</span>.<span class="ident">get</span>().<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>;
             <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">footer</span>.<span class="ident">data</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>;
-            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">ptr</span>);
-            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">footer</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>);
+            <span class="macro">debug_assert!</span>(<span class="ident">start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">ptr</span>);
+            <span class="macro">debug_assert!</span>(<span class="ident">ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">footer</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>);
 
             <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ptr</span>.<span class="ident">checked_sub</span>(<span class="ident">layout</span>.<span class="ident">size</span>())<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">aligned_ptr</span> <span class="op">=</span> <span class="ident">ptr</span> <span class="op">&amp;</span> <span class="op">!</span>(<span class="ident">layout</span>.<span class="ident">align</span>() <span class="op">-</span> <span class="number">1</span>);
 
             <span class="kw">if</span> <span class="ident">aligned_ptr</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">start</span> {
-                <span class="kw">let</span> <span class="ident">aligned_ptr</span> <span class="op">=</span> <span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">aligned_ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>);
+                <span class="kw">let</span> <span class="ident">aligned_ptr</span> <span class="op">=</span> <span class="ident">NonNull::new_unchecked</span>(<span class="ident">aligned_ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>);
                 <span class="ident">footer</span>.<span class="ident">ptr</span>.<span class="ident">set</span>(<span class="ident">aligned_ptr</span>);
                 <span class="prelude-val">Some</span>(<span class="ident">aligned_ptr</span>)
             } <span class="kw">else</span> {
@@ -3360,7 +3360,7 @@ to only do it deliberately and for good reasons.
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">base_size</span> <span class="op">=</span> (<span class="ident">current_layout</span>.<span class="ident">size</span>() <span class="op">-</span> <span class="ident">FOOTER_SIZE</span>)
                 .<span class="ident">checked_mul</span>(<span class="number">2</span>)<span class="question-mark">?</span>
                 .<span class="ident">max</span>(<span class="ident">min_new_chunk_size</span>);
-            <span class="kw">let</span> <span class="ident">sizes</span> <span class="op">=</span> <span class="ident">iter</span>::<span class="ident">from_fn</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">sizes</span> <span class="op">=</span> <span class="ident">iter::from_fn</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="kw">if</span> <span class="ident">base_size</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">min_new_chunk_size</span> {
                     <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">base_size</span>;
                     <span class="ident">base_size</span> <span class="op">=</span> <span class="ident">base_size</span> <span class="op">/</span> <span class="number">2</span>;
@@ -3371,10 +3371,10 @@ to only do it deliberately and for good reasons.
             });
 
             <span class="kw">let</span> <span class="ident">new_footer</span> <span class="op">=</span> <span class="ident">sizes</span>
-                .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">size</span><span class="op">|</span> <span class="ident">Bump</span>::<span class="ident">new_chunk</span>(<span class="prelude-val">Some</span>(<span class="ident">size</span>), <span class="prelude-val">Some</span>(<span class="ident">layout</span>), <span class="prelude-val">Some</span>(<span class="ident">current_footer</span>)))
+                .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">size</span><span class="op">|</span> <span class="ident">Bump::new_chunk</span>(<span class="prelude-val">Some</span>(<span class="ident">size</span>), <span class="prelude-val">Some</span>(<span class="ident">layout</span>), <span class="prelude-val">Some</span>(<span class="ident">current_footer</span>)))
                 .<span class="ident">next</span>()<span class="question-mark">?</span>;
 
-            <span class="macro">debug_assert_eq</span><span class="macro">!</span>(
+            <span class="macro">debug_assert_eq!</span>(
                 <span class="ident">new_footer</span>.<span class="ident">as_ref</span>().<span class="ident">data</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">%</span> <span class="ident">layout</span>.<span class="ident">align</span>(),
                 <span class="number">0</span>
             );
@@ -3390,13 +3390,13 @@ to only do it deliberately and for good reasons.
             <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">new_footer</span>.<span class="ident">ptr</span>.<span class="ident">get</span>().<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">size</span>;
             <span class="comment">// Round the pointer down to the requested alignment.</span>
             <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ptr</span> <span class="op">&amp;</span> <span class="op">!</span>(<span class="ident">layout</span>.<span class="ident">align</span>() <span class="op">-</span> <span class="number">1</span>);
-            <span class="macro">debug_assert</span><span class="macro">!</span>(
+            <span class="macro">debug_assert!</span>(
                 <span class="ident">ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">new_footer</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>,
                 <span class="string">&quot;{:#x} &lt;= {:#x}&quot;</span>,
                 <span class="ident">ptr</span>,
                 <span class="ident">new_footer</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>
             );
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>);
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">NonNull::new_unchecked</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">u8</span>);
             <span class="ident">new_footer</span>.<span class="ident">ptr</span>.<span class="ident">set</span>(<span class="ident">ptr</span>);
 
             <span class="comment">// Return a pointer to the freshly allocated region in this chunk.</span>
@@ -3521,7 +3521,7 @@ to only do it deliberately and for good reasons.
             <span class="kw">let</span> <span class="ident">foot</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">f</span>.<span class="ident">as_ref</span>() };
 
             <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">foot</span>.<span class="ident">ptr</span>.<span class="ident">get</span>().<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>;
-            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">foot</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>);
+            <span class="macro">debug_assert!</span>(<span class="ident">ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">foot</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>);
 
             <span class="ident">bytes</span> <span class="op">+</span><span class="op">=</span> <span class="ident">foot</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">ptr</span>;
 
@@ -3543,7 +3543,7 @@ to only do it deliberately and for good reasons.
         <span class="comment">// If the pointer is the last allocation we made, we can reuse the bytes,</span>
         <span class="comment">// otherwise they are simply leaked -- at least until somebody calls reset().</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_last_allocation</span>(<span class="ident">ptr</span>) {
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>().<span class="ident">add</span>(<span class="ident">layout</span>.<span class="ident">size</span>()));
+            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">NonNull::new_unchecked</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>().<span class="ident">add</span>(<span class="ident">layout</span>.<span class="ident">size</span>()));
             <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>().<span class="ident">as_ref</span>().<span class="ident">ptr</span>.<span class="ident">set</span>(<span class="ident">ptr</span>);
         }
     }
@@ -3554,7 +3554,7 @@ to only do it deliberately and for good reasons.
         <span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
         <span class="ident">layout</span>: <span class="ident">Layout</span>,
         <span class="ident">new_size</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">alloc</span>::<span class="ident">AllocErr</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">alloc::AllocErr</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">old_size</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">size</span>();
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_last_allocation</span>(<span class="ident">ptr</span>)
                 <span class="comment">// Only reclaim the excess space (which requires a copy) if it</span>
@@ -3567,11 +3567,11 @@ to only do it deliberately and for good reasons.
             <span class="kw">let</span> <span class="ident">footer</span> <span class="op">=</span> <span class="ident">footer</span>.<span class="ident">as_ref</span>();
             <span class="ident">footer</span>
                 .<span class="ident">ptr</span>
-                .<span class="ident">set</span>(<span class="ident">NonNull</span>::<span class="ident">new_unchecked</span>(<span class="ident">footer</span>.<span class="ident">ptr</span>.<span class="ident">get</span>().<span class="ident">as_ptr</span>().<span class="ident">add</span>(<span class="ident">delta</span>)));
+                .<span class="ident">set</span>(<span class="ident">NonNull::new_unchecked</span>(<span class="ident">footer</span>.<span class="ident">ptr</span>.<span class="ident">get</span>().<span class="ident">as_ptr</span>().<span class="ident">add</span>(<span class="ident">delta</span>)));
             <span class="kw">let</span> <span class="ident">new_ptr</span> <span class="op">=</span> <span class="ident">footer</span>.<span class="ident">ptr</span>.<span class="ident">get</span>();
             <span class="comment">// NB: we know it is non-overlapping because of the size check</span>
             <span class="comment">// in the `if` condition.</span>
-            <span class="ident">ptr</span>::<span class="ident">copy_nonoverlapping</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">new_ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">new_size</span>);
+            <span class="ident">ptr::copy_nonoverlapping</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">new_ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">new_size</span>);
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">new_ptr</span>);
         } <span class="kw">else</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ptr</span>);
@@ -3584,7 +3584,7 @@ to only do it deliberately and for good reasons.
         <span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
         <span class="ident">layout</span>: <span class="ident">Layout</span>,
         <span class="ident">new_size</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">alloc</span>::<span class="ident">AllocErr</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">alloc::AllocErr</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">old_size</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">size</span>();
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_last_allocation</span>(<span class="ident">ptr</span>) {
             <span class="comment">// Try to allocate the delta size within this same block so we can</span>
@@ -3593,7 +3593,7 @@ to only do it deliberately and for good reasons.
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span>
                 <span class="self">self</span>.<span class="ident">try_alloc_layout_fast</span>(<span class="ident">layout_from_size_align</span>(<span class="ident">delta</span>, <span class="ident">layout</span>.<span class="ident">align</span>()))
             {
-                <span class="ident">ptr</span>::<span class="ident">copy</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">p</span>.<span class="ident">as_ptr</span>(), <span class="ident">old_size</span>);
+                <span class="ident">ptr::copy</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">p</span>.<span class="ident">as_ptr</span>(), <span class="ident">old_size</span>);
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">p</span>);
             }
         }
@@ -3601,7 +3601,7 @@ to only do it deliberately and for good reasons.
         <span class="comment">// Fallback: do a fresh allocation and copy the existing data into it.</span>
         <span class="kw">let</span> <span class="ident">new_layout</span> <span class="op">=</span> <span class="ident">layout_from_size_align</span>(<span class="ident">new_size</span>, <span class="ident">layout</span>.<span class="ident">align</span>());
         <span class="kw">let</span> <span class="ident">new_ptr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_alloc_layout</span>(<span class="ident">new_layout</span>)<span class="question-mark">?</span>;
-        <span class="ident">ptr</span>::<span class="ident">copy_nonoverlapping</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">new_ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">old_size</span>);
+        <span class="ident">ptr::copy_nonoverlapping</span>(<span class="ident">ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">new_ptr</span>.<span class="ident">as_ptr</span>(), <span class="ident">old_size</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">new_ptr</span>)
     }
 }
@@ -3627,41 +3627,41 @@ to only do it deliberately and for good reasons.
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">ChunkIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">mem</span>::<span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>];
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">mem</span>::<span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>]<span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">mem::MaybeUninit</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>];
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">mem::MaybeUninit</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>]<span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">foot</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">footer</span><span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">foot</span> <span class="op">=</span> <span class="ident">foot</span>.<span class="ident">as_ref</span>();
             <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">foot</span>.<span class="ident">data</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>;
             <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">foot</span>.<span class="ident">ptr</span>.<span class="ident">get</span>().<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>;
-            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">data</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">ptr</span>);
-            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">foot</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>);
+            <span class="macro">debug_assert!</span>(<span class="ident">data</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">ptr</span>);
+            <span class="macro">debug_assert!</span>(<span class="ident">ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">foot</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>);
 
             <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">foot</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">ptr</span>;
-            <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">slice</span>::<span class="ident">from_raw_parts</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">mem</span>::<span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">len</span>);
+            <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">mem::MaybeUninit</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">len</span>);
             <span class="self">self</span>.<span class="ident">footer</span> <span class="op">=</span> <span class="ident">foot</span>.<span class="ident">prev</span>.<span class="ident">get</span>();
             <span class="prelude-val">Some</span>(<span class="ident">slice</span>)
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">iter</span>::<span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">ChunkIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">iter::FusedIterator</span> <span class="kw">for</span> <span class="ident">ChunkIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {}
 
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
 <span class="attribute">#[<span class="ident">cold</span>]</span>
 <span class="kw">fn</span> <span class="ident">oom</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="op">!</span> {
-    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;out of memory&quot;</span>)
+    <span class="macro">panic!</span>(<span class="string">&quot;out of memory&quot;</span>)
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">alloc</span>::<span class="ident">Alloc</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Bump</span> {
+<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">alloc::Alloc</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Bump</span> {
     <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">alloc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">alloc</span>::<span class="ident">AllocErr</span><span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">alloc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">alloc::AllocErr</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">try_alloc_layout</span>(<span class="ident">layout</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">dealloc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) {
-        <span class="ident">Bump</span>::<span class="ident">dealloc</span>(<span class="self">self</span>, <span class="ident">ptr</span>, <span class="ident">layout</span>)
+        <span class="ident">Bump::dealloc</span>(<span class="self">self</span>, <span class="ident">ptr</span>, <span class="ident">layout</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -3670,7 +3670,7 @@ to only do it deliberately and for good reasons.
         <span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
         <span class="ident">layout</span>: <span class="ident">Layout</span>,
         <span class="ident">new_size</span>: <span class="ident">usize</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">alloc</span>::<span class="ident">AllocErr</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">alloc::AllocErr</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">old_size</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">size</span>();
 
         <span class="kw">if</span> <span class="ident">old_size</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
@@ -3689,12 +3689,12 @@ to only do it deliberately and for good reasons.
 <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Allocator</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Bump</span> {
     <span class="kw">fn</span> <span class="ident">allocate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>, <span class="ident">AllocError</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">try_alloc_layout</span>(<span class="ident">layout</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">NonNull</span>::<span class="ident">slice_from_raw_parts</span>(<span class="ident">p</span>, <span class="ident">layout</span>.<span class="ident">size</span>()))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">NonNull::slice_from_raw_parts</span>(<span class="ident">p</span>, <span class="ident">layout</span>.<span class="ident">size</span>()))
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">AllocError</span>)
     }
 
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">deallocate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) {
-        <span class="ident">Bump</span>::<span class="ident">dealloc</span>(<span class="self">self</span>, <span class="ident">ptr</span>, <span class="ident">layout</span>)
+        <span class="ident">Bump::dealloc</span>(<span class="self">self</span>, <span class="ident">ptr</span>, <span class="ident">layout</span>)
     }
 
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">shrink</span>(
@@ -3704,8 +3704,8 @@ to only do it deliberately and for good reasons.
         <span class="ident">new_layout</span>: <span class="ident">Layout</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>, <span class="ident">AllocError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">new_size</span> <span class="op">=</span> <span class="ident">new_layout</span>.<span class="ident">size</span>();
-        <span class="ident">Bump</span>::<span class="ident">shrink</span>(<span class="self">self</span>, <span class="ident">ptr</span>, <span class="ident">old_layout</span>, <span class="ident">new_size</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">NonNull</span>::<span class="ident">slice_from_raw_parts</span>(<span class="ident">p</span>, <span class="ident">new_size</span>))
+        <span class="ident">Bump::shrink</span>(<span class="self">self</span>, <span class="ident">ptr</span>, <span class="ident">old_layout</span>, <span class="ident">new_size</span>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">NonNull::slice_from_raw_parts</span>(<span class="ident">p</span>, <span class="ident">new_size</span>))
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">AllocError</span>)
     }
 
@@ -3716,8 +3716,8 @@ to only do it deliberately and for good reasons.
         <span class="ident">new_layout</span>: <span class="ident">Layout</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>, <span class="ident">AllocError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">new_size</span> <span class="op">=</span> <span class="ident">new_layout</span>.<span class="ident">size</span>();
-        <span class="ident">Bump</span>::<span class="ident">grow</span>(<span class="self">self</span>, <span class="ident">ptr</span>, <span class="ident">old_layout</span>, <span class="ident">new_size</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">NonNull</span>::<span class="ident">slice_from_raw_parts</span>(<span class="ident">p</span>, <span class="ident">new_size</span>))
+        <span class="ident">Bump::grow</span>(<span class="self">self</span>, <span class="ident">ptr</span>, <span class="ident">old_layout</span>, <span class="ident">new_size</span>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">NonNull::slice_from_raw_parts</span>(<span class="ident">p</span>, <span class="ident">new_size</span>))
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">AllocError</span>)
     }
 
@@ -3739,77 +3739,77 @@ to only do it deliberately and for good reasons.
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">chunk_footer_is_five_words</span>() {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">ChunkFooter</span><span class="op">&gt;</span>(), <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="number">5</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">ChunkFooter</span><span class="op">&gt;</span>(), <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="number">5</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">cognitive_complexity</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::cognitive_complexity</span>)]</span>
     <span class="kw">fn</span> <span class="ident">test_realloc</span>() {
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">alloc</span>::<span class="ident">Alloc</span>;
+        <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::alloc::Alloc</span>;
 
         <span class="kw">unsafe</span> {
             <span class="kw">const</span> <span class="ident">CAPACITY</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1024</span> <span class="op">-</span> <span class="ident">OVERHEAD</span>;
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Bump</span>::<span class="ident">with_capacity</span>(<span class="ident">CAPACITY</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">Bump::with_capacity</span>(<span class="ident">CAPACITY</span>);
 
             <span class="comment">// `realloc` doesn&#39;t shrink allocations that aren&#39;t &quot;worth it&quot;.</span>
-            <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">from_size_align</span>(<span class="number">100</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout::from_size_align</span>(<span class="number">100</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">alloc_layout</span>(<span class="ident">layout</span>);
             <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="ident">b</span>).<span class="ident">realloc</span>(<span class="ident">p</span>, <span class="ident">layout</span>, <span class="number">51</span>).<span class="ident">unwrap</span>();
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">p</span>, <span class="ident">q</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">p</span>, <span class="ident">q</span>);
             <span class="ident">b</span>.<span class="ident">reset</span>();
 
             <span class="comment">// `realloc` will shrink allocations that are &quot;worth it&quot;.</span>
-            <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">from_size_align</span>(<span class="number">100</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout::from_size_align</span>(<span class="number">100</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">alloc_layout</span>(<span class="ident">layout</span>);
             <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="ident">b</span>).<span class="ident">realloc</span>(<span class="ident">p</span>, <span class="ident">layout</span>, <span class="number">50</span>).<span class="ident">unwrap</span>();
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">p</span> <span class="op">!</span><span class="op">=</span> <span class="ident">q</span>);
+            <span class="macro">assert!</span>(<span class="ident">p</span> <span class="op">!</span><span class="op">=</span> <span class="ident">q</span>);
             <span class="ident">b</span>.<span class="ident">reset</span>();
 
             <span class="comment">// `realloc` will reuse the last allocation when growing.</span>
-            <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">from_size_align</span>(<span class="number">10</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout::from_size_align</span>(<span class="number">10</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">alloc_layout</span>(<span class="ident">layout</span>);
             <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="ident">b</span>).<span class="ident">realloc</span>(<span class="ident">p</span>, <span class="ident">layout</span>, <span class="number">11</span>).<span class="ident">unwrap</span>();
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">q</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">p</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="number">1</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">q</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">p</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="number">1</span>);
             <span class="ident">b</span>.<span class="ident">reset</span>();
 
             <span class="comment">// `realloc` will allocate a new chunk when growing the last</span>
             <span class="comment">// allocation, if need be.</span>
-            <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">from_size_align</span>(<span class="number">1</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout::from_size_align</span>(<span class="number">1</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">alloc_layout</span>(<span class="ident">layout</span>);
             <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="ident">b</span>).<span class="ident">realloc</span>(<span class="ident">p</span>, <span class="ident">layout</span>, <span class="ident">CAPACITY</span> <span class="op">+</span> <span class="number">1</span>).<span class="ident">unwrap</span>();
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">q</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">!</span><span class="op">=</span> <span class="ident">p</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">CAPACITY</span>);
-            <span class="ident">b</span> <span class="op">=</span> <span class="ident">Bump</span>::<span class="ident">with_capacity</span>(<span class="ident">CAPACITY</span>);
+            <span class="macro">assert!</span>(<span class="ident">q</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">!</span><span class="op">=</span> <span class="ident">p</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">CAPACITY</span>);
+            <span class="ident">b</span> <span class="op">=</span> <span class="ident">Bump::with_capacity</span>(<span class="ident">CAPACITY</span>);
 
             <span class="comment">// `realloc` will allocate and copy when reallocating anything that</span>
             <span class="comment">// wasn&#39;t the last allocation.</span>
-            <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">from_size_align</span>(<span class="number">1</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">Layout::from_size_align</span>(<span class="number">1</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">alloc_layout</span>(<span class="ident">layout</span>);
             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">alloc_layout</span>(<span class="ident">layout</span>);
             <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="ident">b</span>).<span class="ident">realloc</span>(<span class="ident">p</span>, <span class="ident">layout</span>, <span class="number">2</span>).<span class="ident">unwrap</span>();
-            <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">q</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">!</span><span class="op">=</span> <span class="ident">p</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="number">1</span>);
+            <span class="macro">assert!</span>(<span class="ident">q</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">!</span><span class="op">=</span> <span class="ident">p</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="number">1</span>);
             <span class="ident">b</span>.<span class="ident">reset</span>();
         }
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">invalid_read</span>() {
-        <span class="kw">use</span> <span class="ident">alloc</span>::<span class="ident">Alloc</span>;
+        <span class="kw">use</span> <span class="ident">alloc::Alloc</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Bump</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Bump::new</span>();
 
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">l1</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">from_size_align</span>(<span class="number">12000</span>, <span class="number">4</span>).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">p1</span> <span class="op">=</span> <span class="ident">Alloc</span>::<span class="ident">alloc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>, <span class="ident">l1</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">l1</span> <span class="op">=</span> <span class="ident">Layout::from_size_align</span>(<span class="number">12000</span>, <span class="number">4</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">p1</span> <span class="op">=</span> <span class="ident">Alloc::alloc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>, <span class="ident">l1</span>).<span class="ident">unwrap</span>();
 
-            <span class="kw">let</span> <span class="ident">l2</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">from_size_align</span>(<span class="number">1000</span>, <span class="number">4</span>).<span class="ident">unwrap</span>();
-            <span class="ident">Alloc</span>::<span class="ident">alloc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>, <span class="ident">l2</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">l2</span> <span class="op">=</span> <span class="ident">Layout::from_size_align</span>(<span class="number">1000</span>, <span class="number">4</span>).<span class="ident">unwrap</span>();
+            <span class="ident">Alloc::alloc</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">b</span>, <span class="ident">l2</span>).<span class="ident">unwrap</span>();
 
             <span class="kw">let</span> <span class="ident">p1</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">realloc</span>(<span class="ident">p1</span>, <span class="ident">l1</span>, <span class="number">24000</span>).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">l3</span> <span class="op">=</span> <span class="ident">Layout</span>::<span class="ident">from_size_align</span>(<span class="number">24000</span>, <span class="number">4</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">l3</span> <span class="op">=</span> <span class="ident">Layout::from_size_align</span>(<span class="number">24000</span>, <span class="number">4</span>).<span class="ident">unwrap</span>();
             <span class="ident">b</span>.<span class="ident">realloc</span>(<span class="ident">p1</span>, <span class="ident">l3</span>, <span class="number">48000</span>).<span class="ident">unwrap</span>();
         }
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="bumpalo" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="bumpalo" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

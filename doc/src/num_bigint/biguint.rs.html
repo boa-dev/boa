@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-bigint-0.4.0/src/biguint.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>biguint.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../num_bigint/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../num_bigint/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1104,16 +1104,16 @@
 <span id="1101">1101</span>
 <span id="1102">1102</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">big_digit</span>::{<span class="self">self</span>, <span class="ident">BigDigit</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">std_alloc</span>::{<span class="ident">String</span>, <span class="ident">Vec</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::big_digit</span>::{<span class="self">self</span>, <span class="ident">BigDigit</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::std_alloc</span>::{<span class="ident">String</span>, <span class="ident">Vec</span>};
 
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">cmp</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">cmp</span>::<span class="ident">Ordering</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">default</span>::<span class="ident">Default</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">hash</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">mem</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">str</span>;
+<span class="kw">use</span> <span class="ident">core::cmp</span>;
+<span class="kw">use</span> <span class="ident">core::cmp::Ordering</span>;
+<span class="kw">use</span> <span class="ident">core::default::Default</span>;
+<span class="kw">use</span> <span class="ident">core::fmt</span>;
+<span class="kw">use</span> <span class="ident">core::hash</span>;
+<span class="kw">use</span> <span class="ident">core::mem</span>;
+<span class="kw">use</span> <span class="ident">core::str</span>;
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">u32</span>, <span class="ident">u64</span>, <span class="ident">u8</span>};
 
 <span class="kw">use</span> <span class="ident">num_integer</span>::{<span class="ident">Integer</span>, <span class="ident">Roots</span>};
@@ -1137,8 +1137,8 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">serde</span>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="self">self</span>::<span class="ident">convert</span>::<span class="ident">to_str_radix_reversed</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">iter</span>::{<span class="ident">U32Digits</span>, <span class="ident">U64Digits</span>};
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="self">self</span><span class="ident">::convert::to_str_radix_reversed</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::iter</span>::{<span class="ident">U32Digits</span>, <span class="ident">U64Digits</span>};
 
 <span class="doccomment">/// A big unsigned integer type.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BigUint</span> {
@@ -1161,10 +1161,10 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">hash</span>::<span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
+<span class="kw">impl</span> <span class="ident">hash::Hash</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">hash</span>::<span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">last</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>));
+    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">hash::Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) {
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">last</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>));
         <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
     }
 }
@@ -1172,8 +1172,8 @@
 <span class="kw">impl</span> <span class="ident">PartialEq</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">BigUint</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">last</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>));
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">other</span>.<span class="ident">data</span>.<span class="ident">last</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>));
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">last</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>));
+        <span class="macro">debug_assert!</span>(<span class="ident">other</span>.<span class="ident">data</span>.<span class="ident">last</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>));
         <span class="self">self</span>.<span class="ident">data</span> <span class="op">=</span><span class="op">=</span> <span class="ident">other</span>.<span class="ident">data</span>
     }
 }
@@ -1195,11 +1195,11 @@
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">fn</span> <span class="ident">cmp_slice</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span>[<span class="ident">BigDigit</span>], <span class="ident">b</span>: <span class="kw-2">&amp;</span>[<span class="ident">BigDigit</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ordering</span> {
-    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">a</span>.<span class="ident">last</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>));
-    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">b</span>.<span class="ident">last</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>));
+    <span class="macro">debug_assert!</span>(<span class="ident">a</span>.<span class="ident">last</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>));
+    <span class="macro">debug_assert!</span>(<span class="ident">b</span>.<span class="ident">last</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="number">0</span>));
 
-    <span class="kw">match</span> <span class="ident">Ord</span>::<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">len</span>(), <span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">len</span>()) {
-        <span class="ident">Ordering</span>::<span class="ident">Equal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Iterator</span>::<span class="ident">cmp</span>(<span class="ident">a</span>.<span class="ident">iter</span>().<span class="ident">rev</span>(), <span class="ident">b</span>.<span class="ident">iter</span>().<span class="ident">rev</span>()),
+    <span class="kw">match</span> <span class="ident">Ord::cmp</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">len</span>(), <span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">len</span>()) {
+        <span class="ident">Ordering::Equal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Iterator::cmp</span>(<span class="ident">a</span>.<span class="ident">iter</span>().<span class="ident">rev</span>(), <span class="ident">b</span>.<span class="ident">iter</span>().<span class="ident">rev</span>()),
         <span class="ident">other</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">other</span>,
     }
 }
@@ -1207,44 +1207,44 @@
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigUint</span> {
-        <span class="ident">Zero</span>::<span class="ident">zero</span>()
+        <span class="ident">Zero::zero</span>()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">fmt</span>::<span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="self">self</span>, <span class="ident">f</span>)
+<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">fmt::Display::fmt</span>(<span class="self">self</span>, <span class="ident">f</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">pad_integral</span>(<span class="bool-val">true</span>, <span class="string">&quot;&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">to_str_radix</span>(<span class="number">10</span>))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">LowerHex</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::LowerHex</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">pad_integral</span>(<span class="bool-val">true</span>, <span class="string">&quot;0x&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">to_str_radix</span>(<span class="number">16</span>))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">UpperHex</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::UpperHex</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_str_radix</span>(<span class="number">16</span>);
         <span class="ident">s</span>.<span class="ident">make_ascii_uppercase</span>();
         <span class="ident">f</span>.<span class="ident">pad_integral</span>(<span class="bool-val">true</span>, <span class="string">&quot;0x&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">s</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Binary</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Binary</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">pad_integral</span>(<span class="bool-val">true</span>, <span class="string">&quot;0b&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">to_str_radix</span>(<span class="number">2</span>))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Octal</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Octal</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">pad_integral</span>(<span class="bool-val">true</span>, <span class="string">&quot;0o&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">to_str_radix</span>(<span class="number">8</span>))
     }
 }
@@ -1252,7 +1252,7 @@
 <span class="kw">impl</span> <span class="ident">Zero</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">zero</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigUint</span> {
-        <span class="ident">BigUint</span> { <span class="ident">data</span>: <span class="ident">Vec</span>::<span class="ident">new</span>() }
+        <span class="ident">BigUint</span> { <span class="ident">data</span>: <span class="ident">Vec::new</span>() }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1269,7 +1269,7 @@
 <span class="kw">impl</span> <span class="ident">One</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">one</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigUint</span> {
-        <span class="ident">BigUint</span> { <span class="ident">data</span>: <span class="macro">vec</span><span class="macro">!</span>[<span class="number">1</span>] }
+        <span class="ident">BigUint</span> { <span class="ident">data</span>: <span class="macro">vec!</span>[<span class="number">1</span>] }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1289,29 +1289,29 @@
 <span class="kw">impl</span> <span class="ident">Integer</span> <span class="kw">for</span> <span class="ident">BigUint</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">div_rem</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">BigUint</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">BigUint</span>, <span class="ident">BigUint</span>) {
-        <span class="ident">division</span>::<span class="ident">div_rem_ref</span>(<span class="self">self</span>, <span class="ident">other</span>)
+        <span class="ident">division::div_rem_ref</span>(<span class="self">self</span>, <span class="ident">other</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">div_floor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">BigUint</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigUint</span> {
-        <span class="kw">let</span> (<span class="ident">d</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">division</span>::<span class="ident">div_rem_ref</span>(<span class="self">self</span>, <span class="ident">other</span>);
+        <span class="kw">let</span> (<span class="ident">d</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">division::div_rem_ref</span>(<span class="self">self</span>, <span class="ident">other</span>);
         <span class="ident">d</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">mod_floor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">BigUint</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigUint</span> {
-        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">m</span>) <span class="op">=</span> <span class="ident">division</span>::<span class="ident">div_rem_ref</span>(<span class="self">self</span>, <span class="ident">other</span>);
+        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">m</span>) <span class="op">=</span> <span class="ident">division::div_rem_ref</span>(<span class="self">self</span>, <span class="ident">other</span>);
         <span class="ident">m</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">div_mod_floor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">BigUint</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">BigUint</span>, <span class="ident">BigUint</span>) {
-        <span class="ident">division</span>::<span class="ident">div_rem_ref</span>(<span class="self">self</span>, <span class="ident">other</span>)
+        <span class="ident">division::div_rem_ref</span>(<span class="self">self</span>, <span class="ident">other</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">div_ceil</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">BigUint</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigUint</span> {
-        <span class="kw">let</span> (<span class="ident">d</span>, <span class="ident">m</span>) <span class="op">=</span> <span class="ident">division</span>::<span class="ident">div_rem_ref</span>(<span class="self">self</span>, <span class="ident">other</span>);
+        <span class="kw">let</span> (<span class="ident">d</span>, <span class="ident">m</span>) <span class="op">=</span> <span class="ident">division::div_rem_ref</span>(<span class="self">self</span>, <span class="ident">other</span>);
         <span class="kw">if</span> <span class="ident">m</span>.<span class="ident">is_zero</span>() {
             <span class="ident">d</span>
         } <span class="kw">else</span> {
@@ -1340,7 +1340,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">clone</span>();
 
         <span class="comment">// find common factors of 2</span>
-        <span class="kw">let</span> <span class="ident">shift</span> <span class="op">=</span> <span class="ident">cmp</span>::<span class="ident">min</span>(<span class="ident">twos</span>(<span class="kw-2">&amp;</span><span class="ident">n</span>), <span class="ident">twos</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>));
+        <span class="kw">let</span> <span class="ident">shift</span> <span class="op">=</span> <span class="ident">cmp::min</span>(<span class="ident">twos</span>(<span class="kw-2">&amp;</span><span class="ident">n</span>), <span class="ident">twos</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>));
 
         <span class="comment">// divide m and n by 2 until odd</span>
         <span class="comment">// m inside loop</span>
@@ -1349,7 +1349,7 @@
         <span class="kw">while</span> <span class="op">!</span><span class="ident">m</span>.<span class="ident">is_zero</span>() {
             <span class="ident">m</span> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <span class="ident">twos</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>);
             <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span> <span class="ident">m</span> {
-                <span class="ident">mem</span>::<span class="ident">swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">n</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">m</span>)
+                <span class="ident">mem::swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">n</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">m</span>)
             }
             <span class="ident">m</span> <span class="op">-</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">n</span>;
         }
@@ -1361,7 +1361,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">lcm</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">BigUint</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigUint</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_zero</span>() <span class="op">&amp;&amp;</span> <span class="ident">other</span>.<span class="ident">is_zero</span>() {
-            <span class="self">Self</span>::<span class="ident">zero</span>()
+            <span class="self">Self</span><span class="ident">::zero</span>()
         } <span class="kw">else</span> {
             <span class="self">self</span> <span class="op">/</span> <span class="self">self</span>.<span class="ident">gcd</span>(<span class="ident">other</span>) <span class="op">*</span> <span class="ident">other</span>
         }
@@ -1373,7 +1373,7 @@
     <span class="kw">fn</span> <span class="ident">gcd_lcm</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="self">Self</span>, <span class="self">Self</span>) {
         <span class="kw">let</span> <span class="ident">gcd</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">gcd</span>(<span class="ident">other</span>);
         <span class="kw">let</span> <span class="ident">lcm</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">gcd</span>.<span class="ident">is_zero</span>() {
-            <span class="self">Self</span>::<span class="ident">zero</span>()
+            <span class="self">Self</span><span class="ident">::zero</span>()
         } <span class="kw">else</span> {
             <span class="self">self</span> <span class="op">/</span> <span class="kw-2">&amp;</span><span class="ident">gcd</span> <span class="op">*</span> <span class="ident">other</span>
         };
@@ -1439,7 +1439,7 @@
         <span class="comment">// powers, and then take a long time to walk back.  We know an upper</span>
         <span class="comment">// bound based on bit size, so saturate on that.</span>
         <span class="ident">x</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">xn</span>.<span class="ident">bits</span>() <span class="op">&gt;</span> <span class="ident">max_bits</span> {
-            <span class="ident">BigUint</span>::<span class="ident">one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">max_bits</span>
+            <span class="ident">BigUint::one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">max_bits</span>
         } <span class="kw">else</span> {
             <span class="ident">xn</span>
         };
@@ -1461,7 +1461,7 @@
     <span class="comment">// Reference:</span>
     <span class="comment">// Brent &amp; Zimmermann, Modern Computer Arithmetic, v0.5.9, Algorithm 1.14</span>
     <span class="kw">fn</span> <span class="ident">nth_root</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">n</span> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;root degree n must be at least 1&quot;</span>);
+        <span class="macro">assert!</span>(<span class="ident">n</span> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;root degree n must be at least 1&quot;</span>);
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_zero</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">is_one</span>() {
             <span class="kw">return</span> <span class="self">self</span>.<span class="ident">clone</span>();
@@ -1477,9 +1477,9 @@
 
         <span class="comment">// The root of non-zero values less than 2ⁿ can only be 1.</span>
         <span class="kw">let</span> <span class="ident">bits</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">bits</span>();
-        <span class="kw">let</span> <span class="ident">n64</span> <span class="op">=</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">n</span>);
+        <span class="kw">let</span> <span class="ident">n64</span> <span class="op">=</span> <span class="ident">u64::from</span>(<span class="ident">n</span>);
         <span class="kw">if</span> <span class="ident">bits</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">n64</span> {
-            <span class="kw">return</span> <span class="ident">BigUint</span>::<span class="ident">one</span>();
+            <span class="kw">return</span> <span class="ident">BigUint::one</span>();
         }
 
         <span class="comment">// If we fit in `u64`, compute the root that way.</span>
@@ -1492,27 +1492,27 @@
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
         <span class="kw">let</span> <span class="ident">guess</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">to_f64</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_finite</span>() <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">use</span> <span class="ident">num_traits</span>::<span class="ident">FromPrimitive</span>;
+                <span class="kw">use</span> <span class="ident">num_traits::FromPrimitive</span>;
 
                 <span class="comment">// We fit in `f64` (lossy), so get a better initial guess from that.</span>
-                <span class="ident">BigUint</span>::<span class="ident">from_f64</span>((<span class="ident">f</span>.<span class="ident">ln</span>() <span class="op">/</span> <span class="ident">f64</span>::<span class="ident">from</span>(<span class="ident">n</span>)).<span class="ident">exp</span>()).<span class="ident">unwrap</span>()
+                <span class="ident">BigUint::from_f64</span>((<span class="ident">f</span>.<span class="ident">ln</span>() <span class="op">/</span> <span class="ident">f64::from</span>(<span class="ident">n</span>)).<span class="ident">exp</span>()).<span class="ident">unwrap</span>()
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// Try to guess by scaling down such that it does fit in `f64`.</span>
                 <span class="comment">// With some (x * 2ⁿᵏ), its nth root ≈ (ⁿ√x * 2ᵏ)</span>
-                <span class="kw">let</span> <span class="ident">extra_bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">-</span> (<span class="ident">core</span>::<span class="ident">f64</span>::<span class="ident">MAX_EXP</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">-</span> <span class="number">1</span>);
+                <span class="kw">let</span> <span class="ident">extra_bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">-</span> (<span class="ident">core::f64::MAX_EXP</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">-</span> <span class="number">1</span>);
                 <span class="kw">let</span> <span class="ident">root_scale</span> <span class="op">=</span> <span class="ident">extra_bits</span>.<span class="ident">div_ceil</span>(<span class="kw-2">&amp;</span><span class="ident">n64</span>);
                 <span class="kw">let</span> <span class="ident">scale</span> <span class="op">=</span> <span class="ident">root_scale</span> <span class="op">*</span> <span class="ident">n64</span>;
                 <span class="kw">if</span> <span class="ident">scale</span> <span class="op">&lt;</span> <span class="ident">bits</span> <span class="op">&amp;&amp;</span> <span class="ident">bits</span> <span class="op">-</span> <span class="ident">scale</span> <span class="op">&gt;</span> <span class="ident">n64</span> {
                     (<span class="self">self</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">scale</span>).<span class="ident">nth_root</span>(<span class="ident">n</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">root_scale</span>
                 } <span class="kw">else</span> {
-                    <span class="ident">BigUint</span>::<span class="ident">one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">max_bits</span>
+                    <span class="ident">BigUint::one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">max_bits</span>
                 }
             }
         };
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">guess</span> <span class="op">=</span> <span class="ident">BigUint</span>::<span class="ident">one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">max_bits</span>;
+        <span class="kw">let</span> <span class="ident">guess</span> <span class="op">=</span> <span class="ident">BigUint::one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">max_bits</span>;
 
         <span class="kw">let</span> <span class="ident">n_min_1</span> <span class="op">=</span> <span class="ident">n</span> <span class="op">-</span> <span class="number">1</span>;
         <span class="ident">fixpoint</span>(<span class="ident">guess</span>, <span class="ident">max_bits</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
@@ -1540,15 +1540,15 @@
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
         <span class="kw">let</span> <span class="ident">guess</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">to_f64</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_finite</span>() <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">use</span> <span class="ident">num_traits</span>::<span class="ident">FromPrimitive</span>;
+                <span class="kw">use</span> <span class="ident">num_traits::FromPrimitive</span>;
 
                 <span class="comment">// We fit in `f64` (lossy), so get a better initial guess from that.</span>
-                <span class="ident">BigUint</span>::<span class="ident">from_f64</span>(<span class="ident">f</span>.<span class="ident">sqrt</span>()).<span class="ident">unwrap</span>()
+                <span class="ident">BigUint::from_f64</span>(<span class="ident">f</span>.<span class="ident">sqrt</span>()).<span class="ident">unwrap</span>()
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// Try to guess by scaling down such that it does fit in `f64`.</span>
                 <span class="comment">// With some (x * 2²ᵏ), its sqrt ≈ (√x * 2ᵏ)</span>
-                <span class="kw">let</span> <span class="ident">extra_bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">-</span> (<span class="ident">core</span>::<span class="ident">f64</span>::<span class="ident">MAX_EXP</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">-</span> <span class="number">1</span>);
+                <span class="kw">let</span> <span class="ident">extra_bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">-</span> (<span class="ident">core::f64::MAX_EXP</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">-</span> <span class="number">1</span>);
                 <span class="kw">let</span> <span class="ident">root_scale</span> <span class="op">=</span> (<span class="ident">extra_bits</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">2</span>;
                 <span class="kw">let</span> <span class="ident">scale</span> <span class="op">=</span> <span class="ident">root_scale</span> <span class="op">*</span> <span class="number">2</span>;
                 (<span class="self">self</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">scale</span>).<span class="ident">sqrt</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">root_scale</span>
@@ -1556,7 +1556,7 @@
         };
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">guess</span> <span class="op">=</span> <span class="ident">BigUint</span>::<span class="ident">one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">max_bits</span>;
+        <span class="kw">let</span> <span class="ident">guess</span> <span class="op">=</span> <span class="ident">BigUint::one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">max_bits</span>;
 
         <span class="ident">fixpoint</span>(<span class="ident">guess</span>, <span class="ident">max_bits</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> <span class="self">self</span> <span class="op">/</span> <span class="ident">s</span>;
@@ -1581,15 +1581,15 @@
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
         <span class="kw">let</span> <span class="ident">guess</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">to_f64</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_finite</span>() <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">use</span> <span class="ident">num_traits</span>::<span class="ident">FromPrimitive</span>;
+                <span class="kw">use</span> <span class="ident">num_traits::FromPrimitive</span>;
 
                 <span class="comment">// We fit in `f64` (lossy), so get a better initial guess from that.</span>
-                <span class="ident">BigUint</span>::<span class="ident">from_f64</span>(<span class="ident">f</span>.<span class="ident">cbrt</span>()).<span class="ident">unwrap</span>()
+                <span class="ident">BigUint::from_f64</span>(<span class="ident">f</span>.<span class="ident">cbrt</span>()).<span class="ident">unwrap</span>()
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="comment">// Try to guess by scaling down such that it does fit in `f64`.</span>
                 <span class="comment">// With some (x * 2³ᵏ), its cbrt ≈ (∛x * 2ᵏ)</span>
-                <span class="kw">let</span> <span class="ident">extra_bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">-</span> (<span class="ident">core</span>::<span class="ident">f64</span>::<span class="ident">MAX_EXP</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">-</span> <span class="number">1</span>);
+                <span class="kw">let</span> <span class="ident">extra_bits</span> <span class="op">=</span> <span class="ident">bits</span> <span class="op">-</span> (<span class="ident">core::f64::MAX_EXP</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">-</span> <span class="number">1</span>);
                 <span class="kw">let</span> <span class="ident">root_scale</span> <span class="op">=</span> (<span class="ident">extra_bits</span> <span class="op">+</span> <span class="number">2</span>) <span class="op">/</span> <span class="number">3</span>;
                 <span class="kw">let</span> <span class="ident">scale</span> <span class="op">=</span> <span class="ident">root_scale</span> <span class="op">*</span> <span class="number">3</span>;
                 (<span class="self">self</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">scale</span>).<span class="ident">cbrt</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">root_scale</span>
@@ -1597,7 +1597,7 @@
         };
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
-        <span class="kw">let</span> <span class="ident">guess</span> <span class="op">=</span> <span class="ident">BigUint</span>::<span class="ident">one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">max_bits</span>;
+        <span class="kw">let</span> <span class="ident">guess</span> <span class="op">=</span> <span class="ident">BigUint::one</span>() <span class="op">&lt;</span><span class="op">&lt;</span> <span class="ident">max_bits</span>;
 
         <span class="ident">fixpoint</span>(<span class="ident">guess</span>, <span class="ident">max_bits</span>, <span class="kw">move</span> <span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">q</span> <span class="op">=</span> <span class="self">self</span> <span class="op">/</span> (<span class="ident">s</span> <span class="op">*</span> <span class="ident">s</span>);
@@ -1627,7 +1627,7 @@
     <span class="doccomment">/// The base 2&lt;sup&gt;32&lt;/sup&gt; digits are ordered least significant digit first.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">digits</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigUint</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">big</span> <span class="op">=</span> <span class="ident">BigUint</span>::<span class="ident">zero</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">big</span> <span class="op">=</span> <span class="ident">BigUint::zero</span>();
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">u64_digit</span>))]</span>
         {
@@ -1646,7 +1646,7 @@
     <span class="doccomment">/// The base 2&lt;sup&gt;32&lt;/sup&gt; digits are ordered least significant digit first.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_slice</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="ident">u32</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigUint</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">big</span> <span class="op">=</span> <span class="ident">BigUint</span>::<span class="ident">zero</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">big</span> <span class="op">=</span> <span class="ident">BigUint::zero</span>();
         <span class="ident">big</span>.<span class="ident">assign_from_slice</span>(<span class="ident">slice</span>);
         <span class="ident">big</span>
     }
@@ -1688,11 +1688,11 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_bytes_be</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigUint</span> {
         <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">Zero</span>::<span class="ident">zero</span>()
+            <span class="ident">Zero::zero</span>()
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">to_vec</span>();
             <span class="ident">v</span>.<span class="ident">reverse</span>();
-            <span class="ident">BigUint</span>::<span class="ident">from_bytes_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">v</span>)
+            <span class="ident">BigUint::from_bytes_le</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">v</span>)
         }
     }
 
@@ -1702,9 +1702,9 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_bytes_le</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">BigUint</span> {
         <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">Zero</span>::<span class="ident">zero</span>()
+            <span class="ident">Zero::zero</span>()
         } <span class="kw">else</span> {
-            <span class="ident">convert</span>::<span class="ident">from_bitwise_digits_le</span>(<span class="ident">bytes</span>, <span class="number">8</span>)
+            <span class="ident">convert::from_bitwise_digits_le</span>(<span class="ident">bytes</span>, <span class="number">8</span>)
         }
     }
 
@@ -1726,8 +1726,8 @@
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_bytes</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BigUint</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">str</span>::<span class="ident">from_utf8</span>(<span class="ident">buf</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>;
-        <span class="ident">BigUint</span>::<span class="ident">from_str_radix</span>(<span class="ident">s</span>, <span class="ident">radix</span>).<span class="ident">ok</span>()
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">str::from_utf8</span>(<span class="ident">buf</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>;
+        <span class="ident">BigUint::from_str_radix</span>(<span class="ident">s</span>, <span class="ident">radix</span>).<span class="ident">ok</span>()
     }
 
     <span class="doccomment">/// Creates and initializes a `BigUint`. Each u8 of the input slice is</span>
@@ -1747,7 +1747,7 @@
     <span class="doccomment">/// assert_eq!(a.to_radix_be(190), inbase190);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_radix_be</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BigUint</span><span class="op">&gt;</span> {
-        <span class="ident">convert</span>::<span class="ident">from_radix_be</span>(<span class="ident">buf</span>, <span class="ident">radix</span>)
+        <span class="ident">convert::from_radix_be</span>(<span class="ident">buf</span>, <span class="ident">radix</span>)
     }
 
     <span class="doccomment">/// Creates and initializes a `BigUint`. Each u8 of the input slice is</span>
@@ -1767,7 +1767,7 @@
     <span class="doccomment">/// assert_eq!(a.to_radix_be(190), inbase190);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_radix_le</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">radix</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BigUint</span><span class="op">&gt;</span> {
-        <span class="ident">convert</span>::<span class="ident">from_radix_le</span>(<span class="ident">buf</span>, <span class="ident">radix</span>)
+        <span class="ident">convert::from_radix_le</span>(<span class="ident">buf</span>, <span class="ident">radix</span>)
     }
 
     <span class="doccomment">/// Returns the byte representation of the `BigUint` in big-endian byte order.</span>
@@ -1800,9 +1800,9 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bytes_le</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_zero</span>() {
-            <span class="macro">vec</span><span class="macro">!</span>[<span class="number">0</span>]
+            <span class="macro">vec!</span>[<span class="number">0</span>]
         } <span class="kw">else</span> {
-            <span class="ident">convert</span>::<span class="ident">to_bitwise_digits_le</span>(<span class="self">self</span>, <span class="number">8</span>)
+            <span class="ident">convert::to_bitwise_digits_le</span>(<span class="self">self</span>, <span class="number">8</span>)
         }
     }
 
@@ -1858,7 +1858,7 @@
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_u32_digits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U32Digits</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="ident">U32Digits</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">as_slice</span>())
+        <span class="ident">U32Digits::new</span>(<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">as_slice</span>())
     }
 
     <span class="doccomment">/// Returns an iterator of `u64` digits representation of the `BigUint` ordered least</span>
@@ -1877,7 +1877,7 @@
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_u64_digits</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U64Digits</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="ident">U64Digits</span>::<span class="ident">new</span>(<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">as_slice</span>())
+        <span class="ident">U64Digits::new</span>(<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">as_slice</span>())
     }
 
     <span class="doccomment">/// Returns the integer formatted as a string in the given radix.</span>
@@ -1895,7 +1895,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_str_radix</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">radix</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">to_str_radix_reversed</span>(<span class="self">self</span>, <span class="ident">radix</span>);
         <span class="ident">v</span>.<span class="ident">reverse</span>();
-        <span class="kw">unsafe</span> { <span class="ident">String</span>::<span class="ident">from_utf8_unchecked</span>(<span class="ident">v</span>) }
+        <span class="kw">unsafe</span> { <span class="ident">String::from_utf8_unchecked</span>(<span class="ident">v</span>) }
     }
 
     <span class="doccomment">/// Returns the integer in the requested base in big-endian digit order.</span>
@@ -1914,7 +1914,7 @@
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_radix_be</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">radix</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">convert</span>::<span class="ident">to_radix_le</span>(<span class="self">self</span>, <span class="ident">radix</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">convert::to_radix_le</span>(<span class="self">self</span>, <span class="ident">radix</span>);
         <span class="ident">v</span>.<span class="ident">reverse</span>();
         <span class="ident">v</span>
     }
@@ -1935,7 +1935,7 @@
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_radix_le</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">radix</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-        <span class="ident">convert</span>::<span class="ident">to_radix_le</span>(<span class="self">self</span>, <span class="ident">radix</span>)
+        <span class="ident">convert::to_radix_le</span>(<span class="self">self</span>, <span class="ident">radix</span>)
     }
 
     <span class="doccomment">/// Determines the fewest bits necessary to express the `BigUint`.</span>
@@ -1945,7 +1945,7 @@
             <span class="kw">return</span> <span class="number">0</span>;
         }
         <span class="kw">let</span> <span class="ident">zeros</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>().<span class="ident">leading_zeros</span>().<span class="ident">into</span>();
-        <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span> <span class="op">*</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">big_digit</span>::<span class="ident">BITS</span>) <span class="op">-</span> <span class="ident">zeros</span>
+        <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span> <span class="op">*</span> <span class="ident">u64::from</span>(<span class="ident">big_digit::BITS</span>) <span class="op">-</span> <span class="ident">zeros</span>
     }
 
     <span class="doccomment">/// Strips off trailing zero bigdigits - comparisons require the last element in the vector to</span>
@@ -1969,32 +1969,32 @@
 
     <span class="doccomment">/// Returns `self ^ exponent`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">exponent</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Pow</span>::<span class="ident">pow</span>(<span class="self">self</span>, <span class="ident">exponent</span>)
+        <span class="ident">Pow::pow</span>(<span class="self">self</span>, <span class="ident">exponent</span>)
     }
 
     <span class="doccomment">/// Returns `(self ^ exponent) % modulus`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if the modulus is zero.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">modpow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">exponent</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">modulus</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">power</span>::<span class="ident">modpow</span>(<span class="self">self</span>, <span class="ident">exponent</span>, <span class="ident">modulus</span>)
+        <span class="ident">power::modpow</span>(<span class="self">self</span>, <span class="ident">exponent</span>, <span class="ident">modulus</span>)
     }
 
     <span class="doccomment">/// Returns the truncated principal square root of `self` --</span>
     <span class="doccomment">/// see [Roots::sqrt](https://docs.rs/num-integer/0.1/num_integer/trait.Roots.html#method.sqrt)</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sqrt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Roots</span>::<span class="ident">sqrt</span>(<span class="self">self</span>)
+        <span class="ident">Roots::sqrt</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Returns the truncated principal cube root of `self` --</span>
     <span class="doccomment">/// see [Roots::cbrt](https://docs.rs/num-integer/0.1/num_integer/trait.Roots.html#method.cbrt).</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cbrt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Roots</span>::<span class="ident">cbrt</span>(<span class="self">self</span>)
+        <span class="ident">Roots::cbrt</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Returns the truncated principal `n`th root of `self` --</span>
     <span class="doccomment">/// see [Roots::nth_root](https://docs.rs/num-integer/0.1/num_integer/trait.Roots.html#tymethod.nth_root).</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nth_root</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Roots</span>::<span class="ident">nth_root</span>(<span class="self">self</span>, <span class="ident">n</span>)
+        <span class="ident">Roots::nth_root</span>(<span class="self">self</span>, <span class="ident">n</span>)
     }
 
     <span class="doccomment">/// Returns the number of least-significant bits that are zero,</span>
@@ -2002,7 +2002,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trailing_zeros</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">digit</span><span class="op">|</span> <span class="ident">digit</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">zeros</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>[<span class="ident">i</span>].<span class="ident">trailing_zeros</span>().<span class="ident">into</span>();
-        <span class="prelude-val">Some</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">*</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">big_digit</span>::<span class="ident">BITS</span>) <span class="op">+</span> <span class="ident">zeros</span>)
+        <span class="prelude-val">Some</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">*</span> <span class="ident">u64::from</span>(<span class="ident">big_digit::BITS</span>) <span class="op">+</span> <span class="ident">zeros</span>)
     }
 
     <span class="doccomment">/// Returns the number of least-significant bits that are ones.</span>
@@ -2012,20 +2012,20 @@
             <span class="comment">// but we need to be compatible further back.</span>
             <span class="comment">// Thanks to cuviper for this workaround.</span>
             <span class="kw">let</span> <span class="ident">ones</span>: <span class="ident">u64</span> <span class="op">=</span> (<span class="op">!</span><span class="self">self</span>.<span class="ident">data</span>[<span class="ident">i</span>]).<span class="ident">trailing_zeros</span>().<span class="ident">into</span>();
-            <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">*</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">big_digit</span>::<span class="ident">BITS</span>) <span class="op">+</span> <span class="ident">ones</span>
+            <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">*</span> <span class="ident">u64::from</span>(<span class="ident">big_digit::BITS</span>) <span class="op">+</span> <span class="ident">ones</span>
         } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span> <span class="op">*</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">big_digit</span>::<span class="ident">BITS</span>)
+            <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span> <span class="op">*</span> <span class="ident">u64::from</span>(<span class="ident">big_digit::BITS</span>)
         }
     }
 
     <span class="doccomment">/// Returns the number of one bits.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">count_ones</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">d</span><span class="op">|</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">d</span>.<span class="ident">count_ones</span>())).<span class="ident">sum</span>()
+        <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">d</span><span class="op">|</span> <span class="ident">u64::from</span>(<span class="ident">d</span>.<span class="ident">count_ones</span>())).<span class="ident">sum</span>()
     }
 
     <span class="doccomment">/// Returns whether the bit in the given position is set</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="ident">bits_per_digit</span> <span class="op">=</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">big_digit</span>::<span class="ident">BITS</span>);
+        <span class="kw">let</span> <span class="ident">bits_per_digit</span> <span class="op">=</span> <span class="ident">u64::from</span>(<span class="ident">big_digit::BITS</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">digit_index</span>) <span class="op">=</span> (<span class="ident">bit</span> <span class="op">/</span> <span class="ident">bits_per_digit</span>).<span class="ident">to_usize</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">digit</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">get</span>(<span class="ident">digit_index</span>) {
                 <span class="kw">let</span> <span class="ident">bit_mask</span> <span class="op">=</span> (<span class="number">1</span> <span class="kw">as</span> <span class="ident">BigDigit</span>) <span class="op">&lt;</span><span class="op">&lt;</span> (<span class="ident">bit</span> <span class="op">%</span> <span class="ident">bits_per_digit</span>);
@@ -2042,10 +2042,10 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_bit</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">bit</span>: <span class="ident">u64</span>, <span class="ident">value</span>: <span class="ident">bool</span>) {
         <span class="comment">// Note: we&#39;re saturating `digit_index` and `new_len` -- any such case is guaranteed to</span>
         <span class="comment">// fail allocation, and that&#39;s more consistent than adding our own overflow panics.</span>
-        <span class="kw">let</span> <span class="ident">bits_per_digit</span> <span class="op">=</span> <span class="ident">u64</span>::<span class="ident">from</span>(<span class="ident">big_digit</span>::<span class="ident">BITS</span>);
+        <span class="kw">let</span> <span class="ident">bits_per_digit</span> <span class="op">=</span> <span class="ident">u64::from</span>(<span class="ident">big_digit::BITS</span>);
         <span class="kw">let</span> <span class="ident">digit_index</span> <span class="op">=</span> (<span class="ident">bit</span> <span class="op">/</span> <span class="ident">bits_per_digit</span>)
             .<span class="ident">to_usize</span>()
-            .<span class="ident">unwrap_or</span>(<span class="ident">core</span>::<span class="ident">usize</span>::<span class="ident">MAX</span>);
+            .<span class="ident">unwrap_or</span>(<span class="ident">core::usize::MAX</span>);
         <span class="kw">let</span> <span class="ident">bit_mask</span> <span class="op">=</span> (<span class="number">1</span> <span class="kw">as</span> <span class="ident">BigDigit</span>) <span class="op">&lt;</span><span class="op">&lt;</span> (<span class="ident">bit</span> <span class="op">%</span> <span class="ident">bits_per_digit</span>);
         <span class="kw">if</span> <span class="ident">value</span> {
             <span class="kw">if</span> <span class="ident">digit_index</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">len</span>() {
@@ -2107,7 +2107,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">test</span>, <span class="ident">not</span>(<span class="ident">u64_digit</span>)))]</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">fn</span> <span class="ident">u32_to_u128</span>(<span class="ident">a</span>: <span class="ident">u32</span>, <span class="ident">b</span>: <span class="ident">u32</span>, <span class="ident">c</span>: <span class="ident">u32</span>, <span class="ident">d</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u128</span> {
-    <span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">d</span>) <span class="op">|</span> (<span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">c</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>) <span class="op">|</span> (<span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">b</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">64</span>) <span class="op">|</span> (<span class="ident">u128</span>::<span class="ident">from</span>(<span class="ident">a</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">96</span>)
+    <span class="ident">u128::from</span>(<span class="ident">d</span>) <span class="op">|</span> (<span class="ident">u128::from</span>(<span class="ident">c</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>) <span class="op">|</span> (<span class="ident">u128::from</span>(<span class="ident">b</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">64</span>) <span class="op">|</span> (<span class="ident">u128::from</span>(<span class="ident">a</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">96</span>)
 }
 
 <span class="doccomment">/// Split a single `u128` into four `u32`.</span>
@@ -2126,7 +2126,7 @@
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">test_from_slice</span>() {
     <span class="kw">fn</span> <span class="ident">check</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="ident">u32</span>], <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">BigDigit</span>]) {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">BigUint</span>::<span class="ident">from_slice</span>(<span class="ident">slice</span>).<span class="ident">data</span>, <span class="ident">data</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">BigUint::from_slice</span>(<span class="ident">slice</span>).<span class="ident">data</span>, <span class="ident">data</span>);
     }
     <span class="ident">check</span>(<span class="kw-2">&amp;</span>[<span class="number">1</span>], <span class="kw-2">&amp;</span>[<span class="number">1</span>]);
     <span class="ident">check</span>(<span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>], <span class="kw-2">&amp;</span>[]);
@@ -2140,8 +2140,8 @@
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">test_from_slice</span>() {
     <span class="kw">fn</span> <span class="ident">check</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="ident">u32</span>], <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">BigDigit</span>]) {
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">BigUint</span>::<span class="ident">from_slice</span>(<span class="ident">slice</span>).<span class="ident">data</span>,
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">BigUint::from_slice</span>(<span class="ident">slice</span>).<span class="ident">data</span>,
             <span class="ident">data</span>,
             <span class="string">&quot;from {:?}, to {:?}&quot;</span>,
             <span class="ident">slice</span>,
@@ -2159,53 +2159,53 @@
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">test_u32_u128</span>() {
-    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">u32_from_u128</span>(<span class="number">0u128</span>), (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>));
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
-        <span class="ident">u32_from_u128</span>(<span class="ident">u128</span>::<span class="ident">max_value</span>()),
+    <span class="macro">assert_eq!</span>(<span class="ident">u32_from_u128</span>(<span class="number">0u128</span>), (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>));
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">u32_from_u128</span>(<span class="ident">u128::max_value</span>()),
         (
-            <span class="ident">u32</span>::<span class="ident">max_value</span>(),
-            <span class="ident">u32</span>::<span class="ident">max_value</span>(),
-            <span class="ident">u32</span>::<span class="ident">max_value</span>(),
-            <span class="ident">u32</span>::<span class="ident">max_value</span>()
+            <span class="ident">u32::max_value</span>(),
+            <span class="ident">u32::max_value</span>(),
+            <span class="ident">u32::max_value</span>(),
+            <span class="ident">u32::max_value</span>()
         )
     );
 
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
-        <span class="ident">u32_from_u128</span>(<span class="ident">u32</span>::<span class="ident">max_value</span>() <span class="kw">as</span> <span class="ident">u128</span>),
-        (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="ident">u32</span>::<span class="ident">max_value</span>())
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">u32_from_u128</span>(<span class="ident">u32::max_value</span>() <span class="kw">as</span> <span class="ident">u128</span>),
+        (<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="ident">u32::max_value</span>())
     );
 
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
-        <span class="ident">u32_from_u128</span>(<span class="ident">u64</span>::<span class="ident">max_value</span>() <span class="kw">as</span> <span class="ident">u128</span>),
-        (<span class="number">0</span>, <span class="number">0</span>, <span class="ident">u32</span>::<span class="ident">max_value</span>(), <span class="ident">u32</span>::<span class="ident">max_value</span>())
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">u32_from_u128</span>(<span class="ident">u64::max_value</span>() <span class="kw">as</span> <span class="ident">u128</span>),
+        (<span class="number">0</span>, <span class="number">0</span>, <span class="ident">u32::max_value</span>(), <span class="ident">u32::max_value</span>())
     );
 
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
-        <span class="ident">u32_from_u128</span>((<span class="ident">u64</span>::<span class="ident">max_value</span>() <span class="kw">as</span> <span class="ident">u128</span>) <span class="op">+</span> <span class="ident">u32</span>::<span class="ident">max_value</span>() <span class="kw">as</span> <span class="ident">u128</span>),
-        (<span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="ident">u32</span>::<span class="ident">max_value</span>() <span class="op">-</span> <span class="number">1</span>)
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">u32_from_u128</span>((<span class="ident">u64::max_value</span>() <span class="kw">as</span> <span class="ident">u128</span>) <span class="op">+</span> <span class="ident">u32::max_value</span>() <span class="kw">as</span> <span class="ident">u128</span>),
+        (<span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="ident">u32::max_value</span>() <span class="op">-</span> <span class="number">1</span>)
     );
 
-    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">u32_from_u128</span>(<span class="number">36_893_488_151_714_070_528</span>), (<span class="number">0</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">0</span>));
+    <span class="macro">assert_eq!</span>(<span class="ident">u32_from_u128</span>(<span class="number">36_893_488_151_714_070_528</span>), (<span class="number">0</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">0</span>));
 }
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">test_u128_u32_roundtrip</span>() {
     <span class="comment">// roundtrips</span>
-    <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[
+    <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="macro">vec!</span>[
         <span class="number">0u128</span>,
         <span class="number">1u128</span>,
-        <span class="ident">u64</span>::<span class="ident">max_value</span>() <span class="kw">as</span> <span class="ident">u128</span> <span class="op">*</span> <span class="number">3</span>,
-        <span class="ident">u32</span>::<span class="ident">max_value</span>() <span class="kw">as</span> <span class="ident">u128</span>,
-        <span class="ident">u64</span>::<span class="ident">max_value</span>() <span class="kw">as</span> <span class="ident">u128</span>,
-        (<span class="ident">u64</span>::<span class="ident">max_value</span>() <span class="kw">as</span> <span class="ident">u128</span>) <span class="op">+</span> <span class="ident">u32</span>::<span class="ident">max_value</span>() <span class="kw">as</span> <span class="ident">u128</span>,
-        <span class="ident">u128</span>::<span class="ident">max_value</span>(),
+        <span class="ident">u64::max_value</span>() <span class="kw">as</span> <span class="ident">u128</span> <span class="op">*</span> <span class="number">3</span>,
+        <span class="ident">u32::max_value</span>() <span class="kw">as</span> <span class="ident">u128</span>,
+        <span class="ident">u64::max_value</span>() <span class="kw">as</span> <span class="ident">u128</span>,
+        (<span class="ident">u64::max_value</span>() <span class="kw">as</span> <span class="ident">u128</span>) <span class="op">+</span> <span class="ident">u32::max_value</span>() <span class="kw">as</span> <span class="ident">u128</span>,
+        <span class="ident">u128::max_value</span>(),
     ];
 
     <span class="kw">for</span> <span class="ident">val</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">values</span> {
         <span class="kw">let</span> (<span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">c</span>, <span class="ident">d</span>) <span class="op">=</span> <span class="ident">u32_from_u128</span>(<span class="kw-2">*</span><span class="ident">val</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">u32_to_u128</span>(<span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">c</span>, <span class="ident">d</span>), <span class="kw-2">*</span><span class="ident">val</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">u32_to_u128</span>(<span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">c</span>, <span class="ident">d</span>), <span class="kw-2">*</span><span class="ident">val</span>);
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="num_bigint" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="num_bigint" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

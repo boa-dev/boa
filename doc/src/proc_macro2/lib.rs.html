@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro2-1.0.27/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../proc_macro2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../proc_macro2/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1358,7 +1358,7 @@
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">any</span>(<span class="ident">proc_macro_span</span>, <span class="ident">super_unstable</span>), <span class="ident">feature</span>(<span class="ident">proc_macro_span</span>))]</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">super_unstable</span>, <span class="ident">feature</span>(<span class="ident">proc_macro_raw_ident</span>, <span class="ident">proc_macro_def_site</span>))]</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">feature</span>(<span class="ident">doc_cfg</span>))]</span>
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy</span>::<span class="ident">needless_doctest_main</span>, <span class="ident">clippy</span>::<span class="ident">vec_init_then_push</span>)]</span>
+<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::needless_doctest_main</span>, <span class="ident">clippy::vec_init_then_push</span>)]</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">use_proc_macro</span>)]</span>
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">proc_macro</span>;
@@ -1375,21 +1375,21 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">fallback</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">wrap_proc_macro</span>))]</span>
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">fallback</span> <span class="kw">as</span> <span class="ident">imp</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::fallback</span> <span class="kw">as</span> <span class="ident">imp</span>;
 <span class="attribute">#[<span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;wrapper.rs&quot;</span>]</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">wrap_proc_macro</span>)]</span>
 <span class="kw">mod</span> <span class="ident">imp</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">marker</span>::<span class="ident">Marker</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>::<span class="ident">Ordering</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">error</span>::<span class="ident">Error</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">iter</span>::<span class="ident">FromIterator</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">RangeBounds</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::marker::Marker</span>;
+<span class="kw">use</span> <span class="ident">std::cmp::Ordering</span>;
+<span class="kw">use</span> <span class="ident">std::error::Error</span>;
+<span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>};
+<span class="kw">use</span> <span class="ident">std::hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
+<span class="kw">use</span> <span class="ident">std::iter::FromIterator</span>;
+<span class="kw">use</span> <span class="ident">std::ops::RangeBounds</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)]</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">PathBuf</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">str</span>::<span class="ident">FromStr</span>;
+<span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
+<span class="kw">use</span> <span class="ident">std::str::FromStr</span>;
 
 <span class="doccomment">/// An abstract stream of tokens, or more concretely a sequence of token trees.</span>
 <span class="doccomment">///</span>
@@ -1400,25 +1400,25 @@
 <span class="doccomment">/// `#[proc_macro_attribute]` and `#[proc_macro_derive]` definitions.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TokenStream</span> {
-    <span class="ident">inner</span>: <span class="ident">imp</span>::<span class="ident">TokenStream</span>,
+    <span class="ident">inner</span>: <span class="ident">imp::TokenStream</span>,
     <span class="ident">_marker</span>: <span class="ident">Marker</span>,
 }
 
 <span class="doccomment">/// Error returned from `TokenStream::from_str`.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LexError</span> {
-    <span class="ident">inner</span>: <span class="ident">imp</span>::<span class="ident">LexError</span>,
+    <span class="ident">inner</span>: <span class="ident">imp::LexError</span>,
     <span class="ident">_marker</span>: <span class="ident">Marker</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">TokenStream</span> {
-    <span class="kw">fn</span> <span class="ident">_new</span>(<span class="ident">inner</span>: <span class="ident">imp</span>::<span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+    <span class="kw">fn</span> <span class="ident">_new</span>(<span class="ident">inner</span>: <span class="ident">imp::TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
         <span class="ident">TokenStream</span> {
             <span class="ident">inner</span>,
             <span class="ident">_marker</span>: <span class="ident">Marker</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">_new_stable</span>(<span class="ident">inner</span>: <span class="ident">fallback</span>::<span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+    <span class="kw">fn</span> <span class="ident">_new_stable</span>(<span class="ident">inner</span>: <span class="ident">fallback::TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
         <span class="ident">TokenStream</span> {
             <span class="ident">inner</span>: <span class="ident">inner</span>.<span class="ident">into</span>(),
             <span class="ident">_marker</span>: <span class="ident">Marker</span>,
@@ -1427,7 +1427,7 @@
 
     <span class="doccomment">/// Returns an empty `TokenStream` containing no token trees.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
-        <span class="ident">TokenStream</span>::<span class="ident">_new</span>(<span class="ident">imp</span>::<span class="ident">TokenStream</span>::<span class="ident">new</span>())
+        <span class="ident">TokenStream::_new</span>(<span class="ident">imp::TokenStream::new</span>())
     }
 
     <span class="doccomment">/// Checks if this `TokenStream` is empty.</span>
@@ -1440,7 +1440,7 @@
 <span class="doccomment">/// i.e. this is equivalent with `TokenStream::new()`.</span>
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">TokenStream</span>::<span class="ident">new</span>()
+        <span class="ident">TokenStream::new</span>()
     }
 }
 
@@ -1460,27 +1460,27 @@
             <span class="ident">inner</span>: <span class="ident">e</span>,
             <span class="ident">_marker</span>: <span class="ident">Marker</span>,
         })<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">TokenStream</span>::<span class="ident">_new</span>(<span class="ident">e</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">TokenStream::_new</span>(<span class="ident">e</span>))
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">use_proc_macro</span>)]</span>
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">proc_macro</span>::<span class="ident">TokenStream</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">inner</span>: <span class="ident">proc_macro</span>::<span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
-        <span class="ident">TokenStream</span>::<span class="ident">_new</span>(<span class="ident">inner</span>.<span class="ident">into</span>())
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">proc_macro::TokenStream</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">inner</span>: <span class="ident">proc_macro::TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
+        <span class="ident">TokenStream::_new</span>(<span class="ident">inner</span>.<span class="ident">into</span>())
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">use_proc_macro</span>)]</span>
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">proc_macro</span>::<span class="ident">TokenStream</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">inner</span>: <span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro</span>::<span class="ident">TokenStream</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">proc_macro::TokenStream</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">inner</span>: <span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro::TokenStream</span> {
         <span class="ident">inner</span>.<span class="ident">inner</span>.<span class="ident">into</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">token</span>: <span class="ident">TokenTree</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">TokenStream</span>::<span class="ident">_new</span>(<span class="ident">imp</span>::<span class="ident">TokenStream</span>::<span class="ident">from</span>(<span class="ident">token</span>))
+        <span class="ident">TokenStream::_new</span>(<span class="ident">imp::TokenStream::from</span>(<span class="ident">token</span>))
     }
 }
 
@@ -1500,12 +1500,12 @@
 <span class="doccomment">/// Collects a number of token trees into a single stream.</span>
 <span class="kw">impl</span> <span class="ident">FromIterator</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
     <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenTree</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">streams</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">TokenStream</span>::<span class="ident">_new</span>(<span class="ident">streams</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>())
+        <span class="ident">TokenStream::_new</span>(<span class="ident">streams</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>())
     }
 }
 <span class="kw">impl</span> <span class="ident">FromIterator</span><span class="op">&lt;</span><span class="ident">TokenStream</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
     <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">TokenStream</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">streams</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">TokenStream</span>::<span class="ident">_new</span>(<span class="ident">streams</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">i</span>.<span class="ident">inner</span>).<span class="ident">collect</span>())
+        <span class="ident">TokenStream::_new</span>(<span class="ident">streams</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">i</span>.<span class="ident">inner</span>).<span class="ident">collect</span>())
     }
 }
 
@@ -1514,33 +1514,33 @@
 <span class="doccomment">/// possibly `TokenTree::Group`s with `Delimiter::None` delimiters and negative</span>
 <span class="doccomment">/// numeric literals.</span>
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
     }
 }
 
 <span class="doccomment">/// Prints token in a form convenient for debugging.</span>
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">TokenStream</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Debug</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">Debug::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">LexError</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
-        <span class="ident">Span</span>::<span class="ident">_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">span</span>())
+        <span class="ident">Span::_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">span</span>())
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">LexError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Debug</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">Debug::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">LexError</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
     }
 }
 
@@ -1553,13 +1553,13 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SourceFile</span> {
-    <span class="ident">inner</span>: <span class="ident">imp</span>::<span class="ident">SourceFile</span>,
+    <span class="ident">inner</span>: <span class="ident">imp::SourceFile</span>,
     <span class="ident">_marker</span>: <span class="ident">Marker</span>,
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)]</span>
 <span class="kw">impl</span> <span class="ident">SourceFile</span> {
-    <span class="kw">fn</span> <span class="ident">_new</span>(<span class="ident">inner</span>: <span class="ident">imp</span>::<span class="ident">SourceFile</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">_new</span>(<span class="ident">inner</span>: <span class="ident">imp::SourceFile</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">SourceFile</span> {
             <span class="ident">inner</span>,
             <span class="ident">_marker</span>: <span class="ident">Marker</span>,
@@ -1592,8 +1592,8 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)]</span>
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">SourceFile</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Debug</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">Debug::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
     }
 }
 
@@ -1631,19 +1631,19 @@
 <span class="doccomment">/// A region of source code, along with macro expansion information.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Span</span> {
-    <span class="ident">inner</span>: <span class="ident">imp</span>::<span class="ident">Span</span>,
+    <span class="ident">inner</span>: <span class="ident">imp::Span</span>,
     <span class="ident">_marker</span>: <span class="ident">Marker</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Span</span> {
-    <span class="kw">fn</span> <span class="ident">_new</span>(<span class="ident">inner</span>: <span class="ident">imp</span>::<span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+    <span class="kw">fn</span> <span class="ident">_new</span>(<span class="ident">inner</span>: <span class="ident">imp::Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
         <span class="ident">Span</span> {
             <span class="ident">inner</span>,
             <span class="ident">_marker</span>: <span class="ident">Marker</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">_new_stable</span>(<span class="ident">inner</span>: <span class="ident">fallback</span>::<span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
+    <span class="kw">fn</span> <span class="ident">_new_stable</span>(<span class="ident">inner</span>: <span class="ident">fallback::Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
         <span class="ident">Span</span> {
             <span class="ident">inner</span>: <span class="ident">inner</span>.<span class="ident">into</span>(),
             <span class="ident">_marker</span>: <span class="ident">Marker</span>,
@@ -1656,7 +1656,7 @@
     <span class="doccomment">/// written directly at the macro call location (call-site hygiene) and</span>
     <span class="doccomment">/// other code at the macro call site will be able to refer to them as well.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_site</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
-        <span class="ident">Span</span>::<span class="ident">_new</span>(<span class="ident">imp</span>::<span class="ident">Span</span>::<span class="ident">call_site</span>())
+        <span class="ident">Span::_new</span>(<span class="ident">imp::Span::call_site</span>())
     }
 
     <span class="doccomment">/// The span located at the invocation of the procedural macro, but with</span>
@@ -1666,7 +1666,7 @@
     <span class="doccomment">/// This function requires Rust 1.45 or later.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">hygiene</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mixed_site</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
-        <span class="ident">Span</span>::<span class="ident">_new</span>(<span class="ident">imp</span>::<span class="ident">Span</span>::<span class="ident">mixed_site</span>())
+        <span class="ident">Span::_new</span>(<span class="ident">imp::Span::mixed_site</span>())
     }
 
     <span class="doccomment">/// A span that resolves at the macro definition site.</span>
@@ -1675,19 +1675,19 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">def_site</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
-        <span class="ident">Span</span>::<span class="ident">_new</span>(<span class="ident">imp</span>::<span class="ident">Span</span>::<span class="ident">def_site</span>())
+        <span class="ident">Span::_new</span>(<span class="ident">imp::Span::def_site</span>())
     }
 
     <span class="doccomment">/// Creates a new span with the same line/column information as `self` but</span>
     <span class="doccomment">/// that resolves symbols as though it were at `other`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resolved_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
-        <span class="ident">Span</span>::<span class="ident">_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">resolved_at</span>(<span class="ident">other</span>.<span class="ident">inner</span>))
+        <span class="ident">Span::_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">resolved_at</span>(<span class="ident">other</span>.<span class="ident">inner</span>))
     }
 
     <span class="doccomment">/// Creates a new span with the same name resolution behavior as `self` but</span>
     <span class="doccomment">/// with the line/column information of `other`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">located_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
-        <span class="ident">Span</span>::<span class="ident">_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">located_at</span>(<span class="ident">other</span>.<span class="ident">inner</span>))
+        <span class="ident">Span::_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">located_at</span>(<span class="ident">other</span>.<span class="ident">inner</span>))
     }
 
     <span class="doccomment">/// Convert `proc_macro2::Span` to `proc_macro::Span`.</span>
@@ -1701,14 +1701,14 @@
     <span class="doccomment">/// `proc_macro2::Span`, the `proc_macro::Span` type can only exist within</span>
     <span class="doccomment">/// the context of a procedural macro invocation.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">wrap_proc_macro</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unwrap</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro</span>::<span class="ident">Span</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unwrap</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro::Span</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">unwrap</span>()
     }
 
     <span class="comment">// Soft deprecated. Please use Span::unwrap.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">wrap_proc_macro</span>)]</span>
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unstable</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro</span>::<span class="ident">Span</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unstable</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">proc_macro::Span</span> {
         <span class="self">self</span>.<span class="ident">unwrap</span>()
     }
 
@@ -1718,7 +1718,7 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">source_file</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SourceFile</span> {
-        <span class="ident">SourceFile</span>::<span class="ident">_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">source_file</span>())
+        <span class="ident">SourceFile::_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">source_file</span>())
     }
 
     <span class="doccomment">/// Get the starting line/column in the source file for this span.</span>
@@ -1733,7 +1733,7 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;span-locations&quot;</span>)))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LineColumn</span> {
-        <span class="kw">let</span> <span class="ident">imp</span>::<span class="ident">LineColumn</span> { <span class="ident">line</span>, <span class="ident">column</span> } <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">start</span>();
+        <span class="kw">let</span> <span class="ident">imp::LineColumn</span> { <span class="ident">line</span>, <span class="ident">column</span> } <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">start</span>();
         <span class="ident">LineColumn</span> { <span class="ident">line</span>, <span class="ident">column</span> }
     }
 
@@ -1749,7 +1749,7 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;span-locations&quot;</span>)))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">end</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">LineColumn</span> {
-        <span class="kw">let</span> <span class="ident">imp</span>::<span class="ident">LineColumn</span> { <span class="ident">line</span>, <span class="ident">column</span> } <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">end</span>();
+        <span class="kw">let</span> <span class="ident">imp::LineColumn</span> { <span class="ident">line</span>, <span class="ident">column</span> } <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">end</span>();
         <span class="ident">LineColumn</span> { <span class="ident">line</span>, <span class="ident">column</span> }
     }
 
@@ -1763,7 +1763,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`proc_macro::Span::join`]: https://doc.rust-lang.org/proc_macro/struct.Span.html#method.join</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">join</span>(<span class="ident">other</span>.<span class="ident">inner</span>).<span class="ident">map</span>(<span class="ident">Span</span>::<span class="ident">_new</span>)
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">join</span>(<span class="ident">other</span>.<span class="ident">inner</span>).<span class="ident">map</span>(<span class="ident">Span::_new</span>)
     }
 
     <span class="doccomment">/// Compares two spans to see if they&#39;re equal.</span>
@@ -1778,8 +1778,8 @@
 
 <span class="doccomment">/// Prints a span in a form convenient for debugging.</span>
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Span</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Debug</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">Debug::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
     }
 }
 
@@ -1801,10 +1801,10 @@
     <span class="doccomment">/// the contained token or a delimited stream.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TokenTree</span>::<span class="ident">Group</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">span</span>(),
-            <span class="ident">TokenTree</span>::<span class="ident">Ident</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">span</span>(),
-            <span class="ident">TokenTree</span>::<span class="ident">Punct</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">span</span>(),
-            <span class="ident">TokenTree</span>::<span class="ident">Literal</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">span</span>(),
+            <span class="ident">TokenTree::Group</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">span</span>(),
+            <span class="ident">TokenTree::Ident</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">span</span>(),
+            <span class="ident">TokenTree::Punct</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">span</span>(),
+            <span class="ident">TokenTree::Literal</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">span</span>(),
         }
     }
 
@@ -1815,35 +1815,35 @@
     <span class="doccomment">/// the `set_span` method of each variant.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_span</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TokenTree</span>::<span class="ident">Group</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">set_span</span>(<span class="ident">span</span>),
-            <span class="ident">TokenTree</span>::<span class="ident">Ident</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">set_span</span>(<span class="ident">span</span>),
-            <span class="ident">TokenTree</span>::<span class="ident">Punct</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">set_span</span>(<span class="ident">span</span>),
-            <span class="ident">TokenTree</span>::<span class="ident">Literal</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">set_span</span>(<span class="ident">span</span>),
+            <span class="ident">TokenTree::Group</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">set_span</span>(<span class="ident">span</span>),
+            <span class="ident">TokenTree::Ident</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">set_span</span>(<span class="ident">span</span>),
+            <span class="ident">TokenTree::Punct</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">set_span</span>(<span class="ident">span</span>),
+            <span class="ident">TokenTree::Literal</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">t</span>.<span class="ident">set_span</span>(<span class="ident">span</span>),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Group</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenTree</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">g</span>: <span class="ident">Group</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenTree</span> {
-        <span class="ident">TokenTree</span>::<span class="ident">Group</span>(<span class="ident">g</span>)
+        <span class="ident">TokenTree::Group</span>(<span class="ident">g</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenTree</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">g</span>: <span class="ident">Ident</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenTree</span> {
-        <span class="ident">TokenTree</span>::<span class="ident">Ident</span>(<span class="ident">g</span>)
+        <span class="ident">TokenTree::Ident</span>(<span class="ident">g</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Punct</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenTree</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">g</span>: <span class="ident">Punct</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenTree</span> {
-        <span class="ident">TokenTree</span>::<span class="ident">Punct</span>(<span class="ident">g</span>)
+        <span class="ident">TokenTree::Punct</span>(<span class="ident">g</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Literal</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TokenTree</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">g</span>: <span class="ident">Literal</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenTree</span> {
-        <span class="ident">TokenTree</span>::<span class="ident">Literal</span>(<span class="ident">g</span>)
+        <span class="ident">TokenTree::Literal</span>(<span class="ident">g</span>)
     }
 }
 
@@ -1852,31 +1852,31 @@
 <span class="doccomment">/// possibly `TokenTree::Group`s with `Delimiter::None` delimiters and negative</span>
 <span class="doccomment">/// numeric literals.</span>
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">TokenTree</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TokenTree</span>::<span class="ident">Group</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
-            <span class="ident">TokenTree</span>::<span class="ident">Ident</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
-            <span class="ident">TokenTree</span>::<span class="ident">Punct</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
-            <span class="ident">TokenTree</span>::<span class="ident">Literal</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
+            <span class="ident">TokenTree::Group</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
+            <span class="ident">TokenTree::Ident</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
+            <span class="ident">TokenTree::Punct</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
+            <span class="ident">TokenTree::Literal</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Display::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
         }
     }
 }
 
 <span class="doccomment">/// Prints token tree in a form convenient for debugging.</span>
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">TokenTree</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="comment">// Each of these has the name in the struct type in the derived debug,</span>
         <span class="comment">// so don&#39;t bother with an extra layer of indirection</span>
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">TokenTree</span>::<span class="ident">Group</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug</span>::<span class="ident">fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
-            <span class="ident">TokenTree</span>::<span class="ident">Ident</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">TokenTree::Group</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
+            <span class="ident">TokenTree::Ident</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">debug</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Ident&quot;</span>);
-                <span class="ident">debug</span>.<span class="ident">field</span>(<span class="string">&quot;sym&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">format_args</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">t</span>));
-                <span class="ident">imp</span>::<span class="ident">debug_span_field_if_nontrivial</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">debug</span>, <span class="ident">t</span>.<span class="ident">span</span>().<span class="ident">inner</span>);
+                <span class="ident">debug</span>.<span class="ident">field</span>(<span class="string">&quot;sym&quot;</span>, <span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">t</span>));
+                <span class="ident">imp::debug_span_field_if_nontrivial</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">debug</span>, <span class="ident">t</span>.<span class="ident">span</span>().<span class="ident">inner</span>);
                 <span class="ident">debug</span>.<span class="ident">finish</span>()
             }
-            <span class="ident">TokenTree</span>::<span class="ident">Punct</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug</span>::<span class="ident">fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
-            <span class="ident">TokenTree</span>::<span class="ident">Literal</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug</span>::<span class="ident">fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
+            <span class="ident">TokenTree::Punct</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
+            <span class="ident">TokenTree::Literal</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Debug::fmt</span>(<span class="ident">t</span>, <span class="ident">f</span>),
         }
     }
 }
@@ -1887,7 +1887,7 @@
 <span class="doccomment">/// `Delimiter`s.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Group</span> {
-    <span class="ident">inner</span>: <span class="ident">imp</span>::<span class="ident">Group</span>,
+    <span class="ident">inner</span>: <span class="ident">imp::Group</span>,
 }
 
 <span class="doccomment">/// Describes how a sequence of token trees is delimited.</span>
@@ -1910,11 +1910,11 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Group</span> {
-    <span class="kw">fn</span> <span class="ident">_new</span>(<span class="ident">inner</span>: <span class="ident">imp</span>::<span class="ident">Group</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">_new</span>(<span class="ident">inner</span>: <span class="ident">imp::Group</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Group</span> { <span class="ident">inner</span> }
     }
 
-    <span class="kw">fn</span> <span class="ident">_new_stable</span>(<span class="ident">inner</span>: <span class="ident">fallback</span>::<span class="ident">Group</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">_new_stable</span>(<span class="ident">inner</span>: <span class="ident">fallback::Group</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">Group</span> {
             <span class="ident">inner</span>: <span class="ident">inner</span>.<span class="ident">into</span>(),
         }
@@ -1927,7 +1927,7 @@
     <span class="doccomment">/// method below.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">delimiter</span>: <span class="ident">Delimiter</span>, <span class="ident">stream</span>: <span class="ident">TokenStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Group</span> {
         <span class="ident">Group</span> {
-            <span class="ident">inner</span>: <span class="ident">imp</span>::<span class="ident">Group</span>::<span class="ident">new</span>(<span class="ident">delimiter</span>, <span class="ident">stream</span>.<span class="ident">inner</span>),
+            <span class="ident">inner</span>: <span class="ident">imp::Group::new</span>(<span class="ident">delimiter</span>, <span class="ident">stream</span>.<span class="ident">inner</span>),
         }
     }
 
@@ -1941,7 +1941,7 @@
     <span class="doccomment">/// Note that the returned token stream does not include the delimiter</span>
     <span class="doccomment">/// returned above.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">TokenStream</span> {
-        <span class="ident">TokenStream</span>::<span class="ident">_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">stream</span>())
+        <span class="ident">TokenStream::_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">stream</span>())
     }
 
     <span class="doccomment">/// Returns the span for the delimiters of this token stream, spanning the</span>
@@ -1952,7 +1952,7 @@
     <span class="doccomment">///            ^^^^^^^</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
-        <span class="ident">Span</span>::<span class="ident">_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">span</span>())
+        <span class="ident">Span::_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">span</span>())
     }
 
     <span class="doccomment">/// Returns the span pointing to the opening delimiter of this group.</span>
@@ -1962,7 +1962,7 @@
     <span class="doccomment">///                 ^</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_open</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
-        <span class="ident">Span</span>::<span class="ident">_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">span_open</span>())
+        <span class="ident">Span::_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">span_open</span>())
     }
 
     <span class="doccomment">/// Returns the span pointing to the closing delimiter of this group.</span>
@@ -1972,7 +1972,7 @@
     <span class="doccomment">///                        ^</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span_close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
-        <span class="ident">Span</span>::<span class="ident">_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">span_close</span>())
+        <span class="ident">Span::_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">span_close</span>())
     }
 
     <span class="doccomment">/// Configures the span for this `Group`&#39;s delimiters, but not its internal</span>
@@ -1990,14 +1990,14 @@
 <span class="doccomment">/// into the same group (modulo spans), except for possibly `TokenTree::Group`s</span>
 <span class="doccomment">/// with `Delimiter::None` delimiters.</span>
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Group</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">formatter</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">formatter</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Group</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Debug</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">formatter</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">Debug::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">formatter</span>)
     }
 }
 
@@ -2037,7 +2037,7 @@
         <span class="ident">Punct</span> {
             <span class="ident">ch</span>,
             <span class="ident">spacing</span>,
-            <span class="ident">span</span>: <span class="ident">Span</span>::<span class="ident">call_site</span>(),
+            <span class="ident">span</span>: <span class="ident">Span::call_site</span>(),
         }
     }
 
@@ -2069,17 +2069,17 @@
 <span class="doccomment">/// Prints the punctuation character as a string that should be losslessly</span>
 <span class="doccomment">/// convertible back into the same character.</span>
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Punct</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ch</span>, <span class="ident">f</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ch</span>, <span class="ident">f</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Punct</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">debug</span> <span class="op">=</span> <span class="ident">fmt</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Punct&quot;</span>);
         <span class="ident">debug</span>.<span class="ident">field</span>(<span class="string">&quot;char&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ch</span>);
         <span class="ident">debug</span>.<span class="ident">field</span>(<span class="string">&quot;spacing&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">spacing</span>);
-        <span class="ident">imp</span>::<span class="ident">debug_span_field_if_nontrivial</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">debug</span>, <span class="self">self</span>.<span class="ident">span</span>.<span class="ident">inner</span>);
+        <span class="ident">imp::debug_span_field_if_nontrivial</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">debug</span>, <span class="self">self</span>.<span class="ident">span</span>.<span class="ident">inner</span>);
         <span class="ident">debug</span>.<span class="ident">finish</span>()
     }
 }
@@ -2150,12 +2150,12 @@
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Ident</span> {
-    <span class="ident">inner</span>: <span class="ident">imp</span>::<span class="ident">Ident</span>,
+    <span class="ident">inner</span>: <span class="ident">imp::Ident</span>,
     <span class="ident">_marker</span>: <span class="ident">Marker</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Ident</span> {
-    <span class="kw">fn</span> <span class="ident">_new</span>(<span class="ident">inner</span>: <span class="ident">imp</span>::<span class="ident">Ident</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ident</span> {
+    <span class="kw">fn</span> <span class="ident">_new</span>(<span class="ident">inner</span>: <span class="ident">imp::Ident</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ident</span> {
         <span class="ident">Ident</span> {
             <span class="ident">inner</span>,
             <span class="ident">_marker</span>: <span class="ident">Marker</span>,
@@ -2194,7 +2194,7 @@
     <span class="doccomment">///   style=&quot;padding-left:0;&quot;&gt;::&amp;lt;Ident&amp;gt;&lt;/code&gt;</span>
     <span class="doccomment">/// rather than `Ident::new`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ident</span> {
-        <span class="ident">Ident</span>::<span class="ident">_new</span>(<span class="ident">imp</span>::<span class="ident">Ident</span>::<span class="ident">new</span>(<span class="ident">string</span>, <span class="ident">span</span>.<span class="ident">inner</span>))
+        <span class="ident">Ident::_new</span>(<span class="ident">imp::Ident::new</span>(<span class="ident">string</span>, <span class="ident">span</span>.<span class="ident">inner</span>))
     }
 
     <span class="doccomment">/// Same as `Ident::new`, but creates a raw identifier (`r#ident`).</span>
@@ -2203,16 +2203,16 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">procmacro2_semver_exempt</span>)))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_raw</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ident</span> {
-        <span class="ident">Ident</span>::<span class="ident">_new_raw</span>(<span class="ident">string</span>, <span class="ident">span</span>)
+        <span class="ident">Ident::_new_raw</span>(<span class="ident">string</span>, <span class="ident">span</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">_new_raw</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">span</span>: <span class="ident">Span</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Ident</span> {
-        <span class="ident">Ident</span>::<span class="ident">_new</span>(<span class="ident">imp</span>::<span class="ident">Ident</span>::<span class="ident">new_raw</span>(<span class="ident">string</span>, <span class="ident">span</span>.<span class="ident">inner</span>))
+        <span class="ident">Ident::_new</span>(<span class="ident">imp::Ident::new_raw</span>(<span class="ident">string</span>, <span class="ident">span</span>.<span class="ident">inner</span>))
     }
 
     <span class="doccomment">/// Returns the span of this `Ident`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
-        <span class="ident">Span</span>::<span class="ident">_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">span</span>())
+        <span class="ident">Span::_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">span</span>())
     }
 
     <span class="doccomment">/// Configures the span of this `Ident`, possibly changing its hygiene</span>
@@ -2260,14 +2260,14 @@
 <span class="doccomment">/// Prints the identifier as a string that should be losslessly convertible back</span>
 <span class="doccomment">/// into the same identifier.</span>
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Ident</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Ident</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Debug</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">Debug::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
     }
 }
 
@@ -2279,11 +2279,11 @@
 <span class="doccomment">/// `Ident`s.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Literal</span> {
-    <span class="ident">inner</span>: <span class="ident">imp</span>::<span class="ident">Literal</span>,
+    <span class="ident">inner</span>: <span class="ident">imp::Literal</span>,
     <span class="ident">_marker</span>: <span class="ident">Marker</span>,
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">suffixed_int_literals</span> {
+<span class="macro">macro_rules!</span> <span class="ident">suffixed_int_literals</span> {
     ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">kind</span>:<span class="ident">ident</span>,)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
         <span class="doccomment">/// Creates a new suffixed integer literal with the specified value.</span>
         <span class="doccomment">///</span>
@@ -2297,12 +2297,12 @@
         <span class="doccomment">/// span by default, which can be configured with the `set_span` method</span>
         <span class="doccomment">/// below.</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">kind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
-            <span class="ident">Literal</span>::<span class="ident">_new</span>(<span class="ident">imp</span>::<span class="ident">Literal</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="ident">n</span>))
+            <span class="ident">Literal::_new</span>(<span class="ident">imp::Literal</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="ident">n</span>))
         }
     )<span class="kw-2">*</span>)
 }
 
-<span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">unsuffixed_int_literals</span> {
+<span class="macro">macro_rules!</span> <span class="ident">unsuffixed_int_literals</span> {
     ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">kind</span>:<span class="ident">ident</span>,)<span class="kw-2">*</span>) <span class="op">=</span><span class="op">&gt;</span> ($(
         <span class="doccomment">/// Creates a new unsuffixed integer literal with the specified value.</span>
         <span class="doccomment">///</span>
@@ -2318,27 +2318,27 @@
         <span class="doccomment">/// span by default, which can be configured with the `set_span` method</span>
         <span class="doccomment">/// below.</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">kind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
-            <span class="ident">Literal</span>::<span class="ident">_new</span>(<span class="ident">imp</span>::<span class="ident">Literal</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="ident">n</span>))
+            <span class="ident">Literal::_new</span>(<span class="ident">imp::Literal</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>(<span class="ident">n</span>))
         }
     )<span class="kw-2">*</span>)
 }
 
 <span class="kw">impl</span> <span class="ident">Literal</span> {
-    <span class="kw">fn</span> <span class="ident">_new</span>(<span class="ident">inner</span>: <span class="ident">imp</span>::<span class="ident">Literal</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
+    <span class="kw">fn</span> <span class="ident">_new</span>(<span class="ident">inner</span>: <span class="ident">imp::Literal</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
         <span class="ident">Literal</span> {
             <span class="ident">inner</span>,
             <span class="ident">_marker</span>: <span class="ident">Marker</span>,
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">_new_stable</span>(<span class="ident">inner</span>: <span class="ident">fallback</span>::<span class="ident">Literal</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
+    <span class="kw">fn</span> <span class="ident">_new_stable</span>(<span class="ident">inner</span>: <span class="ident">fallback::Literal</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
         <span class="ident">Literal</span> {
             <span class="ident">inner</span>: <span class="ident">inner</span>.<span class="ident">into</span>(),
             <span class="ident">_marker</span>: <span class="ident">Marker</span>,
         }
     }
 
-    <span class="macro">suffixed_int_literals</span><span class="macro">!</span> {
+    <span class="macro">suffixed_int_literals!</span> {
         <span class="ident">u8_suffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u8</span>,
         <span class="ident">u16_suffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u16</span>,
         <span class="ident">u32_suffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u32</span>,
@@ -2353,7 +2353,7 @@
         <span class="ident">isize_suffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">isize</span>,
     }
 
-    <span class="macro">unsuffixed_int_literals</span><span class="macro">!</span> {
+    <span class="macro">unsuffixed_int_literals!</span> {
         <span class="ident">u8_unsuffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u8</span>,
         <span class="ident">u16_unsuffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u16</span>,
         <span class="ident">u32_unsuffixed</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">u32</span>,
@@ -2382,8 +2382,8 @@
     <span class="doccomment">/// This function requires that the specified float is finite, for example</span>
     <span class="doccomment">/// if it is infinity or NaN this function will panic.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">f64_unsuffixed</span>(<span class="ident">f</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">f</span>.<span class="ident">is_finite</span>());
-        <span class="ident">Literal</span>::<span class="ident">_new</span>(<span class="ident">imp</span>::<span class="ident">Literal</span>::<span class="ident">f64_unsuffixed</span>(<span class="ident">f</span>))
+        <span class="macro">assert!</span>(<span class="ident">f</span>.<span class="ident">is_finite</span>());
+        <span class="ident">Literal::_new</span>(<span class="ident">imp::Literal::f64_unsuffixed</span>(<span class="ident">f</span>))
     }
 
     <span class="doccomment">/// Creates a new suffixed floating-point literal.</span>
@@ -2400,8 +2400,8 @@
     <span class="doccomment">/// This function requires that the specified float is finite, for example</span>
     <span class="doccomment">/// if it is infinity or NaN this function will panic.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">f64_suffixed</span>(<span class="ident">f</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">f</span>.<span class="ident">is_finite</span>());
-        <span class="ident">Literal</span>::<span class="ident">_new</span>(<span class="ident">imp</span>::<span class="ident">Literal</span>::<span class="ident">f64_suffixed</span>(<span class="ident">f</span>))
+        <span class="macro">assert!</span>(<span class="ident">f</span>.<span class="ident">is_finite</span>());
+        <span class="ident">Literal::_new</span>(<span class="ident">imp::Literal::f64_suffixed</span>(<span class="ident">f</span>))
     }
 
     <span class="doccomment">/// Creates a new unsuffixed floating-point literal.</span>
@@ -2418,8 +2418,8 @@
     <span class="doccomment">/// This function requires that the specified float is finite, for example</span>
     <span class="doccomment">/// if it is infinity or NaN this function will panic.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">f32_unsuffixed</span>(<span class="ident">f</span>: <span class="ident">f32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">f</span>.<span class="ident">is_finite</span>());
-        <span class="ident">Literal</span>::<span class="ident">_new</span>(<span class="ident">imp</span>::<span class="ident">Literal</span>::<span class="ident">f32_unsuffixed</span>(<span class="ident">f</span>))
+        <span class="macro">assert!</span>(<span class="ident">f</span>.<span class="ident">is_finite</span>());
+        <span class="ident">Literal::_new</span>(<span class="ident">imp::Literal::f32_unsuffixed</span>(<span class="ident">f</span>))
     }
 
     <span class="doccomment">/// Creates a new suffixed floating-point literal.</span>
@@ -2436,28 +2436,28 @@
     <span class="doccomment">/// This function requires that the specified float is finite, for example</span>
     <span class="doccomment">/// if it is infinity or NaN this function will panic.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">f32_suffixed</span>(<span class="ident">f</span>: <span class="ident">f32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">f</span>.<span class="ident">is_finite</span>());
-        <span class="ident">Literal</span>::<span class="ident">_new</span>(<span class="ident">imp</span>::<span class="ident">Literal</span>::<span class="ident">f32_suffixed</span>(<span class="ident">f</span>))
+        <span class="macro">assert!</span>(<span class="ident">f</span>.<span class="ident">is_finite</span>());
+        <span class="ident">Literal::_new</span>(<span class="ident">imp::Literal::f32_suffixed</span>(<span class="ident">f</span>))
     }
 
     <span class="doccomment">/// String literal.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">string</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
-        <span class="ident">Literal</span>::<span class="ident">_new</span>(<span class="ident">imp</span>::<span class="ident">Literal</span>::<span class="ident">string</span>(<span class="ident">string</span>))
+        <span class="ident">Literal::_new</span>(<span class="ident">imp::Literal::string</span>(<span class="ident">string</span>))
     }
 
     <span class="doccomment">/// Character literal.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">character</span>(<span class="ident">ch</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
-        <span class="ident">Literal</span>::<span class="ident">_new</span>(<span class="ident">imp</span>::<span class="ident">Literal</span>::<span class="ident">character</span>(<span class="ident">ch</span>))
+        <span class="ident">Literal::_new</span>(<span class="ident">imp::Literal::character</span>(<span class="ident">ch</span>))
     }
 
     <span class="doccomment">/// Byte string literal.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">byte_string</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Literal</span> {
-        <span class="ident">Literal</span>::<span class="ident">_new</span>(<span class="ident">imp</span>::<span class="ident">Literal</span>::<span class="ident">byte_string</span>(<span class="ident">s</span>))
+        <span class="ident">Literal::_new</span>(<span class="ident">imp::Literal::byte_string</span>(<span class="ident">s</span>))
     }
 
     <span class="doccomment">/// Returns the span encompassing this literal.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Span</span> {
-        <span class="ident">Span</span>::<span class="ident">_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">span</span>())
+        <span class="ident">Span::_new</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">span</span>())
     }
 
     <span class="doccomment">/// Configures the span associated for this literal.</span>
@@ -2475,7 +2475,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`proc_macro::Literal::subspan`]: https://doc.rust-lang.org/proc_macro/struct.Literal.html#method.subspan</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subspan</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">RangeBounds</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">range</span>: <span class="ident">R</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Span</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">subspan</span>(<span class="ident">range</span>).<span class="ident">map</span>(<span class="ident">Span</span>::<span class="ident">_new</span>)
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">subspan</span>(<span class="ident">range</span>).<span class="ident">map</span>(<span class="ident">Span::_new</span>)
     }
 }
 
@@ -2483,7 +2483,7 @@
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">LexError</span>;
 
     <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">repr</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">LexError</span><span class="op">&gt;</span> {
-        <span class="ident">repr</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Literal</span>::<span class="ident">_new</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">LexError</span> {
+        <span class="ident">repr</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Literal::_new</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">LexError</span> {
             <span class="ident">inner</span>,
             <span class="ident">_marker</span>: <span class="ident">Marker</span>,
         })
@@ -2491,24 +2491,24 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Literal</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Debug</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">Debug::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Literal</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="ident">Display</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
     }
 }
 
 <span class="doccomment">/// Public implementation details for the `TokenStream` type, such as iterators.</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">token_stream</span> {
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">marker</span>::<span class="ident">Marker</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::marker::Marker</span>;
     <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">imp</span>, <span class="ident">TokenTree</span>};
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>};
+    <span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>};
 
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">TokenStream</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::TokenStream</span>;
 
     <span class="doccomment">/// An iterator over `TokenStream`&#39;s `TokenTree`s.</span>
     <span class="doccomment">///</span>
@@ -2516,7 +2516,7 @@
     <span class="doccomment">/// delimited groups, and returns whole groups as token trees.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntoIter</span> {
-        <span class="ident">inner</span>: <span class="ident">imp</span>::<span class="ident">TokenTreeIter</span>,
+        <span class="ident">inner</span>: <span class="ident">imp::TokenTreeIter</span>,
         <span class="ident">_marker</span>: <span class="ident">Marker</span>,
     }
 
@@ -2529,8 +2529,8 @@
     }
 
     <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">IntoIter</span> {
-        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-            <span class="ident">Debug</span>::<span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
+        <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+            <span class="ident">Debug::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>, <span class="ident">f</span>)
         }
     }
 
@@ -2547,5 +2547,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="proc_macro2" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="proc_macro2" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

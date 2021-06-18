@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.72/src/ty.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ty.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../syn/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../syn/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1248,10 +1248,10 @@
 <span id="1245">1245</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">punctuated</span>::<span class="ident">Punctuated</span>;
-<span class="kw">use</span> <span class="ident">proc_macro2</span>::<span class="ident">TokenStream</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::punctuated::Punctuated</span>;
+<span class="kw">use</span> <span class="ident">proc_macro2::TokenStream</span>;
 
-<span class="macro">ast_enum_of_structs</span><span class="macro">!</span> {
+<span class="macro">ast_enum_of_structs!</span> {
     <span class="doccomment">/// The possible types that a Rust value could have.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
@@ -1336,25 +1336,25 @@
         <span class="comment">// reimplemented as a non_exhaustive enum.</span>
         <span class="comment">// https://github.com/rust-lang/rust/issues/44109#issuecomment-521781237</span>
         <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-        <span class="ident">__TestExhaustive</span>(<span class="kw">crate</span>::<span class="ident">private</span>),
+        <span class="ident">__TestExhaustive</span>(<span class="kw">crate</span><span class="ident">::private</span>),
     }
 }
 
-<span class="macro">ast_struct</span><span class="macro">!</span> {
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// A fixed size array type: `[T; n]`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeArray</span> {
-        <span class="kw">pub</span> <span class="ident">bracket_token</span>: <span class="ident">token</span>::<span class="ident">Bracket</span>,
+        <span class="kw">pub</span> <span class="ident">bracket_token</span>: <span class="ident">token::Bracket</span>,
         <span class="kw">pub</span> <span class="ident">elem</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Type</span><span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">semi_token</span>: <span class="macro">Token</span><span class="macro">!</span>[;],
+        <span class="kw">pub</span> <span class="ident">semi_token</span>: <span class="macro">Token!</span>[;],
         <span class="kw">pub</span> <span class="ident">len</span>: <span class="ident">Expr</span>,
     }
 }
 
-<span class="macro">ast_struct</span><span class="macro">!</span> {
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// A bare function type: `fn(usize) -&gt; bool`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
@@ -1362,29 +1362,29 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeBareFn</span> {
         <span class="kw">pub</span> <span class="ident">lifetimes</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BoundLifetimes</span><span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">unsafety</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">unsafe</span>]<span class="op">&gt;</span>,
+        <span class="kw">pub</span> <span class="ident">unsafety</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">unsafe</span>]<span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">abi</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Abi</span><span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">fn_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>],
-        <span class="kw">pub</span> <span class="ident">paren_token</span>: <span class="ident">token</span>::<span class="ident">Paren</span>,
-        <span class="kw">pub</span> <span class="ident">inputs</span>: <span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">BareFnArg</span>, <span class="macro">Token</span><span class="macro">!</span>[,]<span class="op">&gt;</span>,
+        <span class="kw">pub</span> <span class="ident">fn_token</span>: <span class="macro">Token!</span>[<span class="kw">fn</span>],
+        <span class="kw">pub</span> <span class="ident">paren_token</span>: <span class="ident">token::Paren</span>,
+        <span class="kw">pub</span> <span class="ident">inputs</span>: <span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">BareFnArg</span>, <span class="macro">Token!</span>[,]<span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">variadic</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Variadic</span><span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">output</span>: <span class="ident">ReturnType</span>,
     }
 }
 
-<span class="macro">ast_struct</span><span class="macro">!</span> {
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// A type contained within invisible delimiters.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeGroup</span> {
-        <span class="kw">pub</span> <span class="ident">group_token</span>: <span class="ident">token</span>::<span class="ident">Group</span>,
+        <span class="kw">pub</span> <span class="ident">group_token</span>: <span class="ident">token::Group</span>,
         <span class="kw">pub</span> <span class="ident">elem</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Type</span><span class="op">&gt;</span>,
     }
 }
 
-<span class="macro">ast_struct</span><span class="macro">!</span> {
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// An `impl Bound1 + Bound2 + Bound3` type where `Bound` is a trait or</span>
     <span class="doccomment">/// a lifetime.</span>
     <span class="doccomment">///</span>
@@ -1392,23 +1392,23 @@
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeImplTrait</span> {
-        <span class="kw">pub</span> <span class="ident">impl_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">impl</span>],
-        <span class="kw">pub</span> <span class="ident">bounds</span>: <span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">TypeParamBound</span>, <span class="macro">Token</span><span class="macro">!</span>[<span class="op">+</span>]<span class="op">&gt;</span>,
+        <span class="kw">pub</span> <span class="ident">impl_token</span>: <span class="macro">Token!</span>[<span class="kw">impl</span>],
+        <span class="kw">pub</span> <span class="ident">bounds</span>: <span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">TypeParamBound</span>, <span class="macro">Token!</span>[<span class="op">+</span>]<span class="op">&gt;</span>,
     }
 }
 
-<span class="macro">ast_struct</span><span class="macro">!</span> {
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// Indication that a type should be inferred by the compiler: `_`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeInfer</span> {
-        <span class="kw">pub</span> <span class="ident">underscore_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">_</span>],
+        <span class="kw">pub</span> <span class="ident">underscore_token</span>: <span class="macro">Token!</span>[<span class="kw">_</span>],
     }
 }
 
-<span class="macro">ast_struct</span><span class="macro">!</span> {
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// A macro in the type position.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
@@ -1419,30 +1419,30 @@
     }
 }
 
-<span class="macro">ast_struct</span><span class="macro">!</span> {
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// The never type: `!`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeNever</span> {
-        <span class="kw">pub</span> <span class="ident">bang_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="op">!</span>],
+        <span class="kw">pub</span> <span class="ident">bang_token</span>: <span class="macro">Token!</span>[<span class="op">!</span>],
     }
 }
 
-<span class="macro">ast_struct</span><span class="macro">!</span> {
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// A parenthesized type equivalent to the inner type.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeParen</span> {
-        <span class="kw">pub</span> <span class="ident">paren_token</span>: <span class="ident">token</span>::<span class="ident">Paren</span>,
+        <span class="kw">pub</span> <span class="ident">paren_token</span>: <span class="ident">token::Paren</span>,
         <span class="kw">pub</span> <span class="ident">elem</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Type</span><span class="op">&gt;</span>,
     }
 }
 
-<span class="macro">ast_struct</span><span class="macro">!</span> {
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// A path like `std::slice::Iter`, optionally qualified with a</span>
     <span class="doccomment">/// self-type as in `&lt;Vec&lt;T&gt; as SomeTrait&gt;::Associated`.</span>
     <span class="doccomment">///</span>
@@ -1455,47 +1455,47 @@
     }
 }
 
-<span class="macro">ast_struct</span><span class="macro">!</span> {
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// A raw pointer type: `*const T` or `*mut T`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypePtr</span> {
-        <span class="kw">pub</span> <span class="ident">star_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw-2">*</span>],
-        <span class="kw">pub</span> <span class="ident">const_token</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">const</span>]<span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">mutability</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw-2">mut</span>]<span class="op">&gt;</span>,
+        <span class="kw">pub</span> <span class="ident">star_token</span>: <span class="macro">Token!</span>[<span class="kw-2">*</span>],
+        <span class="kw">pub</span> <span class="ident">const_token</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">const</span>]<span class="op">&gt;</span>,
+        <span class="kw">pub</span> <span class="ident">mutability</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw-2">mut</span>]<span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">elem</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Type</span><span class="op">&gt;</span>,
     }
 }
 
-<span class="macro">ast_struct</span><span class="macro">!</span> {
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// A reference type: `&amp;&#39;a T` or `&amp;&#39;a mut T`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeReference</span> {
-        <span class="kw">pub</span> <span class="ident">and_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw-2">&amp;</span>],
+        <span class="kw">pub</span> <span class="ident">and_token</span>: <span class="macro">Token!</span>[<span class="kw-2">&amp;</span>],
         <span class="kw">pub</span> <span class="ident">lifetime</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Lifetime</span><span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">mutability</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw-2">mut</span>]<span class="op">&gt;</span>,
+        <span class="kw">pub</span> <span class="ident">mutability</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw-2">mut</span>]<span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">elem</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Type</span><span class="op">&gt;</span>,
     }
 }
 
-<span class="macro">ast_struct</span><span class="macro">!</span> {
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// A dynamically sized slice type: `[T]`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeSlice</span> {
-        <span class="kw">pub</span> <span class="ident">bracket_token</span>: <span class="ident">token</span>::<span class="ident">Bracket</span>,
+        <span class="kw">pub</span> <span class="ident">bracket_token</span>: <span class="ident">token::Bracket</span>,
         <span class="kw">pub</span> <span class="ident">elem</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Type</span><span class="op">&gt;</span>,
     }
 }
 
-<span class="macro">ast_struct</span><span class="macro">!</span> {
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// A trait object type `Bound1 + Bound2 + Bound3` where `Bound` is a</span>
     <span class="doccomment">/// trait or a lifetime.</span>
     <span class="doccomment">///</span>
@@ -1503,36 +1503,36 @@
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeTraitObject</span> {
-        <span class="kw">pub</span> <span class="ident">dyn_token</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw">dyn</span>]<span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">bounds</span>: <span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">TypeParamBound</span>, <span class="macro">Token</span><span class="macro">!</span>[<span class="op">+</span>]<span class="op">&gt;</span>,
+        <span class="kw">pub</span> <span class="ident">dyn_token</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw">dyn</span>]<span class="op">&gt;</span>,
+        <span class="kw">pub</span> <span class="ident">bounds</span>: <span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">TypeParamBound</span>, <span class="macro">Token!</span>[<span class="op">+</span>]<span class="op">&gt;</span>,
     }
 }
 
-<span class="macro">ast_struct</span><span class="macro">!</span> {
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// A tuple type: `(A, B, C, String)`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or</span>
     <span class="doccomment">/// `&quot;full&quot;` feature.*</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TypeTuple</span> {
-        <span class="kw">pub</span> <span class="ident">paren_token</span>: <span class="ident">token</span>::<span class="ident">Paren</span>,
-        <span class="kw">pub</span> <span class="ident">elems</span>: <span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">Type</span>, <span class="macro">Token</span><span class="macro">!</span>[,]<span class="op">&gt;</span>,
+        <span class="kw">pub</span> <span class="ident">paren_token</span>: <span class="ident">token::Paren</span>,
+        <span class="kw">pub</span> <span class="ident">elems</span>: <span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">Type</span>, <span class="macro">Token!</span>[,]<span class="op">&gt;</span>,
     }
 }
 
-<span class="macro">ast_struct</span><span class="macro">!</span> {
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// The binary interface of a function: `extern &quot;C&quot;`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
     <span class="doccomment">/// feature.*</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Abi</span> {
-        <span class="kw">pub</span> <span class="ident">extern_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw">extern</span>],
+        <span class="kw">pub</span> <span class="ident">extern_token</span>: <span class="macro">Token!</span>[<span class="kw">extern</span>],
         <span class="kw">pub</span> <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LitStr</span><span class="op">&gt;</span>,
     }
 }
 
-<span class="macro">ast_struct</span><span class="macro">!</span> {
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// An argument in a function type: the `usize` in `fn(usize) -&gt; bool`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
@@ -1540,12 +1540,12 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BareFnArg</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Ident</span>, <span class="macro">Token</span><span class="macro">!</span>[:])<span class="op">&gt;</span>,
+        <span class="kw">pub</span> <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Ident</span>, <span class="macro">Token!</span>[:])<span class="op">&gt;</span>,
         <span class="kw">pub</span> <span class="ident">ty</span>: <span class="ident">Type</span>,
     }
 }
 
-<span class="macro">ast_struct</span><span class="macro">!</span> {
+<span class="macro">ast_struct!</span> {
     <span class="doccomment">/// The variadic argument of a foreign function.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```rust</span>
@@ -1563,11 +1563,11 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Variadic</span> {
         <span class="kw">pub</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
-        <span class="kw">pub</span> <span class="ident">dots</span>: <span class="macro">Token</span><span class="macro">!</span>[...],
+        <span class="kw">pub</span> <span class="ident">dots</span>: <span class="macro">Token!</span>[...],
     }
 }
 
-<span class="macro">ast_enum</span><span class="macro">!</span> {
+<span class="macro">ast_enum!</span> {
     <span class="doccomment">/// Return type of a function signature.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;derive&quot;` or `&quot;full&quot;`</span>
@@ -1579,16 +1579,16 @@
         <span class="doccomment">/// Functions default to `()` and closures default to type inference.</span>
         <span class="ident">Default</span>,
         <span class="doccomment">/// A particular type is returned.</span>
-        <span class="ident">Type</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">-</span><span class="op">&gt;</span>], <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Type</span><span class="op">&gt;</span>),
+        <span class="ident">Type</span>(<span class="macro">Token!</span>[<span class="op">-</span><span class="op">&gt;</span>], <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Type</span><span class="op">&gt;</span>),
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">parsing</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ext</span>::<span class="ident">IdentExt</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">parse</span>::{<span class="ident">Parse</span>, <span class="ident">ParseStream</span>, <span class="prelude-ty">Result</span>};
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">path</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ext::IdentExt</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::parse</span>::{<span class="ident">Parse</span>, <span class="ident">ParseStream</span>, <span class="prelude-ty">Result</span>};
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::path</span>;
     <span class="kw">use</span> <span class="ident">proc_macro2</span>::{<span class="ident">Punct</span>, <span class="ident">Spacing</span>, <span class="ident">TokenTree</span>};
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
@@ -1615,78 +1615,78 @@
     <span class="kw">fn</span> <span class="ident">ambig_ty</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>, <span class="ident">allow_plus</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Type</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">begin</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">fork</span>();
 
-        <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">token</span>::<span class="ident">Group</span>) {
+        <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">token::Group</span>) {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">group</span>: <span class="ident">TypeGroup</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[::]) <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek3</span>(<span class="ident">Ident</span>::<span class="ident">peek_any</span>) {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Type</span>::<span class="ident">Path</span>(<span class="kw-2">mut</span> <span class="ident">ty</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">group</span>.<span class="ident">elem</span> {
-                    <span class="ident">Path</span>::<span class="ident">parse_rest</span>(<span class="ident">input</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">path</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">Path</span>(<span class="ident">ty</span>));
+            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[::]) <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek3</span>(<span class="ident">Ident::peek_any</span>) {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Type::Path</span>(<span class="kw-2">mut</span> <span class="ident">ty</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">group</span>.<span class="ident">elem</span> {
+                    <span class="ident">Path::parse_rest</span>(<span class="ident">input</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">path</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type::Path</span>(<span class="ident">ty</span>));
                 } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">Path</span>(<span class="ident">TypePath</span> {
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type::Path</span>(<span class="ident">TypePath</span> {
                         <span class="ident">qself</span>: <span class="prelude-val">Some</span>(<span class="ident">QSelf</span> {
-                            <span class="ident">lt_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="op">&lt;</span>](<span class="ident">group</span>.<span class="ident">group_token</span>.<span class="ident">span</span>),
+                            <span class="ident">lt_token</span>: <span class="macro">Token!</span>[<span class="op">&lt;</span>](<span class="ident">group</span>.<span class="ident">group_token</span>.<span class="ident">span</span>),
                             <span class="ident">position</span>: <span class="number">0</span>,
                             <span class="ident">as_token</span>: <span class="prelude-val">None</span>,
-                            <span class="ident">gt_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="op">&gt;</span>](<span class="ident">group</span>.<span class="ident">group_token</span>.<span class="ident">span</span>),
+                            <span class="ident">gt_token</span>: <span class="macro">Token!</span>[<span class="op">&gt;</span>](<span class="ident">group</span>.<span class="ident">group_token</span>.<span class="ident">span</span>),
                             <span class="ident">ty</span>: <span class="ident">group</span>.<span class="ident">elem</span>,
                         }),
-                        <span class="ident">path</span>: <span class="ident">Path</span>::<span class="ident">parse_helper</span>(<span class="ident">input</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>,
+                        <span class="ident">path</span>: <span class="ident">Path::parse_helper</span>(<span class="ident">input</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>,
                     }));
                 }
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">&lt;</span>]) <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[::]) <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek3</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">&lt;</span>]) {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Type</span>::<span class="ident">Path</span>(<span class="kw-2">mut</span> <span class="ident">ty</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">group</span>.<span class="ident">elem</span> {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">&lt;</span>]) <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[::]) <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek3</span>(<span class="macro">Token!</span>[<span class="op">&lt;</span>]) {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Type::Path</span>(<span class="kw-2">mut</span> <span class="ident">ty</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">group</span>.<span class="ident">elem</span> {
                     <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">last_mut</span>().<span class="ident">unwrap</span>().<span class="ident">arguments</span>;
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PathArguments</span>::<span class="prelude-val">None</span> <span class="op">=</span> <span class="ident">arguments</span> {
-                        <span class="kw-2">*</span><span class="ident">arguments</span> <span class="op">=</span> <span class="ident">PathArguments</span>::<span class="ident">AngleBracketed</span>(<span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>);
-                        <span class="ident">Path</span>::<span class="ident">parse_rest</span>(<span class="ident">input</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">path</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">Path</span>(<span class="ident">ty</span>));
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PathArguments::None</span> <span class="op">=</span> <span class="ident">arguments</span> {
+                        <span class="kw-2">*</span><span class="ident">arguments</span> <span class="op">=</span> <span class="ident">PathArguments::AngleBracketed</span>(<span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>);
+                        <span class="ident">Path::parse_rest</span>(<span class="ident">input</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ty</span>.<span class="ident">path</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type::Path</span>(<span class="ident">ty</span>));
                     } <span class="kw">else</span> {
-                        <span class="ident">group</span>.<span class="ident">elem</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Type</span>::<span class="ident">Path</span>(<span class="ident">ty</span>));
+                        <span class="ident">group</span>.<span class="ident">elem</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">Type::Path</span>(<span class="ident">ty</span>));
                     }
                 }
             }
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">Group</span>(<span class="ident">group</span>));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type::Group</span>(<span class="ident">group</span>));
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lifetimes</span> <span class="op">=</span> <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">BoundLifetimes</span><span class="op">&gt;</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">lookahead1</span>();
-        <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">for</span>]) {
+        <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">for</span>]) {
             <span class="ident">lifetimes</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
             <span class="ident">lookahead</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">lookahead1</span>();
             <span class="kw">if</span> <span class="op">!</span><span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">Ident</span>)
-                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>])
-                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">unsafe</span>])
-                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">extern</span>])
-                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">super</span>])
-                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="self">self</span>])
-                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="self">Self</span>])
-                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">crate</span>])
+                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">fn</span>])
+                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">unsafe</span>])
+                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">extern</span>])
+                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">super</span>])
+                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="self">self</span>])
+                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="self">Self</span>])
+                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">crate</span>])
             {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">lookahead</span>.<span class="ident">error</span>());
             }
         }
 
-        <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">token</span>::<span class="ident">Paren</span>) {
+        <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">token::Paren</span>) {
             <span class="kw">let</span> <span class="ident">content</span>;
-            <span class="kw">let</span> <span class="ident">paren_token</span> <span class="op">=</span> <span class="macro">parenthesized</span><span class="macro">!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
+            <span class="kw">let</span> <span class="ident">paren_token</span> <span class="op">=</span> <span class="macro">parenthesized!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
             <span class="kw">if</span> <span class="ident">content</span>.<span class="ident">is_empty</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">Tuple</span>(<span class="ident">TypeTuple</span> {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type::Tuple</span>(<span class="ident">TypeTuple</span> {
                     <span class="ident">paren_token</span>,
-                    <span class="ident">elems</span>: <span class="ident">Punctuated</span>::<span class="ident">new</span>(),
+                    <span class="ident">elems</span>: <span class="ident">Punctuated::new</span>(),
                 }));
             }
             <span class="kw">if</span> <span class="ident">content</span>.<span class="ident">peek</span>(<span class="ident">Lifetime</span>) {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">Paren</span>(<span class="ident">TypeParen</span> {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type::Paren</span>(<span class="ident">TypeParen</span> {
                     <span class="ident">paren_token</span>,
-                    <span class="ident">elem</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Type</span>::<span class="ident">TraitObject</span>(<span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>)),
+                    <span class="ident">elem</span>: <span class="ident">Box::new</span>(<span class="ident">Type::TraitObject</span>(<span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>)),
                 }));
             }
-            <span class="kw">if</span> <span class="ident">content</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="question-mark">?</span>]) {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">TraitObject</span>(<span class="ident">TypeTraitObject</span> {
+            <span class="kw">if</span> <span class="ident">content</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="question-mark">?</span>]) {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type::TraitObject</span>(<span class="ident">TypeTraitObject</span> {
                     <span class="ident">dyn_token</span>: <span class="prelude-val">None</span>,
                     <span class="ident">bounds</span>: {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">Punctuated</span>::<span class="ident">new</span>();
-                        <span class="ident">bounds</span>.<span class="ident">push_value</span>(<span class="ident">TypeParamBound</span>::<span class="ident">Trait</span>(<span class="ident">TraitBound</span> {
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
+                        <span class="ident">bounds</span>.<span class="ident">push_value</span>(<span class="ident">TypeParamBound::Trait</span>(<span class="ident">TraitBound</span> {
                             <span class="ident">paren_token</span>: <span class="prelude-val">Some</span>(<span class="ident">paren_token</span>),
                             ..<span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>
                         }));
@@ -1699,11 +1699,11 @@
                 }));
             }
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">first</span>: <span class="ident">Type</span> <span class="op">=</span> <span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">content</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[,]) {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">Tuple</span>(<span class="ident">TypeTuple</span> {
+            <span class="kw">if</span> <span class="ident">content</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[,]) {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type::Tuple</span>(<span class="ident">TypeTuple</span> {
                     <span class="ident">paren_token</span>,
                     <span class="ident">elems</span>: {
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elems</span> <span class="op">=</span> <span class="ident">Punctuated</span>::<span class="ident">new</span>();
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elems</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
                         <span class="ident">elems</span>.<span class="ident">push_value</span>(<span class="ident">first</span>);
                         <span class="ident">elems</span>.<span class="ident">push_punct</span>(<span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>);
                         <span class="kw">while</span> <span class="op">!</span><span class="ident">content</span>.<span class="ident">is_empty</span>() {
@@ -1717,44 +1717,44 @@
                     },
                 }));
             }
-            <span class="kw">if</span> <span class="ident">allow_plus</span> <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">+</span>]) {
+            <span class="kw">if</span> <span class="ident">allow_plus</span> <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">+</span>]) {
                 <span class="kw">loop</span> {
                     <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">first</span> {
-                        <span class="ident">Type</span>::<span class="ident">Path</span>(<span class="ident">TypePath</span> { <span class="ident">qself</span>: <span class="prelude-val">None</span>, <span class="ident">path</span> }) <span class="op">=</span><span class="op">&gt;</span> {
-                            <span class="ident">TypeParamBound</span>::<span class="ident">Trait</span>(<span class="ident">TraitBound</span> {
+                        <span class="ident">Type::Path</span>(<span class="ident">TypePath</span> { <span class="ident">qself</span>: <span class="prelude-val">None</span>, <span class="ident">path</span> }) <span class="op">=</span><span class="op">&gt;</span> {
+                            <span class="ident">TypeParamBound::Trait</span>(<span class="ident">TraitBound</span> {
                                 <span class="ident">paren_token</span>: <span class="prelude-val">Some</span>(<span class="ident">paren_token</span>),
-                                <span class="ident">modifier</span>: <span class="ident">TraitBoundModifier</span>::<span class="prelude-val">None</span>,
+                                <span class="ident">modifier</span>: <span class="ident">TraitBoundModifier::None</span>,
                                 <span class="ident">lifetimes</span>: <span class="prelude-val">None</span>,
                                 <span class="ident">path</span>,
                             })
                         }
-                        <span class="ident">Type</span>::<span class="ident">TraitObject</span>(<span class="ident">TypeTraitObject</span> {
+                        <span class="ident">Type::TraitObject</span>(<span class="ident">TypeTraitObject</span> {
                             <span class="ident">dyn_token</span>: <span class="prelude-val">None</span>,
                             <span class="ident">bounds</span>,
                         }) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="kw">if</span> <span class="ident">bounds</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">bounds</span>.<span class="ident">trailing_punct</span>() {
-                                <span class="ident">first</span> <span class="op">=</span> <span class="ident">Type</span>::<span class="ident">TraitObject</span>(<span class="ident">TypeTraitObject</span> {
+                                <span class="ident">first</span> <span class="op">=</span> <span class="ident">Type::TraitObject</span>(<span class="ident">TypeTraitObject</span> {
                                     <span class="ident">dyn_token</span>: <span class="prelude-val">None</span>,
                                     <span class="ident">bounds</span>,
                                 });
                                 <span class="kw">break</span>;
                             }
                             <span class="kw">match</span> <span class="ident">bounds</span>.<span class="ident">into_iter</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>() {
-                                <span class="ident">TypeParamBound</span>::<span class="ident">Trait</span>(<span class="ident">trait_bound</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                                    <span class="ident">TypeParamBound</span>::<span class="ident">Trait</span>(<span class="ident">TraitBound</span> {
+                                <span class="ident">TypeParamBound::Trait</span>(<span class="ident">trait_bound</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                                    <span class="ident">TypeParamBound::Trait</span>(<span class="ident">TraitBound</span> {
                                         <span class="ident">paren_token</span>: <span class="prelude-val">Some</span>(<span class="ident">paren_token</span>),
                                         ..<span class="ident">trait_bound</span>
                                     })
                                 }
-                                <span class="ident">other</span> @ <span class="ident">TypeParamBound</span>::<span class="ident">Lifetime</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">other</span>,
+                                <span class="ident">other</span> @ <span class="ident">TypeParamBound::Lifetime</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">other</span>,
                             }
                         }
                         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">break</span>,
                     };
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">TraitObject</span>(<span class="ident">TypeTraitObject</span> {
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type::TraitObject</span>(<span class="ident">TypeTraitObject</span> {
                         <span class="ident">dyn_token</span>: <span class="prelude-val">None</span>,
                         <span class="ident">bounds</span>: {
-                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">Punctuated</span>::<span class="ident">new</span>();
+                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
                             <span class="ident">bounds</span>.<span class="ident">push_value</span>(<span class="ident">first</span>);
                             <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">plus</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span> {
                                 <span class="ident">bounds</span>.<span class="ident">push_punct</span>(<span class="ident">plus</span>);
@@ -1765,62 +1765,62 @@
                     }));
                 }
             }
-            <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">Paren</span>(<span class="ident">TypeParen</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">Type::Paren</span>(<span class="ident">TypeParen</span> {
                 <span class="ident">paren_token</span>,
-                <span class="ident">elem</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">first</span>),
+                <span class="ident">elem</span>: <span class="ident">Box::new</span>(<span class="ident">first</span>),
             }))
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">fn</span>])
-            <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">unsafe</span>])
-            <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">extern</span>])
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">fn</span>])
+            <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">unsafe</span>])
+            <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">extern</span>])
         {
             <span class="kw">let</span> <span class="ident">allow_mut_self</span> <span class="op">=</span> <span class="bool-val">true</span>;
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">bare_fn</span>) <span class="op">=</span> <span class="ident">parse_bare_fn</span>(<span class="ident">input</span>, <span class="ident">allow_mut_self</span>)<span class="question-mark">?</span> {
                 <span class="ident">bare_fn</span>.<span class="ident">lifetimes</span> <span class="op">=</span> <span class="ident">lifetimes</span>;
-                <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">BareFn</span>(<span class="ident">bare_fn</span>))
+                <span class="prelude-val">Ok</span>(<span class="ident">Type::BareFn</span>(<span class="ident">bare_fn</span>))
             } <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">Verbatim</span>(<span class="ident">verbatim</span>::<span class="ident">between</span>(<span class="ident">begin</span>, <span class="ident">input</span>)))
+                <span class="prelude-val">Ok</span>(<span class="ident">Type::Verbatim</span>(<span class="ident">verbatim::between</span>(<span class="ident">begin</span>, <span class="ident">input</span>)))
             }
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">Ident</span>)
-            <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">super</span>])
-            <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="self">self</span>])
-            <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="self">Self</span>])
-            <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">crate</span>])
-            <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[::])
-            <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">&lt;</span>])
+            <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">super</span>])
+            <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="self">self</span>])
+            <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="self">Self</span>])
+            <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">crate</span>])
+            <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[::])
+            <span class="op">|</span><span class="op">|</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">&lt;</span>])
         {
-            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">dyn</span>]) {
+            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">dyn</span>]) {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trait_object</span>: <span class="ident">TypeTraitObject</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="ident">lifetimes</span>.<span class="ident">is_some</span>() {
                     <span class="kw">match</span> <span class="ident">trait_object</span>.<span class="ident">bounds</span>.<span class="ident">iter_mut</span>().<span class="ident">next</span>().<span class="ident">unwrap</span>() {
-                        <span class="ident">TypeParamBound</span>::<span class="ident">Trait</span>(<span class="ident">trait_bound</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">TypeParamBound::Trait</span>(<span class="ident">trait_bound</span>) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="ident">trait_bound</span>.<span class="ident">lifetimes</span> <span class="op">=</span> <span class="ident">lifetimes</span>;
                         }
-                        <span class="ident">TypeParamBound</span>::<span class="ident">Lifetime</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+                        <span class="ident">TypeParamBound::Lifetime</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
                     }
                 }
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">TraitObject</span>(<span class="ident">trait_object</span>));
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type::TraitObject</span>(<span class="ident">trait_object</span>));
             }
 
             <span class="kw">let</span> <span class="ident">ty</span>: <span class="ident">TypePath</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="ident">ty</span>.<span class="ident">qself</span>.<span class="ident">is_some</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">Path</span>(<span class="ident">ty</span>));
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type::Path</span>(<span class="ident">ty</span>));
             }
 
-            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">!</span>]) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">!</span><span class="op">=</span>]) {
+            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">!</span>]) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">!</span><span class="op">=</span>]) {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">contains_arguments</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 <span class="kw">for</span> <span class="ident">segment</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">ty</span>.<span class="ident">path</span>.<span class="ident">segments</span> {
                     <span class="kw">match</span> <span class="ident">segment</span>.<span class="ident">arguments</span> {
-                        <span class="ident">PathArguments</span>::<span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> {}
-                        <span class="ident">PathArguments</span>::<span class="ident">AngleBracketed</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">PathArguments</span>::<span class="ident">Parenthesized</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">PathArguments::None</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                        <span class="ident">PathArguments::AngleBracketed</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">PathArguments::Parenthesized</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="ident">contains_arguments</span> <span class="op">=</span> <span class="bool-val">true</span>;
                         }
                     }
                 }
 
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">contains_arguments</span> {
-                    <span class="kw">let</span> <span class="ident">bang_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="op">!</span>] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-                    <span class="kw">let</span> (<span class="ident">delimiter</span>, <span class="ident">tokens</span>) <span class="op">=</span> <span class="ident">mac</span>::<span class="ident">parse_delimiter</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">Macro</span>(<span class="ident">TypeMacro</span> {
+                    <span class="kw">let</span> <span class="ident">bang_token</span>: <span class="macro">Token!</span>[<span class="op">!</span>] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                    <span class="kw">let</span> (<span class="ident">delimiter</span>, <span class="ident">tokens</span>) <span class="op">=</span> <span class="ident">mac::parse_delimiter</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type::Macro</span>(<span class="ident">TypeMacro</span> {
                         <span class="ident">mac</span>: <span class="ident">Macro</span> {
                             <span class="ident">path</span>: <span class="ident">ty</span>.<span class="ident">path</span>,
                             <span class="ident">bang_token</span>,
@@ -1831,59 +1831,59 @@
                 }
             }
 
-            <span class="kw">if</span> <span class="ident">lifetimes</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">allow_plus</span> <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">+</span>]) {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">Punctuated</span>::<span class="ident">new</span>();
-                <span class="ident">bounds</span>.<span class="ident">push_value</span>(<span class="ident">TypeParamBound</span>::<span class="ident">Trait</span>(<span class="ident">TraitBound</span> {
+            <span class="kw">if</span> <span class="ident">lifetimes</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">allow_plus</span> <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">+</span>]) {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
+                <span class="ident">bounds</span>.<span class="ident">push_value</span>(<span class="ident">TypeParamBound::Trait</span>(<span class="ident">TraitBound</span> {
                     <span class="ident">paren_token</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">modifier</span>: <span class="ident">TraitBoundModifier</span>::<span class="prelude-val">None</span>,
+                    <span class="ident">modifier</span>: <span class="ident">TraitBoundModifier::None</span>,
                     <span class="ident">lifetimes</span>,
                     <span class="ident">path</span>: <span class="ident">ty</span>.<span class="ident">path</span>,
                 }));
                 <span class="kw">if</span> <span class="ident">allow_plus</span> {
-                    <span class="kw">while</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">+</span>]) {
+                    <span class="kw">while</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">+</span>]) {
                         <span class="ident">bounds</span>.<span class="ident">push_punct</span>(<span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>);
-                        <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">&gt;</span>]) {
+                        <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">&gt;</span>]) {
                             <span class="kw">break</span>;
                         }
                         <span class="ident">bounds</span>.<span class="ident">push_value</span>(<span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>);
                     }
                 }
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">TraitObject</span>(<span class="ident">TypeTraitObject</span> {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Type::TraitObject</span>(<span class="ident">TypeTraitObject</span> {
                     <span class="ident">dyn_token</span>: <span class="prelude-val">None</span>,
                     <span class="ident">bounds</span>,
                 }));
             }
 
-            <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">Path</span>(<span class="ident">ty</span>))
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">token</span>::<span class="ident">Bracket</span>) {
+            <span class="prelude-val">Ok</span>(<span class="ident">Type::Path</span>(<span class="ident">ty</span>))
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">token::Bracket</span>) {
             <span class="kw">let</span> <span class="ident">content</span>;
-            <span class="kw">let</span> <span class="ident">bracket_token</span> <span class="op">=</span> <span class="macro">bracketed</span><span class="macro">!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
+            <span class="kw">let</span> <span class="ident">bracket_token</span> <span class="op">=</span> <span class="macro">bracketed!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
             <span class="kw">let</span> <span class="ident">elem</span>: <span class="ident">Type</span> <span class="op">=</span> <span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">content</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[;]) {
-                <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">Array</span>(<span class="ident">TypeArray</span> {
+            <span class="kw">if</span> <span class="ident">content</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[;]) {
+                <span class="prelude-val">Ok</span>(<span class="ident">Type::Array</span>(<span class="ident">TypeArray</span> {
                     <span class="ident">bracket_token</span>,
-                    <span class="ident">elem</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">elem</span>),
+                    <span class="ident">elem</span>: <span class="ident">Box::new</span>(<span class="ident">elem</span>),
                     <span class="ident">semi_token</span>: <span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
                     <span class="ident">len</span>: <span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
                 }))
             } <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">Type</span>::<span class="ident">Slice</span>(<span class="ident">TypeSlice</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">Type::Slice</span>(<span class="ident">TypeSlice</span> {
                     <span class="ident">bracket_token</span>,
-                    <span class="ident">elem</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">elem</span>),
+                    <span class="ident">elem</span>: <span class="ident">Box::new</span>(<span class="ident">elem</span>),
                 }))
             }
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw-2">*</span>]) {
-            <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Type</span>::<span class="ident">Ptr</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw-2">&amp;</span>]) {
-            <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Type</span>::<span class="ident">Reference</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">!</span>]) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">=</span>]) {
-            <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Type</span>::<span class="ident">Never</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">impl</span>]) {
-            <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Type</span>::<span class="ident">ImplTrait</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">_</span>]) {
-            <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Type</span>::<span class="ident">Infer</span>)
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw-2">*</span>]) {
+            <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Type::Ptr</span>)
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw-2">&amp;</span>]) {
+            <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Type::Reference</span>)
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">!</span>]) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">=</span>]) {
+            <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Type::Never</span>)
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">impl</span>]) {
+            <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Type::ImplTrait</span>)
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">_</span>]) {
+            <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Type::Infer</span>)
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">Lifetime</span>) {
-            <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Type</span>::<span class="ident">TraitObject</span>)
+            <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">Type::TraitObject</span>)
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">lookahead</span>.<span class="ident">error</span>())
         }
@@ -1894,7 +1894,7 @@
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">content</span>;
             <span class="prelude-val">Ok</span>(<span class="ident">TypeSlice</span> {
-                <span class="ident">bracket_token</span>: <span class="macro">bracketed</span><span class="macro">!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>),
+                <span class="ident">bracket_token</span>: <span class="macro">bracketed!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>),
                 <span class="ident">elem</span>: <span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
             })
         }
@@ -1905,7 +1905,7 @@
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">content</span>;
             <span class="prelude-val">Ok</span>(<span class="ident">TypeArray</span> {
-                <span class="ident">bracket_token</span>: <span class="macro">bracketed</span><span class="macro">!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>),
+                <span class="ident">bracket_token</span>: <span class="macro">bracketed!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>),
                 <span class="ident">elem</span>: <span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
                 <span class="ident">semi_token</span>: <span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
                 <span class="ident">len</span>: <span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
@@ -1916,12 +1916,12 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">TypePtr</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">star_token</span>: <span class="macro">Token</span><span class="macro">!</span>[<span class="kw-2">*</span>] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">star_token</span>: <span class="macro">Token!</span>[<span class="kw-2">*</span>] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">lookahead1</span>();
-            <span class="kw">let</span> (<span class="ident">const_token</span>, <span class="ident">mutability</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">const</span>]) {
+            <span class="kw">let</span> (<span class="ident">const_token</span>, <span class="ident">mutability</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">const</span>]) {
                 (<span class="prelude-val">Some</span>(<span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>), <span class="prelude-val">None</span>)
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw-2">mut</span>]) {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw-2">mut</span>]) {
                 (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>))
             } <span class="kw">else</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">lookahead</span>.<span class="ident">error</span>());
@@ -1931,7 +1931,7 @@
                 <span class="ident">star_token</span>,
                 <span class="ident">const_token</span>,
                 <span class="ident">mutability</span>,
-                <span class="ident">elem</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Type</span>::<span class="ident">without_plus</span>)<span class="question-mark">?</span>),
+                <span class="ident">elem</span>: <span class="ident">Box::new</span>(<span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Type::without_plus</span>)<span class="question-mark">?</span>),
             })
         }
     }
@@ -1944,7 +1944,7 @@
                 <span class="ident">lifetime</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
                 <span class="ident">mutability</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
                 <span class="comment">// &amp; binds tighter than +, so we don&#39;t allow + here.</span>
-                <span class="ident">elem</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Type</span>::<span class="ident">without_plus</span>)<span class="question-mark">?</span>),
+                <span class="ident">elem</span>: <span class="ident">Box::new</span>(<span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Type::without_plus</span>)<span class="question-mark">?</span>),
             })
         }
     }
@@ -1953,7 +1953,7 @@
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">TypeBareFn</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">allow_mut_self</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="ident">parse_bare_fn</span>(<span class="ident">input</span>, <span class="ident">allow_mut_self</span>).<span class="ident">map</span>(<span class="prelude-ty">Option</span>::<span class="ident">unwrap</span>)
+            <span class="ident">parse_bare_fn</span>(<span class="ident">input</span>, <span class="ident">allow_mut_self</span>).<span class="ident">map</span>(<span class="ident">Option::unwrap</span>)
         }
     }
 
@@ -1967,14 +1967,14 @@
             <span class="ident">unsafety</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
             <span class="ident">abi</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
             <span class="ident">fn_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
-            <span class="ident">paren_token</span>: <span class="macro">parenthesized</span><span class="macro">!</span>(<span class="ident">args</span> <span class="kw">in</span> <span class="ident">input</span>),
+            <span class="ident">paren_token</span>: <span class="macro">parenthesized!</span>(<span class="ident">args</span> <span class="kw">in</span> <span class="ident">input</span>),
             <span class="ident">inputs</span>: {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inputs</span> <span class="op">=</span> <span class="ident">Punctuated</span>::<span class="ident">new</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inputs</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
 
                 <span class="kw">while</span> <span class="op">!</span><span class="ident">args</span>.<span class="ident">is_empty</span>() {
-                    <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">call</span>(<span class="ident">Attribute::parse_outer</span>)<span class="question-mark">?</span>;
 
-                    <span class="kw">if</span> <span class="ident">inputs</span>.<span class="ident">empty_or_trailing</span>() <span class="op">&amp;&amp;</span> <span class="ident">args</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[...]) {
+                    <span class="kw">if</span> <span class="ident">inputs</span>.<span class="ident">empty_or_trailing</span>() <span class="op">&amp;&amp;</span> <span class="ident">args</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[...]) {
                         <span class="ident">variadic</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Variadic</span> {
                             <span class="ident">attrs</span>,
                             <span class="ident">dots</span>: <span class="ident">args</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
@@ -1997,7 +1997,7 @@
                 <span class="ident">inputs</span>
             },
             <span class="ident">variadic</span>,
-            <span class="ident">output</span>: <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">ReturnType</span>::<span class="ident">without_plus</span>)<span class="question-mark">?</span>,
+            <span class="ident">output</span>: <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">ReturnType::without_plus</span>)<span class="question-mark">?</span>,
         };
 
         <span class="kw">if</span> <span class="ident">has_mut_self</span> {
@@ -2029,12 +2029,12 @@
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">TypeTuple</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">content</span>;
-            <span class="kw">let</span> <span class="ident">paren_token</span> <span class="op">=</span> <span class="macro">parenthesized</span><span class="macro">!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
+            <span class="kw">let</span> <span class="ident">paren_token</span> <span class="op">=</span> <span class="macro">parenthesized!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
 
             <span class="kw">if</span> <span class="ident">content</span>.<span class="ident">is_empty</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">TypeTuple</span> {
                     <span class="ident">paren_token</span>,
-                    <span class="ident">elems</span>: <span class="ident">Punctuated</span>::<span class="ident">new</span>(),
+                    <span class="ident">elems</span>: <span class="ident">Punctuated::new</span>(),
                 });
             }
 
@@ -2042,7 +2042,7 @@
             <span class="prelude-val">Ok</span>(<span class="ident">TypeTuple</span> {
                 <span class="ident">paren_token</span>,
                 <span class="ident">elems</span>: {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elems</span> <span class="op">=</span> <span class="ident">Punctuated</span>::<span class="ident">new</span>();
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elems</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
                     <span class="ident">elems</span>.<span class="ident">push_value</span>(<span class="ident">first</span>);
                     <span class="ident">elems</span>.<span class="ident">push_punct</span>(<span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>);
                     <span class="kw">while</span> <span class="op">!</span><span class="ident">content</span>.<span class="ident">is_empty</span>() {
@@ -2070,11 +2070,11 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">TypePath</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> (<span class="ident">qself</span>, <span class="kw-2">mut</span> <span class="ident">path</span>) <span class="op">=</span> <span class="ident">path</span>::<span class="ident">parsing</span>::<span class="ident">qpath</span>(<span class="ident">input</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> (<span class="ident">qself</span>, <span class="kw-2">mut</span> <span class="ident">path</span>) <span class="op">=</span> <span class="ident">path::parsing::qpath</span>(<span class="ident">input</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
-            <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>().<span class="ident">arguments</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">token</span>::<span class="ident">Paren</span>) {
+            <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>().<span class="ident">arguments</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">token::Paren</span>) {
                 <span class="kw">let</span> <span class="ident">args</span>: <span class="ident">ParenthesizedGenericArguments</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">parenthesized</span> <span class="op">=</span> <span class="ident">PathArguments</span>::<span class="ident">Parenthesized</span>(<span class="ident">args</span>);
+                <span class="kw">let</span> <span class="ident">parenthesized</span> <span class="op">=</span> <span class="ident">PathArguments::Parenthesized</span>(<span class="ident">args</span>);
                 <span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">last_mut</span>().<span class="ident">unwrap</span>().<span class="ident">arguments</span> <span class="op">=</span> <span class="ident">parenthesized</span>;
             }
 
@@ -2085,17 +2085,17 @@
     <span class="kw">impl</span> <span class="ident">ReturnType</span> {
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">without_plus</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">allow_plus</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="self">Self</span>::<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">allow_plus</span>)
+            <span class="self">Self</span><span class="ident">::parse</span>(<span class="ident">input</span>, <span class="ident">allow_plus</span>)
         }
 
         <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>, <span class="ident">allow_plus</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">-</span><span class="op">&gt;</span>]) {
+            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">-</span><span class="op">&gt;</span>]) {
                 <span class="kw">let</span> <span class="ident">arrow</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">ambig_ty</span>(<span class="ident">input</span>, <span class="ident">allow_plus</span>)<span class="question-mark">?</span>;
-                <span class="prelude-val">Ok</span>(<span class="ident">ReturnType</span>::<span class="ident">Type</span>(<span class="ident">arrow</span>, <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">ty</span>)))
+                <span class="prelude-val">Ok</span>(<span class="ident">ReturnType::Type</span>(<span class="ident">arrow</span>, <span class="ident">Box::new</span>(<span class="ident">ty</span>)))
             } <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">ReturnType</span>::<span class="ident">Default</span>)
+                <span class="prelude-val">Ok</span>(<span class="ident">ReturnType::Default</span>)
             }
         }
     }
@@ -2103,20 +2103,20 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">ReturnType</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="self">Self</span>::<span class="ident">parse</span>(<span class="ident">input</span>, <span class="bool-val">true</span>)
+            <span class="self">Self</span><span class="ident">::parse</span>(<span class="ident">input</span>, <span class="bool-val">true</span>)
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">TypeTraitObject</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="self">Self</span>::<span class="ident">parse</span>(<span class="ident">input</span>, <span class="bool-val">true</span>)
+            <span class="self">Self</span><span class="ident">::parse</span>(<span class="ident">input</span>, <span class="bool-val">true</span>)
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">at_least_one_type</span>(<span class="ident">bounds</span>: <span class="kw-2">&amp;</span><span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">TypeParamBound</span>, <span class="macro">Token</span><span class="macro">!</span>[<span class="op">+</span>]<span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">at_least_one_type</span>(<span class="ident">bounds</span>: <span class="kw-2">&amp;</span><span class="ident">Punctuated</span><span class="op">&lt;</span><span class="ident">TypeParamBound</span>, <span class="macro">Token!</span>[<span class="op">+</span>]<span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">for</span> <span class="ident">bound</span> <span class="kw">in</span> <span class="ident">bounds</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TypeParamBound</span>::<span class="ident">Trait</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">bound</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TypeParamBound::Trait</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">bound</span> {
                 <span class="kw">return</span> <span class="bool-val">true</span>;
             }
         }
@@ -2126,7 +2126,7 @@
     <span class="kw">impl</span> <span class="ident">TypeTraitObject</span> {
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">without_plus</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">allow_plus</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="self">Self</span>::<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">allow_plus</span>)
+            <span class="self">Self</span><span class="ident">::parse</span>(<span class="ident">input</span>, <span class="ident">allow_plus</span>)
         }
 
         <span class="comment">// Only allow multiple trait references if allow_plus is true.</span>
@@ -2135,15 +2135,15 @@
             <span class="prelude-val">Ok</span>(<span class="ident">TypeTraitObject</span> {
                 <span class="ident">dyn_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
                 <span class="ident">bounds</span>: {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">Punctuated</span>::<span class="ident">new</span>();
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
                     <span class="kw">if</span> <span class="ident">allow_plus</span> {
                         <span class="kw">loop</span> {
                             <span class="ident">bounds</span>.<span class="ident">push_value</span>(<span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>);
-                            <span class="kw">if</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">+</span>]) {
+                            <span class="kw">if</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">+</span>]) {
                                 <span class="kw">break</span>;
                             }
                             <span class="ident">bounds</span>.<span class="ident">push_punct</span>(<span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>);
-                            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">&gt;</span>]) {
+                            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">&gt;</span>]) {
                                 <span class="kw">break</span>;
                             }
                         }
@@ -2168,10 +2168,10 @@
                 <span class="comment">// NOTE: rust-lang/rust#34511 includes discussion about whether</span>
                 <span class="comment">// or not + should be allowed in ImplTrait directly without ().</span>
                 <span class="ident">bounds</span>: {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">Punctuated</span>::<span class="ident">new</span>();
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bounds</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
                     <span class="kw">loop</span> {
                         <span class="ident">bounds</span>.<span class="ident">push_value</span>(<span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>);
-                        <span class="kw">if</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="op">+</span>]) {
+                        <span class="kw">if</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">+</span>]) {
                             <span class="kw">break</span>;
                         }
                         <span class="ident">bounds</span>.<span class="ident">push_punct</span>(<span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>);
@@ -2185,7 +2185,7 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">TypeGroup</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="kw">crate</span>::<span class="ident">group</span>::<span class="ident">parse_group</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="kw">crate</span><span class="ident">::group::parse_group</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<span class="ident">TypeGroup</span> {
                 <span class="ident">group_token</span>: <span class="ident">group</span>.<span class="ident">token</span>,
                 <span class="ident">elem</span>: <span class="ident">group</span>.<span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
@@ -2197,7 +2197,7 @@
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">TypeParen</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">allow_plus</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="self">Self</span>::<span class="ident">parse</span>(<span class="ident">input</span>, <span class="ident">allow_plus</span>)
+            <span class="self">Self</span><span class="ident">::parse</span>(<span class="ident">input</span>, <span class="ident">allow_plus</span>)
         }
     }
 
@@ -2205,8 +2205,8 @@
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>, <span class="ident">allow_plus</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">content</span>;
             <span class="prelude-val">Ok</span>(<span class="ident">TypeParen</span> {
-                <span class="ident">paren_token</span>: <span class="macro">parenthesized</span><span class="macro">!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>),
-                <span class="ident">elem</span>: <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">ambig_ty</span>(<span class="kw-2">&amp;</span><span class="ident">content</span>, <span class="ident">allow_plus</span>)<span class="question-mark">?</span>),
+                <span class="ident">paren_token</span>: <span class="macro">parenthesized!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>),
+                <span class="ident">elem</span>: <span class="ident">Box::new</span>(<span class="ident">ambig_ty</span>(<span class="kw-2">&amp;</span><span class="ident">content</span>, <span class="ident">allow_plus</span>)<span class="question-mark">?</span>),
             })
         }
     }
@@ -2215,7 +2215,7 @@
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">BareFnArg</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">allow_mut_self</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="ident">parse_bare_fn_arg</span>(<span class="ident">input</span>, <span class="ident">allow_mut_self</span>).<span class="ident">map</span>(<span class="prelude-ty">Option</span>::<span class="ident">unwrap</span>)
+            <span class="ident">parse_bare_fn_arg</span>(<span class="ident">input</span>, <span class="ident">allow_mut_self</span>).<span class="ident">map</span>(<span class="ident">Option::unwrap</span>)
         }
     }
 
@@ -2225,37 +2225,37 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BareFnArg</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_mut_self</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">BareFnArg</span> {
-            <span class="ident">attrs</span>: <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute</span>::<span class="ident">parse_outer</span>)<span class="question-mark">?</span>,
+            <span class="ident">attrs</span>: <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Attribute::parse_outer</span>)<span class="question-mark">?</span>,
             <span class="ident">name</span>: {
-                <span class="kw">if</span> (<span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">Ident</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">_</span>]) <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="self">self</span>]))
-                    <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek2</span>(<span class="macro">Token</span><span class="macro">!</span>[:])
-                    <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek2</span>(<span class="macro">Token</span><span class="macro">!</span>[::])
+                <span class="kw">if</span> (<span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">Ident</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">_</span>]) <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="self">self</span>]))
+                    <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek2</span>(<span class="macro">Token!</span>[:])
+                    <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek2</span>(<span class="macro">Token!</span>[::])
                 {
-                    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Ident</span>::<span class="ident">parse_any</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">colon</span>: <span class="macro">Token</span><span class="macro">!</span>[:] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Ident::parse_any</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">colon</span>: <span class="macro">Token!</span>[:] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
                     <span class="prelude-val">Some</span>((<span class="ident">name</span>, <span class="ident">colon</span>))
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">allow_mut_self</span>
-                    <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw-2">mut</span>])
-                    <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek2</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="self">self</span>])
-                    <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek3</span>(<span class="macro">Token</span><span class="macro">!</span>[:])
-                    <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek3</span>(<span class="macro">Token</span><span class="macro">!</span>[::])
+                    <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw-2">mut</span>])
+                    <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek2</span>(<span class="macro">Token!</span>[<span class="self">self</span>])
+                    <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek3</span>(<span class="macro">Token!</span>[:])
+                    <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek3</span>(<span class="macro">Token!</span>[::])
                 {
                     <span class="ident">has_mut_self</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     <span class="ident">allow_mut_self</span> <span class="op">=</span> <span class="bool-val">false</span>;
-                    <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw-2">mut</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
-                    <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="self">self</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
-                    <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[:]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                    <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw-2">mut</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                    <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token!</span>[<span class="self">self</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                    <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token!</span>[:]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
                     <span class="prelude-val">None</span>
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
                 }
             },
-            <span class="ident">ty</span>: <span class="kw">if</span> <span class="op">!</span><span class="ident">has_mut_self</span> <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[...]) {
-                <span class="kw">let</span> <span class="ident">dot3</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[...]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[
-                    <span class="ident">TokenTree</span>::<span class="ident">Punct</span>(<span class="ident">Punct</span>::<span class="ident">new</span>(<span class="string">&#39;.&#39;</span>, <span class="ident">Spacing</span>::<span class="ident">Joint</span>)),
-                    <span class="ident">TokenTree</span>::<span class="ident">Punct</span>(<span class="ident">Punct</span>::<span class="ident">new</span>(<span class="string">&#39;.&#39;</span>, <span class="ident">Spacing</span>::<span class="ident">Joint</span>)),
-                    <span class="ident">TokenTree</span>::<span class="ident">Punct</span>(<span class="ident">Punct</span>::<span class="ident">new</span>(<span class="string">&#39;.&#39;</span>, <span class="ident">Spacing</span>::<span class="ident">Alone</span>)),
+            <span class="ident">ty</span>: <span class="kw">if</span> <span class="op">!</span><span class="ident">has_mut_self</span> <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[...]) {
+                <span class="kw">let</span> <span class="ident">dot3</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token!</span>[...]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="macro">vec!</span>[
+                    <span class="ident">TokenTree::Punct</span>(<span class="ident">Punct::new</span>(<span class="string">&#39;.&#39;</span>, <span class="ident">Spacing::Joint</span>)),
+                    <span class="ident">TokenTree::Punct</span>(<span class="ident">Punct::new</span>(<span class="string">&#39;.&#39;</span>, <span class="ident">Spacing::Joint</span>)),
+                    <span class="ident">TokenTree::Punct</span>(<span class="ident">Punct::new</span>(<span class="string">&#39;.&#39;</span>, <span class="ident">Spacing::Alone</span>)),
                 ];
                 <span class="kw">let</span> <span class="ident">tokens</span>: <span class="ident">TokenStream</span> <span class="op">=</span> <span class="ident">args</span>
                     .<span class="ident">into_iter</span>()
@@ -2265,13 +2265,13 @@
                         <span class="ident">arg</span>
                     })
                     .<span class="ident">collect</span>();
-                <span class="ident">Type</span>::<span class="ident">Verbatim</span>(<span class="ident">tokens</span>)
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">allow_mut_self</span> <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw-2">mut</span>]) <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek2</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="self">self</span>]) {
+                <span class="ident">Type::Verbatim</span>(<span class="ident">tokens</span>)
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">allow_mut_self</span> <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw-2">mut</span>]) <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek2</span>(<span class="macro">Token!</span>[<span class="self">self</span>]) {
                 <span class="ident">has_mut_self</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="kw-2">mut</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
-                <span class="ident">Type</span>::<span class="ident">Path</span>(<span class="ident">TypePath</span> {
+                <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token!</span>[<span class="kw-2">mut</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
+                <span class="ident">Type::Path</span>(<span class="ident">TypePath</span> {
                     <span class="ident">qself</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">path</span>: <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token</span><span class="macro">!</span>[<span class="self">self</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>(),
+                    <span class="ident">path</span>: <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">Token!</span>[<span class="self">self</span>]<span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>(),
                 })
             } <span class="kw">else</span> {
                 <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>
@@ -2298,7 +2298,7 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Abi</span><span class="op">&gt;</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token</span><span class="macro">!</span>[<span class="kw">extern</span>]) {
+            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">extern</span>]) {
                 <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="prelude-val">Some</span>)
             } <span class="kw">else</span> {
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
@@ -2310,9 +2310,9 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">printing</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">attr</span>::<span class="ident">FilterAttrs</span>;
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">print</span>::<span class="ident">TokensOrDefault</span>;
-    <span class="kw">use</span> <span class="ident">proc_macro2</span>::<span class="ident">TokenStream</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::attr::FilterAttrs</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::print::TokensOrDefault</span>;
+    <span class="kw">use</span> <span class="ident">proc_macro2::TokenStream</span>;
     <span class="kw">use</span> <span class="ident">quote</span>::{<span class="ident">ToTokens</span>, <span class="ident">TokenStreamExt</span>};
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
@@ -2371,7 +2371,7 @@
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">variadic</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">variadic</span> {
                     <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">inputs</span>.<span class="ident">empty_or_trailing</span>() {
                         <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">variadic</span>.<span class="ident">dots</span>.<span class="ident">spans</span>[<span class="number">0</span>];
-                        <span class="macro">Token</span><span class="macro">!</span>[,](<span class="ident">span</span>).<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
+                        <span class="macro">Token!</span>[,](<span class="ident">span</span>).<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
                     }
                     <span class="ident">variadic</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
                 }
@@ -2399,7 +2399,7 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">TypePath</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
-            <span class="ident">private</span>::<span class="ident">print_path</span>(<span class="ident">tokens</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">qself</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">path</span>);
+            <span class="ident">private::print_path</span>(<span class="ident">tokens</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">qself</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">path</span>);
         }
     }
 
@@ -2455,8 +2455,8 @@
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">ReturnType</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">TokenStream</span>) {
             <span class="kw">match</span> <span class="self">self</span> {
-                <span class="ident">ReturnType</span>::<span class="ident">Default</span> <span class="op">=</span><span class="op">&gt;</span> {}
-                <span class="ident">ReturnType</span>::<span class="ident">Type</span>(<span class="ident">arrow</span>, <span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">ReturnType::Default</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="ident">ReturnType::Type</span>(<span class="ident">arrow</span>, <span class="ident">ty</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">arrow</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
                     <span class="ident">ty</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
                 }
@@ -2493,5 +2493,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

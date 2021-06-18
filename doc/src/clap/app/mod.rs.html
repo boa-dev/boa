@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-2.33.3/src/app/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../clap/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../clap/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1914,26 +1914,26 @@
 <span class="kw">mod</span> <span class="ident">validator</span>;
 
 <span class="comment">// Std</span>
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">env</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ffi</span>::{<span class="ident">OsStr</span>, <span class="ident">OsString</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">BufRead</span>, <span class="ident">BufWriter</span>, <span class="ident">Write</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">path</span>::<span class="ident">Path</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">process</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">rc</span>::<span class="ident">Rc</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">result</span>::<span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>;
+<span class="kw">use</span> <span class="ident">std::env</span>;
+<span class="kw">use</span> <span class="ident">std::ffi</span>::{<span class="ident">OsStr</span>, <span class="ident">OsString</span>};
+<span class="kw">use</span> <span class="ident">std::fmt</span>;
+<span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">BufRead</span>, <span class="ident">BufWriter</span>, <span class="ident">Write</span>};
+<span class="kw">use</span> <span class="ident">std::path::Path</span>;
+<span class="kw">use</span> <span class="ident">std::process</span>;
+<span class="kw">use</span> <span class="ident">std::rc::Rc</span>;
+<span class="kw">use</span> <span class="ident">std::result::Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>;
 
 <span class="comment">// Third Party</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;yaml&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">yaml_rust</span>::<span class="ident">Yaml</span>;
+<span class="kw">use</span> <span class="ident">yaml_rust::Yaml</span>;
 
 <span class="comment">// Internal</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::<span class="ident">settings</span>::<span class="ident">AppSettings</span>;
-<span class="kw">use</span> <span class="ident">app</span>::<span class="ident">help</span>::<span class="ident">Help</span>;
-<span class="kw">use</span> <span class="ident">app</span>::<span class="ident">parser</span>::<span class="ident">Parser</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span><span class="ident">::settings::AppSettings</span>;
+<span class="kw">use</span> <span class="ident">app::help::Help</span>;
+<span class="kw">use</span> <span class="ident">app::parser::Parser</span>;
 <span class="kw">use</span> <span class="ident">args</span>::{<span class="ident">AnyArg</span>, <span class="ident">Arg</span>, <span class="ident">ArgGroup</span>, <span class="ident">ArgMatcher</span>, <span class="ident">ArgMatches</span>, <span class="ident">ArgSettings</span>};
-<span class="kw">use</span> <span class="ident">completions</span>::<span class="ident">Shell</span>;
-<span class="kw">use</span> <span class="ident">errors</span>::<span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">ClapResult</span>;
+<span class="kw">use</span> <span class="ident">completions::Shell</span>;
+<span class="kw">use</span> <span class="ident">errors::Result</span> <span class="kw">as</span> <span class="ident">ClapResult</span>;
 <span class="kw">use</span> <span class="ident">map</span>::{<span class="self">self</span>, <span class="ident">VecMap</span>};
 
 <span class="doccomment">/// Used to create a representation of a command line program and all possible command line</span>
@@ -1987,7 +1987,7 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">n</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">App</span> {
-            <span class="ident">p</span>: <span class="ident">Parser</span>::<span class="ident">with_name</span>(<span class="ident">n</span>.<span class="ident">into</span>()),
+            <span class="ident">p</span>: <span class="ident">Parser::with_name</span>(<span class="ident">n</span>.<span class="ident">into</span>()),
         }
     }
 
@@ -2021,7 +2021,7 @@
     )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_defaults</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">n</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">App</span> {
-            <span class="ident">p</span>: <span class="ident">Parser</span>::<span class="ident">with_name</span>(<span class="ident">n</span>.<span class="ident">into</span>()),
+            <span class="ident">p</span>: <span class="ident">Parser::with_name</span>(<span class="ident">n</span>.<span class="ident">into</span>()),
         };
         <span class="ident">a</span>.<span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">author</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&quot;Kevin K. &lt;kbknapp@gmail.com&gt;&quot;</span>);
         <span class="ident">a</span>.<span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">version</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&quot;2.19.2&quot;</span>);
@@ -2069,7 +2069,7 @@
     <span class="doccomment">/// [`panic!`]: https://doc.rust-lang.org/std/macro.panic!.html</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;yaml&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_yaml</span>(<span class="ident">yaml</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Yaml</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="ident">App</span>::<span class="ident">from</span>(<span class="ident">yaml</span>)
+        <span class="ident">App::from</span>(<span class="ident">yaml</span>)
     }
 
     <span class="doccomment">/// Sets a string of author(s) that will be displayed to the user when they</span>
@@ -2742,7 +2742,7 @@
     <span class="doccomment">/// [`Arg`]: ./struct.Arg.html</span>
     <span class="doccomment">/// [`Arg::from_usage`]: ./struct.Arg.html#method.from_usage</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">arg_from_usage</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">usage</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">add_arg</span>(<span class="ident">Arg</span>::<span class="ident">from_usage</span>(<span class="ident">usage</span>));
+        <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">add_arg</span>(<span class="ident">Arg::from_usage</span>(<span class="ident">usage</span>));
         <span class="self">self</span>
     }
 
@@ -2774,7 +2774,7 @@
             <span class="kw">if</span> <span class="ident">l</span>.<span class="ident">is_empty</span>() {
                 <span class="kw">continue</span>;
             }
-            <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">add_arg</span>(<span class="ident">Arg</span>::<span class="ident">from_usage</span>(<span class="ident">l</span>));
+            <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">add_arg</span>(<span class="ident">Arg::from_usage</span>(<span class="ident">l</span>));
         }
         <span class="self">self</span>
     }
@@ -2799,7 +2799,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">als</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">aliases</span> {
             <span class="ident">als</span>.<span class="ident">push</span>((<span class="ident">name</span>.<span class="ident">into</span>(), <span class="bool-val">false</span>));
         } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">aliases</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="macro">vec</span><span class="macro">!</span>[(<span class="ident">name</span>.<span class="ident">into</span>(), <span class="bool-val">false</span>)]);
+            <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">aliases</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[(<span class="ident">name</span>.<span class="ident">into</span>(), <span class="bool-val">false</span>)]);
         }
         <span class="self">self</span>
     }
@@ -2854,7 +2854,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">als</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">aliases</span> {
             <span class="ident">als</span>.<span class="ident">push</span>((<span class="ident">name</span>.<span class="ident">into</span>(), <span class="bool-val">true</span>));
         } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">aliases</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="macro">vec</span><span class="macro">!</span>[(<span class="ident">name</span>.<span class="ident">into</span>(), <span class="bool-val">true</span>)]);
+            <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">aliases</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[(<span class="ident">name</span>.<span class="ident">into</span>(), <span class="bool-val">true</span>)]);
         }
         <span class="self">self</span>
     }
@@ -3081,8 +3081,8 @@
         <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">derive_display_order</span>();
 
         <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">create_help_and_version</span>();
-        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">io</span>::<span class="ident">stdout</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf_w</span> <span class="op">=</span> <span class="ident">BufWriter</span>::<span class="ident">new</span>(<span class="ident">out</span>.<span class="ident">lock</span>());
+        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">io::stdout</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf_w</span> <span class="op">=</span> <span class="ident">BufWriter::new</span>(<span class="ident">out</span>.<span class="ident">lock</span>());
         <span class="self">self</span>.<span class="ident">write_help</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf_w</span>)
     }
 
@@ -3104,8 +3104,8 @@
     <span class="doccomment">/// [`-h` (short)]: ./struct.Arg.html#method.help</span>
     <span class="doccomment">/// [`--help` (long)]: ./struct.Arg.html#method.long_help</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">print_long_help</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">io</span>::<span class="ident">stdout</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf_w</span> <span class="op">=</span> <span class="ident">BufWriter</span>::<span class="ident">new</span>(<span class="ident">out</span>.<span class="ident">lock</span>());
+        <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">io::stdout</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf_w</span> <span class="op">=</span> <span class="ident">BufWriter::new</span>(<span class="ident">out</span>.<span class="ident">lock</span>());
         <span class="self">self</span>.<span class="ident">write_long_help</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf_w</span>)
     }
 
@@ -3141,7 +3141,7 @@
         <span class="comment">// self.p.derive_display_order();</span>
         <span class="comment">// self.p.create_help_and_version();</span>
 
-        <span class="ident">Help</span>::<span class="ident">write_app_help</span>(<span class="ident">w</span>, <span class="self">self</span>, <span class="bool-val">false</span>)
+        <span class="ident">Help::write_app_help</span>(<span class="ident">w</span>, <span class="self">self</span>, <span class="bool-val">false</span>)
     }
 
     <span class="doccomment">/// Writes the full help message to the user to a [`io::Write`] object in the same method as if</span>
@@ -3170,7 +3170,7 @@
         <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">derive_display_order</span>();
         <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">create_help_and_version</span>();
 
-        <span class="ident">Help</span>::<span class="ident">write_app_help</span>(<span class="ident">w</span>, <span class="self">self</span>, <span class="bool-val">true</span>)
+        <span class="ident">Help::write_app_help</span>(<span class="ident">w</span>, <span class="self">self</span>, <span class="bool-val">true</span>)
     }
 
     <span class="doccomment">/// Writes the version message to the user to a [`io::Write`] object as if the user ran `-V`.</span>
@@ -3191,7 +3191,7 @@
     <span class="doccomment">/// [`-V` (short)]: ./struct.App.html#method.version</span>
     <span class="doccomment">/// [`--version` (long)]: ./struct.App.html#method.long_version</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_version</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">write_version</span>(<span class="ident">w</span>, <span class="bool-val">false</span>).<span class="ident">map_err</span>(<span class="ident">From</span>::<span class="ident">from</span>)
+        <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">write_version</span>(<span class="ident">w</span>, <span class="bool-val">false</span>).<span class="ident">map_err</span>(<span class="ident">From::from</span>)
     }
 
     <span class="doccomment">/// Writes the version message to the user to a [`io::Write`] object</span>
@@ -3212,7 +3212,7 @@
     <span class="doccomment">/// [`-V` (short)]: ./struct.App.html#method.version</span>
     <span class="doccomment">/// [`--version` (long)]: ./struct.App.html#method.long_version</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_long_version</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">Write</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">w</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">W</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">write_version</span>(<span class="ident">w</span>, <span class="bool-val">true</span>).<span class="ident">map_err</span>(<span class="ident">From</span>::<span class="ident">from</span>)
+        <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">write_version</span>(<span class="ident">w</span>, <span class="bool-val">true</span>).<span class="ident">map_err</span>(<span class="ident">From::from</span>)
     }
 
     <span class="doccomment">/// Generate a completions file for a specified shell at compile time.</span>
@@ -3365,7 +3365,7 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// [`env::args_os`]: https://doc.rust-lang.org/std/env/fn.args_os.html</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_matches</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ArgMatches</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">get_matches_from</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">env</span>::<span class="ident">args_os</span>())
+        <span class="self">self</span>.<span class="ident">get_matches_from</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">env::args_os</span>())
     }
 
     <span class="doccomment">/// Starts the parsing process. This method will return a [`clap::Result`] type instead of exiting</span>
@@ -3395,7 +3395,7 @@
     <span class="doccomment">/// [`kind`]: ./struct.Error.html</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_matches_safe</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ClapResult</span><span class="op">&lt;</span><span class="ident">ArgMatches</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// Start the parsing</span>
-        <span class="self">self</span>.<span class="ident">get_matches_from_safe</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">env</span>::<span class="ident">args_os</span>())
+        <span class="self">self</span>.<span class="ident">get_matches_from_safe</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">env::args_os</span>())
     }
 
     <span class="doccomment">/// Starts the parsing process. Like [`App::get_matches`] this method does not return a [`clap::Result`]</span>
@@ -3427,16 +3427,16 @@
         <span class="self">self</span>.<span class="ident">get_matches_from_safe_borrow</span>(<span class="ident">itr</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
             <span class="comment">// Otherwise, write to stderr and exit</span>
             <span class="kw">if</span> <span class="ident">e</span>.<span class="ident">use_stderr</span>() {
-                <span class="macro">wlnerr</span><span class="macro">!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>.<span class="ident">message</span>);
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AppSettings</span>::<span class="ident">WaitOnError</span>) {
-                    <span class="macro">wlnerr</span><span class="macro">!</span>(<span class="string">&quot;\nPress [ENTER] / [RETURN] to continue...&quot;</span>);
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String</span>::<span class="ident">new</span>();
-                    <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">io</span>::<span class="ident">stdin</span>();
+                <span class="macro">wlnerr!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>.<span class="ident">message</span>);
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AppSettings::WaitOnError</span>) {
+                    <span class="macro">wlnerr!</span>(<span class="string">&quot;\nPress [ENTER] / [RETURN] to continue...&quot;</span>);
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String::new</span>();
+                    <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">io::stdin</span>();
                     <span class="ident">i</span>.<span class="ident">lock</span>().<span class="ident">read_line</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">s</span>).<span class="ident">unwrap</span>();
                 }
                 <span class="ident">drop</span>(<span class="self">self</span>);
                 <span class="ident">drop</span>(<span class="ident">e</span>);
-                <span class="ident">process</span>::<span class="ident">exit</span>(<span class="number">1</span>);
+                <span class="ident">process::exit</span>(<span class="number">1</span>);
             }
 
             <span class="ident">drop</span>(<span class="self">self</span>);
@@ -3512,14 +3512,14 @@
     {
         <span class="comment">// If there are global arguments, or settings we need to propagate them down to subcommands</span>
         <span class="comment">// before parsing incase we run into a subcommand</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AppSettings</span>::<span class="ident">Propagated</span>) {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AppSettings::Propagated</span>) {
             <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">propagate_globals</span>();
             <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">propagate_settings</span>();
             <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">derive_display_order</span>();
-            <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">set</span>(<span class="ident">AppSettings</span>::<span class="ident">Propagated</span>);
+            <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">set</span>(<span class="ident">AppSettings::Propagated</span>);
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="ident">ArgMatcher</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="ident">ArgMatcher::new</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">it</span> <span class="op">=</span> <span class="ident">itr</span>.<span class="ident">into_iter</span>();
         <span class="comment">// Get the name of the program (argument 1 of env::args()) and determine the</span>
@@ -3529,10 +3529,10 @@
         <span class="comment">// will have two arguments, &#39;./target/release/my_prog&#39;, &#39;-a&#39; but we don&#39;t want</span>
         <span class="comment">// to display</span>
         <span class="comment">// the full path when displaying help messages and such</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AppSettings</span>::<span class="ident">NoBinaryName</span>) {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">p</span>.<span class="ident">is_set</span>(<span class="ident">AppSettings::NoBinaryName</span>) {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">it</span>.<span class="ident">next</span>() {
                 <span class="kw">let</span> <span class="ident">bn_os</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">into</span>();
-                <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">Path</span>::<span class="ident">new</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">bn_os</span>);
+                <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">bn_os</span>);
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="ident">p</span>.<span class="ident">file_name</span>() {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">f</span>.<span class="ident">to_os_string</span>().<span class="ident">to_str</span>() {
                         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">bin_name</span>.<span class="ident">is_none</span>() {
@@ -3558,62 +3558,62 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;yaml&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Yaml</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw-2">mut</span> <span class="ident">yaml</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Yaml</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="kw">use</span> <span class="ident">args</span>::<span class="ident">SubCommand</span>;
+        <span class="kw">use</span> <span class="ident">args::SubCommand</span>;
         <span class="comment">// We WANT this to panic on error...so expect() is good.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_sc</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">yaml</span>[<span class="string">&quot;name&quot;</span>].<span class="ident">as_str</span>() {
-            <span class="ident">App</span>::<span class="ident">new</span>(<span class="ident">name</span>)
+            <span class="ident">App::new</span>(<span class="ident">name</span>)
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">yaml_hash</span> <span class="op">=</span> <span class="ident">yaml</span>.<span class="ident">as_hash</span>().<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">sc_key</span> <span class="op">=</span> <span class="ident">yaml_hash</span>.<span class="ident">keys</span>().<span class="ident">nth</span>(<span class="number">0</span>).<span class="ident">unwrap</span>();
             <span class="ident">is_sc</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">yaml_hash</span>.<span class="ident">get</span>(<span class="ident">sc_key</span>).<span class="ident">unwrap</span>());
-            <span class="ident">App</span>::<span class="ident">new</span>(<span class="ident">sc_key</span>.<span class="ident">as_str</span>().<span class="ident">unwrap</span>())
+            <span class="ident">App::new</span>(<span class="ident">sc_key</span>.<span class="ident">as_str</span>().<span class="ident">unwrap</span>())
         };
         <span class="ident">yaml</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sc</span>) <span class="op">=</span> <span class="ident">is_sc</span> { <span class="ident">sc</span> } <span class="kw">else</span> { <span class="ident">yaml</span> };
 
-        <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">yaml_str</span> {
+        <span class="macro">macro_rules!</span> <span class="ident">yaml_str</span> {
             (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>[<span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>)].<span class="ident">as_str</span>() {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>[<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>)].<span class="ident">as_str</span>() {
                     <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>(<span class="ident">v</span>);
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>[<span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>)] <span class="op">!</span><span class="op">=</span> <span class="ident">Yaml</span>::<span class="ident">BadValue</span> {
-                    <span class="macro">panic</span><span class="macro">!</span>(
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>[<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>)] <span class="op">!</span><span class="op">=</span> <span class="ident">Yaml::BadValue</span> {
+                    <span class="macro">panic!</span>(
                         <span class="string">&quot;Failed to convert YAML value {:?} to a string&quot;</span>,
-                        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>[<span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>)]
+                        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>[<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>)]
                     );
                 }
             };
         }
 
-        <span class="macro">yaml_str</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">version</span>);
-        <span class="macro">yaml_str</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">long_version</span>);
-        <span class="macro">yaml_str</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">author</span>);
-        <span class="macro">yaml_str</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">bin_name</span>);
-        <span class="macro">yaml_str</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">about</span>);
-        <span class="macro">yaml_str</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">long_about</span>);
-        <span class="macro">yaml_str</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">before_help</span>);
-        <span class="macro">yaml_str</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">after_help</span>);
-        <span class="macro">yaml_str</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">template</span>);
-        <span class="macro">yaml_str</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">usage</span>);
-        <span class="macro">yaml_str</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">help</span>);
-        <span class="macro">yaml_str</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">help_short</span>);
-        <span class="macro">yaml_str</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">version_short</span>);
-        <span class="macro">yaml_str</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">help_message</span>);
-        <span class="macro">yaml_str</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">version_message</span>);
-        <span class="macro">yaml_str</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">alias</span>);
-        <span class="macro">yaml_str</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">visible_alias</span>);
+        <span class="macro">yaml_str!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">version</span>);
+        <span class="macro">yaml_str!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">long_version</span>);
+        <span class="macro">yaml_str!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">author</span>);
+        <span class="macro">yaml_str!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">bin_name</span>);
+        <span class="macro">yaml_str!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">about</span>);
+        <span class="macro">yaml_str!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">long_about</span>);
+        <span class="macro">yaml_str!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">before_help</span>);
+        <span class="macro">yaml_str!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">after_help</span>);
+        <span class="macro">yaml_str!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">template</span>);
+        <span class="macro">yaml_str!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">usage</span>);
+        <span class="macro">yaml_str!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">help</span>);
+        <span class="macro">yaml_str!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">help_short</span>);
+        <span class="macro">yaml_str!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">version_short</span>);
+        <span class="macro">yaml_str!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">help_message</span>);
+        <span class="macro">yaml_str!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">version_message</span>);
+        <span class="macro">yaml_str!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">alias</span>);
+        <span class="macro">yaml_str!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">visible_alias</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">yaml</span>[<span class="string">&quot;display_order&quot;</span>].<span class="ident">as_i64</span>() {
             <span class="ident">a</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">display_order</span>(<span class="ident">v</span> <span class="kw">as</span> <span class="ident">usize</span>);
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">yaml</span>[<span class="string">&quot;display_order&quot;</span>] <span class="op">!</span><span class="op">=</span> <span class="ident">Yaml</span>::<span class="ident">BadValue</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">yaml</span>[<span class="string">&quot;display_order&quot;</span>] <span class="op">!</span><span class="op">=</span> <span class="ident">Yaml::BadValue</span> {
+            <span class="macro">panic!</span>(
                 <span class="string">&quot;Failed to convert YAML value {:?} to a u64&quot;</span>,
                 <span class="ident">yaml</span>[<span class="string">&quot;display_order&quot;</span>]
             );
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">yaml</span>[<span class="string">&quot;setting&quot;</span>].<span class="ident">as_str</span>() {
             <span class="ident">a</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">setting</span>(<span class="ident">v</span>.<span class="ident">parse</span>().<span class="ident">expect</span>(<span class="string">&quot;unknown AppSetting found in YAML file&quot;</span>));
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">yaml</span>[<span class="string">&quot;setting&quot;</span>] <span class="op">!</span><span class="op">=</span> <span class="ident">Yaml</span>::<span class="ident">BadValue</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">yaml</span>[<span class="string">&quot;setting&quot;</span>] <span class="op">!</span><span class="op">=</span> <span class="ident">Yaml::BadValue</span> {
+            <span class="macro">panic!</span>(
                 <span class="string">&quot;Failed to convert YAML value {:?} to an AppSetting&quot;</span>,
                 <span class="ident">yaml</span>[<span class="string">&quot;setting&quot;</span>]
             );
@@ -3626,16 +3626,16 @@
             }
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">yaml</span>[<span class="string">&quot;settings&quot;</span>].<span class="ident">as_str</span>() {
             <span class="ident">a</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">setting</span>(<span class="ident">v</span>.<span class="ident">parse</span>().<span class="ident">expect</span>(<span class="string">&quot;unknown AppSetting found in YAML file&quot;</span>));
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">yaml</span>[<span class="string">&quot;settings&quot;</span>] <span class="op">!</span><span class="op">=</span> <span class="ident">Yaml</span>::<span class="ident">BadValue</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">yaml</span>[<span class="string">&quot;settings&quot;</span>] <span class="op">!</span><span class="op">=</span> <span class="ident">Yaml::BadValue</span> {
+            <span class="macro">panic!</span>(
                 <span class="string">&quot;Failed to convert YAML value {:?} to a string&quot;</span>,
                 <span class="ident">yaml</span>[<span class="string">&quot;settings&quot;</span>]
             );
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">yaml</span>[<span class="string">&quot;global_setting&quot;</span>].<span class="ident">as_str</span>() {
             <span class="ident">a</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">setting</span>(<span class="ident">v</span>.<span class="ident">parse</span>().<span class="ident">expect</span>(<span class="string">&quot;unknown AppSetting found in YAML file&quot;</span>));
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">yaml</span>[<span class="string">&quot;global_setting&quot;</span>] <span class="op">!</span><span class="op">=</span> <span class="ident">Yaml</span>::<span class="ident">BadValue</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">yaml</span>[<span class="string">&quot;global_setting&quot;</span>] <span class="op">!</span><span class="op">=</span> <span class="ident">Yaml::BadValue</span> {
+            <span class="macro">panic!</span>(
                 <span class="string">&quot;Failed to convert YAML value {:?} to an AppSetting&quot;</span>,
                 <span class="ident">yaml</span>[<span class="string">&quot;setting&quot;</span>]
             );
@@ -3648,31 +3648,31 @@
             }
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">yaml</span>[<span class="string">&quot;global_settings&quot;</span>].<span class="ident">as_str</span>() {
             <span class="ident">a</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">global_setting</span>(<span class="ident">v</span>.<span class="ident">parse</span>().<span class="ident">expect</span>(<span class="string">&quot;unknown AppSetting found in YAML file&quot;</span>));
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">yaml</span>[<span class="string">&quot;global_settings&quot;</span>] <span class="op">!</span><span class="op">=</span> <span class="ident">Yaml</span>::<span class="ident">BadValue</span> {
-            <span class="macro">panic</span><span class="macro">!</span>(
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">yaml</span>[<span class="string">&quot;global_settings&quot;</span>] <span class="op">!</span><span class="op">=</span> <span class="ident">Yaml::BadValue</span> {
+            <span class="macro">panic!</span>(
                 <span class="string">&quot;Failed to convert YAML value {:?} to a string&quot;</span>,
                 <span class="ident">yaml</span>[<span class="string">&quot;global_settings&quot;</span>]
             );
         }
 
-        <span class="macro">macro_rules</span><span class="macro">!</span> <span class="ident">vec_or_str</span> {
+        <span class="macro">macro_rules!</span> <span class="ident">vec_or_str</span> {
             (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">as_vec</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">as_single</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {{
-                <span class="kw">let</span> <span class="ident">maybe_vec</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>[<span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">as_vec</span>)].<span class="ident">as_vec</span>();
+                <span class="kw">let</span> <span class="ident">maybe_vec</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>[<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">as_vec</span>)].<span class="ident">as_vec</span>();
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">vec</span>) <span class="op">=</span> <span class="ident">maybe_vec</span> {
                     <span class="kw">for</span> <span class="ident">ys</span> <span class="kw">in</span> <span class="ident">vec</span> {
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">ys</span>.<span class="ident">as_str</span>() {
                             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">as_single</span>(<span class="ident">s</span>);
                         } <span class="kw">else</span> {
-                            <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Failed to convert YAML value {:?} to a string&quot;</span>, <span class="ident">ys</span>);
+                            <span class="macro">panic!</span>(<span class="string">&quot;Failed to convert YAML value {:?} to a string&quot;</span>, <span class="ident">ys</span>);
                         }
                     }
                 } <span class="kw">else</span> {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>[<span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">as_vec</span>)].<span class="ident">as_str</span>() {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>[<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">as_vec</span>)].<span class="ident">as_str</span>() {
                         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">as_single</span>(<span class="ident">s</span>);
-                    } <span class="kw">else</span> <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>[<span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">as_vec</span>)] <span class="op">!</span><span class="op">=</span> <span class="ident">Yaml</span>::<span class="ident">BadValue</span> {
-                        <span class="macro">panic</span><span class="macro">!</span>(
+                    } <span class="kw">else</span> <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>[<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">as_vec</span>)] <span class="op">!</span><span class="op">=</span> <span class="ident">Yaml::BadValue</span> {
+                        <span class="macro">panic!</span>(
                             <span class="string">&quot;Failed to convert YAML value {:?} to either a vec or string&quot;</span>,
-                            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>[<span class="macro">stringify</span><span class="macro">!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">as_vec</span>)]
+                            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">y</span>[<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">as_vec</span>)]
                         );
                     }
                 }
@@ -3680,22 +3680,22 @@
             }};
         }
 
-        <span class="ident">a</span> <span class="op">=</span> <span class="macro">vec_or_str</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">aliases</span>, <span class="ident">alias</span>);
-        <span class="ident">a</span> <span class="op">=</span> <span class="macro">vec_or_str</span><span class="macro">!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">visible_aliases</span>, <span class="ident">visible_alias</span>);
+        <span class="ident">a</span> <span class="op">=</span> <span class="macro">vec_or_str!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">aliases</span>, <span class="ident">alias</span>);
+        <span class="ident">a</span> <span class="op">=</span> <span class="macro">vec_or_str!</span>(<span class="ident">a</span>, <span class="ident">yaml</span>, <span class="ident">visible_aliases</span>, <span class="ident">visible_alias</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">yaml</span>[<span class="string">&quot;args&quot;</span>].<span class="ident">as_vec</span>() {
             <span class="kw">for</span> <span class="ident">arg_yaml</span> <span class="kw">in</span> <span class="ident">v</span> {
-                <span class="ident">a</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">arg</span>(<span class="ident">Arg</span>::<span class="ident">from_yaml</span>(<span class="ident">arg_yaml</span>.<span class="ident">as_hash</span>().<span class="ident">unwrap</span>()));
+                <span class="ident">a</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">arg</span>(<span class="ident">Arg::from_yaml</span>(<span class="ident">arg_yaml</span>.<span class="ident">as_hash</span>().<span class="ident">unwrap</span>()));
             }
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">yaml</span>[<span class="string">&quot;subcommands&quot;</span>].<span class="ident">as_vec</span>() {
             <span class="kw">for</span> <span class="ident">sc_yaml</span> <span class="kw">in</span> <span class="ident">v</span> {
-                <span class="ident">a</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">subcommand</span>(<span class="ident">SubCommand</span>::<span class="ident">from_yaml</span>(<span class="ident">sc_yaml</span>));
+                <span class="ident">a</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">subcommand</span>(<span class="ident">SubCommand::from_yaml</span>(<span class="ident">sc_yaml</span>));
             }
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">yaml</span>[<span class="string">&quot;groups&quot;</span>].<span class="ident">as_vec</span>() {
             <span class="kw">for</span> <span class="ident">ag_yaml</span> <span class="kw">in</span> <span class="ident">v</span> {
-                <span class="ident">a</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">group</span>(<span class="ident">ArgGroup</span>::<span class="ident">from</span>(<span class="ident">ag_yaml</span>.<span class="ident">as_hash</span>().<span class="ident">unwrap</span>()));
+                <span class="ident">a</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">group</span>(<span class="ident">ArgGroup::from</span>(<span class="ident">ag_yaml</span>.<span class="ident">as_hash</span>().<span class="ident">unwrap</span>()));
             }
         }
 
@@ -3735,7 +3735,7 @@
         <span class="prelude-val">None</span>
     }
     <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw">_</span>: <span class="ident">ArgSettings</span>) {
-        <span class="macro">unreachable</span><span class="macro">!</span>(<span class="string">&quot;App struct does not support AnyArg::set, this is a bug!&quot;</span>)
+        <span class="macro">unreachable!</span>(<span class="string">&quot;App struct does not support AnyArg::set, this is a bug!&quot;</span>)
     }
     <span class="kw">fn</span> <span class="ident">has_switch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="bool-val">false</span>
@@ -3779,7 +3779,7 @@
     <span class="kw">fn</span> <span class="ident">default_val</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;e</span> <span class="ident">OsStr</span><span class="op">&gt;</span> {
         <span class="prelude-val">None</span>
     }
-    <span class="kw">fn</span> <span class="ident">default_vals_ifs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">map</span>::<span class="ident">Values</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> <span class="ident">str</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;e</span> <span class="ident">OsStr</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;e</span> <span class="ident">OsStr</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">default_vals_ifs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">map::Values</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> <span class="ident">str</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;e</span> <span class="ident">OsStr</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;e</span> <span class="ident">OsStr</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="prelude-val">None</span>
     }
     <span class="kw">fn</span> <span class="ident">env</span><span class="op">&lt;</span><span class="lifetime">&#39;s</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;s</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;n</span> <span class="ident">OsStr</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;s</span> <span class="ident">OsString</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
@@ -3805,11 +3805,11 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span>, <span class="lifetime">&#39;e</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span>, <span class="lifetime">&#39;e</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">name</span>)
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span>, <span class="lifetime">&#39;e</span><span class="op">&gt;</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">App</span><span class="op">&lt;</span><span class="lifetime">&#39;n</span>, <span class="lifetime">&#39;e</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">p</span>.<span class="ident">meta</span>.<span class="ident">name</span>)
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-search-js="../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

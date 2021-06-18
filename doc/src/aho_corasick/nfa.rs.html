@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.18/src/nfa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>nfa.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../aho_corasick/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../aho_corasick/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1379,19 +1379,19 @@
 <span id="1376">1376</span>
 <span id="1377">1377</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">cmp</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::{<span class="ident">BTreeSet</span>, <span class="ident">VecDeque</span>};
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">size_of</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::{<span class="ident">Index</span>, <span class="ident">IndexMut</span>};
+<span class="kw">use</span> <span class="ident">std::cmp</span>;
+<span class="kw">use</span> <span class="ident">std::collections</span>::{<span class="ident">BTreeSet</span>, <span class="ident">VecDeque</span>};
+<span class="kw">use</span> <span class="ident">std::fmt</span>;
+<span class="kw">use</span> <span class="ident">std::mem::size_of</span>;
+<span class="kw">use</span> <span class="ident">std::ops</span>::{<span class="ident">Index</span>, <span class="ident">IndexMut</span>};
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ahocorasick</span>::<span class="ident">MatchKind</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">automaton</span>::<span class="ident">Automaton</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">classes</span>::{<span class="ident">ByteClassBuilder</span>, <span class="ident">ByteClasses</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">error</span>::<span class="prelude-ty">Result</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prefilter</span>::{<span class="self">self</span>, <span class="ident">opposite_ascii_case</span>, <span class="ident">Prefilter</span>, <span class="ident">PrefilterObj</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">state_id</span>::{<span class="ident">dead_id</span>, <span class="ident">fail_id</span>, <span class="ident">usize_to_state_id</span>, <span class="ident">StateID</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">Match</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ahocorasick::MatchKind</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::automaton::Automaton</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::classes</span>::{<span class="ident">ByteClassBuilder</span>, <span class="ident">ByteClasses</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::error::Result</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::prefilter</span>::{<span class="self">self</span>, <span class="ident">opposite_ascii_case</span>, <span class="ident">Prefilter</span>, <span class="ident">PrefilterObj</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::state_id</span>::{<span class="ident">dead_id</span>, <span class="ident">fail_id</span>, <span class="ident">usize_to_state_id</span>, <span class="ident">StateID</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::Match</span>;
 
 <span class="doccomment">/// The identifier for a pattern, which is simply the position of the pattern</span>
 <span class="doccomment">/// in the sequence of patterns given by the caller.</span>
@@ -1554,7 +1554,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">iter_transitions_mut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">IterTransitionsMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="ident">IterTransitionsMut</span>::<span class="ident">new</span>(<span class="self">self</span>, <span class="ident">id</span>)
+        <span class="ident">IterTransitionsMut::new</span>(<span class="self">self</span>, <span class="ident">id</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">copy_matches</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="ident">S</span>, <span class="ident">dst</span>: <span class="ident">S</span>) {
@@ -1569,27 +1569,27 @@
     }
 
     <span class="kw">fn</span> <span class="ident">add_dense_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">trans</span> <span class="op">=</span> <span class="ident">Transitions</span>::<span class="ident">Dense</span>(<span class="ident">Dense</span>::<span class="ident">new</span>());
+        <span class="kw">let</span> <span class="ident">trans</span> <span class="op">=</span> <span class="ident">Transitions::Dense</span>(<span class="ident">Dense::new</span>());
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">usize_to_state_id</span>(<span class="self">self</span>.<span class="ident">states</span>.<span class="ident">len</span>())<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">states</span>.<span class="ident">push</span>(<span class="ident">State</span> {
             <span class="ident">trans</span>,
             <span class="comment">// Anchored automatons do not have any failure transitions.</span>
             <span class="ident">fail</span>: <span class="kw">if</span> <span class="self">self</span>.<span class="ident">anchored</span> { <span class="ident">dead_id</span>() } <span class="kw">else</span> { <span class="self">self</span>.<span class="ident">start_id</span> },
             <span class="ident">depth</span>,
-            <span class="ident">matches</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+            <span class="ident">matches</span>: <span class="macro">vec!</span>[],
         });
         <span class="prelude-val">Ok</span>(<span class="ident">id</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">add_sparse_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">trans</span> <span class="op">=</span> <span class="ident">Transitions</span>::<span class="ident">Sparse</span>(<span class="macro">vec</span><span class="macro">!</span>[]);
+        <span class="kw">let</span> <span class="ident">trans</span> <span class="op">=</span> <span class="ident">Transitions::Sparse</span>(<span class="macro">vec!</span>[]);
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">usize_to_state_id</span>(<span class="self">self</span>.<span class="ident">states</span>.<span class="ident">len</span>())<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">states</span>.<span class="ident">push</span>(<span class="ident">State</span> {
             <span class="ident">trans</span>,
             <span class="comment">// Anchored automatons do not have any failure transitions.</span>
             <span class="ident">fail</span>: <span class="kw">if</span> <span class="self">self</span>.<span class="ident">anchored</span> { <span class="ident">dead_id</span>() } <span class="kw">else</span> { <span class="self">self</span>.<span class="ident">start_id</span> },
             <span class="ident">depth</span>,
-            <span class="ident">matches</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+            <span class="ident">matches</span>: <span class="macro">vec!</span>[],
         });
         <span class="prelude-val">Ok</span>(<span class="ident">id</span>)
     }
@@ -1727,7 +1727,7 @@
     <span class="ident">S</span>: <span class="ident">StateID</span>,
 {
     <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
-        <span class="ident">Dense</span>(<span class="macro">vec</span><span class="macro">!</span>[<span class="ident">fail_id</span>(); <span class="number">256</span>])
+        <span class="ident">Dense</span>(<span class="macro">vec!</span>[<span class="ident">fail_id</span>(); <span class="number">256</span>])
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1776,16 +1776,16 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">Transitions</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">heap_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Transitions</span>::<span class="ident">Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">sparse</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span>(<span class="ident">u8</span>, <span class="ident">S</span>)<span class="op">&gt;</span>()
             }
-            <span class="ident">Transitions</span>::<span class="ident">Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dense</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(),
+            <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dense</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(),
         }
     }
 
     <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">S</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Transitions</span>::<span class="ident">Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">b</span>, <span class="ident">id</span>) <span class="kw">in</span> <span class="ident">sparse</span> {
                     <span class="kw">if</span> <span class="ident">b</span> <span class="op">=</span><span class="op">=</span> <span class="ident">input</span> {
                         <span class="kw">return</span> <span class="ident">id</span>;
@@ -1793,19 +1793,19 @@
                 }
                 <span class="ident">fail_id</span>()
             }
-            <span class="ident">Transitions</span>::<span class="ident">Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dense</span>[<span class="ident">input</span>],
+            <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">dense</span>[<span class="ident">input</span>],
         }
     }
 
     <span class="kw">fn</span> <span class="ident">set_next_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">input</span>: <span class="ident">u8</span>, <span class="ident">next</span>: <span class="ident">S</span>) {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Transitions</span>::<span class="ident">Sparse</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">match</span> <span class="ident">sparse</span>.<span class="ident">binary_search_by_key</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>, <span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">b</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">b</span>) {
                     <span class="prelude-val">Ok</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sparse</span>[<span class="ident">i</span>] <span class="op">=</span> (<span class="ident">input</span>, <span class="ident">next</span>),
                     <span class="prelude-val">Err</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">sparse</span>.<span class="ident">insert</span>(<span class="ident">i</span>, (<span class="ident">input</span>, <span class="ident">next</span>)),
                 }
             }
-            <span class="ident">Transitions</span>::<span class="ident">Dense</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">dense</span>[<span class="ident">input</span>] <span class="op">=</span> <span class="ident">next</span>;
             }
         }
@@ -1815,13 +1815,13 @@
     <span class="doccomment">/// to `fail_id()`.</span>
     <span class="kw">fn</span> <span class="ident">iter</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">u8</span>, <span class="ident">S</span>)<span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Transitions</span>::<span class="ident">Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">b</span>, <span class="ident">id</span>) <span class="kw">in</span> <span class="ident">sparse</span> {
                     <span class="ident">f</span>(<span class="ident">b</span>, <span class="ident">id</span>);
                 }
             }
-            <span class="ident">Transitions</span>::<span class="ident">Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter</span>::<span class="ident">new</span>() {
+            <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter::new</span>() {
                     <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">dense</span>[<span class="ident">b</span>];
                     <span class="kw">if</span> <span class="ident">id</span> <span class="op">!</span><span class="op">=</span> <span class="ident">fail_id</span>() {
                         <span class="ident">f</span>(<span class="ident">b</span>, <span class="ident">id</span>);
@@ -1836,11 +1836,11 @@
     <span class="kw">fn</span> <span class="ident">iter_all</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">u8</span>, <span class="ident">S</span>)<span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">classes</span>: <span class="kw-2">&amp;</span><span class="ident">ByteClasses</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) {
         <span class="kw">if</span> <span class="ident">classes</span>.<span class="ident">is_singleton</span>() {
             <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="ident">Transitions</span>::<span class="ident">Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">sparse_iter</span>(<span class="ident">sparse</span>, <span class="ident">f</span>);
                 }
-                <span class="ident">Transitions</span>::<span class="ident">Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter</span>::<span class="ident">new</span>() {
+                <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter::new</span>() {
                         <span class="ident">f</span>(<span class="ident">b</span>, <span class="ident">dense</span>[<span class="ident">b</span>]);
                     }
                 }
@@ -1849,7 +1849,7 @@
             <span class="comment">// In this case, we only want to yield a single byte for each</span>
             <span class="comment">// equivalence class.</span>
             <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="ident">Transitions</span>::<span class="ident">Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_class</span> <span class="op">=</span> <span class="prelude-val">None</span>;
                     <span class="ident">sparse_iter</span>(<span class="ident">sparse</span>, <span class="op">|</span><span class="ident">b</span>, <span class="ident">next</span><span class="op">|</span> {
                         <span class="kw">let</span> <span class="ident">class</span> <span class="op">=</span> <span class="ident">classes</span>.<span class="ident">get</span>(<span class="ident">b</span>);
@@ -1859,7 +1859,7 @@
                         }
                     })
                 }
-                <span class="ident">Transitions</span>::<span class="ident">Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">classes</span>.<span class="ident">representatives</span>() {
                         <span class="ident">f</span>(<span class="ident">b</span>, <span class="ident">dense</span>[<span class="ident">b</span>]);
                     }
@@ -1899,7 +1899,7 @@
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">u8</span>, <span class="ident">S</span>)<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">states</span>[<span class="self">self</span>.<span class="ident">state_id</span>.<span class="ident">to_usize</span>()].<span class="ident">trans</span> {
-            <span class="ident">Transitions</span>::<span class="ident">Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Transitions::Sparse</span>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cur</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">sparse</span>.<span class="ident">len</span>() {
                     <span class="kw">return</span> <span class="prelude-val">None</span>;
                 }
@@ -1907,10 +1907,10 @@
                 <span class="self">self</span>.<span class="ident">cur</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="prelude-val">Some</span>(<span class="ident">sparse</span>[<span class="ident">i</span>])
             }
-            <span class="ident">Transitions</span>::<span class="ident">Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">Transitions::Dense</span>(<span class="kw-2">ref</span> <span class="ident">dense</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">while</span> <span class="self">self</span>.<span class="ident">cur</span> <span class="op">&lt;</span> <span class="ident">dense</span>.<span class="ident">len</span>() {
                     <span class="comment">// There are always exactly 255 transitions in dense repr.</span>
-                    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">cur</span> <span class="op">&lt;</span> <span class="number">256</span>);
+                    <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">cur</span> <span class="op">&lt;</span> <span class="number">256</span>);
 
                     <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cur</span> <span class="kw">as</span> <span class="ident">u8</span>;
                     <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">dense</span>[<span class="ident">b</span>];
@@ -1939,7 +1939,7 @@
     <span class="kw">fn</span> <span class="ident">default</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Builder</span> {
         <span class="ident">Builder</span> {
             <span class="ident">dense_depth</span>: <span class="number">2</span>,
-            <span class="ident">match_kind</span>: <span class="ident">MatchKind</span>::<span class="ident">default</span>(),
+            <span class="ident">match_kind</span>: <span class="ident">MatchKind::default</span>(),
             <span class="ident">prefilter</span>: <span class="bool-val">true</span>,
             <span class="ident">anchored</span>: <span class="bool-val">false</span>,
             <span class="ident">ascii_case_insensitive</span>: <span class="bool-val">false</span>,
@@ -1949,7 +1949,7 @@
 
 <span class="kw">impl</span> <span class="ident">Builder</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Builder</span> {
-        <span class="ident">Builder</span>::<span class="ident">default</span>()
+        <span class="ident">Builder::default</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">P</span>, <span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">patterns</span>: <span class="ident">I</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span>
@@ -1957,7 +1957,7 @@
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">P</span><span class="op">&gt;</span>,
         <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
     {
-        <span class="ident">Compiler</span>::<span class="ident">new</span>(<span class="self">self</span>)<span class="question-mark">?</span>.<span class="ident">compile</span>(<span class="ident">patterns</span>)
+        <span class="ident">Compiler::new</span>(<span class="self">self</span>)<span class="question-mark">?</span>.<span class="ident">compile</span>(<span class="ident">patterns</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">kind</span>: <span class="ident">MatchKind</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Builder</span> {
@@ -1992,7 +1992,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Compiler</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> {
     <span class="ident">builder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Builder</span>,
-    <span class="ident">prefilter</span>: <span class="ident">prefilter</span>::<span class="ident">Builder</span>,
+    <span class="ident">prefilter</span>: <span class="ident">prefilter::Builder</span>,
     <span class="ident">nfa</span>: <span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>,
     <span class="ident">byte_classes</span>: <span class="ident">ByteClassBuilder</span>,
 }
@@ -2001,7 +2001,7 @@
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">builder</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Builder</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Compiler</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">Compiler</span> {
             <span class="ident">builder</span>,
-            <span class="ident">prefilter</span>: <span class="ident">prefilter</span>::<span class="ident">Builder</span>::<span class="ident">new</span>(<span class="ident">builder</span>.<span class="ident">match_kind</span>)
+            <span class="ident">prefilter</span>: <span class="ident">prefilter::Builder::new</span>(<span class="ident">builder</span>.<span class="ident">match_kind</span>)
                 .<span class="ident">ascii_case_insensitive</span>(<span class="ident">builder</span>.<span class="ident">ascii_case_insensitive</span>),
             <span class="ident">nfa</span>: <span class="ident">NFA</span> {
                 <span class="ident">match_kind</span>: <span class="ident">builder</span>.<span class="ident">match_kind</span>,
@@ -2011,10 +2011,10 @@
                 <span class="ident">heap_bytes</span>: <span class="number">0</span>,
                 <span class="ident">prefilter</span>: <span class="prelude-val">None</span>,
                 <span class="ident">anchored</span>: <span class="ident">builder</span>.<span class="ident">anchored</span>,
-                <span class="ident">byte_classes</span>: <span class="ident">ByteClasses</span>::<span class="ident">singletons</span>(),
-                <span class="ident">states</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                <span class="ident">byte_classes</span>: <span class="ident">ByteClasses::singletons</span>(),
+                <span class="ident">states</span>: <span class="macro">vec!</span>[],
             },
-            <span class="ident">byte_classes</span>: <span class="ident">ByteClassBuilder</span>::<span class="ident">new</span>(),
+            <span class="ident">byte_classes</span>: <span class="ident">ByteClassBuilder::new</span>(),
         })
     }
 
@@ -2057,7 +2057,7 @@
         <span class="lifetime">&#39;PATTERNS</span>: <span class="kw">for</span> (<span class="ident">pati</span>, <span class="ident">pat</span>) <span class="kw">in</span> <span class="ident">patterns</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
             <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="ident">pat</span>.<span class="ident">as_ref</span>();
             <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">max_pattern_len</span> <span class="op">=</span>
-                <span class="ident">cmp</span>::<span class="ident">max</span>(<span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">max_pattern_len</span>, <span class="ident">pat</span>.<span class="ident">len</span>());
+                <span class="ident">cmp::max</span>(<span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">max_pattern_len</span>, <span class="ident">pat</span>.<span class="ident">len</span>());
             <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">pattern_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">start_id</span>;
@@ -2225,9 +2225,9 @@
         <span class="comment">// out of the start state. We handle the start state specially because</span>
         <span class="comment">// we only want to follow non-self transitions. If we followed self</span>
         <span class="comment">// transitions, then this would never terminate.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">queue</span> <span class="op">=</span> <span class="ident">VecDeque</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">queue</span> <span class="op">=</span> <span class="ident">VecDeque::new</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seen</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">queued_set</span>();
-        <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter</span>::<span class="ident">new</span>() {
+        <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter::new</span>() {
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">start</span>().<span class="ident">next_state</span>(<span class="ident">b</span>);
             <span class="kw">if</span> <span class="ident">next</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">start_id</span> {
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">seen</span>.<span class="ident">contains</span>(<span class="ident">next</span>) {
@@ -2368,10 +2368,10 @@
         <span class="comment">// out of the start state. We handle the start state specially because</span>
         <span class="comment">// we only want to follow non-self transitions. If we followed self</span>
         <span class="comment">// transitions, then this would never terminate.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">queue</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">QueuedState</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">VecDeque</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">queue</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">QueuedState</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">VecDeque::new</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seen</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">queued_set</span>();
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">QueuedState</span>::<span class="ident">start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">nfa</span>);
-        <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter</span>::<span class="ident">new</span>() {
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">QueuedState::start</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">nfa</span>);
+        <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter::new</span>() {
             <span class="kw">let</span> <span class="ident">next_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">start</span>().<span class="ident">next_state</span>(<span class="ident">b</span>);
             <span class="kw">if</span> <span class="ident">next_id</span> <span class="op">!</span><span class="op">=</span> <span class="ident">start</span>.<span class="ident">id</span> {
                 <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">start</span>.<span class="ident">next_queued_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">nfa</span>, <span class="ident">next_id</span>);
@@ -2459,7 +2459,7 @@
                         <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state_mut</span>(<span class="ident">next</span>.<span class="ident">id</span>).<span class="ident">fail</span> <span class="op">=</span> <span class="ident">dead_id</span>();
                         <span class="kw">continue</span>;
                     }
-                    <span class="macro">assert_ne</span><span class="macro">!</span>(
+                    <span class="macro">assert_ne!</span>(
                         <span class="ident">start</span>.<span class="ident">id</span>,
                         <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">next</span>.<span class="ident">id</span>).<span class="ident">fail</span>,
                         <span class="string">&quot;states that are match states or follow match \
@@ -2490,9 +2490,9 @@
     <span class="doccomment">/// `false` for every member test.</span>
     <span class="kw">fn</span> <span class="ident">queued_set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">QueuedSet</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">ascii_case_insensitive</span> {
-            <span class="ident">QueuedSet</span>::<span class="ident">active</span>()
+            <span class="ident">QueuedSet::active</span>()
         } <span class="kw">else</span> {
-            <span class="ident">QueuedSet</span>::<span class="ident">inert</span>()
+            <span class="ident">QueuedSet::inert</span>()
         }
     }
 
@@ -2508,7 +2508,7 @@
     <span class="kw">fn</span> <span class="ident">add_start_state_loop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">let</span> <span class="ident">start_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">start_id</span>;
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">start_mut</span>();
-        <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter</span>::<span class="ident">new</span>() {
+        <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter::new</span>() {
             <span class="kw">if</span> <span class="ident">start</span>.<span class="ident">next_state</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">fail_id</span>() {
                 <span class="ident">start</span>.<span class="ident">set_next_state</span>(<span class="ident">b</span>, <span class="ident">start_id</span>);
             }
@@ -2535,7 +2535,7 @@
         {
             <span class="kw">let</span> <span class="ident">start_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">start_id</span>;
             <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">start_mut</span>();
-            <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter</span>::<span class="ident">new</span>() {
+            <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter::new</span>() {
                 <span class="kw">if</span> <span class="ident">start</span>.<span class="ident">next_state</span>(<span class="ident">b</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">start_id</span> {
                     <span class="ident">start</span>.<span class="ident">set_next_state</span>(<span class="ident">b</span>, <span class="ident">dead_id</span>());
                 }
@@ -2548,7 +2548,7 @@
     <span class="doccomment">/// point of the dead state is to act as a sink that can never be escaped.</span>
     <span class="kw">fn</span> <span class="ident">add_dead_state_loop</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
         <span class="kw">let</span> <span class="ident">dead</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">state_mut</span>(<span class="ident">dead_id</span>());
-        <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter</span>::<span class="ident">new</span>() {
+        <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter::new</span>() {
             <span class="ident">dead</span>.<span class="ident">set_next_state</span>(<span class="ident">b</span>, <span class="ident">dead_id</span>());
         }
     }
@@ -2602,7 +2602,7 @@
 
     <span class="doccomment">/// Return an active set that tracks state ID membership.</span>
     <span class="kw">fn</span> <span class="ident">active</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">QueuedSet</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="ident">QueuedSet</span> { <span class="ident">set</span>: <span class="prelude-val">Some</span>(<span class="ident">BTreeSet</span>::<span class="ident">new</span>()) }
+        <span class="ident">QueuedSet</span> { <span class="ident">set</span>: <span class="prelude-val">Some</span>(<span class="ident">BTreeSet::new</span>()) }
     }
 
     <span class="doccomment">/// Inserts the given state ID into this set. (If the set is inert, then</span>
@@ -2643,7 +2643,7 @@
 <span class="kw">impl</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">AllBytesIter</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">u8</span>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span>::<span class="ident">Item</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">256</span> {
             <span class="prelude-val">None</span>
         } <span class="kw">else</span> {
@@ -2654,14 +2654,14 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;NFA(&quot;</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;match_kind: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">match_kind</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;prefilter: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">prefilter</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="string">&quot;-&quot;</span>.<span class="ident">repeat</span>(<span class="number">79</span>))<span class="question-mark">?</span>;
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">StateID</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;NFA(&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;match_kind: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">match_kind</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;prefilter: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">prefilter</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="string">&quot;-&quot;</span>.<span class="ident">repeat</span>(<span class="number">79</span>))<span class="question-mark">?</span>;
         <span class="kw">for</span> (<span class="ident">id</span>, <span class="ident">s</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">states</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trans</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trans</span> <span class="op">=</span> <span class="macro">vec!</span>[];
             <span class="ident">s</span>.<span class="ident">trans</span>.<span class="ident">iter</span>(<span class="op">|</span><span class="ident">byte</span>, <span class="ident">next</span><span class="op">|</span> {
                 <span class="comment">// The start state has a bunch of uninteresting transitions</span>
                 <span class="comment">// back into itself. It&#39;s questionable to hide them since they</span>
@@ -2676,21 +2676,21 @@
                 <span class="kw">if</span> <span class="ident">id</span> <span class="op">=</span><span class="op">=</span> <span class="ident">dead_id</span>() {
                     <span class="kw">return</span>;
                 }
-                <span class="ident">trans</span>.<span class="ident">push</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} =&gt; {}&quot;</span>, <span class="ident">escape</span>(<span class="ident">byte</span>), <span class="ident">next</span>.<span class="ident">to_usize</span>()));
+                <span class="ident">trans</span>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;{} =&gt; {}&quot;</span>, <span class="ident">escape</span>(<span class="ident">byte</span>), <span class="ident">next</span>.<span class="ident">to_usize</span>()));
             });
-            <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{:04}: {}&quot;</span>, <span class="ident">id</span>, <span class="ident">trans</span>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>))<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{:04}: {}&quot;</span>, <span class="ident">id</span>, <span class="ident">trans</span>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>))<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">matches</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">s</span>
                 .<span class="ident">matches</span>
                 .<span class="ident">iter</span>()
                 .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">pattern_id</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">pattern_id</span>.<span class="ident">to_string</span>())
                 .<span class="ident">collect</span>();
-            <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;  matches: {}&quot;</span>, <span class="ident">matches</span>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>))<span class="question-mark">?</span>;
-            <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;     fail: {}&quot;</span>, <span class="ident">s</span>.<span class="ident">fail</span>.<span class="ident">to_usize</span>())<span class="question-mark">?</span>;
-            <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;    depth: {}&quot;</span>, <span class="ident">s</span>.<span class="ident">depth</span>)<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  matches: {}&quot;</span>, <span class="ident">matches</span>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>))<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;     fail: {}&quot;</span>, <span class="ident">s</span>.<span class="ident">fail</span>.<span class="ident">to_usize</span>())<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;    depth: {}&quot;</span>, <span class="ident">s</span>.<span class="ident">depth</span>)<span class="question-mark">?</span>;
         }
-        <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="string">&quot;-&quot;</span>.<span class="ident">repeat</span>(<span class="number">79</span>))<span class="question-mark">?</span>;
-        <span class="macro">writeln</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;)&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="string">&quot;-&quot;</span>.<span class="ident">repeat</span>(<span class="number">79</span>))<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;)&quot;</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -2716,7 +2716,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// This panics if i == j.</span>
 <span class="kw">fn</span> <span class="ident">get_two_mut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">xs</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> [<span class="ident">T</span>], <span class="ident">i</span>: <span class="ident">usize</span>, <span class="ident">j</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">T</span>) {
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">i</span> <span class="op">!</span><span class="op">=</span> <span class="ident">j</span>, <span class="string">&quot;{} must not be equal to {}&quot;</span>, <span class="ident">i</span>, <span class="ident">j</span>);
+    <span class="macro">assert!</span>(<span class="ident">i</span> <span class="op">!</span><span class="op">=</span> <span class="ident">j</span>, <span class="string">&quot;{} must not be equal to {}&quot;</span>, <span class="ident">i</span>, <span class="ident">j</span>);
     <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">j</span> {
         <span class="kw">let</span> (<span class="ident">before</span>, <span class="ident">after</span>) <span class="op">=</span> <span class="ident">xs</span>.<span class="ident">split_at_mut</span>(<span class="ident">j</span>);
         (<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">before</span>[<span class="ident">i</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">after</span>[<span class="number">0</span>])
@@ -2728,9 +2728,9 @@
 
 <span class="doccomment">/// Return the given byte as its escaped string form.</span>
 <span class="kw">fn</span> <span class="ident">escape</span>(<span class="ident">b</span>: <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ascii</span>;
+    <span class="kw">use</span> <span class="ident">std::ascii</span>;
 
-    <span class="ident">String</span>::<span class="ident">from_utf8</span>(<span class="ident">ascii</span>::<span class="ident">escape_default</span>(<span class="ident">b</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()).<span class="ident">unwrap</span>()
+    <span class="ident">String::from_utf8</span>(<span class="ident">ascii::escape_default</span>(<span class="ident">b</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()).<span class="ident">unwrap</span>()
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -2739,11 +2739,11 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">scratch</span>() {
-        <span class="kw">let</span> <span class="ident">nfa</span>: <span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Builder</span>::<span class="ident">new</span>()
+        <span class="kw">let</span> <span class="ident">nfa</span>: <span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Builder::new</span>()
             .<span class="ident">dense_depth</span>(<span class="number">0</span>)
             <span class="comment">// .match_kind(MatchKind::LeftmostShortest)</span>
             <span class="comment">// .match_kind(MatchKind::LeftmostLongest)</span>
-            .<span class="ident">match_kind</span>(<span class="ident">MatchKind</span>::<span class="ident">LeftmostFirst</span>)
+            .<span class="ident">match_kind</span>(<span class="ident">MatchKind::LeftmostFirst</span>)
             <span class="comment">// .build(&amp;[&quot;abcd&quot;, &quot;ce&quot;, &quot;b&quot;])</span>
             <span class="comment">// .build(&amp;[&quot;ab&quot;, &quot;bc&quot;])</span>
             <span class="comment">// .build(&amp;[&quot;b&quot;, &quot;bcd&quot;, &quot;ce&quot;])</span>
@@ -2753,9 +2753,9 @@
             <span class="comment">// .build(&amp;[&quot;abcd&quot;, &quot;bce&quot;, &quot;b&quot;])</span>
             .<span class="ident">build</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;abcdefg&quot;</span>, <span class="string">&quot;bcde&quot;</span>, <span class="string">&quot;bcdef&quot;</span>])
             .<span class="ident">unwrap</span>();
-        <span class="macro">println</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">nfa</span>);
+        <span class="macro">println!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">nfa</span>);
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

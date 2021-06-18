@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa/src/environment/environment_record_trait.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>environment_record_trait.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa/src/environment/environment_record_trait.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>environment_record_trait.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -221,13 +221,13 @@
 <span class="doccomment">//! There are 5 Environment record kinds. They all have methods in common, these are implemented as a the `EnvironmentRecordTrait`</span>
 <span class="doccomment">//!</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">environment</span>::<span class="ident">lexical_environment</span>::<span class="ident">VariableScope</span>, <span class="ident">object</span>::<span class="ident">GcObject</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">environment::lexical_environment::VariableScope</span>, <span class="ident">object::GcObject</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">environment</span>::<span class="ident">lexical_environment</span>::{<span class="ident">Environment</span>, <span class="ident">EnvironmentType</span>},
+    <span class="ident">environment::lexical_environment</span>::{<span class="ident">Environment</span>, <span class="ident">EnvironmentType</span>},
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>;
+<span class="kw">use</span> <span class="ident">std::fmt::Debug</span>;
 
 <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-environment-records&gt;</span>
 <span class="doccomment">///</span>
@@ -327,7 +327,7 @@
         } <span class="kw">else</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_outer_environment_ref</span>() {
                 <span class="prelude-val">Some</span>(<span class="ident">outer</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">outer</span>.<span class="ident">recursive_get_this_binding</span>(<span class="ident">context</span>),
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value</span>::<span class="ident">Undefined</span>),
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::Undefined</span>),
             }
         }
     }
@@ -341,8 +341,8 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">scope</span> {
-            <span class="ident">VariableScope</span>::<span class="ident">Block</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="bool-val">false</span>, <span class="ident">context</span>),
-            <span class="ident">VariableScope</span>::<span class="ident">Function</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
+            <span class="ident">VariableScope::Block</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="bool-val">false</span>, <span class="ident">context</span>),
+            <span class="ident">VariableScope::Function</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
                 .<span class="ident">get_outer_environment_ref</span>()
                 .<span class="ident">expect</span>(<span class="string">&quot;No function or global environment&quot;</span>)
                 .<span class="ident">recursive_create_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="ident">scope</span>, <span class="ident">context</span>),
@@ -358,8 +358,8 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">scope</span> {
-            <span class="ident">VariableScope</span>::<span class="ident">Block</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">create_immutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="ident">context</span>),
-            <span class="ident">VariableScope</span>::<span class="ident">Function</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
+            <span class="ident">VariableScope::Block</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">create_immutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="ident">context</span>),
+            <span class="ident">VariableScope::Function</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>
                 .<span class="ident">get_outer_environment_ref</span>()
                 .<span class="ident">expect</span>(<span class="string">&quot;No function or global environment&quot;</span>)
                 .<span class="ident">recursive_create_immutable_binding</span>(<span class="ident">name</span>, <span class="ident">deletion</span>, <span class="ident">scope</span>, <span class="ident">context</span>),
@@ -415,11 +415,11 @@
         } <span class="kw">else</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get_outer_environment_ref</span>() {
                 <span class="prelude-val">Some</span>(<span class="ident">outer</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">outer</span>.<span class="ident">recursive_get_binding_value</span>(<span class="ident">name</span>, <span class="ident">context</span>),
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">context</span>.<span class="ident">throw_reference_error</span>(<span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} is not defined&quot;</span>, <span class="ident">name</span>)),
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">context</span>.<span class="ident">throw_reference_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{} is not defined&quot;</span>, <span class="ident">name</span>)),
             }
         }
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa" data-search-js="../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.5.4/src/dfa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dfa.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../regex/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../regex/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1991,15 +1991,15 @@ articles on regexes is strongly recommended: https://swtch.com/~rsc/regexp/
 implementation.)
 */</span>
 
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">collections</span>::<span class="ident">HashMap</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">fmt</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">iter</span>::<span class="ident">repeat</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">mem</span>;
-<span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
+<span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
+<span class="kw">use</span> <span class="ident">std::fmt</span>;
+<span class="kw">use</span> <span class="ident">std::iter::repeat</span>;
+<span class="kw">use</span> <span class="ident">std::mem</span>;
+<span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">exec</span>::<span class="ident">ProgramCache</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prog</span>::{<span class="ident">Inst</span>, <span class="ident">Program</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">sparse</span>::<span class="ident">SparseSet</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::exec::ProgramCache</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::prog</span>::{<span class="ident">Inst</span>, <span class="ident">Program</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::sparse::SparseSet</span>;
 
 <span class="doccomment">/// Return true if and only if the given program can be executed by a DFA.</span>
 <span class="doccomment">///</span>
@@ -2010,14 +2010,14 @@ implementation.)
 <span class="doccomment">/// This function will also return false if the given program has any Unicode</span>
 <span class="doccomment">/// instructions (Char or Ranges) since the DFA operates on bytes only.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">can_exec</span>(<span class="ident">insts</span>: <span class="kw-2">&amp;</span><span class="ident">Program</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-    <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prog</span>::<span class="ident">Inst</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::prog::Inst</span>::<span class="kw-2">*</span>;
     <span class="comment">// If for some reason we manage to allocate a regex program with more</span>
     <span class="comment">// than i32::MAX instructions, then we can&#39;t execute the DFA because we</span>
     <span class="comment">// use 32 bit instruction pointer deltas for memory savings.</span>
     <span class="comment">// If i32::MAX is the largest positive delta,</span>
     <span class="comment">// then -i32::MAX == i32::MIN + 1 is the largest negative delta,</span>
     <span class="comment">// and we are OK to use 32 bits.</span>
-    <span class="kw">if</span> <span class="ident">insts</span>.<span class="ident">dfa_size_limit</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">insts</span>.<span class="ident">len</span>() <span class="op">&gt;</span> ::<span class="ident">std</span>::<span class="ident">i32</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">usize</span> {
+    <span class="kw">if</span> <span class="ident">insts</span>.<span class="ident">dfa_size_limit</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">insts</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">::std::i32::MAX</span> <span class="kw">as</span> <span class="ident">usize</span> {
         <span class="kw">return</span> <span class="bool-val">false</span>;
     }
     <span class="kw">for</span> <span class="ident">inst</span> <span class="kw">in</span> <span class="ident">insts</span> {
@@ -2171,8 +2171,8 @@ implementation.)
     <span class="doccomment">/// Returns true if this result corresponds to a match.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_match</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="prelude-ty">Result</span>::<span class="ident">Match</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="prelude-ty">Result</span>::<span class="ident">NoMatch</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="prelude-ty">Result</span>::<span class="ident">Quit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+            <span class="ident">Result::Match</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident">Result::NoMatch</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Result::Quit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }
     }
 
@@ -2182,9 +2182,9 @@ implementation.)
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;perf-literal&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">U</span>, <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">T</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">U</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">U</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="prelude-ty">Result</span>::<span class="ident">Match</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span>::<span class="ident">Match</span>(<span class="ident">f</span>(<span class="ident">t</span>)),
-            <span class="prelude-ty">Result</span>::<span class="ident">NoMatch</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span>::<span class="ident">NoMatch</span>(<span class="ident">x</span>),
-            <span class="prelude-ty">Result</span>::<span class="ident">Quit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span>::<span class="ident">Quit</span>,
+            <span class="ident">Result::Match</span>(<span class="ident">t</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Result::Match</span>(<span class="ident">f</span>(<span class="ident">t</span>)),
+            <span class="ident">Result::NoMatch</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Result::NoMatch</span>(<span class="ident">x</span>),
+            <span class="ident">Result::Quit</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Result::Quit</span>,
         }
     }
 
@@ -2193,7 +2193,7 @@ implementation.)
     <span class="doccomment">/// If this isn&#39;t a non-match, then this is a no-op.</span>
     <span class="kw">fn</span> <span class="ident">set_non_match</span>(<span class="self">self</span>, <span class="ident">at</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="prelude-ty">Result</span>::<span class="ident">NoMatch</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span>::<span class="ident">NoMatch</span>(<span class="ident">at</span>),
+            <span class="ident">Result::NoMatch</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Result::NoMatch</span>(<span class="ident">at</span>),
             <span class="ident">r</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">r</span>,
         }
     }
@@ -2248,8 +2248,8 @@ implementation.)
         }
         <span class="kw">let</span> (<span class="ident">delta</span>, <span class="ident">nread</span>) <span class="op">=</span> <span class="ident">read_vari32</span>(<span class="self">self</span>.<span class="ident">data</span>);
         <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">base</span> <span class="kw">as</span> <span class="ident">i32</span> <span class="op">+</span> <span class="ident">delta</span>;
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">base</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span>);
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">nread</span> <span class="op">&gt;</span> <span class="number">0</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">base</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">nread</span> <span class="op">&gt;</span> <span class="number">0</span>);
         <span class="self">self</span>.<span class="ident">data</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>[<span class="ident">nread</span>..];
         <span class="self">self</span>.<span class="ident">base</span> <span class="op">=</span> <span class="ident">base</span> <span class="kw">as</span> <span class="ident">usize</span>;
         <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">base</span>)
@@ -2369,19 +2369,19 @@ implementation.)
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">prog</span>: <span class="kw-2">&amp;</span><span class="ident">Program</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="comment">// We add 1 to account for the special EOF byte.</span>
         <span class="kw">let</span> <span class="ident">num_byte_classes</span> <span class="op">=</span> (<span class="ident">prog</span>.<span class="ident">byte_classes</span>[<span class="number">255</span>] <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">+</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">starts</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">STATE_UNKNOWN</span>; <span class="number">256</span>];
+        <span class="kw">let</span> <span class="ident">starts</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">STATE_UNKNOWN</span>; <span class="number">256</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span> <span class="ident">Cache</span> {
             <span class="ident">inner</span>: <span class="ident">CacheInner</span> {
-                <span class="ident">compiled</span>: <span class="ident">StateMap</span>::<span class="ident">new</span>(<span class="ident">num_byte_classes</span>),
-                <span class="ident">trans</span>: <span class="ident">Transitions</span>::<span class="ident">new</span>(<span class="ident">num_byte_classes</span>),
+                <span class="ident">compiled</span>: <span class="ident">StateMap::new</span>(<span class="ident">num_byte_classes</span>),
+                <span class="ident">trans</span>: <span class="ident">Transitions::new</span>(<span class="ident">num_byte_classes</span>),
                 <span class="ident">start_states</span>: <span class="ident">starts</span>,
-                <span class="ident">stack</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                <span class="ident">stack</span>: <span class="macro">vec!</span>[],
                 <span class="ident">flush_count</span>: <span class="number">0</span>,
                 <span class="ident">size</span>: <span class="number">0</span>,
-                <span class="ident">insts_scratch_space</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+                <span class="ident">insts_scratch_space</span>: <span class="macro">vec!</span>[],
             },
-            <span class="ident">qcur</span>: <span class="ident">SparseSet</span>::<span class="ident">new</span>(<span class="ident">prog</span>.<span class="ident">insts</span>.<span class="ident">len</span>()),
-            <span class="ident">qnext</span>: <span class="ident">SparseSet</span>::<span class="ident">new</span>(<span class="ident">prog</span>.<span class="ident">insts</span>.<span class="ident">len</span>()),
+            <span class="ident">qcur</span>: <span class="ident">SparseSet::new</span>(<span class="ident">prog</span>.<span class="ident">insts</span>.<span class="ident">len</span>()),
+            <span class="ident">qnext</span>: <span class="ident">SparseSet::new</span>(<span class="ident">prog</span>.<span class="ident">insts</span>.<span class="ident">len</span>()),
         };
         <span class="ident">cache</span>.<span class="ident">inner</span>.<span class="ident">reset_size</span>();
         <span class="ident">cache</span>
@@ -2392,8 +2392,8 @@ implementation.)
     <span class="doccomment">/// Resets the cache size to account for fixed costs, such as the program</span>
     <span class="doccomment">/// and stack sizes.</span>
     <span class="kw">fn</span> <span class="ident">reset_size</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">size</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">start_states</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">StatePtr</span><span class="op">&gt;</span>())
-            <span class="op">+</span> (<span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">InstPtr</span><span class="op">&gt;</span>());
+        <span class="self">self</span>.<span class="ident">size</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">start_states</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">StatePtr</span><span class="op">&gt;</span>())
+            <span class="op">+</span> (<span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">InstPtr</span><span class="op">&gt;</span>());
     }
 }
 
@@ -2420,11 +2420,11 @@ implementation.)
         <span class="kw">let</span> (<span class="ident">empty_flags</span>, <span class="ident">state_flags</span>) <span class="op">=</span> <span class="ident">dfa</span>.<span class="ident">start_flags</span>(<span class="ident">text</span>, <span class="ident">at</span>);
         <span class="ident">dfa</span>.<span class="ident">start</span> <span class="op">=</span>
             <span class="kw">match</span> <span class="ident">dfa</span>.<span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cache</span>.<span class="ident">qcur</span>, <span class="ident">empty_flags</span>, <span class="ident">state_flags</span>) {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-ty">Result</span>::<span class="ident">Quit</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">STATE_DEAD</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-ty">Result</span>::<span class="ident">NoMatch</span>(<span class="ident">at</span>),
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Result::Quit</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">STATE_DEAD</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Result::NoMatch</span>(<span class="ident">at</span>),
                 <span class="prelude-val">Some</span>(<span class="ident">si</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">si</span>,
             };
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">dfa</span>.<span class="ident">start</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">dfa</span>.<span class="ident">start</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span>);
         <span class="ident">dfa</span>.<span class="ident">exec_at</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cache</span>.<span class="ident">qcur</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cache</span>.<span class="ident">qnext</span>, <span class="ident">text</span>)
     }
 
@@ -2450,11 +2450,11 @@ implementation.)
         <span class="kw">let</span> (<span class="ident">empty_flags</span>, <span class="ident">state_flags</span>) <span class="op">=</span> <span class="ident">dfa</span>.<span class="ident">start_flags_reverse</span>(<span class="ident">text</span>, <span class="ident">at</span>);
         <span class="ident">dfa</span>.<span class="ident">start</span> <span class="op">=</span>
             <span class="kw">match</span> <span class="ident">dfa</span>.<span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cache</span>.<span class="ident">qcur</span>, <span class="ident">empty_flags</span>, <span class="ident">state_flags</span>) {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-ty">Result</span>::<span class="ident">Quit</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">STATE_DEAD</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-ty">Result</span>::<span class="ident">NoMatch</span>(<span class="ident">at</span>),
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Result::Quit</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">STATE_DEAD</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Result::NoMatch</span>(<span class="ident">at</span>),
                 <span class="prelude-val">Some</span>(<span class="ident">si</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">si</span>,
             };
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">dfa</span>.<span class="ident">start</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">dfa</span>.<span class="ident">start</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span>);
         <span class="ident">dfa</span>.<span class="ident">exec_at_reverse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cache</span>.<span class="ident">qcur</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cache</span>.<span class="ident">qnext</span>, <span class="ident">text</span>)
     }
 
@@ -2466,7 +2466,7 @@ implementation.)
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">matches</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">prog</span>.<span class="ident">matches</span>.<span class="ident">len</span>());
+        <span class="macro">debug_assert!</span>(<span class="ident">matches</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">prog</span>.<span class="ident">matches</span>.<span class="ident">len</span>());
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span> <span class="ident">cache</span>.<span class="ident">borrow_mut</span>();
         <span class="kw">let</span> <span class="ident">cache</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cache</span>.<span class="ident">dfa</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dfa</span> <span class="op">=</span> <span class="ident">Fsm</span> {
@@ -2481,20 +2481,20 @@ implementation.)
         <span class="kw">let</span> (<span class="ident">empty_flags</span>, <span class="ident">state_flags</span>) <span class="op">=</span> <span class="ident">dfa</span>.<span class="ident">start_flags</span>(<span class="ident">text</span>, <span class="ident">at</span>);
         <span class="ident">dfa</span>.<span class="ident">start</span> <span class="op">=</span>
             <span class="kw">match</span> <span class="ident">dfa</span>.<span class="ident">start_state</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cache</span>.<span class="ident">qcur</span>, <span class="ident">empty_flags</span>, <span class="ident">state_flags</span>) {
-                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-ty">Result</span>::<span class="ident">Quit</span>,
-                <span class="prelude-val">Some</span>(<span class="ident">STATE_DEAD</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-ty">Result</span>::<span class="ident">NoMatch</span>(<span class="ident">at</span>),
+                <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Result::Quit</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">STATE_DEAD</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Result::NoMatch</span>(<span class="ident">at</span>),
                 <span class="prelude-val">Some</span>(<span class="ident">si</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">si</span>,
             };
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">dfa</span>.<span class="ident">start</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">dfa</span>.<span class="ident">start</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span>);
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">dfa</span>.<span class="ident">exec_at</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cache</span>.<span class="ident">qcur</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">cache</span>.<span class="ident">qnext</span>, <span class="ident">text</span>);
         <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">is_match</span>() {
             <span class="kw">if</span> <span class="ident">matches</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
                 <span class="ident">matches</span>[<span class="number">0</span>] <span class="op">=</span> <span class="bool-val">true</span>;
             } <span class="kw">else</span> {
-                <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">dfa</span>.<span class="ident">last_match_si</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span>);
-                <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">dfa</span>.<span class="ident">last_match_si</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_DEAD</span>);
+                <span class="macro">debug_assert!</span>(<span class="ident">dfa</span>.<span class="ident">last_match_si</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span>);
+                <span class="macro">debug_assert!</span>(<span class="ident">dfa</span>.<span class="ident">last_match_si</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_DEAD</span>);
                 <span class="kw">for</span> <span class="ident">ip</span> <span class="kw">in</span> <span class="ident">dfa</span>.<span class="ident">state</span>(<span class="ident">dfa</span>.<span class="ident">last_match_si</span>).<span class="ident">inst_ptrs</span>() {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Inst</span>::<span class="ident">Match</span>(<span class="ident">slot</span>) <span class="op">=</span> <span class="ident">dfa</span>.<span class="ident">prog</span>[<span class="ident">ip</span>] {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Inst::Match</span>(<span class="ident">slot</span>) <span class="op">=</span> <span class="ident">dfa</span>.<span class="ident">prog</span>[<span class="ident">ip</span>] {
                         <span class="ident">matches</span>[<span class="ident">slot</span>] <span class="op">=</span> <span class="bool-val">true</span>;
                     }
                 }
@@ -2545,13 +2545,13 @@ implementation.)
         <span class="comment">// Since there&#39;s a bunch of extra stuff we need to consider, we do some</span>
         <span class="comment">// pretty hairy tricks to get the inner loop to run as fast as</span>
         <span class="comment">// possible.</span>
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">is_reverse</span>);
+        <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">is_reverse</span>);
 
         <span class="comment">// The last match is the currently known ending match position. It is</span>
         <span class="comment">// reported as an index to the most recent byte that resulted in a</span>
         <span class="comment">// transition to a match state and is always stored in capture slot `1`</span>
         <span class="comment">// when searching forwards. Its maximum value is `text.len()`.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="prelude-ty">Result</span>::<span class="ident">NoMatch</span>(<span class="self">self</span>.<span class="ident">at</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Result::NoMatch</span>(<span class="self">self</span>.<span class="ident">at</span>);
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">prev_si</span>, <span class="kw-2">mut</span> <span class="ident">next_si</span>) <span class="op">=</span> (<span class="self">self</span>.<span class="ident">start</span>, <span class="self">self</span>.<span class="ident">start</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">at</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">at</span>;
         <span class="kw">while</span> <span class="ident">at</span> <span class="op">&lt;</span> <span class="ident">text</span>.<span class="ident">len</span>() {
@@ -2572,7 +2572,7 @@ implementation.)
                 <span class="ident">prev_si</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">next_si</span>(<span class="ident">next_si</span>, <span class="ident">text</span>, <span class="ident">at</span>) };
                 <span class="ident">at</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="kw">if</span> <span class="ident">prev_si</span> <span class="op">&gt;</span> <span class="ident">STATE_MAX</span> <span class="op">|</span><span class="op">|</span> <span class="ident">at</span> <span class="op">+</span> <span class="number">2</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">text</span>.<span class="ident">len</span>() {
-                    <span class="ident">mem</span>::<span class="ident">swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev_si</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">next_si</span>);
+                    <span class="ident">mem::swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev_si</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">next_si</span>);
                     <span class="kw">break</span>;
                 }
                 <span class="ident">next_si</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">next_si</span>(<span class="ident">prev_si</span>, <span class="ident">text</span>, <span class="ident">at</span>) };
@@ -2583,7 +2583,7 @@ implementation.)
                 <span class="ident">prev_si</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">next_si</span>(<span class="ident">next_si</span>, <span class="ident">text</span>, <span class="ident">at</span>) };
                 <span class="ident">at</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="kw">if</span> <span class="ident">prev_si</span> <span class="op">&gt;</span> <span class="ident">STATE_MAX</span> {
-                    <span class="ident">mem</span>::<span class="ident">swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev_si</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">next_si</span>);
+                    <span class="ident">mem::swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev_si</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">next_si</span>);
                     <span class="kw">break</span>;
                 }
                 <span class="ident">next_si</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">next_si</span>(<span class="ident">prev_si</span>, <span class="ident">text</span>, <span class="ident">at</span>) };
@@ -2595,7 +2595,7 @@ implementation.)
                 <span class="comment">// last position as having matched and possibly quit the DFA if</span>
                 <span class="comment">// we don&#39;t need to keep matching.</span>
                 <span class="ident">next_si</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="ident">STATE_MATCH</span>;
-                <span class="ident">result</span> <span class="op">=</span> <span class="prelude-ty">Result</span>::<span class="ident">Match</span>(<span class="ident">at</span> <span class="op">-</span> <span class="number">1</span>);
+                <span class="ident">result</span> <span class="op">=</span> <span class="ident">Result::Match</span>(<span class="ident">at</span> <span class="op">-</span> <span class="number">1</span>);
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">quit_after_match</span> {
                     <span class="kw">return</span> <span class="ident">result</span>;
                 }
@@ -2630,29 +2630,29 @@ implementation.)
                     <span class="ident">at</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 }
                 <span class="kw">if</span> <span class="ident">at</span> <span class="op">&gt;</span> <span class="ident">cur</span> {
-                    <span class="ident">result</span> <span class="op">=</span> <span class="prelude-ty">Result</span>::<span class="ident">Match</span>(<span class="ident">at</span> <span class="op">-</span> <span class="number">2</span>);
+                    <span class="ident">result</span> <span class="op">=</span> <span class="ident">Result::Match</span>(<span class="ident">at</span> <span class="op">-</span> <span class="number">2</span>);
                 }
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">next_si</span> <span class="op">&amp;</span> <span class="ident">STATE_START</span> <span class="op">&gt;</span> <span class="number">0</span> {
                 <span class="comment">// A start state isn&#39;t in the common case because we may</span>
                 <span class="comment">// want to do quick prefix scanning. If the program doesn&#39;t</span>
                 <span class="comment">// have a detected prefix, then start states are actually</span>
                 <span class="comment">// considered common and this case is never reached.</span>
-                <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">has_prefix</span>());
+                <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">has_prefix</span>());
                 <span class="ident">next_si</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="ident">STATE_START</span>;
                 <span class="ident">prev_si</span> <span class="op">=</span> <span class="ident">next_si</span>;
                 <span class="ident">at</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">prefix_at</span>(<span class="ident">text</span>, <span class="ident">at</span>) {
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-ty">Result</span>::<span class="ident">NoMatch</span>(<span class="ident">text</span>.<span class="ident">len</span>()),
+                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Result::NoMatch</span>(<span class="ident">text</span>.<span class="ident">len</span>()),
                     <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">i</span>,
                 };
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">next_si</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span> {
                 <span class="kw">if</span> <span class="ident">next_si</span> <span class="op">=</span><span class="op">=</span> <span class="ident">STATE_QUIT</span> {
-                    <span class="kw">return</span> <span class="prelude-ty">Result</span>::<span class="ident">Quit</span>;
+                    <span class="kw">return</span> <span class="ident">Result::Quit</span>;
                 }
                 <span class="comment">// Finally, this corresponds to the case where the transition</span>
                 <span class="comment">// entered a state that can never lead to a match or a state</span>
                 <span class="comment">// that hasn&#39;t been computed yet. The latter being the &quot;slow&quot;</span>
                 <span class="comment">// path.</span>
-                <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="ident">Byte</span>::<span class="ident">byte</span>(<span class="ident">text</span>[<span class="ident">at</span> <span class="op">-</span> <span class="number">1</span>]);
+                <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="ident">Byte::byte</span>(<span class="ident">text</span>[<span class="ident">at</span> <span class="op">-</span> <span class="number">1</span>]);
                 <span class="comment">// We no longer care about the special bits in the state</span>
                 <span class="comment">// pointer.</span>
                 <span class="ident">prev_si</span> <span class="op">&amp;=</span> <span class="ident">STATE_MAX</span>;
@@ -2661,14 +2661,14 @@ implementation.)
                 <span class="comment">// cache too much.</span>
                 <span class="self">self</span>.<span class="ident">at</span> <span class="op">=</span> <span class="ident">at</span>;
                 <span class="ident">next_si</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">next_state</span>(<span class="ident">qcur</span>, <span class="ident">qnext</span>, <span class="ident">prev_si</span>, <span class="ident">byte</span>) {
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-ty">Result</span>::<span class="ident">Quit</span>,
+                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Result::Quit</span>,
                     <span class="prelude-val">Some</span>(<span class="ident">STATE_DEAD</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">result</span>.<span class="ident">set_non_match</span>(<span class="ident">at</span>),
                     <span class="prelude-val">Some</span>(<span class="ident">si</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">si</span>,
                 };
-                <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">next_si</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span>);
+                <span class="macro">debug_assert!</span>(<span class="ident">next_si</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span>);
                 <span class="kw">if</span> <span class="ident">next_si</span> <span class="op">&amp;</span> <span class="ident">STATE_MATCH</span> <span class="op">&gt;</span> <span class="number">0</span> {
                     <span class="ident">next_si</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="ident">STATE_MATCH</span>;
-                    <span class="ident">result</span> <span class="op">=</span> <span class="prelude-ty">Result</span>::<span class="ident">Match</span>(<span class="ident">at</span> <span class="op">-</span> <span class="number">1</span>);
+                    <span class="ident">result</span> <span class="op">=</span> <span class="ident">Result::Match</span>(<span class="ident">at</span> <span class="op">-</span> <span class="number">1</span>);
                     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">quit_after_match</span> {
                         <span class="kw">return</span> <span class="ident">result</span>;
                     }
@@ -2684,16 +2684,16 @@ implementation.)
         <span class="comment">// We don&#39;t care about the special bits in the state pointer any more,</span>
         <span class="comment">// so get rid of them.</span>
         <span class="ident">prev_si</span> <span class="op">&amp;=</span> <span class="ident">STATE_MAX</span>;
-        <span class="ident">prev_si</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">next_state</span>(<span class="ident">qcur</span>, <span class="ident">qnext</span>, <span class="ident">prev_si</span>, <span class="ident">Byte</span>::<span class="ident">eof</span>()) {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-ty">Result</span>::<span class="ident">Quit</span>,
+        <span class="ident">prev_si</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">next_state</span>(<span class="ident">qcur</span>, <span class="ident">qnext</span>, <span class="ident">prev_si</span>, <span class="ident">Byte::eof</span>()) {
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Result::Quit</span>,
             <span class="prelude-val">Some</span>(<span class="ident">STATE_DEAD</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">result</span>.<span class="ident">set_non_match</span>(<span class="ident">text</span>.<span class="ident">len</span>()),
             <span class="prelude-val">Some</span>(<span class="ident">si</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">si</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">STATE_START</span>,
         };
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">prev_si</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">prev_si</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span>);
         <span class="kw">if</span> <span class="ident">prev_si</span> <span class="op">&amp;</span> <span class="ident">STATE_MATCH</span> <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="ident">prev_si</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="ident">STATE_MATCH</span>;
             <span class="self">self</span>.<span class="ident">last_match_si</span> <span class="op">=</span> <span class="ident">prev_si</span>;
-            <span class="ident">result</span> <span class="op">=</span> <span class="prelude-ty">Result</span>::<span class="ident">Match</span>(<span class="ident">text</span>.<span class="ident">len</span>());
+            <span class="ident">result</span> <span class="op">=</span> <span class="ident">Result::Match</span>(<span class="ident">text</span>.<span class="ident">len</span>());
         }
         <span class="ident">result</span>
     }
@@ -2712,8 +2712,8 @@ implementation.)
         <span class="comment">//</span>
         <span class="comment">// N.B. The code duplication here is regrettable. Efforts to improve</span>
         <span class="comment">// it without sacrificing performance are welcome. ---AG</span>
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">is_reverse</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="prelude-ty">Result</span>::<span class="ident">NoMatch</span>(<span class="self">self</span>.<span class="ident">at</span>);
+        <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">is_reverse</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Result::NoMatch</span>(<span class="self">self</span>.<span class="ident">at</span>);
         <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">prev_si</span>, <span class="kw-2">mut</span> <span class="ident">next_si</span>) <span class="op">=</span> (<span class="self">self</span>.<span class="ident">start</span>, <span class="self">self</span>.<span class="ident">start</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">at</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">at</span>;
         <span class="kw">while</span> <span class="ident">at</span> <span class="op">&gt;</span> <span class="number">0</span> {
@@ -2722,7 +2722,7 @@ implementation.)
                 <span class="ident">at</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="ident">prev_si</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">next_si</span>(<span class="ident">next_si</span>, <span class="ident">text</span>, <span class="ident">at</span>) };
                 <span class="kw">if</span> <span class="ident">prev_si</span> <span class="op">&gt;</span> <span class="ident">STATE_MAX</span> <span class="op">|</span><span class="op">|</span> <span class="ident">at</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">4</span> {
-                    <span class="ident">mem</span>::<span class="ident">swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev_si</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">next_si</span>);
+                    <span class="ident">mem::swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev_si</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">next_si</span>);
                     <span class="kw">break</span>;
                 }
                 <span class="ident">at</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
@@ -2733,7 +2733,7 @@ implementation.)
                 <span class="ident">at</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
                 <span class="ident">prev_si</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">next_si</span>(<span class="ident">next_si</span>, <span class="ident">text</span>, <span class="ident">at</span>) };
                 <span class="kw">if</span> <span class="ident">prev_si</span> <span class="op">&gt;</span> <span class="ident">STATE_MAX</span> {
-                    <span class="ident">mem</span>::<span class="ident">swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev_si</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">next_si</span>);
+                    <span class="ident">mem::swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev_si</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">next_si</span>);
                     <span class="kw">break</span>;
                 }
                 <span class="ident">at</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
@@ -2741,7 +2741,7 @@ implementation.)
             }
             <span class="kw">if</span> <span class="ident">next_si</span> <span class="op">&amp;</span> <span class="ident">STATE_MATCH</span> <span class="op">&gt;</span> <span class="number">0</span> {
                 <span class="ident">next_si</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="ident">STATE_MATCH</span>;
-                <span class="ident">result</span> <span class="op">=</span> <span class="prelude-ty">Result</span>::<span class="ident">Match</span>(<span class="ident">at</span> <span class="op">+</span> <span class="number">1</span>);
+                <span class="ident">result</span> <span class="op">=</span> <span class="ident">Result::Match</span>(<span class="ident">at</span> <span class="op">+</span> <span class="number">1</span>);
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">quit_after_match</span> {
                     <span class="kw">return</span> <span class="ident">result</span>;
                 }
@@ -2756,24 +2756,24 @@ implementation.)
                     };
                 }
                 <span class="kw">if</span> <span class="ident">at</span> <span class="op">&lt;</span> <span class="ident">cur</span> {
-                    <span class="ident">result</span> <span class="op">=</span> <span class="prelude-ty">Result</span>::<span class="ident">Match</span>(<span class="ident">at</span> <span class="op">+</span> <span class="number">2</span>);
+                    <span class="ident">result</span> <span class="op">=</span> <span class="ident">Result::Match</span>(<span class="ident">at</span> <span class="op">+</span> <span class="number">2</span>);
                 }
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">next_si</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span> {
                 <span class="kw">if</span> <span class="ident">next_si</span> <span class="op">=</span><span class="op">=</span> <span class="ident">STATE_QUIT</span> {
-                    <span class="kw">return</span> <span class="prelude-ty">Result</span>::<span class="ident">Quit</span>;
+                    <span class="kw">return</span> <span class="ident">Result::Quit</span>;
                 }
-                <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="ident">Byte</span>::<span class="ident">byte</span>(<span class="ident">text</span>[<span class="ident">at</span>]);
+                <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="ident">Byte::byte</span>(<span class="ident">text</span>[<span class="ident">at</span>]);
                 <span class="ident">prev_si</span> <span class="op">&amp;=</span> <span class="ident">STATE_MAX</span>;
                 <span class="self">self</span>.<span class="ident">at</span> <span class="op">=</span> <span class="ident">at</span>;
                 <span class="ident">next_si</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">next_state</span>(<span class="ident">qcur</span>, <span class="ident">qnext</span>, <span class="ident">prev_si</span>, <span class="ident">byte</span>) {
-                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-ty">Result</span>::<span class="ident">Quit</span>,
+                    <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Result::Quit</span>,
                     <span class="prelude-val">Some</span>(<span class="ident">STATE_DEAD</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">result</span>.<span class="ident">set_non_match</span>(<span class="ident">at</span>),
                     <span class="prelude-val">Some</span>(<span class="ident">si</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">si</span>,
                 };
-                <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">next_si</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span>);
+                <span class="macro">debug_assert!</span>(<span class="ident">next_si</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span>);
                 <span class="kw">if</span> <span class="ident">next_si</span> <span class="op">&amp;</span> <span class="ident">STATE_MATCH</span> <span class="op">&gt;</span> <span class="number">0</span> {
                     <span class="ident">next_si</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="ident">STATE_MATCH</span>;
-                    <span class="ident">result</span> <span class="op">=</span> <span class="prelude-ty">Result</span>::<span class="ident">Match</span>(<span class="ident">at</span> <span class="op">+</span> <span class="number">1</span>);
+                    <span class="ident">result</span> <span class="op">=</span> <span class="ident">Result::Match</span>(<span class="ident">at</span> <span class="op">+</span> <span class="number">1</span>);
                     <span class="kw">if</span> <span class="self">self</span>.<span class="ident">quit_after_match</span> {
                         <span class="kw">return</span> <span class="ident">result</span>;
                     }
@@ -2786,16 +2786,16 @@ implementation.)
         }
 
         <span class="comment">// Run the DFA once more on the special EOF sentinel value.</span>
-        <span class="ident">prev_si</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">next_state</span>(<span class="ident">qcur</span>, <span class="ident">qnext</span>, <span class="ident">prev_si</span>, <span class="ident">Byte</span>::<span class="ident">eof</span>()) {
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-ty">Result</span>::<span class="ident">Quit</span>,
+        <span class="ident">prev_si</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">next_state</span>(<span class="ident">qcur</span>, <span class="ident">qnext</span>, <span class="ident">prev_si</span>, <span class="ident">Byte::eof</span>()) {
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">Result::Quit</span>,
             <span class="prelude-val">Some</span>(<span class="ident">STATE_DEAD</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">result</span>.<span class="ident">set_non_match</span>(<span class="number">0</span>),
             <span class="prelude-val">Some</span>(<span class="ident">si</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">si</span>,
         };
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">prev_si</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">prev_si</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span>);
         <span class="kw">if</span> <span class="ident">prev_si</span> <span class="op">&amp;</span> <span class="ident">STATE_MATCH</span> <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="ident">prev_si</span> <span class="op">&amp;=</span> <span class="op">!</span><span class="ident">STATE_MATCH</span>;
             <span class="self">self</span>.<span class="ident">last_match_si</span> <span class="op">=</span> <span class="ident">prev_si</span>;
-            <span class="ident">result</span> <span class="op">=</span> <span class="prelude-ty">Result</span>::<span class="ident">Match</span>(<span class="number">0</span>);
+            <span class="ident">result</span> <span class="op">=</span> <span class="ident">Result::Match</span>(<span class="number">0</span>);
         }
         <span class="ident">result</span>
     }
@@ -2827,9 +2827,9 @@ implementation.)
         <span class="comment">// if it points to a state that hasn&#39;t been computed yet.) (3) also</span>
         <span class="comment">// relies on `si` being correct, but StatePtrs should only ever be</span>
         <span class="comment">// retrieved from the transition table, which ensures they are correct.</span>
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">text</span>.<span class="ident">len</span>());
+        <span class="macro">debug_assert!</span>(<span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">text</span>.<span class="ident">len</span>());
         <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">text</span>.<span class="ident">get_unchecked</span>(<span class="ident">i</span>);
-        <span class="macro">debug_assert</span><span class="macro">!</span>((<span class="ident">b</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">byte_classes</span>.<span class="ident">len</span>());
+        <span class="macro">debug_assert!</span>((<span class="ident">b</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">byte_classes</span>.<span class="ident">len</span>());
         <span class="kw">let</span> <span class="ident">cls</span> <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">byte_classes</span>.<span class="ident">get_unchecked</span>(<span class="ident">b</span> <span class="kw">as</span> <span class="ident">usize</span>);
         <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">trans</span>.<span class="ident">next_unchecked</span>(<span class="ident">si</span>, <span class="ident">cls</span> <span class="kw">as</span> <span class="ident">usize</span>)
     }
@@ -2849,7 +2849,7 @@ implementation.)
         <span class="kw-2">mut</span> <span class="ident">si</span>: <span class="ident">StatePtr</span>,
         <span class="ident">b</span>: <span class="ident">Byte</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">StatePtr</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prog</span>::<span class="ident">Inst</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::prog::Inst</span>::<span class="kw-2">*</span>;
 
         <span class="comment">// Initialize a queue with the current DFA state&#39;s NFA states.</span>
         <span class="ident">qcur</span>.<span class="ident">clear</span>();
@@ -2870,7 +2870,7 @@ implementation.)
             <span class="comment">// This means we only care about the &quot;end&quot; or &quot;end line&quot; flags.</span>
             <span class="comment">// (The &quot;start&quot; flags are computed immediately following the</span>
             <span class="comment">// current byte and are handled below.)</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">EmptyFlags</span>::<span class="ident">default</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">EmptyFlags::default</span>();
             <span class="kw">if</span> <span class="ident">b</span>.<span class="ident">is_eof</span>() {
                 <span class="ident">flags</span>.<span class="ident">end</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 <span class="ident">flags</span>.<span class="ident">end_line</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -2888,7 +2888,7 @@ implementation.)
             <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">ip</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">qcur</span> {
                 <span class="self">self</span>.<span class="ident">follow_epsilons</span>(<span class="ident">usize_to_u32</span>(<span class="ident">ip</span>), <span class="ident">qnext</span>, <span class="ident">flags</span>);
             }
-            <span class="ident">mem</span>::<span class="ident">swap</span>(<span class="ident">qcur</span>, <span class="ident">qnext</span>);
+            <span class="ident">mem::swap</span>(<span class="ident">qcur</span>, <span class="ident">qnext</span>);
         }
 
         <span class="comment">// Now we set flags for immediately after the current byte. Since start</span>
@@ -2901,8 +2901,8 @@ implementation.)
         <span class="comment">// matching by one byte in order to process the special EOF sentinel</span>
         <span class="comment">// byte. Namely, if this DFA state containing a matching NFA state,</span>
         <span class="comment">// then it is the *next* DFA state that is marked as a match.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">empty_flags</span> <span class="op">=</span> <span class="ident">EmptyFlags</span>::<span class="ident">default</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state_flags</span> <span class="op">=</span> <span class="ident">StateFlags</span>::<span class="ident">default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">empty_flags</span> <span class="op">=</span> <span class="ident">EmptyFlags::default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state_flags</span> <span class="op">=</span> <span class="ident">StateFlags::default</span>();
         <span class="ident">empty_flags</span>.<span class="ident">start_line</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">as_byte</span>().<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="ident">b</span> <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;\n&#39;</span>);
         <span class="kw">if</span> <span class="ident">b</span>.<span class="ident">is_ascii_word</span>() {
             <span class="ident">state_flags</span>.<span class="ident">set_word</span>();
@@ -2913,7 +2913,7 @@ implementation.)
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">ip</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">qcur</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">prog</span>[<span class="ident">ip</span> <span class="kw">as</span> <span class="ident">usize</span>] {
                 <span class="comment">// These states never happen in a byte-based program.</span>
-                <span class="ident">Char</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Ranges</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+                <span class="ident">Char</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Ranges</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
                 <span class="comment">// These states are handled when following epsilon transitions.</span>
                 <span class="ident">Save</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Split</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">EmptyLook</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
                 <span class="ident">Match</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -2945,7 +2945,7 @@ implementation.)
             <span class="comment">// matching a regex set, then make the next state contain the</span>
             <span class="comment">// previous states transitions. We do this so that the main</span>
             <span class="comment">// matching loop can extract all of the match instructions.</span>
-            <span class="ident">mem</span>::<span class="ident">swap</span>(<span class="ident">qcur</span>, <span class="ident">qnext</span>);
+            <span class="ident">mem::swap</span>(<span class="ident">qcur</span>, <span class="ident">qnext</span>);
             <span class="comment">// And don&#39;t cache this state because it&#39;s totally bunk.</span>
             <span class="bool-val">false</span>
         } <span class="kw">else</span> {
@@ -2967,13 +2967,13 @@ implementation.)
         <span class="kw">if</span> (<span class="self">self</span>.<span class="ident">start</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">STATE_START</span>) <span class="op">=</span><span class="op">=</span> <span class="ident">next</span> {
             <span class="comment">// Start states can never be match states since all matches are</span>
             <span class="comment">// delayed by one byte.</span>
-            <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">state</span>(<span class="ident">next</span>).<span class="ident">flags</span>().<span class="ident">is_match</span>());
+            <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">state</span>(<span class="ident">next</span>).<span class="ident">flags</span>().<span class="ident">is_match</span>());
             <span class="ident">next</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">start_ptr</span>(<span class="ident">next</span>);
         }
         <span class="kw">if</span> <span class="ident">next</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">STATE_MAX</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">state</span>(<span class="ident">next</span>).<span class="ident">flags</span>().<span class="ident">is_match</span>() {
             <span class="ident">next</span> <span class="op">|</span><span class="op">=</span> <span class="ident">STATE_MATCH</span>;
         }
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">next</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">next</span> <span class="op">!</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span>);
         <span class="comment">// And now store our state in the current state&#39;s next list.</span>
         <span class="kw">if</span> <span class="ident">cache</span> {
             <span class="kw">let</span> <span class="ident">cls</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">byte_class</span>(<span class="ident">b</span>);
@@ -3011,8 +3011,8 @@ implementation.)
         <span class="ident">q</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">SparseSet</span>,
         <span class="ident">flags</span>: <span class="ident">EmptyFlags</span>,
     ) {
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prog</span>::<span class="ident">EmptyLook</span>::<span class="kw-2">*</span>;
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prog</span>::<span class="ident">Inst</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::prog::EmptyLook</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::prog::Inst</span>::<span class="kw-2">*</span>;
 
         <span class="comment">// We need to traverse the NFA to follow epsilon transitions, so avoid</span>
         <span class="comment">// recursion with an explicit stack.</span>
@@ -3027,7 +3027,7 @@ implementation.)
                 }
                 <span class="ident">q</span>.<span class="ident">insert</span>(<span class="ident">ip</span> <span class="kw">as</span> <span class="ident">usize</span>);
                 <span class="kw">match</span> <span class="self">self</span>.<span class="ident">prog</span>[<span class="ident">ip</span> <span class="kw">as</span> <span class="ident">usize</span>] {
-                    <span class="ident">Char</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Ranges</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+                    <span class="ident">Char</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Ranges</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
                     <span class="ident">Match</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Bytes</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
                         <span class="kw">break</span>;
                     }
@@ -3145,7 +3145,7 @@ implementation.)
         <span class="ident">q</span>: <span class="kw-2">&amp;</span><span class="ident">SparseSet</span>,
         <span class="ident">state_flags</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">StateFlags</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">prog</span>::<span class="ident">Inst</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::prog::Inst</span>::<span class="kw-2">*</span>;
 
         <span class="comment">// We need to build up enough information to recognize pre-built states</span>
         <span class="comment">// in the DFA. Generally speaking, this includes every instruction</span>
@@ -3157,7 +3157,7 @@ implementation.)
         <span class="comment">// cache.</span>
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">insts</span> <span class="op">=</span>
-            <span class="ident">mem</span>::<span class="ident">replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">insts_scratch_space</span>, <span class="macro">vec</span><span class="macro">!</span>[]);
+            <span class="ident">mem::replace</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">insts_scratch_space</span>, <span class="macro">vec!</span>[]);
         <span class="ident">insts</span>.<span class="ident">clear</span>();
         <span class="comment">// Reserve 1 byte for flags.</span>
         <span class="ident">insts</span>.<span class="ident">push</span>(<span class="number">0</span>);
@@ -3166,7 +3166,7 @@ implementation.)
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">ip</span> <span class="kw">in</span> <span class="ident">q</span> {
             <span class="kw">let</span> <span class="ident">ip</span> <span class="op">=</span> <span class="ident">usize_to_u32</span>(<span class="ident">ip</span>);
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">prog</span>[<span class="ident">ip</span> <span class="kw">as</span> <span class="ident">usize</span>] {
-                <span class="ident">Char</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Ranges</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable</span><span class="macro">!</span>(),
+                <span class="ident">Char</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Ranges</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">unreachable!</span>(),
                 <span class="ident">Save</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Split</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {}
                 <span class="ident">Bytes</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">push_inst_ptr</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">insts</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev</span>, <span class="ident">ip</span>),
                 <span class="ident">EmptyLook</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -3190,7 +3190,7 @@ implementation.)
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">StateFlags</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">state_flags</span>;
             <span class="ident">insts</span>[<span class="number">0</span>] <span class="op">=</span> <span class="ident">f</span>;
-            <span class="prelude-val">Some</span>(<span class="ident">State</span> { <span class="ident">data</span>: <span class="ident">Arc</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">insts</span>) })
+            <span class="prelude-val">Some</span>(<span class="ident">State</span> { <span class="ident">data</span>: <span class="ident">Arc::from</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">insts</span>) })
         };
         <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">insts_scratch_space</span> <span class="op">=</span> <span class="ident">insts</span>;
         <span class="ident">opt_state</span>
@@ -3365,15 +3365,15 @@ implementation.)
     <span class="doccomment">/// This should only be used when executing the DFA forwards over the</span>
     <span class="doccomment">/// input.</span>
     <span class="kw">fn</span> <span class="ident">start_flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">at</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">EmptyFlags</span>, <span class="ident">StateFlags</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">empty_flags</span> <span class="op">=</span> <span class="ident">EmptyFlags</span>::<span class="ident">default</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state_flags</span> <span class="op">=</span> <span class="ident">StateFlags</span>::<span class="ident">default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">empty_flags</span> <span class="op">=</span> <span class="ident">EmptyFlags::default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state_flags</span> <span class="op">=</span> <span class="ident">StateFlags::default</span>();
         <span class="ident">empty_flags</span>.<span class="ident">start</span> <span class="op">=</span> <span class="ident">at</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span>;
         <span class="ident">empty_flags</span>.<span class="ident">end</span> <span class="op">=</span> <span class="ident">text</span>.<span class="ident">is_empty</span>();
         <span class="ident">empty_flags</span>.<span class="ident">start_line</span> <span class="op">=</span> <span class="ident">at</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">text</span>[<span class="ident">at</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;\n&#39;</span>;
         <span class="ident">empty_flags</span>.<span class="ident">end_line</span> <span class="op">=</span> <span class="ident">text</span>.<span class="ident">is_empty</span>();
 
-        <span class="kw">let</span> <span class="ident">is_word_last</span> <span class="op">=</span> <span class="ident">at</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">Byte</span>::<span class="ident">byte</span>(<span class="ident">text</span>[<span class="ident">at</span> <span class="op">-</span> <span class="number">1</span>]).<span class="ident">is_ascii_word</span>();
-        <span class="kw">let</span> <span class="ident">is_word</span> <span class="op">=</span> <span class="ident">at</span> <span class="op">&lt;</span> <span class="ident">text</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">Byte</span>::<span class="ident">byte</span>(<span class="ident">text</span>[<span class="ident">at</span>]).<span class="ident">is_ascii_word</span>();
+        <span class="kw">let</span> <span class="ident">is_word_last</span> <span class="op">=</span> <span class="ident">at</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">Byte::byte</span>(<span class="ident">text</span>[<span class="ident">at</span> <span class="op">-</span> <span class="number">1</span>]).<span class="ident">is_ascii_word</span>();
+        <span class="kw">let</span> <span class="ident">is_word</span> <span class="op">=</span> <span class="ident">at</span> <span class="op">&lt;</span> <span class="ident">text</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">Byte::byte</span>(<span class="ident">text</span>[<span class="ident">at</span>]).<span class="ident">is_ascii_word</span>();
         <span class="kw">if</span> <span class="ident">is_word_last</span> {
             <span class="ident">state_flags</span>.<span class="ident">set_word</span>();
         }
@@ -3394,16 +3394,16 @@ implementation.)
         <span class="ident">text</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
         <span class="ident">at</span>: <span class="ident">usize</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">EmptyFlags</span>, <span class="ident">StateFlags</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">empty_flags</span> <span class="op">=</span> <span class="ident">EmptyFlags</span>::<span class="ident">default</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state_flags</span> <span class="op">=</span> <span class="ident">StateFlags</span>::<span class="ident">default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">empty_flags</span> <span class="op">=</span> <span class="ident">EmptyFlags::default</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state_flags</span> <span class="op">=</span> <span class="ident">StateFlags::default</span>();
         <span class="ident">empty_flags</span>.<span class="ident">start</span> <span class="op">=</span> <span class="ident">at</span> <span class="op">=</span><span class="op">=</span> <span class="ident">text</span>.<span class="ident">len</span>();
         <span class="ident">empty_flags</span>.<span class="ident">end</span> <span class="op">=</span> <span class="ident">text</span>.<span class="ident">is_empty</span>();
         <span class="ident">empty_flags</span>.<span class="ident">start_line</span> <span class="op">=</span> <span class="ident">at</span> <span class="op">=</span><span class="op">=</span> <span class="ident">text</span>.<span class="ident">len</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">text</span>[<span class="ident">at</span>] <span class="op">=</span><span class="op">=</span> <span class="string">b&#39;\n&#39;</span>;
         <span class="ident">empty_flags</span>.<span class="ident">end_line</span> <span class="op">=</span> <span class="ident">text</span>.<span class="ident">is_empty</span>();
 
         <span class="kw">let</span> <span class="ident">is_word_last</span> <span class="op">=</span>
-            <span class="ident">at</span> <span class="op">&lt;</span> <span class="ident">text</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">Byte</span>::<span class="ident">byte</span>(<span class="ident">text</span>[<span class="ident">at</span>]).<span class="ident">is_ascii_word</span>();
-        <span class="kw">let</span> <span class="ident">is_word</span> <span class="op">=</span> <span class="ident">at</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">Byte</span>::<span class="ident">byte</span>(<span class="ident">text</span>[<span class="ident">at</span> <span class="op">-</span> <span class="number">1</span>]).<span class="ident">is_ascii_word</span>();
+            <span class="ident">at</span> <span class="op">&lt;</span> <span class="ident">text</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">Byte::byte</span>(<span class="ident">text</span>[<span class="ident">at</span>]).<span class="ident">is_ascii_word</span>();
+        <span class="kw">let</span> <span class="ident">is_word</span> <span class="op">=</span> <span class="ident">at</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">Byte::byte</span>(<span class="ident">text</span>[<span class="ident">at</span> <span class="op">-</span> <span class="number">1</span>]).<span class="ident">is_ascii_word</span>();
         <span class="kw">if</span> <span class="ident">is_word_last</span> {
             <span class="ident">state_flags</span>.<span class="ident">set_word</span>();
         }
@@ -3442,7 +3442,7 @@ implementation.)
         <span class="comment">// will take over.</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">has_unicode_word_boundary</span> {
             <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="number">128</span>..<span class="number">256</span> {
-                <span class="kw">let</span> <span class="ident">cls</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">byte_class</span>(<span class="ident">Byte</span>::<span class="ident">byte</span>(<span class="ident">b</span> <span class="kw">as</span> <span class="ident">u8</span>));
+                <span class="kw">let</span> <span class="ident">cls</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">byte_class</span>(<span class="ident">Byte::byte</span>(<span class="ident">b</span> <span class="kw">as</span> <span class="ident">u8</span>));
                 <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">trans</span>.<span class="ident">set_next</span>(<span class="ident">si</span>, <span class="ident">cls</span>, <span class="ident">STATE_QUIT</span>);
             }
         }
@@ -3450,11 +3450,11 @@ implementation.)
         <span class="comment">// so we can find it later.</span>
         <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">size</span> <span class="op">+</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">trans</span>.<span class="ident">state_heap_size</span>()
             <span class="op">+</span> <span class="ident">state</span>.<span class="ident">data</span>.<span class="ident">len</span>()
-            <span class="op">+</span> (<span class="number">2</span> <span class="op">*</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>())
-            <span class="op">+</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">StatePtr</span><span class="op">&gt;</span>();
+            <span class="op">+</span> (<span class="number">2</span> <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">State</span><span class="op">&gt;</span>())
+            <span class="op">+</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">StatePtr</span><span class="op">&gt;</span>();
         <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">compiled</span>.<span class="ident">insert</span>(<span class="ident">state</span>, <span class="ident">si</span>);
         <span class="comment">// Transition table and set of states and map should all be in sync.</span>
-        <span class="macro">debug_assert</span><span class="macro">!</span>(
+        <span class="macro">debug_assert!</span>(
             <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">compiled</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">cache</span>.<span class="ident">trans</span>.<span class="ident">num_states</span>()
         );
         <span class="prelude-val">Some</span>(<span class="ident">si</span>)
@@ -3564,8 +3564,8 @@ implementation.)
 <span class="kw">impl</span> <span class="ident">StateMap</span> {
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_byte_classes</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StateMap</span> {
         <span class="ident">StateMap</span> {
-            <span class="ident">map</span>: <span class="ident">HashMap</span>::<span class="ident">new</span>(),
-            <span class="ident">states</span>: <span class="macro">vec</span><span class="macro">!</span>[],
+            <span class="ident">map</span>: <span class="ident">HashMap::new</span>(),
+            <span class="ident">states</span>: <span class="macro">vec!</span>[],
             <span class="ident">num_byte_classes</span>: <span class="ident">num_byte_classes</span>,
         }
     }
@@ -3603,7 +3603,7 @@ implementation.)
     <span class="doccomment">/// The number of byte classes corresponds to the stride. Every state will</span>
     <span class="doccomment">/// have `num_byte_classes` slots for transitions.</span>
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">num_byte_classes</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Transitions</span> {
-        <span class="ident">Transitions</span> { <span class="ident">table</span>: <span class="macro">vec</span><span class="macro">!</span>[], <span class="ident">num_byte_classes</span>: <span class="ident">num_byte_classes</span> }
+        <span class="ident">Transitions</span> { <span class="ident">table</span>: <span class="macro">vec!</span>[], <span class="ident">num_byte_classes</span>: <span class="ident">num_byte_classes</span> }
     }
 
     <span class="doccomment">/// Returns the total number of states currently in this table.</span>
@@ -3640,13 +3640,13 @@ implementation.)
 
     <span class="doccomment">/// The heap size, in bytes, of a single state in the transition table.</span>
     <span class="kw">fn</span> <span class="ident">state_heap_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">num_byte_classes</span> <span class="op">*</span> <span class="ident">mem</span>::<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">StatePtr</span><span class="op">&gt;</span>()
+        <span class="self">self</span>.<span class="ident">num_byte_classes</span> <span class="op">*</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">StatePtr</span><span class="op">&gt;</span>()
     }
 
     <span class="doccomment">/// Like `next`, but uses unchecked access and is therefore not safe.</span>
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">next_unchecked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">si</span>: <span class="ident">StatePtr</span>, <span class="ident">cls</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">StatePtr</span> {
-        <span class="macro">debug_assert</span><span class="macro">!</span>((<span class="ident">si</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">table</span>.<span class="ident">len</span>());
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">cls</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">num_byte_classes</span>);
+        <span class="macro">debug_assert!</span>((<span class="ident">si</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">table</span>.<span class="ident">len</span>());
+        <span class="macro">debug_assert!</span>(<span class="ident">cls</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">num_byte_classes</span>);
         <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">table</span>.<span class="ident">get_unchecked</span>(<span class="ident">si</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="ident">cls</span>)
     }
 }
@@ -3708,8 +3708,8 @@ implementation.)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">State</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">State</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="ident">ips</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inst_ptrs</span>().<span class="ident">collect</span>();
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;State&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;flags&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">flags</span>())
@@ -3718,8 +3718,8 @@ implementation.)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Transitions</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Transitions</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fmtd</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">debug_map</span>();
         <span class="kw">for</span> <span class="ident">si</span> <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">num_states</span>() {
             <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">si</span> <span class="op">*</span> <span class="self">self</span>.<span class="ident">num_byte_classes</span>;
@@ -3732,8 +3732,8 @@ implementation.)
 
 <span class="kw">struct</span> <span class="ident">TransitionsRow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">StatePtr</span>]);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">TransitionsRow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">TransitionsRow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fmtd</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">debug_map</span>();
         <span class="kw">for</span> (<span class="ident">b</span>, <span class="ident">si</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">si</span> {
@@ -3750,8 +3750,8 @@ implementation.)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">StateFlags</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">StateFlags</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;StateFlags&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;is_match&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">is_match</span>())
             .<span class="ident">field</span>(<span class="string">&quot;is_word&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">is_word</span>())
@@ -3762,40 +3762,40 @@ implementation.)
 
 <span class="doccomment">/// Helper function for formatting a byte as a nice-to-read escaped string.</span>
 <span class="kw">fn</span> <span class="ident">vb</span>(<span class="ident">b</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ascii</span>::<span class="ident">escape_default</span>;
+    <span class="kw">use</span> <span class="ident">std::ascii::escape_default</span>;
 
-    <span class="kw">if</span> <span class="ident">b</span> <span class="op">&gt;</span> ::<span class="ident">std</span>::<span class="ident">u8</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">usize</span> {
+    <span class="kw">if</span> <span class="ident">b</span> <span class="op">&gt;</span> <span class="ident">::std::u8::MAX</span> <span class="kw">as</span> <span class="ident">usize</span> {
         <span class="string">&quot;EOF&quot;</span>.<span class="ident">to_owned</span>()
     } <span class="kw">else</span> {
         <span class="kw">let</span> <span class="ident">escaped</span> <span class="op">=</span> <span class="ident">escape_default</span>(<span class="ident">b</span> <span class="kw">as</span> <span class="ident">u8</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-        <span class="ident">String</span>::<span class="ident">from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">escaped</span>).<span class="ident">into_owned</span>()
+        <span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">escaped</span>).<span class="ident">into_owned</span>()
     }
 }
 
 <span class="kw">fn</span> <span class="ident">usize_to_u32</span>(<span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u32</span> {
-    <span class="kw">if</span> (<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&gt;</span> (::<span class="ident">std</span>::<span class="ident">u32</span>::<span class="ident">MAX</span> <span class="kw">as</span> <span class="ident">u64</span>) {
-        <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;BUG: {} is too big to fit into u32&quot;</span>, <span class="ident">n</span>)
+    <span class="kw">if</span> (<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&gt;</span> (<span class="ident">::std::u32::MAX</span> <span class="kw">as</span> <span class="ident">u64</span>) {
+        <span class="macro">panic!</span>(<span class="string">&quot;BUG: {} is too big to fit into u32&quot;</span>, <span class="ident">n</span>)
     }
     <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u32</span>
 }
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span> <span class="comment">// useful for debugging</span>
 <span class="kw">fn</span> <span class="ident">show_state_ptr</span>(<span class="ident">si</span>: <span class="ident">StatePtr</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">String</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">si</span> <span class="op">&amp;</span> <span class="ident">STATE_MAX</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">si</span> <span class="op">&amp;</span> <span class="ident">STATE_MAX</span>);
     <span class="kw">if</span> <span class="ident">si</span> <span class="op">=</span><span class="op">=</span> <span class="ident">STATE_UNKNOWN</span> {
-        <span class="ident">s</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} (unknown)&quot;</span>, <span class="ident">s</span>);
+        <span class="ident">s</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{} (unknown)&quot;</span>, <span class="ident">s</span>);
     }
     <span class="kw">if</span> <span class="ident">si</span> <span class="op">=</span><span class="op">=</span> <span class="ident">STATE_DEAD</span> {
-        <span class="ident">s</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} (dead)&quot;</span>, <span class="ident">s</span>);
+        <span class="ident">s</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{} (dead)&quot;</span>, <span class="ident">s</span>);
     }
     <span class="kw">if</span> <span class="ident">si</span> <span class="op">=</span><span class="op">=</span> <span class="ident">STATE_QUIT</span> {
-        <span class="ident">s</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} (quit)&quot;</span>, <span class="ident">s</span>);
+        <span class="ident">s</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{} (quit)&quot;</span>, <span class="ident">s</span>);
     }
     <span class="kw">if</span> <span class="ident">si</span> <span class="op">&amp;</span> <span class="ident">STATE_START</span> <span class="op">&gt;</span> <span class="number">0</span> {
-        <span class="ident">s</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} (start)&quot;</span>, <span class="ident">s</span>);
+        <span class="ident">s</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{} (start)&quot;</span>, <span class="ident">s</span>);
     }
     <span class="kw">if</span> <span class="ident">si</span> <span class="op">&amp;</span> <span class="ident">STATE_MATCH</span> <span class="op">&gt;</span> <span class="number">0</span> {
-        <span class="ident">s</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{} (match)&quot;</span>, <span class="ident">s</span>);
+        <span class="ident">s</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{} (match)&quot;</span>, <span class="ident">s</span>);
     }
     <span class="ident">s</span>
 }
@@ -3850,7 +3850,7 @@ implementation.)
         <span class="ident">State</span>, <span class="ident">StateFlags</span>,
     };
     <span class="kw">use</span> <span class="ident">quickcheck</span>::{<span class="ident">quickcheck</span>, <span class="ident">Gen</span>, <span class="ident">QuickCheck</span>};
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">sync</span>::<span class="ident">Arc</span>;
+    <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">prop_state_encode_decode</span>() {
@@ -3865,27 +3865,27 @@ implementation.)
                     <span class="kw-2">*</span><span class="ident">ip</span> <span class="op">=</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">31</span>) <span class="op">-</span> <span class="number">1</span>;
                 }
             }
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[<span class="ident">flags</span>];
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">flags</span>];
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev</span> <span class="op">=</span> <span class="number">0</span>;
             <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">ip</span> <span class="kw">in</span> <span class="ident">ips</span>.<span class="ident">iter</span>() {
                 <span class="ident">push_inst_ptr</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">data</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">prev</span>, <span class="ident">ip</span>);
             }
-            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State</span> { <span class="ident">data</span>: <span class="ident">Arc</span>::<span class="ident">from</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>[..]) };
+            <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">State</span> { <span class="ident">data</span>: <span class="ident">Arc::from</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>[..]) };
 
             <span class="kw">let</span> <span class="ident">expected</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span>
                 <span class="ident">ips</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">ip</span><span class="op">|</span> <span class="ident">ip</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">collect</span>();
             <span class="kw">let</span> <span class="ident">got</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">inst_ptrs</span>().<span class="ident">collect</span>();
             <span class="ident">expected</span> <span class="op">=</span><span class="op">=</span> <span class="ident">got</span> <span class="op">&amp;&amp;</span> <span class="ident">state</span>.<span class="ident">flags</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">StateFlags</span>(<span class="ident">flags</span>)
         }
-        <span class="ident">QuickCheck</span>::<span class="ident">new</span>()
-            .<span class="ident">gen</span>(<span class="ident">Gen</span>::<span class="ident">new</span>(<span class="number">10_000</span>))
+        <span class="ident">QuickCheck::new</span>()
+            .<span class="ident">gen</span>(<span class="ident">Gen::new</span>(<span class="number">10_000</span>))
             .<span class="ident">quickcheck</span>(<span class="ident">p</span> <span class="kw">as</span> <span class="kw">fn</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>, <span class="ident">u8</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">prop_read_write_u32</span>() {
         <span class="kw">fn</span> <span class="ident">p</span>(<span class="ident">n</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec!</span>[];
             <span class="ident">write_varu32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>, <span class="ident">n</span>);
             <span class="kw">let</span> (<span class="ident">got</span>, <span class="ident">nread</span>) <span class="op">=</span> <span class="ident">read_varu32</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>);
             <span class="ident">nread</span> <span class="op">=</span><span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">got</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n</span>
@@ -3896,7 +3896,7 @@ implementation.)
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">prop_read_write_i32</span>() {
         <span class="kw">fn</span> <span class="ident">p</span>(<span class="ident">n</span>: <span class="ident">i32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec</span><span class="macro">!</span>[];
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec!</span>[];
             <span class="ident">write_vari32</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buf</span>, <span class="ident">n</span>);
             <span class="kw">let</span> (<span class="ident">got</span>, <span class="ident">nread</span>) <span class="op">=</span> <span class="ident">read_vari32</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>);
             <span class="ident">nread</span> <span class="op">=</span><span class="op">=</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">&amp;&amp;</span> <span class="ident">got</span> <span class="op">=</span><span class="op">=</span> <span class="ident">n</span>
@@ -3905,5 +3905,5 @@ implementation.)
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>

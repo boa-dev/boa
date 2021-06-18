@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.19/src/naive/datetime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>datetime.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../chrono/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../chrono/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../../settings.html"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -2515,19 +2515,19 @@
 <span class="doccomment">//! ISO 8601 date and time without timezone.</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">borrow</span>::<span class="ident">Borrow</span>;
-<span class="kw">use</span> <span class="ident">core</span>::<span class="ident">ops</span>::{<span class="ident">Add</span>, <span class="ident">AddAssign</span>, <span class="ident">Sub</span>, <span class="ident">SubAssign</span>};
+<span class="kw">use</span> <span class="ident">core::borrow::Borrow</span>;
+<span class="kw">use</span> <span class="ident">core::ops</span>::{<span class="ident">Add</span>, <span class="ident">AddAssign</span>, <span class="ident">Sub</span>, <span class="ident">SubAssign</span>};
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">fmt</span>, <span class="ident">hash</span>, <span class="ident">str</span>};
-<span class="kw">use</span> <span class="ident">num_traits</span>::<span class="ident">ToPrimitive</span>;
-<span class="kw">use</span> <span class="ident">oldtime</span>::<span class="ident">Duration</span> <span class="kw">as</span> <span class="ident">OldDuration</span>;
+<span class="kw">use</span> <span class="ident">num_traits::ToPrimitive</span>;
+<span class="kw">use</span> <span class="ident">oldtime::Duration</span> <span class="kw">as</span> <span class="ident">OldDuration</span>;
 
-<span class="kw">use</span> <span class="ident">div</span>::<span class="ident">div_mod_floor</span>;
+<span class="kw">use</span> <span class="ident">div::div_mod_floor</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">use</span> <span class="ident">format</span>::<span class="ident">DelayedFormat</span>;
+<span class="kw">use</span> <span class="ident">format::DelayedFormat</span>;
 <span class="kw">use</span> <span class="ident">format</span>::{<span class="ident">parse</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">Parsed</span>, <span class="ident">StrftimeItems</span>};
 <span class="kw">use</span> <span class="ident">format</span>::{<span class="ident">Fixed</span>, <span class="ident">Item</span>, <span class="ident">Numeric</span>, <span class="ident">Pad</span>};
-<span class="kw">use</span> <span class="ident">naive</span>::<span class="ident">date</span>::{<span class="ident">MAX_DATE</span>, <span class="ident">MIN_DATE</span>};
-<span class="kw">use</span> <span class="ident">naive</span>::<span class="ident">time</span>::{<span class="ident">MAX_TIME</span>, <span class="ident">MIN_TIME</span>};
+<span class="kw">use</span> <span class="ident">naive::date</span>::{<span class="ident">MAX_DATE</span>, <span class="ident">MIN_DATE</span>};
+<span class="kw">use</span> <span class="ident">naive::time</span>::{<span class="ident">MAX_TIME</span>, <span class="ident">MIN_TIME</span>};
 <span class="kw">use</span> <span class="ident">naive</span>::{<span class="ident">IsoWeek</span>, <span class="ident">NaiveDate</span>, <span class="ident">NaiveTime</span>};
 <span class="kw">use</span> {<span class="ident">Datelike</span>, <span class="ident">Timelike</span>, <span class="ident">Weekday</span>};
 
@@ -2624,7 +2624,7 @@
     <span class="doccomment">/// ~~~~</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_timestamp</span>(<span class="ident">secs</span>: <span class="ident">i64</span>, <span class="ident">nsecs</span>: <span class="ident">u32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">NaiveDateTime</span> {
-        <span class="kw">let</span> <span class="ident">datetime</span> <span class="op">=</span> <span class="ident">NaiveDateTime</span>::<span class="ident">from_timestamp_opt</span>(<span class="ident">secs</span>, <span class="ident">nsecs</span>);
+        <span class="kw">let</span> <span class="ident">datetime</span> <span class="op">=</span> <span class="ident">NaiveDateTime::from_timestamp_opt</span>(<span class="ident">secs</span>, <span class="ident">nsecs</span>);
         <span class="ident">datetime</span>.<span class="ident">expect</span>(<span class="string">&quot;invalid or out-of-range datetime&quot;</span>)
     }
 
@@ -2659,8 +2659,8 @@
         <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">days</span>
             .<span class="ident">to_i32</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">days</span><span class="op">|</span> <span class="ident">days</span>.<span class="ident">checked_add</span>(<span class="number">719_163</span>))
-            .<span class="ident">and_then</span>(<span class="ident">NaiveDate</span>::<span class="ident">from_num_days_from_ce_opt</span>);
-        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">NaiveTime</span>::<span class="ident">from_num_seconds_from_midnight_opt</span>(<span class="ident">secs</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">nsecs</span>);
+            .<span class="ident">and_then</span>(<span class="ident">NaiveDate::from_num_days_from_ce_opt</span>);
+        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">NaiveTime::from_num_seconds_from_midnight_opt</span>(<span class="ident">secs</span> <span class="kw">as</span> <span class="ident">u32</span>, <span class="ident">nsecs</span>);
         <span class="kw">match</span> (<span class="ident">date</span>, <span class="ident">time</span>) {
             (<span class="prelude-val">Some</span>(<span class="ident">date</span>), <span class="prelude-val">Some</span>(<span class="ident">time</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">NaiveDateTime</span> { <span class="ident">date</span>: <span class="ident">date</span>, <span class="ident">time</span>: <span class="ident">time</span> }),
             (<span class="kw">_</span>, <span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
@@ -2729,8 +2729,8 @@
     <span class="doccomment">/// assert!(parse_from_str(&quot;1970-01-01 00:00:00 = UNIX timestamp 1&quot;, fmt).is_err());</span>
     <span class="doccomment">/// ~~~~</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="ident">Parsed</span>::<span class="ident">new</span>();
-        <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">parsed</span>, <span class="ident">s</span>, <span class="ident">StrftimeItems</span>::<span class="ident">new</span>(<span class="ident">fmt</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="ident">Parsed::new</span>();
+        <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">parsed</span>, <span class="ident">s</span>, <span class="ident">StrftimeItems::new</span>(<span class="ident">fmt</span>))<span class="question-mark">?</span>;
         <span class="ident">parsed</span>.<span class="ident">to_naive_datetime_with_offset</span>(<span class="number">0</span>) <span class="comment">// no offset adjustment</span>
     }
 
@@ -2789,8 +2789,8 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">timestamp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i64</span> {
         <span class="kw">const</span> <span class="ident">UNIX_EPOCH_DAY</span>: <span class="ident">i64</span> <span class="op">=</span> <span class="number">719_163</span>;
-        <span class="kw">let</span> <span class="ident">gregorian_day</span> <span class="op">=</span> <span class="ident">i64</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">date</span>.<span class="ident">num_days_from_ce</span>());
-        <span class="kw">let</span> <span class="ident">seconds_from_midnight</span> <span class="op">=</span> <span class="ident">i64</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">time</span>.<span class="ident">num_seconds_from_midnight</span>());
+        <span class="kw">let</span> <span class="ident">gregorian_day</span> <span class="op">=</span> <span class="ident">i64::from</span>(<span class="self">self</span>.<span class="ident">date</span>.<span class="ident">num_days_from_ce</span>());
+        <span class="kw">let</span> <span class="ident">seconds_from_midnight</span> <span class="op">=</span> <span class="ident">i64::from</span>(<span class="self">self</span>.<span class="ident">time</span>.<span class="ident">num_seconds_from_midnight</span>());
         (<span class="ident">gregorian_day</span> <span class="op">-</span> <span class="ident">UNIX_EPOCH_DAY</span>) <span class="op">*</span> <span class="number">86_400</span> <span class="op">+</span> <span class="ident">seconds_from_midnight</span>
     }
 
@@ -2821,7 +2821,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">timestamp_millis</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i64</span> {
         <span class="kw">let</span> <span class="ident">as_ms</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">timestamp</span>() <span class="op">*</span> <span class="number">1000</span>;
-        <span class="ident">as_ms</span> <span class="op">+</span> <span class="ident">i64</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">timestamp_subsec_millis</span>())
+        <span class="ident">as_ms</span> <span class="op">+</span> <span class="ident">i64::from</span>(<span class="self">self</span>.<span class="ident">timestamp_subsec_millis</span>())
     }
 
     <span class="doccomment">/// Returns the number of non-leap *nanoseconds* since midnight on January 1, 1970.</span>
@@ -2860,7 +2860,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">timestamp_nanos</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i64</span> {
         <span class="kw">let</span> <span class="ident">as_ns</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">timestamp</span>() <span class="op">*</span> <span class="number">1_000_000_000</span>;
-        <span class="ident">as_ns</span> <span class="op">+</span> <span class="ident">i64</span>::<span class="ident">from</span>(<span class="self">self</span>.<span class="ident">timestamp_subsec_nanos</span>())
+        <span class="ident">as_ns</span> <span class="op">+</span> <span class="ident">i64::from</span>(<span class="self">self</span>.<span class="ident">timestamp_subsec_nanos</span>())
     }
 
     <span class="doccomment">/// Returns the number of milliseconds since the last whole non-leap second.</span>
@@ -3005,7 +3005,7 @@
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="macro">try_opt</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">date</span>.<span class="ident">checked_add_signed</span>(<span class="ident">OldDuration</span>::<span class="ident">seconds</span>(<span class="ident">rhs</span>)));
+        <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="macro">try_opt!</span>(<span class="self">self</span>.<span class="ident">date</span>.<span class="ident">checked_add_signed</span>(<span class="ident">OldDuration::seconds</span>(<span class="ident">rhs</span>)));
         <span class="prelude-val">Some</span>(<span class="ident">NaiveDateTime</span> { <span class="ident">date</span>: <span class="ident">date</span>, <span class="ident">time</span>: <span class="ident">time</span> })
     }
 
@@ -3084,7 +3084,7 @@
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="macro">try_opt</span><span class="macro">!</span>(<span class="self">self</span>.<span class="ident">date</span>.<span class="ident">checked_sub_signed</span>(<span class="ident">OldDuration</span>::<span class="ident">seconds</span>(<span class="ident">rhs</span>)));
+        <span class="kw">let</span> <span class="ident">date</span> <span class="op">=</span> <span class="macro">try_opt!</span>(<span class="self">self</span>.<span class="ident">date</span>.<span class="ident">checked_sub_signed</span>(<span class="ident">OldDuration::seconds</span>(<span class="ident">rhs</span>)));
         <span class="prelude-val">Some</span>(<span class="ident">NaiveDateTime</span> { <span class="ident">date</span>: <span class="ident">date</span>, <span class="ident">time</span>: <span class="ident">time</span> })
     }
 
@@ -3168,7 +3168,7 @@
         <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">B</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span>,
         <span class="ident">B</span>: <span class="ident">Borrow</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="ident">DelayedFormat</span>::<span class="ident">new</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">date</span>), <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">time</span>), <span class="ident">items</span>)
+        <span class="ident">DelayedFormat::new</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">date</span>), <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">time</span>), <span class="ident">items</span>)
     }
 
     <span class="doccomment">/// Formats the combined date and time with the specified format string.</span>
@@ -3206,7 +3206,7 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">DelayedFormat</span><span class="op">&lt;</span><span class="ident">StrftimeItems</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">format_with_items</span>(<span class="ident">StrftimeItems</span>::<span class="ident">new</span>(<span class="ident">fmt</span>))
+        <span class="self">self</span>.<span class="ident">format_with_items</span>(<span class="ident">StrftimeItems::new</span>(<span class="ident">fmt</span>))
     }
 }
 
@@ -3700,8 +3700,8 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Practically this also takes account of fractional seconds, so it is not recommended.</span>
 <span class="doccomment">/// (For the obvious reason this also distinguishes leap seconds from non-leap seconds.)</span>
-<span class="kw">impl</span> <span class="ident">hash</span>::<span class="ident">Hash</span> <span class="kw">for</span> <span class="ident">NaiveDateTime</span> {
-    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">hash</span>::<span class="ident">Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) {
+<span class="kw">impl</span> <span class="ident">hash::Hash</span> <span class="kw">for</span> <span class="ident">NaiveDateTime</span> {
+    <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">hash::Hasher</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">H</span>) {
         <span class="self">self</span>.<span class="ident">date</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
         <span class="self">self</span>.<span class="ident">time</span>.<span class="ident">hash</span>(<span class="ident">state</span>);
     }
@@ -3924,9 +3924,9 @@
 <span class="doccomment">/// let dt = NaiveDate::from_ymd(2015, 6, 30).and_hms_milli(23, 59, 59, 1_500);</span>
 <span class="doccomment">/// assert_eq!(format!(&quot;{:?}&quot;, dt), &quot;2015-06-30T23:59:60.500&quot;);</span>
 <span class="doccomment">/// ~~~~</span>
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">NaiveDateTime</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}T{:?}&quot;</span>, <span class="self">self</span>.<span class="ident">date</span>, <span class="self">self</span>.<span class="ident">time</span>)
+<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">NaiveDateTime</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{:?}T{:?}&quot;</span>, <span class="self">self</span>.<span class="ident">date</span>, <span class="self">self</span>.<span class="ident">time</span>)
     }
 }
 
@@ -3955,9 +3955,9 @@
 <span class="doccomment">/// let dt = NaiveDate::from_ymd(2015, 6, 30).and_hms_milli(23, 59, 59, 1_500);</span>
 <span class="doccomment">/// assert_eq!(format!(&quot;{}&quot;, dt), &quot;2015-06-30 23:59:60.500&quot;);</span>
 <span class="doccomment">/// ~~~~</span>
-<span class="kw">impl</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">NaiveDateTime</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-        <span class="macro">write</span><span class="macro">!</span>(<span class="ident">f</span>, <span class="string">&quot;{} {}&quot;</span>, <span class="self">self</span>.<span class="ident">date</span>, <span class="self">self</span>.<span class="ident">time</span>)
+<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">NaiveDateTime</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{} {}&quot;</span>, <span class="self">self</span>.<span class="ident">date</span>, <span class="self">self</span>.<span class="ident">time</span>)
     }
 }
 
@@ -3977,32 +3977,32 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// assert!(&quot;foo&quot;.parse::&lt;NaiveDateTime&gt;().is_err());</span>
 <span class="doccomment">/// ~~~~</span>
-<span class="kw">impl</span> <span class="ident">str</span>::<span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">NaiveDateTime</span> {
+<span class="kw">impl</span> <span class="ident">str::FromStr</span> <span class="kw">for</span> <span class="ident">NaiveDateTime</span> {
     <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">ParseError</span>;
 
     <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span> {
         <span class="kw">const</span> <span class="ident">ITEMS</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">Item</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[
-            <span class="ident">Item</span>::<span class="ident">Numeric</span>(<span class="ident">Numeric</span>::<span class="ident">Year</span>, <span class="ident">Pad</span>::<span class="ident">Zero</span>),
-            <span class="ident">Item</span>::<span class="ident">Space</span>(<span class="string">&quot;&quot;</span>),
-            <span class="ident">Item</span>::<span class="ident">Literal</span>(<span class="string">&quot;-&quot;</span>),
-            <span class="ident">Item</span>::<span class="ident">Numeric</span>(<span class="ident">Numeric</span>::<span class="ident">Month</span>, <span class="ident">Pad</span>::<span class="ident">Zero</span>),
-            <span class="ident">Item</span>::<span class="ident">Space</span>(<span class="string">&quot;&quot;</span>),
-            <span class="ident">Item</span>::<span class="ident">Literal</span>(<span class="string">&quot;-&quot;</span>),
-            <span class="ident">Item</span>::<span class="ident">Numeric</span>(<span class="ident">Numeric</span>::<span class="ident">Day</span>, <span class="ident">Pad</span>::<span class="ident">Zero</span>),
-            <span class="ident">Item</span>::<span class="ident">Space</span>(<span class="string">&quot;&quot;</span>),
-            <span class="ident">Item</span>::<span class="ident">Literal</span>(<span class="string">&quot;T&quot;</span>), <span class="comment">// XXX shouldn&#39;t this be case-insensitive?</span>
-            <span class="ident">Item</span>::<span class="ident">Numeric</span>(<span class="ident">Numeric</span>::<span class="ident">Hour</span>, <span class="ident">Pad</span>::<span class="ident">Zero</span>),
-            <span class="ident">Item</span>::<span class="ident">Space</span>(<span class="string">&quot;&quot;</span>),
-            <span class="ident">Item</span>::<span class="ident">Literal</span>(<span class="string">&quot;:&quot;</span>),
-            <span class="ident">Item</span>::<span class="ident">Numeric</span>(<span class="ident">Numeric</span>::<span class="ident">Minute</span>, <span class="ident">Pad</span>::<span class="ident">Zero</span>),
-            <span class="ident">Item</span>::<span class="ident">Space</span>(<span class="string">&quot;&quot;</span>),
-            <span class="ident">Item</span>::<span class="ident">Literal</span>(<span class="string">&quot;:&quot;</span>),
-            <span class="ident">Item</span>::<span class="ident">Numeric</span>(<span class="ident">Numeric</span>::<span class="ident">Second</span>, <span class="ident">Pad</span>::<span class="ident">Zero</span>),
-            <span class="ident">Item</span>::<span class="ident">Fixed</span>(<span class="ident">Fixed</span>::<span class="ident">Nanosecond</span>),
-            <span class="ident">Item</span>::<span class="ident">Space</span>(<span class="string">&quot;&quot;</span>),
+            <span class="ident">Item::Numeric</span>(<span class="ident">Numeric::Year</span>, <span class="ident">Pad::Zero</span>),
+            <span class="ident">Item::Space</span>(<span class="string">&quot;&quot;</span>),
+            <span class="ident">Item::Literal</span>(<span class="string">&quot;-&quot;</span>),
+            <span class="ident">Item::Numeric</span>(<span class="ident">Numeric::Month</span>, <span class="ident">Pad::Zero</span>),
+            <span class="ident">Item::Space</span>(<span class="string">&quot;&quot;</span>),
+            <span class="ident">Item::Literal</span>(<span class="string">&quot;-&quot;</span>),
+            <span class="ident">Item::Numeric</span>(<span class="ident">Numeric::Day</span>, <span class="ident">Pad::Zero</span>),
+            <span class="ident">Item::Space</span>(<span class="string">&quot;&quot;</span>),
+            <span class="ident">Item::Literal</span>(<span class="string">&quot;T&quot;</span>), <span class="comment">// XXX shouldn&#39;t this be case-insensitive?</span>
+            <span class="ident">Item::Numeric</span>(<span class="ident">Numeric::Hour</span>, <span class="ident">Pad::Zero</span>),
+            <span class="ident">Item::Space</span>(<span class="string">&quot;&quot;</span>),
+            <span class="ident">Item::Literal</span>(<span class="string">&quot;:&quot;</span>),
+            <span class="ident">Item::Numeric</span>(<span class="ident">Numeric::Minute</span>, <span class="ident">Pad::Zero</span>),
+            <span class="ident">Item::Space</span>(<span class="string">&quot;&quot;</span>),
+            <span class="ident">Item::Literal</span>(<span class="string">&quot;:&quot;</span>),
+            <span class="ident">Item::Numeric</span>(<span class="ident">Numeric::Second</span>, <span class="ident">Pad::Zero</span>),
+            <span class="ident">Item::Fixed</span>(<span class="ident">Fixed::Nanosecond</span>),
+            <span class="ident">Item::Space</span>(<span class="string">&quot;&quot;</span>),
         ];
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="ident">Parsed</span>::<span class="ident">new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parsed</span> <span class="op">=</span> <span class="ident">Parsed::new</span>();
         <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">parsed</span>, <span class="ident">s</span>, <span class="ident">ITEMS</span>.<span class="ident">iter</span>())<span class="question-mark">?</span>;
         <span class="ident">parsed</span>.<span class="ident">to_naive_datetime_with_offset</span>(<span class="number">0</span>)
     }
@@ -4012,31 +4012,31 @@
 <span class="kw">fn</span> <span class="ident">test_encodable_json</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">to_string</span>: <span class="ident">F</span>)
 <span class="kw">where</span>
     <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">NaiveDateTime</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: ::<span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>,
+    <span class="ident">E</span>: <span class="ident">::std::fmt::Debug</span>,
 {
     <span class="kw">use</span> <span class="ident">naive</span>::{<span class="ident">MAX_DATE</span>, <span class="ident">MIN_DATE</span>};
 
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
-        <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="number">2016</span>, <span class="number">7</span>, <span class="number">8</span>).<span class="ident">and_hms_milli</span>(<span class="number">9</span>, <span class="number">10</span>, <span class="number">48</span>, <span class="number">90</span>)).<span class="ident">ok</span>(),
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">NaiveDate::from_ymd</span>(<span class="number">2016</span>, <span class="number">7</span>, <span class="number">8</span>).<span class="ident">and_hms_milli</span>(<span class="number">9</span>, <span class="number">10</span>, <span class="number">48</span>, <span class="number">90</span>)).<span class="ident">ok</span>(),
         <span class="prelude-val">Some</span>(<span class="string">r#&quot;&quot;2016-07-08T09:10:48.090&quot;&quot;#</span>.<span class="ident">into</span>())
     );
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
-        <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="number">2014</span>, <span class="number">7</span>, <span class="number">24</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">6</span>)).<span class="ident">ok</span>(),
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">NaiveDate::from_ymd</span>(<span class="number">2014</span>, <span class="number">7</span>, <span class="number">24</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">6</span>)).<span class="ident">ok</span>(),
         <span class="prelude-val">Some</span>(<span class="string">r#&quot;&quot;2014-07-24T12:34:06&quot;&quot;#</span>.<span class="ident">into</span>())
     );
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
-        <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">and_hms_milli</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">59</span>, <span class="number">1_000</span>)).<span class="ident">ok</span>(),
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">NaiveDate::from_ymd</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">and_hms_milli</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">59</span>, <span class="number">1_000</span>)).<span class="ident">ok</span>(),
         <span class="prelude-val">Some</span>(<span class="string">r#&quot;&quot;0000-01-01T00:00:60&quot;&quot;#</span>.<span class="ident">into</span>())
     );
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
-        <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="op">-</span><span class="number">1</span>, <span class="number">12</span>, <span class="number">31</span>).<span class="ident">and_hms_nano</span>(<span class="number">23</span>, <span class="number">59</span>, <span class="number">59</span>, <span class="number">7</span>)).<span class="ident">ok</span>(),
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">NaiveDate::from_ymd</span>(<span class="op">-</span><span class="number">1</span>, <span class="number">12</span>, <span class="number">31</span>).<span class="ident">and_hms_nano</span>(<span class="number">23</span>, <span class="number">59</span>, <span class="number">59</span>, <span class="number">7</span>)).<span class="ident">ok</span>(),
         <span class="prelude-val">Some</span>(<span class="string">r#&quot;&quot;-0001-12-31T23:59:59.000000007&quot;&quot;#</span>.<span class="ident">into</span>())
     );
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
+    <span class="macro">assert_eq!</span>(
         <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">MIN_DATE</span>.<span class="ident">and_hms</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)).<span class="ident">ok</span>(),
         <span class="prelude-val">Some</span>(<span class="string">r#&quot;&quot;-262144-01-01T00:00:00&quot;&quot;#</span>.<span class="ident">into</span>())
     );
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
+    <span class="macro">assert_eq!</span>(
         <span class="ident">to_string</span>(<span class="kw-2">&amp;</span><span class="ident">MAX_DATE</span>.<span class="ident">and_hms_nano</span>(<span class="number">23</span>, <span class="number">59</span>, <span class="number">59</span>, <span class="number">1_999_999_999</span>)).<span class="ident">ok</span>(),
         <span class="prelude-val">Some</span>(<span class="string">r#&quot;&quot;+262143-12-31T23:59:60.999999999&quot;&quot;#</span>.<span class="ident">into</span>())
     );
@@ -4046,98 +4046,98 @@
 <span class="kw">fn</span> <span class="ident">test_decodable_json</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">from_str</span>: <span class="ident">F</span>)
 <span class="kw">where</span>
     <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: ::<span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>,
+    <span class="ident">E</span>: <span class="ident">::std::fmt::Debug</span>,
 {
     <span class="kw">use</span> <span class="ident">naive</span>::{<span class="ident">MAX_DATE</span>, <span class="ident">MIN_DATE</span>};
 
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
+    <span class="macro">assert_eq!</span>(
         <span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2016-07-08T09:10:48.090&quot;&quot;#</span>).<span class="ident">ok</span>(),
-        <span class="prelude-val">Some</span>(<span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="number">2016</span>, <span class="number">7</span>, <span class="number">8</span>).<span class="ident">and_hms_milli</span>(<span class="number">9</span>, <span class="number">10</span>, <span class="number">48</span>, <span class="number">90</span>))
+        <span class="prelude-val">Some</span>(<span class="ident">NaiveDate::from_ymd</span>(<span class="number">2016</span>, <span class="number">7</span>, <span class="number">8</span>).<span class="ident">and_hms_milli</span>(<span class="number">9</span>, <span class="number">10</span>, <span class="number">48</span>, <span class="number">90</span>))
     );
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
+    <span class="macro">assert_eq!</span>(
         <span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2016-7-8T9:10:48.09&quot;&quot;#</span>).<span class="ident">ok</span>(),
-        <span class="prelude-val">Some</span>(<span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="number">2016</span>, <span class="number">7</span>, <span class="number">8</span>).<span class="ident">and_hms_milli</span>(<span class="number">9</span>, <span class="number">10</span>, <span class="number">48</span>, <span class="number">90</span>))
+        <span class="prelude-val">Some</span>(<span class="ident">NaiveDate::from_ymd</span>(<span class="number">2016</span>, <span class="number">7</span>, <span class="number">8</span>).<span class="ident">and_hms_milli</span>(<span class="number">9</span>, <span class="number">10</span>, <span class="number">48</span>, <span class="number">90</span>))
     );
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
+    <span class="macro">assert_eq!</span>(
         <span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2014-07-24T12:34:06&quot;&quot;#</span>).<span class="ident">ok</span>(),
-        <span class="prelude-val">Some</span>(<span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="number">2014</span>, <span class="number">7</span>, <span class="number">24</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">6</span>))
+        <span class="prelude-val">Some</span>(<span class="ident">NaiveDate::from_ymd</span>(<span class="number">2014</span>, <span class="number">7</span>, <span class="number">24</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">6</span>))
     );
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
+    <span class="macro">assert_eq!</span>(
         <span class="ident">from_str</span>(<span class="string">r#&quot;&quot;0000-01-01T00:00:60&quot;&quot;#</span>).<span class="ident">ok</span>(),
-        <span class="prelude-val">Some</span>(<span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">and_hms_milli</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">59</span>, <span class="number">1_000</span>))
+        <span class="prelude-val">Some</span>(<span class="ident">NaiveDate::from_ymd</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">and_hms_milli</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">59</span>, <span class="number">1_000</span>))
     );
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
+    <span class="macro">assert_eq!</span>(
         <span class="ident">from_str</span>(<span class="string">r#&quot;&quot;0-1-1T0:0:60&quot;&quot;#</span>).<span class="ident">ok</span>(),
-        <span class="prelude-val">Some</span>(<span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">and_hms_milli</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">59</span>, <span class="number">1_000</span>))
+        <span class="prelude-val">Some</span>(<span class="ident">NaiveDate::from_ymd</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">and_hms_milli</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">59</span>, <span class="number">1_000</span>))
     );
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
+    <span class="macro">assert_eq!</span>(
         <span class="ident">from_str</span>(<span class="string">r#&quot;&quot;-0001-12-31T23:59:59.000000007&quot;&quot;#</span>).<span class="ident">ok</span>(),
-        <span class="prelude-val">Some</span>(<span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="op">-</span><span class="number">1</span>, <span class="number">12</span>, <span class="number">31</span>).<span class="ident">and_hms_nano</span>(<span class="number">23</span>, <span class="number">59</span>, <span class="number">59</span>, <span class="number">7</span>))
+        <span class="prelude-val">Some</span>(<span class="ident">NaiveDate::from_ymd</span>(<span class="op">-</span><span class="number">1</span>, <span class="number">12</span>, <span class="number">31</span>).<span class="ident">and_hms_nano</span>(<span class="number">23</span>, <span class="number">59</span>, <span class="number">59</span>, <span class="number">7</span>))
     );
-    <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;-262144-01-01T00:00:00&quot;&quot;#</span>).<span class="ident">ok</span>(), <span class="prelude-val">Some</span>(<span class="ident">MIN_DATE</span>.<span class="ident">and_hms</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)));
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
+    <span class="macro">assert_eq!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;-262144-01-01T00:00:00&quot;&quot;#</span>).<span class="ident">ok</span>(), <span class="prelude-val">Some</span>(<span class="ident">MIN_DATE</span>.<span class="ident">and_hms</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)));
+    <span class="macro">assert_eq!</span>(
         <span class="ident">from_str</span>(<span class="string">r#&quot;&quot;+262143-12-31T23:59:60.999999999&quot;&quot;#</span>).<span class="ident">ok</span>(),
         <span class="prelude-val">Some</span>(<span class="ident">MAX_DATE</span>.<span class="ident">and_hms_nano</span>(<span class="number">23</span>, <span class="number">59</span>, <span class="number">59</span>, <span class="number">1_999_999_999</span>))
     );
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
+    <span class="macro">assert_eq!</span>(
         <span class="ident">from_str</span>(<span class="string">r#&quot;&quot;+262143-12-31T23:59:60.9999999999997&quot;&quot;#</span>).<span class="ident">ok</span>(), <span class="comment">// excess digits are ignored</span>
         <span class="prelude-val">Some</span>(<span class="ident">MAX_DATE</span>.<span class="ident">and_hms_nano</span>(<span class="number">23</span>, <span class="number">59</span>, <span class="number">59</span>, <span class="number">1_999_999_999</span>))
     );
 
     <span class="comment">// bad formats</span>
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;&quot;&quot;#</span>).<span class="ident">is_err</span>());
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2016-07-08&quot;&quot;#</span>).<span class="ident">is_err</span>());
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;09:10:48.090&quot;&quot;#</span>).<span class="ident">is_err</span>());
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;20160708T091048.090&quot;&quot;#</span>).<span class="ident">is_err</span>());
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2000-00-00T00:00:00&quot;&quot;#</span>).<span class="ident">is_err</span>());
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2000-02-30T00:00:00&quot;&quot;#</span>).<span class="ident">is_err</span>());
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2001-02-29T00:00:00&quot;&quot;#</span>).<span class="ident">is_err</span>());
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2002-02-28T24:00:00&quot;&quot;#</span>).<span class="ident">is_err</span>());
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2002-02-28T23:60:00&quot;&quot;#</span>).<span class="ident">is_err</span>());
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2002-02-28T23:59:61&quot;&quot;#</span>).<span class="ident">is_err</span>());
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2016-07-08T09:10:48,090&quot;&quot;#</span>).<span class="ident">is_err</span>());
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2016-07-08 09:10:48.090&quot;&quot;#</span>).<span class="ident">is_err</span>());
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2016-007-08T09:10:48.090&quot;&quot;#</span>).<span class="ident">is_err</span>());
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;yyyy-mm-ddThh:mm:ss.fffffffff&quot;&quot;#</span>).<span class="ident">is_err</span>());
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;20160708000000&quot;#</span>).<span class="ident">is_err</span>());
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;{}&quot;#</span>).<span class="ident">is_err</span>());
+    <span class="macro">assert!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;&quot;&quot;#</span>).<span class="ident">is_err</span>());
+    <span class="macro">assert!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2016-07-08&quot;&quot;#</span>).<span class="ident">is_err</span>());
+    <span class="macro">assert!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;09:10:48.090&quot;&quot;#</span>).<span class="ident">is_err</span>());
+    <span class="macro">assert!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;20160708T091048.090&quot;&quot;#</span>).<span class="ident">is_err</span>());
+    <span class="macro">assert!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2000-00-00T00:00:00&quot;&quot;#</span>).<span class="ident">is_err</span>());
+    <span class="macro">assert!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2000-02-30T00:00:00&quot;&quot;#</span>).<span class="ident">is_err</span>());
+    <span class="macro">assert!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2001-02-29T00:00:00&quot;&quot;#</span>).<span class="ident">is_err</span>());
+    <span class="macro">assert!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2002-02-28T24:00:00&quot;&quot;#</span>).<span class="ident">is_err</span>());
+    <span class="macro">assert!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2002-02-28T23:60:00&quot;&quot;#</span>).<span class="ident">is_err</span>());
+    <span class="macro">assert!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2002-02-28T23:59:61&quot;&quot;#</span>).<span class="ident">is_err</span>());
+    <span class="macro">assert!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2016-07-08T09:10:48,090&quot;&quot;#</span>).<span class="ident">is_err</span>());
+    <span class="macro">assert!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2016-07-08 09:10:48.090&quot;&quot;#</span>).<span class="ident">is_err</span>());
+    <span class="macro">assert!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;2016-007-08T09:10:48.090&quot;&quot;#</span>).<span class="ident">is_err</span>());
+    <span class="macro">assert!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;&quot;yyyy-mm-ddThh:mm:ss.fffffffff&quot;&quot;#</span>).<span class="ident">is_err</span>());
+    <span class="macro">assert!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;20160708000000&quot;#</span>).<span class="ident">is_err</span>());
+    <span class="macro">assert!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;{}&quot;#</span>).<span class="ident">is_err</span>());
     <span class="comment">// pre-0.3.0 rustc-serialize format is now invalid</span>
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;{&quot;date&quot;:{&quot;ymdf&quot;:20},&quot;time&quot;:{&quot;secs&quot;:0,&quot;frac&quot;:0}}&quot;#</span>).<span class="ident">is_err</span>());
-    <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;null&quot;#</span>).<span class="ident">is_err</span>());
+    <span class="macro">assert!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;{&quot;date&quot;:{&quot;ymdf&quot;:20},&quot;time&quot;:{&quot;secs&quot;:0,&quot;frac&quot;:0}}&quot;#</span>).<span class="ident">is_err</span>());
+    <span class="macro">assert!</span>(<span class="ident">from_str</span>(<span class="string">r#&quot;null&quot;#</span>).<span class="ident">is_err</span>());
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">test</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustc-serialize&quot;</span>))]</span>
 <span class="kw">fn</span> <span class="ident">test_decodable_json_timestamp</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">from_str</span>: <span class="ident">F</span>)
 <span class="kw">where</span>
-    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">rustc_serialize</span>::<span class="ident">TsSeconds</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-    <span class="ident">E</span>: ::<span class="ident">std</span>::<span class="ident">fmt</span>::<span class="ident">Debug</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">rustc_serialize::TsSeconds</span>, <span class="ident">E</span><span class="op">&gt;</span>,
+    <span class="ident">E</span>: <span class="ident">::std::fmt::Debug</span>,
 {
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
+    <span class="macro">assert_eq!</span>(
         <span class="kw-2">*</span><span class="ident">from_str</span>(<span class="string">&quot;0&quot;</span>).<span class="ident">unwrap</span>(),
-        <span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">and_hms</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>),
+        <span class="ident">NaiveDate::from_ymd</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">and_hms</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>),
         <span class="string">&quot;should parse integers as timestamps&quot;</span>
     );
-    <span class="macro">assert_eq</span><span class="macro">!</span>(
+    <span class="macro">assert_eq!</span>(
         <span class="kw-2">*</span><span class="ident">from_str</span>(<span class="string">&quot;-1&quot;</span>).<span class="ident">unwrap</span>(),
-        <span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="number">1969</span>, <span class="number">12</span>, <span class="number">31</span>).<span class="ident">and_hms</span>(<span class="number">23</span>, <span class="number">59</span>, <span class="number">59</span>),
+        <span class="ident">NaiveDate::from_ymd</span>(<span class="number">1969</span>, <span class="number">12</span>, <span class="number">31</span>).<span class="ident">and_hms</span>(<span class="number">23</span>, <span class="number">59</span>, <span class="number">59</span>),
         <span class="string">&quot;should parse integers as timestamps&quot;</span>
     );
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustc-serialize&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">rustc_serialize</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">NaiveDateTime</span>;
+    <span class="kw">use</span> <span class="kw">super</span><span class="ident">::NaiveDateTime</span>;
     <span class="kw">use</span> <span class="ident">rustc_serialize</span>::{<span class="ident">Decodable</span>, <span class="ident">Decoder</span>, <span class="ident">Encodable</span>, <span class="ident">Encoder</span>};
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">ops</span>::<span class="ident">Deref</span>;
+    <span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
 
     <span class="kw">impl</span> <span class="ident">Encodable</span> <span class="kw">for</span> <span class="ident">NaiveDateTime</span> {
-        <span class="kw">fn</span> <span class="ident">encode</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Encoder</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">S</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
-            <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>).<span class="ident">encode</span>(<span class="ident">s</span>)
+        <span class="kw">fn</span> <span class="ident">encode</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Encoder</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">S::Error</span><span class="op">&gt;</span> {
+            <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="self">self</span>).<span class="ident">encode</span>(<span class="ident">s</span>)
         }
     }
 
     <span class="kw">impl</span> <span class="ident">Decodable</span> <span class="kw">for</span> <span class="ident">NaiveDateTime</span> {
-        <span class="kw">fn</span> <span class="ident">decode</span><span class="op">&lt;</span><span class="ident">D</span>: <span class="ident">Decoder</span><span class="op">&gt;</span>(<span class="ident">d</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span>, <span class="ident">D</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">decode</span><span class="op">&lt;</span><span class="ident">D</span>: <span class="ident">Decoder</span><span class="op">&gt;</span>(<span class="ident">d</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span>, <span class="ident">D::Error</span><span class="op">&gt;</span> {
             <span class="ident">d</span>.<span class="ident">read_str</span>()<span class="question-mark">?</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">d</span>.<span class="ident">error</span>(<span class="string">&quot;invalid date time string&quot;</span>))
         }
     }
@@ -4164,7 +4164,7 @@
         <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">NaiveDateTime</span>;
 
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span>::<span class="ident">Target</span> {
+        <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="self">Self</span><span class="ident">::Target</span> {
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>
         }
     }
@@ -4172,55 +4172,55 @@
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
     <span class="kw">impl</span> <span class="ident">Decodable</span> <span class="kw">for</span> <span class="ident">TsSeconds</span> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">decode</span><span class="op">&lt;</span><span class="ident">D</span>: <span class="ident">Decoder</span><span class="op">&gt;</span>(<span class="ident">d</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TsSeconds</span>, <span class="ident">D</span>::<span class="ident">Error</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">decode</span><span class="op">&lt;</span><span class="ident">D</span>: <span class="ident">Decoder</span><span class="op">&gt;</span>(<span class="ident">d</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TsSeconds</span>, <span class="ident">D::Error</span><span class="op">&gt;</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">TsSeconds</span>(
-                <span class="ident">NaiveDateTime</span>::<span class="ident">from_timestamp_opt</span>(<span class="ident">d</span>.<span class="ident">read_i64</span>()<span class="question-mark">?</span>, <span class="number">0</span>)
+                <span class="ident">NaiveDateTime::from_timestamp_opt</span>(<span class="ident">d</span>.<span class="ident">read_i64</span>()<span class="question-mark">?</span>, <span class="number">0</span>)
                     .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">d</span>.<span class="ident">error</span>(<span class="string">&quot;invalid timestamp&quot;</span>))<span class="question-mark">?</span>,
             ))
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-    <span class="kw">use</span> <span class="ident">rustc_serialize</span>::<span class="ident">json</span>;
+    <span class="kw">use</span> <span class="ident">rustc_serialize::json</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_encodable</span>() {
-        <span class="kw">super</span>::<span class="ident">test_encodable_json</span>(<span class="ident">json</span>::<span class="ident">encode</span>);
+        <span class="kw">super</span><span class="ident">::test_encodable_json</span>(<span class="ident">json::encode</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_decodable</span>() {
-        <span class="kw">super</span>::<span class="ident">test_decodable_json</span>(<span class="ident">json</span>::<span class="ident">decode</span>);
+        <span class="kw">super</span><span class="ident">::test_decodable_json</span>(<span class="ident">json::decode</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_decodable_timestamps</span>() {
-        <span class="kw">super</span>::<span class="ident">test_decodable_json_timestamp</span>(<span class="ident">json</span>::<span class="ident">decode</span>);
+        <span class="kw">super</span><span class="ident">::test_decodable_json_timestamp</span>(<span class="ident">json::decode</span>);
     }
 }
 
 <span class="doccomment">/// Tools to help serializing/deserializing `NaiveDateTime`s</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">serde</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">NaiveDateTime</span>;
-    <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
+    <span class="kw">use</span> <span class="kw">super</span><span class="ident">::NaiveDateTime</span>;
+    <span class="kw">use</span> <span class="ident">core::fmt</span>;
     <span class="kw">use</span> <span class="ident">serdelib</span>::{<span class="ident">de</span>, <span class="ident">ser</span>};
 
     <span class="doccomment">/// Serialize a `NaiveDateTime` as an RFC 3339 string</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See [the `serde` module](./serde/index.html) for alternate</span>
     <span class="doccomment">/// serialization formats.</span>
-    <span class="kw">impl</span> <span class="ident">ser</span>::<span class="ident">Serialize</span> <span class="kw">for</span> <span class="ident">NaiveDateTime</span> {
-        <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="prelude-val">Ok</span>, <span class="ident">S</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">impl</span> <span class="ident">ser::Serialize</span> <span class="kw">for</span> <span class="ident">NaiveDateTime</span> {
+        <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
-            <span class="ident">S</span>: <span class="ident">ser</span>::<span class="ident">Serializer</span>,
+            <span class="ident">S</span>: <span class="ident">ser::Serializer</span>,
         {
             <span class="kw">struct</span> <span class="ident">FormatWrapped</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">D</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
                 <span class="ident">inner</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">D</span>,
             }
 
-            <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">D</span>: <span class="ident">fmt</span>::<span class="ident">Debug</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="ident">Display</span> <span class="kw">for</span> <span class="ident">FormatWrapped</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">D</span><span class="op">&gt;</span> {
-                <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+            <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">D</span>: <span class="ident">fmt::Debug</span><span class="op">&gt;</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">FormatWrapped</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">D</span><span class="op">&gt;</span> {
+                <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
                     <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
                 }
             }
@@ -4231,25 +4231,25 @@
 
     <span class="kw">struct</span> <span class="ident">NaiveDateTimeVisitor</span>;
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de</span>::<span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NaiveDateTimeVisitor</span> {
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NaiveDateTimeVisitor</span> {
         <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">NaiveDateTime</span>;
 
-        <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
-            <span class="macro">write</span><span class="macro">!</span>(<span class="ident">formatter</span>, <span class="string">&quot;a formatted date and time string&quot;</span>)
+        <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
+            <span class="macro">write!</span>(<span class="ident">formatter</span>, <span class="string">&quot;a formatted date and time string&quot;</span>)
         }
 
         <span class="kw">fn</span> <span class="ident">visit_str</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span>, <span class="ident">E</span><span class="op">&gt;</span>
         <span class="kw">where</span>
-            <span class="ident">E</span>: <span class="ident">de</span>::<span class="ident">Error</span>,
+            <span class="ident">E</span>: <span class="ident">de::Error</span>,
         {
-            <span class="ident">value</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="ident">E</span>::<span class="ident">custom</span>)
+            <span class="ident">value</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="ident">E::custom</span>)
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de</span>::<span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NaiveDateTime</span> {
-        <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NaiveDateTime</span> {
+        <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">deserializer</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
-            <span class="ident">D</span>: <span class="ident">de</span>::<span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+            <span class="ident">D</span>: <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
             <span class="ident">deserializer</span>.<span class="ident">deserialize_str</span>(<span class="ident">NaiveDateTimeVisitor</span>)
         }
@@ -4291,7 +4291,7 @@
     <span class="doccomment">/// # fn main() { example().unwrap(); }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ts_nanoseconds</span> {
-        <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
+        <span class="kw">use</span> <span class="ident">core::fmt</span>;
         <span class="kw">use</span> <span class="ident">serdelib</span>::{<span class="ident">de</span>, <span class="ident">ser</span>};
 
         <span class="kw">use</span> {<span class="ident">ne_timestamp</span>, <span class="ident">NaiveDateTime</span>};
@@ -4330,9 +4330,9 @@
         <span class="doccomment">/// # }</span>
         <span class="doccomment">/// # fn main() { example().unwrap(); }</span>
         <span class="doccomment">/// ```</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">dt</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDateTime</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="prelude-val">Ok</span>, <span class="ident">S</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">dt</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDateTime</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
-            <span class="ident">S</span>: <span class="ident">ser</span>::<span class="ident">Serializer</span>,
+            <span class="ident">S</span>: <span class="ident">ser::Serializer</span>,
         {
             <span class="ident">serializer</span>.<span class="ident">serialize_i64</span>(<span class="ident">dt</span>.<span class="ident">timestamp_nanos</span>())
         }
@@ -4367,42 +4367,42 @@
         <span class="doccomment">/// # }</span>
         <span class="doccomment">/// # fn main() { example().unwrap(); }</span>
         <span class="doccomment">/// ```</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">d</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span>, <span class="ident">D</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">d</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
-            <span class="ident">D</span>: <span class="ident">de</span>::<span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+            <span class="ident">D</span>: <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
             <span class="prelude-val">Ok</span>(<span class="ident">d</span>.<span class="ident">deserialize_i64</span>(<span class="ident">NaiveDateTimeFromNanoSecondsVisitor</span>)<span class="question-mark">?</span>)
         }
 
         <span class="kw">struct</span> <span class="ident">NaiveDateTimeFromNanoSecondsVisitor</span>;
 
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de</span>::<span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NaiveDateTimeFromNanoSecondsVisitor</span> {
+        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NaiveDateTimeFromNanoSecondsVisitor</span> {
             <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">NaiveDateTime</span>;
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
                 <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;a unix timestamp&quot;</span>)
             }
 
             <span class="kw">fn</span> <span class="ident">visit_i64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span>, <span class="ident">E</span><span class="op">&gt;</span>
             <span class="kw">where</span>
-                <span class="ident">E</span>: <span class="ident">de</span>::<span class="ident">Error</span>,
+                <span class="ident">E</span>: <span class="ident">de::Error</span>,
             {
-                <span class="ident">NaiveDateTime</span>::<span class="ident">from_timestamp_opt</span>(
+                <span class="ident">NaiveDateTime::from_timestamp_opt</span>(
                     <span class="ident">value</span> <span class="op">/</span> <span class="number">1_000_000_000</span>,
                     (<span class="ident">value</span> <span class="op">%</span> <span class="number">1_000_000_000</span>) <span class="kw">as</span> <span class="ident">u32</span>,
                 )
-                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">E</span>::<span class="ident">custom</span>(<span class="ident">ne_timestamp</span>(<span class="ident">value</span>)))
+                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">E::custom</span>(<span class="ident">ne_timestamp</span>(<span class="ident">value</span>)))
             }
 
             <span class="kw">fn</span> <span class="ident">visit_u64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span>, <span class="ident">E</span><span class="op">&gt;</span>
             <span class="kw">where</span>
-                <span class="ident">E</span>: <span class="ident">de</span>::<span class="ident">Error</span>,
+                <span class="ident">E</span>: <span class="ident">de::Error</span>,
             {
-                <span class="ident">NaiveDateTime</span>::<span class="ident">from_timestamp_opt</span>(
+                <span class="ident">NaiveDateTime::from_timestamp_opt</span>(
                     <span class="ident">value</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">/</span> <span class="number">1_000_000_000</span>,
                     (<span class="ident">value</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">%</span> <span class="number">1_000_000_000</span>) <span class="kw">as</span> <span class="ident">u32</span>,
                 )
-                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">E</span>::<span class="ident">custom</span>(<span class="ident">ne_timestamp</span>(<span class="ident">value</span>)))
+                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">E::custom</span>(<span class="ident">ne_timestamp</span>(<span class="ident">value</span>)))
             }
         }
     }
@@ -4443,7 +4443,7 @@
     <span class="doccomment">/// # fn main() { example().unwrap(); }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ts_milliseconds</span> {
-        <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
+        <span class="kw">use</span> <span class="ident">core::fmt</span>;
         <span class="kw">use</span> <span class="ident">serdelib</span>::{<span class="ident">de</span>, <span class="ident">ser</span>};
 
         <span class="kw">use</span> {<span class="ident">ne_timestamp</span>, <span class="ident">NaiveDateTime</span>};
@@ -4482,9 +4482,9 @@
         <span class="doccomment">/// # }</span>
         <span class="doccomment">/// # fn main() { example().unwrap(); }</span>
         <span class="doccomment">/// ```</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">dt</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDateTime</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="prelude-val">Ok</span>, <span class="ident">S</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">dt</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDateTime</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
-            <span class="ident">S</span>: <span class="ident">ser</span>::<span class="ident">Serializer</span>,
+            <span class="ident">S</span>: <span class="ident">ser::Serializer</span>,
         {
             <span class="ident">serializer</span>.<span class="ident">serialize_i64</span>(<span class="ident">dt</span>.<span class="ident">timestamp_millis</span>())
         }
@@ -4519,39 +4519,39 @@
         <span class="doccomment">/// # }</span>
         <span class="doccomment">/// # fn main() { example().unwrap(); }</span>
         <span class="doccomment">/// ```</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">d</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span>, <span class="ident">D</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">d</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
-            <span class="ident">D</span>: <span class="ident">de</span>::<span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+            <span class="ident">D</span>: <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
             <span class="prelude-val">Ok</span>(<span class="ident">d</span>.<span class="ident">deserialize_i64</span>(<span class="ident">NaiveDateTimeFromMilliSecondsVisitor</span>)<span class="question-mark">?</span>)
         }
 
         <span class="kw">struct</span> <span class="ident">NaiveDateTimeFromMilliSecondsVisitor</span>;
 
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de</span>::<span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NaiveDateTimeFromMilliSecondsVisitor</span> {
+        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NaiveDateTimeFromMilliSecondsVisitor</span> {
             <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">NaiveDateTime</span>;
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
                 <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;a unix timestamp&quot;</span>)
             }
 
             <span class="kw">fn</span> <span class="ident">visit_i64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span>, <span class="ident">E</span><span class="op">&gt;</span>
             <span class="kw">where</span>
-                <span class="ident">E</span>: <span class="ident">de</span>::<span class="ident">Error</span>,
+                <span class="ident">E</span>: <span class="ident">de::Error</span>,
             {
-                <span class="ident">NaiveDateTime</span>::<span class="ident">from_timestamp_opt</span>(<span class="ident">value</span> <span class="op">/</span> <span class="number">1000</span>, ((<span class="ident">value</span> <span class="op">%</span> <span class="number">1000</span>) <span class="op">*</span> <span class="number">1_000_000</span>) <span class="kw">as</span> <span class="ident">u32</span>)
-                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">E</span>::<span class="ident">custom</span>(<span class="ident">ne_timestamp</span>(<span class="ident">value</span>)))
+                <span class="ident">NaiveDateTime::from_timestamp_opt</span>(<span class="ident">value</span> <span class="op">/</span> <span class="number">1000</span>, ((<span class="ident">value</span> <span class="op">%</span> <span class="number">1000</span>) <span class="op">*</span> <span class="number">1_000_000</span>) <span class="kw">as</span> <span class="ident">u32</span>)
+                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">E::custom</span>(<span class="ident">ne_timestamp</span>(<span class="ident">value</span>)))
             }
 
             <span class="kw">fn</span> <span class="ident">visit_u64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span>, <span class="ident">E</span><span class="op">&gt;</span>
             <span class="kw">where</span>
-                <span class="ident">E</span>: <span class="ident">de</span>::<span class="ident">Error</span>,
+                <span class="ident">E</span>: <span class="ident">de::Error</span>,
             {
-                <span class="ident">NaiveDateTime</span>::<span class="ident">from_timestamp_opt</span>(
+                <span class="ident">NaiveDateTime::from_timestamp_opt</span>(
                     (<span class="ident">value</span> <span class="op">/</span> <span class="number">1000</span>) <span class="kw">as</span> <span class="ident">i64</span>,
                     ((<span class="ident">value</span> <span class="op">%</span> <span class="number">1000</span>) <span class="op">*</span> <span class="number">1_000_000</span>) <span class="kw">as</span> <span class="ident">u32</span>,
                 )
-                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">E</span>::<span class="ident">custom</span>(<span class="ident">ne_timestamp</span>(<span class="ident">value</span>)))
+                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">E::custom</span>(<span class="ident">ne_timestamp</span>(<span class="ident">value</span>)))
             }
         }
     }
@@ -4592,7 +4592,7 @@
     <span class="doccomment">/// # fn main() { example().unwrap(); }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ts_seconds</span> {
-        <span class="kw">use</span> <span class="ident">core</span>::<span class="ident">fmt</span>;
+        <span class="kw">use</span> <span class="ident">core::fmt</span>;
         <span class="kw">use</span> <span class="ident">serdelib</span>::{<span class="ident">de</span>, <span class="ident">ser</span>};
 
         <span class="kw">use</span> {<span class="ident">ne_timestamp</span>, <span class="ident">NaiveDateTime</span>};
@@ -4631,9 +4631,9 @@
         <span class="doccomment">/// # }</span>
         <span class="doccomment">/// # fn main() { example().unwrap(); }</span>
         <span class="doccomment">/// ```</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">dt</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDateTime</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span>::<span class="prelude-val">Ok</span>, <span class="ident">S</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">dt</span>: <span class="kw-2">&amp;</span><span class="ident">NaiveDateTime</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
-            <span class="ident">S</span>: <span class="ident">ser</span>::<span class="ident">Serializer</span>,
+            <span class="ident">S</span>: <span class="ident">ser::Serializer</span>,
         {
             <span class="ident">serializer</span>.<span class="ident">serialize_i64</span>(<span class="ident">dt</span>.<span class="ident">timestamp</span>())
         }
@@ -4668,36 +4668,36 @@
         <span class="doccomment">/// # }</span>
         <span class="doccomment">/// # fn main() { example().unwrap(); }</span>
         <span class="doccomment">/// ```</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">d</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span>, <span class="ident">D</span>::<span class="ident">Error</span><span class="op">&gt;</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">d</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span>, <span class="ident">D::Error</span><span class="op">&gt;</span>
         <span class="kw">where</span>
-            <span class="ident">D</span>: <span class="ident">de</span>::<span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+            <span class="ident">D</span>: <span class="ident">de::Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
         {
             <span class="prelude-val">Ok</span>(<span class="ident">d</span>.<span class="ident">deserialize_i64</span>(<span class="ident">NaiveDateTimeFromSecondsVisitor</span>)<span class="question-mark">?</span>)
         }
 
         <span class="kw">struct</span> <span class="ident">NaiveDateTimeFromSecondsVisitor</span>;
 
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de</span>::<span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NaiveDateTimeFromSecondsVisitor</span> {
+        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">NaiveDateTimeFromSecondsVisitor</span> {
             <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">NaiveDateTime</span>;
 
-            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt</span>::<span class="ident">Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt</span>::<span class="prelude-ty">Result</span> {
+            <span class="kw">fn</span> <span class="ident">expecting</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">fmt::Result</span> {
                 <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;a unix timestamp&quot;</span>)
             }
 
             <span class="kw">fn</span> <span class="ident">visit_i64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span>, <span class="ident">E</span><span class="op">&gt;</span>
             <span class="kw">where</span>
-                <span class="ident">E</span>: <span class="ident">de</span>::<span class="ident">Error</span>,
+                <span class="ident">E</span>: <span class="ident">de::Error</span>,
             {
-                <span class="ident">NaiveDateTime</span>::<span class="ident">from_timestamp_opt</span>(<span class="ident">value</span>, <span class="number">0</span>)
-                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">E</span>::<span class="ident">custom</span>(<span class="ident">ne_timestamp</span>(<span class="ident">value</span>)))
+                <span class="ident">NaiveDateTime::from_timestamp_opt</span>(<span class="ident">value</span>, <span class="number">0</span>)
+                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">E::custom</span>(<span class="ident">ne_timestamp</span>(<span class="ident">value</span>)))
             }
 
             <span class="kw">fn</span> <span class="ident">visit_u64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">value</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">NaiveDateTime</span>, <span class="ident">E</span><span class="op">&gt;</span>
             <span class="kw">where</span>
-                <span class="ident">E</span>: <span class="ident">de</span>::<span class="ident">Error</span>,
+                <span class="ident">E</span>: <span class="ident">de::Error</span>,
             {
-                <span class="ident">NaiveDateTime</span>::<span class="ident">from_timestamp_opt</span>(<span class="ident">value</span> <span class="kw">as</span> <span class="ident">i64</span>, <span class="number">0</span>)
-                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">E</span>::<span class="ident">custom</span>(<span class="ident">ne_timestamp</span>(<span class="ident">value</span>)))
+                <span class="ident">NaiveDateTime::from_timestamp_opt</span>(<span class="ident">value</span> <span class="kw">as</span> <span class="ident">i64</span>, <span class="number">0</span>)
+                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">E::custom</span>(<span class="ident">ne_timestamp</span>(<span class="ident">value</span>)))
             }
         }
     }
@@ -4711,33 +4711,33 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_serde_serialize</span>() {
-        <span class="kw">super</span>::<span class="ident">test_encodable_json</span>(<span class="self">self</span>::<span class="ident">serde_json</span>::<span class="ident">to_string</span>);
+        <span class="kw">super</span><span class="ident">::test_encodable_json</span>(<span class="self">self</span><span class="ident">::serde_json::to_string</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_serde_deserialize</span>() {
-        <span class="kw">super</span>::<span class="ident">test_decodable_json</span>(<span class="op">|</span><span class="ident">input</span><span class="op">|</span> <span class="self">self</span>::<span class="ident">serde_json</span>::<span class="ident">from_str</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>));
+        <span class="kw">super</span><span class="ident">::test_decodable_json</span>(<span class="op">|</span><span class="ident">input</span><span class="op">|</span> <span class="self">self</span><span class="ident">::serde_json::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>));
     }
 
     <span class="comment">// Bincode is relevant to test separately from JSON because</span>
     <span class="comment">// it is not self-describing.</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_serde_bincode</span>() {
-        <span class="kw">use</span> <span class="self">self</span>::<span class="ident">bincode</span>::{<span class="ident">deserialize</span>, <span class="ident">serialize</span>, <span class="ident">Infinite</span>};
-        <span class="kw">use</span> <span class="ident">naive</span>::<span class="ident">NaiveDate</span>;
+        <span class="kw">use</span> <span class="self">self</span><span class="ident">::bincode</span>::{<span class="ident">deserialize</span>, <span class="ident">serialize</span>, <span class="ident">Infinite</span>};
+        <span class="kw">use</span> <span class="ident">naive::NaiveDate</span>;
 
-        <span class="kw">let</span> <span class="ident">dt</span> <span class="op">=</span> <span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="number">2016</span>, <span class="number">7</span>, <span class="number">8</span>).<span class="ident">and_hms_milli</span>(<span class="number">9</span>, <span class="number">10</span>, <span class="number">48</span>, <span class="number">90</span>);
+        <span class="kw">let</span> <span class="ident">dt</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2016</span>, <span class="number">7</span>, <span class="number">8</span>).<span class="ident">and_hms_milli</span>(<span class="number">9</span>, <span class="number">10</span>, <span class="number">48</span>, <span class="number">90</span>);
         <span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="ident">serialize</span>(<span class="kw-2">&amp;</span><span class="ident">dt</span>, <span class="ident">Infinite</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">decoded</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">deserialize</span>(<span class="kw-2">&amp;</span><span class="ident">encoded</span>).<span class="ident">unwrap</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dt</span>, <span class="ident">decoded</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">dt</span>, <span class="ident">decoded</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_serde_bincode_optional</span>() {
-        <span class="kw">use</span> <span class="self">self</span>::<span class="ident">bincode</span>::{<span class="ident">deserialize</span>, <span class="ident">serialize</span>, <span class="ident">Infinite</span>};
-        <span class="kw">use</span> <span class="self">self</span>::<span class="ident">serde_derive</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+        <span class="kw">use</span> <span class="self">self</span><span class="ident">::bincode</span>::{<span class="ident">deserialize</span>, <span class="ident">serialize</span>, <span class="ident">Infinite</span>};
+        <span class="kw">use</span> <span class="self">self</span><span class="ident">::serde_derive</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
         <span class="kw">use</span> <span class="ident">prelude</span>::<span class="kw-2">*</span>;
-        <span class="kw">use</span> <span class="ident">serde</span>::<span class="ident">ts_nanoseconds_option</span>;
+        <span class="kw">use</span> <span class="ident">serde::ts_nanoseconds_option</span>;
 
         <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
         <span class="kw">struct</span> <span class="ident">Test</span> {
@@ -4750,29 +4750,29 @@
         <span class="kw">let</span> <span class="ident">bytes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">serialize</span>(<span class="kw-2">&amp;</span><span class="ident">expected</span>, <span class="ident">Infinite</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">deserialize</span>::<span class="op">&lt;</span><span class="ident">Test</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span>(<span class="ident">bytes</span>)).<span class="ident">unwrap</span>();
 
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">expected</span>, <span class="ident">actual</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">expected</span>, <span class="ident">actual</span>);
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
-    <span class="kw">use</span> <span class="kw">super</span>::<span class="ident">NaiveDateTime</span>;
+    <span class="kw">use</span> <span class="kw">super</span><span class="ident">::NaiveDateTime</span>;
     <span class="kw">use</span> <span class="ident">naive</span>::{<span class="ident">NaiveDate</span>, <span class="ident">MAX_DATE</span>, <span class="ident">MIN_DATE</span>};
-    <span class="kw">use</span> <span class="ident">oldtime</span>::<span class="ident">Duration</span>;
-    <span class="kw">use</span> <span class="ident">std</span>::<span class="ident">i64</span>;
+    <span class="kw">use</span> <span class="ident">oldtime::Duration</span>;
+    <span class="kw">use</span> <span class="ident">std::i64</span>;
     <span class="kw">use</span> <span class="ident">Datelike</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_datetime_from_timestamp</span>() {
-        <span class="kw">let</span> <span class="ident">from_timestamp</span> <span class="op">=</span> <span class="op">|</span><span class="ident">secs</span><span class="op">|</span> <span class="ident">NaiveDateTime</span>::<span class="ident">from_timestamp_opt</span>(<span class="ident">secs</span>, <span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">ymdhms</span> <span class="op">=</span> <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span><span class="op">|</span> <span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">from_timestamp</span>(<span class="op">-</span><span class="number">1</span>), <span class="prelude-val">Some</span>(<span class="ident">ymdhms</span>(<span class="number">1969</span>, <span class="number">12</span>, <span class="number">31</span>, <span class="number">23</span>, <span class="number">59</span>, <span class="number">59</span>)));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">from_timestamp</span>(<span class="number">0</span>), <span class="prelude-val">Some</span>(<span class="ident">ymdhms</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">from_timestamp</span>(<span class="number">1</span>), <span class="prelude-val">Some</span>(<span class="ident">ymdhms</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>)));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">from_timestamp</span>(<span class="number">1_000_000_000</span>), <span class="prelude-val">Some</span>(<span class="ident">ymdhms</span>(<span class="number">2001</span>, <span class="number">9</span>, <span class="number">9</span>, <span class="number">1</span>, <span class="number">46</span>, <span class="number">40</span>)));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">from_timestamp</span>(<span class="number">0x7fffffff</span>), <span class="prelude-val">Some</span>(<span class="ident">ymdhms</span>(<span class="number">2038</span>, <span class="number">1</span>, <span class="number">19</span>, <span class="number">3</span>, <span class="number">14</span>, <span class="number">7</span>)));
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">from_timestamp</span>(<span class="ident">i64</span>::<span class="ident">MIN</span>), <span class="prelude-val">None</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">from_timestamp</span>(<span class="ident">i64</span>::<span class="ident">MAX</span>), <span class="prelude-val">None</span>);
+        <span class="kw">let</span> <span class="ident">from_timestamp</span> <span class="op">=</span> <span class="op">|</span><span class="ident">secs</span><span class="op">|</span> <span class="ident">NaiveDateTime::from_timestamp_opt</span>(<span class="ident">secs</span>, <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">ymdhms</span> <span class="op">=</span> <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span><span class="op">|</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">from_timestamp</span>(<span class="op">-</span><span class="number">1</span>), <span class="prelude-val">Some</span>(<span class="ident">ymdhms</span>(<span class="number">1969</span>, <span class="number">12</span>, <span class="number">31</span>, <span class="number">23</span>, <span class="number">59</span>, <span class="number">59</span>)));
+        <span class="macro">assert_eq!</span>(<span class="ident">from_timestamp</span>(<span class="number">0</span>), <span class="prelude-val">Some</span>(<span class="ident">ymdhms</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)));
+        <span class="macro">assert_eq!</span>(<span class="ident">from_timestamp</span>(<span class="number">1</span>), <span class="prelude-val">Some</span>(<span class="ident">ymdhms</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>)));
+        <span class="macro">assert_eq!</span>(<span class="ident">from_timestamp</span>(<span class="number">1_000_000_000</span>), <span class="prelude-val">Some</span>(<span class="ident">ymdhms</span>(<span class="number">2001</span>, <span class="number">9</span>, <span class="number">9</span>, <span class="number">1</span>, <span class="number">46</span>, <span class="number">40</span>)));
+        <span class="macro">assert_eq!</span>(<span class="ident">from_timestamp</span>(<span class="number">0x7fffffff</span>), <span class="prelude-val">Some</span>(<span class="ident">ymdhms</span>(<span class="number">2038</span>, <span class="number">1</span>, <span class="number">19</span>, <span class="number">3</span>, <span class="number">14</span>, <span class="number">7</span>)));
+        <span class="macro">assert_eq!</span>(<span class="ident">from_timestamp</span>(<span class="ident">i64::MIN</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">from_timestamp</span>(<span class="ident">i64::MAX</span>), <span class="prelude-val">None</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4782,102 +4782,102 @@
             <span class="ident">rhs</span>: <span class="ident">Duration</span>,
             <span class="ident">result</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">i32</span>, <span class="ident">u32</span>, <span class="ident">u32</span>, <span class="ident">u32</span>, <span class="ident">u32</span>, <span class="ident">u32</span>)<span class="op">&gt;</span>,
         ) {
-            <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>);
+            <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>);
             <span class="kw">let</span> <span class="ident">sum</span> <span class="op">=</span>
-                <span class="ident">result</span>.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>)<span class="op">|</span> <span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>));
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">lhs</span>.<span class="ident">checked_add_signed</span>(<span class="ident">rhs</span>), <span class="ident">sum</span>);
-            <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">lhs</span>.<span class="ident">checked_sub_signed</span>(<span class="op">-</span><span class="ident">rhs</span>), <span class="ident">sum</span>);
+                <span class="ident">result</span>.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>)<span class="op">|</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>));
+            <span class="macro">assert_eq!</span>(<span class="ident">lhs</span>.<span class="ident">checked_add_signed</span>(<span class="ident">rhs</span>), <span class="ident">sum</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">lhs</span>.<span class="ident">checked_sub_signed</span>(<span class="op">-</span><span class="ident">rhs</span>), <span class="ident">sum</span>);
         };
 
         <span class="ident">check</span>(
             (<span class="number">2014</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>),
-            <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="number">3600</span> <span class="op">+</span> <span class="number">60</span> <span class="op">+</span> <span class="number">1</span>),
+            <span class="ident">Duration::seconds</span>(<span class="number">3600</span> <span class="op">+</span> <span class="number">60</span> <span class="op">+</span> <span class="number">1</span>),
             <span class="prelude-val">Some</span>((<span class="number">2014</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>)),
         );
         <span class="ident">check</span>(
             (<span class="number">2014</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>),
-            <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="op">-</span>(<span class="number">3600</span> <span class="op">+</span> <span class="number">60</span> <span class="op">+</span> <span class="number">1</span>)),
+            <span class="ident">Duration::seconds</span>(<span class="op">-</span>(<span class="number">3600</span> <span class="op">+</span> <span class="number">60</span> <span class="op">+</span> <span class="number">1</span>)),
             <span class="prelude-val">Some</span>((<span class="number">2014</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>)),
         );
-        <span class="ident">check</span>((<span class="number">2014</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>), <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="number">86399</span>), <span class="prelude-val">Some</span>((<span class="number">2014</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">8</span>)));
-        <span class="ident">check</span>((<span class="number">2014</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>), <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="number">86_400</span> <span class="op">*</span> <span class="number">10</span>), <span class="prelude-val">Some</span>((<span class="number">2014</span>, <span class="number">5</span>, <span class="number">16</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>)));
-        <span class="ident">check</span>((<span class="number">2014</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>), <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="op">-</span><span class="number">86_400</span> <span class="op">*</span> <span class="number">10</span>), <span class="prelude-val">Some</span>((<span class="number">2014</span>, <span class="number">4</span>, <span class="number">26</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>)));
-        <span class="ident">check</span>((<span class="number">2014</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>), <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="number">86_400</span> <span class="op">*</span> <span class="number">10</span>), <span class="prelude-val">Some</span>((<span class="number">2014</span>, <span class="number">5</span>, <span class="number">16</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>)));
+        <span class="ident">check</span>((<span class="number">2014</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>), <span class="ident">Duration::seconds</span>(<span class="number">86399</span>), <span class="prelude-val">Some</span>((<span class="number">2014</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">8</span>)));
+        <span class="ident">check</span>((<span class="number">2014</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>), <span class="ident">Duration::seconds</span>(<span class="number">86_400</span> <span class="op">*</span> <span class="number">10</span>), <span class="prelude-val">Some</span>((<span class="number">2014</span>, <span class="number">5</span>, <span class="number">16</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>)));
+        <span class="ident">check</span>((<span class="number">2014</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>), <span class="ident">Duration::seconds</span>(<span class="op">-</span><span class="number">86_400</span> <span class="op">*</span> <span class="number">10</span>), <span class="prelude-val">Some</span>((<span class="number">2014</span>, <span class="number">4</span>, <span class="number">26</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>)));
+        <span class="ident">check</span>((<span class="number">2014</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>), <span class="ident">Duration::seconds</span>(<span class="number">86_400</span> <span class="op">*</span> <span class="number">10</span>), <span class="prelude-val">Some</span>((<span class="number">2014</span>, <span class="number">5</span>, <span class="number">16</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>)));
 
         <span class="comment">// overflow check</span>
         <span class="comment">// assumes that we have correct values for MAX/MIN_DAYS_FROM_YEAR_0 from `naive::date`.</span>
         <span class="comment">// (they are private constants, but the equivalence is tested in that module.)</span>
-        <span class="kw">let</span> <span class="ident">max_days_from_year_0</span> <span class="op">=</span> <span class="ident">MAX_DATE</span>.<span class="ident">signed_duration_since</span>(<span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>));
+        <span class="kw">let</span> <span class="ident">max_days_from_year_0</span> <span class="op">=</span> <span class="ident">MAX_DATE</span>.<span class="ident">signed_duration_since</span>(<span class="ident">NaiveDate::from_ymd</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>));
         <span class="ident">check</span>((<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>), <span class="ident">max_days_from_year_0</span>, <span class="prelude-val">Some</span>((<span class="ident">MAX_DATE</span>.<span class="ident">year</span>(), <span class="number">12</span>, <span class="number">31</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)));
         <span class="ident">check</span>(
             (<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>),
-            <span class="ident">max_days_from_year_0</span> <span class="op">+</span> <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="number">86399</span>),
+            <span class="ident">max_days_from_year_0</span> <span class="op">+</span> <span class="ident">Duration::seconds</span>(<span class="number">86399</span>),
             <span class="prelude-val">Some</span>((<span class="ident">MAX_DATE</span>.<span class="ident">year</span>(), <span class="number">12</span>, <span class="number">31</span>, <span class="number">23</span>, <span class="number">59</span>, <span class="number">59</span>)),
         );
-        <span class="ident">check</span>((<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>), <span class="ident">max_days_from_year_0</span> <span class="op">+</span> <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="number">86_400</span>), <span class="prelude-val">None</span>);
-        <span class="ident">check</span>((<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>), <span class="ident">Duration</span>::<span class="ident">max_value</span>(), <span class="prelude-val">None</span>);
+        <span class="ident">check</span>((<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>), <span class="ident">max_days_from_year_0</span> <span class="op">+</span> <span class="ident">Duration::seconds</span>(<span class="number">86_400</span>), <span class="prelude-val">None</span>);
+        <span class="ident">check</span>((<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>), <span class="ident">Duration::max_value</span>(), <span class="prelude-val">None</span>);
 
-        <span class="kw">let</span> <span class="ident">min_days_from_year_0</span> <span class="op">=</span> <span class="ident">MIN_DATE</span>.<span class="ident">signed_duration_since</span>(<span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>));
+        <span class="kw">let</span> <span class="ident">min_days_from_year_0</span> <span class="op">=</span> <span class="ident">MIN_DATE</span>.<span class="ident">signed_duration_since</span>(<span class="ident">NaiveDate::from_ymd</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>));
         <span class="ident">check</span>((<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>), <span class="ident">min_days_from_year_0</span>, <span class="prelude-val">Some</span>((<span class="ident">MIN_DATE</span>.<span class="ident">year</span>(), <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)));
-        <span class="ident">check</span>((<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>), <span class="ident">min_days_from_year_0</span> <span class="op">-</span> <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="number">1</span>), <span class="prelude-val">None</span>);
-        <span class="ident">check</span>((<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>), <span class="ident">Duration</span>::<span class="ident">min_value</span>(), <span class="prelude-val">None</span>);
+        <span class="ident">check</span>((<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>), <span class="ident">min_days_from_year_0</span> <span class="op">-</span> <span class="ident">Duration::seconds</span>(<span class="number">1</span>), <span class="prelude-val">None</span>);
+        <span class="ident">check</span>((<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>), <span class="ident">Duration::min_value</span>(), <span class="prelude-val">None</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_datetime_sub</span>() {
-        <span class="kw">let</span> <span class="ident">ymdhms</span> <span class="op">=</span> <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span><span class="op">|</span> <span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>);
-        <span class="kw">let</span> <span class="ident">since</span> <span class="op">=</span> <span class="ident">NaiveDateTime</span>::<span class="ident">signed_duration_since</span>;
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="kw">let</span> <span class="ident">ymdhms</span> <span class="op">=</span> <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span><span class="op">|</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>);
+        <span class="kw">let</span> <span class="ident">since</span> <span class="op">=</span> <span class="ident">NaiveDateTime::signed_duration_since</span>;
+        <span class="macro">assert_eq!</span>(
             <span class="ident">since</span>(<span class="ident">ymdhms</span>(<span class="number">2014</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>), <span class="ident">ymdhms</span>(<span class="number">2014</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>)),
-            <span class="ident">Duration</span>::<span class="ident">zero</span>()
+            <span class="ident">Duration::zero</span>()
         );
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">since</span>(<span class="ident">ymdhms</span>(<span class="number">2014</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">10</span>), <span class="ident">ymdhms</span>(<span class="number">2014</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>)),
-            <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="number">1</span>)
+            <span class="ident">Duration::seconds</span>(<span class="number">1</span>)
         );
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">since</span>(<span class="ident">ymdhms</span>(<span class="number">2014</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>), <span class="ident">ymdhms</span>(<span class="number">2014</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">10</span>)),
-            <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="op">-</span><span class="number">1</span>)
+            <span class="ident">Duration::seconds</span>(<span class="op">-</span><span class="number">1</span>)
         );
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">since</span>(<span class="ident">ymdhms</span>(<span class="number">2014</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>), <span class="ident">ymdhms</span>(<span class="number">2014</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">10</span>)),
-            <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="number">86399</span>)
+            <span class="ident">Duration::seconds</span>(<span class="number">86399</span>)
         );
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">since</span>(<span class="ident">ymdhms</span>(<span class="number">2001</span>, <span class="number">9</span>, <span class="number">9</span>, <span class="number">1</span>, <span class="number">46</span>, <span class="number">39</span>), <span class="ident">ymdhms</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)),
-            <span class="ident">Duration</span>::<span class="ident">seconds</span>(<span class="number">999_999_999</span>)
+            <span class="ident">Duration::seconds</span>(<span class="number">999_999_999</span>)
         );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_datetime_addassignment</span>() {
-        <span class="kw">let</span> <span class="ident">ymdhms</span> <span class="op">=</span> <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span><span class="op">|</span> <span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>);
+        <span class="kw">let</span> <span class="ident">ymdhms</span> <span class="op">=</span> <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span><span class="op">|</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">ymdhms</span>(<span class="number">2016</span>, <span class="number">10</span>, <span class="number">1</span>, <span class="number">10</span>, <span class="number">10</span>, <span class="number">10</span>);
-        <span class="ident">date</span> <span class="op">+</span><span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">minutes</span>(<span class="number">10_000_000</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">date</span>, <span class="ident">ymdhms</span>(<span class="number">2035</span>, <span class="number">10</span>, <span class="number">6</span>, <span class="number">20</span>, <span class="number">50</span>, <span class="number">10</span>));
-        <span class="ident">date</span> <span class="op">+</span><span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">days</span>(<span class="number">10</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">date</span>, <span class="ident">ymdhms</span>(<span class="number">2035</span>, <span class="number">10</span>, <span class="number">16</span>, <span class="number">20</span>, <span class="number">50</span>, <span class="number">10</span>));
+        <span class="ident">date</span> <span class="op">+</span><span class="op">=</span> <span class="ident">Duration::minutes</span>(<span class="number">10_000_000</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">date</span>, <span class="ident">ymdhms</span>(<span class="number">2035</span>, <span class="number">10</span>, <span class="number">6</span>, <span class="number">20</span>, <span class="number">50</span>, <span class="number">10</span>));
+        <span class="ident">date</span> <span class="op">+</span><span class="op">=</span> <span class="ident">Duration::days</span>(<span class="number">10</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">date</span>, <span class="ident">ymdhms</span>(<span class="number">2035</span>, <span class="number">10</span>, <span class="number">16</span>, <span class="number">20</span>, <span class="number">50</span>, <span class="number">10</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_datetime_subassignment</span>() {
-        <span class="kw">let</span> <span class="ident">ymdhms</span> <span class="op">=</span> <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span><span class="op">|</span> <span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>);
+        <span class="kw">let</span> <span class="ident">ymdhms</span> <span class="op">=</span> <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span><span class="op">|</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">date</span> <span class="op">=</span> <span class="ident">ymdhms</span>(<span class="number">2016</span>, <span class="number">10</span>, <span class="number">1</span>, <span class="number">10</span>, <span class="number">10</span>, <span class="number">10</span>);
-        <span class="ident">date</span> <span class="op">-</span><span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">minutes</span>(<span class="number">10_000_000</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">date</span>, <span class="ident">ymdhms</span>(<span class="number">1997</span>, <span class="number">9</span>, <span class="number">26</span>, <span class="number">23</span>, <span class="number">30</span>, <span class="number">10</span>));
-        <span class="ident">date</span> <span class="op">-</span><span class="op">=</span> <span class="ident">Duration</span>::<span class="ident">days</span>(<span class="number">10</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">date</span>, <span class="ident">ymdhms</span>(<span class="number">1997</span>, <span class="number">9</span>, <span class="number">16</span>, <span class="number">23</span>, <span class="number">30</span>, <span class="number">10</span>));
+        <span class="ident">date</span> <span class="op">-</span><span class="op">=</span> <span class="ident">Duration::minutes</span>(<span class="number">10_000_000</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">date</span>, <span class="ident">ymdhms</span>(<span class="number">1997</span>, <span class="number">9</span>, <span class="number">26</span>, <span class="number">23</span>, <span class="number">30</span>, <span class="number">10</span>));
+        <span class="ident">date</span> <span class="op">-</span><span class="op">=</span> <span class="ident">Duration::days</span>(<span class="number">10</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">date</span>, <span class="ident">ymdhms</span>(<span class="number">1997</span>, <span class="number">9</span>, <span class="number">16</span>, <span class="number">23</span>, <span class="number">30</span>, <span class="number">10</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_datetime_timestamp</span>() {
         <span class="kw">let</span> <span class="ident">to_timestamp</span> <span class="op">=</span>
-            <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span><span class="op">|</span> <span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>).<span class="ident">timestamp</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">to_timestamp</span>(<span class="number">1969</span>, <span class="number">12</span>, <span class="number">31</span>, <span class="number">23</span>, <span class="number">59</span>, <span class="number">59</span>), <span class="op">-</span><span class="number">1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">to_timestamp</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>), <span class="number">0</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">to_timestamp</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>), <span class="number">1</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">to_timestamp</span>(<span class="number">2001</span>, <span class="number">9</span>, <span class="number">9</span>, <span class="number">1</span>, <span class="number">46</span>, <span class="number">40</span>), <span class="number">1_000_000_000</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">to_timestamp</span>(<span class="number">2038</span>, <span class="number">1</span>, <span class="number">19</span>, <span class="number">3</span>, <span class="number">14</span>, <span class="number">7</span>), <span class="number">0x7fffffff</span>);
+            <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span><span class="op">|</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>).<span class="ident">timestamp</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">to_timestamp</span>(<span class="number">1969</span>, <span class="number">12</span>, <span class="number">31</span>, <span class="number">23</span>, <span class="number">59</span>, <span class="number">59</span>), <span class="op">-</span><span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">to_timestamp</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>), <span class="number">0</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">to_timestamp</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">to_timestamp</span>(<span class="number">2001</span>, <span class="number">9</span>, <span class="number">9</span>, <span class="number">1</span>, <span class="number">46</span>, <span class="number">40</span>), <span class="number">1_000_000_000</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">to_timestamp</span>(<span class="number">2038</span>, <span class="number">1</span>, <span class="number">19</span>, <span class="number">3</span>, <span class="number">14</span>, <span class="number">7</span>), <span class="number">0x7fffffff</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -4891,17 +4891,17 @@
         <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">s</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">valid</span> {
             <span class="kw">let</span> <span class="ident">d</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">s</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>() {
                 <span class="prelude-val">Ok</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">d</span>,
-                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;parsing `{}` has failed: {}&quot;</span>, <span class="ident">s</span>, <span class="ident">e</span>),
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;parsing `{}` has failed: {}&quot;</span>, <span class="ident">s</span>, <span class="ident">e</span>),
             };
-            <span class="kw">let</span> <span class="ident">s_</span> <span class="op">=</span> <span class="macro">format</span><span class="macro">!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">d</span>);
+            <span class="kw">let</span> <span class="ident">s_</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">d</span>);
             <span class="comment">// `s` and `s_` may differ, but `s.parse()` and `s_.parse()` must be same</span>
             <span class="kw">let</span> <span class="ident">d_</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">s_</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>() {
                 <span class="prelude-val">Ok</span>(<span class="ident">d</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">d</span>,
                 <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;`{}` is parsed into `{:?}`, but reparsing that has failed: {}&quot;</span>, <span class="ident">s</span>, <span class="ident">d</span>, <span class="ident">e</span>)
+                    <span class="macro">panic!</span>(<span class="string">&quot;`{}` is parsed into `{:?}`, but reparsing that has failed: {}&quot;</span>, <span class="ident">s</span>, <span class="ident">d</span>, <span class="ident">e</span>)
                 }
             };
-            <span class="macro">assert</span><span class="macro">!</span>(
+            <span class="macro">assert!</span>(
                 <span class="ident">d</span> <span class="op">=</span><span class="op">=</span> <span class="ident">d_</span>,
                 <span class="string">&quot;`{}` is parsed into `{:?}`, but reparsed result \
                               `{:?}` does not match&quot;</span>,
@@ -4913,87 +4913,87 @@
 
         <span class="comment">// some invalid cases</span>
         <span class="comment">// since `ParseErrorKind` is private, all we can do is to check if there was an error</span>
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="string">&quot;&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="string">&quot;x&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="string">&quot;15&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="string">&quot;15:8:9&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="string">&quot;15-8-9&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="string">&quot;2015-15-15T15:15:15&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="string">&quot;2012-12-12T12:12:12x&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="string">&quot;2012-123-12T12:12:12&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="string">&quot;+ 82701-123-12T12:12:12&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="string">&quot;+802701-123-12T12:12:12&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>()); <span class="comment">// out-of-bound</span>
+        <span class="macro">assert!</span>(<span class="string">&quot;&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>());
+        <span class="macro">assert!</span>(<span class="string">&quot;x&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>());
+        <span class="macro">assert!</span>(<span class="string">&quot;15&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>());
+        <span class="macro">assert!</span>(<span class="string">&quot;15:8:9&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>());
+        <span class="macro">assert!</span>(<span class="string">&quot;15-8-9&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>());
+        <span class="macro">assert!</span>(<span class="string">&quot;2015-15-15T15:15:15&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>());
+        <span class="macro">assert!</span>(<span class="string">&quot;2012-12-12T12:12:12x&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>());
+        <span class="macro">assert!</span>(<span class="string">&quot;2012-123-12T12:12:12&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>());
+        <span class="macro">assert!</span>(<span class="string">&quot;+ 82701-123-12T12:12:12&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>());
+        <span class="macro">assert!</span>(<span class="string">&quot;+802701-123-12T12:12:12&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">NaiveDateTime</span><span class="op">&gt;</span>().<span class="ident">is_err</span>()); <span class="comment">// out-of-bound</span>
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_datetime_parse_from_str</span>() {
-        <span class="kw">let</span> <span class="ident">ymdhms</span> <span class="op">=</span> <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span><span class="op">|</span> <span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>);
+        <span class="kw">let</span> <span class="ident">ymdhms</span> <span class="op">=</span> <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span><span class="op">|</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>);
         <span class="kw">let</span> <span class="ident">ymdhmsn</span> <span class="op">=</span>
-            <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>, <span class="ident">nano</span><span class="op">|</span> <span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms_nano</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>, <span class="ident">nano</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">NaiveDateTime</span>::<span class="ident">parse_from_str</span>(<span class="string">&quot;2014-5-7T12:34:56+09:30&quot;</span>, <span class="string">&quot;%Y-%m-%dT%H:%M:%S%z&quot;</span>),
+            <span class="op">|</span><span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>, <span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>, <span class="ident">nano</span><span class="op">|</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="ident">y</span>, <span class="ident">m</span>, <span class="ident">d</span>).<span class="ident">and_hms_nano</span>(<span class="ident">h</span>, <span class="ident">n</span>, <span class="ident">s</span>, <span class="ident">nano</span>);
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">NaiveDateTime::parse_from_str</span>(<span class="string">&quot;2014-5-7T12:34:56+09:30&quot;</span>, <span class="string">&quot;%Y-%m-%dT%H:%M:%S%z&quot;</span>),
             <span class="prelude-val">Ok</span>(<span class="ident">ymdhms</span>(<span class="number">2014</span>, <span class="number">5</span>, <span class="number">7</span>, <span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>))
         ); <span class="comment">// ignore offset</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">NaiveDateTime</span>::<span class="ident">parse_from_str</span>(<span class="string">&quot;2015-W06-1 000000&quot;</span>, <span class="string">&quot;%G-W%V-%u%H%M%S&quot;</span>),
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">NaiveDateTime::parse_from_str</span>(<span class="string">&quot;2015-W06-1 000000&quot;</span>, <span class="string">&quot;%G-W%V-%u%H%M%S&quot;</span>),
             <span class="prelude-val">Ok</span>(<span class="ident">ymdhms</span>(<span class="number">2015</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>))
         );
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">NaiveDateTime</span>::<span class="ident">parse_from_str</span>(
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">NaiveDateTime::parse_from_str</span>(
                 <span class="string">&quot;Fri, 09 Aug 2013 23:54:35 GMT&quot;</span>,
                 <span class="string">&quot;%a, %d %b %Y %H:%M:%S GMT&quot;</span>
             ),
             <span class="prelude-val">Ok</span>(<span class="ident">ymdhms</span>(<span class="number">2013</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">23</span>, <span class="number">54</span>, <span class="number">35</span>))
         );
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">NaiveDateTime</span>::<span class="ident">parse_from_str</span>(
+        <span class="macro">assert!</span>(<span class="ident">NaiveDateTime::parse_from_str</span>(
             <span class="string">&quot;Sat, 09 Aug 2013 23:54:35 GMT&quot;</span>,
             <span class="string">&quot;%a, %d %b %Y %H:%M:%S GMT&quot;</span>
         )
         .<span class="ident">is_err</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">NaiveDateTime</span>::<span class="ident">parse_from_str</span>(<span class="string">&quot;2014-5-7 12:3456&quot;</span>, <span class="string">&quot;%Y-%m-%d %H:%M:%S&quot;</span>).<span class="ident">is_err</span>());
-        <span class="macro">assert</span><span class="macro">!</span>(<span class="ident">NaiveDateTime</span>::<span class="ident">parse_from_str</span>(<span class="string">&quot;12:34:56&quot;</span>, <span class="string">&quot;%H:%M:%S&quot;</span>).<span class="ident">is_err</span>()); <span class="comment">// insufficient</span>
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">NaiveDateTime</span>::<span class="ident">parse_from_str</span>(<span class="string">&quot;1441497364&quot;</span>, <span class="string">&quot;%s&quot;</span>),
+        <span class="macro">assert!</span>(<span class="ident">NaiveDateTime::parse_from_str</span>(<span class="string">&quot;2014-5-7 12:3456&quot;</span>, <span class="string">&quot;%Y-%m-%d %H:%M:%S&quot;</span>).<span class="ident">is_err</span>());
+        <span class="macro">assert!</span>(<span class="ident">NaiveDateTime::parse_from_str</span>(<span class="string">&quot;12:34:56&quot;</span>, <span class="string">&quot;%H:%M:%S&quot;</span>).<span class="ident">is_err</span>()); <span class="comment">// insufficient</span>
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">NaiveDateTime::parse_from_str</span>(<span class="string">&quot;1441497364&quot;</span>, <span class="string">&quot;%s&quot;</span>),
             <span class="prelude-val">Ok</span>(<span class="ident">ymdhms</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">5</span>, <span class="number">23</span>, <span class="number">56</span>, <span class="number">4</span>))
         );
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">NaiveDateTime</span>::<span class="ident">parse_from_str</span>(<span class="string">&quot;1283929614.1234&quot;</span>, <span class="string">&quot;%s.%f&quot;</span>),
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">NaiveDateTime::parse_from_str</span>(<span class="string">&quot;1283929614.1234&quot;</span>, <span class="string">&quot;%s.%f&quot;</span>),
             <span class="prelude-val">Ok</span>(<span class="ident">ymdhmsn</span>(<span class="number">2010</span>, <span class="number">9</span>, <span class="number">8</span>, <span class="number">7</span>, <span class="number">6</span>, <span class="number">54</span>, <span class="number">1234</span>))
         );
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">NaiveDateTime</span>::<span class="ident">parse_from_str</span>(<span class="string">&quot;1441497364.649&quot;</span>, <span class="string">&quot;%s%.3f&quot;</span>),
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">NaiveDateTime::parse_from_str</span>(<span class="string">&quot;1441497364.649&quot;</span>, <span class="string">&quot;%s%.3f&quot;</span>),
             <span class="prelude-val">Ok</span>(<span class="ident">ymdhmsn</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">5</span>, <span class="number">23</span>, <span class="number">56</span>, <span class="number">4</span>, <span class="number">649000000</span>))
         );
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">NaiveDateTime</span>::<span class="ident">parse_from_str</span>(<span class="string">&quot;1497854303.087654&quot;</span>, <span class="string">&quot;%s%.6f&quot;</span>),
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">NaiveDateTime::parse_from_str</span>(<span class="string">&quot;1497854303.087654&quot;</span>, <span class="string">&quot;%s%.6f&quot;</span>),
             <span class="prelude-val">Ok</span>(<span class="ident">ymdhmsn</span>(<span class="number">2017</span>, <span class="number">6</span>, <span class="number">19</span>, <span class="number">6</span>, <span class="number">38</span>, <span class="number">23</span>, <span class="number">87654000</span>))
         );
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
-            <span class="ident">NaiveDateTime</span>::<span class="ident">parse_from_str</span>(<span class="string">&quot;1437742189.918273645&quot;</span>, <span class="string">&quot;%s%.9f&quot;</span>),
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">NaiveDateTime::parse_from_str</span>(<span class="string">&quot;1437742189.918273645&quot;</span>, <span class="string">&quot;%s%.9f&quot;</span>),
             <span class="prelude-val">Ok</span>(<span class="ident">ymdhmsn</span>(<span class="number">2015</span>, <span class="number">7</span>, <span class="number">24</span>, <span class="number">12</span>, <span class="number">49</span>, <span class="number">49</span>, <span class="number">918273645</span>))
         );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_datetime_format</span>() {
-        <span class="kw">let</span> <span class="ident">dt</span> <span class="op">=</span> <span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="number">2010</span>, <span class="number">9</span>, <span class="number">8</span>).<span class="ident">and_hms_milli</span>(<span class="number">7</span>, <span class="number">6</span>, <span class="number">54</span>, <span class="number">321</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dt</span>.<span class="ident">format</span>(<span class="string">&quot;%c&quot;</span>).<span class="ident">to_string</span>(), <span class="string">&quot;Wed Sep  8 07:06:54 2010&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dt</span>.<span class="ident">format</span>(<span class="string">&quot;%s&quot;</span>).<span class="ident">to_string</span>(), <span class="string">&quot;1283929614&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dt</span>.<span class="ident">format</span>(<span class="string">&quot;%t%n%%%n%t&quot;</span>).<span class="ident">to_string</span>(), <span class="string">&quot;\t\n%\n\t&quot;</span>);
+        <span class="kw">let</span> <span class="ident">dt</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2010</span>, <span class="number">9</span>, <span class="number">8</span>).<span class="ident">and_hms_milli</span>(<span class="number">7</span>, <span class="number">6</span>, <span class="number">54</span>, <span class="number">321</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">dt</span>.<span class="ident">format</span>(<span class="string">&quot;%c&quot;</span>).<span class="ident">to_string</span>(), <span class="string">&quot;Wed Sep  8 07:06:54 2010&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">dt</span>.<span class="ident">format</span>(<span class="string">&quot;%s&quot;</span>).<span class="ident">to_string</span>(), <span class="string">&quot;1283929614&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">dt</span>.<span class="ident">format</span>(<span class="string">&quot;%t%n%%%n%t&quot;</span>).<span class="ident">to_string</span>(), <span class="string">&quot;\t\n%\n\t&quot;</span>);
 
         <span class="comment">// a horror of leap second: coming near to you.</span>
-        <span class="kw">let</span> <span class="ident">dt</span> <span class="op">=</span> <span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="number">2012</span>, <span class="number">6</span>, <span class="number">30</span>).<span class="ident">and_hms_milli</span>(<span class="number">23</span>, <span class="number">59</span>, <span class="number">59</span>, <span class="number">1_000</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dt</span>.<span class="ident">format</span>(<span class="string">&quot;%c&quot;</span>).<span class="ident">to_string</span>(), <span class="string">&quot;Sat Jun 30 23:59:60 2012&quot;</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">dt</span>.<span class="ident">format</span>(<span class="string">&quot;%s&quot;</span>).<span class="ident">to_string</span>(), <span class="string">&quot;1341100799&quot;</span>); <span class="comment">// not 1341100800, it&#39;s intentional.</span>
+        <span class="kw">let</span> <span class="ident">dt</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2012</span>, <span class="number">6</span>, <span class="number">30</span>).<span class="ident">and_hms_milli</span>(<span class="number">23</span>, <span class="number">59</span>, <span class="number">59</span>, <span class="number">1_000</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">dt</span>.<span class="ident">format</span>(<span class="string">&quot;%c&quot;</span>).<span class="ident">to_string</span>(), <span class="string">&quot;Sat Jun 30 23:59:60 2012&quot;</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">dt</span>.<span class="ident">format</span>(<span class="string">&quot;%s&quot;</span>).<span class="ident">to_string</span>(), <span class="string">&quot;1341100799&quot;</span>); <span class="comment">// not 1341100800, it&#39;s intentional.</span>
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_datetime_add_sub_invariant</span>() {
         <span class="comment">// issue #37</span>
-        <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="ident">NaiveDate</span>::<span class="ident">from_ymd</span>(<span class="number">2000</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">and_hms</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2000</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">and_hms</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);
         <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="op">-</span><span class="number">946684799990000</span>;
-        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">base</span> <span class="op">+</span> <span class="ident">Duration</span>::<span class="ident">microseconds</span>(<span class="ident">t</span>);
-        <span class="macro">assert_eq</span><span class="macro">!</span>(<span class="ident">t</span>, <span class="ident">time</span>.<span class="ident">signed_duration_since</span>(<span class="ident">base</span>).<span class="ident">num_microseconds</span>().<span class="ident">unwrap</span>());
+        <span class="kw">let</span> <span class="ident">time</span> <span class="op">=</span> <span class="ident">base</span> <span class="op">+</span> <span class="ident">Duration::microseconds</span>(<span class="ident">t</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">t</span>, <span class="ident">time</span>.<span class="ident">signed_duration_since</span>(<span class="ident">base</span>).<span class="ident">num_microseconds</span>().<span class="ident">unwrap</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -5002,20 +5002,20 @@
         <span class="kw">let</span> <span class="ident">maximum</span> <span class="op">=</span> <span class="string">&quot;2262-04-11T23:47:16.854775804&quot;</span>;
         <span class="kw">let</span> <span class="ident">parsed</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">maximum</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">nanos</span> <span class="op">=</span> <span class="ident">parsed</span>.<span class="ident">timestamp_nanos</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">parsed</span>,
-            <span class="ident">NaiveDateTime</span>::<span class="ident">from_timestamp</span>(<span class="ident">nanos</span> <span class="op">/</span> <span class="ident">A_BILLION</span>, (<span class="ident">nanos</span> <span class="op">%</span> <span class="ident">A_BILLION</span>) <span class="kw">as</span> <span class="ident">u32</span>)
+            <span class="ident">NaiveDateTime::from_timestamp</span>(<span class="ident">nanos</span> <span class="op">/</span> <span class="ident">A_BILLION</span>, (<span class="ident">nanos</span> <span class="op">%</span> <span class="ident">A_BILLION</span>) <span class="kw">as</span> <span class="ident">u32</span>)
         );
 
         <span class="kw">let</span> <span class="ident">minimum</span> <span class="op">=</span> <span class="string">&quot;1677-09-21T00:12:44.000000000&quot;</span>;
         <span class="kw">let</span> <span class="ident">parsed</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">minimum</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">nanos</span> <span class="op">=</span> <span class="ident">parsed</span>.<span class="ident">timestamp_nanos</span>();
-        <span class="macro">assert_eq</span><span class="macro">!</span>(
+        <span class="macro">assert_eq!</span>(
             <span class="ident">parsed</span>,
-            <span class="ident">NaiveDateTime</span>::<span class="ident">from_timestamp</span>(<span class="ident">nanos</span> <span class="op">/</span> <span class="ident">A_BILLION</span>, (<span class="ident">nanos</span> <span class="op">%</span> <span class="ident">A_BILLION</span>) <span class="kw">as</span> <span class="ident">u32</span>)
+            <span class="ident">NaiveDateTime::from_timestamp</span>(<span class="ident">nanos</span> <span class="op">/</span> <span class="ident">A_BILLION</span>, (<span class="ident">nanos</span> <span class="op">%</span> <span class="ident">A_BILLION</span>) <span class="kw">as</span> <span class="ident">u32</span>)
         );
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="chrono" data-search-js="../../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="chrono" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>
     <script src="../../../main.js"></script><script src="../../../source-script.js"></script><script src="../../../source-files.js"></script></body></html>

@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regress-0.3.0/src/optimizer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>optimizer.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
-<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 8]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../regress/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><script src="../../theme.js"></script><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
+<link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../regress/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
                 <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -449,10 +449,10 @@
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Optimizations on regex IR</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">folds</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">insn</span>::{<span class="ident">MAX_BYTE_SET_LENGTH</span>, <span class="ident">MAX_CHAR_SET_LENGTH</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">ir</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="kw">crate</span>::<span class="ident">types</span>::<span class="ident">BracketContents</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::folds</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::insn</span>::{<span class="ident">MAX_BYTE_SET_LENGTH</span>, <span class="ident">MAX_CHAR_SET_LENGTH</span>};
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::ir</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::types::BracketContents</span>;
 
 <span class="doccomment">/// When unrolling a loop, the largest minimum count we will unroll.</span>
 <span class="kw">const</span> <span class="ident">LOOP_UNROLL_THRESHOLD</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">5</span>;
@@ -500,15 +500,15 @@
             <span class="bool-val">true</span>,
             <span class="ident">start</span>,
             <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="op">|</span><span class="ident">n</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Node</span>, <span class="ident">walk</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Walk</span><span class="op">|</span> <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">func</span>)(<span class="ident">n</span>, <span class="ident">walk</span>) {
-                <span class="ident">PassAction</span>::<span class="ident">Keep</span> <span class="op">=</span><span class="op">&gt;</span> {}
-                <span class="ident">PassAction</span>::<span class="ident">Modified</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">PassAction::Keep</span> <span class="op">=</span><span class="op">&gt;</span> {}
+                <span class="ident">PassAction::Modified</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="self">self</span>.<span class="ident">changed</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 }
-                <span class="ident">PassAction</span>::<span class="ident">Remove</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="ident">Node</span>::<span class="ident">Empty</span>;
+                <span class="ident">PassAction::Remove</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="ident">Node::Empty</span>;
                     <span class="self">self</span>.<span class="ident">changed</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 }
-                <span class="ident">PassAction</span>::<span class="ident">Replace</span>(<span class="ident">newnode</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="ident">PassAction::Replace</span>(<span class="ident">newnode</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="ident">newnode</span>;
                     <span class="self">self</span>.<span class="ident">changed</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 }
@@ -517,7 +517,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">run_to_fixpoint</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Node</span>) {
-        <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">changed</span>, <span class="string">&quot;Pass has already been run&quot;</span>);
+        <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="self">self</span>.<span class="ident">changed</span>, <span class="string">&quot;Pass has already been run&quot;</span>);
         <span class="kw">loop</span> {
             <span class="self">self</span>.<span class="ident">changed</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="self">self</span>.<span class="ident">run_postorder</span>(<span class="ident">n</span>);
@@ -534,7 +534,7 @@
 <span class="kw">where</span>
     <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Node</span>, <span class="kw-2">&amp;</span><span class="ident">Walk</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PassAction</span>,
 {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">Pass</span>::<span class="ident">new</span>(<span class="ident">func</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">Pass::new</span>(<span class="ident">func</span>);
     <span class="ident">p</span>.<span class="ident">run_to_fixpoint</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">r</span>.<span class="ident">node</span>);
     <span class="ident">p</span>.<span class="ident">changed</span>
 }
@@ -544,48 +544,48 @@
 <span class="comment">// Remove empty Nodes.</span>
 <span class="kw">fn</span> <span class="ident">remove_empties</span>(<span class="ident">n</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Node</span>, <span class="ident">_w</span>: <span class="kw-2">&amp;</span><span class="ident">Walk</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PassAction</span> {
     <span class="kw">match</span> <span class="ident">n</span> {
-        <span class="ident">Node</span>::<span class="ident">Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>,
-        <span class="ident">Node</span>::<span class="ident">Goal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>,
-        <span class="ident">Node</span>::<span class="ident">Char</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>,
-        <span class="ident">Node</span>::<span class="ident">ByteSequence</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Node::Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Keep</span>,
+        <span class="ident">Node::Goal</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Keep</span>,
+        <span class="ident">Node::Char</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Keep</span>,
+        <span class="ident">Node::ByteSequence</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="ident">v</span>.<span class="ident">is_empty</span>() {
-                <span class="ident">PassAction</span>::<span class="ident">Remove</span>
+                <span class="ident">PassAction::Remove</span>
             } <span class="kw">else</span> {
-                <span class="ident">PassAction</span>::<span class="ident">Keep</span>
+                <span class="ident">PassAction::Keep</span>
             }
         }
 
         <span class="comment">// Note: do not remove empty sets. These always match against one character; an empty set</span>
         <span class="comment">// should just fail.</span>
-        <span class="ident">Node</span>::<span class="ident">ByteSet</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>,
-        <span class="ident">Node</span>::<span class="ident">CharSet</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>,
-        <span class="ident">Node</span>::<span class="ident">Cat</span>(<span class="ident">nodes</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Node::ByteSet</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Keep</span>,
+        <span class="ident">Node::CharSet</span>(..) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Keep</span>,
+        <span class="ident">Node::Cat</span>(<span class="ident">nodes</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">blen</span> <span class="op">=</span> <span class="ident">nodes</span>.<span class="ident">len</span>();
             <span class="ident">nodes</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">nn</span><span class="op">|</span> <span class="op">!</span><span class="ident">nn</span>.<span class="ident">is_empty</span>());
             <span class="kw">if</span> <span class="ident">nodes</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">blen</span> {
                 <span class="comment">// Nothing was removed.</span>
-                <span class="ident">PassAction</span>::<span class="ident">Keep</span>
+                <span class="ident">PassAction::Keep</span>
             } <span class="kw">else</span> {
                 <span class="kw">match</span> <span class="ident">nodes</span>.<span class="ident">len</span>() {
-                    <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Remove</span>,
-                    <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Replace</span>(<span class="ident">nodes</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>()),
-                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Modified</span>,
+                    <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Remove</span>,
+                    <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Replace</span>(<span class="ident">nodes</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>()),
+                    <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Modified</span>,
                 }
             }
         }
-        <span class="ident">Node</span>::<span class="ident">Alt</span>(<span class="ident">left</span>, <span class="ident">right</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Node::Alt</span>(<span class="ident">left</span>, <span class="ident">right</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// Empty alt may match the empty string.</span>
             <span class="comment">// Remove it only if both sides are empty.</span>
             <span class="kw">if</span> <span class="ident">left</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="ident">right</span>.<span class="ident">is_empty</span>() {
-                <span class="ident">PassAction</span>::<span class="ident">Remove</span>
+                <span class="ident">PassAction::Remove</span>
             } <span class="kw">else</span> {
-                <span class="ident">PassAction</span>::<span class="ident">Keep</span>
+                <span class="ident">PassAction::Keep</span>
             }
         }
-        <span class="ident">Node</span>::<span class="ident">MatchAny</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>,
-        <span class="ident">Node</span>::<span class="ident">MatchAnyExceptLineTerminator</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>,
-        <span class="ident">Node</span>::<span class="ident">Anchor</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>,
-        <span class="ident">Node</span>::<span class="ident">Loop</span> {
+        <span class="ident">Node::MatchAny</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Keep</span>,
+        <span class="ident">Node::MatchAnyExceptLineTerminator</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Keep</span>,
+        <span class="ident">Node::Anchor</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Keep</span>,
+        <span class="ident">Node::Loop</span> {
             <span class="ident">quant</span>,
             <span class="ident">loopee</span>,
             <span class="ident">enclosed_groups</span>,
@@ -594,28 +594,28 @@
             <span class="comment">// But do not remove contained capture groups.</span>
             <span class="kw">if</span> <span class="ident">loopee</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> (<span class="ident">quant</span>.<span class="ident">max</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">enclosed_groups</span>.<span class="ident">start</span> <span class="op">=</span><span class="op">=</span> <span class="ident">enclosed_groups</span>.<span class="ident">end</span>)
             {
-                <span class="ident">PassAction</span>::<span class="ident">Remove</span>
+                <span class="ident">PassAction::Remove</span>
             } <span class="kw">else</span> {
-                <span class="ident">PassAction</span>::<span class="ident">Keep</span>
+                <span class="ident">PassAction::Keep</span>
             }
         }
-        <span class="ident">Node</span>::<span class="ident">Loop1CharBody</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>,
-        <span class="ident">Node</span>::<span class="ident">CaptureGroup</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Node::Loop1CharBody</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Keep</span>,
+        <span class="ident">Node::CaptureGroup</span>(..) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// Capture groups could in principle be optimized if they only match empties.</span>
-            <span class="ident">PassAction</span>::<span class="ident">Keep</span>
+            <span class="ident">PassAction::Keep</span>
         }
-        <span class="ident">Node</span>::<span class="ident">WordBoundary</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>,
-        <span class="ident">Node</span>::<span class="ident">BackRef</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>,
-        <span class="ident">Node</span>::<span class="ident">Bracket</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>,
-        <span class="ident">Node</span>::<span class="ident">LookaroundAssertion</span> {
+        <span class="ident">Node::WordBoundary</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Keep</span>,
+        <span class="ident">Node::BackRef</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Keep</span>,
+        <span class="ident">Node::Bracket</span> { .. } <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Keep</span>,
+        <span class="ident">Node::LookaroundAssertion</span> {
             <span class="ident">negate</span>, <span class="ident">contents</span>, ..
         } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// Negative arounds that match empties could in principle be optimized to always</span>
             <span class="comment">// fail. Here we only optimize positive ones.</span>
             <span class="kw">if</span> <span class="op">!</span><span class="kw-2">*</span><span class="ident">negate</span> <span class="op">&amp;&amp;</span> <span class="ident">contents</span>.<span class="ident">is_empty</span>() {
-                <span class="ident">PassAction</span>::<span class="ident">Remove</span>
+                <span class="ident">PassAction::Remove</span>
             } <span class="kw">else</span> {
-                <span class="ident">PassAction</span>::<span class="ident">Keep</span>
+                <span class="ident">PassAction::Keep</span>
             }
         }
     }
@@ -624,35 +624,35 @@
 <span class="comment">// Remove excess cats.</span>
 <span class="kw">fn</span> <span class="ident">decat</span>(<span class="ident">n</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Node</span>, <span class="ident">_w</span>: <span class="kw-2">&amp;</span><span class="ident">Walk</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PassAction</span> {
     <span class="kw">match</span> <span class="ident">n</span> {
-        <span class="ident">Node</span>::<span class="ident">Cat</span>(<span class="ident">nodes</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Node::Cat</span>(<span class="ident">nodes</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="ident">nodes</span>.<span class="ident">is_empty</span>() {
-                <span class="ident">PassAction</span>::<span class="ident">Remove</span>
+                <span class="ident">PassAction::Remove</span>
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">nodes</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> {
-                <span class="ident">PassAction</span>::<span class="ident">Replace</span>(<span class="ident">nodes</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>())
+                <span class="ident">PassAction::Replace</span>(<span class="ident">nodes</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>())
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">nodes</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">nn</span><span class="op">|</span> <span class="ident">nn</span>.<span class="ident">is_cat</span>()) {
                 <span class="comment">// Flatmap child cats.</span>
                 <span class="comment">// Unfortunately we can&#39;t use flatmap() because there&#39;s no single iterator type</span>
                 <span class="comment">// we can return.</span>
                 <span class="comment">// Avoid copying nodes by switching them into owned vec.</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">catted</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
-                <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">swap</span>(<span class="ident">nodes</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">catted</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">catted</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+                <span class="ident">std::mem::swap</span>(<span class="ident">nodes</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">catted</span>);
 
                 <span class="comment">// Decat them.</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decatted</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decatted</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
                 <span class="kw">for</span> <span class="ident">nn</span> <span class="kw">in</span> <span class="ident">catted</span> {
                     <span class="kw">match</span> <span class="ident">nn</span> {
-                        <span class="ident">Node</span>::<span class="ident">Cat</span>(<span class="kw-2">mut</span> <span class="ident">nnodes</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                        <span class="ident">Node::Cat</span>(<span class="kw-2">mut</span> <span class="ident">nnodes</span>) <span class="op">=</span><span class="op">&gt;</span> {
                             <span class="ident">decatted</span>.<span class="ident">append</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">nnodes</span>);
                         }
                         <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decatted</span>.<span class="ident">push</span>(<span class="ident">nn</span>),
                     }
                 }
-                <span class="ident">PassAction</span>::<span class="ident">Replace</span>(<span class="ident">Node</span>::<span class="ident">Cat</span>(<span class="ident">decatted</span>))
+                <span class="ident">PassAction::Replace</span>(<span class="ident">Node::Cat</span>(<span class="ident">decatted</span>))
             } <span class="kw">else</span> {
-                <span class="ident">PassAction</span>::<span class="ident">Keep</span>
+                <span class="ident">PassAction::Keep</span>
             }
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>,
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Keep</span>,
     }
 }
 
@@ -662,33 +662,33 @@
 <span class="doccomment">/// TODO: should cache unfolding.</span>
 <span class="kw">fn</span> <span class="ident">unfold_icase_chars</span>(<span class="ident">n</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Node</span>, <span class="ident">_w</span>: <span class="kw-2">&amp;</span><span class="ident">Walk</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PassAction</span> {
     <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">n</span> {
-        <span class="ident">Node</span>::<span class="ident">Char</span> { <span class="ident">c</span>, <span class="ident">icase</span> } <span class="kw">if</span> <span class="ident">icase</span> <span class="op">=</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">unfolded</span> <span class="op">=</span> <span class="ident">folds</span>::<span class="ident">unfold_char</span>(<span class="ident">c</span>);
-            <span class="macro">debug_assert</span><span class="macro">!</span>(
+        <span class="ident">Node::Char</span> { <span class="ident">c</span>, <span class="ident">icase</span> } <span class="kw">if</span> <span class="ident">icase</span> <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">unfolded</span> <span class="op">=</span> <span class="ident">folds::unfold_char</span>(<span class="ident">c</span>);
+            <span class="macro">debug_assert!</span>(
                 <span class="ident">unfolded</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">c</span>),
                 <span class="string">&quot;Char should always unfold to at least itself&quot;</span>
             );
             <span class="kw">match</span> <span class="ident">unfolded</span>.<span class="ident">len</span>() {
-                <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Char should always unfold to at least itself&quot;</span>),
+                <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Char should always unfold to at least itself&quot;</span>),
                 <span class="number">1</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Character does not fold or unfold at all.</span>
-                    <span class="ident">PassAction</span>::<span class="ident">Replace</span>(<span class="ident">Node</span>::<span class="ident">Char</span> { <span class="ident">c</span>, <span class="ident">icase</span>: <span class="bool-val">false</span> })
+                    <span class="ident">PassAction::Replace</span>(<span class="ident">Node::Char</span> { <span class="ident">c</span>, <span class="ident">icase</span>: <span class="bool-val">false</span> })
                 }
                 <span class="number">2</span>..<span class="op">=</span><span class="ident">MAX_BYTE_SET_LENGTH</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// We unfolded to 2+ characters.</span>
-                    <span class="ident">PassAction</span>::<span class="ident">Replace</span>(<span class="ident">Node</span>::<span class="ident">CharSet</span>(<span class="ident">unfolded</span>))
+                    <span class="ident">PassAction::Replace</span>(<span class="ident">Node::CharSet</span>(<span class="ident">unfolded</span>))
                 }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic</span><span class="macro">!</span>(<span class="string">&quot;Unfolded to more characters than we believed possible&quot;</span>),
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="macro">panic!</span>(<span class="string">&quot;Unfolded to more characters than we believed possible&quot;</span>),
             }
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>,
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Keep</span>,
     }
 }
 
 <span class="comment">// Perform simple unrolling of loops that have a minimum.</span>
 <span class="kw">fn</span> <span class="ident">unroll_loops</span>(<span class="ident">n</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Node</span>, <span class="ident">_w</span>: <span class="kw-2">&amp;</span><span class="ident">Walk</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PassAction</span> {
     <span class="kw">match</span> <span class="ident">n</span> {
-        <span class="ident">Node</span>::<span class="ident">Loop</span> {
+        <span class="ident">Node::Loop</span> {
             <span class="ident">loopee</span>,
             <span class="ident">quant</span>,
             <span class="ident">enclosed_groups</span>,
@@ -697,15 +697,15 @@
 
             <span class="comment">// Do not unroll loops with enclosed groups.</span>
             <span class="kw">if</span> <span class="ident">enclosed_groups</span>.<span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">enclosed_groups</span>.<span class="ident">end</span> {
-                <span class="kw">return</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>;
+                <span class="kw">return</span> <span class="ident">PassAction::Keep</span>;
             }
             <span class="comment">// Do not unroll large loops, or loops which may execute zero times.</span>
             <span class="kw">if</span> <span class="ident">quant</span>.<span class="ident">min</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">quant</span>.<span class="ident">min</span> <span class="op">&gt;</span> <span class="ident">LOOP_UNROLL_THRESHOLD</span> {
-                <span class="kw">return</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>;
+                <span class="kw">return</span> <span class="ident">PassAction::Keep</span>;
             }
 
             <span class="comment">// We made it through. Replace us with a cat.</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unrolled</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unrolled</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
             <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">quant</span>.<span class="ident">min</span> {
                 <span class="ident">unrolled</span>.<span class="ident">push</span>(<span class="ident">loopee</span>.<span class="ident">as_mut</span>().<span class="ident">duplicate</span>());
             }
@@ -716,47 +716,47 @@
             <span class="ident">quant</span>.<span class="ident">min</span> <span class="op">=</span> <span class="number">0</span>;
             <span class="kw">if</span> <span class="ident">quant</span>.<span class="ident">max</span> <span class="op">&gt;</span> <span class="number">0</span> {
                 <span class="comment">// Move the loop to the end of unrolled.</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">loop_node</span> <span class="op">=</span> <span class="ident">Node</span>::<span class="ident">Empty</span>;
-                <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">loop_node</span>, <span class="ident">n</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">loop_node</span> <span class="op">=</span> <span class="ident">Node::Empty</span>;
+                <span class="ident">std::mem::swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">loop_node</span>, <span class="ident">n</span>);
                 <span class="ident">unrolled</span>.<span class="ident">push</span>(<span class="ident">loop_node</span>);
             }
-            <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="ident">Node</span>::<span class="ident">Cat</span>(<span class="ident">unrolled</span>);
-            <span class="ident">PassAction</span>::<span class="ident">Modified</span>
+            <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="ident">Node::Cat</span>(<span class="ident">unrolled</span>);
+            <span class="ident">PassAction::Modified</span>
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>,
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Keep</span>,
     }
 }
 
 <span class="doccomment">/// Replace Loops with 1Char loops whenever possible.</span>
 <span class="kw">fn</span> <span class="ident">promote_1char_loops</span>(<span class="ident">n</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Node</span>, <span class="ident">_w</span>: <span class="kw-2">&amp;</span><span class="ident">Walk</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PassAction</span> {
     <span class="kw">match</span> <span class="ident">n</span> {
-        <span class="ident">Node</span>::<span class="ident">Loop</span> {
+        <span class="ident">Node::Loop</span> {
             <span class="ident">loopee</span>,
             <span class="ident">quant</span>,
             <span class="ident">enclosed_groups</span>,
         } <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// Must be 1Char.</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">loopee</span>.<span class="ident">matches_exactly_one_char</span>() {
-                <span class="kw">return</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>;
+                <span class="kw">return</span> <span class="ident">PassAction::Keep</span>;
             }
 
             <span class="comment">// The above check should be sufficient to ensure we have no enclosed groups.</span>
-            <span class="macro">assert</span><span class="macro">!</span>(
+            <span class="macro">assert!</span>(
                 <span class="ident">enclosed_groups</span>.<span class="ident">start</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">enclosed_groups</span>.<span class="ident">end</span>,
                 <span class="string">&quot;Should have no enclosed groups&quot;</span>
             );
 
             <span class="comment">// This feels hackish?</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_loopee</span> <span class="op">=</span> <span class="ident">Box</span>::<span class="ident">new</span>(<span class="ident">Node</span>::<span class="ident">Empty</span>);
-            <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">new_loopee</span>, <span class="ident">loopee</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_loopee</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">Node::Empty</span>);
+            <span class="ident">std::mem::swap</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">new_loopee</span>, <span class="ident">loopee</span>);
 
-            <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="ident">Node</span>::<span class="ident">Loop1CharBody</span> {
+            <span class="kw-2">*</span><span class="ident">n</span> <span class="op">=</span> <span class="ident">Node::Loop1CharBody</span> {
                 <span class="ident">loopee</span>: <span class="ident">new_loopee</span>,
                 <span class="ident">quant</span>: <span class="kw-2">*</span><span class="ident">quant</span>,
             };
-            <span class="ident">PassAction</span>::<span class="ident">Modified</span>
+            <span class="ident">PassAction::Modified</span>
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>,
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Keep</span>,
     }
 }
 
@@ -767,24 +767,24 @@
     <span class="comment">// Helper to return a mutable reference to the nodes of a literal bytes.</span>
     <span class="kw">fn</span> <span class="ident">get_literal_bytes</span>(<span class="ident">n</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Node</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">n</span> {
-            <span class="ident">Node</span>::<span class="ident">ByteSequence</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>),
+            <span class="ident">Node::ByteSequence</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         }
     }
     <span class="kw">match</span> <span class="ident">n</span> {
-        <span class="ident">Node</span>::<span class="ident">Char</span> { <span class="ident">c</span>, <span class="ident">icase</span> } <span class="kw">if</span> <span class="op">!</span><span class="kw-2">*</span><span class="ident">icase</span> <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Node::Char</span> { <span class="ident">c</span>, <span class="ident">icase</span> } <span class="kw">if</span> <span class="op">!</span><span class="kw-2">*</span><span class="ident">icase</span> <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buff</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">4</span>];
-            <span class="ident">PassAction</span>::<span class="ident">Replace</span>(<span class="ident">Node</span>::<span class="ident">ByteSequence</span>(
+            <span class="ident">PassAction::Replace</span>(<span class="ident">Node::ByteSequence</span>(
                 <span class="ident">c</span>.<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">buff</span>).<span class="ident">as_bytes</span>().<span class="ident">to_vec</span>(),
             ))
         }
-        <span class="ident">Node</span>::<span class="ident">CharSet</span>(<span class="ident">chars</span>) <span class="kw">if</span> <span class="ident">chars</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="ident">char</span>::<span class="ident">is_ascii</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Node::CharSet</span>(<span class="ident">chars</span>) <span class="kw">if</span> <span class="ident">chars</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="ident">char::is_ascii</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// All of our chars are ASCII; use a byte set instead.</span>
-            <span class="ident">PassAction</span>::<span class="ident">Replace</span>(<span class="ident">Node</span>::<span class="ident">ByteSet</span>(
+            <span class="ident">PassAction::Replace</span>(<span class="ident">Node::ByteSet</span>(
                 <span class="ident">chars</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span> <span class="kw">as</span> <span class="ident">u8</span>).<span class="ident">collect</span>(),
             ))
         }
-        <span class="ident">Node</span>::<span class="ident">Cat</span>(<span class="ident">nodes</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Node::Cat</span>(<span class="ident">nodes</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="comment">// Find and merge adjacent ByteSeq.</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">modified</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="kw">for</span> <span class="ident">idx</span> <span class="kw">in</span> <span class="number">1</span>..<span class="ident">nodes</span>.<span class="ident">len</span>() {
@@ -804,7 +804,7 @@
                             <span class="ident">curr_bytes</span>.<span class="ident">append</span>(<span class="ident">prev_bytes</span>);
                         } <span class="kw">else</span> {
                             <span class="ident">prev_bytes</span>.<span class="ident">append</span>(<span class="ident">curr_bytes</span>);
-                            <span class="ident">std</span>::<span class="ident">mem</span>::<span class="ident">swap</span>(<span class="ident">prev_bytes</span>, <span class="ident">curr_bytes</span>);
+                            <span class="ident">std::mem::swap</span>(<span class="ident">prev_bytes</span>, <span class="ident">curr_bytes</span>);
                         }
                         <span class="ident">modified</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     }
@@ -812,12 +812,12 @@
                 }
             }
             <span class="kw">if</span> <span class="ident">modified</span> {
-                <span class="ident">PassAction</span>::<span class="ident">Modified</span>
+                <span class="ident">PassAction::Modified</span>
             } <span class="kw">else</span> {
-                <span class="ident">PassAction</span>::<span class="ident">Keep</span>
+                <span class="ident">PassAction::Keep</span>
             }
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>,
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Keep</span>,
     }
 }
 
@@ -841,14 +841,14 @@
     <span class="comment">// Ok, we want to make a char set.</span>
     <span class="comment">// Note we cannot make a char out of surrogates; should char conversion fail we</span>
     <span class="comment">// just give up.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="ident">new</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="kw">for</span> <span class="ident">iv</span> <span class="kw">in</span> <span class="ident">bc</span>.<span class="ident">cps</span>.<span class="ident">intervals</span>() {
         <span class="kw">for</span> <span class="ident">cp</span> <span class="kw">in</span> <span class="ident">iv</span>.<span class="ident">codepoints</span>() {
-            <span class="ident">res</span>.<span class="ident">push</span>(<span class="ident">std</span>::<span class="ident">char</span>::<span class="ident">from_u32</span>(<span class="ident">cp</span>)<span class="question-mark">?</span>);
+            <span class="ident">res</span>.<span class="ident">push</span>(<span class="ident">std::char::from_u32</span>(<span class="ident">cp</span>)<span class="question-mark">?</span>);
         }
     }
-    <span class="macro">debug_assert</span><span class="macro">!</span>(<span class="ident">res</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_CHAR_SET_LENGTH</span>, <span class="string">&quot;Unexpectedly many chars&quot;</span>);
-    <span class="prelude-val">Some</span>(<span class="ident">Node</span>::<span class="ident">CharSet</span>(<span class="ident">res</span>))
+    <span class="macro">debug_assert!</span>(<span class="ident">res</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_CHAR_SET_LENGTH</span>, <span class="string">&quot;Unexpectedly many chars&quot;</span>);
+    <span class="prelude-val">Some</span>(<span class="ident">Node::CharSet</span>(<span class="ident">res</span>))
 }
 
 <span class="doccomment">/// Optimize brackets like [a-b].</span>
@@ -857,21 +857,21 @@
 <span class="doccomment">/// Note we only run this once.</span>
 <span class="kw">fn</span> <span class="ident">simplify_brackets</span>(<span class="ident">n</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Node</span>, <span class="ident">_walk</span>: <span class="kw-2">&amp;</span><span class="ident">Walk</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PassAction</span> {
     <span class="kw">match</span> <span class="ident">n</span> {
-        <span class="ident">Node</span>::<span class="ident">Bracket</span>(<span class="ident">bc</span>) <span class="op">=</span><span class="op">&gt;</span> {
+        <span class="ident">Node::Bracket</span>(<span class="ident">bc</span>) <span class="op">=</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new_node</span>) <span class="op">=</span> <span class="ident">try_reduce_bracket</span>(<span class="ident">bc</span>) {
-                <span class="kw">return</span> <span class="ident">PassAction</span>::<span class="ident">Replace</span>(<span class="ident">new_node</span>);
+                <span class="kw">return</span> <span class="ident">PassAction::Replace</span>(<span class="ident">new_node</span>);
             }
 
             <span class="comment">// TODO: does this ever help anything?</span>
             <span class="kw">if</span> <span class="ident">bc</span>.<span class="ident">cps</span>.<span class="ident">intervals</span>().<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">bc</span>.<span class="ident">cps</span>.<span class="ident">inverted_interval_count</span>() {
                 <span class="ident">bc</span>.<span class="ident">cps</span> <span class="op">=</span> <span class="ident">bc</span>.<span class="ident">cps</span>.<span class="ident">inverted</span>();
                 <span class="ident">bc</span>.<span class="ident">invert</span> <span class="op">=</span> <span class="op">!</span><span class="ident">bc</span>.<span class="ident">invert</span>;
-                <span class="ident">PassAction</span>::<span class="ident">Modified</span>
+                <span class="ident">PassAction::Modified</span>
             } <span class="kw">else</span> {
-                <span class="ident">PassAction</span>::<span class="ident">Keep</span>
+                <span class="ident">PassAction::Keep</span>
             }
         }
-        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction</span>::<span class="ident">Keep</span>,
+        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">PassAction::Keep</span>,
     }
 }
 
@@ -893,5 +893,5 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><section class="footer"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regress" data-search-js="../../search-index.js"></div>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regress" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
     <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
