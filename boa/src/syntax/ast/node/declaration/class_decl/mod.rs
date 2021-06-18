@@ -140,7 +140,7 @@ impl ClassDecl {
 impl Executable for ClassDecl {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("ClassDecl", "exec");
-        let constructor = match &self.constructor {
+        let class = match &self.constructor {
             Some(c) => context.create_function(
                 c.parameters().to_vec(),
                 c.body().to_vec(),
@@ -154,8 +154,9 @@ impl Executable for ClassDecl {
         };
 
         // Set the name and assign it in the current environment
-        constructor.set_field("name", self.name(), context)?;
+        class.set_field("name", self.name(), context)?;
 
+        // Setup non static things
         let proto = Value::Object(GcObject::new(Object::new()));
         for method in self.methods() {
             let f = context.create_function(
@@ -165,10 +166,21 @@ impl Executable for ClassDecl {
             )?;
             proto.set_field(method.name(), f, context)?;
         }
-        constructor.set_field(PROTOTYPE, proto, context)?;
+        class.set_field(PROTOTYPE, proto, context)?;
+
+        // Setup static things
+        for method in self.static_methods() {
+            let f = context.create_function(
+                method.parameters().to_vec(),
+                method.body().to_vec(),
+                FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
+            )?;
+            class.set_field(method.name(), f, context)?;
+        }
 
         if context.has_binding(self.name()) {
-            context.set_mutable_binding(self.name(), constructor, true)?;
+            // TODO: Unclear if this is legal. In firefox, this produces a redeclaration error.
+            context.set_mutable_binding(self.name(), class, true)?;
         } else {
             context.create_mutable_binding(
                 self.name().to_owned(),
@@ -176,7 +188,7 @@ impl Executable for ClassDecl {
                 VariableScope::Function,
             )?;
 
-            context.initialize_binding(self.name(), constructor)?;
+            context.initialize_binding(self.name(), class)?;
         }
         Ok(Value::undefined())
     }
