@@ -45,7 +45,7 @@ fn date_display() {
     assert_eq!(
         format!(
             "[{}]",
-            cd.as_local().unwrap().format("%a %b %d %Y %H:%M:%S GMT%:z")
+            cd.to_local().unwrap().format("%a %b %d %Y %H:%M:%S GMT%:z")
         ),
         format!("[{}]", cd)
     );
