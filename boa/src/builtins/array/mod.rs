@@ -45,6 +45,12 @@ impl BuiltIn for Array {
 
         let symbol_iterator = WellKnownSymbols::iterator();
 
+        let get_species = FunctionBuilder::new(context, Self::get_species)
+            .name("get [Symbol.species]")
+            .constructable(false)
+            .callable(true)
+            .build();
+
         let values_function = FunctionBuilder::new(context, Self::values)
             .name("values")
             .length(0)
@@ -59,6 +65,12 @@ impl BuiltIn for Array {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
+        .static_accessor(
+            WellKnownSymbols::species(),
+            Some(get_species),
+            None,
+            Attribute::CONFIGURABLE,
+        )
         .property(
             "length",
             0,
@@ -261,6 +273,21 @@ impl Array {
             array_obj_ptr.set_property(n, DataDescriptor::new(value, Attribute::all()));
         }
         Ok(array_obj_ptr)
+    }
+
+    /// `get Array [ @@species ]`
+    ///
+    /// The Array[@@species] accessor property returns the Array constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-array-@@species
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/@@species
+    fn get_species(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+        // 1. Return the this value.
+        Ok(this.clone())
     }
 
     /// Utility function used to specify the creation of a new Array object using a constructor

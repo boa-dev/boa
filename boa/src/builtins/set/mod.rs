@@ -39,12 +39,10 @@ impl BuiltIn for Set {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let species = WellKnownSymbols::species();
-
-        let species_getter = FunctionBuilder::new(context, Self::species_getter)
-            .callable(true)
-            .constructable(false)
+        let get_species = FunctionBuilder::new(context, Self::get_species)
             .name("get [Symbol.species]")
+            .constructable(false)
+            .callable(true)
             .build();
 
         let size_getter = FunctionBuilder::new(context, Self::size_getter)
@@ -71,7 +69,12 @@ impl BuiltIn for Set {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
-        .static_accessor(species, Some(species_getter), None, Attribute::CONFIGURABLE)
+        .static_accessor(
+            WellKnownSymbols::species(),
+            Some(get_species),
+            None,
+            Attribute::CONFIGURABLE,
+        )
         .method(Self::add, "add", 1)
         .method(Self::clear, "clear", 0)
         .method(Self::delete, "delete", 1)
@@ -178,13 +181,16 @@ impl Set {
 
     /// `get Set [ @@species ]`
     ///
-    /// get accessor for the @@species property of Set
+    /// The Set[Symbol.species] accessor property returns the Set constructor.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-set-@@species
-    fn species_getter(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/@@species
+    fn get_species(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+        // 1. Return the this value.
         Ok(this.clone())
     }
 
