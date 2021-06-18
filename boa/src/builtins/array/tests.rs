@@ -157,6 +157,23 @@ fn concat() {
 }
 
 #[test]
+fn copy_within() {
+    let mut context = Context::new();
+
+    let target = forward(&mut context, "[1,2,3,4,5].copyWithin(-2).join('.')");
+    assert_eq!(target, String::from("\"1.2.3.1.2\""));
+
+    let start = forward(&mut context, "[1,2,3,4,5].copyWithin(0, 3).join('.')");
+    assert_eq!(start, String::from("\"4.5.3.4.5\""));
+
+    let end = forward(&mut context, "[1,2,3,4,5].copyWithin(0, 3, 4).join('.')");
+    assert_eq!(end, String::from("\"4.2.3.4.5\""));
+
+    let negatives = forward(&mut context, "[1,2,3,4,5].copyWithin(-2, -3, -1).join('.')");
+    assert_eq!(negatives, String::from("\"1.2.3.3.4\""));
+}
+
+#[test]
 fn join() {
     let mut context = Context::new();
     let init = r#"

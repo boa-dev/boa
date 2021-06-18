@@ -112,6 +112,7 @@ impl BuiltIn for Array {
         .method(Self::reduce_right, "reduceRight", 2)
         .method(Self::keys, "keys", 0)
         .method(Self::entries, "entries", 0)
+        .method(Self::copy_within, "copyWithin", 3)
         // Static Methods
         .static_method(Self::is_array, "isArray", 1)
         .static_method(Self::of, "of", 0)
@@ -1573,6 +1574,71 @@ impl Array {
             k = k.overflowing_sub(1).0;
         }
         Ok(accumulator)
+    }
+
+    /// `Array.prototype.copyWithin ( target, start [ , end ] )`
+    ///
+    /// The copyWithin() method shallow copies part of an array to another location
+    /// in the same array and returns it without modifying its length.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.copywithin
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/copyWithin
+    pub(crate) fn copy_within(
+        this: &Value,
+        args: &[Value],
+        context: &mut Context,
+    ) -> Result<Value> {
+        enum Direction {
+            Forward,
+            Backward,
+        }
+        let this: Value = this.to_object(context)?.into();
+
+        let length = this.get_field("length", context)?.to_length(context)?;
+
+        let mut to = Self::get_relative_start(context, args.get(0), length)?;
+        let mut from = Self::get_relative_start(context, args.get(1), length)?;
+        let finale = Self::get_relative_end(context, args.get(2), length)?;
+
+        // saturating sub accounts for the case from > finale, which would cause an overflow
+        // can skip the check for length - to, because we assert to <= length in get_relative_start
+        let count = (finale.saturating_sub(from)).min(length - to);
+
+        let direction = if from < to && to < from + count {
+            from += count - 1;
+            to += count - 1;
+            Direction::Backward
+        } else {
+            Direction::Forward
+        };
+
+        // the original spec uses a while-loop from count to 1,
+        // but count is not used inside the loop, so we can safely replace it
+        // with a for-loop from 0 to count - 1
+        for _ in 0..count {
+            if this.has_field(from) {
+                let val = this.get_field(from, context)?;
+                this.set_field(to, val, true, context)?;
+            } else {
+                this.remove_property(to);
+            }
+            match direction {
+                Direction::Forward => {
+                    from += 1;
+                    to += 1;
+                }
+                Direction::Backward => {
+                    from -= 1;
+                    to -= 1;
+                }
+            }
+        }
+
+        Ok(this)
     }
 
     /// `Array.prototype.values( )`
