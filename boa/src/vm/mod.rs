@@ -11,6 +11,7 @@ pub(crate) mod exec_context;
 pub(crate) mod instructions;
 
 pub use compilation::Compiler;
+pub use exec_context::ExecContext;
 pub use instructions::Instruction;
 use std::time::{Duration, Instant};
 
@@ -25,6 +26,7 @@ pub struct VM<'a> {
     stack_pointer: usize,
     profile: Profiler,
     is_trace: bool,
+    execution_context_stack: Vec<ExecContext>,
 }
 /// This profiler is used to output trace information when `--trace` is provided by the CLI or trace is set to `true` on the [`VM`] object
 #[derive(Debug)]
@@ -49,6 +51,7 @@ impl<'a> VM<'a> {
             stack: vec![],
             stack_pointer: 0,
             is_trace: trace,
+            execution_context_stack: vec![ExecContext::default()],
             profile: Profiler {
                 instant: Instant::now(),
                 prev_time: Duration::from_secs(0),
@@ -72,6 +75,18 @@ impl<'a> VM<'a> {
     #[inline]
     pub fn pop(&mut self) -> Value {
         self.stack.pop().unwrap()
+    }
+
+    /// Gets a reference to the Execution Context sitting at the top of the stack
+    pub fn get_current_ec(&mut self) -> &mut ExecContext {
+        self.execution_context_stack
+            .last_mut()
+            .expect("failed to get Execution Context")
+    }
+
+    /// Sets the current execution context
+    pub fn set_current_ec(&mut self, exec_context: ExecContext) {
+        self.execution_context_stack.push(exec_context);
     }
 
     pub fn run(&mut self) -> Result<Value> {
