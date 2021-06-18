@@ -108,8 +108,32 @@ impl ClassDecl {
         f: &mut fmt::Formatter<'_>,
         indentation: usize,
     ) -> fmt::Result {
-        // TODO: Implement display for class
-        write!(f, "class {{}}")
+        if self.fields.is_empty() && self.static_fields.is_empty() {
+            return write!(f, "class {{}}");
+        }
+        let indent = "    ".repeat(indentation);
+        write!(f, "class {{")?;
+        for field in self.all_fields() {
+            write!(f, "    {}", indent)?;
+            match field {
+                ClassField::Method(method) => {
+                    method.display_no_function(f, indentation + 2)?;
+                }
+                ClassField::Field(field) => {
+                    fmt::Display::fmt(field, f)?;
+                }
+                ClassField::Getter(method) => {
+                    write!(f, "get ")?;
+                    method.display_no_function(f, indentation + 2)?;
+                }
+                ClassField::Setter(method) => {
+                    write!(f, "set ")?;
+                    method.display_no_function(f, indentation + 2)?;
+                }
+            }
+            writeln!(f)?;
+        }
+        write!(f, "{}}}", indent)
     }
 }
 

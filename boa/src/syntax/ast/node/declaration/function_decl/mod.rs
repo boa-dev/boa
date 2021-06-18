@@ -73,7 +73,17 @@ impl FunctionDecl {
         f: &mut fmt::Formatter<'_>,
         indentation: usize,
     ) -> fmt::Result {
-        write!(f, "function {}(", self.name)?;
+        write!(f, "function ")?;
+        self.display_no_function(f, indentation)
+    }
+
+    /// Implements the display formatting with indentation. This does not print `function ` before the declaration.
+    pub(in crate::syntax::ast::node) fn display_no_function(
+        &self,
+        f: &mut fmt::Formatter<'_>,
+        indentation: usize,
+    ) -> fmt::Result {
+        write!(f, "{}(", self.name)?;
         join_nodes(f, &self.parameters)?;
         f.write_str(") {{")?;
 

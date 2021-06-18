@@ -1,6 +1,6 @@
 use crate::syntax::{
     ast::node::{ClassDecl, Declaration, DeclarationList, FunctionDecl},
-    parser::{tests::check_parser, Parser},
+    parser::{class::ClassField, tests::check_parser, Parser},
 };
 
 /// Checks for empty class parsing (making sure the keyword works)
@@ -55,14 +55,14 @@ fn check_static() {
             Box::from("Basic"),
             None,
             vec![],
-            vec![FunctionDecl::new(
+            vec![ClassField::Method(FunctionDecl::new(
                 Box::from("say_hello"),
                 vec![],
                 vec![
                     DeclarationList::Let(vec![Declaration::new("val", None)].into_boxed_slice())
                         .into(),
                 ],
-            )],
+            ))],
         )
         .into()],
     );
@@ -92,8 +92,12 @@ fn check_multi() {
                 ],
             )),
             vec![
-                FunctionDecl::new(Box::from("say_hello"), vec![], vec![]),
-                FunctionDecl::new(Box::from("say_hello_again"), vec![], vec![]),
+                ClassField::Method(FunctionDecl::new(Box::from("say_hello"), vec![], vec![])),
+                ClassField::Method(FunctionDecl::new(
+                    Box::from("say_hello_again"),
+                    vec![],
+                    vec![],
+                )),
             ],
             vec![],
         )
