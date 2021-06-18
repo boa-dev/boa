@@ -1715,6 +1715,72 @@
 <span id="1714">1714</span>
 <span id="1715">1715</span>
 <span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
+<span id="1724">1724</span>
+<span id="1725">1725</span>
+<span id="1726">1726</span>
+<span id="1727">1727</span>
+<span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
+<span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
+<span id="1745">1745</span>
+<span id="1746">1746</span>
+<span id="1747">1747</span>
+<span id="1748">1748</span>
+<span id="1749">1749</span>
+<span id="1750">1750</span>
+<span id="1751">1751</span>
+<span id="1752">1752</span>
+<span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
+<span id="1758">1758</span>
+<span id="1759">1759</span>
+<span id="1760">1760</span>
+<span id="1761">1761</span>
+<span id="1762">1762</span>
+<span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
+<span id="1767">1767</span>
+<span id="1768">1768</span>
+<span id="1769">1769</span>
+<span id="1770">1770</span>
+<span id="1771">1771</span>
+<span id="1772">1772</span>
+<span id="1773">1773</span>
+<span id="1774">1774</span>
+<span id="1775">1775</span>
+<span id="1776">1776</span>
+<span id="1777">1777</span>
+<span id="1778">1778</span>
+<span id="1779">1779</span>
+<span id="1780">1780</span>
+<span id="1781">1781</span>
+<span id="1782">1782</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -1830,6 +1896,7 @@
         .<span class="ident">method</span>(<span class="self">Self</span><span class="ident">::reduce_right</span>, <span class="string">&quot;reduceRight&quot;</span>, <span class="number">2</span>)
         .<span class="ident">method</span>(<span class="self">Self</span><span class="ident">::keys</span>, <span class="string">&quot;keys&quot;</span>, <span class="number">0</span>)
         .<span class="ident">method</span>(<span class="self">Self</span><span class="ident">::entries</span>, <span class="string">&quot;entries&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="self">Self</span><span class="ident">::copy_within</span>, <span class="string">&quot;copyWithin&quot;</span>, <span class="number">3</span>)
         <span class="comment">// Static Methods</span>
         .<span class="ident">static_method</span>(<span class="self">Self</span><span class="ident">::is_array</span>, <span class="string">&quot;isArray&quot;</span>, <span class="number">1</span>)
         .<span class="ident">static_method</span>(<span class="self">Self</span><span class="ident">::of</span>, <span class="string">&quot;of&quot;</span>, <span class="number">0</span>)
@@ -3291,6 +3358,71 @@
             <span class="ident">k</span> <span class="op">=</span> <span class="ident">k</span>.<span class="ident">overflowing_sub</span>(<span class="number">1</span>).<span class="number">0</span>;
         }
         <span class="prelude-val">Ok</span>(<span class="ident">accumulator</span>)
+    }
+
+    <span class="doccomment">/// `Array.prototype.copyWithin ( target, start [ , end ] )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The copyWithin() method shallow copies part of an array to another location</span>
+    <span class="doccomment">/// in the same array and returns it without modifying its length.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.copywithin</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/copyWithin</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">copy_within</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="kw">enum</span> <span class="ident">Direction</span> {
+            <span class="ident">Forward</span>,
+            <span class="ident">Backward</span>,
+        }
+        <span class="kw">let</span> <span class="ident">this</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
+
+        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">to</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::get_relative_start</span>(<span class="ident">context</span>, <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>), <span class="ident">length</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">from</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::get_relative_start</span>(<span class="ident">context</span>, <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>), <span class="ident">length</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">finale</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::get_relative_end</span>(<span class="ident">context</span>, <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>), <span class="ident">length</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// saturating sub accounts for the case from &gt; finale, which would cause an overflow</span>
+        <span class="comment">// can skip the check for length - to, because we assert to &lt;= length in get_relative_start</span>
+        <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> (<span class="ident">finale</span>.<span class="ident">saturating_sub</span>(<span class="ident">from</span>)).<span class="ident">min</span>(<span class="ident">length</span> <span class="op">-</span> <span class="ident">to</span>);
+
+        <span class="kw">let</span> <span class="ident">direction</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">from</span> <span class="op">&lt;</span> <span class="ident">to</span> <span class="op">&amp;&amp;</span> <span class="ident">to</span> <span class="op">&lt;</span> <span class="ident">from</span> <span class="op">+</span> <span class="ident">count</span> {
+            <span class="ident">from</span> <span class="op">+</span><span class="op">=</span> <span class="ident">count</span> <span class="op">-</span> <span class="number">1</span>;
+            <span class="ident">to</span> <span class="op">+</span><span class="op">=</span> <span class="ident">count</span> <span class="op">-</span> <span class="number">1</span>;
+            <span class="ident">Direction::Backward</span>
+        } <span class="kw">else</span> {
+            <span class="ident">Direction::Forward</span>
+        };
+
+        <span class="comment">// the original spec uses a while-loop from count to 1,</span>
+        <span class="comment">// but count is not used inside the loop, so we can safely replace it</span>
+        <span class="comment">// with a for-loop from 0 to count - 1</span>
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">count</span> {
+            <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">has_field</span>(<span class="ident">from</span>) {
+                <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">from</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="ident">to</span>, <span class="ident">val</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            } <span class="kw">else</span> {
+                <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="ident">to</span>);
+            }
+            <span class="kw">match</span> <span class="ident">direction</span> {
+                <span class="ident">Direction::Forward</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">from</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                    <span class="ident">to</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                }
+                <span class="ident">Direction::Backward</span> <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">from</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+                    <span class="ident">to</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+                }
+            }
+        }
+
+        <span class="prelude-val">Ok</span>(<span class="ident">this</span>)
     }
 
     <span class="doccomment">/// `Array.prototype.values( )`</span>
