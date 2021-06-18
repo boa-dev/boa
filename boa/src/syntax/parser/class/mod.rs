@@ -140,35 +140,57 @@ where
                 }
             }
 
-            cursor.expect(Punctuator::OpenParen, "class function declaration")?;
+            let next = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
+            let field = match next.kind() {
+                // A method definition
+                TokenKind::Punctuator(Punctuator::OpenParen) => {
+                    let position = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
+                    let params = FormalParameters::new(false, false).parse(cursor)?;
 
-            let position = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
-            let params = FormalParameters::new(false, false).parse(cursor)?;
+                    // This is only partially correct. A method can enable strict mode with "using strict"; which is not handled here.
+                    if let Some(last) = params.last() {
+                        if cursor.strict_mode() && last.is_rest_param() {
+                            return Err(ParseError::general(
+                                "Cannot have spread parameters on a class method in strict mode",
+                                position,
+                            ));
+                        }
+                    }
 
-            // This is only partially correct. A method can enable strict mode with "using strict"; which is not handled here.
-            if let Some(last) = params.last() {
-                if cursor.strict_mode() && last.is_rest_param() {
-                    return Err(ParseError::general(
-                        "Cannot have spread parameters on a class method in strict mode",
-                        position,
-                    ));
+                    cursor.expect(Punctuator::CloseParen, "class function declaration")?;
+                    cursor.expect(Punctuator::OpenBlock, "class function declaration")?;
+
+                    let body =
+                        FunctionBody::new(self.allow_yield, self.allow_await).parse(cursor)?;
+
+                    cursor.expect(Punctuator::CloseBlock, "class function declaration")?;
+
+                    ClassField::Method(FunctionDecl::new(name, params, body))
+                }
+                // A field definition
+                TokenKind::Punctuator(Punctuator::Assign) => {
+                    // TODO: Parse an expr here
+                    unimplemented!()
+                }
+                _ => {
+                    return Err(ParseError::expected(
+                        vec![
+                            TokenKind::Punctuator(Punctuator::OpenParen),
+                            TokenKind::Punctuator(Punctuator::Assign),
+                        ],
+                        next,
+                        "class method or field declatation",
+                    ))
                 }
             }
 
-            cursor.expect(Punctuator::CloseParen, "class function declaration")?;
-            cursor.expect(Punctuator::OpenBlock, "class function declaration")?;
-
-            let body = FunctionBody::new(self.allow_yield, self.allow_await).parse(cursor)?;
-
-            cursor.expect(Punctuator::CloseBlock, "class function declaration")?;
-
             if *name == *"constructor" {
-                constructor = Some(FunctionDecl::new(name, params, body));
+                // constructor = Some(FunctionDecl::new(name, params, body));
             } else {
                 if static_method {
-                    static_fields.push(ClassField::Method(FunctionDecl::new(name, params, body)));
+                    static_fields.push(field);
                 } else {
-                    fields.push(ClassField::Method(FunctionDecl::new(name, params, body)));
+                    fields.push(field);
                 }
             }
 
