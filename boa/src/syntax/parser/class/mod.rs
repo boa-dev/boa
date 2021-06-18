@@ -178,8 +178,17 @@ where
                 }
                 // A field definition
                 TokenKind::Punctuator(Punctuator::Assign) => {
+                    if *name == *"constructor" {
+                        return Err(ParseError::general(
+                            "Fields cannot be named `constructor`",
+                            pos,
+                        ));
+                    }
                     let value =
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                    // Classes are always parsed in strict mode, so this is always a requirement.
+                    cursor.expect_semicolon("after a class field declaration")?;
+
                     Some(ClassField::Field(name, value))
                 }
                 _ => {
