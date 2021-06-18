@@ -12,10 +12,7 @@ mod tests;
 
 use crate::{
     syntax::{
-        ast::{
-            node::{self},
-            Punctuator,
-        },
+        ast::{node, Punctuator},
         lexer::{InputElement, TokenKind},
         parser::{
             expression::Initializer,
@@ -25,7 +22,7 @@ use crate::{
     },
     BoaProfiler,
 };
-use std::io::Read;
+use std::{collections::HashSet, io::Read};
 
 /// Formal parameters parsing.
 ///
@@ -66,6 +63,7 @@ where
         cursor.set_goal(InputElement::RegExp);
 
         let mut params = Vec::new();
+        let mut param_names = HashSet::new();
 
         if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
             == &TokenKind::Punctuator(Punctuator::CloseParen)
@@ -76,6 +74,7 @@ where
         loop {
             let mut rest_param = false;
 
+            let position = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
             let next_param = match cursor.peek(0)? {
                 Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Spread) => {
                     rest_param = true;
@@ -83,7 +82,11 @@ where
                 }
                 _ => FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?,
             };
+            if param_names.contains(next_param.name()) {
+                return Err(ParseError::general("duplicate parameter name", position));
+            }
 
+            param_names.insert(next_param.name().to_string());
             params.push(next_param);
 
             if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
