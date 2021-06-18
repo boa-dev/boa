@@ -106,7 +106,18 @@ where
 
             cursor.expect(Punctuator::OpenParen, "class function declaration")?;
 
+            let position = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
             let params = FormalParameters::new(false, false).parse(cursor)?;
+
+            // This is only partially correct. A method can enable strict mode with "using strict"; which is not handled here.
+            if let Some(last) = params.last() {
+                if cursor.strict_mode() && last.is_rest_param() {
+                    return Err(ParseError::general(
+                        "Cannot have spread parameters on a class method in strict mode",
+                        position,
+                    ));
+                }
+            }
 
             cursor.expect(Punctuator::CloseParen, "class function declaration")?;
             cursor.expect(Punctuator::OpenBlock, "class function declaration")?;
