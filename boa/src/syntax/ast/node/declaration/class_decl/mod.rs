@@ -102,7 +102,12 @@ impl Executable for ClassDecl {
 
         let proto = Value::Object(GcObject::new(Object::new()));
         for method in self.methods() {
-            proto.set_field(method.name(), method, context)?;
+            let f = context.create_function(
+                method.parameters().to_vec(),
+                method.body().to_vec(),
+                FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
+            )?;
+            proto.set_field(method.name(), f, context)?;
         }
         constructor.set_field(PROTOTYPE, proto, context)?;
 
