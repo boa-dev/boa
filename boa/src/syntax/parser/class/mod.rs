@@ -14,11 +14,12 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::{
         ast::{
-            node::{Assign, FunctionDecl},
+            node::{FunctionDecl, Node},
             Keyword, Punctuator,
         },
         lexer::{InputElement, TokenKind},
         parser::{
+            expression::Expression,
             function::{FormalParameters, FunctionBody},
             statement::BindingIdentifier,
             AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
@@ -37,7 +38,8 @@ pub enum ClassField {
     /// A method on a class.
     Method(FunctionDecl),
     /// A field on a class (includes an initializer)
-    Field(Assign),
+    // TODO: Name should be a VariableDeclList (I think)
+    Field(Box<str>, Node),
     /// A getter function. This will never take any arguments.
     Getter(FunctionDecl),
     /// A setter function. This will always take an argument.
@@ -129,6 +131,7 @@ where
 
             // TODO: Parse async/yeild here
 
+            // TODO: This should sometimes be parsed as a let decl list
             let position = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
             let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
             if *name == *"constructor" {
@@ -175,8 +178,9 @@ where
                 }
                 // A field definition
                 TokenKind::Punctuator(Punctuator::Assign) => {
-                    // TODO: Parse an expr here
-                    None
+                    let value =
+                        Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                    Some(ClassField::Field(name, value))
                 }
                 _ => {
                     return Err(ParseError::expected(

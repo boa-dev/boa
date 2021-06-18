@@ -119,8 +119,8 @@ impl ClassDecl {
                 ClassField::Method(method) => {
                     method.display_no_function(f, indentation + 2)?;
                 }
-                ClassField::Field(field) => {
-                    fmt::Display::fmt(field, f)?;
+                ClassField::Field(name, value) => {
+                    write!(f, "{} = {}", name, value)?;
                 }
                 ClassField::Getter(method) => {
                     write!(f, "get ")?;
