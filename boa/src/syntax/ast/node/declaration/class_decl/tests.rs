@@ -61,3 +61,19 @@ fn get_class_field() {
 
     assert_eq!(&exec(scenario), "20");
 }
+
+#[test]
+fn get_class_field_literal() {
+    let scenario = r#"
+    class MyClass {
+        val = 30;
+        get_value() {
+            return this.val;
+        }
+    }
+    let c = new MyClass();
+    c.get_value();
+    "#;
+
+    assert_eq!(&exec(scenario), "30");
+}

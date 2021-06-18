@@ -102,7 +102,6 @@ where
 
         loop {
             let next = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
-
             let static_method = match next.kind() {
                 TokenKind::Keyword(Keyword::Static) => {
                     // Consume the static token.
@@ -111,6 +110,24 @@ where
                 }
                 _ => false,
             };
+
+            // No matter if there was a static token, a `get` or `set` token is valid.
+            let next = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+            match next.kind() {
+                TokenKind::Keyword(Keyword::Get) => {
+                    // Consume the get token.
+                    cursor.next()?;
+                    // TODO: Do something here to say this is a getter.
+                }
+                TokenKind::Keyword(Keyword::Set) => {
+                    // Consume the set token.
+                    cursor.next()?;
+                    // TODO: Do something here to say this is a setter.
+                }
+                _ => (),
+            };
+
+            // TODO: Parse async/yeild here
 
             let position = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
             let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
