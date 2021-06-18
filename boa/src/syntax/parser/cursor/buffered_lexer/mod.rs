@@ -162,8 +162,11 @@ where
             self.fill()?;
         }
 
+        #[allow(clippy::branches_sharing_code)]
         if let Some(ref token) = self.peeked[self.read_index] {
-            if skip_line_terminators && token.kind() == &TokenKind::LineTerminator {
+            let tok = if !skip_line_terminators || token.kind() != &TokenKind::LineTerminator {
+                self.peeked[self.read_index].take()
+            } else {
                 // We only store 1 contiguous line terminator, so if the one at `self.read_index`
                 // was a line terminator, we know that the next won't be one.
                 self.read_index = (self.read_index + 1) % PEEK_BUF_SIZE;
@@ -216,8 +219,13 @@ where
                 self.fill()?;
             }
 
+            #[allow(clippy::branches_sharing_code)]
             if let Some(ref token) = self.peeked[read_index] {
-                if skip_line_terminators && token.kind() == &TokenKind::LineTerminator {
+                if !skip_line_terminators || token.kind() != &TokenKind::LineTerminator {
+                    if count == skip_n {
+                        break self.peeked[read_index].as_ref();
+                    }
+                } else {
                     read_index = (read_index + 1) % PEEK_BUF_SIZE;
                     // We only store 1 contiguous line terminator, so if the one at `self.read_index`
                     // was a line terminator, we know that the next won't be one.
