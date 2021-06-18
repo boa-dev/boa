@@ -4,7 +4,10 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     object::{GcObject, Object, PROTOTYPE},
-    syntax::ast::node::{FunctionDecl, Node},
+    syntax::{
+        ast::node::{FunctionDecl, Node},
+        parser::class::ClassField,
+    },
     BoaProfiler, Context, Result, Value,
 };
 use std::fmt;
@@ -29,29 +32,29 @@ pub struct ClassDecl {
     name: Box<str>,
     constructor: Option<FunctionDecl>,
 
-    methods: Box<[FunctionDecl]>,
-    static_methods: Box<[FunctionDecl]>,
+    fields: Box<[ClassField]>,
+    static_fields: Box<[ClassField]>,
 }
 
 impl ClassDecl {
     /// Creates a new class declaration.
-    pub(in crate::syntax) fn new<N, C, M, SM>(
+    pub(in crate::syntax) fn new<N, C, F, SF>(
         name: N,
         constructor: C,
-        methods: M,
-        static_methods: SM,
+        fields: F,
+        static_fields: SF,
     ) -> Self
     where
         N: Into<Box<str>>,
         C: Into<Option<FunctionDecl>>,
-        M: Into<Box<[FunctionDecl]>>,
-        SM: Into<Box<[FunctionDecl]>>,
+        F: Into<Box<[ClassField]>>,
+        SF: Into<Box<[ClassField]>>,
     {
         Self {
             name: name.into(),
             constructor: constructor.into(),
-            methods: methods.into(),
-            static_methods: static_methods.into(),
+            fields: fields.into(),
+            static_fields: static_fields.into(),
         }
     }
 
@@ -60,14 +63,43 @@ impl ClassDecl {
         &self.name
     }
 
-    /// Gets the list of functions defined on this class. Does not include the constructor.
-    pub fn methods(&self) -> &[FunctionDecl] {
-        &self.methods
+    /// Returns the constructor of this class.
+    pub fn constructor(&self) -> &Option<FunctionDecl> {
+        &self.constructor
     }
 
-    /// Gets the list of statuc functions defined on this class. Does not include the constructor.
-    pub fn static_methods(&self) -> &[FunctionDecl] {
-        &self.static_methods
+    /// Gets the list of all fields defined on this class. This includes all methods,
+    /// fields, getters, and setters. Does not include the constructor.
+    pub fn all_fields(&self) -> &[ClassField] {
+        &self.fields
+    }
+
+    /// Gets the list of all static fields defined on this class. This includes all
+    /// methods, fields, getters, and setters. Does not include the constructor.
+    pub fn all_static_fields(&self) -> &[ClassField] {
+        &self.static_fields
+    }
+
+    /// Returns an iterator that will loop through all methods on the class.
+    pub fn methods(&self) -> impl Iterator<Item = &FunctionDecl> {
+        self.fields
+            .iter()
+            .map(|v| match v {
+                ClassField::Method(v) => Some(v),
+                _ => None,
+            })
+            .flatten()
+    }
+
+    /// Returns an iterator that will loop through all methods on the class.
+    pub fn static_methods(&self) -> impl Iterator<Item = &FunctionDecl> {
+        self.static_fields
+            .iter()
+            .map(|v| match v {
+                ClassField::Method(v) => Some(v),
+                _ => None,
+            })
+            .flatten()
     }
 
     /// Implements the display formatting with indentation.
