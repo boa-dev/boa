@@ -55,29 +55,11 @@ where
 
         cursor.expect(Punctuator::OpenBlock, "class declaration")?;
 
-        let (constructor, methods, static_methods) =
+        let (constructor, fields, static_fields) =
             ClassElementList::new(false, false).parse(cursor)?;
 
         cursor.expect(Punctuator::CloseBlock, "class declaration")?;
 
-        // It is a Syntax Error if any element of the BoundNames of FormalParameters
-        // also occurs in the LexicallyDeclaredNames of FunctionBody.
-        // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
-        {
-            // let lexically_declared_names = body.lexically_declared_names();
-            // for param in fields.as_ref() {
-            //     if lexically_declared_names.contains(param.name()) {
-            //         return Err(ParseError::lex(LexError::Syntax(
-            //             format!("Redeclaration of formal parameter `{}`", param.name()).into(),
-            //             match cursor.peek(0)? {
-            //                 Some(token) => token.span().end(),
-            //                 None => Position::new(1, 1),
-            //             },
-            //         )));
-            //     }
-            // }
-        }
-
-        Ok(ClassDecl::new(name, constructor, methods, static_methods))
+        Ok(ClassDecl::new(name, constructor, fields, static_fields))
     }
 }

@@ -11,8 +11,12 @@
 mod tests;
 
 use crate::{
+    gc::{Finalize, Trace},
     syntax::{
-        ast::{node::FunctionDecl, Keyword, Punctuator},
+        ast::{
+            node::{Assign, FunctionDecl},
+            Keyword, Punctuator,
+        },
         lexer::{InputElement, TokenKind},
         parser::{
             function::{FormalParameters, FunctionBody},
@@ -23,6 +27,22 @@ use crate::{
     BoaProfiler,
 };
 use std::io::Read;
+
+#[cfg(feature = "deser")]
+use serde::{Deserialize, Serialize};
+
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub enum ClassField {
+    /// A method on a class.
+    Method(FunctionDecl),
+    /// A field on a class (includes an initializer)
+    Field(Assign),
+    /// A getter function. This will never take any arguments.
+    Getter(FunctionDecl),
+    /// A setter function. This will always take an argument.
+    Setter(FunctionDecl),
+}
 
 /// Formal class element list parsing.
 ///
@@ -57,29 +77,28 @@ where
     R: Read,
 {
     type Output = (
-        Option<FunctionDecl>,
-        Box<[FunctionDecl]>,
-        Box<[FunctionDecl]>,
+        Option<FunctionDecl>, // Constructor
+        Box<[ClassField]>,    // Methods/fields
+        Box<[ClassField]>,    // Static methods/fields
     );
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ClassElementList", "Parsing");
         cursor.set_goal(InputElement::RegExp);
 
-        let mut methods = Vec::new();
-        let mut static_methods = Vec::new();
+        let mut constructor = None;
+        let mut fields = Vec::new();
+        let mut static_fields = Vec::new();
 
         if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
             == &TokenKind::Punctuator(Punctuator::CloseBlock)
         {
             return Ok((
                 None,
-                methods.into_boxed_slice(),
-                static_methods.into_boxed_slice(),
+                fields.into_boxed_slice(),
+                static_fields.into_boxed_slice(),
             ));
         }
-
-        let mut constructor = None;
 
         loop {
             let next = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
@@ -130,9 +149,9 @@ where
                 constructor = Some(FunctionDecl::new(name, params, body));
             } else {
                 if static_method {
-                    static_methods.push(FunctionDecl::new(name, params, body));
+                    static_fields.push(ClassField::Method(FunctionDecl::new(name, params, body)));
                 } else {
-                    methods.push(FunctionDecl::new(name, params, body));
+                    fields.push(ClassField::Method(FunctionDecl::new(name, params, body)));
                 }
             }
 
@@ -145,8 +164,8 @@ where
 
         Ok((
             constructor,
-            methods.into_boxed_slice(),
-            static_methods.into_boxed_slice(),
+            fields.into_boxed_slice(),
+            static_fields.into_boxed_slice(),
         ))
     }
 }
