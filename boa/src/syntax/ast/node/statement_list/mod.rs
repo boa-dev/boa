@@ -41,11 +41,10 @@ impl StatementList {
         f: &mut fmt::Formatter<'_>,
         indentation: usize,
     ) -> fmt::Result {
-        let indent = "    ".repeat(indentation);
         // Print statements
         for node in self.items.iter() {
-            f.write_str(&indent)?;
-            node.display(f, indentation + 1)?;
+            // We rely on the node to add the correct indent.
+            node.display(f, indentation)?;
 
             match node {
                 Node::Block(_) | Node::If(_) | Node::Switch(_) | Node::WhileLoop(_) => {}

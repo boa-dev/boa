@@ -64,9 +64,12 @@ impl DoWhileLoop {
         f: &mut fmt::Formatter<'_>,
         indentation: usize,
     ) -> fmt::Result {
-        write!(f, "do")?;
+        if let Some(ref label) = self.label {
+            write!(f, "{}: ", label)?;
+        }
+        write!(f, "do ")?;
         self.body().display(f, indentation)?;
-        write!(f, "while ({})", self.cond())
+        write!(f, " while ({})", self.cond())
     }
 }
 

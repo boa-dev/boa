@@ -206,3 +206,39 @@ fn bigger_switch_example() {
         assert_eq!(&exec(&scenario), val);
     }
 }
+
+#[test]
+fn fmt() {
+    super::super::test_formatting(
+        r#"
+        let a = 3;
+        let b = "unknown";
+        switch (a) {
+            case 0:
+                b = "Mon";
+                break;
+            case 1:
+                b = "Tue";
+                break;
+            case 2:
+                b = "Wed";
+                break;
+            case 3:
+                b = "Thurs";
+                break;
+            case 4:
+                b = "Fri";
+                break;
+            case 5:
+                b = "Sat";
+                break;
+            case 6:
+                b = "Sun";
+                break;
+            default:
+                b = "Unknown";
+        }
+        b;
+        "#,
+    );
+}

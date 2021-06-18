@@ -61,8 +61,13 @@ impl ArrowFunctionDecl {
     ) -> fmt::Result {
         write!(f, "(")?;
         join_nodes(f, &self.params)?;
-        f.write_str(") => ")?;
-        self.body.display(f, indentation)
+        if self.body().is_empty() {
+            f.write_str(") => {}")
+        } else {
+            f.write_str(") => {\n")?;
+            self.body.display(f, indentation + 1)?;
+            write!(f, "{}}}", "    ".repeat(indentation))
+        }
     }
 }
 

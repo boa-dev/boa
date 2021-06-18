@@ -69,23 +69,23 @@ impl ForLoop {
         f: &mut fmt::Formatter<'_>,
         indentation: usize,
     ) -> fmt::Result {
+        if let Some(ref label) = self.label {
+            write!(f, "{}: ", label)?;
+        }
         f.write_str("for (")?;
         if let Some(init) = self.init() {
             fmt::Display::fmt(init, f)?;
         }
-        f.write_str(";")?;
+        f.write_str("; ")?;
         if let Some(condition) = self.condition() {
             fmt::Display::fmt(condition, f)?;
         }
-        f.write_str(";")?;
+        f.write_str("; ")?;
         if let Some(final_expr) = self.final_expr() {
             fmt::Display::fmt(final_expr, f)?;
         }
-        writeln!(f, ") {{")?;
-
-        self.inner.body().display(f, indentation + 1)?;
-
-        write!(f, "}}")
+        write!(f, ") ")?;
+        self.inner.body().display(f, indentation)
     }
 
     pub fn label(&self) -> Option<&str> {

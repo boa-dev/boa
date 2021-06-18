@@ -239,14 +239,28 @@ impl Node {
         Self::This
     }
 
-    /// Implements the display formatting with indentation.
+    /// Displays the value of the node with the given indentation. For example, an indent
+    /// level of 2 would produce this:
+    ///
+    /// ```js
+    ///         function hello() {
+    ///             console.log("hello");
+    ///         }
+    ///         hello();
+    ///         a = 2;
+    /// ```
     fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
         let indent = "    ".repeat(indentation);
         match *self {
             Self::Block(_) => {}
             _ => write!(f, "{}", indent)?,
         }
+        self.display_no_indent(f, indentation)
+    }
 
+    /// Implements the display formatting with indentation. This will not prefix the value with
+    /// any indentation. If you want to prefix this with proper indents, use [`display`](Self::display).
+    fn display_no_indent(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
         match *self {
             Self::Call(ref expr) => Display::fmt(expr, f),
             Self::Const(ref c) => write!(f, "{}", c),
@@ -285,7 +299,7 @@ impl Node {
             Self::ConstDeclList(ref decl) => Display::fmt(decl, f),
             Self::AsyncFunctionDecl(ref decl) => decl.display(f, indentation),
             Self::AsyncFunctionExpr(ref expr) => expr.display(f, indentation),
-            Self::AwaitExpr(ref expr) => expr.display(f, indentation),
+            Self::AwaitExpr(ref expr) => Display::fmt(expr, f),
             Self::Empty => write!(f, ";"),
         }
     }
@@ -587,4 +601,39 @@ pub enum MethodDefinitionKind {
 
 unsafe impl Trace for MethodDefinitionKind {
     empty_trace!();
+}
+
+/// This parses the given source code, and then makes sure that
+/// the resulting StatementList is formatted in the same manner
+/// as the source code. This is expected to have a preceding
+/// newline.
+///
+/// This is a utility function for tests. It was made in case people
+/// are using different indents in their source files. This fixes
+/// any strings which may have been changed in a different indent
+/// level.
+#[cfg(test)]
+fn test_formatting(source: &'static str) {
+    // Remove preceding newline.
+    let source = &source[1..];
+
+    // Find out how much the code is indented
+    let first_line = &source[..source.find('\n').unwrap()];
+    let trimmed_first_line = first_line.trim();
+    let characters_to_remove = first_line.len() - trimmed_first_line.len();
+
+    let scenario = source
+        .lines()
+        .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
+        .collect::<Vec<&'static str>>()
+        .join("\n");
+    let result = format!("{}", crate::parse(&scenario, false).unwrap());
+    if scenario != result {
+        eprint!("========= Expected:\n{}", scenario);
+        eprint!("========= Got:\n{}", result);
+        // Might be helpful to find differing whitespace
+        eprintln!("========= Expected: {:?}", scenario);
+        eprintln!("========= Got:      {:?}", result);
+        panic!("parsing test did not give the correct result (see above)");
+    }
 }

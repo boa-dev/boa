@@ -64,17 +64,19 @@ impl AsyncFunctionExpr {
         f: &mut fmt::Formatter<'_>,
         indentation: usize,
     ) -> fmt::Result {
-        f.write_str("function")?;
+        f.write_str("async function")?;
         if let Some(ref name) = self.name {
             write!(f, " {}", name)?;
         }
         f.write_str("(")?;
         join_nodes(f, &self.parameters)?;
-        f.write_str(") {{")?;
-
-        self.body.display(f, indentation + 1)?;
-
-        writeln!(f, "}}")
+        if self.body().is_empty() {
+            f.write_str(") {}")
+        } else {
+            f.write_str(") {\n")?;
+            self.body.display(f, indentation + 1)?;
+            write!(f, "{}}}", "    ".repeat(indentation))
+        }
     }
 }
 
