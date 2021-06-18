@@ -1,4 +1,4 @@
-use crate::{exec, parse};
+use crate::exec;
 
 #[test]
 fn assignmentoperator_lhs_not_defined() {
