@@ -1346,7 +1346,7 @@
             <span class="kw">return</span> <span class="ident">context</span>
                 .<span class="ident">throw_type_error</span>(<span class="string">&quot;RegExp.prototype.exec method called on incompatible value&quot;</span>);
         };
-        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">Value::from</span>(<span class="ident">last_index</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">Value::from</span>(<span class="ident">last_index</span>), <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="ident">result</span>
     }
 
@@ -1426,7 +1426,7 @@
             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;exec method called on incompatible value&quot;</span>);
         };
 
-        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">Value::from</span>(<span class="ident">last_index</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">Value::from</span>(<span class="ident">last_index</span>), <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="ident">result</span>
     }
 
@@ -1552,7 +1552,7 @@
 
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">matches</span>.<span class="ident">len</span>();
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Value::from</span>(<span class="ident">matches</span>);
-        <span class="ident">result</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value::from</span>(<span class="ident">length</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">result</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value::from</span>(<span class="ident">length</span>), <span class="bool-val">false</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="ident">result</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData::Array</span>);
 
         <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
@@ -1590,7 +1590,7 @@
         <span class="comment">// 5. If SameValue(previousLastIndex, +0𝔽) is false, then</span>
         <span class="kw">if</span> <span class="ident">previous_last_index</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="comment">// a. Perform ? Set(rx, &quot;lastIndex&quot;, +0𝔽, true).</span>
-            <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="number">0</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="number">0</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// 6. Let result be ? RegExpExec(rx, S).</span>
@@ -1602,7 +1602,7 @@
         <span class="comment">// 8. If SameValue(currentLastIndex, previousLastIndex) is false, then</span>
         <span class="kw">if</span> <span class="ident">current_last_index</span> <span class="op">!</span><span class="op">=</span> <span class="ident">previous_last_index</span> {
             <span class="comment">// a. Perform ? Set(rx, &quot;lastIndex&quot;, previousLastIndex, true).</span>
-            <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">previous_last_index</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">previous_last_index</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// 9. If result is null, return -1𝔽.</span>

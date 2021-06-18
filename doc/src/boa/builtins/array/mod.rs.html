@@ -1687,6 +1687,7 @@
 <span id="1686">1686</span>
 <span id="1687">1687</span>
 <span id="1688">1688</span>
+<span id="1689">1689</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -1845,12 +1846,12 @@
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">length</span>.<span class="ident">is_number</span>() {
             <span class="ident">array</span>.<span class="ident">set_property</span>(<span class="number">0</span>, <span class="ident">DataDescriptor::new</span>(<span class="ident">length</span>, <span class="ident">Attribute::all</span>()));
-            <span class="ident">array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="number">1</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="ident">array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="number">1</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         } <span class="kw">else</span> {
             <span class="kw">if</span> <span class="ident">length</span>.<span class="ident">is_double</span>() {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Invalid array length&quot;</span>);
             }
-            <span class="ident">array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length</span>.<span class="ident">to_u32</span>(<span class="ident">context</span>).<span class="ident">unwrap</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="ident">array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length</span>.<span class="ident">to_u32</span>(<span class="ident">context</span>).<span class="ident">unwrap</span>(), <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(<span class="ident">array</span>)
@@ -2015,6 +2016,7 @@
         <span class="ident">array_ptr</span>.<span class="ident">set_field</span>(
             <span class="string">&quot;length&quot;</span>,
             <span class="ident">Value::from</span>(<span class="ident">orig_length</span>.<span class="ident">wrapping_add</span>(<span class="ident">add_values</span>.<span class="ident">len</span>())),
+            <span class="bool-val">false</span>,
             <span class="ident">context</span>,
         )<span class="question-mark">?</span>;
 
@@ -2064,7 +2066,7 @@
         }
 
         <span class="comment">// set length</span>
-        <span class="ident">array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">args</span>.<span class="ident">len</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">args</span>.<span class="ident">len</span>(), <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">array</span>)
     }
@@ -2144,7 +2146,7 @@
         <span class="kw">let</span> <span class="ident">pop_index</span> <span class="op">=</span> <span class="ident">curr_length</span>.<span class="ident">wrapping_sub</span>(<span class="number">1</span>);
         <span class="kw">let</span> <span class="ident">pop_value</span>: <span class="ident">Value</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">pop_index</span>.<span class="ident">to_string</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="ident">pop_index</span>);
-        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value::from</span>(<span class="ident">pop_index</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value::from</span>(<span class="ident">pop_index</span>), <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">pop_value</span>)
     }
 
@@ -2306,7 +2308,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="number">0</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="number">0</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::undefined</span>());
         }
 
@@ -2326,7 +2328,7 @@
 
         <span class="kw">let</span> <span class="ident">final_index</span> <span class="op">=</span> <span class="ident">len</span>.<span class="ident">wrapping_sub</span>(<span class="number">1</span>);
         <span class="ident">this</span>.<span class="ident">remove_property</span>(<span class="ident">final_index</span>);
-        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value::from</span>(<span class="ident">final_index</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value::from</span>(<span class="ident">final_index</span>), <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">first</span>)
     }
@@ -2372,7 +2374,7 @@
         }
 
         <span class="kw">let</span> <span class="ident">temp</span> <span class="op">=</span> <span class="ident">len</span>.<span class="ident">wrapping_add</span>(<span class="ident">arg_c</span>);
-        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value::from</span>(<span class="ident">temp</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value::from</span>(<span class="ident">temp</span>), <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">temp</span>))
     }
 
@@ -2701,7 +2703,7 @@
             <span class="kw-2">&amp;</span><span class="ident">Value::undefined</span>(),
             <span class="kw-2">&amp;</span><span class="ident">Value::undefined</span>(),
         )<span class="question-mark">?</span>;
-        <span class="ident">new_array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">len</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">new_array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">len</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="bool-val">false</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">new_array</span>)
     }
@@ -2748,7 +2750,7 @@
             <span class="kw-2">&amp;</span><span class="ident">mapper_function</span>,
             <span class="kw-2">&amp;</span><span class="ident">this_arg</span>,
         )<span class="question-mark">?</span>;
-        <span class="ident">new_array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">len</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">new_array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">len</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="bool-val">false</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. Return A</span>
         <span class="prelude-val">Ok</span>(<span class="ident">new_array</span>)
@@ -2961,7 +2963,7 @@
             );
             <span class="ident">new_array_len</span> <span class="op">=</span> <span class="ident">new_array_len</span>.<span class="ident">saturating_add</span>(<span class="number">1</span>);
         }
-        <span class="ident">new_array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value::from</span>(<span class="ident">new_array_len</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">new_array</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value::from</span>(<span class="ident">new_array_len</span>), <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">new_array</span>)
     }
 
