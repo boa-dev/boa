@@ -158,13 +158,21 @@ impl Executable for ClassDecl {
 
         // Setup non static things
         let proto = Value::Object(GcObject::new(Object::new()));
-        for method in self.methods() {
-            let f = context.create_function(
-                method.parameters().to_vec(),
-                method.body().to_vec(),
-                FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
-            )?;
-            proto.set_field(method.name(), f, context)?;
+        for f in self.fields.iter() {
+            match f {
+                ClassField::Method(method) => {
+                    let f = context.create_function(
+                        method.parameters().to_vec(),
+                        method.body().to_vec(),
+                        FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
+                    )?;
+                    proto.set_field(method.name(), f, context)?;
+                }
+                ClassField::Field(name, value) => {
+                    proto.set_field(name.clone(), value.run(context)?, context)?;
+                }
+                _ => unimplemented!(),
+            }
         }
         class.set_field(PROTOTYPE, proto, context)?;
 
