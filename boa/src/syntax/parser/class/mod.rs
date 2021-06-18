@@ -102,7 +102,7 @@ where
 
         loop {
             let next = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
-            let static_method = match next.kind() {
+            let static_field = match next.kind() {
                 TokenKind::Keyword(Keyword::Static) => {
                     // Consume the static token.
                     cursor.next()?;
@@ -141,6 +141,7 @@ where
             }
 
             let next = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
+            let pos = next.span().start();
             let field = match next.kind() {
                 // A method definition
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
@@ -165,12 +166,17 @@ where
 
                     cursor.expect(Punctuator::CloseBlock, "class function declaration")?;
 
-                    ClassField::Method(FunctionDecl::new(name, params, body))
+                    if *name == *"constructor" {
+                        constructor = Some(FunctionDecl::new(name, params, body));
+                        None
+                    } else {
+                        Some(ClassField::Method(FunctionDecl::new(name, params, body)))
+                    }
                 }
                 // A field definition
                 TokenKind::Punctuator(Punctuator::Assign) => {
                     // TODO: Parse an expr here
-                    unimplemented!()
+                    None
                 }
                 _ => {
                     return Err(ParseError::expected(
@@ -182,15 +188,13 @@ where
                         "class method or field declatation",
                     ))
                 }
-            }
+            };
 
-            if *name == *"constructor" {
-                // constructor = Some(FunctionDecl::new(name, params, body));
-            } else {
-                if static_method {
-                    static_fields.push(field);
+            if let Some(f) = field {
+                if static_field {
+                    static_fields.push(f);
                 } else {
-                    fields.push(field);
+                    fields.push(f);
                 }
             }
 
