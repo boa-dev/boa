@@ -216,7 +216,7 @@ impl Executable for BinOp {
                     let v_r_a = get_const_field.obj().run(context)?;
                     let v_a = v_r_a.get_field(get_const_field.field(), context)?;
                     let value = Self::run_assign(op, v_a, self.rhs(), context)?;
-                    v_r_a.set_field(get_const_field.field(), value.clone(), context)?;
+                    v_r_a.set_field(get_const_field.field(), value.clone(), false, context)?;
                     Ok(value)
                 }
                 _ => Ok(Value::undefined()),

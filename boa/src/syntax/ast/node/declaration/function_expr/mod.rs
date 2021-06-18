@@ -106,7 +106,7 @@ impl Executable for FunctionExpr {
         )?;
 
         if let Some(name) = self.name() {
-            val.set_field("name", Value::from(name), context)?;
+            val.set_field("name", Value::from(name), false, context)?;
         }
 
         Ok(val)
