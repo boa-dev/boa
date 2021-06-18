@@ -3,6 +3,7 @@ use crate::{
     environment::lexical_environment::VariableScope,
     exec::Executable,
     gc::{Finalize, Trace},
+    object::{GcObject, Object, PROTOTYPE},
     syntax::ast::node::{FunctionDecl, Node},
     BoaProfiler, Context, Result, Value,
 };
@@ -98,6 +99,12 @@ impl Executable for ClassDecl {
 
         // Set the name and assign it in the current environment
         constructor.set_field("name", self.name(), context)?;
+
+        let proto = Value::Object(GcObject::new(Object::new()));
+        for method in self.methods() {
+            proto.set_field(method.name(), method, context)?;
+        }
+        constructor.set_field(PROTOTYPE, proto, context)?;
 
         if context.has_binding(self.name()) {
             context.set_mutable_binding(self.name(), constructor, true)?;
