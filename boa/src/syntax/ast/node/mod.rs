@@ -629,11 +629,11 @@ fn test_formatting(source: &'static str) {
         .join("\n");
     let result = format!("{}", crate::parse(&scenario, false).unwrap());
     if scenario != result {
-        print!("========= Expected:\n{}", scenario);
-        print!("========= Got:\n{}", result);
+        eprint!("========= Expected:\n{}", scenario);
+        eprint!("========= Got:\n{}", result);
         // Might be helpful to find differing whitespace
-        println!("========= Expected: {:?}", scenario);
-        println!("========= Got:      {:?}", result);
+        eprintln!("========= Expected: {:?}", scenario);
+        eprintln!("========= Got:      {:?}", result);
         panic!("parsing test did not give the correct result (see above)");
     }
 }
