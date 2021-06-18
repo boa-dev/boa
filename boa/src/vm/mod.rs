@@ -7,6 +7,7 @@ use crate::{
 };
 
 pub(crate) mod compilation;
+pub(crate) mod exec_context;
 pub(crate) mod instructions;
 
 pub use compilation::Compiler;
