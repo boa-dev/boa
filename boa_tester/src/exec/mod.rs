@@ -8,6 +8,7 @@ use super::{
 };
 use boa::{parse, Context, Value};
 use colored::Colorize;
+use rayon::prelude::*;
 use std::panic;
 
 impl TestSuite {
@@ -17,17 +18,15 @@ impl TestSuite {
             println!("Suite {}:", self.name);
         }
 
-        // TODO: in parallel
         let suites: Vec<_> = self
             .suites
-            .iter()
+            .par_iter()
             .map(|suite| suite.run(harness, verbose))
             .collect();
 
-        // TODO: in parallel
         let tests: Vec<_> = self
             .tests
-            .iter()
+            .par_iter()
             .map(|test| test.run(harness, verbose))
             .flatten()
             .collect();

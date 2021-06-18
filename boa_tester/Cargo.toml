@@ -25,3 +25,4 @@ git2 = "0.13.20"
 hex = "0.4.3"
 num-format = "0.4.0"
 gc = { version = "0.4.1", features = ["derive"] }
+rayon = "1.5.1"
