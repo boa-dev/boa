@@ -154,7 +154,7 @@ impl Executable for ClassDecl {
         };
 
         // Set the name and assign it in the current environment
-        class.set_field("name", self.name(), context)?;
+        class.set_field("name", self.name(), false, context)?;
 
         // Setup non static things
         let proto = Value::Object(GcObject::new(Object::new()));
@@ -166,15 +166,15 @@ impl Executable for ClassDecl {
                         method.body().to_vec(),
                         FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
                     )?;
-                    proto.set_field(method.name(), f, context)?;
+                    proto.set_field(method.name(), f, false, context)?;
                 }
                 ClassField::Field(name, value) => {
-                    proto.set_field(name.clone(), value.run(context)?, context)?;
+                    proto.set_field(name.clone(), value.run(context)?, false, context)?;
                 }
                 _ => unimplemented!(),
             }
         }
-        class.set_field(PROTOTYPE, proto, context)?;
+        class.set_field(PROTOTYPE, proto, false, context)?;
 
         // Setup static things
         for method in self.static_methods() {
@@ -183,7 +183,7 @@ impl Executable for ClassDecl {
                 method.body().to_vec(),
                 FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
             )?;
-            class.set_field(method.name(), f, context)?;
+            class.set_field(method.name(), f, false, context)?;
         }
 
         if context.has_binding(self.name()) {
