@@ -31,21 +31,19 @@ impl BuiltIn for Math {
     }
 
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
-        use std::f64;
-
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         let string_tag = WellKnownSymbols::to_string_tag();
         let object = ObjectInitializer::new(context)
-            .property("E", f64::consts::E, attribute)
-            .property("LN2", f64::consts::LN_2, attribute)
-            .property("LN10", f64::consts::LN_10, attribute)
-            .property("LOG2E", f64::consts::LOG2_E, attribute)
-            .property("LOG10E", f64::consts::LOG10_E, attribute)
-            .property("SQRT1_2", 0.5_f64.sqrt(), attribute)
-            .property("SQRT2", f64::consts::SQRT_2, attribute)
-            .property("PI", f64::consts::PI, attribute)
+            .property("E", std::f64::consts::E, attribute)
+            .property("LN2", std::f64::consts::LN_2, attribute)
+            .property("LN10", std::f64::consts::LN_10, attribute)
+            .property("LOG2E", std::f64::consts::LOG2_E, attribute)
+            .property("LOG10E", std::f64::consts::LOG10_E, attribute)
+            .property("SQRT1_2", std::f64::consts::FRAC_1_SQRT_2, attribute)
+            .property("SQRT2", std::f64::consts::SQRT_2, attribute)
+            .property("PI", std::f64::consts::PI, attribute)
             .function(Self::abs, "abs", 1)
             .function(Self::acos, "acos", 1)
             .function(Self::acosh, "acosh", 1)
