@@ -6,6 +6,9 @@ const webpack = require("webpack");
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 
 module.exports = {
+  experiments: {
+    asyncWebAssembly: true,
+  },
   entry: {
     app: "./index.js",
     "editor.worker": "monaco-editor/esm/vs/editor/editor.worker.js",
