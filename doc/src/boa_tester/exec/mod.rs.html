@@ -316,7 +316,6 @@
 <span id="315">315</span>
 <span id="316">316</span>
 <span id="317">317</span>
-<span id="318">318</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Execution module for the test runner.</span>
 
@@ -328,6 +327,7 @@
 };
 <span class="kw">use</span> <span class="ident">boa</span>::{<span class="ident">parse</span>, <span class="ident">Context</span>, <span class="ident">Value</span>};
 <span class="kw">use</span> <span class="ident">colored::Colorize</span>;
+<span class="kw">use</span> <span class="ident">rayon::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">std::panic</span>;
 
 <span class="kw">impl</span> <span class="ident">TestSuite</span> {
@@ -337,17 +337,15 @@
             <span class="macro">println!</span>(<span class="string">&quot;Suite {}:&quot;</span>, <span class="self">self</span>.<span class="ident">name</span>);
         }
 
-        <span class="comment">// TODO: in parallel</span>
         <span class="kw">let</span> <span class="ident">suites</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">suites</span>
-            .<span class="ident">iter</span>()
+            .<span class="ident">par_iter</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">suite</span><span class="op">|</span> <span class="ident">suite</span>.<span class="ident">run</span>(<span class="ident">harness</span>, <span class="ident">verbose</span>))
             .<span class="ident">collect</span>();
 
-        <span class="comment">// TODO: in parallel</span>
         <span class="kw">let</span> <span class="ident">tests</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>
             .<span class="ident">tests</span>
-            .<span class="ident">iter</span>()
+            .<span class="ident">par_iter</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">test</span><span class="op">|</span> <span class="ident">test</span>.<span class="ident">run</span>(<span class="ident">harness</span>, <span class="ident">verbose</span>))
             .<span class="ident">flatten</span>()
             .<span class="ident">collect</span>();
