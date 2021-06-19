@@ -1254,16 +1254,33 @@ impl Array {
     ) -> Result<Value> {
         let search_element = args.get(0).cloned().unwrap_or_else(Value::undefined);
 
+        let from_index = args.get(1).cloned().unwrap_or_else(|| Value::from(0));
+
         let length = this.get_field("length", context)?.to_length(context)?;
 
-        for idx in 0..length {
+        if length == 0 {
+            return Ok(Value::from(false));
+        }
+
+        let n = match from_index.to_integer_or_infinity(context)? {
+            IntegerOrInfinity::NegativeInfinity => 0,
+            IntegerOrInfinity::PositiveInfinity => return Ok(Value::from(false)),
+            IntegerOrInfinity::Integer(i) => i,
+        };
+
+        let k = match n {
+            num if num >= 0 => num as usize,
+            num if -num as usize > length => 0,
+            _ => length - (-n as usize),
+        };
+
+        for idx in k..length {
             let check_element = this.get_field(idx, context)?.clone();
 
             if Value::same_value_zero(&check_element, &search_element) {
                 return Ok(Value::from(true));
             }
         }
-
         Ok(Value::from(false))
     }
 

@@ -13,7 +13,6 @@ feature:json-modules
 arg-length-exceeding-integer-limit
 15.4.4.19-8-c-ii-1
 fill-string-empty
-length-boundaries
 throws-if-integer-limit-exceeded
 
 // These generate a stack overflow
