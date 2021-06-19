@@ -688,6 +688,9 @@ impl Array {
         let arg_c = args.len();
 
         if arg_c > 0 {
+            if len + arg_c > Number::MAX_SAFE_INTEGER as usize {
+                return context.throw_type_error("len + argCount exceeded MAX_SAFE_INTEGER");
+            }
             for k in (1..=len).rev() {
                 let from = k.wrapping_sub(1);
                 let to = k.wrapping_add(arg_c).wrapping_sub(1);
