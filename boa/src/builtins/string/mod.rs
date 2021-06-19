@@ -918,13 +918,17 @@ impl String {
             return Value::from(primitive);
         }
 
-        let filter = fill_string.as_deref().unwrap_or(" ");
+        let filler = fill_string.as_deref().unwrap_or(" ");
+
+        if filler == "" {
+            return Value::from(primitive);
+        }
 
         let fill_len = max_length.wrapping_sub(primitive_length);
         let mut fill_str = StdString::new();
 
         while fill_str.len() < fill_len as usize {
-            fill_str.push_str(filter);
+            fill_str.push_str(filler);
         }
         // Cut to size max_length
         let concat_fill_str: StdString = fill_str.chars().take(fill_len as usize).collect();
