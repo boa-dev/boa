@@ -109,26 +109,46 @@ impl ClassDecl {
         indentation: usize,
     ) -> fmt::Result {
         if self.fields.is_empty() && self.static_fields.is_empty() {
-            return write!(f, "class {{}}");
+            return write!(f, "class {} {{}}", self.name);
         }
         let indent = "    ".repeat(indentation);
-        write!(f, "class {{")?;
+        writeln!(f, "class {} {{", self.name)?;
         for field in self.all_fields() {
             write!(f, "    {}", indent)?;
             match field {
                 ClassField::Method(method) => {
-                    method.display_no_function(f, indentation + 2)?;
+                    method.display_no_function(f, indentation + 1)?;
                 }
                 ClassField::Field(name, value) => {
-                    write!(f, "{} = {}", name, value)?;
+                    write!(f, "{} = {};", name, value)?;
                 }
                 ClassField::Getter(method) => {
                     write!(f, "get ")?;
-                    method.display_no_function(f, indentation + 2)?;
+                    method.display_no_function(f, indentation + 1)?;
                 }
                 ClassField::Setter(method) => {
                     write!(f, "set ")?;
-                    method.display_no_function(f, indentation + 2)?;
+                    method.display_no_function(f, indentation + 1)?;
+                }
+            }
+            writeln!(f)?;
+        }
+        for field in self.all_static_fields() {
+            write!(f, "    static {}", indent)?;
+            match field {
+                ClassField::Method(method) => {
+                    method.display_no_function(f, indentation + 1)?;
+                }
+                ClassField::Field(name, value) => {
+                    write!(f, "{} = {};", name, value)?;
+                }
+                ClassField::Getter(method) => {
+                    write!(f, "get ")?;
+                    method.display_no_function(f, indentation + 1)?;
+                }
+                ClassField::Setter(method) => {
+                    write!(f, "set ")?;
+                    method.display_no_function(f, indentation + 1)?;
                 }
             }
             writeln!(f)?;

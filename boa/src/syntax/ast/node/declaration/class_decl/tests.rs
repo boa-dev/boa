@@ -77,3 +77,21 @@ fn get_class_field_literal() {
 
     assert_eq!(&exec(scenario), "30");
 }
+
+#[test]
+fn fmt_test() {
+    super::super::super::test_formatting(
+        r#"
+        class Hello {
+            a = 5;
+            say_hi(a, ...b) {
+                console.log("Hello" + a);
+            }
+            static c = 5;
+            static say_hi(a, ...b) {
+                console.log("Hello" + a);
+            }
+        };
+        "#,
+    );
+}
