@@ -5,7 +5,7 @@ use crate::{
     profiler::BoaProfiler,
     syntax::{
         ast::{Keyword, Position, Span},
-        lexer::{Token, TokenKind},
+        lexer::{StringLiteral, Token, TokenKind},
     },
 };
 use boa_unicode::UnicodeProperties;
@@ -86,43 +86,100 @@ impl<R> Tokenizer<R> for Identifier {
     {
         let _timer = BoaProfiler::global().start_event("Identifier", "Lexing");
 
-        let mut init_buf = [0u8; 4];
-        let mut buf = Vec::new();
-        self.init.encode_utf8(&mut init_buf);
-        buf.extend(init_buf.iter().take(self.init.len_utf8()));
+        let (identifier_name, contains_escaped_chars) =
+            Self::take_identifier_name(cursor, start_pos, self.init)?;
 
-        cursor.take_while_char_pred(&mut buf, &Self::is_identifier_part)?;
-
-        let token_str = unsafe { str::from_utf8_unchecked(buf.as_slice()) };
-        let tk = match token_str {
-            "true" => TokenKind::BooleanLiteral(true),
-            "false" => TokenKind::BooleanLiteral(false),
-            "null" => TokenKind::NullLiteral,
-            slice => {
-                if let Ok(keyword) = slice.parse() {
-                    if cursor.strict_mode() && keyword == Keyword::With {
-                        return Err(Error::Syntax(
-                            "using 'with' statement not allowed in strict mode".into(),
-                            start_pos,
-                        ));
-                    }
-                    TokenKind::Keyword(keyword)
-                } else {
-                    if cursor.strict_mode() && STRICT_FORBIDDEN_IDENTIFIERS.contains(&slice) {
-                        return Err(Error::Syntax(
-                            format!(
-                                "using future reserved keyword '{}' not allowed in strict mode",
-                                slice
-                            )
-                            .into(),
-                            start_pos,
-                        ));
-                    }
-                    TokenKind::identifier(slice)
-                }
+        let token_kind = if let Ok(keyword) = identifier_name.parse() {
+            if contains_escaped_chars {
+                return Err(Error::Syntax(
+                    "unicode escaped characters are not allowed in keyword".into(),
+                    start_pos,
+                ));
             }
+
+            if cursor.strict_mode() && keyword == Keyword::With {
+                return Err(Error::Syntax(
+                    "using 'with' statement not allowed in strict mode".into(),
+                    start_pos,
+                ));
+            }
+
+            match keyword {
+                Keyword::True => TokenKind::BooleanLiteral(true),
+                Keyword::False => TokenKind::BooleanLiteral(false),
+                Keyword::Null => TokenKind::NullLiteral,
+                _ => TokenKind::Keyword(keyword),
+            }
+        } else {
+            if cursor.strict_mode()
+                && STRICT_FORBIDDEN_IDENTIFIERS.contains(&identifier_name.as_str())
+            {
+                return Err(Error::Syntax(
+                    format!(
+                        "using future reserved keyword '{}' not allowed in strict mode",
+                        identifier_name
+                    )
+                    .into(),
+                    start_pos,
+                ));
+            }
+            TokenKind::identifier(identifier_name.into_boxed_str())
         };
 
-        Ok(Token::new(tk, Span::new(start_pos, cursor.pos())))
+        Ok(Token::new(token_kind, Span::new(start_pos, cursor.pos())))
+    }
+}
+
+impl Identifier {
+    #[inline]
+    fn take_identifier_name<R>(
+        cursor: &mut Cursor<R>,
+        start_pos: Position,
+        init: char,
+    ) -> Result<(String, bool), Error>
+    where
+        R: Read,
+    {
+        let mut contains_escaped_chars = false;
+        let mut identifier_name = if init == '\\' && cursor.next_is(b'u')? {
+            let ch = StringLiteral::take_unicode_escape_sequence(cursor, start_pos)?;
+
+            if Self::is_identifier_start(ch) {
+                contains_escaped_chars = true;
+                String::from(char::try_from(ch).unwrap())
+            } else {
+                return Err(Error::Syntax("invalid identifier start".into(), start_pos));
+            }
+        } else {
+            // The caller guarantees that `init` is a valid identifier start
+            String::from(init)
+        };
+
+        loop {
+            let ch = match cursor.peek_char()? {
+                Some(0x005C /* \ */) if cursor.peek_n(2)? >> 8 == 0x0075 /* u */ => {
+                    let pos = cursor.pos();
+                    let _ = cursor.next_byte();
+                    let _ = cursor.next_byte();
+                    let ch = StringLiteral::take_unicode_escape_sequence(cursor, pos)?;
+
+                    if Self::is_identifier_part(ch) {
+                        contains_escaped_chars = true;
+                        ch
+                    } else {
+                        return Err(Error::Syntax("invalid identifier part".into(), pos));
+                    }
+                }
+                Some(ch) if Self::is_identifier_part(ch) => {
+                    let _ = cursor.next_char()?;
+                    ch
+                },
+                _ => break,
+            };
+
+            identifier_name.push(char::try_from(ch).unwrap());
+        }
+
+        Ok((identifier_name, contains_escaped_chars))
     }
 }

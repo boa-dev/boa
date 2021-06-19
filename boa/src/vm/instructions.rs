@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub enum Instruction {
     Undefined,
     Null,
@@ -12,7 +12,7 @@ pub enum Instruction {
     /// Loads an i32 onto the stack
     Int32(i32),
 
-    /// Loads an f32 onto the stack
+    /// Loads an f64 onto the stack
     Rational(f64),
 
     /// Adds the values from destination and source and stores the result in destination
@@ -66,6 +66,13 @@ pub enum Instruction {
     DefConst(usize),
     /// The usize is the index of the value to initiate the variable with in the pool
     InitLexical(usize),
+
+    // Binding values
+    /// Find a binding on the environment chain and push its value.
+    GetName(String),
+    // Objects
+    // Create and push a new object onto the stack
+    NewObject,
 }
 
 impl std::fmt::Display for Instruction {
@@ -90,6 +97,7 @@ impl std::fmt::Display for Instruction {
             Self::BitAnd => write!(f, "BitAnd"),
             Self::BitOr => write!(f, "BitOr"),
             Self::BitXor => write!(f, "BitXor"),
+            Self::GetName(ref name) => write!(f, "GetName({})", name),
             Self::Shl => write!(f, "Shl"),
             Self::Shr => write!(f, "Shr"),
             Self::UShr => write!(f, "UShr"),
@@ -113,6 +121,7 @@ impl std::fmt::Display for Instruction {
             Self::DefLet(name) => write!(f, "DefLet({})", name),
             Self::DefConst(name) => write!(f, "DefConst({})", name),
             Self::InitLexical(value) => write!(f, "InitLexical({})", value),
+            Self::NewObject => write!(f, "NewObject"),
         }
     }
 }

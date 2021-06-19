@@ -30,7 +30,7 @@ impl BuiltIn for GlobalThis {
 
         (
             Self::NAME,
-            context.global_object().clone().into(),
+            context.global_object().into(),
             Self::attribute(),
         )
     }

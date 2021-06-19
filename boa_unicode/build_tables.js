@@ -85,7 +85,8 @@ https
   .end();
 
 function buildRustFile(propListText) {
-  const dataRegex = /(^|\n)(?<codePointStart>[0-9A-F]+)(\.\.(?<codePointEnd>[0-9A-F]+))?\s*;\s*(?<property>[^\s]+)/gi;
+  const dataRegex =
+    /(^|\n)(?<codePointStart>[0-9A-F]+)(\.\.(?<codePointEnd>[0-9A-F]+))?\s*;\s*(?<property>[^\s]+)/gi;
   const data = [...propListText.matchAll(dataRegex)].map(
     (match) => match.groups
   );

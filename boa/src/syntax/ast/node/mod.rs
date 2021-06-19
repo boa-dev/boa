@@ -29,8 +29,8 @@ pub use self::{
     call::Call,
     conditional::{ConditionalOp, If},
     declaration::{
-        ArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, ConstDecl, ConstDeclList,
-        FunctionDecl, FunctionExpr, LetDecl, LetDeclList, VarDecl, VarDeclList,
+        ArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList,
+        FunctionDecl, FunctionExpr,
     },
     field::{GetConstField, GetField},
     identifier::Identifier,
@@ -108,8 +108,8 @@ pub enum Node {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
     Const(Const),
 
-    /// A constant declaration list. [More information](./declaration/struct.ConstDeclList.html).
-    ConstDeclList(ConstDeclList),
+    /// A constant declaration list. [More information](./declaration/enum.DeclarationList.html#variant.Const).
+    ConstDeclList(DeclarationList),
 
     /// A continue statement. [More information](./iteration/struct.Continue.html).
     Continue(Continue),
@@ -141,8 +141,8 @@ pub enum Node {
     /// An 'if' statement. [More information](./conditional/struct.If.html).
     If(If),
 
-    /// A `let` declaration list. [More information](./declaration/struct.LetDeclList.html).
-    LetDeclList(LetDeclList),
+    /// A `let` declaration list. [More information](./declaration/enum.DeclarationList.html#variant.Let).
+    LetDeclList(DeclarationList),
 
     /// A local identifier node. [More information](./identifier/struct.Identifier.html).
     Identifier(Identifier),
@@ -191,11 +191,23 @@ pub enum Node {
     /// Unary operation node. [More information](./operator/struct.UnaryOp.html)
     UnaryOp(UnaryOp),
 
-    /// Array declaration node. [More information](./declaration/struct.VarDeclList.html).
-    VarDeclList(VarDeclList),
+    /// Array declaration node. [More information](./declaration/enum.DeclarationList.html#variant.Var).
+    VarDeclList(DeclarationList),
 
     /// A 'while {...}' node. [More information](./iteration/struct.WhileLoop.html).
     WhileLoop(WhileLoop),
+
+    /// A empty node.
+    ///
+    /// Empty statement do nothing, just return undefined.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-EmptyStatement
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/Empty
+    Empty,
 }
 
 impl Display for Node {
@@ -227,14 +239,28 @@ impl Node {
         Self::This
     }
 
-    /// Implements the display formatting with indentation.
+    /// Displays the value of the node with the given indentation. For example, an indent
+    /// level of 2 would produce this:
+    ///
+    /// ```js
+    ///         function hello() {
+    ///             console.log("hello");
+    ///         }
+    ///         hello();
+    ///         a = 2;
+    /// ```
     fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
         let indent = "    ".repeat(indentation);
         match *self {
             Self::Block(_) => {}
             _ => write!(f, "{}", indent)?,
         }
+        self.display_no_indent(f, indentation)
+    }
 
+    /// Implements the display formatting with indentation. This will not prefix the value with
+    /// any indentation. If you want to prefix this with proper indents, use [`display`](Self::display).
+    fn display_no_indent(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
         match *self {
             Self::Call(ref expr) => Display::fmt(expr, f),
             Self::Const(ref c) => write!(f, "{}", c),
@@ -273,7 +299,8 @@ impl Node {
             Self::ConstDeclList(ref decl) => Display::fmt(decl, f),
             Self::AsyncFunctionDecl(ref decl) => decl.display(f, indentation),
             Self::AsyncFunctionExpr(ref expr) => expr.display(f, indentation),
-            Self::AwaitExpr(ref expr) => expr.display(f, indentation),
+            Self::AwaitExpr(ref expr) => Display::fmt(expr, f),
+            Self::Empty => write!(f, ";"),
         }
     }
 }
@@ -329,15 +356,12 @@ impl Executable for Node {
             Node::Spread(ref spread) => spread.run(context),
             Node::This => {
                 // Will either return `this` binding or undefined
-                context
-                    .realm()
-                    .environment
-                    .get_this_binding()
-                    .map_err(|e| e.to_error(context))
+                context.get_this_binding()
             }
             Node::Try(ref try_node) => try_node.run(context),
             Node::Break(ref break_node) => break_node.run(context),
             Node::Continue(ref continue_node) => continue_node.run(context),
+            Node::Empty => Ok(Value::Undefined),
         }
     }
 }
@@ -577,4 +601,39 @@ pub enum MethodDefinitionKind {
 
 unsafe impl Trace for MethodDefinitionKind {
     empty_trace!();
+}
+
+/// This parses the given source code, and then makes sure that
+/// the resulting StatementList is formatted in the same manner
+/// as the source code. This is expected to have a preceding
+/// newline.
+///
+/// This is a utility function for tests. It was made in case people
+/// are using different indents in their source files. This fixes
+/// any strings which may have been changed in a different indent
+/// level.
+#[cfg(test)]
+fn test_formatting(source: &'static str) {
+    // Remove preceding newline.
+    let source = &source[1..];
+
+    // Find out how much the code is indented
+    let first_line = &source[..source.find('\n').unwrap()];
+    let trimmed_first_line = first_line.trim();
+    let characters_to_remove = first_line.len() - trimmed_first_line.len();
+
+    let scenario = source
+        .lines()
+        .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
+        .collect::<Vec<&'static str>>()
+        .join("\n");
+    let result = format!("{}", crate::parse(&scenario, false).unwrap());
+    if scenario != result {
+        eprint!("========= Expected:\n{}", scenario);
+        eprint!("========= Got:\n{}", result);
+        // Might be helpful to find differing whitespace
+        eprintln!("========= Expected: {:?}", scenario);
+        eprintln!("========= Got:      {:?}", result);
+        panic!("parsing test did not give the correct result (see above)");
+    }
 }

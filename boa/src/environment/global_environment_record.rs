@@ -7,31 +7,54 @@
 //! that occur within a Script.
 //! More info:  <https://tc39.es/ecma262/#sec-global-environment-records>
 
-use super::ErrorKind;
 use crate::{
     environment::{
         declarative_environment_record::DeclarativeEnvironmentRecord,
         environment_record_trait::EnvironmentRecordTrait,
-        lexical_environment::{Environment, EnvironmentType},
+        lexical_environment::{Environment, EnvironmentType, VariableScope},
         object_environment_record::ObjectEnvironmentRecord,
     },
     gc::{Finalize, Trace},
+    object::GcObject,
     property::{Attribute, DataDescriptor},
-    Value,
+    Context, Result, Value,
 };
+use gc::{Gc, GcCell};
 use rustc_hash::FxHashSet;
 
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct GlobalEnvironmentRecord {
     pub object_record: ObjectEnvironmentRecord,
-    pub global_this_binding: Value,
+    pub global_this_binding: GcObject,
     pub declarative_record: DeclarativeEnvironmentRecord,
-    pub var_names: FxHashSet<String>,
+    pub var_names: GcCell<FxHashSet<Box<str>>>,
 }
 
 impl GlobalEnvironmentRecord {
+    pub fn new(global: GcObject, this_value: GcObject) -> GlobalEnvironmentRecord {
+        let obj_rec = ObjectEnvironmentRecord {
+            bindings: global.into(),
+            outer_env: None,
+            /// Object Environment Records created for with statements (13.11)
+            /// can provide their binding object as an implicit this value for use in function calls.
+            /// The capability is controlled by a withEnvironment Boolean value that is associated
+            /// with each object Environment Record. By default, the value of withEnvironment is false
+            /// for any object Environment Record.
+            with_environment: false,
+        };
+
+        let dcl_rec = DeclarativeEnvironmentRecord::new(None);
+
+        GlobalEnvironmentRecord {
+            object_record: obj_rec,
+            global_this_binding: this_value,
+            declarative_record: dcl_rec,
+            var_names: GcCell::new(FxHashSet::default()),
+        }
+    }
+
     pub fn has_var_declaration(&self, name: &str) -> bool {
-        self.var_names.contains(name)
+        self.var_names.borrow().contains(name)
     }
 
     pub fn has_lexical_declaration(&self, name: &str) -> bool {
@@ -80,19 +103,20 @@ impl GlobalEnvironmentRecord {
         &mut self,
         name: String,
         deletion: bool,
-    ) -> Result<(), ErrorKind> {
+        context: &mut Context,
+    ) -> Result<()> {
         let obj_rec = &mut self.object_record;
         let global_object = &obj_rec.bindings;
         let has_property = global_object.has_field(name.as_str());
         let extensible = global_object.is_extensible();
         if !has_property && extensible {
-            obj_rec.create_mutable_binding(name.clone(), deletion, false)?;
-            obj_rec.initialize_binding(&name, Value::undefined())?;
+            obj_rec.create_mutable_binding(name.clone(), deletion, false, context)?;
+            obj_rec.initialize_binding(&name, Value::undefined(), context)?;
         }
 
-        let var_declared_names = &mut self.var_names;
-        if !var_declared_names.contains(&name) {
-            var_declared_names.insert(name);
+        let mut var_declared_names = self.var_names.borrow_mut();
+        if !var_declared_names.contains(name.as_str()) {
+            var_declared_names.insert(name.into_boxed_str());
         }
         Ok(())
     }
@@ -120,10 +144,6 @@ impl GlobalEnvironmentRecord {
 }
 
 impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
-    fn get_this_binding(&self) -> Result<Value, ErrorKind> {
-        Ok(self.global_this_binding.clone())
-    }
-
     fn has_binding(&self, name: &str) -> bool {
         if self.declarative_record.has_binding(name) {
             return true;
@@ -132,68 +152,78 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     }
 
     fn create_mutable_binding(
-        &mut self,
+        &self,
         name: String,
         deletion: bool,
         allow_name_reuse: bool,
-    ) -> Result<(), ErrorKind> {
+        context: &mut Context,
+    ) -> Result<()> {
         if !allow_name_reuse && self.declarative_record.has_binding(&name) {
-            return Err(ErrorKind::new_type_error(format!(
-                "Binding already exists for {}",
-                name
-            )));
+            return Err(
+                context.construct_type_error(format!("Binding already exists for {}", name))
+            );
         }
 
         self.declarative_record
-            .create_mutable_binding(name, deletion, allow_name_reuse)
+            .create_mutable_binding(name, deletion, allow_name_reuse, context)
     }
 
-    fn create_immutable_binding(&mut self, name: String, strict: bool) -> Result<(), ErrorKind> {
+    fn create_immutable_binding(
+        &self,
+        name: String,
+        strict: bool,
+        context: &mut Context,
+    ) -> Result<()> {
         if self.declarative_record.has_binding(&name) {
-            return Err(ErrorKind::new_type_error(format!(
-                "Binding already exists for {}",
-                name
-            )));
+            return Err(
+                context.construct_type_error(format!("Binding already exists for {}", name))
+            );
         }
 
         self.declarative_record
-            .create_immutable_binding(name, strict)
+            .create_immutable_binding(name, strict, context)
     }
 
-    fn initialize_binding(&mut self, name: &str, value: Value) -> Result<(), ErrorKind> {
+    fn initialize_binding(&self, name: &str, value: Value, context: &mut Context) -> Result<()> {
         if self.declarative_record.has_binding(&name) {
-            return self.declarative_record.initialize_binding(name, value);
+            return self
+                .declarative_record
+                .initialize_binding(name, value, context);
         }
 
         assert!(
             self.object_record.has_binding(name),
             "Binding must be in object_record"
         );
-        self.object_record.initialize_binding(name, value)
+        self.object_record.initialize_binding(name, value, context)
     }
 
     fn set_mutable_binding(
-        &mut self,
+        &self,
         name: &str,
         value: Value,
         strict: bool,
-    ) -> Result<(), ErrorKind> {
+        context: &mut Context,
+    ) -> Result<()> {
         if self.declarative_record.has_binding(&name) {
             return self
                 .declarative_record
-                .set_mutable_binding(name, value, strict);
+                .set_mutable_binding(name, value, strict, context);
         }
-        self.object_record.set_mutable_binding(name, value, strict)
+        self.object_record
+            .set_mutable_binding(name, value, strict, context)
     }
 
-    fn get_binding_value(&self, name: &str, strict: bool) -> Result<Value, ErrorKind> {
+    fn get_binding_value(&self, name: &str, strict: bool, context: &mut Context) -> Result<Value> {
         if self.declarative_record.has_binding(&name) {
-            return self.declarative_record.get_binding_value(name, strict);
+            return self
+                .declarative_record
+                .get_binding_value(name, strict, context);
         }
-        self.object_record.get_binding_value(name, strict)
+        self.object_record.get_binding_value(name, strict, context)
     }
 
-    fn delete_binding(&mut self, name: &str) -> bool {
+    fn delete_binding(&self, name: &str) -> bool {
         if self.declarative_record.has_binding(&name) {
             return self.declarative_record.delete_binding(name);
         }
@@ -202,7 +232,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         if global.has_field(name) {
             let status = self.object_record.delete_binding(name);
             if status {
-                let var_names = &mut self.var_names;
+                let mut var_names = self.var_names.borrow_mut();
                 if var_names.contains(name) {
                     var_names.remove(name);
                     return status;
@@ -216,28 +246,77 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         true
     }
 
+    fn get_this_binding(&self, _context: &mut Context) -> Result<Value> {
+        Ok(self.global_this_binding.clone().into())
+    }
+
     fn has_super_binding(&self) -> bool {
         false
     }
 
-    fn with_base_object(&self) -> Value {
-        Value::undefined()
+    fn with_base_object(&self) -> Option<GcObject> {
+        None
     }
 
     fn get_outer_environment(&self) -> Option<Environment> {
         None
     }
 
+    fn get_outer_environment_ref(&self) -> Option<&Environment> {
+        None
+    }
+
     fn set_outer_environment(&mut self, _env: Environment) {
         // TODO: Implement
-        panic!("Not implemented yet")
+        todo!("Not implemented yet")
     }
 
     fn get_environment_type(&self) -> EnvironmentType {
         EnvironmentType::Global
     }
 
-    fn get_global_object(&self) -> Option<Value> {
-        Some(self.global_this_binding.clone())
+    fn recursive_create_mutable_binding(
+        &self,
+        name: String,
+        deletion: bool,
+        _scope: VariableScope,
+        context: &mut Context,
+    ) -> Result<()> {
+        self.create_mutable_binding(name, deletion, false, context)
+    }
+
+    fn recursive_create_immutable_binding(
+        &self,
+        name: String,
+        deletion: bool,
+        _scope: VariableScope,
+        context: &mut Context,
+    ) -> Result<()> {
+        self.create_immutable_binding(name, deletion, context)
+    }
+
+    fn recursive_set_mutable_binding(
+        &self,
+        name: &str,
+        value: Value,
+        strict: bool,
+        context: &mut Context,
+    ) -> Result<()> {
+        self.set_mutable_binding(name, value, strict, context)
+    }
+
+    fn recursive_initialize_binding(
+        &self,
+        name: &str,
+        value: Value,
+        context: &mut Context,
+    ) -> Result<()> {
+        self.initialize_binding(name, value, context)
+    }
+}
+
+impl From<GlobalEnvironmentRecord> for Environment {
+    fn from(env: GlobalEnvironmentRecord) -> Environment {
+        Gc::new(Box::new(env))
     }
 }

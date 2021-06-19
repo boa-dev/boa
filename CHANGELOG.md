@@ -1,6 +1,75 @@
 # CHANGELOG
 
-# 0.11.0 (2021-01-14)
+# [0.12.0 (2021-06-07) - `Set`, accessors, `@@toStringTag` and no more panics](https://github.com/boa-dev/boa/compare/v0.11.0...v0.12.0)
+
+Feature Enhancements:
+
+- [FEATURE #1085](https://github.com/boa-dev/boa/pull/1085): Add primitive promotion for method calls on `GetField` (@RageKnify)
+- [FEATURE #1033](https://github.com/boa-dev/boa/pull/1033): Implement `Reflect` built-in object (@tofpie)
+- [FEATURE #1151](https://github.com/boa-dev/boa/pull/1151): Fully implement `EmptyStatement` (@SamuelQZQ)
+- [FEATURE #1158](https://github.com/boa-dev/boa/pull/1158): Include name in verbose results output of `boa-tester` (@0x7D2B)
+- [FEATURE #1225](https://github.com/boa-dev/boa/pull/1225): Implement `Math[ @@toStringTag ]` (@HalidOdat)
+- [FEATURE #1224](https://github.com/boa-dev/boa/pull/1224): Implement `JSON[ @@toStringTag ]` (@HalidOdat)
+- [FEATURE #1222](https://github.com/boa-dev/boa/pull/1222): Implement `Symbol.prototype.description` accessor (@HalidOdat)
+- [FEATURE #1221](https://github.com/boa-dev/boa/pull/1221): Implement `RegExp` flag accessors (@HalidOdat)
+- [FEATURE #1240](https://github.com/boa-dev/boa/pull/1240): Stop ignoring a bunch of tests (@Razican)
+- [FEATURE #1132](https://github.com/boa-dev/boa/pull/1132): Implement `Array.prototype.flat`/`flatMap` (@davimiku)
+- [FEATURE #1235](https://github.com/boa-dev/boa/pull/1235): Implement `Object.assign( target, ...sources )` (@HalidOdat)
+- [FEATURE #1243](https://github.com/boa-dev/boa/pull/1243): Cross realm symbols (@HalidOdat)
+- [FEATURE #1249](https://github.com/boa-dev/boa/pull/1249): Implement `Map.prototype[ @@toStringTag ]` (@wylie39)
+- [FEATURE #1111](https://github.com/boa-dev/boa/pull/1111): Implement `Set` builtin object (@RageKnify)
+- [FEATURE #1265](https://github.com/boa-dev/boa/pull/1265): Implement `BigInt.prototype[ @@toStringTag ]` (@n14littl)
+- [FEATURE #1102](https://github.com/boa-dev/boa/pull/1102): Support Unicode escape in identifier names (@jevancc)
+- [FEATURE #1273](https://github.com/boa-dev/boa/pull/1273): Add default parameter support (@0x7D2B)
+- [FEATURE #1292](https://github.com/boa-dev/boa/pull/1292): Implement `symbol.prototype[ @@ToStringTag ]` (@moadmmh)
+- [FEATURE #1291](https://github.com/boa-dev/boa/pull/1291): Support `GetOwnProperty` for `string` exotic object (@jarkonik)
+- [FEATURE #1296](https://github.com/boa-dev/boa/pull/1296): Added the `$262` object to the Test262 test runner (@Razican)
+- [FEATURE #1127](https://github.com/boa-dev/boa/pull/1127): Implement `Array.of` (@camc)
+
+Bug Fixes:
+
+- [BUG #1071](https://github.com/boa-dev/boa/pull/1071): Fix attribute configurable of the length property of arguments (@tofpie)
+- [BUG #1073](https://github.com/boa-dev/boa/pull/1073): Fixed spelling (@vishalsodani)
+- [BUG #1072](https://github.com/boa-dev/boa/pull/1072): Fix `get`/`set` as short method name in `object` (@tofpie)
+- [BUG #1077](https://github.com/boa-dev/boa/pull/1077): Fix panics from multiple borrows of `Map` (@joshwd36)
+- [BUG #1079](https://github.com/boa-dev/boa/pull/1079): Fix lexing escapes in string literal (@jevancc)
+- [BUG #1075](https://github.com/boa-dev/boa/pull/1075): Fix out-of-range panics of `Date` (@jevancc)
+- [BUG #1084](https://github.com/boa-dev/boa/pull/1084): Fix line terminator in string literal (@jevancc)
+- [BUG #1110](https://github.com/boa-dev/boa/pull/1110): Fix parsing floats panics and bugs (@jevancc)
+- [BUG #1202](https://github.com/boa-dev/boa/pull/1202): Fix a typo in `gc.rs` (@teymour-aldridge)
+- [BUG #1201](https://github.com/boa-dev/boa/pull/1201): Return optional value in `to_json` functions (@fermian)
+- [BUG #1223](https://github.com/boa-dev/boa/pull/1223): Update cli name in Readme (@sphinxc0re)
+- [BUG #1175](https://github.com/boa-dev/boa/pull/1175): Handle early errors for declarations in `StatementList` (@0x7D2B)
+- [BUG #1270](https://github.com/boa-dev/boa/pull/1270): Fix `Context::register_global_function()` (@HalidOdat)
+- [BUG #1135](https://github.com/boa-dev/boa/pull/1135): Fix of instructions.rs comment, to_precision impl and rfc changes (@NathanRoyer)
+- [BUG #1272](https://github.com/boa-dev/boa/pull/1272): Fix `Array.prototype.filter` (@tofpie & @Razican)
+- [BUG #1280](https://github.com/boa-dev/boa/pull/1280): Fix slice index panic in `add_rest_param` (@0x7D2B)
+- [BUG #1284](https://github.com/boa-dev/boa/pull/1284): Fix `GcObject` `to_json` mutable borrow panic (@0x7D2B)
+- [BUG #1283](https://github.com/boa-dev/boa/pull/1283): Fix panic in regex execution (@0x7D2B)
+- [BUG #1286](https://github.com/boa-dev/boa/pull/1286): Fix construct usage (@0x7D2B)
+- [BUG #1288](https://github.com/boa-dev/boa/pull/1288): Fixed `Math.hypot.length` bug (@moadmmh)
+- [BUG #1285](https://github.com/boa-dev/boa/pull/1285): Fix environment record panics (@0x7D2B)
+- [BUG #1302](https://github.com/boa-dev/boa/pull/1302): Fix VM branch (@jasonwilliams)
+
+Internal Improvements:
+
+- [INTERNAL #1067](https://github.com/boa-dev/boa/pull/1067): Change `Realm::global_object` field from `Value` to `GcObject` (@RageKnify)
+- [INTERNAL #1048](https://github.com/boa-dev/boa/pull/1048): VM Trace output fixes (@jasonwilliams)
+- [INTERNAL #1109](https://github.com/boa-dev/boa/pull/1109): Define all property methods of constructors (@RageKnify)
+- [INTERNAL #1126](https://github.com/boa-dev/boa/pull/1126): Remove unnecessary wraps for non built-in functions (@RageKnify)
+- [INTERNAL #1044](https://github.com/boa-dev/boa/pull/1044): Removed duplicated code in `vm.run` using macros (@stephanemagnenat)
+- [INTERNAL #1103](https://github.com/boa-dev/boa/pull/1103): Lazy evaluation for cooked template string (@jevancc)
+- [INTERNAL #1156](https://github.com/boa-dev/boa/pull/1156): Rework environment records (@0x7D2B)
+- [INTERNAL #1181](https://github.com/boa-dev/boa/pull/1181): Merge `Const`/`Let`/`Var` `DeclList` into `DeclarationList` (@0x7D2B)
+- [INTERNAL #1234](https://github.com/boa-dev/boa/pull/1234): Separate `Symbol` builtin (@HalidOdat)
+- [INTERNAL #1131](https://github.com/boa-dev/boa/pull/1131): Make environment methods take `&mut Context` (@HalidOdat)
+- [INTERNAL #1271](https://github.com/boa-dev/boa/pull/1271): Make `same_value` and `same_value_zero` static methods (@HalidOdat)
+- [INTERNAL #1276](https://github.com/boa-dev/boa/pull/1276): Cleanup (@Razican)
+- [INTERNAL #1279](https://github.com/boa-dev/boa/pull/1279): Add test comparison to Test262 result compare (@Razican)
+- [INTERNAL #1293](https://github.com/boa-dev/boa/pull/1293): Fix test262 comment formatting (@0x7D2B)
+- [INTERNAL #1294](https://github.com/boa-dev/boa/pull/1294): Don't consider panic fixes as "new failures" (@Razican)
+
+# [0.11.0 (2021-01-14) - Faster Parsing & Better compliance](https://github.com/boa-dev/boa/compare/v0.10.0...v0.11.0)
 
 Feature Enhancements:
 
@@ -221,7 +290,7 @@ Internal Improvements:
 - [INTERNAL #1010](https://github.com/boa-dev/boa/pull/1010):
   Modify environment binding behaviour of function (@54k1)
 
-# [0.10.0 (2020-09-29) - New Lexer & Test 262 Harness](https://github.com/boa-dev/boa/compare/v0.10.0...v0.11.0)
+# [0.10.0 (2020-09-29) - New Lexer & Test 262 Harness](https://github.com/boa-dev/boa/compare/v0.9.0...v0.10.0)
 
 Feature Enhancements:
 

@@ -4,12 +4,15 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, Result, Value,
+    BoaProfiler, Context, Result, Value,
 };
 use std::fmt;
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "vm")]
+use crate::vm::{compilation::CodeGen, Compiler, Instruction};
 
 /// An `identifier` is a sequence of characters in the code that identifies a variable,
 /// function, or property.
@@ -36,11 +39,16 @@ pub struct Identifier {
 
 impl Executable for Identifier {
     fn run(&self, context: &mut Context) -> Result<Value> {
-        context
-            .realm()
-            .environment
-            .get_binding_value(self.as_ref())
-            .map_err(|e| e.to_error(context))
+        let _timer = BoaProfiler::global().start_event("Identifier", "exec");
+        context.get_binding_value(self.as_ref())
+    }
+}
+
+#[cfg(feature = "vm")]
+impl CodeGen for Identifier {
+    fn compile(&self, compiler: &mut Compiler) {
+        let _timer = BoaProfiler::global().start_event("Identifier", "codeGen");
+        compiler.add_instruction(Instruction::GetName(String::from(self.ident.as_ref())));
     }
 }
 

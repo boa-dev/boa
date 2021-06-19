@@ -9,6 +9,9 @@ use std::fmt;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
+#[cfg(test)]
+mod tests;
+
 /// The `throw` statement throws a user-defined exception.
 ///
 /// Syntax: `throw expression;`

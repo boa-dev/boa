@@ -502,3 +502,76 @@ fn for_in_continue_label() {
     "#;
     assert_eq!(&exec(scenario), "\"00\"")
 }
+
+#[test]
+fn fmt() {
+    // Labeled and unlabeled for in loops
+    super::super::test_formatting(
+        r#"
+        var str = "";
+        outer: for (let i in [1, 2]) {
+            for (let b in [2, 3, 4]) {
+                if (b === "1") {
+                    continue outer;
+                }
+                str = str + b;
+            };
+            str = str + i;
+        };
+        str;
+        "#,
+    );
+    // Labeled and unlabeled for loops
+    super::super::test_formatting(
+        r#"
+        var str = "";
+        outer: for (let i = 0; i < 10; ++i) {
+            for (let j = 3; j < 6; ++j) {
+                if (j === "1") {
+                    continue outer;
+                }
+                str = str + j;
+            };
+            str = str + i;
+        };
+        str;
+        "#,
+    );
+    // Labeled and unlabeled for of loops
+    super::super::test_formatting(
+        r#"
+        for (i of [1, 2, 3]) {
+            if (false) {
+                break;
+            }
+        };
+        label: for (i of [1, 2, 3]) {
+            if (false) {
+                break label;
+            }
+        };
+        "#,
+    );
+    // Labeled and unlabeled do while loops
+    super::super::test_formatting(
+        r#"
+        do {
+            break;
+        } while (true);
+        label: do {
+            break label;
+        } while (true);
+        "#,
+    );
+    // Labeled and unlabeled while loops
+    super::super::test_formatting(
+        r#"
+        while (true) {
+            break;
+        }
+        label: while (true) {
+            break label;
+        }
+        "#,
+    );
+}

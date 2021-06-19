@@ -76,11 +76,24 @@ impl FunctionExpr {
         }
         f.write_str("(")?;
         join_nodes(f, &self.parameters)?;
-        f.write_str(") {{")?;
+        f.write_str(") ")?;
+        self.display_block(f, indentation)
+    }
 
-        self.body.display(f, indentation + 1)?;
-
-        writeln!(f, "}}")
+    /// Displays the function's body. This includes the curly braces at the start and end.
+    /// This will not indent the first brace, but will indent the last brace.
+    pub(in crate::syntax::ast::node) fn display_block(
+        &self,
+        f: &mut fmt::Formatter<'_>,
+        indentation: usize,
+    ) -> fmt::Result {
+        if self.body().is_empty() {
+            f.write_str("{}")
+        } else {
+            f.write_str("{\n")?;
+            self.body.display(f, indentation + 1)?;
+            write!(f, "{}}}", "    ".repeat(indentation))
+        }
     }
 }
 
@@ -93,7 +106,7 @@ impl Executable for FunctionExpr {
         )?;
 
         if let Some(name) = self.name() {
-            val.set_field("name", Value::from(name), context)?;
+            val.set_field("name", Value::from(name), false, context)?;
         }
 
         Ok(val)

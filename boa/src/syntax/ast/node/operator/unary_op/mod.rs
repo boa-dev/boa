@@ -55,34 +55,34 @@ impl UnaryOp {
 
 impl Executable for UnaryOp {
     fn run(&self, context: &mut Context) -> Result<Value> {
-        let x = self.target().run(context)?;
-
         Ok(match self.op() {
-            op::UnaryOp::Minus => x.neg(context)?,
-            op::UnaryOp::Plus => Value::from(x.to_number(context)?),
+            op::UnaryOp::Minus => self.target().run(context)?.neg(context)?,
+            op::UnaryOp::Plus => Value::from(self.target().run(context)?.to_number(context)?),
             op::UnaryOp::IncrementPost => {
+                let x = self.target().run(context)?;
                 let ret = x.clone();
                 let result = x.to_number(context)? + 1.0;
                 context.set_value(self.target(), result.into())?;
                 ret
             }
             op::UnaryOp::IncrementPre => {
-                let result = x.to_number(context)? + 1.0;
+                let result = self.target().run(context)?.to_number(context)? + 1.0;
                 context.set_value(self.target(), result.into())?
             }
             op::UnaryOp::DecrementPost => {
+                let x = self.target().run(context)?;
                 let ret = x.clone();
                 let result = x.to_number(context)? - 1.0;
                 context.set_value(self.target(), result.into())?;
                 ret
             }
             op::UnaryOp::DecrementPre => {
-                let result = x.to_number(context)? - 1.0;
+                let result = self.target().run(context)?.to_number(context)? - 1.0;
                 context.set_value(self.target(), result.into())?
             }
-            op::UnaryOp::Not => x.not(context)?.into(),
+            op::UnaryOp::Not => self.target().run(context)?.not(context)?.into(),
             op::UnaryOp::Tilde => {
-                let num_v_a = x.to_number(context)?;
+                let num_v_a = self.target().run(context)?.to_number(context)?;
                 Value::from(if num_v_a.is_nan() {
                     -1
                 } else {
@@ -90,7 +90,10 @@ impl Executable for UnaryOp {
                     !(num_v_a as i32)
                 })
             }
-            op::UnaryOp::Void => Value::undefined(),
+            op::UnaryOp::Void => {
+                self.target().run(context)?;
+                Value::undefined()
+            }
             op::UnaryOp::Delete => match *self.target() {
                 Node::GetConstField(ref get_const_field) => Value::boolean(
                     get_const_field
@@ -118,7 +121,7 @@ impl Executable for UnaryOp {
                 | Node::UnaryOp(_) => Value::boolean(true),
                 _ => return context.throw_syntax_error(format!("wrong delete argument {}", self)),
             },
-            op::UnaryOp::TypeOf => Value::from(x.get_type().as_str()),
+            op::UnaryOp::TypeOf => Value::from(self.target().run(context)?.get_type().as_str()),
         })
     }
 }

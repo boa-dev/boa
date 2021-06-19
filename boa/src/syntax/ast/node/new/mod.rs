@@ -11,6 +11,9 @@ use std::fmt;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
+#[cfg(test)]
+mod tests;
+
 /// The `new` operator lets developers create an instance of a user-defined object type or of
 /// one of the built-in object types that has a constructor function.
 ///
@@ -69,7 +72,7 @@ impl Executable for New {
         }
 
         match func_object {
-            Value::Object(ref object) => object.construct(&v_args, object.clone().into(), context),
+            Value::Object(ref object) => object.construct(&v_args, &object.clone().into(), context),
             _ => context
                 .throw_type_error(format!("{} is not a constructor", self.expr().to_string(),)),
         }

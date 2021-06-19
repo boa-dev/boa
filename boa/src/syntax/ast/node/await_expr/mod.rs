@@ -8,6 +8,9 @@ use std::fmt;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
+#[cfg(test)]
+mod tests;
+
 /// An await expression is used within an async function to pause execution and wait for a
 /// promise to resolve.
 ///
@@ -31,14 +34,6 @@ impl Executable for AwaitExpr {
     }
 }
 
-impl AwaitExpr {
-    /// Implements the display formatting with indentation.
-    pub(super) fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
-        writeln!(f, "await ")?;
-        self.expr.display(f, indentation)
-    }
-}
-
 impl<T> From<T> for AwaitExpr
 where
     T: Into<Box<Node>>,
@@ -50,7 +45,8 @@ where
 
 impl fmt::Display for AwaitExpr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+        write!(f, "await ")?;
+        self.expr.display(f, 0)
     }
 }
 

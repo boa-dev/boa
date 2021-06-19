@@ -155,7 +155,7 @@ impl<R> Lexer<R> {
                                 ))
                             }
                         }
-                        InputElement::RegExp | InputElement::RegExpOrTemplateTail => {
+                        InputElement::RegExp => {
                             // Can be a regular expression.
                             RegexLiteral.lex(&mut self.cursor, start)
                         }
@@ -246,11 +246,14 @@ impl<R> Lexer<R> {
                 '=' | '*' | '+' | '-' | '%' | '|' | '&' | '^' | '<' | '>' | '!' | '~' | '?' => {
                     Operator::new(next_ch as u8).lex(&mut self.cursor, start)
                 }
-                _ if c.is_digit(10) => {
-                    NumberLiteral::new(next_ch as u8).lex(&mut self.cursor, start)
+                '\\' if self.cursor.peek()? == Some(b'u') => {
+                    Identifier::new(c).lex(&mut self.cursor, start)
                 }
                 _ if Identifier::is_identifier_start(c as u32) => {
                     Identifier::new(c).lex(&mut self.cursor, start)
+                }
+                _ if c.is_digit(10) => {
+                    NumberLiteral::new(next_ch as u8).lex(&mut self.cursor, start)
                 }
                 _ => {
                     let details = format!(
@@ -297,7 +300,6 @@ impl<R> Lexer<R> {
 pub(crate) enum InputElement {
     Div,
     RegExp,
-    RegExpOrTemplateTail,
     TemplateTail,
 }
 

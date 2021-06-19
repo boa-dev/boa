@@ -8,10 +8,12 @@ mod tests;
 use crate::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
+        string::is_trimmable_whitespace,
         BigInt, Number,
     },
     object::{GcObject, Object, ObjectData},
     property::{Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
+    symbol::{RcSymbol, WellKnownSymbols},
     BoaProfiler, Context, Result,
 };
 use gc::{Finalize, Trace};
@@ -19,7 +21,6 @@ use serde_json::{Number as JSONNumber, Value as JSONValue};
 use std::{
     collections::HashSet,
     convert::TryFrom,
-    f64::NAN,
     fmt::{self, Display},
     str::FromStr,
 };
@@ -31,7 +32,6 @@ mod hash;
 mod operations;
 mod rcbigint;
 mod rcstring;
-mod rcsymbol;
 mod r#type;
 
 pub use conversions::*;
@@ -42,7 +42,6 @@ pub use operations::*;
 pub use r#type::Type;
 pub use rcbigint::RcBigInt;
 pub use rcstring::RcString;
-pub use rcsymbol::RcSymbol;
 
 /// A Javascript value
 #[derive(Trace, Finalize, Debug, Clone)]
@@ -91,7 +90,7 @@ impl Value {
     /// Creates a new number with `NaN` value.
     #[inline]
     pub fn nan() -> Self {
-        Self::number(NAN)
+        Self::number(f64::NAN)
     }
 
     /// Creates a new string value.
@@ -215,35 +214,37 @@ impl Value {
     }
 
     /// Converts the `Value` to `JSON`.
-    pub fn to_json(&self, context: &mut Context) -> Result<JSONValue> {
+    pub fn to_json(&self, context: &mut Context) -> Result<Option<JSONValue>> {
         let to_json = self.get_field("toJSON", context)?;
         if to_json.is_function() {
             let json_value = context.call(&to_json, self, &[])?;
             return json_value.to_json(context);
         }
 
+        if self.is_function() {
+            return Ok(None);
+        }
+
         match *self {
-            Self::Null => Ok(JSONValue::Null),
-            Self::Boolean(b) => Ok(JSONValue::Bool(b)),
+            Self::Null => Ok(Some(JSONValue::Null)),
+            Self::Boolean(b) => Ok(Some(JSONValue::Bool(b))),
             Self::Object(ref obj) => obj.to_json(context),
-            Self::String(ref str) => Ok(JSONValue::String(str.to_string())),
+            Self::String(ref str) => Ok(Some(JSONValue::String(str.to_string()))),
             Self::Rational(num) => {
                 if num.is_finite() {
-                    Ok(JSONValue::Number(
+                    Ok(Some(JSONValue::Number(
                         JSONNumber::from_str(&Number::to_native_string(num))
                             .expect("invalid number found"),
-                    ))
+                    )))
                 } else {
-                    Ok(JSONValue::Null)
+                    Ok(Some(JSONValue::Null))
                 }
             }
-            Self::Integer(val) => Ok(JSONValue::Number(JSONNumber::from(val))),
+            Self::Integer(val) => Ok(Some(JSONValue::Number(JSONNumber::from(val)))),
             Self::BigInt(_) => {
                 Err(context.construct_type_error("BigInt value can't be serialized in JSON"))
             }
-            Self::Symbol(_) | Self::Undefined => {
-                unreachable!("Symbols and Undefined JSON Values depend on parent type");
-            }
+            Self::Symbol(_) | Self::Undefined => Ok(None),
         }
     }
 
@@ -471,18 +472,47 @@ impl Value {
     }
 
     /// Set the field in the value
+    ///
+    /// Similar to `7.3.4 Set ( O, P, V, Throw )`, but returns the value instead of a boolean.
+    ///
+    /// More information:
+    ///  - [ECMAScript][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set-o-p-v-throw
     #[inline]
-    pub fn set_field<K, V>(&self, key: K, value: V, context: &mut Context) -> Result<Value>
+    pub fn set_field<K, V>(
+        &self,
+        key: K,
+        value: V,
+        throw: bool,
+        context: &mut Context,
+    ) -> Result<Value>
     where
         K: Into<PropertyKey>,
         V: Into<Value>,
     {
+        // 1. Assert: Type(O) is Object.
+        // TODO: Currently the value may not be an object.
+        //       In that case this function does nothing.
+        // 2. Assert: IsPropertyKey(P) is true.
+        // 3. Assert: Type(Throw) is Boolean.
+
         let key = key.into();
         let value = value.into();
         let _timer = BoaProfiler::global().start_event("Value::set_field", "value");
         if let Self::Object(ref obj) = *self {
-            obj.clone()
+            // 4. Let success be ? O.[[Set]](P, V, O).
+            let success = obj
+                .clone()
                 .set(key, value.clone(), obj.clone().into(), context)?;
+
+            // 5. If success is false and Throw is true, throw a TypeError exception.
+            // 6. Return success.
+            if !success && throw {
+                return Err(context.construct_type_error("Cannot assign value to property"));
+            } else {
+                return Ok(value);
+            }
         }
         Ok(value)
     }
@@ -519,7 +549,7 @@ impl Value {
         // 2. If Type(input) is Object, then
         if let Value::Object(obj) = self {
             if let Some(exotic_to_prim) =
-                obj.get_method(context, context.well_known_symbols().to_primitive_symbol())?
+                obj.get_method(context, WellKnownSymbols::to_primitive())?
             {
                 let hint = match preferred_type {
                     PreferredType::String => "string",
@@ -809,12 +839,29 @@ impl Value {
             Value::Null => Ok(0.0),
             Value::Undefined => Ok(f64::NAN),
             Value::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
-            // TODO: this is probably not 100% correct, see https://tc39.es/ecma262/#sec-tonumber-applied-to-the-string-type
             Value::String(ref string) => {
-                if string.trim().is_empty() {
-                    return Ok(0.0);
+                let string = string.trim_matches(is_trimmable_whitespace);
+
+                // TODO: write our own lexer to match syntax StrDecimalLiteral
+                match string {
+                    "" => Ok(0.0),
+                    "Infinity" | "+Infinity" => Ok(f64::INFINITY),
+                    "-Infinity" => Ok(f64::NEG_INFINITY),
+                    _ if matches!(
+                        string
+                            .chars()
+                            .take(4)
+                            .collect::<String>()
+                            .to_ascii_lowercase()
+                            .as_str(),
+                        "inf" | "+inf" | "-inf" | "nan" | "+nan" | "-nan"
+                    ) =>
+                    {
+                        // Prevent fast_float from parsing "inf", "+inf" as Infinity and "-inf" as -Infinity
+                        Ok(f64::NAN)
+                    }
+                    _ => Ok(fast_float::parse(string).unwrap_or(f64::NAN)),
                 }
-                Ok(string.parse().unwrap_or(f64::NAN))
             }
             Value::Rational(number) => Ok(number),
             Value::Integer(integer) => Ok(f64::from(integer)),

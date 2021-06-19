@@ -1,5 +1,5 @@
 use crate::{
-    environment::lexical_environment::new_declarative_environment,
+    environment::declarative_environment_record::DeclarativeEnvironmentRecord,
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
@@ -69,23 +69,23 @@ impl ForLoop {
         f: &mut fmt::Formatter<'_>,
         indentation: usize,
     ) -> fmt::Result {
+        if let Some(ref label) = self.label {
+            write!(f, "{}: ", label)?;
+        }
         f.write_str("for (")?;
         if let Some(init) = self.init() {
             fmt::Display::fmt(init, f)?;
         }
-        f.write_str(";")?;
+        f.write_str("; ")?;
         if let Some(condition) = self.condition() {
             fmt::Display::fmt(condition, f)?;
         }
-        f.write_str(";")?;
+        f.write_str("; ")?;
         if let Some(final_expr) = self.final_expr() {
             fmt::Display::fmt(final_expr, f)?;
         }
-        writeln!(f, ") {{")?;
-
-        self.inner.body().display(f, indentation + 1)?;
-
-        write!(f, "}}")
+        write!(f, ") ")?;
+        self.inner.body().display(f, indentation)
     }
 
     pub fn label(&self) -> Option<&str> {
@@ -102,10 +102,8 @@ impl Executable for ForLoop {
         // Create the block environment.
         let _timer = BoaProfiler::global().start_event("ForLoop", "exec");
         {
-            let env = &mut context.realm_mut().environment;
-            env.push(new_declarative_environment(Some(
-                env.get_current_environment_ref().clone(),
-            )));
+            let env = context.get_current_environment();
+            context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
         }
 
         if let Some(init) = self.init() {
@@ -135,6 +133,8 @@ impl Executable for ForLoop {
                 InterpreterState::Executing => {
                     // Continue execution.
                 }
+                #[cfg(feature = "vm")]
+                InterpreterState::Error => {}
             }
 
             if let Some(final_expr) = self.final_expr() {
@@ -143,7 +143,7 @@ impl Executable for ForLoop {
         }
 
         // pop the block env
-        let _ = context.realm_mut().environment.pop();
+        let _ = context.pop_environment();
 
         Ok(Value::undefined())
     }

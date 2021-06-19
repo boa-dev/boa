@@ -4,13 +4,19 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor},
-    syntax::ast::node::{MethodDefinitionKind, Node, PropertyDefinition},
-    Context, Result, Value,
+    syntax::ast::node::{join_nodes, MethodDefinitionKind, Node, PropertyDefinition},
+    BoaProfiler, Context, Result, Value,
 };
 use std::fmt;
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(feature = "vm")]
+use crate::vm::{compilation::CodeGen, Compiler, Instruction};
+
+#[cfg(test)]
+mod tests;
 
 /// Objects in JavaScript may be defined as an unordered collection of related data, of
 /// primitive or reference types, in the form of “key: value” pairs.
@@ -50,29 +56,56 @@ impl Object {
         indent: usize,
     ) -> fmt::Result {
         f.write_str("{\n")?;
+        let indentation = "    ".repeat(indent + 1);
         for property in self.properties().iter() {
             match property {
                 PropertyDefinition::IdentifierReference(key) => {
-                    write!(f, "{}    {},", indent, key)?;
+                    writeln!(f, "{}{},", indentation, key)?;
                 }
                 PropertyDefinition::Property(key, value) => {
-                    write!(f, "{}    {}: {},", indent, key, value)?;
+                    write!(f, "{}{}: ", indentation, key,)?;
+                    value.display_no_indent(f, indent + 1)?;
+                    writeln!(f, ",")?;
                 }
                 PropertyDefinition::SpreadObject(key) => {
-                    write!(f, "{}    ...{},", indent, key)?;
+                    writeln!(f, "{}...{},", indentation, key)?;
                 }
-                PropertyDefinition::MethodDefinition(_kind, _key, _node) => {
-                    // TODO: Implement display for PropertyDefinition::MethodDefinition.
-                    unimplemented!("Display for PropertyDefinition::MethodDefinition");
+                PropertyDefinition::MethodDefinition(kind, key, node) => {
+                    write!(f, "{}", indentation)?;
+                    match &kind {
+                        MethodDefinitionKind::Get => write!(f, "get ")?,
+                        MethodDefinitionKind::Set => write!(f, "set ")?,
+                        MethodDefinitionKind::Ordinary => (),
+                    }
+                    write!(f, "{}(", key)?;
+                    join_nodes(f, &node.parameters())?;
+                    write!(f, ") ")?;
+                    node.display_block(f, indent + 1)?;
+                    writeln!(f, ",")?;
                 }
             }
         }
-        f.write_str("}")
+        write!(f, "{}}}", "    ".repeat(indent))
+    }
+}
+
+#[cfg(feature = "vm")]
+impl CodeGen for Object {
+    fn compile(&self, compiler: &mut Compiler) {
+        let _timer = BoaProfiler::global().start_event("object", "codeGen");
+        // Is it a new empty object?
+        if self.properties.len() == 0 {
+            compiler.add_instruction(Instruction::NewObject);
+            return;
+        }
+
+        unimplemented!()
     }
 }
 
 impl Executable for Object {
     fn run(&self, context: &mut Context) -> Result<Value> {
+        let _timer = BoaProfiler::global().start_event("object", "exec");
         let obj = Value::new_object(context);
 
         // TODO: Implement the rest of the property types.

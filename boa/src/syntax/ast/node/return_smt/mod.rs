@@ -9,6 +9,9 @@ use std::fmt;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
+#[cfg(test)]
+mod tests;
+
 /// The `return` statement ends function execution and specifies a value to be returned to the
 /// function caller.
 ///

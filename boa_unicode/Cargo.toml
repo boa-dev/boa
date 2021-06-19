@@ -11,4 +11,4 @@ exclude = ["../.vscode/*", "../Dockerfile", "../Makefile", "../.editorConfig"]
 edition = "2018"
 
 [dependencies]
-unicode-general-category = "0.3.0"
+unicode-general-category = "0.4.0"

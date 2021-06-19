@@ -22,27 +22,28 @@ console = []
 
 [dependencies]
 boa_unicode = { path = "../boa_unicode", version = "0.11.0" }
-gc = { version = "0.3.6", features = ["derive"] }
-serde = { version = "1.0.120", features = ["derive"] }
-serde_json = "1.0.61"
-rand = "0.8.2"
+gc = { version = "0.4.1", features = ["derive"] }
+serde = { version = "1.0.126", features = ["derive"] }
+serde_json = "1.0.64"
+rand = "0.8.4"
 num-traits = "0.2.14"
-regress = "0.2.0"
+regress = "0.3.0"
 rustc-hash = "1.1.0"
-num-bigint = { version = "0.3.1", features = ["serde"] }
+num-bigint = { version = "0.4.0", features = ["serde"] }
 num-integer = "0.1.44"
 bitflags = "1.2.1"
-indexmap = "1.6.1"
+indexmap = "1.6.2"
 ryu-js = "0.2.1"
 chrono = "0.4.19"
 percent-encoding = "2.1.0"
+fast-float = "0.2.0"
 
 # Optional Dependencies
-measureme = { version = "9.0.0", optional = true }
-once_cell = { version = "1.5.2", optional = true }
+measureme = { version = "9.1.2", optional = true }
+once_cell = { version = "1.8.0", optional = true }
 
 [dev-dependencies]
-criterion = "0.3.3"
+criterion = "0.3.4"
 float-cmp = "0.8.0"
 
 [target.x86_64-unknown-linux-gnu.dev-dependencies]

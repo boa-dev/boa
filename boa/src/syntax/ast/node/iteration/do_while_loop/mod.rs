@@ -64,9 +64,12 @@ impl DoWhileLoop {
         f: &mut fmt::Formatter<'_>,
         indentation: usize,
     ) -> fmt::Result {
-        write!(f, "do")?;
+        if let Some(ref label) = self.label {
+            write!(f, "{}: ", label)?;
+        }
+        write!(f, "do ")?;
         self.body().display(f, indentation)?;
-        write!(f, "while ({})", self.cond())
+        write!(f, " while ({})", self.cond())
     }
 }
 
@@ -89,6 +92,8 @@ impl Executable for DoWhileLoop {
                 InterpreterState::Executing => {
                     // Continue execution.
                 }
+                #[cfg(feature = "vm")]
+                InterpreterState::Error => {}
             }
             if !self.cond().run(context)?.to_boolean() {
                 break;

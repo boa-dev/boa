@@ -2,17 +2,21 @@ use super::*;
 use crate::{syntax::ast::Const, syntax::ast::Node, value::RcBigInt, value::RcString};
 
 #[derive(Debug, Default)]
+/// The compiler struct holds all the instructions.
 pub struct Compiler {
+    /// Vector of instructions
     pub(super) instructions: Vec<Instruction>,
+    /// The pool stores constant data that can be indexed with the opcodes and pushed on the stack
     pub(super) pool: Vec<Value>,
 }
 
 impl Compiler {
-    // Add a new instruction.
+    /// Add a new instruction.
     pub fn add_instruction(&mut self, instr: Instruction) {
         self.instructions.push(instr);
     }
 
+    /// This specilaized method puts the string value in the pool then adds an instructions which points to the correct index
     pub fn add_string_instruction<S>(&mut self, string: S)
     where
         S: Into<RcString>,
@@ -22,6 +26,7 @@ impl Compiler {
         self.pool.push(string.into().into());
     }
 
+    /// This specilaized method puts the BigInt value in the pool then adds an instructions which points to the correct index
     pub fn add_bigint_instruction<B>(&mut self, bigint: B)
     where
         B: Into<RcBigInt>,
@@ -98,6 +103,9 @@ impl CodeGen for Node {
                     };
                 }
             }
+            Node::Identifier(ref name) => name.compile(compiler),
+            Node::Object(ref obj) => obj.compile(compiler),
+
             _ => unimplemented!(),
         }
     }

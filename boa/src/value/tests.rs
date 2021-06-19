@@ -34,7 +34,7 @@ fn get_set_field() {
     let obj = Value::new_object(&context);
     // Create string and convert it to a Value
     let s = Value::from("bar");
-    obj.set_field("foo", s, &mut context).unwrap();
+    obj.set_field("foo", s, false, &mut context).unwrap();
     assert_eq!(
         obj.get_field("foo", &mut context)
             .unwrap()
@@ -58,7 +58,7 @@ fn number_is_true() {
     assert_eq!(Value::from(0.0).to_boolean(), false);
     assert_eq!(Value::from(-0.0).to_boolean(), false);
     assert_eq!(Value::from(-1.0).to_boolean(), true);
-    assert_eq!(Value::from(NAN).to_boolean(), false);
+    assert_eq!(Value::nan().to_boolean(), false);
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
@@ -569,7 +569,7 @@ fn to_integer_or_infinity() {
         Ok(IntegerOrInfinity::Integer(0))
     );
     assert_eq!(
-        Value::from(NAN).to_integer_or_infinity(&mut context),
+        Value::nan().to_integer_or_infinity(&mut context),
         Ok(IntegerOrInfinity::Integer(0))
     );
     assert_eq!(

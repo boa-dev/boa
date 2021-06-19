@@ -1,9 +1,22 @@
+//! This module implements the global `Map` objest.
+//!
+//! The JavaScript `Map` class is a global object that is used in the construction of maps; which
+//! are high-level, key-value stores.
+//!
+//! More information:
+//!  - [ECMAScript reference][spec]
+//!  - [MDN documentation][mdn]
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-map-objects
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
+
 #![allow(clippy::mutable_key_type)]
 
 use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
     property::{Attribute, DataDescriptor},
+    symbol::WellKnownSymbols,
     BoaProfiler, Context, Result, Value,
 };
 use ordered_map::OrderedMap;
@@ -28,7 +41,14 @@ impl BuiltIn for Map {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let iterator_symbol = context.well_known_symbols().iterator_symbol();
+        let to_string_tag = WellKnownSymbols::to_string_tag();
+        let iterator_symbol = WellKnownSymbols::iterator();
+
+        let get_species = FunctionBuilder::new(context, Self::get_species)
+            .name("get [Symbol.species]")
+            .constructable(false)
+            .callable(true)
+            .build();
 
         let entries_function = FunctionBuilder::new(context, Self::entries)
             .name("entries")
@@ -37,36 +57,50 @@ impl BuiltIn for Map {
             .constructable(false)
             .build();
 
-        let map_object = ConstructorBuilder::new(context, Self::constructor)
-            .name(Self::NAME)
-            .length(Self::LENGTH)
-            .property(
-                "entries",
-                entries_function.clone(),
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .property(
-                iterator_symbol,
-                entries_function,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
-            .method(Self::keys, "keys", 0)
-            .method(Self::set, "set", 2)
-            .method(Self::delete, "delete", 1)
-            .method(Self::get, "get", 1)
-            .method(Self::clear, "clear", 0)
-            .method(Self::has, "has", 1)
-            .method(Self::for_each, "forEach", 1)
-            .method(Self::values, "values", 0)
-            .callable(false)
-            .build();
+        let map_object = ConstructorBuilder::with_standard_object(
+            context,
+            Self::constructor,
+            context.standard_objects().map_object().clone(),
+        )
+        .name(Self::NAME)
+        .length(Self::LENGTH)
+        .static_accessor(
+            WellKnownSymbols::species(),
+            Some(get_species),
+            None,
+            Attribute::CONFIGURABLE,
+        )
+        .property(
+            "entries",
+            entries_function.clone(),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            to_string_tag,
+            Self::NAME,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            iterator_symbol,
+            entries_function,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .method(Self::keys, "keys", 0)
+        .method(Self::set, "set", 2)
+        .method(Self::delete, "delete", 1)
+        .method(Self::get, "get", 1)
+        .method(Self::clear, "clear", 0)
+        .method(Self::has, "has", 1)
+        .method(Self::for_each, "forEach", 1)
+        .method(Self::values, "values", 0)
+        .build();
 
         (Self::NAME, map_object.into(), Self::attribute())
     }
 }
 
 impl Map {
-    pub(crate) const LENGTH: usize = 1;
+    pub(crate) const LENGTH: usize = 0;
 
     /// Create a new map
     pub(crate) fn constructor(
@@ -75,19 +109,10 @@ impl Map {
         context: &mut Context,
     ) -> Result<Value> {
         if new_target.is_undefined() {
-            return context.throw_type_error("Map requires new");
+            return context
+                .throw_type_error("calling a builtin Map constructor without new is forbidden");
         }
-        let map_prototype = context
-            .global_object()
-            .clone()
-            .get(
-                &"Map".into(),
-                context.global_object().clone().into(),
-                context,
-            )?
-            .get_field(PROTOTYPE, context)?
-            .as_object()
-            .expect("'Map' global property should be an object");
+        let map_prototype = context.standard_objects().map_object().prototype();
         let prototype = new_target
             .as_object()
             .and_then(|obj| {
@@ -147,6 +172,21 @@ impl Map {
         Ok(this)
     }
 
+    /// `get Map [ @@species ]`
+    ///
+    /// The Map[@@species] accessor property returns the Map constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-map-@@species
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/@@species
+    fn get_species(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+        // 1. Return the this value.
+        Ok(this.clone())
+    }
+
     /// `Map.prototype.entries()`
     ///
     /// Returns a new Iterator object that contains the [key, value] pairs for each element in the Map object in insertion order.
@@ -158,7 +198,11 @@ impl Map {
     /// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-map.prototype.entries
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries
     pub(crate) fn entries(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        MapIterator::create_map_iterator(context, this.clone(), MapIterationKind::KeyAndValue)
+        Ok(MapIterator::create_map_iterator(
+            context,
+            this.clone(),
+            MapIterationKind::KeyAndValue,
+        ))
     }
 
     /// `Map.prototype.keys()`
@@ -172,7 +216,11 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.keys
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
     pub(crate) fn keys(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        MapIterator::create_map_iterator(context, this.clone(), MapIterationKind::Key)
+        Ok(MapIterator::create_map_iterator(
+            context,
+            this.clone(),
+            MapIterationKind::Key,
+        ))
     }
 
     /// Helper function to set the size property.
@@ -395,7 +443,11 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/values
     pub(crate) fn values(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        MapIterator::create_map_iterator(context, this.clone(), MapIterationKind::Value)
+        Ok(MapIterator::create_map_iterator(
+            context,
+            this.clone(),
+            MapIterationKind::Value,
+        ))
     }
 
     /// Helper function to get a key-value pair from an array.

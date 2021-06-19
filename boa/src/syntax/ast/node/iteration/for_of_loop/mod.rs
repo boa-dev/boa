@@ -1,6 +1,9 @@
 use crate::{
     builtins::iterable::get_iterator,
-    environment::lexical_environment::{new_declarative_environment, VariableScope},
+    environment::{
+        declarative_environment_record::DeclarativeEnvironmentRecord,
+        lexical_environment::VariableScope,
+    },
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
@@ -56,9 +59,11 @@ impl ForOfLoop {
     }
 
     pub fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
-        write!(f, "for ({} of {}) {{", self.variable, self.iterable)?;
-        self.body().display(f, indentation + 1)?;
-        f.write_str("}")
+        if let Some(ref label) = self.label {
+            write!(f, "{}: ", label)?;
+        }
+        write!(f, "for ({} of {}) ", self.variable, self.iterable)?;
+        self.body().display(f, indentation)
     }
 }
 
@@ -83,64 +88,45 @@ impl Executable for ForOfLoop {
 
         loop {
             {
-                let env = &mut context.realm_mut().environment;
-                env.push(new_declarative_environment(Some(
-                    env.get_current_environment_ref().clone(),
-                )));
+                let env = context.get_current_environment();
+                context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
             }
             let iterator_result = iterator.next(context)?;
             if iterator_result.is_done() {
+                context.pop_environment();
                 break;
             }
             let next_result = iterator_result.value();
 
             match self.variable() {
                 Node::Identifier(ref name) => {
-                    let environment = &mut context.realm_mut().environment;
-
-                    if environment.has_binding(name.as_ref()) {
+                    if context.has_binding(name.as_ref()) {
                         // Binding already exists
-                        environment
-                            .set_mutable_binding(name.as_ref(), next_result.clone(), true)
-                            .map_err(|e| e.to_error(context))?;
+                        context.set_mutable_binding(name.as_ref(), next_result.clone(), true)?;
                     } else {
-                        environment
-                            .create_mutable_binding(
-                                name.as_ref().to_owned(),
-                                true,
-                                VariableScope::Function,
-                            )
-                            .map_err(|e| e.to_error(context))?;
-                        let environment = &mut context.realm_mut().environment;
-                        environment
-                            .initialize_binding(name.as_ref(), next_result.clone())
-                            .map_err(|e| e.to_error(context))?;
+                        context.create_mutable_binding(
+                            name.as_ref().to_owned(),
+                            true,
+                            VariableScope::Function,
+                        )?;
+                        context.initialize_binding(name.as_ref(), next_result.clone())?;
                     }
                 }
                 Node::VarDeclList(ref list) => match list.as_ref() {
                     [var] => {
-                        let environment = &mut context.realm_mut().environment;
-
                         if var.init().is_some() {
                             return context.throw_syntax_error("a declaration in the head of a for-of loop can't have an initializer");
                         }
 
-                        if environment.has_binding(var.name()) {
-                            environment
-                                .set_mutable_binding(var.name(), next_result, true)
-                                .map_err(|e| e.to_error(context))?;
+                        if context.has_binding(var.name()) {
+                            context.set_mutable_binding(var.name(), next_result, true)?;
                         } else {
-                            environment
-                                .create_mutable_binding(
-                                    var.name().to_owned(),
-                                    false,
-                                    VariableScope::Function,
-                                )
-                                .map_err(|e| e.to_error(context))?;
-                            let environment = &mut context.realm_mut().environment;
-                            environment
-                                .initialize_binding(var.name(), next_result)
-                                .map_err(|e| e.to_error(context))?;
+                            context.create_mutable_binding(
+                                var.name().to_owned(),
+                                false,
+                                VariableScope::Function,
+                            )?;
+                            context.initialize_binding(var.name(), next_result)?;
                         }
                     }
                     _ => {
@@ -151,24 +137,17 @@ impl Executable for ForOfLoop {
                 },
                 Node::LetDeclList(ref list) => match list.as_ref() {
                     [var] => {
-                        let environment = &mut context.realm_mut().environment;
-
                         if var.init().is_some() {
                             return context.throw_syntax_error("a declaration in the head of a for-of loop can't have an initializer");
                         }
 
-                        environment
-                            .create_mutable_binding(
-                                var.name().to_owned(),
-                                false,
-                                VariableScope::Block,
-                            )
-                            .map_err(|e| e.to_error(context))?;
+                        context.create_mutable_binding(
+                            var.name().to_owned(),
+                            false,
+                            VariableScope::Block,
+                        )?;
 
-                        let environment = &mut context.realm_mut().environment;
-                        environment
-                            .initialize_binding(var.name(), next_result)
-                            .map_err(|e| e.to_error(context))?;
+                        context.initialize_binding(var.name(), next_result)?;
                     }
                     _ => {
                         return context.throw_syntax_error(
@@ -178,23 +157,16 @@ impl Executable for ForOfLoop {
                 },
                 Node::ConstDeclList(ref list) => match list.as_ref() {
                     [var] => {
-                        let environment = &mut context.realm_mut().environment;
-
                         if var.init().is_some() {
                             return context.throw_syntax_error("a declaration in the head of a for-of loop can't have an initializer");
                         }
 
-                        environment
-                            .create_immutable_binding(
-                                var.name().to_owned(),
-                                false,
-                                VariableScope::Block,
-                            )
-                            .map_err(|e| e.to_error(context))?;
-                        let environment = &mut context.realm_mut().environment;
-                        environment
-                            .initialize_binding(var.name(), next_result)
-                            .map_err(|e| e.to_error(context))?;
+                        context.create_immutable_binding(
+                            var.name().to_owned(),
+                            false,
+                            VariableScope::Block,
+                        )?;
+                        context.initialize_binding(var.name(), next_result)?;
                     }
                     _ => {
                         return context.throw_syntax_error(
@@ -226,8 +198,10 @@ impl Executable for ForOfLoop {
                 InterpreterState::Executing => {
                     // Continue execution.
                 }
+                #[cfg(feature = "vm")]
+                InterpreterState::Error => {}
             }
-            let _ = context.realm_mut().environment.pop();
+            let _ = context.pop_environment();
         }
         Ok(result)
     }
