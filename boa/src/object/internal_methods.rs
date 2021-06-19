@@ -69,6 +69,24 @@ impl GcObject {
         }
     }
 
+    /// Abstract operation `DeletePropertyOrThrow ( O, P )`
+    ///
+    /// More information:
+    ///  - [ECMAScript][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-deletepropertyorthrow
+    pub fn delete_property_or_throw(
+        &mut self,
+        key: &PropertyKey,
+        context: &mut Context,
+    ) -> Result<()> {
+        if self.delete(key) {
+            Ok(())
+        } else {
+            Err(context.construct_type_error("Failed deleting property of Object"))
+        }
+    }
+
     /// `[[Get]]`
     /// <https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-get-p-receiver>
     pub fn get(&self, key: &PropertyKey, receiver: Value, context: &mut Context) -> Result<Value> {

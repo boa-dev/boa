@@ -423,6 +423,22 @@ impl Value {
             .is_some()
     }
 
+    /// Abstract operation `DeletePropertyOrThrow ( O, P )`
+    ///
+    /// More information:
+    ///  - [ECMAScript][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-deletepropertyorthrow
+    // todo: remove function after separation of Value and Object
+    pub fn delete_property_or_throw<Key>(&self, key: Key, context: &mut Context) -> Result<()>
+    where
+        Key: Into<PropertyKey>,
+    {
+        self.as_object()
+            .expect("expected object type")
+            .delete_property_or_throw(&key.into(), context)
+    }
+
     /// Resolve the property in the object.
     ///
     /// A copy of the Property is returned.

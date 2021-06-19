@@ -482,7 +482,7 @@ impl Array {
         }
         let pop_index = curr_length.wrapping_sub(1);
         let pop_value: Value = this.get_field(pop_index.to_string(), context)?;
-        this.remove_property(pop_index);
+        this.delete_property_or_throw(pop_index, context)?;
         this.set_field("length", Value::from(pop_index), true, context)?;
         Ok(pop_value)
     }
@@ -621,10 +621,10 @@ impl Array {
                 this.set_property(lower, DataDescriptor::new(upper_value, Attribute::all()));
             } else if upper_exists {
                 this.set_property(lower, DataDescriptor::new(upper_value, Attribute::all()));
-                this.remove_property(upper);
+                this.delete_property_or_throw(upper, context)?;
             } else if lower_exists {
                 this.set_property(upper, DataDescriptor::new(lower_value, Attribute::all()));
-                this.remove_property(lower);
+                this.delete_property_or_throw(lower, context)?;
             }
         }
 
@@ -657,14 +657,14 @@ impl Array {
 
             let from_value = this.get_field(from, context)?;
             if from_value.is_undefined() {
-                this.remove_property(to);
+                this.delete_property_or_throw(to, context)?;
             } else {
                 this.set_property(to, DataDescriptor::new(from_value, Attribute::all()));
             }
         }
 
         let final_index = len.wrapping_sub(1);
-        this.remove_property(final_index);
+        this.delete_property_or_throw(final_index, context)?;
         this.set_field("length", Value::from(final_index), true, context)?;
 
         Ok(first)
@@ -694,7 +694,7 @@ impl Array {
 
                 let from_value = this.get_field(from, context)?;
                 if from_value.is_undefined() {
-                    this.remove_property(to);
+                    this.delete_property_or_throw(to, context)?;
                 } else {
                     this.set_property(to, DataDescriptor::new(from_value, Attribute::all()));
                 }
@@ -1624,7 +1624,7 @@ impl Array {
                 let val = this.get_field(from, context)?;
                 this.set_field(to, val, true, context)?;
             } else {
-                this.remove_property(to);
+                this.delete_property_or_throw(to, context)?;
             }
             match direction {
                 Direction::Forward => {
