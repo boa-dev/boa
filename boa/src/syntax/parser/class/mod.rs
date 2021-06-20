@@ -113,20 +113,28 @@ where
                 _ => false,
             };
 
+            let is_getter;
+            let is_setter;
+
             // No matter if there was a static token, a `get` or `set` token is valid.
             let next = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
             match next.kind() {
                 TokenKind::Keyword(Keyword::Get) => {
                     // Consume the get token.
                     cursor.next()?;
-                    // TODO: Do something here to say this is a getter.
+                    is_getter = true;
+                    is_setter = false;
                 }
                 TokenKind::Keyword(Keyword::Set) => {
                     // Consume the set token.
                     cursor.next()?;
-                    // TODO: Do something here to say this is a setter.
+                    is_getter = false;
+                    is_setter = true;
                 }
-                _ => (),
+                _ => {
+                    is_getter = false;
+                    is_setter = false;
+                }
             };
 
             // TODO: Parse async/yeild here
@@ -170,10 +178,27 @@ where
                     cursor.expect(Punctuator::CloseBlock, "class function declaration")?;
 
                     if *name == *"constructor" {
+                        if is_getter {
+                            return Err(ParseError::general(
+                                "Cannot create a getter named `constructor`",
+                                pos,
+                            ));
+                        } else if is_setter {
+                            return Err(ParseError::general(
+                                "Cannot create a setter named `constructor`",
+                                pos,
+                            ));
+                        }
                         constructor = Some(FunctionDecl::new(name, params, body));
                         None
                     } else {
-                        Some(ClassField::Method(FunctionDecl::new(name, params, body)))
+                        if is_getter {
+                            Some(ClassField::Getter(FunctionDecl::new(name, params, body)))
+                        } else if is_setter {
+                            Some(ClassField::Setter(FunctionDecl::new(name, params, body)))
+                        } else {
+                            Some(ClassField::Method(FunctionDecl::new(name, params, body)))
+                        }
                     }
                 }
                 // A field definition
@@ -183,6 +208,12 @@ where
                             "Fields cannot be named `constructor`",
                             pos,
                         ));
+                    }
+                    // Field definitions cannot proceed a `get` or `set`
+                    if is_getter {
+                        return Err(ParseError::unexpected(next, "after `get`"));
+                    } else if is_setter {
+                        return Err(ParseError::unexpected(next, "after `set`"));
                     }
                     let value =
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
