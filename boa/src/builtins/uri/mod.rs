@@ -28,10 +28,10 @@ fn encode(str: &RcString) -> Value {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct URI;
+pub(crate) struct Uri;
 
-impl BuiltIn for URI {
-    const NAME: &'static str = "URI";
+impl BuiltIn for Uri {
+    const NAME: &'static str = "Uri";
 
     fn attribute() -> Attribute {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
@@ -63,7 +63,7 @@ impl BuiltIn for URI {
     }
 }
 
-impl URI {
+impl Uri {
     pub(crate) const LENGTH: usize = 1;
 
     pub(crate) fn handle_uri(args: &[Value], cb: FuncType) -> Result<Value> {

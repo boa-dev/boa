@@ -49,7 +49,7 @@ pub(crate) use self::{
     string::String,
     symbol::Symbol,
     undefined::Undefined,
-    uri::URI,
+    uri::Uri,
 };
 use crate::{
     property::{Attribute, DataDescriptor},
@@ -97,7 +97,7 @@ pub fn init(context: &mut Context) {
         Reflect::init,
         #[cfg(feature = "console")]
         console::Console::init,
-        URI::init,
+        Uri::init,
     ];
 
     let global_object = context.global_object();
