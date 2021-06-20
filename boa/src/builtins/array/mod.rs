@@ -1269,9 +1269,9 @@ impl Array {
         };
 
         let k = match n {
-            num if num >= 0 => num as usize,
-            num if -num as usize > length => 0,
-            _ => length - (-n as usize),
+            num if num >= 0 => num as usize, // if n>=0 -> k=n
+            num if -num as usize > length => 0, // if n<0 -> k= max(length + n, 0)
+            _ => length - (-n as usize), // this is `length + n` but is necessary for typing reasons
         };
 
         for idx in k..length {
