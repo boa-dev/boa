@@ -237,6 +237,15 @@ impl BigInt {
             bits,
         ))
     }
+
+    /// helper function for checking if the BigInt represents 0
+    ///
+    /// creating BigInts requires an allocation and for a few operations we need to know if the
+    /// inner value is 0, this solves that situation
+    pub(crate) fn is_zero(&self) -> bool {
+        use num_traits::Zero;
+        self.0.is_zero()
+    }
 }
 
 impl Finalize for BigInt {}

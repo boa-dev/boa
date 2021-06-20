@@ -110,7 +110,7 @@ impl Value {
             (Self::Rational(x), Self::Integer(y)) => Self::rational(x / f64::from(*y)),
 
             (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                if *b.as_inner() == BigInt::from(0) {
+                if b.as_inner().is_zero() {
                     return context.throw_range_error("BigInt division by zero");
                 }
                 Self::bigint(a.as_inner().clone() / b.as_inner().clone())
@@ -120,7 +120,7 @@ impl Value {
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(a), Numeric::Number(b)) => Self::rational(a / b),
                 (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
-                    if *b.as_inner() == BigInt::from(0) {
+                    if b.as_inner().is_zero() {
                         return context.throw_range_error("BigInt division by zero");
                     }
                     Self::bigint(a.as_inner().clone() / b.as_inner().clone())
@@ -150,7 +150,7 @@ impl Value {
             (Self::Rational(x), Self::Integer(y)) => Self::rational(x % f64::from(*y)),
 
             (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                if *b.as_inner() == BigInt::from(0) {
+                if b.as_inner().is_zero() {
                     return context.throw_range_error("BigInt division by zero");
                 }
                 Self::bigint(a.as_inner().clone() % b.as_inner().clone())
