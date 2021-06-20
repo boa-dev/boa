@@ -79,6 +79,22 @@ fn get_class_field_literal() {
 }
 
 #[test]
+fn getter() {
+    let scenario = r#"
+    class MyClass {
+        val = 30;
+        get a() {
+            return this.val + 10;
+        }
+    }
+    let c = new MyClass();
+    c.a;
+    "#;
+
+    assert_eq!(&exec(scenario), "40");
+}
+
+#[test]
 fn fmt_test() {
     super::super::super::test_formatting(
         r#"

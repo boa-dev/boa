@@ -4,6 +4,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     object::{GcObject, Object, PROTOTYPE},
+    property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor},
     syntax::{
         ast::node::{FunctionDecl, Node},
         parser::class::ClassField,
@@ -178,6 +179,13 @@ impl Executable for ClassDecl {
 
         // Setup non static things
         let proto = Value::Object(GcObject::new(Object::new()));
+        // obj.set_property(
+        //     key.clone(),
+        //     PropertyDescriptor::Data(DataDescriptor::new(
+        //         value.run(context)?,
+        //         Attribute::all(),
+        //     )),
+        // );
         for f in self.fields.iter() {
             match f {
                 ClassField::Method(method) => {
@@ -191,7 +199,44 @@ impl Executable for ClassDecl {
                 ClassField::Field(name, value) => {
                     proto.set_field(name.clone(), value.run(context)?, false, context)?;
                 }
-                _ => unimplemented!(),
+                ClassField::Getter(method) => {
+                    let set = proto
+                        .get_property(method.name())
+                        .as_ref()
+                        .and_then(|p| p.as_accessor_descriptor())
+                        .and_then(|a| a.setter().cloned());
+                    // Creates a getter and setter for the object. We
+                    // use the pre-existing setter here, and a custom getter.
+                    proto.set_property(
+                        method.name(),
+                        PropertyDescriptor::Accessor(AccessorDescriptor {
+                            get: method.run(context)?.as_object(),
+                            set,
+                            attributes: Attribute::WRITABLE
+                                | Attribute::ENUMERABLE
+                                | Attribute::CONFIGURABLE,
+                        }),
+                    )
+                }
+                ClassField::Setter(method) => {
+                    let get = proto
+                        .get_property(method.name())
+                        .as_ref()
+                        .and_then(|p| p.as_accessor_descriptor())
+                        .and_then(|a| a.getter().cloned());
+                    // Creates a getter and setter for the object. We
+                    // use the pre-existing getter here, and a custom setter.
+                    proto.set_property(
+                        method.name(),
+                        PropertyDescriptor::Accessor(AccessorDescriptor {
+                            get,
+                            set: method.run(context)?.as_object(),
+                            attributes: Attribute::WRITABLE
+                                | Attribute::ENUMERABLE
+                                | Attribute::CONFIGURABLE,
+                        }),
+                    )
+                }
             }
         }
         class.set_field(PROTOTYPE, proto, false, context)?;
