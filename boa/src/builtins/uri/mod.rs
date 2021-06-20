@@ -9,7 +9,7 @@ use crate::{
 };
 use percent_encoding::{percent_decode, utf8_percent_encode, AsciiSet, CONTROLS};
 
-type FuncType = fn(&RcString) -> Value;
+type EncodeFuncType = fn(&RcString) -> Value;
 
 // https://url.spec.whatwg.org/#fragment-percent-encode-set
 const ENCODE_FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b'>').add(b'`');
@@ -66,7 +66,7 @@ impl BuiltIn for Uri {
 impl Uri {
     pub(crate) const LENGTH: usize = 1;
 
-    pub(crate) fn handle_uri(args: &[Value], cb: FuncType) -> Result<Value> {
+    pub(crate) fn handle_uri(args: &[Value], cb: EncodeFuncType) -> Result<Value> {
         let first_arg = match args.get(0) {
             Some(Value::String(ref str)) => {
                 if str.len() == 0 {
