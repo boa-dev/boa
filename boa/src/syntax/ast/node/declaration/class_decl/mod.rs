@@ -184,7 +184,13 @@ impl ClassDecl {
                     obj.set_property(
                         method.name(),
                         PropertyDescriptor::Accessor(AccessorDescriptor {
-                            get: method.run(context)?.as_object(),
+                            get: context
+                                .create_function(
+                                    method.parameters().to_vec(),
+                                    method.body().to_vec(),
+                                    FunctionFlags::CALLABLE,
+                                )?
+                                .as_object(),
                             set,
                             attributes: Attribute::WRITABLE
                                 | Attribute::ENUMERABLE
@@ -204,7 +210,13 @@ impl ClassDecl {
                         method.name(),
                         PropertyDescriptor::Accessor(AccessorDescriptor {
                             get,
-                            set: method.run(context)?.as_object(),
+                            set: context
+                                .create_function(
+                                    method.parameters().to_vec(),
+                                    method.body().to_vec(),
+                                    FunctionFlags::CALLABLE,
+                                )?
+                                .as_object(),
                             attributes: Attribute::WRITABLE
                                 | Attribute::ENUMERABLE
                                 | Attribute::CONFIGURABLE,
