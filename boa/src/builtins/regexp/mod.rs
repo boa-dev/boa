@@ -118,7 +118,11 @@ impl BuiltIn for RegExp {
             .constructable(false)
             .callable(true)
             .build();
-
+        let get_source = FunctionBuilder::new(context, Self::get_source)
+            .name("get source")
+            .constructable(false)
+            .callable(true)
+            .build();
         let regexp_object = ConstructorBuilder::with_standard_object(
             context,
             Self::constructor,
@@ -168,6 +172,7 @@ impl BuiltIn for RegExp {
         .accessor("unicode", Some(get_unicode), None, flag_attributes)
         .accessor("sticky", Some(get_sticky), None, flag_attributes)
         .accessor("flags", Some(get_flags), None, flag_attributes)
+        .accessor("source", Some(get_source), None, flag_attributes)
         .build();
 
         // TODO: add them RegExp accessor properties
@@ -494,20 +499,79 @@ impl RegExp {
         context.throw_type_error("RegExp.prototype.flags getter called on non-object")
     }
 
-    // /// `RegExp.prototype.source`
-    // ///
-    // /// The `source` property returns a `String` containing the source text of the regexp object,
-    // /// and it doesn't contain the two forward slashes on both sides and any flags.
-    // ///
-    // /// More information:
-    // ///  - [ECMAScript reference][spec]
-    // ///  - [MDN documentation][mdn]
-    // ///
-    // /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.source
-    // /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/source
-    // pub(crate) fn get_source(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
-    //     Ok(this.get_internal_slot("OriginalSource"))
-    // }
+    /// `get RegExp.prototype.source`
+    ///
+    /// The `source` property returns a `String` containing the source text of the regexp object,
+    /// and it doesn't contain the two forward slashes on both sides and any flags.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.source
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/source
+    pub(crate) fn get_source(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        // 1. Let R be the this value.
+        // 2. If Type(R) is not Object, throw a TypeError exception.
+        if let Some(object) = this.as_object() {
+            let object = object.borrow();
+
+            match object.as_regexp() {
+                // 3. If R does not have an [[OriginalSource]] internal slot, then
+                None => {
+                    // a. If SameValue(R, %RegExp.prototype%) is true, return "(?:)".
+                    // b. Otherwise, throw a TypeError exception.
+                    if Value::same_value(
+                        this,
+                        &Value::from(context.standard_objects().regexp_object().prototype()),
+                    ) {
+                        Ok(Value::from("(?:)"))
+                    } else {
+                        context.throw_type_error(
+                            "RegExp.prototype.source method called on incompatible value",
+                        )
+                    }
+                }
+                // 4. Assert: R has an [[OriginalFlags]] internal slot.
+                Some(re) => {
+                    // 5. Let src be R.[[OriginalSource]].
+                    // 6. Let flags be R.[[OriginalFlags]].
+                    // 7. Return EscapeRegExpPattern(src, flags).
+                    RegExp::escape_pattern(&re.original_source, &re.original_flags)
+                }
+            }
+        } else {
+            context.throw_type_error("RegExp.prototype.source method called on incompatible value")
+        }
+    }
+
+    /// `22.2.3.2.5 EscapeRegExpPattern ( P, F )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-escaperegexppattern
+    fn escape_pattern(src: &str, _flags: &str) -> Result<Value> {
+        if src.is_empty() {
+            Ok(Value::from("(?:)"))
+        } else {
+            let mut s = String::from("");
+
+            for c in src.chars() {
+                match c {
+                    '/' => {
+                        s.push('\\');
+                        s.push(c);
+                    }
+                    '\n' => s.push_str("\\\\n"),
+                    '\r' => s.push_str("\\\\r"),
+                    _ => s.push(c),
+                }
+            }
+
+            Ok(Value::from(s))
+        }
+    }
 
     /// `RegExp.prototype.test( string )`
     ///
