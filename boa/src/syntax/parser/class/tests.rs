@@ -105,16 +105,154 @@ fn check_multi() {
     );
 }
 
-/// Checks for multiple constructors being a parse error.
+/// Checks for duplicate function names
 #[test]
-fn check_multi_constructors() {
+fn check_name_errors() {
     let js = r#"
-        class InvalidBecauseConstructors {
-            constructor() {
-            }
-            constructor() {
-            }
+        class SameFunction {
+            hello() {}
+            hello() {}
         }
         "#;
-    assert!(Parser::new(js.as_bytes(), false).parse_all().is_err());
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+
+    // This is the only situation where the same name is valid
+    let js = r#"
+        class GetterSetterSameName {
+            get hello() { return 5; }
+            set hello(v) {}
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+
+    let js = r#"
+        class FunctionSameNameAsGetter {
+            hello() {}
+            get hello() { return 5; }
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+
+    let js = r#"
+        class FunctionSameNameAsGetter {
+            hello() {}
+            set hello(a) {}
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+
+    // Static and non static names share the same rules as above
+    let js = r#"
+        class StaticNonStaticSameName {
+            hello() {}
+            static hello() {}
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+
+    // Prototype is a reserved word for static methods
+    let js = r#"
+        class StaticPrototype {
+            static prototype() {}
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+
+    let js = r#"
+        class StaticPrototype {
+            static prototype = 5;
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+
+    let js = r#"
+        class StaticPrototype {
+            get prototype() {}
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+
+    let js = r#"
+        class StaticPrototype {
+            set prototype() {}
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+}
+
+/// Checks for all constructor errors (there are a lot).
+#[test]
+fn check_constructor_errors() {
+    let js = r#"
+        class MultiConstructor {
+            constructor() {}
+            constructor() {}
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+
+    let js = r#"
+        class GetterConstructor {
+            get constructor() {}
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+
+    let js = r#"
+        class SetterConstructor {
+            set constructor() {}
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+
+    let js = r#"
+        class StaticConstructor {
+            static constructor() {}
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+
+    let js = r#"
+        class ConstructorField {
+            constructor = 5;
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+
+    let js = r#"
+        class ConstructorField {
+            static constructor = 5;
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
 }
