@@ -84,7 +84,7 @@ fn getter() {
     class MyClass {
         val = 30;
         get a() {
-            return this.val + 10;
+            return 10;
         }
     }
     let c = new MyClass();
@@ -104,7 +104,7 @@ fn fmt_test() {
                 console.log("Hello" + a);
             }
             static c = 5;
-            static say_hi(a, ...b) {
+            static static_say_hi(a, ...b) {
                 console.log("Hello" + a);
             }
         };

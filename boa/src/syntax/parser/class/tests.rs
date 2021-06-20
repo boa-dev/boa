@@ -105,6 +105,29 @@ fn check_multi() {
     );
 }
 
+/// Checks for getters/setters being parsed.
+#[test]
+fn check_getter_setter() {
+    check_parser(
+        r#"
+        class GetterSetter {
+            get a() {}
+            set a() {}
+        }
+        "#,
+        vec![ClassDecl::new(
+            Box::from("GetterSetter"),
+            None,
+            vec![
+                ClassField::Getter(FunctionDecl::new(Box::from("a"), vec![], vec![])),
+                ClassField::Setter(FunctionDecl::new(Box::from("a"), vec![], vec![])),
+            ],
+            vec![],
+        )
+        .into()],
+    );
+}
+
 /// Checks for duplicate function names
 #[test]
 fn check_name_errors() {
