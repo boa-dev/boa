@@ -974,9 +974,13 @@ impl Array {
         let values = (0..length)
             .map(|idx| {
                 let element = this.get_field(idx, context)?;
+                let is_undef = element.is_undefined();
                 let args = [element, Value::from(idx), new.clone()];
-
-                context.call(&callback, &this_val, &args)
+                let mut res = Ok(Value::undefined());
+                if !is_undef {
+                    res = context.call(&callback, &this_val, &args);
+                }
+                res
             })
             .collect::<Result<Vec<Value>>>()?;
 
