@@ -564,7 +564,6 @@ impl Number {
                             //              CHECK_EQ('.', buffer[fraction_cursor]);
                             // Carry over to the integer part.
                             integer += 1.;
-                            break;
                         } else {
                             let c: u8 = frac_buf[fraction_cursor];
                             // Reconstruct digit.
@@ -575,8 +574,8 @@ impl Number {
                             frac_buf[fraction_cursor] =
                                 std::char::from_digit(digit_0 + 1, radix as u32).unwrap() as u8;
                             fraction_cursor += 1;
-                            break;
                         }
+                        break;
                     }
                     break;
                 }
