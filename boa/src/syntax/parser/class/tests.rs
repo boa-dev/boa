@@ -181,7 +181,7 @@ fn check_name_errors() {
 
     let js = r#"
         class StaticPrototype {
-            get prototype() {}
+            static get prototype() {}
         }
         "#;
     let res = Parser::new(js.as_bytes(), false).parse_all();
@@ -190,7 +190,7 @@ fn check_name_errors() {
 
     let js = r#"
         class StaticPrototype {
-            set prototype() {}
+            static set prototype() {}
         }
         "#;
     let res = Parser::new(js.as_bytes(), false).parse_all();
