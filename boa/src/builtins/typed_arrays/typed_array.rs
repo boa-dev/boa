@@ -13,7 +13,7 @@ The %TypedArray% intrinsic object:
 
 use crate::builtins::BuiltIn;
 use crate::object::{ConstructorBuilder, GcObject, Object};
-use crate::property::Attribute;
+use crate::property::{Attribute, DataDescriptor};
 use crate::symbol::WellKnownSymbols;
 use crate::{Context, Result, Value};
 
@@ -26,21 +26,59 @@ impl TypedArray {
             Self::construct,
             context.standard_objects().typed_array_object().clone(),
         )
-        .method(Self::sanity, "sanity", 0)
         .property(
-            "length",
-            0,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+            "name",
+            "TypedArray",
+            Attribute::READONLY | Attribute::PERMANENT,
         )
+        .static_method(Self::from, "from", 3)
         .build();
-
         constructor
     }
 
-    // This is a sanity check to see if objects that inherit from this can call this method
-    fn sanity(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        Ok("sanity check".into())
+    pub(crate) fn from(this: &Value, arguments: &[Value], context: &mut Context) -> Result<Value> {
+        // The third argument to from is an optional this value. If it's present, use it instead of our this
+        let this = arguments.get(2).cloned().unwrap_or(this.clone());
+        let map_fn = arguments.get(1).cloned().unwrap_or(Value::undefined());
+
+        let mut mapping = if !map_fn.is_null_or_undefined()
+            && !map_fn.as_object().map(|o| o.is_callable()).unwrap_or(false)
+        {
+            return context.throw_type_error("mapFn is not callable");
+        } else {
+            true
+        };
+
+        let iter = crate::builtins::iterable::get_iterator(context, arguments[0].clone())?;
+        let mut values = vec![];
+        while let Ok(next) = iter.next(context) {
+            if next.is_done() {
+                break;
+            }
+            values.push(next.value())
+        }
+        let constructed_value = this
+            .as_object()
+            .ok_or_else(|| -> Value { "Not a constructor".into() })?
+            .call(&this, &[values.len().into()], context)?;
+
+        for (index, mut value) in values.into_iter().enumerate() {
+            if mapping {
+                value = map_fn
+                    .as_object()
+                    .unwrap()
+                    .call(&map_fn, &[value.clone()], context)?;
+            }
+            constructed_value.set_property(
+                index.to_string(),
+                DataDescriptor::new(value, Attribute::all()),
+            );
+        }
+
+        Ok(constructed_value)
     }
+
+    pub(crate) fn create_typed_array(length: usize) {}
 
     pub(crate) fn construct(
         new_target: &Value,

@@ -20,6 +20,7 @@ impl BuiltIn for UInt8Array {
             Self::constructor,
             context.standard_objects().typed_array_object().clone(),
         )
+        .name(Self::NAME)
         .build();
 
         (Self::NAME, constructor.into(), Self::attribute())
