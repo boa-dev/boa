@@ -118,42 +118,42 @@ fn of() {
 }
 
 #[ignore]
+#[test]
 fn concat() {
-    //TODO: array display formatter
     let mut context = Context::new();
     let init = r#"
-    var empty = new Array();
-    var one = new Array(1);
+    var empty = [];
+    var one = [1];
     "#;
     context.eval(init).unwrap();
     // Empty ++ Empty
     let ee = context
         .eval("empty.concat(empty)")
         .unwrap()
-        .to_string(&mut context)
-        .unwrap();
+        .display()
+        .to_string();
     assert_eq!(ee, "[]");
     // Empty ++ NonEmpty
     let en = context
         .eval("empty.concat(one)")
         .unwrap()
-        .to_string(&mut context)
-        .unwrap();
-    assert_eq!(en, "[a]");
+        .display()
+        .to_string();
+    assert_eq!(en, "[ 1 ]");
     // NonEmpty ++ Empty
     let ne = context
         .eval("one.concat(empty)")
         .unwrap()
-        .to_string(&mut context)
-        .unwrap();
-    assert_eq!(ne, "a.b.c");
+        .display()
+        .to_string();
+    assert_eq!(ne, "[ 1 ]");
     // NonEmpty ++ NonEmpty
     let nn = context
         .eval("one.concat(one)")
         .unwrap()
-        .to_string(&mut context)
-        .unwrap();
-    assert_eq!(nn, "a.b.c");
+        .display()
+        .to_string();
+    assert_eq!(nn, "[ 1, 1 ]");
 }
 
 #[test]
