@@ -84,11 +84,56 @@ fn getter() {
     class MyClass {
         val = 30;
         get a() {
-            return 10;
+            return this.val + 10;
         }
     }
     let c = new MyClass();
     c.a;
+    "#;
+
+    assert_eq!(&exec(scenario), "40");
+
+    // Make sure that a() is executed at the correct time (not when the class is built).
+    let scenario = r#"
+    class MyClass {
+        val = 30;
+        get a() {
+            return this.val + 10;
+        }
+    }
+    let c = new MyClass();
+    c.val = 50;
+    c.a;
+    "#;
+
+    assert_eq!(&exec(scenario), "60");
+}
+
+#[test]
+fn setter() {
+    let scenario = r#"
+    class MyClass {
+        set a(val) {
+            this.val = val - 10;
+        }
+    }
+    let c = new MyClass();
+    c.a = 30;
+    c.val;
+    "#;
+
+    assert_eq!(&exec(scenario), "20");
+
+    // Make sure that a() is executed at the correct time (not when the class is built).
+    let scenario = r#"
+    class MyClass {
+        set a(val) {
+            this.val = val - 10;
+        }
+    }
+    let c = new MyClass();
+    c.a = 50;
+    c.val
     "#;
 
     assert_eq!(&exec(scenario), "40");
