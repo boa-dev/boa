@@ -460,6 +460,13 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.push
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push
     pub(crate) fn push(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let length = this.get_field("length", context)?.to_length(context)?;
+        let arg_count = args.len();
+
+        if length + arg_count > Number::MAX_SAFE_INTEGER as usize {
+            return context.throw_type_error("the length + the number of arguments exceed the maximum safe integer limit");
+        }
+
         let new_array = Self::add_to_array_object(this, args, context)?;
         new_array.get_field("length", context)
     }
@@ -689,7 +696,7 @@ impl Array {
 
         if arg_c > 0 {
             if len + arg_c > Number::MAX_SAFE_INTEGER as usize {
-                return context.throw_type_error("len + argCount exceeded MAX_SAFE_INTEGER");
+                return context.throw_type_error("the length + the number of arguments exceed the maximum safe integer limit");
             }
             for k in (1..=len).rev() {
                 let from = k.wrapping_sub(1);
