@@ -27,7 +27,7 @@ use crate::{
     },
     BoaProfiler,
 };
-use std::io::Read;
+use std::{collections::HashSet, io::Read};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -88,6 +88,11 @@ where
         let _timer = BoaProfiler::global().start_event("ClassElementList", "Parsing");
         cursor.set_goal(InputElement::RegExp);
 
+        // Field and method names. Used to check for duplicate functions/fields.
+        let mut field_names = HashSet::new();
+        let mut getter_names = HashSet::new();
+        let mut setter_names = HashSet::new();
+
         let mut constructor = None;
         let mut fields = Vec::new();
         let mut static_fields = Vec::new();
@@ -104,7 +109,7 @@ where
 
         loop {
             let next = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
-            let static_field = match next.kind() {
+            let is_static = match next.kind() {
                 TokenKind::Keyword(Keyword::Static) => {
                     // Consume the static token.
                     cursor.next()?;
@@ -188,15 +193,37 @@ where
                                 "Cannot create a setter named `constructor`",
                                 pos,
                             ));
+                        } else if is_static {
+                            return Err(ParseError::general(
+                                "Cannot create a static function named `constructor`",
+                                pos,
+                            ));
                         }
                         constructor = Some(FunctionDecl::new(name, params, body));
                         None
                     } else {
                         if is_getter {
+                            // This is a getter, so a setter with the same name is valid.
+                            if field_names.contains(&name) || getter_names.contains(&name) {
+                                return Err(ParseError::general("Duplicate getter name", pos));
+                            }
+                            getter_names.insert(name.clone());
                             Some(ClassField::Getter(FunctionDecl::new(name, params, body)))
                         } else if is_setter {
+                            // This is a setter, so a getter with the same name is valid.
+                            if field_names.contains(&name) || setter_names.contains(&name) {
+                                return Err(ParseError::general("Duplicate setter name", pos));
+                            }
+                            setter_names.insert(name.clone());
                             Some(ClassField::Setter(FunctionDecl::new(name, params, body)))
                         } else {
+                            if field_names.contains(&name)
+                                || getter_names.contains(&name)
+                                || setter_names.contains(&name)
+                            {
+                                return Err(ParseError::general("Duplicate method name", pos));
+                            }
+                            field_names.insert(name.clone());
                             Some(ClassField::Method(FunctionDecl::new(name, params, body)))
                         }
                     }
@@ -220,6 +247,13 @@ where
                     // Classes are always parsed in strict mode, so this is always a requirement.
                     cursor.expect_semicolon("after a class field declaration")?;
 
+                    if field_names.contains(&name)
+                        || getter_names.contains(&name)
+                        || setter_names.contains(&name)
+                    {
+                        return Err(ParseError::general("Duplicate field name", pos));
+                    }
+                    field_names.insert(name.clone());
                     Some(ClassField::Field(name, value))
                 }
                 _ => {
@@ -235,7 +269,7 @@ where
             };
 
             if let Some(f) = field {
-                if static_field {
+                if is_static {
                     static_fields.push(f);
                 } else {
                     fields.push(f);
