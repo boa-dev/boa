@@ -52,11 +52,11 @@ impl Uri {
         Ok(args
             .get(0)
             .map(|arg_str| match arg_str {
-                Value::String(ref arg_str) => {
-                    if arg_str.is_empty() {
+                Value::String(ref arg_str_ref) => {
+                    if arg_str_ref.is_empty() {
                         Value::string("")
                     } else {
-                        cb(arg_str)
+                        cb(arg_str_ref)
                     }
                 }
                 _ => Value::Undefined,
