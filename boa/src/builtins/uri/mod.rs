@@ -4,8 +4,7 @@ use std::borrow::Borrow;
 
 use crate::value::RcString;
 use crate::{
-    builtins::BuiltIn, object::FunctionBuilder, property::Attribute, value::Value, BoaProfiler,
-    Context, Result,
+    object::FunctionBuilder, property::Attribute, value::Value, BoaProfiler, Context, Result,
 };
 use percent_encoding::{percent_decode, utf8_percent_encode, AsciiSet, CONTROLS};
 
@@ -17,14 +16,14 @@ const ENCODE_FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Uri;
 
-impl BuiltIn for Uri {
+impl Uri {
     const NAME: &'static str = "Uri";
 
-    fn attribute() -> Attribute {
+    pub(crate) fn attribute() -> Attribute {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    pub(crate) fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let decode_uri = FunctionBuilder::new(context, Self::decode_uri)
@@ -41,29 +40,28 @@ impl BuiltIn for Uri {
             .constructable(false)
             .build();
 
-        context.register_global_property("decodeURI", decode_uri, Attribute::all());
-        context.register_global_property("encodeURI", encode_uri, Attribute::all());
+        context.register_global_property("decodeURI", decode_uri, Attribute::default());
+        context.register_global_property("encodeURI", encode_uri, Attribute::default());
 
         let _global = context.global_object();
 
         (Self::NAME, Value::undefined(), Self::attribute())
     }
-}
 
-impl Uri {
     pub(crate) fn handle_uri(args: &[Value], cb: EncodeFuncType) -> Result<Value> {
-        let first_arg = match args.get(0) {
-            Some(Value::String(ref arg_str)) => {
-                if arg_str.is_empty() {
-                    Value::string("")
-                } else {
-                    cb(arg_str)
+        Ok(args
+            .get(0)
+            .map(|arg_str| match arg_str {
+                Value::String(ref arg_str) => {
+                    if arg_str.is_empty() {
+                        Value::string("")
+                    } else {
+                        cb(arg_str)
+                    }
                 }
-            }
-            _ => Value::Undefined,
-        };
-
-        Ok(first_arg)
+                _ => Value::Undefined,
+            })
+            .unwrap())
     }
 
     // The decodeURI() function decodes a Uniform Resource Identifier (URI) previously created by encodeURI() or by a similar routine.
