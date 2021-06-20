@@ -559,10 +559,7 @@ impl RegExp {
 
             for c in src.chars() {
                 match c {
-                    '/' => {
-                        s.push('\\');
-                        s.push(c);
-                    }
+                    '/' => s.push_str("\\/"),
                     '\n' => s.push_str("\\\\n"),
                     '\r' => s.push_str("\\\\r"),
                     _ => s.push(c),
@@ -760,9 +757,9 @@ impl RegExp {
             if input.get(last_index..).is_none() {
                 return Ok(Value::null());
             }
-            let m = matcher.find_from(&input, last_index).next();
+            let r = matcher.find_from(&input, last_index).next();
 
-            match m {
+            match r {
                 // c. If r is failure, then
                 None => {
                     // i. If sticky is true, then

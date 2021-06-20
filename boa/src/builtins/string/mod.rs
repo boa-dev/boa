@@ -1356,7 +1356,7 @@ impl String {
             if let Some(matcher) = regexp
                 .as_object()
                 .unwrap_or_default()
-                .get_method(context, "matchAll")?
+                .get_method(context, WellKnownSymbols::match_all())?
             {
                 // i. Return ? Call(matcher, regexp, « O »).
                 return matcher.call(&regexp, &[object.clone()], context);
