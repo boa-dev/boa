@@ -4,7 +4,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     object::{GcObject, Object, PROTOTYPE},
-    property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor},
+    property::{AccessorDescriptor, Attribute, PropertyDescriptor},
     syntax::{
         ast::node::{FunctionDecl, Node},
         parser::class::ClassField,
@@ -156,6 +156,65 @@ impl ClassDecl {
         }
         write!(f, "{}}}", indent)
     }
+
+    /// This adds all of the given fields onto the object. Called twice, once
+    /// for non-static fields, and again for static fields.
+    fn add_fields_to_obj(fields: &[ClassField], obj: &Value, context: &mut Context) -> Result<()> {
+        for f in fields.iter() {
+            match f {
+                ClassField::Method(method) => {
+                    let f = context.create_function(
+                        method.parameters().to_vec(),
+                        method.body().to_vec(),
+                        FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
+                    )?;
+                    obj.set_field(method.name(), f, false, context)?;
+                }
+                ClassField::Field(name, value) => {
+                    obj.set_field(name.clone(), value.run(context)?, false, context)?;
+                }
+                ClassField::Getter(method) => {
+                    let set = obj
+                        .get_property(method.name())
+                        .as_ref()
+                        .and_then(|p| p.as_accessor_descriptor())
+                        .and_then(|a| a.setter().cloned());
+                    // Creates a getter and setter for the object. We
+                    // use the pre-existing setter here, and a custom getter.
+                    obj.set_property(
+                        method.name(),
+                        PropertyDescriptor::Accessor(AccessorDescriptor {
+                            get: method.run(context)?.as_object(),
+                            set,
+                            attributes: Attribute::WRITABLE
+                                | Attribute::ENUMERABLE
+                                | Attribute::CONFIGURABLE,
+                        }),
+                    )
+                }
+                ClassField::Setter(method) => {
+                    let get = obj
+                        .get_property(method.name())
+                        .as_ref()
+                        .and_then(|p| p.as_accessor_descriptor())
+                        .and_then(|a| a.getter().cloned());
+                    // Creates a getter and setter for the object. We
+                    // use the pre-existing getter here, and a custom setter.
+                    obj.set_property(
+                        method.name(),
+                        PropertyDescriptor::Accessor(AccessorDescriptor {
+                            get,
+                            set: method.run(context)?.as_object(),
+                            attributes: Attribute::WRITABLE
+                                | Attribute::ENUMERABLE
+                                | Attribute::CONFIGURABLE,
+                        }),
+                    )
+                }
+            }
+        }
+        Ok(())
+    }
 }
 
 impl Executable for ClassDecl {
@@ -179,77 +238,11 @@ impl Executable for ClassDecl {
 
         // Setup non static things
         let proto = Value::Object(GcObject::new(Object::new()));
-        // obj.set_property(
-        //     key.clone(),
-        //     PropertyDescriptor::Data(DataDescriptor::new(
-        //         value.run(context)?,
-        //         Attribute::all(),
-        //     )),
-        // );
-        for f in self.fields.iter() {
-            match f {
-                ClassField::Method(method) => {
-                    let f = context.create_function(
-                        method.parameters().to_vec(),
-                        method.body().to_vec(),
-                        FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
-                    )?;
-                    proto.set_field(method.name(), f, false, context)?;
-                }
-                ClassField::Field(name, value) => {
-                    proto.set_field(name.clone(), value.run(context)?, false, context)?;
-                }
-                ClassField::Getter(method) => {
-                    let set = proto
-                        .get_property(method.name())
-                        .as_ref()
-                        .and_then(|p| p.as_accessor_descriptor())
-                        .and_then(|a| a.setter().cloned());
-                    // Creates a getter and setter for the object. We
-                    // use the pre-existing setter here, and a custom getter.
-                    proto.set_property(
-                        method.name(),
-                        PropertyDescriptor::Accessor(AccessorDescriptor {
-                            get: method.run(context)?.as_object(),
-                            set,
-                            attributes: Attribute::WRITABLE
-                                | Attribute::ENUMERABLE
-                                | Attribute::CONFIGURABLE,
-                        }),
-                    )
-                }
-                ClassField::Setter(method) => {
-                    let get = proto
-                        .get_property(method.name())
-                        .as_ref()
-                        .and_then(|p| p.as_accessor_descriptor())
-                        .and_then(|a| a.getter().cloned());
-                    // Creates a getter and setter for the object. We
-                    // use the pre-existing getter here, and a custom setter.
-                    proto.set_property(
-                        method.name(),
-                        PropertyDescriptor::Accessor(AccessorDescriptor {
-                            get,
-                            set: method.run(context)?.as_object(),
-                            attributes: Attribute::WRITABLE
-                                | Attribute::ENUMERABLE
-                                | Attribute::CONFIGURABLE,
-                        }),
-                    )
-                }
-            }
-        }
+        ClassDecl::add_fields_to_obj(&self.fields, &proto, context)?;
         class.set_field(PROTOTYPE, proto, false, context)?;
 
         // Setup static things
-        for method in self.static_methods() {
-            let f = context.create_function(
-                method.parameters().to_vec(),
-                method.body().to_vec(),
-                FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
-            )?;
-            class.set_field(method.name(), f, false, context)?;
-        }
+        ClassDecl::add_fields_to_obj(&self.static_fields, &class, context)?;
 
         if context.has_binding(self.name()) {
             // TODO: Unclear if this is legal. In firefox, this produces a redeclaration error.
