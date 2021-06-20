@@ -219,6 +219,66 @@ fn check_name_errors() {
     let res = Parser::new(js.as_bytes(), false).parse_all();
     dbg!(&res);
     assert!(res.is_err());
+
+    let js = r#"
+        class StaticPrototype {
+            set a(val) {}
+            static get a() {}
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+
+    let js = r#"
+        class StaticPrototype {
+            static set a(val) {}
+            get a() {}
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+
+    let js = r#"
+        class StaticPrototype {
+            get a() {}
+            static set a(val) {}
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+
+    let js = r#"
+        class StaticPrototype {
+            static get a() {}
+            set a(val) {}
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+
+    let js = r#"
+        class StaticPrototype {
+            get a() {}
+            set a(val) {}
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_ok());
+
+    let js = r#"
+        class StaticPrototype {
+            static get a() {}
+            static set a(val) {}
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_ok());
 }
 
 /// Checks for all constructor errors (there are a lot).

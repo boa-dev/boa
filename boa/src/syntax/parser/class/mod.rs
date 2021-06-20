@@ -27,7 +27,10 @@ use crate::{
     },
     BoaProfiler,
 };
-use std::{collections::HashSet, io::Read};
+use std::{
+    collections::{HashMap, HashSet},
+    io::Read,
+};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -90,8 +93,8 @@ where
 
         // Field and method names. Used to check for duplicate functions/fields.
         let mut field_names = HashSet::new();
-        let mut getter_names = HashSet::new();
-        let mut setter_names = HashSet::new();
+        let mut getter_names = HashMap::new();
+        let mut setter_names = HashMap::new();
 
         let mut constructor = None;
         let mut fields = Vec::new();
@@ -209,22 +212,48 @@ where
                     } else {
                         if is_getter {
                             // This is a getter, so a setter with the same name is valid.
-                            if field_names.contains(&name) || getter_names.contains(&name) {
+                            if field_names.contains(&name) || getter_names.contains_key(&name) {
                                 return Err(ParseError::general("Duplicate getter name", pos));
                             }
-                            getter_names.insert(name.clone());
+                            if setter_names.get(&name) == Some(&!is_static) {
+                                if is_static {
+                                    return Err(ParseError::general(
+                                        "A static setter cannot have a non-static getter",
+                                        pos,
+                                    ));
+                                } else {
+                                    return Err(ParseError::general(
+                                        "A non-static setter cannot have a static getter",
+                                        pos,
+                                    ));
+                                }
+                            }
+                            getter_names.insert(name.clone(), is_static);
                             Some(ClassField::Getter(FunctionDecl::new(name, params, body)))
                         } else if is_setter {
                             // This is a setter, so a getter with the same name is valid.
-                            if field_names.contains(&name) || setter_names.contains(&name) {
+                            if field_names.contains(&name) || setter_names.contains_key(&name) {
                                 return Err(ParseError::general("Duplicate setter name", pos));
                             }
-                            setter_names.insert(name.clone());
+                            if getter_names.get(&name) == Some(&!is_static) {
+                                if is_static {
+                                    return Err(ParseError::general(
+                                        "A static getter cannot have a non-static setter",
+                                        pos,
+                                    ));
+                                } else {
+                                    return Err(ParseError::general(
+                                        "A non-static getter cannot have a static setter",
+                                        pos,
+                                    ));
+                                }
+                            }
+                            setter_names.insert(name.clone(), is_static);
                             Some(ClassField::Setter(FunctionDecl::new(name, params, body)))
                         } else {
                             if field_names.contains(&name)
-                                || getter_names.contains(&name)
-                                || setter_names.contains(&name)
+                                || getter_names.contains_key(&name)
+                                || setter_names.contains_key(&name)
                             {
                                 return Err(ParseError::general("Duplicate method name", pos));
                             }
@@ -253,8 +282,8 @@ where
                     cursor.expect_semicolon("after a class field declaration")?;
 
                     if field_names.contains(&name)
-                        || getter_names.contains(&name)
-                        || setter_names.contains(&name)
+                        || getter_names.contains_key(&name)
+                        || setter_names.contains_key(&name)
                     {
                         return Err(ParseError::general("Duplicate field name", pos));
                     }
