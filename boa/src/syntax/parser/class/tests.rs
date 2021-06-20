@@ -127,7 +127,7 @@ fn check_name_errors() {
         "#;
     let res = Parser::new(js.as_bytes(), false).parse_all();
     dbg!(&res);
-    assert!(res.is_err());
+    assert!(res.is_ok());
 
     let js = r#"
         class FunctionSameNameAsGetter {
