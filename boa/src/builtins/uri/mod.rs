@@ -61,7 +61,7 @@ impl Uri {
                 }
                 _ => Value::Undefined,
             })
-            .unwrap())
+            .unwrap_or(Value::Undefined))
     }
 
     // The decodeURI() function decodes a Uniform Resource Identifier (URI) previously created by encodeURI() or by a similar routine.
