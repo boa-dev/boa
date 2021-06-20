@@ -127,7 +127,12 @@ impl StringLiteral {
                     let _timer = BoaProfiler::global()
                         .start_event("StringLiteral - escape sequence", "Lexing");
 
-                    if let Some(escape_value) = Self::take_escape_sequence_or_line_continuation(cursor, ch_start_pos, is_strict_mode, false)? {
+                    if let Some(escape_value) = Self::take_escape_sequence_or_line_continuation(
+                        cursor,
+                        ch_start_pos,
+                        is_strict_mode,
+                        false,
+                    )? {
                         buf.push_code_point(escape_value);
                     }
                 }

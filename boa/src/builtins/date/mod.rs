@@ -217,7 +217,7 @@ impl Date {
     /// Converts the `Date` to a local `DateTime`.
     ///
     /// If the `Date` is invalid (i.e. NAN), this function will return `None`.
-    pub fn to_local(&self) -> Option<DateTime<Local>> {
+    pub fn to_local(self) -> Option<DateTime<Local>> {
         self.0
             .map(|utc| Local::now().timezone().from_utc_datetime(&utc))
     }
@@ -225,7 +225,7 @@ impl Date {
     /// Converts the `Date` to a UTC `DateTime`.
     ///
     /// If the `Date` is invalid (i.e. NAN), this function will return `None`.
-    pub fn to_utc(&self) -> Option<DateTime<Utc>> {
+    pub fn to_utc(self) -> Option<DateTime<Utc>> {
         self.0
             .map(|utc| Utc::now().timezone().from_utc_datetime(&utc))
     }
@@ -1203,7 +1203,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.todatestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toDateString
-    pub fn to_date_string(&self) -> String {
+    pub fn to_date_string(self) -> String {
         self.to_local()
             .map(|date_time| date_time.format("%a %b %d %Y").to_string())
             .unwrap_or_else(|| "Invalid Date".to_string())
@@ -1219,7 +1219,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.togmtstring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toGMTString
-    pub fn to_gmt_string(&self) -> String {
+    pub fn to_gmt_string(self) -> String {
         self.to_utc_string()
     }
 
@@ -1235,7 +1235,7 @@ impl Date {
     /// [iso8601]: http://en.wikipedia.org/wiki/ISO_8601
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.toisostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
-    pub fn to_iso_string(&self) -> String {
+    pub fn to_iso_string(self) -> String {
         self.to_utc()
             // RFC 3389 uses +0.00 for UTC, where JS expects Z, so we can't use the built-in chrono function.
             .map(|f| f.format("%Y-%m-%dT%H:%M:%S.%3fZ").to_string())
@@ -1252,7 +1252,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.tojson
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toJSON
-    pub fn to_json(&self) -> String {
+    pub fn to_json(self) -> String {
         self.to_iso_string()
     }
 
@@ -1267,7 +1267,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.totimestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toTimeString
-    pub fn to_time_string(&self) -> String {
+    pub fn to_time_string(self) -> String {
         self.to_local()
             .map(|date_time| date_time.format("%H:%M:%S GMT%:z").to_string())
             .unwrap_or_else(|| "Invalid Date".to_string())
@@ -1283,7 +1283,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.toutcstring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toUTCString
-    pub fn to_utc_string(&self) -> String {
+    pub fn to_utc_string(self) -> String {
         self.to_utc()
             .map(|date_time| date_time.format("%a, %d %b %Y %H:%M:%S GMT").to_string())
             .unwrap_or_else(|| "Invalid Date".to_string())
