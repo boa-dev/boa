@@ -1,17 +1,4 @@
-//! This module implements the global `Number` object.
-//!
-//! The `Number` JavaScript object is a wrapper object allowing you to work with numerical values.
-//! A `Number` object is created using the `Number()` constructor. A primitive type object number is created using the `Number()` **function**.
-//!
-//! The JavaScript `Number` type is double-precision 64-bit binary format IEEE 754 value. In more recent implementations,
-//! JavaScript also supports integers with arbitrary precision using the BigInt type.
-//!
-//! More information:
-//!  - [ECMAScript reference][spec]
-//!  - [MDN documentation][mdn]
-//!
-//! [spec]: https://tc39.es/ecma262/#sec-number-object
-//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
+//! This module implements the global `decodeURI` and encodURI functions.
 
 use std::borrow::Borrow;
 
@@ -94,10 +81,27 @@ impl URI {
         Ok(first_arg)
     }
 
+    // The decodeURI() function decodes a Uniform Resource Identifier (URI) previously created by encodeURI() or by a similar routine.
+    // More information:
+    //  - [ECMAScript reference][spec]
+    //  - [MDN documentation][mdn]
+    //
+    // [spec]: https://tc39.es/ecma262/#sec-decodeuri-encodeduri
+    // [mdn]:  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI
     pub(crate) fn decode_uri(_: &Value, args: &[Value], _context: &mut Context) -> Result<Value> {
         Self::handle_uri(args, decode)
     }
 
+    // The encodeURI() function encodes a URI by replacing each instance of certain characters by one, two, three,
+    // or four escape sequences representing the UTF-8 encoding of the character
+    // (will only be four escape sequences for characters composed of two "surrogate" characters).
+    //
+    // More information:
+    //  - [ECMAScript reference][spec]
+    //  - [MDN documentation][mdn]
+    //
+    // [spec]: https://tc39.es/ecma262/#sec-encodeuri-uri
+    // [mdn]:  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
     pub(crate) fn encode_uri(_: &Value, args: &[Value], _context: &mut Context) -> Result<Value> {
         Self::handle_uri(args, encode)
     }
