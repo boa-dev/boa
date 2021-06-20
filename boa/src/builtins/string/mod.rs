@@ -920,7 +920,7 @@ impl String {
 
         let filler = fill_string.as_deref().unwrap_or(" ");
 
-        if filler == "" {
+        if filler.is_empty() {
             return Value::from(primitive);
         }
 
