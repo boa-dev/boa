@@ -154,6 +154,11 @@ where
                         position,
                     ));
                 }
+            } else if *name == *"prototype" && is_static {
+                return Err(ParseError::general(
+                    "The name `prototype` is reserved for static fields",
+                    position,
+                ));
             }
 
             let next = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
