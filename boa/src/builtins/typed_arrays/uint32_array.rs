@@ -1,14 +1,10 @@
-use crate::builtins::typed_arrays::storage_class::TypedArrayStorageClass;
+use crate::builtins::typed_arrays::storage_class::TypedArrayElement;
 use crate::builtins::typed_arrays::typed_array::TypedArrayInstance;
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Uint32Array;
 
 impl TypedArrayInstance for Uint32Array {
-    const BYTES_PER_ELEMENT: usize = 2;
     const NAME: &'static str = "Uint32Array";
-
-    fn get_storage_class(capacity: usize) -> TypedArrayStorageClass {
-        TypedArrayStorageClass::U32(Vec::with_capacity(capacity))
-    }
+    const ELEMENT_KIND: TypedArrayElement = TypedArrayElement::U32;
 }

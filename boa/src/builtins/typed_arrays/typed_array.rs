@@ -12,7 +12,7 @@ The %TypedArray% intrinsic object:
 */
 
 use crate::builtins::array::array_iterator::ArrayIterationKind;
-use crate::builtins::typed_arrays::storage_class::{TypedArrayContentType, TypedArrayStorageClass};
+use crate::builtins::typed_arrays::storage_class::{TypedArrayElement, TypedArrayStorage};
 use crate::builtins::{ArrayIterator, BuiltIn};
 use crate::context::StandardConstructor;
 use crate::gc::{Finalize, Trace};
@@ -29,8 +29,7 @@ pub struct TypedArray {
     byte_length: usize,
     byte_offset: usize,
     array_length: usize,
-    content_type: TypedArrayContentType,
-    pub(crate) buffer: TypedArrayStorageClass,
+    pub(crate) buffer: TypedArrayStorage,
 }
 
 impl BuiltIn for TypedArray {
@@ -57,15 +56,13 @@ impl TypedArray {
             context.standard_objects().typed_array_object().clone(),
         )
         .name(Self::NAME)
-        .static_method(Self::from, "from", 3)
-        .static_method(Self::of, "of", 1)
         .build();
         constructor.into()
     }
 
     fn get_length(this: &Value, _args: &[Value], context: &mut Context) -> Result<Value> {
         let length = this.as_object().map(|v| match v.borrow().data {
-            ObjectData::TypedArray(ref typed_array) => Value::from(typed_array.buffer.length()),
+            ObjectData::TypedArray(ref typed_array) => Value::from(typed_array.buffer.capacity()),
             _ => Value::undefined(),
         });
 
@@ -73,6 +70,44 @@ impl TypedArray {
             Ok(length)
         } else {
             context.throw_type_error("Unable to get length")
+        }
+    }
+
+    pub(crate) fn construct(
+        _new_target: &Value,
+        _args: &[Value],
+        context: &mut Context,
+    ) -> Result<Value> {
+        context.throw_type_error("Cannot call TypedArray as a constructor")
+    }
+}
+
+pub(crate) trait TypedArrayInstance {
+    const NAME: &'static str;
+    const ELEMENT_KIND: TypedArrayElement;
+
+    fn constructor(new_target: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let prototype = new_target
+            .as_object()
+            .and_then(|obj| {
+                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                    .map(|o| o.as_object())
+                    .transpose()
+            })
+            .transpose()?
+            .unwrap_or_else(|| {
+                context
+                    .standard_objects()
+                    .typed_array_object()
+                    .constructor
+                    .clone()
+            });
+
+        match args.get(0).cloned() {
+            Some(value) if value.is_number() => {
+                Self::create_typed_array_by_length(prototype, value, context)
+            }
+            _ => todo!(),
         }
     }
 
@@ -85,7 +120,7 @@ impl TypedArray {
 
         let species = this
             .as_object()
-            .ok_or_else(|| -> Value { "Not a constructor".into() })?
+            .ok_or_else(|| context.throw_type_error("Not a constructor").unwrap_err())?
             .get(
                 &WellKnownSymbols::species().into(),
                 this.clone().into(),
@@ -103,7 +138,7 @@ impl TypedArray {
         }
     }
 
-    pub(crate) fn of(this: &Value, arguments: &[Value], context: &mut Context) -> Result<Value> {
+    fn of(this: &Value, arguments: &[Value], context: &mut Context) -> Result<Value> {
         let length: Value = arguments.len().into();
 
         let constructed_value = Self::construct_species(this, &[length], context)?;
@@ -118,7 +153,7 @@ impl TypedArray {
         Ok(constructed_value)
     }
 
-    pub(crate) fn from(this: &Value, arguments: &[Value], context: &mut Context) -> Result<Value> {
+    fn from(this: &Value, arguments: &[Value], context: &mut Context) -> Result<Value> {
         // The third argument to from is an optional this value. If it's present, use it instead of our this
         let this = arguments.get(2).cloned().unwrap_or(this.clone());
         let map_fn = arguments.get(1).cloned().unwrap_or(Value::undefined());
@@ -164,7 +199,7 @@ impl TypedArray {
                 ObjectData::TypedArray(ref mut typed_array) => {
                     typed_array
                         .buffer
-                        .set_value_at_index(index, next.value(), context)?;
+                        .insert_value_at_offset(index, next.value());
                 }
                 _ => {}
             }
@@ -175,55 +210,6 @@ impl TypedArray {
         drop(handle);
 
         Ok(constructed_value)
-    }
-
-    pub(crate) fn construct(
-        _new_target: &Value,
-        _args: &[Value],
-        context: &mut Context,
-    ) -> Result<Value> {
-        context.throw_type_error("Cannot call TypedArray as a constructor")
-    }
-}
-
-pub(crate) trait TypedArrayInstance {
-    const BYTES_PER_ELEMENT: usize;
-    const NAME: &'static str;
-
-    fn get_storage_class(capacity: usize) -> TypedArrayStorageClass;
-
-    fn _internal_get_storage_class(capacity: usize) -> TypedArrayStorageClass {
-        let mut storage_class = Self::get_storage_class(capacity);
-        // SAFETY: We guarantee here that we always set the length of the array to its
-        // actual internal capacity.
-        unsafe { storage_class.set_length(storage_class.length()) };
-        debug_assert!(storage_class.length() == capacity);
-        storage_class
-    }
-
-    fn constructor(new_target: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let prototype = new_target
-            .as_object()
-            .and_then(|obj| {
-                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
-                    .map(|o| o.as_object())
-                    .transpose()
-            })
-            .transpose()?
-            .unwrap_or_else(|| {
-                context
-                    .standard_objects()
-                    .typed_array_object()
-                    .constructor
-                    .clone()
-            });
-
-        match args.get(0).cloned() {
-            Some(value) if value.is_number() => {
-                Self::create_typed_array_by_length(prototype, value, context)
-            }
-            _ => todo!(),
-        }
     }
 
     fn create_typed_array_by_length(
@@ -245,15 +231,12 @@ pub(crate) trait TypedArrayInstance {
     fn allocate_typed_array(length: usize, context: &mut Context) -> Value {
         let object = Value::new_object(context);
 
-        let storage_class = Self::_internal_get_storage_class(length);
-
         let typed_array = TypedArray {
             typed_array_name: Self::NAME,
-            byte_length: Self::BYTES_PER_ELEMENT,
-            byte_offset: Self::BYTES_PER_ELEMENT,
-            array_length: 0,
-            content_type: storage_class.get_typed_array_content_type(),
-            buffer: storage_class,
+            byte_length: Self::ELEMENT_KIND.element_size(),
+            byte_offset: Self::ELEMENT_KIND.element_size(),
+            array_length: length,
+            buffer: TypedArrayStorage::with_capacity_and_kind(length, Self::ELEMENT_KIND),
         };
 
         object.set_data(ObjectData::TypedArray(typed_array));
@@ -321,7 +304,7 @@ where
         .inherit(typed_array_prototype)
         .property(
             "BYTES_PER_ELEMENT",
-            Self::BYTES_PER_ELEMENT,
+            Self::ELEMENT_KIND.element_size(),
             Attribute::READONLY | Attribute::PERMANENT | Attribute::NON_ENUMERABLE,
         )
         .static_accessor(
@@ -338,12 +321,12 @@ where
         )
         .property(
             "BYTES_PER_ELEMENT",
-            Self::BYTES_PER_ELEMENT,
+            Self::ELEMENT_KIND.element_size(),
             Attribute::PERMANENT | Attribute::READONLY,
         )
         .static_property(
             "BYTES_PER_ELEMENT",
-            Self::BYTES_PER_ELEMENT,
+            Self::ELEMENT_KIND.element_size(),
             Attribute::PERMANENT | Attribute::READONLY,
         )
         .property(
@@ -356,8 +339,8 @@ where
             values_fn,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
-        .static_method(TypedArray::from, "from", 3)
-        .static_method(TypedArray::of, "of", 0)
+        .static_method(Self::from, "from", 3)
+        .static_method(Self::of, "of", 0)
         .name(Self::NAME)
         .length(3)
         .build();
