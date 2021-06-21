@@ -51,7 +51,11 @@ where
         cursor.expect(Keyword::Class, "class declaration")?;
 
         // TODO: If self.is_default, then this can be empty.
+        let pos = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
         let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        if *name == *"yield" {
+            return Err(ParseError::general("Invalid class name `yield`", pos));
+        }
 
         cursor.expect(Punctuator::OpenBlock, "class declaration")?;
 
