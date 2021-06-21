@@ -10,12 +10,17 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer
 
 use crate::{
-    builtins::BuiltIn, object::ConstructorBuilder, property::Attribute, symbol::WellKnownSymbols,
+    builtins::BuiltIn,
+    object::{ConstructorBuilder, GcObject, PROTOTYPE},
+    property::Attribute,
+    symbol::WellKnownSymbols,
     BoaProfiler, Context, Result, Value,
 };
 
 #[cfg(test)]
 mod tests;
+
+mod buffer;
 
 #[derive(Debug, Clone)]
 pub(crate) struct ArrayBuffer;
@@ -53,6 +58,52 @@ impl ArrayBuffer {
     pub(crate) fn constructor(
         new_target: &Value,
         args: &[Value],
+        context: &mut Context,
+    ) -> Result<Value> {
+        if new_target.is_undefined() {
+            return context.throw_type_error(
+                "calling a builtin ArrayBuffer constructor without new is forbidden",
+            );
+        }
+
+        let fallback_prototype = context.standard_objects().object_object().prototype();
+        let prototype = new_target
+            .as_object()
+            .and_then(|obj| {
+                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                    .map(|o| o.as_object())
+                    .transpose()
+            })
+            .transpose()?
+            .unwrap_or(fallback_prototype);
+
+        // Consider first Arg if and only if it's a valid number to represent length. The rest is
+        // ignored
+        match args.len() {
+            0 => Self::construct_array_buffer_empty(prototype, context),
+            _ => Self::construct_array_buffer_length(prototype, &args[0], context),
+        }
+    }
+
+    /// No argument constructor for `ArrayBuffer`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer-constructor
+    fn construct_array_buffer_empty(proto: GcObject, context: &mut Context) -> Result<Value> {
+        todo!()
+    }
+
+    /// By length constructor for `ArrayBuffer`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-arraybuffer-length
+    fn construct_array_buffer_length(
+        proto: GcObject,
+        arg: &Value,
         context: &mut Context,
     ) -> Result<Value> {
         todo!()

@@ -95,7 +95,7 @@ pub fn init(context: &mut Context) {
         EvalError::init,
         UriError::init,
         Reflect::init,
-        //array_buffer::init,
+        ArrayBuffer::init,
         #[cfg(feature = "console")]
         console::Console::init,
     ];
