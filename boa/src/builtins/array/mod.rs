@@ -13,6 +13,7 @@ pub mod array_iterator;
 #[cfg(test)]
 mod tests;
 
+use crate::property::PropertyDescriptor;
 use crate::{
     builtins::array::array_iterator::{ArrayIterationKind, ArrayIterator},
     builtins::BuiltIn,
@@ -280,6 +281,32 @@ impl Array {
         Ok(array_obj_ptr)
     }
 
+    /// Utility function for concatenating array objects.
+    ///
+    /// Returns a Boolean valued property that if `true` indicates that
+    /// an object should be flattened to its array elements
+    /// by `Array.prototype.concat`.
+    pub(crate) fn is_concat_spreadable(this: &Value, context: &mut Context) -> Result<bool> {
+        // 1. If Type(O) is not Object, return false.
+        if !this.is_object() {
+            return Ok(false);
+        }
+        // 2. Let spreadable be ? Get(O, @@isConcatSpreadable).
+        let spreadable = this
+            .get_field(WellKnownSymbols::is_concat_spreadable(), context)?;
+
+        // 3. If spreadable is not undefined, return ! ToBoolean(spreadable).
+        if !spreadable.is_undefined() {
+            return Ok(spreadable.to_boolean());
+        }
+
+        // 4. Return ? IsArray(O).
+        match this.as_object() {
+            Some(obj) => Ok(obj.is_array()),
+            _ => Ok(false),
+        }
+    }
+
     /// `get Array [ @@species ]`
     ///
     /// The `Array [ @@species ]` accessor property returns the Array constructor.
@@ -432,19 +459,34 @@ impl Array {
 
         // Make a new array (using this object as the prototype basis for the new
         // one)
-        let mut new_values: Vec<Value> = Vec::new();
+        let mut new_values = Vec::new();
 
         let this_length = this.get_field("length", context)?.to_length(context)?;
         for n in 0..this_length {
             new_values.push(this.get_field(n, context)?);
         }
 
+        let mut n = this_length;
+
         for concat_array in args {
             let concat_length = concat_array
                 .get_field("length", context)?
                 .to_length(context)?;
-            for n in 0..concat_length {
-                new_values.push(concat_array.get_field(n, context)?);
+            let spreadable = Self::is_concat_spreadable(concat_array, context)?;
+            if spreadable {
+                if n + concat_length > Number::MAX_SAFE_INTEGER as usize {
+                    return context.throw_type_error("Invalid array length");
+                }
+                for k in 0..concat_length {
+                    new_values.push(concat_array.get_field(k, context)?);
+                    n += 1;
+                }
+            } else {
+                if n >= Number::MAX_SAFE_INTEGER as usize {
+                    return context.throw_type_error("Invalid array length");
+                }
+                new_values.push(concat_array.get_field(0, context)?);
+                n += 1;
             }
         }
 
