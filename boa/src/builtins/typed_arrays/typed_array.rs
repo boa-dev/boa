@@ -13,8 +13,10 @@ The %TypedArray% intrinsic object:
 
 use crate::builtins::BuiltIn;
 use crate::context::StandardConstructor;
-use crate::object::{ConstructorBuilder, GcObject, PROTOTYPE};
+use crate::object::{ConstructorBuilder, FunctionBuilder, GcObject, PROTOTYPE};
 use crate::property::{Attribute, DataDescriptor};
+use crate::symbol::WellKnownSymbols;
+use crate::value::Value::Symbol;
 use crate::{Context, Result, Value};
 
 pub(crate) struct TypedArray;
@@ -124,6 +126,10 @@ impl TypedArray {
     ) -> Result<Value> {
         context.throw_type_error("Cannot call TypedArray as a constructor")
     }
+
+    fn get_species(this: &Value, _args: &[Value], _context: &mut Context) -> Result<Value> {
+        Ok(this.clone())
+    }
 }
 
 pub(crate) trait TypedArrayInstance {
@@ -195,6 +201,18 @@ where
             Attribute::READONLY | Attribute::PERMANENT | Attribute::NON_ENUMERABLE,
         )
         .inherit(typed_array_prototype)
+        .static_accessor(
+            WellKnownSymbols::species(),
+            Some(
+                FunctionBuilder::new(context, TypedArray::get_species)
+                    .name("get [Symbol.species]")
+                    .callable(true)
+                    .constructable(false)
+                    .build(),
+            ),
+            None,
+            Attribute::CONFIGURABLE,
+        )
         .property(
             "BYTES_PER_ELEMENT",
             Self::BYTES_PER_ELEMENT,
