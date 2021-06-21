@@ -11,12 +11,12 @@ The %TypedArray% intrinsic object:
   The TypedArray constructors do not perform a super call to it.
 */
 
-use crate::builtins::BuiltIn;
+use crate::builtins::array::array_iterator::ArrayIterationKind;
+use crate::builtins::{ArrayIterator, BuiltIn};
 use crate::context::StandardConstructor;
-use crate::object::{ConstructorBuilder, FunctionBuilder, GcObject, PROTOTYPE};
+use crate::object::{ConstructorBuilder, FunctionBuilder, PROTOTYPE};
 use crate::property::{Attribute, DataDescriptor};
 use crate::symbol::WellKnownSymbols;
-use crate::value::Value::Symbol;
 use crate::{Context, Result, Value};
 
 pub(crate) struct TypedArray;
@@ -51,13 +51,42 @@ impl TypedArray {
         constructor.into()
     }
 
+    fn construct_species(
+        this: &Value,
+        arguments: &[Value],
+        context: &mut Context,
+    ) -> Result<Value> {
+        let length = arguments
+            .get(0)
+            .map(|v| v.get_field("length", context))
+            .transpose()?
+            .unwrap_or(0.into());
+
+        let species = this
+            .as_object()
+            .ok_or_else(|| -> Value { "Not a constructor".into() })?
+            .get(
+                &WellKnownSymbols::species().into(),
+                this.clone().into(),
+                context,
+            )?;
+
+        if let Some(c) = species.as_object() {
+            if !c.is_constructable() {
+                return context.throw_type_error("Not constructable");
+            }
+            c.construct(&[length], &c.clone().into(), context)
+        } else {
+            // Figure out what to do here if the species is nothing
+            return Ok(Value::undefined());
+        }
+    }
+
     pub(crate) fn of(this: &Value, arguments: &[Value], context: &mut Context) -> Result<Value> {
         let length: Value = arguments.len().into();
 
-        let constructed_value = this
-            .as_object()
-            .ok_or_else(|| -> Value { "Not a constructor".into() })?
-            .call(&this, &[length], context)?;
+        let constructed_value = Self::construct_species(this, &[length], context)?;
+
         for (index, value) in arguments.iter().enumerate() {
             constructed_value.set_property(
                 index.to_string(),
@@ -73,12 +102,16 @@ impl TypedArray {
         let this = arguments.get(2).cloned().unwrap_or(this.clone());
         let map_fn = arguments.get(1).cloned().unwrap_or(Value::undefined());
 
-        let mapping = if !map_fn.is_null_or_undefined()
-            && !map_fn.as_object().map(|o| o.is_callable()).unwrap_or(false)
-        {
-            return context.throw_type_error("mapFn is not callable");
-        } else {
-            true
+        let mapping = match (
+            map_fn.is_null_or_undefined(),
+            map_fn.as_object().map(|o| o.is_callable()).unwrap_or(false),
+        ) {
+            // Exists but is not callable
+            (false, false) => {
+                return context.throw_type_error("mapFn is not a function");
+            }
+            (false, true) => true,
+            _ => false,
         };
 
         let length = arguments
@@ -89,10 +122,7 @@ impl TypedArray {
 
         let iter = crate::builtins::iterable::get_iterator(context, arguments[0].clone())?;
 
-        let constructed_value = this
-            .as_object()
-            .ok_or_else(|| -> Value { "Not a constructor".into() })?
-            .call(&this, &[length], context)?;
+        let constructed_value = Self::construct_species(&this, &[length], context)?;
 
         let mut index = 0;
         while let Ok(next) = iter.next(context) {
@@ -125,10 +155,6 @@ impl TypedArray {
         context: &mut Context,
     ) -> Result<Value> {
         context.throw_type_error("Cannot call TypedArray as a constructor")
-    }
-
-    fn get_species(this: &Value, _args: &[Value], _context: &mut Context) -> Result<Value> {
-        Ok(this.clone())
     }
 }
 
@@ -169,6 +195,18 @@ pub(crate) trait TypedArrayInstance {
 
         Ok(typed_array)
     }
+
+    fn get_species(this: &Value, _args: &[Value], _context: &mut Context) -> Result<Value> {
+        Ok(this.clone())
+    }
+
+    fn values(this: &Value, _args: &[Value], context: &mut Context) -> Result<Value> {
+        Ok(ArrayIterator::create_array_iterator(
+            context,
+            this.clone(),
+            ArrayIterationKind::Value,
+        ))
+    }
 }
 
 impl<T> BuiltIn for T
@@ -190,26 +228,33 @@ where
             .clone()
             .into();
 
+        let values_fn = FunctionBuilder::new(context, Self::values)
+            .name("values")
+            .length(0)
+            .callable(true)
+            .constructable(false)
+            .build();
+
+        let species_get_fn = FunctionBuilder::new(context, Self::get_species)
+            .name("get [Symbol.species]")
+            .callable(true)
+            .constructable(false)
+            .build();
+
         let constructor = ConstructorBuilder::with_standard_object(
             context,
             Self::constructor,
             StandardConstructor::default(),
         )
+        .inherit(typed_array_prototype)
         .property(
             "BYTES_PER_ELEMENT",
             Self::BYTES_PER_ELEMENT,
             Attribute::READONLY | Attribute::PERMANENT | Attribute::NON_ENUMERABLE,
         )
-        .inherit(typed_array_prototype)
         .static_accessor(
             WellKnownSymbols::species(),
-            Some(
-                FunctionBuilder::new(context, TypedArray::get_species)
-                    .name("get [Symbol.species]")
-                    .callable(true)
-                    .constructable(false)
-                    .build(),
-            ),
+            Some(species_get_fn),
             None,
             Attribute::CONFIGURABLE,
         )
@@ -223,6 +268,21 @@ where
             Self::BYTES_PER_ELEMENT,
             Attribute::PERMANENT | Attribute::READONLY,
         )
+        .property(
+            WellKnownSymbols::iterator(),
+            values_fn,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        // .property(
+        //     "values",
+        //     values_fn,
+        //     Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        // )
+        // .property(
+        //     WellKnownSymbols::iterator(),
+        //     values_fn.clone(),
+        //     Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        // )
         .static_method(TypedArray::from, "from", 3)
         .static_method(TypedArray::of, "of", 0)
         .name(Self::NAME)
