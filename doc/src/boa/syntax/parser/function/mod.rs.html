@@ -291,6 +291,9 @@
 <span id="290">290</span>
 <span id="291">291</span>
 <span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Function definition parsing.</span>
 <span class="doccomment">//!</span>
@@ -306,10 +309,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">syntax</span>::{
-        <span class="ident">ast</span>::{
-            <span class="ident">node</span>::{<span class="self">self</span>},
-            <span class="ident">Punctuator</span>,
-        },
+        <span class="ident">ast</span>::{<span class="ident">node</span>, <span class="ident">Punctuator</span>},
         <span class="ident">lexer</span>::{<span class="ident">InputElement</span>, <span class="ident">TokenKind</span>},
         <span class="ident">parser</span>::{
             <span class="ident">expression::Initializer</span>,
@@ -319,7 +319,7 @@
     },
     <span class="ident">BoaProfiler</span>,
 };
-<span class="kw">use</span> <span class="ident">std::io::Read</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashSet</span>, <span class="ident">io::Read</span>};
 
 <span class="doccomment">/// Formal parameters parsing.</span>
 <span class="doccomment">///</span>
@@ -360,6 +360,7 @@
         <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::RegExp</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">param_names</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
 
         <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>.<span class="ident">kind</span>()
             <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseParen</span>)
@@ -370,6 +371,7 @@
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rest_param</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
+            <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>.<span class="ident">span</span>().<span class="ident">start</span>();
             <span class="kw">let</span> <span class="ident">next_param</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span> {
                 <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="kw">if</span> <span class="ident">tok</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Spread</span>) <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="ident">rest_param</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -377,7 +379,11 @@
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">FormalParameter::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>,
             };
+            <span class="kw">if</span> <span class="ident">param_names</span>.<span class="ident">contains</span>(<span class="ident">next_param</span>.<span class="ident">name</span>()) {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(<span class="string">&quot;duplicate parameter name&quot;</span>, <span class="ident">position</span>));
+            }
 
+            <span class="ident">param_names</span>.<span class="ident">insert</span>(<span class="ident">Box::from</span>(<span class="ident">next_param</span>.<span class="ident">name</span>()));
             <span class="ident">params</span>.<span class="ident">push</span>(<span class="ident">next_param</span>);
 
             <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>.<span class="ident">kind</span>()
