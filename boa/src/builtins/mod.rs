@@ -57,6 +57,7 @@ use crate::builtins::typed_arrays::f64_array::Float64Array;
 use crate::builtins::typed_arrays::int16_array::Int16Array;
 use crate::builtins::typed_arrays::int32_array::Int32Array;
 use crate::builtins::typed_arrays::int8_array::Int8Array;
+use crate::builtins::typed_arrays::typed_array::TypedArray;
 use crate::builtins::typed_arrays::uint16_array::Uint16Array;
 use crate::builtins::typed_arrays::uint32_array::Uint32Array;
 use crate::builtins::typed_arrays::uint8_array::Uint8Array;
@@ -121,11 +122,11 @@ pub fn init(context: &mut Context) {
     ];
 
     let global_object = context.global_object();
+    TypedArray::init(context);
 
     // We want the methods in `TypedArray` to be bound to the corresponding
     // standard object but we don't really need a reference to the constructor.
     // So we discard the constructor.
-    typed_arrays::typed_array::TypedArray::init(context);
 
     for init in &globals {
         let (name, value, attribute) = init(context);

@@ -12,15 +12,34 @@ The %TypedArray% intrinsic object:
 */
 
 use crate::builtins::BuiltIn;
-use crate::object::{ConstructorBuilder, GcObject, Object, PROTOTYPE};
+use crate::object::{ConstructorBuilder, GcObject, PROTOTYPE};
+use crate::object::{ConstructorBuilder, GcObject, PROTOTYPE};
 use crate::property::{Attribute, DataDescriptor};
-use crate::symbol::WellKnownSymbols;
 use crate::{Context, Result, Value};
 
 pub(crate) struct TypedArray;
 
+impl BuiltIn for TypedArray {
+    const NAME: &'static str = "TypedArray";
+
+    fn attribute() -> Attribute {
+        Attribute::WRITABLE
+            | Attribute::NON_ENUMERABLE
+            | Attribute::CONFIGURABLE
+            | Attribute::PERMANENT
+    }
+
+    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+        (
+            Self::NAME,
+            Self::create_constructor(context),
+            Self::attribute(),
+        )
+    }
+}
+
 impl TypedArray {
-    pub(crate) fn init(context: &mut Context) -> GcObject {
+    pub(crate) fn create_constructor(context: &mut Context) -> Value {
         let constructor = ConstructorBuilder::with_standard_object(
             context,
             Self::construct,
@@ -33,7 +52,7 @@ impl TypedArray {
         )
         .static_method(Self::from, "from", 3)
         .build();
-        constructor
+        constructor.into()
     }
 
     pub(crate) fn from(this: &Value, arguments: &[Value], context: &mut Context) -> Result<Value> {
@@ -41,7 +60,7 @@ impl TypedArray {
         let this = arguments.get(2).cloned().unwrap_or(this.clone());
         let map_fn = arguments.get(1).cloned().unwrap_or(Value::undefined());
 
-        let mut mapping = if !map_fn.is_null_or_undefined()
+        let mapping = if !map_fn.is_null_or_undefined()
             && !map_fn.as_object().map(|o| o.is_callable()).unwrap_or(false)
         {
             return context.throw_type_error("mapFn is not callable");
@@ -49,7 +68,19 @@ impl TypedArray {
             true
         };
 
+        let length = arguments
+            .get(0)
+            .map(|v| v.get_field("length", context))
+            .transpose()?
+            .unwrap_or(0.into());
+
         let iter = crate::builtins::iterable::get_iterator(context, arguments[0].clone())?;
+
+        let constructed_value = this
+            .as_object()
+            .ok_or_else(|| -> Value { "Not a constructor".into() })?
+            .call(&this, &[length], context)?;
+
         let mut values = vec![];
         while let Ok(next) = iter.next(context) {
             if next.is_done() {
@@ -57,10 +88,6 @@ impl TypedArray {
             }
             values.push(next.value())
         }
-        let constructed_value = this
-            .as_object()
-            .ok_or_else(|| -> Value { "Not a constructor".into() })?
-            .call(&this, &[values.len().into()], context)?;
 
         for (index, mut value) in values.into_iter().enumerate() {
             if mapping {
@@ -79,11 +106,11 @@ impl TypedArray {
     }
 
     pub(crate) fn construct(
-        new_target: &Value,
-        args: &[Value],
+        _new_target: &Value,
+        _args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        context.throw_type_error("not a constructor")
+        context.throw_type_error("Cannot call TypedArray as a constructor")
     }
 }
 
@@ -116,26 +143,21 @@ pub(crate) trait TypedArrayInstance {
                     .clone()
             });
 
-        let argument = args.get(0).expect("Expected an argument");
-        match argument {
-            Value::Integer(v) => {
-                let typed_array = Value::new_object(context);
-                typed_array
-                    .as_object()
-                    .expect("'Invariant. typed_array was created as an object'")
-                    .set_prototype_instance(prototype.into());
-                let length = DataDescriptor::new(
-                    *v,
-                    Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-                );
-                typed_array.set_property("length", length);
+        let typed_array = Value::new_object(context);
 
-                Ok(typed_array)
-            }
-            _ => {
-                todo!()
-            }
-        }
+        typed_array
+            .as_object()
+            .expect("'Invariant. typed_array was created as an object'")
+            .set_prototype_instance(prototype.into());
+
+        let length = DataDescriptor::new(
+            args[0].clone(),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        );
+
+        typed_array.set_property("length", length);
+
+        Ok(typed_array)
     }
 }
 

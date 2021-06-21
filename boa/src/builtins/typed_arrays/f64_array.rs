@@ -5,5 +5,5 @@ pub(crate) struct Float64Array;
 
 impl TypedArrayInstance for Float64Array {
     const BYTES_PER_ELEMENT: usize = 8;
-    const NAME: &'static str = "Float64Array ";
+    const NAME: &'static str = "Float64Array";
 }

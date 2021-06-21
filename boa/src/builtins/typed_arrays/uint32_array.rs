@@ -5,5 +5,5 @@ pub(crate) struct Uint32Array;
 
 impl TypedArrayInstance for Uint32Array {
     const BYTES_PER_ELEMENT: usize = 2;
-    const NAME: &'static str = "Uint16Array";
+    const NAME: &'static str = "Uint32Array";
 }
