@@ -153,6 +153,6 @@ where
     type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        self::statement::StatementList::new(false, false, false, true, &[]).parse(cursor)
+        self::statement::StatementList::new(false, false, false, false, &[]).parse(cursor)
     }
 }

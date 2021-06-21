@@ -4,7 +4,7 @@ use crate::syntax::{
         Identifier, Node, Return,
     },
     ast::op::NumOp,
-    parser::tests::check_parser,
+    parser::{tests::check_parser, Parser},
 };
 
 /// Checks basic function declaration parsing.
@@ -19,6 +19,16 @@ fn check_basic() {
         )
         .into()],
     );
+}
+
+/// Checks for duplicate parameter names.
+#[test]
+fn check_duplicates() {
+    let js = "function foo(a, a) {}";
+
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
 }
 
 /// Checks basic function declaration parsing with automatic semicolon insertion.
