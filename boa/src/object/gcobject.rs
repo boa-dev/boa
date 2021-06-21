@@ -625,6 +625,15 @@ impl GcObject {
         self.borrow().is_array()
     }
 
+    /// Checks if it is a TypedArray object.
+    //  # Panics
+    //  Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_typed_array(&self) -> bool {
+        self.borrow().is_typed_array()
+    }
+
     /// Checks if it is an `ArrayIterator` object.
     ///
     /// # Panics

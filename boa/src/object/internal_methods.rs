@@ -168,6 +168,8 @@ impl GcObject {
     {
         if self.is_array() {
             self.array_define_own_property(key, desc, context)
+        } else if self.is_typed_array() {
+            self.typed_array_define_own_property(key, desc, context)
         } else {
             Ok(self.ordinary_define_own_property(key, desc))
         }
@@ -270,6 +272,35 @@ impl GcObject {
 
         self.insert(key, desc);
         true
+    }
+
+    fn typed_array_define_own_property<K>(
+        &mut self,
+        key: K,
+        desc: PropertyDescriptor,
+        _context: &mut Context,
+    ) -> Result<bool>
+    where
+        K: Into<PropertyKey>,
+    {
+        let property = key.into();
+        match property {
+            PropertyKey::Index(index) => {
+                let mut handle = self.borrow_mut();
+                if let ObjectData::TypedArray(ref mut typed_array) = handle.data {
+                    match desc {
+                        PropertyDescriptor::Accessor(_) => Ok(false),
+                        PropertyDescriptor::Data(ref data) => Ok(typed_array
+                            .buffer
+                            .insert_value_at_offset(index, data.value())
+                            .is_some()),
+                    }
+                } else {
+                    Ok(false)
+                }
+            }
+            property => Ok(self.ordinary_define_own_property(property, desc)),
+        }
     }
 
     /// Define an own property for an array.

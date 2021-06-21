@@ -287,6 +287,11 @@ impl Object {
     }
 
     #[inline]
+    pub fn is_typed_array(&self) -> bool {
+        matches!(self.data, ObjectData::TypedArray(_))
+    }
+
+    #[inline]
     pub fn as_array(&self) -> Option<()> {
         match self.data {
             ObjectData::Array => Some(()),
