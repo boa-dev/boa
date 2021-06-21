@@ -50,7 +50,17 @@ pub(crate) use self::{
     symbol::Symbol,
     undefined::Undefined,
 };
-use crate::builtins::typed_arrays::uint8_array::UInt8Array;
+use crate::builtins::typed_arrays::bigint64_array::BigInt64Array;
+use crate::builtins::typed_arrays::biguint64_array::BigUint64Array;
+use crate::builtins::typed_arrays::f32_array::Float32Array;
+use crate::builtins::typed_arrays::f64_array::Float64Array;
+use crate::builtins::typed_arrays::int16_array::Int16Array;
+use crate::builtins::typed_arrays::int32_array::Int32Array;
+use crate::builtins::typed_arrays::int8_array::Int8Array;
+use crate::builtins::typed_arrays::uint16_array::Uint16Array;
+use crate::builtins::typed_arrays::uint32_array::Uint32Array;
+use crate::builtins::typed_arrays::uint8_array::Uint8Array;
+use crate::builtins::typed_arrays::uint8_clamped_array::Uint8ClampedArray;
 use crate::{
     property::{Attribute, DataDescriptor},
     Context, Value,
@@ -95,7 +105,17 @@ pub fn init(context: &mut Context) {
         EvalError::init,
         UriError::init,
         Reflect::init,
-        UInt8Array::init,
+        BigUint64Array::init,
+        BigInt64Array::init,
+        Float64Array::init,
+        Float32Array::init,
+        Int32Array::init,
+        Uint32Array::init,
+        Int16Array::init,
+        Uint16Array::init,
+        Uint8Array::init,
+        Uint8ClampedArray::init,
+        Int8Array::init,
         #[cfg(feature = "console")]
         console::Console::init,
     ];

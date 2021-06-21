@@ -1,6 +1,5 @@
 //! Javascript context.
 
-use crate::builtins::typed_arrays::typed_array::TypedArray;
 use crate::{
     builtins::{
         self,

@@ -12,7 +12,7 @@ The %TypedArray% intrinsic object:
 */
 
 use crate::builtins::BuiltIn;
-use crate::object::{ConstructorBuilder, GcObject, Object};
+use crate::object::{ConstructorBuilder, GcObject, Object, PROTOTYPE};
 use crate::property::{Attribute, DataDescriptor};
 use crate::symbol::WellKnownSymbols;
 use crate::{Context, Result, Value};
@@ -78,13 +78,87 @@ impl TypedArray {
         Ok(constructed_value)
     }
 
-    pub(crate) fn create_typed_array(length: usize) {}
-
     pub(crate) fn construct(
         new_target: &Value,
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
         context.throw_type_error("not a constructor")
+    }
+}
+
+pub(crate) trait TypedArrayInstance {
+    const BYTES_PER_ELEMENT: usize;
+    const NAME: &'static str;
+
+    fn constructor(new_target: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        // Check if the argument is a number
+        // -- instantiate a new array with that capacity
+        // if it's an existing instance of a UInt8Array
+
+        // -- return a value with a prototype of context.typed_array_prototype
+
+        // TODO: Figure out this magical incantation -- from what i can tell this should result in the value
+        // returned from TypedArray:init
+        let prototype = new_target
+            .as_object()
+            .and_then(|obj| {
+                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                    .map(|o| o.as_object())
+                    .transpose()
+            })
+            .transpose()?
+            .unwrap_or_else(|| {
+                context
+                    .standard_objects()
+                    .typed_array_object()
+                    .prototype
+                    .clone()
+            });
+
+        let argument = args.get(0).expect("Expected an argument");
+        match argument {
+            Value::Integer(v) => {
+                let typed_array = Value::new_object(context);
+                typed_array
+                    .as_object()
+                    .expect("'Invariant. typed_array was created as an object'")
+                    .set_prototype_instance(prototype.into());
+                let length = DataDescriptor::new(
+                    *v,
+                    Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+                );
+                typed_array.set_property("length", length);
+
+                Ok(typed_array)
+            }
+            _ => {
+                todo!()
+            }
+        }
+    }
+}
+
+impl<T> BuiltIn for T
+where
+    T: TypedArrayInstance,
+{
+    const NAME: &'static str = <T as TypedArrayInstance>::NAME;
+
+    fn attribute() -> Attribute {
+        // TODO: Figure out what this means because :shrug:
+        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
+    }
+
+    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+        let constructor = ConstructorBuilder::with_standard_object(
+            context,
+            Self::constructor,
+            context.standard_objects().typed_array_object().clone(),
+        )
+        .name(Self::NAME)
+        .build();
+
+        (Self::NAME, constructor.into(), Self::attribute())
     }
 }
