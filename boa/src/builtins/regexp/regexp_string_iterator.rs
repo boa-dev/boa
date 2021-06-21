@@ -138,10 +138,10 @@ impl RegExpStringIterator {
                 // vi. Perform ? Yield(match).
                 Ok(create_iter_result_object(context, m, false))
             } else {
-                context.throw_type_error("`this` is not an RegExpStringIterator")
+                context.throw_type_error("`this` is not a RegExpStringIterator")
             }
         } else {
-            context.throw_type_error("`this` is not an RegExpStringIterator")
+            context.throw_type_error("`this` is not a RegExpStringIterator")
         }
     }
 
