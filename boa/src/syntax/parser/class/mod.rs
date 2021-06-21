@@ -165,12 +165,19 @@ where
             }
 
             let next = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
-            let pos = next.span().start();
+            let name_pos = next.span().start();
             let field = match next.kind() {
                 // A method definition
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
-                    let position = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
+                    let arg_pos = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
                     let params = FormalParameters::new(false, false).parse(cursor)?;
+
+                    let mut names = HashSet::new();
+                    for p in params.iter() {
+                        if !names.insert(p.name()) {
+                            return Err(ParseError::general("Duplicate argument name", position));
+                        }
+                    }
 
                     // This is only partially correct. A method can enable strict mode with "using strict"; which is not handled here.
                     if let Some(last) = params.last() {
@@ -194,17 +201,17 @@ where
                         if is_getter {
                             return Err(ParseError::general(
                                 "Cannot create a getter named `constructor`",
-                                pos,
+                                name_pos,
                             ));
                         } else if is_setter {
                             return Err(ParseError::general(
                                 "Cannot create a setter named `constructor`",
-                                pos,
+                                name_pos,
                             ));
                         } else if is_static {
                             return Err(ParseError::general(
                                 "Cannot create a static function named `constructor`",
-                                pos,
+                                name_pos,
                             ));
                         }
                         constructor = Some(FunctionDecl::new(name, params, body));
@@ -213,41 +220,44 @@ where
                         if is_getter {
                             // This is a getter, so a setter with the same name is valid.
                             if field_names.contains(&name) || getter_names.contains_key(&name) {
-                                return Err(ParseError::general("Duplicate getter name", pos));
+                                return Err(ParseError::general("Duplicate getter name", name_pos));
                             }
                             if setter_names.get(&name) == Some(&!is_static) {
                                 if is_static {
                                     return Err(ParseError::general(
                                         "A static setter cannot have a non-static getter",
-                                        pos,
+                                        name_pos,
                                     ));
                                 } else {
                                     return Err(ParseError::general(
                                         "A non-static setter cannot have a static getter",
-                                        pos,
+                                        name_pos,
                                     ));
                                 }
                             }
                             if !params.is_empty() {
-                                return Err(ParseError::general("Getters take no arguments", pos));
+                                return Err(ParseError::general(
+                                    "Getters take no arguments",
+                                    arg_pos,
+                                ));
                             }
                             getter_names.insert(name.clone(), is_static);
                             Some(ClassField::Getter(FunctionDecl::new(name, params, body)))
                         } else if is_setter {
                             // This is a setter, so a getter with the same name is valid.
                             if field_names.contains(&name) || setter_names.contains_key(&name) {
-                                return Err(ParseError::general("Duplicate setter name", pos));
+                                return Err(ParseError::general("Duplicate setter name", name_pos));
                             }
                             if getter_names.get(&name) == Some(&!is_static) {
                                 if is_static {
                                     return Err(ParseError::general(
                                         "A static getter cannot have a non-static setter",
-                                        pos,
+                                        name_pos,
                                     ));
                                 } else {
                                     return Err(ParseError::general(
                                         "A non-static getter cannot have a static setter",
-                                        pos,
+                                        name_pos,
                                     ));
                                 }
                             }
@@ -258,7 +268,7 @@ where
                                 || getter_names.contains_key(&name)
                                 || setter_names.contains_key(&name)
                             {
-                                return Err(ParseError::general("Duplicate method name", pos));
+                                return Err(ParseError::general("Duplicate method name", name_pos));
                             }
                             field_names.insert(name.clone());
                             Some(ClassField::Method(FunctionDecl::new(name, params, body)))
@@ -270,7 +280,7 @@ where
                     if *name == *"constructor" {
                         return Err(ParseError::general(
                             "Fields cannot be named `constructor`",
-                            pos,
+                            name_pos,
                         ));
                     }
                     // Field definitions cannot proceed a `get` or `set`
@@ -288,7 +298,7 @@ where
                         || getter_names.contains_key(&name)
                         || setter_names.contains_key(&name)
                     {
-                        return Err(ParseError::general("Duplicate field name", pos));
+                        return Err(ParseError::general("Duplicate field name", name_pos));
                     }
                     field_names.insert(name.clone());
                     Some(ClassField::Field(name, value))
