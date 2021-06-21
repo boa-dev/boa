@@ -398,6 +398,13 @@ impl GcObject {
 
         let object = self.borrow();
         match object.data {
+            ObjectData::TypedArray(ref typed_array) => match key {
+                PropertyKey::Index(index) => Some(PropertyDescriptor::from(DataDescriptor::new(
+                    typed_array.buffer.get_value_at_index(*index),
+                    Attribute::WRITABLE, // TODO: Figure out this value
+                ))),
+                _ => self.ordinary_get_own_property(key),
+            },
             ObjectData::String(_) => self.string_exotic_get_own_property(key),
             _ => self.ordinary_get_own_property(key),
         }

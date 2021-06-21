@@ -12,14 +12,135 @@ The %TypedArray% intrinsic object:
 */
 
 use crate::builtins::array::array_iterator::ArrayIterationKind;
-use crate::builtins::{ArrayIterator, BuiltIn};
+use crate::builtins::{ArrayIterator, BigInt, BuiltIn};
 use crate::context::StandardConstructor;
-use crate::object::{ConstructorBuilder, FunctionBuilder, PROTOTYPE};
+use crate::gc::{Finalize, Trace};
+use crate::object::{ConstructorBuilder, FunctionBuilder, GcObject, ObjectData, PROTOTYPE};
 use crate::property::{Attribute, DataDescriptor};
 use crate::symbol::WellKnownSymbols;
+use crate::value::Numeric;
 use crate::{Context, Result, Value};
 
-pub(crate) struct TypedArray;
+#[derive(Debug, Clone, PartialOrd, PartialEq, Trace, Finalize)]
+pub(crate) enum TypedArrayStorageClass {
+    I8(Vec<i8>),
+    U8(Vec<u8>),
+    I16(Vec<i16>),
+    U16(Vec<u16>),
+    I32(Vec<i32>),
+    U32(Vec<u32>),
+    F32(Vec<f32>),
+    F64(Vec<f64>),
+    BigInt64(Vec<BigInt>),
+}
+
+impl TypedArrayStorageClass {
+    fn get_typed_array_content_type(&self) -> TypedArrayContentType {
+        match self {
+            Self::BigInt64(_) => TypedArrayContentType::BigInt,
+            _ => TypedArrayContentType::Number,
+        }
+    }
+
+    unsafe fn set_length(&mut self, len: usize) {
+        use TypedArrayStorageClass::*;
+        match self {
+            I8(value) => value.set_len(len),
+            U8(value) => value.set_len(len),
+            I16(value) => value.set_len(len),
+            U16(value) => value.set_len(len),
+            I32(value) => value.set_len(len),
+            U32(value) => value.set_len(len),
+            F32(value) => value.set_len(len),
+            F64(value) => value.set_len(len),
+            BigInt64(value) => value.set_len(len),
+        }
+    }
+
+    pub(crate) fn set_value_at_index(
+        &mut self,
+        index: u32,
+        value: Value,
+        context: &mut Context,
+    ) -> Result<Value> {
+        use TypedArrayStorageClass::*;
+        let numeric = value.to_numeric(context)?;
+        //  TODO: implement the type conversion methods
+        let index = index as usize;
+        // TODO: Handle out of bounds exceptions here
+        match (self, numeric) {
+            (I8(value), Numeric::Number(number)) => value[index] = number as i8,
+            (U8(value), Numeric::Number(number)) => value[index] = number as u8,
+            (I16(value), Numeric::Number(number)) => value[index] = number as i16,
+            (U16(value), Numeric::Number(number)) => value[index] = number as u16,
+            (I32(value), Numeric::Number(number)) => value[index] = number as i32,
+            (U32(value), Numeric::Number(number)) => value[index] = number as u32,
+            (F32(value), Numeric::Number(number)) => value[index] = number as f32,
+            (F64(value), Numeric::Number(number)) => value[index] = number,
+            (BigInt64(value), Numeric::BigInt(big_int)) => {
+                value[index] = big_int.as_inner().clone()
+            }
+            _ => return context.throw_type_error("Must set numeric value for typed array"),
+        };
+
+        Ok(Value::undefined())
+    }
+
+    pub(crate) fn get_value_at_index(&self, index: u32) -> Option<Value> {
+        use TypedArrayStorageClass::*;
+        let numeric = match self {
+            I8(value) => value.get(index as usize).cloned().map(Numeric::from),
+            U8(value) => value.get(index as usize).cloned().map(Numeric::from),
+            I16(value) => value.get(index as usize).cloned().map(Numeric::from),
+            U16(value) => value.get(index as usize).cloned().map(Numeric::from),
+            I32(value) => value.get(index as usize).cloned().map(Numeric::from),
+            U32(value) => value.get(index as usize).cloned().map(Numeric::from),
+            F32(value) => value
+                .get(index as usize)
+                .cloned()
+                .map(|v| Numeric::from(v as f64)),
+            F64(value) => value.get(index as usize).cloned().map(Numeric::from),
+            BigInt64(value) => value.get(index as usize).cloned().map(Numeric::from),
+        };
+
+        Some(numeric.map(Value::from).unwrap_or(Value::undefined()))
+    }
+
+    pub(crate) fn length(&self) -> usize {
+        use TypedArrayStorageClass::*;
+        let capacity = match self {
+            I8(value) => value.capacity(),
+            U8(value) => value.capacity(),
+            I16(value) => value.capacity(),
+            U16(value) => value.capacity(),
+            I32(value) => value.capacity(),
+            U32(value) => value.capacity(),
+            F32(value) => value.capacity(),
+            F64(value) => value.capacity(),
+            BigInt64(value) => value.capacity(),
+        };
+
+        capacity
+    }
+}
+
+#[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Trace, Finalize)]
+pub(crate) enum TypedArrayContentType {
+    Number,
+    BigInt,
+}
+
+// Corresponds to internal slots
+// TODO: Make buffer an acual buffer instead of a Vec<_>
+#[derive(Debug, Finalize, Trace)]
+pub struct TypedArray {
+    typed_array_name: &'static str,
+    byte_length: usize,
+    byte_offset: usize,
+    array_length: usize,
+    content_type: TypedArrayContentType,
+    pub(crate) buffer: TypedArrayStorageClass,
+}
 
 impl BuiltIn for TypedArray {
     const NAME: &'static str = "TypedArray";
@@ -51,16 +172,25 @@ impl TypedArray {
         constructor.into()
     }
 
+    fn get_length(this: &Value, _args: &[Value], context: &mut Context) -> Result<Value> {
+        let length = this.as_object().map(|v| match v.borrow().data {
+            ObjectData::TypedArray(ref typed_array) => Value::from(typed_array.buffer.length()),
+            _ => Value::undefined(),
+        });
+
+        if let Some(length) = length {
+            Ok(length)
+        } else {
+            context.throw_type_error("Unable to get length")
+        }
+    }
+
     fn construct_species(
         this: &Value,
         arguments: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        let length = arguments
-            .get(0)
-            .map(|v| v.get_field("length", context))
-            .transpose()?
-            .unwrap_or(0.into());
+        let length = arguments.get(0).cloned().unwrap_or(0.into());
 
         let species = this
             .as_object()
@@ -114,37 +244,44 @@ impl TypedArray {
             _ => false,
         };
 
-        let length = arguments
-            .get(0)
-            .map(|v| v.get_field("length", context))
-            .transpose()?
-            .unwrap_or(0.into());
+        let source = match arguments.get(0) {
+            Some(value) => value.clone(),
+            None => return context.throw_type_error("From requires an argument"),
+        };
+
+        let length = source.get_field("length", context)?;
+
+        if length.is_null_or_undefined() {
+            return context.throw_type_error("TypedArray.from requires an interable");
+        }
 
         let iter = crate::builtins::iterable::get_iterator(context, arguments[0].clone())?;
 
         let constructed_value = Self::construct_species(&this, &[length], context)?;
+        let object = constructed_value
+            .as_object()
+            .expect("Invariant, Array object was just constructed");
 
+        let mut handle = object.borrow_mut();
         let mut index = 0;
+
         while let Ok(next) = iter.next(context) {
             if next.is_done() {
                 break;
             }
+            match handle.data {
+                ObjectData::TypedArray(ref mut typed_array) => {
+                    typed_array
+                        .buffer
+                        .set_value_at_index(index, next.value(), context)?;
+                }
+                _ => {}
+            }
 
-            let value = if mapping {
-                map_fn
-                    .as_object()
-                    .unwrap()
-                    .call(&map_fn, &[next.value()], context)?
-            } else {
-                next.value()
-            };
-
-            constructed_value.set_property(
-                index.to_string(),
-                DataDescriptor::new(value, Attribute::WRITABLE | Attribute::ENUMERABLE),
-            );
-            index += 1;
+            index += 1
         }
+
+        drop(handle);
 
         Ok(constructed_value)
     }
@@ -161,6 +298,16 @@ impl TypedArray {
 pub(crate) trait TypedArrayInstance {
     const BYTES_PER_ELEMENT: usize;
     const NAME: &'static str;
+
+    fn get_storage_class(capacity: usize) -> TypedArrayStorageClass;
+
+    fn _internal_get_storage_class(capacity: usize) -> TypedArrayStorageClass {
+        let mut storage_class = Self::get_storage_class(capacity);
+        // SAFETY: We guarantee here that we always set the length of the array to its
+        // actual internal capacity.
+        unsafe { storage_class.set_length(storage_class.length()) };
+        storage_class
+    }
 
     fn constructor(new_target: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let prototype = new_target
@@ -179,21 +326,47 @@ pub(crate) trait TypedArrayInstance {
                     .clone()
             });
 
-        let typed_array = Value::new_object(context);
+        match args.get(0).cloned() {
+            Some(value) if value.is_number() => {
+                Self::create_typed_array_by_length(prototype, value, context)
+            }
+            _ => todo!(),
+        }
+    }
 
-        typed_array
-            .as_object()
-            .expect("'Invariant. typed_array was created as an object'")
-            .set_prototype_instance(prototype.into());
+    fn create_typed_array_by_length(
+        proto: GcObject,
+        length: Value,
+        context: &mut Context,
+    ) -> Result<Value> {
+        let length = length
+            .as_number()
+            .expect("Should never be called with a non number length");
+        let value = Self::allocate_typed_array(length as usize, context);
+        let mut object = value.as_object().unwrap();
 
-        let length = DataDescriptor::new(
-            args[0].clone(),
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-        );
+        object.set_prototype_instance(proto.into());
 
-        typed_array.set_property("length", length);
+        Ok(value)
+    }
 
-        Ok(typed_array)
+    fn allocate_typed_array(length: usize, context: &mut Context) -> Value {
+        let object = Value::new_object(context);
+
+        let storage_class = Self::_internal_get_storage_class(length);
+
+        let typed_array = TypedArray {
+            typed_array_name: Self::NAME,
+            byte_length: Self::BYTES_PER_ELEMENT,
+            byte_offset: Self::BYTES_PER_ELEMENT,
+            array_length: 0,
+            content_type: storage_class.get_typed_array_content_type(),
+            buffer: storage_class,
+        };
+
+        object.set_data(ObjectData::TypedArray(typed_array));
+
+        object
     }
 
     fn get_species(this: &Value, _args: &[Value], _context: &mut Context) -> Result<Value> {
@@ -235,6 +408,13 @@ where
             .constructable(false)
             .build();
 
+        let length_getter = FunctionBuilder::new(context, TypedArray::get_length)
+            .name("get [length]")
+            .length(0)
+            .callable(true)
+            .constructable(false)
+            .build();
+
         let species_get_fn = FunctionBuilder::new(context, Self::get_species)
             .name("get [Symbol.species]")
             .callable(true)
@@ -258,6 +438,12 @@ where
             None,
             Attribute::CONFIGURABLE,
         )
+        .accessor(
+            "length",
+            Some(length_getter),
+            None,
+            Attribute::PERMANENT | Attribute::READONLY,
+        )
         .property(
             "BYTES_PER_ELEMENT",
             Self::BYTES_PER_ELEMENT,
@@ -270,19 +456,14 @@ where
         )
         .property(
             WellKnownSymbols::iterator(),
+            values_fn.clone(),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            "values",
             values_fn,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
-        // .property(
-        //     "values",
-        //     values_fn,
-        //     Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        // )
-        // .property(
-        //     WellKnownSymbols::iterator(),
-        //     values_fn.clone(),
-        //     Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        // )
         .static_method(TypedArray::from, "from", 3)
         .static_method(TypedArray::of, "of", 0)
         .name(Self::NAME)

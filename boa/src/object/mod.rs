@@ -33,6 +33,7 @@ mod internal_methods;
 mod iter;
 
 use crate::builtins::object::for_in_iterator::ForInIterator;
+use crate::builtins::typed_arrays::typed_array::TypedArray;
 pub use gcobject::{GcObject, RecursionLimiter, Ref, RefMut};
 pub use iter::*;
 
@@ -84,6 +85,7 @@ pub enum ObjectData {
     Array,
     ArrayIterator(ArrayIterator),
     Map(OrderedMap<Value, Value>),
+    TypedArray(TypedArray),
     MapIterator(MapIterator),
     RegExp(Box<RegExp>),
     BigInt(RcBigInt),
@@ -129,6 +131,7 @@ impl Display for ObjectData {
                 Self::Date(_) => "Date",
                 Self::Global => "Global",
                 Self::NativeObject(_) => "NativeObject",
+                Self::TypedArray(_) => "TypedArray",
             }
         )
     }
