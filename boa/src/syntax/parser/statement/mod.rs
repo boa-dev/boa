@@ -484,6 +484,9 @@ where
             TokenKind::Keyword(k @ Keyword::Get) | TokenKind::Keyword(k @ Keyword::Set) => {
                 Ok(k.as_str().into())
             }
+            TokenKind::Keyword(k @ Keyword::Static) if !cursor.strict_mode() => {
+                Ok(k.as_str().into())
+            }
             _ => Err(ParseError::expected(
                 vec![TokenKind::identifier("identifier")],
                 next_token,

@@ -109,6 +109,10 @@ where
             // Get and set are valid as identifiers in any situation except inside a class declaration
             TokenKind::Keyword(k @ Keyword::Get) => Ok(Identifier::from(k.as_str()).into()),
             TokenKind::Keyword(k @ Keyword::Set) => Ok(Identifier::from(k.as_str()).into()),
+            // Static is a valid keyword outside of strict mode
+            TokenKind::Keyword(k @ Keyword::Static) if !cursor.strict_mode() => {
+                Ok(Identifier::from(k.as_str()).into())
+            }
             TokenKind::Identifier(ident) => Ok(Identifier::from(ident.as_ref()).into()), // TODO: IdentifierReference
             TokenKind::StringLiteral(s) => Ok(Const::from(s.as_ref()).into()),
             TokenKind::TemplateNoSubstitution(template_string) => {
