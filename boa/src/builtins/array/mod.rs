@@ -961,6 +961,11 @@ impl Array {
         }
 
         let callback = args.get(0).cloned().unwrap_or_else(Value::undefined);
+
+        if !callback.is_function() {
+            return context.throw_type_error("Callbackfn is not callable")
+        }
+
         let this_val = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
         let length = this.get_field("length", context)?.to_length(context)?;
