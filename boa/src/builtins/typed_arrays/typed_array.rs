@@ -12,7 +12,8 @@ The %TypedArray% intrinsic object:
 */
 
 use crate::builtins::BuiltIn;
-use crate::object::{ConstructorBuilder, PROTOTYPE};
+use crate::context::StandardConstructor;
+use crate::object::{ConstructorBuilder, GcObject, PROTOTYPE};
 use crate::property::{Attribute, DataDescriptor};
 use crate::{Context, Result, Value};
 
@@ -176,12 +177,38 @@ where
     }
 
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+        let typed_array_prototype = context
+            .standard_objects()
+            .typed_array_object()
+            .prototype()
+            .clone()
+            .into();
+
         let constructor = ConstructorBuilder::with_standard_object(
             context,
             Self::constructor,
-            context.standard_objects().typed_array_object().clone(),
+            StandardConstructor::default(),
         )
+        .property(
+            "BYTES_PER_ELEMENT",
+            Self::BYTES_PER_ELEMENT,
+            Attribute::READONLY | Attribute::PERMANENT | Attribute::NON_ENUMERABLE,
+        )
+        .inherit(typed_array_prototype)
+        .property(
+            "BYTES_PER_ELEMENT",
+            Self::BYTES_PER_ELEMENT,
+            Attribute::PERMANENT | Attribute::READONLY,
+        )
+        .static_property(
+            "BYTES_PER_ELEMENT",
+            Self::BYTES_PER_ELEMENT,
+            Attribute::PERMANENT | Attribute::READONLY,
+        )
+        .static_method(TypedArray::from, "from", 3)
+        .static_method(TypedArray::of, "of", 0)
         .name(Self::NAME)
+        .length(3)
         .build();
 
         (Self::NAME, constructor.into(), Self::attribute())

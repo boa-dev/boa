@@ -123,10 +123,7 @@ pub fn init(context: &mut Context) {
 
     let global_object = context.global_object();
 
-    // For some reason if I put this here and discard the value completely
-    // all of the methods of the array sublcasses work just fine.
-    // if I stick it in the array above, the `TypedArray` constructor is called
-    // instead of the subtype and throws an error.
+    // The root typed array constructor is not available on the global object
     TypedArray::init(context);
 
     for init in &globals {
