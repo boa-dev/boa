@@ -239,14 +239,6 @@
 <span id="238">238</span>
 <span id="239">239</span>
 <span id="240">240</span>
-<span id="241">241</span>
-<span id="242">242</span>
-<span id="243">243</span>
-<span id="244">244</span>
-<span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">profiler::BoaProfiler</span>,
@@ -413,18 +405,15 @@
         }
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">token</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peeked</span>[<span class="self">self</span>.<span class="ident">read_index</span>] {
-            <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">skip_line_terminators</span> <span class="op">|</span><span class="op">|</span> <span class="ident">token</span>.<span class="ident">kind</span>() <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::LineTerminator</span> {
-                <span class="self">self</span>.<span class="ident">peeked</span>[<span class="self">self</span>.<span class="ident">read_index</span>].<span class="ident">take</span>()
-            } <span class="kw">else</span> {
+            <span class="kw">if</span> <span class="ident">skip_line_terminators</span> <span class="op">&amp;&amp;</span> <span class="ident">token</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::LineTerminator</span> {
                 <span class="comment">// We only store 1 contiguous line terminator, so if the one at `self.read_index`</span>
                 <span class="comment">// was a line terminator, we know that the next won&#39;t be one.</span>
                 <span class="self">self</span>.<span class="ident">read_index</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">read_index</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">%</span> <span class="ident">PEEK_BUF_SIZE</span>;
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">read_index</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">write_index</span> {
                     <span class="self">self</span>.<span class="ident">fill</span>()<span class="question-mark">?</span>;
                 }
-
-                <span class="self">self</span>.<span class="ident">peeked</span>[<span class="self">self</span>.<span class="ident">read_index</span>].<span class="ident">take</span>()
-            };
+            }
+            <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peeked</span>[<span class="self">self</span>.<span class="ident">read_index</span>].<span class="ident">take</span>();
             <span class="self">self</span>.<span class="ident">read_index</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">read_index</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">%</span> <span class="ident">PEEK_BUF_SIZE</span>;
 
             <span class="prelude-val">Ok</span>(<span class="ident">tok</span>)
@@ -470,21 +459,16 @@
             }
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">token</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peeked</span>[<span class="ident">read_index</span>] {
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">skip_line_terminators</span> <span class="op">|</span><span class="op">|</span> <span class="ident">token</span>.<span class="ident">kind</span>() <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::LineTerminator</span> {
-                    <span class="kw">if</span> <span class="ident">count</span> <span class="op">=</span><span class="op">=</span> <span class="ident">skip_n</span> {
-                        <span class="kw">break</span> <span class="self">self</span>.<span class="ident">peeked</span>[<span class="ident">read_index</span>].<span class="ident">as_ref</span>();
-                    }
-                } <span class="kw">else</span> {
+                <span class="kw">if</span> <span class="ident">skip_line_terminators</span> <span class="op">&amp;&amp;</span> <span class="ident">token</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::LineTerminator</span> {
                     <span class="ident">read_index</span> <span class="op">=</span> (<span class="ident">read_index</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">%</span> <span class="ident">PEEK_BUF_SIZE</span>;
                     <span class="comment">// We only store 1 contiguous line terminator, so if the one at `self.read_index`</span>
                     <span class="comment">// was a line terminator, we know that the next won&#39;t be one.</span>
                     <span class="kw">if</span> <span class="ident">read_index</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">write_index</span> {
                         <span class="self">self</span>.<span class="ident">fill</span>()<span class="question-mark">?</span>;
                     }
-
-                    <span class="kw">if</span> <span class="ident">count</span> <span class="op">=</span><span class="op">=</span> <span class="ident">skip_n</span> {
-                        <span class="kw">break</span> <span class="self">self</span>.<span class="ident">peeked</span>[<span class="ident">read_index</span>].<span class="ident">as_ref</span>();
-                    }
+                }
+                <span class="kw">if</span> <span class="ident">count</span> <span class="op">=</span><span class="op">=</span> <span class="ident">skip_n</span> {
+                    <span class="kw">break</span> <span class="self">self</span>.<span class="ident">peeked</span>[<span class="ident">read_index</span>].<span class="ident">as_ref</span>();
                 }
             } <span class="kw">else</span> {
                 <span class="kw">break</span> <span class="prelude-val">None</span>;

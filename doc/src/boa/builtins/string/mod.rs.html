@@ -1375,6 +1375,10 @@
 <span id="1374">1374</span>
 <span id="1375">1375</span>
 <span id="1376">1376</span>
+<span id="1377">1377</span>
+<span id="1378">1378</span>
+<span id="1379">1379</span>
+<span id="1380">1380</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -2296,13 +2300,17 @@
             <span class="kw">return</span> <span class="ident">Value::from</span>(<span class="ident">primitive</span>);
         }
 
-        <span class="kw">let</span> <span class="ident">filter</span> <span class="op">=</span> <span class="ident">fill_string</span>.<span class="ident">as_deref</span>().<span class="ident">unwrap_or</span>(<span class="string">&quot; &quot;</span>);
+        <span class="kw">let</span> <span class="ident">filler</span> <span class="op">=</span> <span class="ident">fill_string</span>.<span class="ident">as_deref</span>().<span class="ident">unwrap_or</span>(<span class="string">&quot; &quot;</span>);
+
+        <span class="kw">if</span> <span class="ident">filler</span>.<span class="ident">is_empty</span>() {
+            <span class="kw">return</span> <span class="ident">Value::from</span>(<span class="ident">primitive</span>);
+        }
 
         <span class="kw">let</span> <span class="ident">fill_len</span> <span class="op">=</span> <span class="ident">max_length</span>.<span class="ident">wrapping_sub</span>(<span class="ident">primitive_length</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fill_str</span> <span class="op">=</span> <span class="ident">StdString::new</span>();
 
         <span class="kw">while</span> <span class="ident">fill_str</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">fill_len</span> <span class="kw">as</span> <span class="ident">usize</span> {
-            <span class="ident">fill_str</span>.<span class="ident">push_str</span>(<span class="ident">filter</span>);
+            <span class="ident">fill_str</span>.<span class="ident">push_str</span>(<span class="ident">filler</span>);
         }
         <span class="comment">// Cut to size max_length</span>
         <span class="kw">let</span> <span class="ident">concat_fill_str</span>: <span class="ident">StdString</span> <span class="op">=</span> <span class="ident">fill_str</span>.<span class="ident">chars</span>().<span class="ident">take</span>(<span class="ident">fill_len</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">collect</span>();

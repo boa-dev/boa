@@ -1096,7 +1096,6 @@
 <span id="1095">1095</span>
 <span id="1096">1096</span>
 <span id="1097">1097</span>
-<span id="1098">1098</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
@@ -1664,7 +1663,6 @@
                             <span class="comment">//              CHECK_EQ(&#39;.&#39;, buffer[fraction_cursor]);</span>
                             <span class="comment">// Carry over to the integer part.</span>
                             <span class="ident">integer</span> <span class="op">+</span><span class="op">=</span> <span class="number">1.</span>;
-                            <span class="kw">break</span>;
                         } <span class="kw">else</span> {
                             <span class="kw">let</span> <span class="ident">c</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="ident">frac_buf</span>[<span class="ident">fraction_cursor</span>];
                             <span class="comment">// Reconstruct digit.</span>
@@ -1675,8 +1673,8 @@
                             <span class="ident">frac_buf</span>[<span class="ident">fraction_cursor</span>] <span class="op">=</span>
                                 <span class="ident">std::char::from_digit</span>(<span class="ident">digit_0</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">unwrap</span>() <span class="kw">as</span> <span class="ident">u8</span>;
                             <span class="ident">fraction_cursor</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                            <span class="kw">break</span>;
                         }
+                        <span class="kw">break</span>;
                     }
                     <span class="kw">break</span>;
                 }
