@@ -12,7 +12,7 @@ The %TypedArray% intrinsic object:
 */
 
 use crate::builtins::BuiltIn;
-use crate::object::{ConstructorBuilder, GcObject, PROTOTYPE};
+use crate::object::{ConstructorBuilder, PROTOTYPE};
 use crate::property::{Attribute, DataDescriptor};
 use crate::{Context, Result, Value};
 
@@ -41,11 +41,7 @@ impl TypedArray {
             Self::construct,
             context.standard_objects().typed_array_object().clone(),
         )
-        .property(
-            "name",
-            "TypedArray",
-            Attribute::READONLY | Attribute::PERMANENT,
-        )
+        .name(Self::NAME)
         .static_method(Self::from, "from", 3)
         .static_method(Self::of, "of", 1)
         .build();
@@ -134,14 +130,6 @@ pub(crate) trait TypedArrayInstance {
     const NAME: &'static str;
 
     fn constructor(new_target: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        // Check if the argument is a number
-        // -- instantiate a new array with that capacity
-        // if it's an existing instance of a UInt8Array
-
-        // -- return a value with a prototype of context.typed_array_prototype
-
-        // TODO: Figure out this magical incantation -- from what i can tell this should result in the value
-        // returned from TypedArray:init
         let prototype = new_target
             .as_object()
             .and_then(|obj| {
@@ -154,7 +142,7 @@ pub(crate) trait TypedArrayInstance {
                 context
                     .standard_objects()
                     .typed_array_object()
-                    .prototype
+                    .constructor
                     .clone()
             });
 
@@ -167,7 +155,7 @@ pub(crate) trait TypedArrayInstance {
 
         let length = DataDescriptor::new(
             args[0].clone(),
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
         );
 
         typed_array.set_property("length", length);
