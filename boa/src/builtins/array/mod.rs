@@ -954,7 +954,6 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.map
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
     pub(crate) fn map(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-
         // 1. Let O be ? ToObject(this value).
         let this_val = args.get(1).cloned().unwrap_or_else(Value::undefined);
         let obj = this.to_object(context)?;
@@ -967,7 +966,7 @@ impl Array {
             return context.throw_type_error("Callbackfn is not callable");
         }
         // 4. Let A be ? ArraySpeciesCreate(O, len).
-        let arr = Self::array_species_create(&obj,len as u32, context)?;
+        let arr = Self::array_species_create(&obj, len as u32, context)?;
         // 5. Let k be 0.
         // 6. Repeat, while k < len,
         for k in 0..len {
