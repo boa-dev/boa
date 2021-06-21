@@ -117,8 +117,6 @@ pub fn init(context: &mut Context) {
         Uint8Array::init,
         Uint8ClampedArray::init,
         Int8Array::init,
-        // Uncomment this and comment the one below to explosions
-        // TypedArray::init,
         #[cfg(feature = "console")]
         console::Console::init,
     ];

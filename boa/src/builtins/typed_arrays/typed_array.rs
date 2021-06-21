@@ -13,7 +13,6 @@ The %TypedArray% intrinsic object:
 
 use crate::builtins::BuiltIn;
 use crate::object::{ConstructorBuilder, GcObject, PROTOTYPE};
-use crate::object::{ConstructorBuilder, GcObject, PROTOTYPE};
 use crate::property::{Attribute, DataDescriptor};
 use crate::{Context, Result, Value};
 
@@ -23,10 +22,7 @@ impl BuiltIn for TypedArray {
     const NAME: &'static str = "TypedArray";
 
     fn attribute() -> Attribute {
-        Attribute::WRITABLE
-            | Attribute::NON_ENUMERABLE
-            | Attribute::CONFIGURABLE
-            | Attribute::PERMANENT
+        Attribute::NON_ENUMERABLE | Attribute::PERMANENT | Attribute::READONLY
     }
 
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
@@ -81,25 +77,26 @@ impl TypedArray {
             .ok_or_else(|| -> Value { "Not a constructor".into() })?
             .call(&this, &[length], context)?;
 
-        let mut values = vec![];
+        let mut index = 0;
         while let Ok(next) = iter.next(context) {
             if next.is_done() {
                 break;
             }
-            values.push(next.value())
-        }
 
-        for (index, mut value) in values.into_iter().enumerate() {
-            if mapping {
-                value = map_fn
+            let value = if mapping {
+                map_fn
                     .as_object()
                     .unwrap()
-                    .call(&map_fn, &[value.clone()], context)?;
-            }
+                    .call(&map_fn, &[next.value()], context)?
+            } else {
+                next.value()
+            };
+
             constructed_value.set_property(
                 index.to_string(),
-                DataDescriptor::new(value, Attribute::all()),
+                DataDescriptor::new(value, Attribute::WRITABLE | Attribute::ENUMERABLE),
             );
+            index += 1;
         }
 
         Ok(constructed_value)
