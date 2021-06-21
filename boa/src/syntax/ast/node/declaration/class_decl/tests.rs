@@ -1,4 +1,4 @@
-use crate::exec;
+use crate::{exec, Context};
 
 #[test]
 fn construct_class() {
@@ -137,6 +137,16 @@ fn setter() {
     "#;
 
     assert_eq!(&exec(scenario), "40");
+}
+
+#[test]
+fn redeclaration() {
+    let js = r#"
+    let MyClass = 5;
+    class MyClass {}
+    "#;
+
+    assert!(Context::new().eval(js).is_err());
 }
 
 #[test]

@@ -256,18 +256,8 @@ impl Executable for ClassDecl {
         // Setup static things
         ClassDecl::add_fields_to_obj(&self.static_fields, &class, context)?;
 
-        if context.has_binding(self.name()) {
-            // TODO: Unclear if this is legal. In firefox, this produces a redeclaration error.
-            context.set_mutable_binding(self.name(), class, true)?;
-        } else {
-            context.create_mutable_binding(
-                self.name().to_owned(),
-                false,
-                VariableScope::Function,
-            )?;
-
-            context.initialize_binding(self.name(), class)?;
-        }
+        context.create_mutable_binding(self.name().to_owned(), false, VariableScope::Function)?;
+        context.initialize_binding(self.name(), class)?;
         Ok(Value::undefined())
     }
 }
