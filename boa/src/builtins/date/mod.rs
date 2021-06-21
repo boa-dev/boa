@@ -314,7 +314,7 @@ impl Date {
         }
 
         let naive = if utc {
-            self.as_utc().map(|dt| dt.naive_utc())
+            self.to_utc().map(|dt| dt.naive_utc())
         } else {
             self.to_local().map(|dt| dt.naive_local())
         };
@@ -674,7 +674,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.gettime
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTime
     pub fn get_time(&self) -> f64 {
-        self.as_utc()
+        self.to_utc()
             .map_or(f64::NAN, |dt| dt.timestamp_millis() as f64)
     }
 
@@ -706,7 +706,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcdate
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCDate
     pub fn get_utc_date(&self) -> f64 {
-        self.as_utc().map_or(f64::NAN, |dt| dt.day() as f64)
+        self.to_utc().map_or(f64::NAN, |dt| dt.day() as f64)
     }
 
     /// `Date.prototype.getUTCDay()`
@@ -721,7 +721,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcday
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCDay
     pub fn get_utc_day(&self) -> f64 {
-        self.as_utc().map_or(f64::NAN, |dt| {
+        self.to_utc().map_or(f64::NAN, |dt| {
             let weekday = dt.weekday() as u32;
             let weekday = (weekday + 1) % 7; // 0 represents Monday in Chrono
             weekday as f64
@@ -739,7 +739,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcfullyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCFullYear
     pub fn get_utc_full_year(&self) -> f64 {
-        self.as_utc().map_or(f64::NAN, |dt| dt.year() as f64)
+        self.to_utc().map_or(f64::NAN, |dt| dt.year() as f64)
     }
 
     /// `Date.prototype.getUTCHours()`
@@ -753,7 +753,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutchours
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCHours
     pub fn get_utc_hours(&self) -> f64 {
-        self.as_utc().map_or(f64::NAN, |dt| dt.hour() as f64)
+        self.to_utc().map_or(f64::NAN, |dt| dt.hour() as f64)
     }
 
     /// `Date.prototype.getUTCMilliseconds()`
@@ -767,7 +767,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcmilliseconds
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCMilliseconds
     pub fn get_utc_milliseconds(&self) -> f64 {
-        self.as_utc()
+        self.to_utc()
             .map_or(f64::NAN, |dt| dt.nanosecond() as f64 / NANOS_PER_MS as f64)
     }
 
@@ -782,7 +782,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcminutes
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCMinutes
     pub fn get_utc_minutes(&self) -> f64 {
-        self.as_utc().map_or(f64::NAN, |dt| dt.minute() as f64)
+        self.to_utc().map_or(f64::NAN, |dt| dt.minute() as f64)
     }
 
     /// `Date.prototype.getUTCMonth()`
@@ -797,7 +797,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcmonth
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCMonth
     pub fn get_utc_month(&self) -> f64 {
-        self.as_utc().map_or(f64::NAN, |dt| dt.month0() as f64)
+        self.to_utc().map_or(f64::NAN, |dt| dt.month0() as f64)
     }
 
     /// `Date.prototype.getUTCSeconds()`
@@ -811,7 +811,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcseconds
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCSeconds
     pub fn get_utc_seconds(&self) -> f64 {
-        self.as_utc().map_or(f64::NAN, |dt| dt.second() as f64)
+        self.to_utc().map_or(f64::NAN, |dt| dt.second() as f64)
     }
 
     /// `Date.prototype.setDate()`
