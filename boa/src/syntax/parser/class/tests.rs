@@ -339,3 +339,25 @@ fn check_constructor_errors() {
     dbg!(&res);
     assert!(res.is_err());
 }
+
+/// Checks for all getter/setter argument errors
+#[test]
+fn check_getter() {
+    let js = r#"
+        class GettersTakeNoArgs {
+            get a(v) {}
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+
+    let js = r#"
+        class SettersTakeOneArg {
+            set a() {}
+        }
+        "#;
+    let res = Parser::new(js.as_bytes(), false).parse_all();
+    dbg!(&res);
+    assert!(res.is_err());
+}

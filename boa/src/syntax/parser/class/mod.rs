@@ -228,6 +228,9 @@ where
                                     ));
                                 }
                             }
+                            if !params.is_empty() {
+                                return Err(ParseError::general("Getters take no arguments", pos));
+                            }
                             getter_names.insert(name.clone(), is_static);
                             Some(ClassField::Getter(FunctionDecl::new(name, params, body)))
                         } else if is_setter {
