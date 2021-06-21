@@ -47,8 +47,26 @@ impl TypedArray {
             Attribute::READONLY | Attribute::PERMANENT,
         )
         .static_method(Self::from, "from", 3)
+        .static_method(Self::of, "of", 1)
         .build();
         constructor.into()
+    }
+
+    pub(crate) fn of(this: &Value, arguments: &[Value], context: &mut Context) -> Result<Value> {
+        let length: Value = arguments.len().into();
+
+        let constructed_value = this
+            .as_object()
+            .ok_or_else(|| -> Value { "Not a constructor".into() })?
+            .call(&this, &[length], context)?;
+        for (index, value) in arguments.iter().enumerate() {
+            constructed_value.set_property(
+                index.to_string(),
+                DataDescriptor::new(value.clone(), Attribute::WRITABLE | Attribute::ENUMERABLE),
+            );
+        }
+
+        Ok(constructed_value)
     }
 
     pub(crate) fn from(this: &Value, arguments: &[Value], context: &mut Context) -> Result<Value> {
