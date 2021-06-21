@@ -1,4 +1,5 @@
-use crate::builtins::typed_arrays::typed_array::{TypedArrayInstance, TypedArrayStorageClass};
+use crate::builtins::typed_arrays::storage_class::TypedArrayStorageClass;
+use crate::builtins::typed_arrays::typed_array::TypedArrayInstance;
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Float64Array;

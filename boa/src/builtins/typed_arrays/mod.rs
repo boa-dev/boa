@@ -10,3 +10,5 @@ pub(crate) mod uint16_array;
 pub(crate) mod uint32_array;
 pub(crate) mod uint8_array;
 pub(crate) mod uint8_clamped_array;
+
+mod storage_class;
