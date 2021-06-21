@@ -7,6 +7,7 @@ use crate::{
     object::FunctionBuilder, property::Attribute, value::Value, BoaProfiler, Context, Result,
 };
 use percent_encoding::{percent_decode, utf8_percent_encode, AsciiSet, CONTROLS};
+use urlencoding::{decode, encode};
 
 type EncodeFuncType = fn(&RcString) -> Value;
 
@@ -72,14 +73,32 @@ impl Uri {
     // [spec]: https://tc39.es/ecma262/#sec-decodeuri-encodeduri
     // [mdn]:  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI
     pub(crate) fn decode_uri(_: &Value, args: &[Value], _context: &mut Context) -> Result<Value> {
-        Self::handle_uri(args, |arg_str: &RcString| -> Value {
-            Value::string(
-                percent_decode(arg_str.as_bytes())
-                    .decode_utf8()
-                    .unwrap()
-                    .borrow(),
-            )
-        })
+        match args.get(0) {
+            Some(Value::String(ref arg_str_ref)) => {
+                if arg_str_ref.is_empty() {
+                    return Ok(Value::string(""));
+                } else {
+                    let decoded = decode(arg_str_ref);
+                    match decoded {
+                        Ok(val) => return Ok(Value::string(val)),
+                        Err(err) => {
+                            return _context.throw_uri_error("URI malformed");
+                        }
+                    }
+                }
+            }
+            _ => return Ok(Value::string("undefined")),
+        };
+        // Self::handle_uri(args, |arg_str: &RcString| -> Value {
+        //     let decoded = decode(arg_str);
+        //     match decoded {
+        //         Ok(val) => Value::string(val),
+        //         Err(err) => {
+        //             // println!("DECODE {:?}, str:{}", err, arg_str);
+        //             return _context.throw_uri_error("WTF??!!");
+        //         }
+        //     }
+        // })
     }
 
     // The encodeURI() function encodes a URI by replacing each instance of certain characters by one, two, three,
@@ -94,7 +113,7 @@ impl Uri {
     // [mdn]:  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
     pub(crate) fn encode_uri(_: &Value, args: &[Value], _context: &mut Context) -> Result<Value> {
         Self::handle_uri(args, |arg_str: &RcString| -> Value {
-            Value::string(utf8_percent_encode(arg_str, ENCODE_FRAGMENT).to_string())
+            Value::string(encode(arg_str).to_string())
         })
     }
 }
