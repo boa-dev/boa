@@ -27,15 +27,60 @@ impl TypedArrayStorageClass {
     pub(crate) unsafe fn set_length(&mut self, len: usize) {
         use TypedArrayStorageClass::*;
         match self {
-            I8(value) => value.set_len(len),
-            U8(value) => value.set_len(len),
-            I16(value) => value.set_len(len),
-            U16(value) => value.set_len(len),
-            I32(value) => value.set_len(len),
-            U32(value) => value.set_len(len),
-            F32(value) => value.set_len(len),
-            F64(value) => value.set_len(len),
-            BigInt64(value) => value.set_len(len),
+            I8(value) => {
+                value.set_len(len);
+                for i in 0..len {
+                    value[i] = 0
+                }
+            }
+            U8(value) => {
+                value.set_len(len);
+                for i in 0..len {
+                    value[i] = 0
+                }
+            }
+            I16(value) => {
+                value.set_len(len);
+                for i in 0..len {
+                    value[i] = 0
+                }
+            }
+            U16(value) => {
+                value.set_len(len);
+                for i in 0..len {
+                    value[i] = 0
+                }
+            }
+            I32(value) => {
+                value.set_len(len);
+                for i in 0..len {
+                    value[i] = 0
+                }
+            }
+            U32(value) => {
+                value.set_len(len);
+                for i in 0..len {
+                    value[i] = 0
+                }
+            }
+            F32(value) => {
+                value.set_len(len);
+                for i in 0..len {
+                    value[i] = 0.0
+                }
+            }
+            F64(value) => {
+                value.set_len(len);
+                for i in 0..len {
+                    value[i] = 0.0
+                }
+            }
+            BigInt64(value) => {
+                value.set_len(len);
+                for i in 0..len {
+                    value[i] = BigInt::from(0);
+                }
+            }
         }
     }
 
@@ -51,20 +96,20 @@ impl TypedArrayStorageClass {
         //  TODO: implement the type conversion methods
         let index = index as usize;
         // TODO: Handle out of bounds exceptions here
-        match (self, numeric) {
-            (I8(value), Numeric::Number(number)) => value[index] = number as i8,
-            (U8(value), Numeric::Number(number)) => value[index] = number as u8,
-            (I16(value), Numeric::Number(number)) => value[index] = number as i16,
-            (U16(value), Numeric::Number(number)) => value[index] = number as u16,
-            (I32(value), Numeric::Number(number)) => value[index] = number as i32,
-            (U32(value), Numeric::Number(number)) => value[index] = number as u32,
-            (F32(value), Numeric::Number(number)) => value[index] = number as f32,
-            (F64(value), Numeric::Number(number)) => value[index] = number,
-            (BigInt64(value), Numeric::BigInt(big_int)) => {
-                value[index] = big_int.as_inner().clone()
-            }
-            _ => return context.throw_type_error("Must set numeric value for typed array"),
-        };
+        // match (self, numeric) {
+        //     (I8(value), Numeric::Number(number)) => value[index] = number as i8,
+        //     (U8(value), Numeric::Number(number)) => value[index] = number as u8,
+        //     (I16(value), Numeric::Number(number)) => value[index] = number as i16,
+        //     (U16(value), Numeric::Number(number)) => value[index] = number as u16,
+        //     (I32(value), Numeric::Number(number)) => value[index] = number as i32,
+        //     (U32(value), Numeric::Number(number)) => value[index] = number as u32,
+        //     (F32(value), Numeric::Number(number)) => value[index] = number as f32,
+        //     (F64(value), Numeric::Number(number)) => value[index] = number,
+        //     (BigInt64(value), Numeric::BigInt(big_int)) => {
+        //         value[index] = big_int.as_inner().clone()
+        //     }
+        //     _ => return context.throw_type_error("Must set numeric value for typed array"),
+        // };
 
         Ok(Value::undefined())
     }

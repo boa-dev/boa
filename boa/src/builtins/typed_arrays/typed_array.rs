@@ -197,6 +197,7 @@ pub(crate) trait TypedArrayInstance {
         // SAFETY: We guarantee here that we always set the length of the array to its
         // actual internal capacity.
         unsafe { storage_class.set_length(storage_class.length()) };
+        debug_assert!(storage_class.length() == capacity);
         storage_class
     }
 
