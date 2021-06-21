@@ -117,16 +117,19 @@ pub fn init(context: &mut Context) {
         Uint8Array::init,
         Uint8ClampedArray::init,
         Int8Array::init,
+        // Uncomment this and comment the one below to explosions
+        // TypedArray::init,
         #[cfg(feature = "console")]
         console::Console::init,
     ];
 
     let global_object = context.global_object();
-    TypedArray::init(context);
 
-    // We want the methods in `TypedArray` to be bound to the corresponding
-    // standard object but we don't really need a reference to the constructor.
-    // So we discard the constructor.
+    // For some reason if I put this here and discard the value completely
+    // all of the methods of the array sublcasses work just fine.
+    // if I stick it in the array above, the `TypedArray` constructor is called
+    // instead of the subtype and throws an error.
+    TypedArray::init(context);
 
     for init in &globals {
         let (name, value, attribute) = init(context);
