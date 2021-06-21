@@ -12,8 +12,6 @@ feature:json-modules
 // These seem to run forever:
 arg-length-exceeding-integer-limit
 15.4.4.19-8-c-ii-1
-fill-string-empty
-throws-if-integer-limit-exceeded
 
 // These generate a stack overflow
 tco-call
