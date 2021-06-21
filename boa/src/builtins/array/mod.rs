@@ -978,7 +978,7 @@ impl Array {
             if k_present {
                 // i. Let kValue be ? Get(O, Pk).
                 let k_value = this.get_field(k, context)?;
-                let args = [k_value, Value::from(k), Self::new_array(context)];
+                let args = [k_value, Value::from(k), this.into()];
                 // ii. Let mappedValue be ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).
                 let value = context.call(&callback, &this_val, &args)?;
                 // iii. Perform ? CreateDataPropertyOrThrow(A, Pk, mappedValue).
