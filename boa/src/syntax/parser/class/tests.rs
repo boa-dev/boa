@@ -351,13 +351,4 @@ fn check_getter() {
     let res = Parser::new(js.as_bytes(), false).parse_all();
     dbg!(&res);
     assert!(res.is_err());
-
-    let js = r#"
-        class SettersTakeOneArg {
-            set a() {}
-        }
-        "#;
-    let res = Parser::new(js.as_bytes(), false).parse_all();
-    dbg!(&res);
-    assert!(res.is_err());
 }
