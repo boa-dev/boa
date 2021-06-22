@@ -24,10 +24,15 @@ impl TestSuite {
             .map(|suite| suite.run(harness, verbose))
             .collect();
 
+        let mut debug_str = String::new().into_boxed_str();
+
         let tests: Vec<_> = self
             .tests
-            .par_iter()
-            .map(|test| test.run(harness, verbose))
+            .iter()
+            .map(|test| {
+                debug_str = test.name.clone();
+                test.run(harness, verbose)
+            })
             .flatten()
             .collect();
 
@@ -87,6 +92,7 @@ impl Test {
     /// Runs the test.
     pub(crate) fn run(&self, harness: &Harness, verbose: u8) -> Vec<TestResult> {
         let mut results = Vec::new();
+
         if self.flags.contains(TestFlags::STRICT) {
             results.push(self.run_once(harness, true, verbose));
         }
