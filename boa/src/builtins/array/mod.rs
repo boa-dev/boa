@@ -310,7 +310,7 @@ impl Array {
         context: &mut Context,
     ) -> Result<Value> {
         if !original_array.is_array() {
-            return Ok(Self::array_create(length, None, context)?);
+            return Self::array_create(length, None, context);
         }
         let c = original_array.get(
             &"constructor".into(),
