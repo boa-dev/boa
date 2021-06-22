@@ -464,7 +464,9 @@ impl Array {
         let arg_count = args.len();
 
         if length + arg_count > Number::MAX_SAFE_INTEGER as usize {
-            return context.throw_type_error("the length + the number of arguments exceed the maximum safe integer limit");
+            return context.throw_type_error(
+                "the length + the number of arguments exceed the maximum safe integer limit",
+            );
         }
 
         let new_array = Self::add_to_array_object(this, args, context)?;
@@ -696,7 +698,9 @@ impl Array {
 
         if arg_c > 0 {
             if len + arg_c > Number::MAX_SAFE_INTEGER as usize {
-                return context.throw_type_error("the length + the number of arguments exceed the maximum safe integer limit");
+                return context.throw_type_error(
+                    "the length + the number of arguments exceed the maximum safe integer limit",
+                );
             }
             for k in (1..=len).rev() {
                 let from = k.wrapping_sub(1);
@@ -1279,7 +1283,7 @@ impl Array {
         };
 
         let k = match n {
-            num if num >= 0 => num as usize, // if n>=0 -> k=n
+            num if num >= 0 => num as usize,    // if n>=0 -> k=n
             num if -num as usize > length => 0, // if n<0 -> k= max(length + n, 0)
             _ => length - (-n as usize), // this is `length + n` but is necessary for typing reasons
         };
