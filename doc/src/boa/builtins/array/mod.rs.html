@@ -1808,6 +1808,10 @@
 <span id="1807">1807</span>
 <span id="1808">1808</span>
 <span id="1809">1809</span>
+<span id="1810">1810</span>
+<span id="1811">1811</span>
+<span id="1812">1812</span>
+<span id="1813">1813</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -2275,7 +2279,9 @@
         <span class="kw">let</span> <span class="ident">arg_count</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">len</span>();
 
         <span class="kw">if</span> <span class="ident">length</span> <span class="op">+</span> <span class="ident">arg_count</span> <span class="op">&gt;</span> <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">usize</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;the length + the number of arguments exceed the maximum safe integer limit&quot;</span>);
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+                <span class="string">&quot;the length + the number of arguments exceed the maximum safe integer limit&quot;</span>,
+            );
         }
 
         <span class="kw">let</span> <span class="ident">new_array</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::add_to_array_object</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -2507,7 +2513,9 @@
 
         <span class="kw">if</span> <span class="ident">arg_c</span> <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="kw">if</span> <span class="ident">len</span> <span class="op">+</span> <span class="ident">arg_c</span> <span class="op">&gt;</span> <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">usize</span> {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;the length + the number of arguments exceed the maximum safe integer limit&quot;</span>);
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+                    <span class="string">&quot;the length + the number of arguments exceed the maximum safe integer limit&quot;</span>,
+                );
             }
             <span class="kw">for</span> <span class="ident">k</span> <span class="kw">in</span> (<span class="number">1</span>..<span class="op">=</span><span class="ident">len</span>).<span class="ident">rev</span>() {
                 <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="ident">k</span>.<span class="ident">wrapping_sub</span>(<span class="number">1</span>);
@@ -3090,7 +3098,7 @@
         };
 
         <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">n</span> {
-            <span class="ident">num</span> <span class="kw">if</span> <span class="ident">num</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">num</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="comment">// if n&gt;=0 -&gt; k=n</span>
+            <span class="ident">num</span> <span class="kw">if</span> <span class="ident">num</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">num</span> <span class="kw">as</span> <span class="ident">usize</span>,    <span class="comment">// if n&gt;=0 -&gt; k=n</span>
             <span class="ident">num</span> <span class="kw">if</span> <span class="op">-</span><span class="ident">num</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&gt;</span> <span class="ident">length</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>, <span class="comment">// if n&lt;0 -&gt; k= max(length + n, 0)</span>
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">length</span> <span class="op">-</span> (<span class="op">-</span><span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>), <span class="comment">// this is `length + n` but is necessary for typing reasons</span>
         };
