@@ -53,8 +53,8 @@ pub mod object;
 pub mod profiler;
 pub mod property;
 pub mod realm;
-// syntax module has a lot of acronyms
 pub mod symbol;
+// syntax module has a lot of acronyms
 #[allow(clippy::upper_case_acronyms)]
 pub mod syntax;
 pub mod value;
