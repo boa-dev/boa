@@ -306,9 +306,8 @@ impl<'a> VM<'a> {
     }
 
     pub fn trace_print(&mut self, end: bool) {
+        let duration = self.profile.instant.elapsed() - self.profile.prev_time;
         if self.profile.start_flag {
-            let duration = self.profile.instant.elapsed() - self.profile.prev_time;
-
             if self.is_trace {
                 println!(
                     "{0: <10} {1}",
@@ -317,7 +316,6 @@ impl<'a> VM<'a> {
                 );
             }
         } else {
-            let duration = self.profile.instant.elapsed() - self.profile.prev_time;
             println!("VM start up time: {}μs", duration.as_micros());
             println!(
                 "{0: <10} {1: <20} {2: <10}",

@@ -8,7 +8,7 @@ fn call_symbol_and_check_return_type() {
         "#;
     eprintln!("{}", forward(&mut context, init));
     let sym = forward_val(&mut context, "sym").unwrap();
-    assert_eq!(sym.is_symbol(), true);
+    assert!(sym.is_symbol());
 }
 
 #[test]
