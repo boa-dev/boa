@@ -146,7 +146,34 @@ impl Executable for Object {
                         )
                     }
                 },
-                _ => {} //unimplemented!("{:?} type of property", i),
+                // [spec]: https://tc39.es/ecma262/#sec-runtime-semantics-propertydefinitionevaluation
+                PropertyDefinition::SpreadObject(node) => {
+                    let val = node.run(context)?;
+
+                    if val.is_null_or_undefined() {
+                        continue;
+                    }
+
+                    let from = val.to_object(context)?;
+
+                    for key in from.__own_property_keys__(context)? {
+                        if let Some(desc) = from.__get_own_property__(&key, context)? {
+                            if let Some(true) = desc.enumerable() {
+                                let property = from.__get__(&key, from.clone().into(), context)?;
+
+                                obj.set_property(
+                                    key.clone(),
+                                    PropertyDescriptor::builder()
+                                        .value(property)
+                                        .writable(true)
+                                        .enumerable(true)
+                                        .configurable(true),
+                                );
+                            }
+                        }
+                    }
+                }
+                _ => {} // unimplemented!("{:?} type of property", i),
             }
         }
 

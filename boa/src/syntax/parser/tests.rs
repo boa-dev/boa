@@ -4,7 +4,8 @@ use super::Parser;
 use crate::syntax::ast::{
     node::{
         field::GetConstField, ArrowFunctionDecl, Assign, BinOp, Call, Declaration, DeclarationList,
-        FormalParameter, FunctionDecl, Identifier, If, New, Node, Return, StatementList, UnaryOp,
+        FormalParameter, FunctionDecl, Identifier, If, New, Node, Object, PropertyDefinition,
+        Return, StatementList, UnaryOp,
     },
     op::{self, CompOp, LogOp, NumOp},
     Const,
@@ -294,6 +295,33 @@ fn increment_in_comma_op() {
             op::BinOp::Comma,
             UnaryOp::new::<Node>(op::UnaryOp::IncrementPost, Identifier::from("b").into()).into(),
             Identifier::from("b").into(),
+        )
+        .into()],
+    );
+}
+
+#[test]
+fn spread_in_object() {
+    let s = r#"
+    let x = {
+      a: 1,
+      ...b,
+    }
+    "#;
+
+    let object_properties = vec![
+        PropertyDefinition::property("a", Const::from(1)),
+        PropertyDefinition::spread_object(Identifier::from("b")),
+    ];
+
+    check_parser(
+        s,
+        vec![DeclarationList::Let(
+            vec![Declaration::new_with_identifier::<&str, Option<Node>>(
+                "x",
+                Some(Object::from(object_properties).into()),
+            )]
+            .into(),
         )
         .into()],
     );

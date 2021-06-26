@@ -119,6 +119,26 @@ fn object_field_set() {
 }
 
 #[test]
+fn object_spread() {
+    let mut context = Context::new();
+
+    let scenario = r#"
+                var b = {x: -1, z: -3}
+                var a = {x: 1, y: 2, ...b};
+            "#;
+    forward(&mut context, scenario);
+
+    let one = forward(&mut context, "a.x");
+    assert_eq!(one, String::from("-1"));
+
+    let two = forward(&mut context, "a.y");
+    assert_eq!(two, String::from("2"));
+
+    let three = forward(&mut context, "a.z");
+    assert_eq!(three, String::from("-3"));
+}
+
+#[test]
 fn spread_with_arguments() {
     let scenario = r#"
             const a = [1, "test", 3, 4];
