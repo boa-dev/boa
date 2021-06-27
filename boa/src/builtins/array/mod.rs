@@ -108,6 +108,7 @@ impl BuiltIn for Array {
         .method(Self::flat_map, "flatMap", 1)
         .method(Self::slice, "slice", 2)
         .method(Self::some, "some", 2)
+        .method(Self::splice, "splice", 3)
         .method(Self::reduce, "reduce", 2)
         .method(Self::reduce_right, "reduceRight", 2)
         .method(Self::keys, "keys", 0)
@@ -1510,6 +1511,133 @@ impl Array {
         }
         new_array.set_field("length", Value::from(new_array_len), true, context)?;
         Ok(new_array)
+    }
+
+    pub(crate) fn splice(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let o = this.to_object(context)?;
+        let len = this.get_field("length", context)?.to_length(context)?;
+        let actual_start = Self::get_relative_start(context, args.get(0), len)?;
+        let insert_count = if args.get(0).is_none() || args.get(1).is_none() {
+            0
+        } else {
+            args.len()
+        };
+        let actual_delete_count = if args.get(0).is_none() {
+            0
+        } else if args.get(1).is_none() {
+            len - actual_start
+        } else {
+            let dc = args.get(1).ok_or(0)?.to_integer_or_infinity(context)?;
+            let max = len - actual_start;
+            match dc {
+                IntegerOrInfinity::Integer(i) => {
+                    if i < 0 {
+                        0
+                    } else if i as usize > max {
+                        max
+                    } else {
+                        i as usize
+                    }
+                }
+                IntegerOrInfinity::PositiveInfinity => max,
+                IntegerOrInfinity::NegativeInfinity => 0,
+            }
+        };
+
+        if len + insert_count - actual_delete_count > Number::MAX_SAFE_INTEGER as usize {
+            return context.throw_type_error("Target splice exceeded max safe integer value");
+        }
+
+        let arr = Self::array_species_create(&o, actual_delete_count as u32, context)?;
+
+        for k in 0..actual_delete_count {
+            let from_present = this.has_field(actual_start + k);
+            if from_present {
+                let from_value = this.get_field(actual_start + k, context)?;
+                let fv = DataDescriptor::new(
+                    from_value,
+                    Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+                );
+                arr.set_property(actual_start + k, fv);
+            }
+        }
+
+        let acd = DataDescriptor::new(
+            Value::from(len),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        );
+
+        arr.set_property("length", acd);
+
+        let items = match args.len() {
+            0 | 1 | 2 => args.split_at(0).0, // empty arr
+            _ => args.split_at(2).1
+        };
+
+        let item_count = items.len();
+
+        match item_count {
+          ic if ic < actual_delete_count => {
+              for k in actual_start..len-actual_delete_count {
+                  let from = k + actual_delete_count;
+                  let to = k + item_count;
+                  let from_present = this.has_field(from);
+                  if from_present {
+                      let from_value = this.get_field(from, context)?;
+                      let fv = DataDescriptor::new(
+                          from_value,
+                          Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+                      );
+                      this.set_property(to, fv);
+                  } else {
+                      debug_assert!(!from_present);
+                      this.remove_property(to);
+                  }
+              }
+              for k in ((len-actual_delete_count+item_count)+1..=len).rev() {
+                  this.remove_property(k-1);
+              }
+          },
+          ic if ic > actual_delete_count => {
+              for k in (actual_start+1..=len-actual_delete_count).rev() {
+                  let from = k + actual_delete_count - 1;
+                  let to = k + item_count - 1;
+                  let from_present = this.has_field(from);
+                  if from_present {
+                      let from_value = this.get_field(from, context)?;
+                      let fv = DataDescriptor::new(
+                          from_value,
+                          Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+                      );
+                      this.set_property(to, fv);
+                  } else {
+                      debug_assert!(!from_present);
+                      this.remove_property(to);
+                  }
+              }
+          },
+          _ => {}
+        };
+
+        let mut k = actual_start;
+
+        for item in items {
+            let prop = DataDescriptor::new(
+                item,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+            );
+            this.set_property(k, prop);
+            k += 1;
+        }
+
+        let length = DataDescriptor::new(
+            Value::from(len-actual_delete_count+item_count),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        );
+
+        this.set_property("length", length);
+
+        Ok(arr)
     }
 
     /// `Array.prototype.filter( callback, [ thisArg ] )`
