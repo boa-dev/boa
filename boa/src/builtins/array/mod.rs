@@ -1768,52 +1768,52 @@ impl Array {
 
         let items = match args.len() {
             0 | 1 | 2 => args.split_at(0).0, // empty arr
-            _ => args.split_at(2).1
+            _ => args.split_at(2).1,
         };
 
         let item_count = items.len();
 
         match item_count {
-          ic if ic < actual_delete_count => {
-              for k in actual_start..len-actual_delete_count {
-                  let from = k + actual_delete_count;
-                  let to = k + item_count;
-                  let from_present = this.has_field(from);
-                  if from_present {
-                      let from_value = this.get_field(from, context)?;
-                      let fv = DataDescriptor::new(
-                          from_value,
-                          Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-                      );
-                      this.set_property(to, fv);
-                  } else {
-                      debug_assert!(!from_present);
-                      this.remove_property(to);
-                  }
-              }
-              for k in ((len-actual_delete_count+item_count)+1..=len).rev() {
-                  this.remove_property(k-1);
-              }
-          },
-          ic if ic > actual_delete_count => {
-              for k in (actual_start+1..=len-actual_delete_count).rev() {
-                  let from = k + actual_delete_count - 1;
-                  let to = k + item_count - 1;
-                  let from_present = this.has_field(from);
-                  if from_present {
-                      let from_value = this.get_field(from, context)?;
-                      let fv = DataDescriptor::new(
-                          from_value,
-                          Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-                      );
-                      this.set_property(to, fv);
-                  } else {
-                      debug_assert!(!from_present);
-                      this.remove_property(to);
-                  }
-              }
-          },
-          _ => {}
+            ic if ic < actual_delete_count => {
+                for k in actual_start..len - actual_delete_count {
+                    let from = k + actual_delete_count;
+                    let to = k + item_count;
+                    let from_present = this.has_field(from);
+                    if from_present {
+                        let from_value = this.get_field(from, context)?;
+                        let fv = DataDescriptor::new(
+                            from_value,
+                            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+                        );
+                        this.set_property(to, fv);
+                    } else {
+                        debug_assert!(!from_present);
+                        this.remove_property(to);
+                    }
+                }
+                for k in ((len - actual_delete_count + item_count) + 1..=len).rev() {
+                    this.remove_property(k - 1);
+                }
+            }
+            ic if ic > actual_delete_count => {
+                for k in (actual_start + 1..=len - actual_delete_count).rev() {
+                    let from = k + actual_delete_count - 1;
+                    let to = k + item_count - 1;
+                    let from_present = this.has_field(from);
+                    if from_present {
+                        let from_value = this.get_field(from, context)?;
+                        let fv = DataDescriptor::new(
+                            from_value,
+                            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+                        );
+                        this.set_property(to, fv);
+                    } else {
+                        debug_assert!(!from_present);
+                        this.remove_property(to);
+                    }
+                }
+            }
+            _ => {}
         };
 
         let mut k = actual_start;
@@ -1828,7 +1828,7 @@ impl Array {
         }
 
         let length = DataDescriptor::new(
-            Value::from(len-actual_delete_count+item_count),
+            Value::from(len - actual_delete_count + item_count),
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
         );
 
