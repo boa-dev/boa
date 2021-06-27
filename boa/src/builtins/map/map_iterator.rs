@@ -7,6 +7,8 @@ use crate::{
 };
 use gc::{Finalize, Trace};
 
+use super::{ordered_map::MapLock, Map};
+
 #[derive(Debug, Clone, Finalize, Trace)]
 pub enum MapIterationKind {
     Key,
@@ -25,18 +27,21 @@ pub struct MapIterator {
     iterated_map: Value,
     map_next_index: usize,
     map_iteration_kind: MapIterationKind,
+    lock: MapLock,
 }
 
 impl MapIterator {
     pub(crate) const NAME: &'static str = "MapIterator";
 
     /// Constructs a new `MapIterator`, that will iterate over `map`, starting at index 0
-    fn new(map: Value, kind: MapIterationKind) -> Self {
-        MapIterator {
+    fn new(map: Value, kind: MapIterationKind, context: &mut Context) -> Result<Self> {
+        let lock = Map::lock(&map, context)?;
+        Ok(MapIterator {
             iterated_map: map,
             map_next_index: 0,
             map_iteration_kind: kind,
-        }
+            lock,
+        })
     }
 
     /// Abstract operation CreateMapIterator( map, kind )
@@ -48,17 +53,17 @@ impl MapIterator {
     ///
     /// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-createmapiterator
     pub(crate) fn create_map_iterator(
-        context: &Context,
+        context: &mut Context,
         map: Value,
         kind: MapIterationKind,
-    ) -> Value {
+    ) -> Result<Value> {
         let map_iterator = Value::new_object(context);
-        map_iterator.set_data(ObjectData::MapIterator(Self::new(map, kind)));
+        map_iterator.set_data(ObjectData::MapIterator(Self::new(map, kind, context)?));
         map_iterator
             .as_object()
             .expect("map iterator object")
             .set_prototype_instance(context.iterator_prototypes().map_iterator().into());
-        map_iterator
+        Ok(map_iterator)
     }
 
     /// %MapIteratorPrototype%.next( )

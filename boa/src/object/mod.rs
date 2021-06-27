@@ -83,7 +83,7 @@ pub struct Object {
 pub enum ObjectData {
     Array,
     ArrayIterator(ArrayIterator),
-    Map(OrderedMap<Value, Value>),
+    Map(OrderedMap<Value>),
     MapIterator(MapIterator),
     RegExp(Box<RegExp>),
     BigInt(RcBigInt),
@@ -344,7 +344,7 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_map_ref(&self) -> Option<&OrderedMap<Value, Value>> {
+    pub fn as_map_ref(&self) -> Option<&OrderedMap<Value>> {
         match self.data {
             ObjectData::Map(ref map) => Some(map),
             _ => None,
@@ -352,7 +352,7 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_map_mut(&mut self) -> Option<&mut OrderedMap<Value, Value>> {
+    pub fn as_map_mut(&mut self) -> Option<&mut OrderedMap<Value>> {
         match &mut self.data {
             ObjectData::Map(map) => Some(map),
             _ => None,
