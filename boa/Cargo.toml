@@ -36,6 +36,7 @@ indexmap = "1.6.2"
 ryu-js = "0.2.1"
 chrono = "0.4.19"
 fast-float = "0.2.0"
+unicode-normalization = "0.1.19"
 
 # Optional Dependencies
 measureme = { version = "9.1.2", optional = true }

@@ -30,6 +30,7 @@ use std::{
     cmp::{max, min},
     string::String as StdString,
 };
+use unicode_normalization::UnicodeNormalization;
 
 pub(crate) fn code_point_at(string: RcString, position: i32) -> Option<(u32, u8, bool)> {
     let size = string.encode_utf16().count() as i32;
@@ -119,6 +120,7 @@ impl BuiltIn for String {
         .method(Self::index_of, "indexOf", 1)
         .method(Self::last_index_of, "lastIndexOf", 1)
         .method(Self::r#match, "match", 1)
+        .method(Self::normalize, "normalize", 1)
         .method(Self::pad_end, "padEnd", 1)
         .method(Self::pad_start, "padStart", 1)
         .method(Self::trim, "trim", 0)
@@ -792,6 +794,10 @@ impl String {
         )))
     }
 
+    // pub(crate) fn replace_all(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    //
+    // }
+
     /// `String.prototype.indexOf( searchValue[, fromIndex] )`
     ///
     /// The `indexOf()` method returns the index within the calling `String` object of the first occurrence
@@ -1327,6 +1333,42 @@ impl String {
         }?;
 
         RegExp::match_all(&re, this.to_string(context)?.to_string(), context)
+    }
+
+    /// `String.prototype.normalize( [ form ] )`
+    ///
+    /// The normalize() method normalizes a string into a form specified in the Unicode® Standard Annex #15
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.normalize
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize
+
+    pub(crate) fn normalize(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let this = this.require_object_coercible(context)?;
+        let s = this.to_string(context)?;
+        let form = args.get(0).cloned().unwrap_or_default();
+
+        let f_str;
+
+        let f = match form.is_undefined() {
+            true => "NFC",
+            false => {
+                f_str = form.to_string(context)?;
+                f_str.as_str()
+            }
+        };
+
+        match f {
+            "NFC" => Ok(Value::from(s.nfc().collect::<StdString>())),
+            "NFD" => Ok(Value::from(s.nfd().collect::<StdString>())),
+            "NFKC" => Ok(Value::from(s.nfkc().collect::<StdString>())),
+            "NFKD" => Ok(Value::from(s.nfkd().collect::<StdString>())),
+            _ => context
+                .throw_range_error("The normalization form should be one of NFC, NFD, NFKC, NFKD."),
+        }
     }
 
     /// `String.prototype.search( regexp )`
