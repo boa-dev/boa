@@ -1,7 +1,7 @@
 use crate::{
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
-    syntax::ast::node::Node,
+    syntax::ast::node::{Node, NodeKind},
     Context, Result, Value,
 };
 use std::fmt;
@@ -74,9 +74,9 @@ impl Executable for Return {
     }
 }
 
-impl From<Return> for Node {
-    fn from(return_smt: Return) -> Node {
-        Node::Return(return_smt)
+impl From<Return> for NodeKind {
+    fn from(return_smt: Return) -> Self {
+        Self::Return(return_smt)
     }
 }
 

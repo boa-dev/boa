@@ -14,7 +14,7 @@ use crate::{
         ast::{
             node::{BinOp, Node},
             op::NumOp,
-            Keyword, Punctuator,
+            Keyword, Punctuator, Span,
         },
         parser::{
             expression::{unary::UnaryExpression, update::UpdateExpression},
@@ -92,7 +92,12 @@ where
         if let Some(tok) = cursor.peek(0)? {
             if let TokenKind::Punctuator(Punctuator::Exp) = tok.kind() {
                 cursor.next()?.expect("** token vanished"); // Consume the token.
-                return Ok(BinOp::new(NumOp::Exp, lhs, self.parse(cursor)?).into());
+
+                let span = Span::new(lhs.span().start(), tok.span().end());
+                return Ok(Node::new(
+                    BinOp::new(NumOp::Exp, lhs, self.parse(cursor)?),
+                    span,
+                ));
             }
         }
         Ok(lhs)

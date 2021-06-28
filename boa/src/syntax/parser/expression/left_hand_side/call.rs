@@ -13,9 +13,9 @@ use crate::{
         ast::{
             node::{
                 field::{GetConstField, GetField},
-                Call, Node,
+                Call,
             },
-            Punctuator,
+            Node, Punctuator, Span,
         },
         lexer::TokenKind,
         parser::{
@@ -68,8 +68,8 @@ where
         let token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
         let mut lhs = if token.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-            let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
-            Node::from(Call::new(self.first_member_expr, args))
+            let (args, span) = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            Node::new(Call::new(self.first_member_expr, args), span)
         } else {
             let next_token = cursor.next()?.expect("token vanished");
             return Err(ParseError::expected(
@@ -83,18 +83,22 @@ where
             let token = tok.clone();
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
-                    let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
-                    lhs = Node::from(Call::new(lhs, args));
+                    let (args, span) =
+                        Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
+                    lhs = Node::new(Call::new(lhs, args), span);
                 }
                 TokenKind::Punctuator(Punctuator::Dot) => {
-                    cursor.next()?.ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
+                    let span_start = cursor.next()?.ok_or(ParseError::AbruptEnd)?.span().start(); // We move the parser forward.
+                    let next_token = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
-                    match &cursor.next()?.ok_or(ParseError::AbruptEnd)?.kind() {
+                    let span = Span::new(span_start, next_token.span().end());
+
+                    match next_token.kind() {
                         TokenKind::Identifier(name) => {
-                            lhs = GetConstField::new(lhs, name.clone()).into();
+                            lhs = Node::new(GetConstField::new(lhs, name.clone()), span);
                         }
                         TokenKind::Keyword(kw) => {
-                            lhs = GetConstField::new(lhs, kw.to_string()).into();
+                            lhs = Node::new(GetConstField::new(lhs, kw.to_string()), span);
                         }
                         _ => {
                             return Err(ParseError::expected(
@@ -106,11 +110,18 @@ where
                     }
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                    let span_start = token.span().start();
+
                     let _ = cursor.next()?.ok_or(ParseError::AbruptEnd)?; // We move the parser.
                     let idx =
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-                    cursor.expect(Punctuator::CloseBracket, "call expression")?;
-                    lhs = GetField::new(lhs, idx).into();
+                    let span_end = cursor
+                        .expect(Punctuator::CloseBracket, "call expression")?
+                        .span()
+                        .end();
+
+                    let span = Span::new(span_start, span_end);
+                    lhs = Node::new(GetField::new(lhs, idx), span);
                 }
                 TokenKind::TemplateNoSubstitution { .. } | TokenKind::TemplateMiddle { .. } => {
                     lhs = TaggedTemplateLiteral::new(

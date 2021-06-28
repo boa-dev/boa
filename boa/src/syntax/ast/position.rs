@@ -5,6 +5,8 @@ use std::{cmp::Ordering, fmt, num::NonZeroU32};
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
+use crate::gc::{empty_trace, Finalize, Trace};
+
 /// A position in the JavaScript source code.
 ///
 /// Stores both the column number and the line number.
@@ -15,12 +17,16 @@ use serde::{Deserialize, Serialize};
 /// ## Similar Implementations
 /// [V8: Location](https://cs.chromium.org/chromium/src/v8/src/parsing/scanner.h?type=cs&q=isValid+Location&g=0&l=216)
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Finalize)]
 pub struct Position {
     /// Line number.
     line_number: NonZeroU32,
     /// Column number.
     column_number: NonZeroU32,
+}
+
+unsafe impl Trace for Position {
+    empty_trace!();
 }
 
 impl Position {
@@ -47,6 +53,16 @@ impl Position {
     }
 }
 
+impl Default for Position {
+    #[inline]
+    fn default() -> Self {
+        Self {
+            line_number: NonZeroU32::new(1).unwrap(),
+            column_number: NonZeroU32::new(1).unwrap(),
+        }
+    }
+}
+
 impl fmt::Display for Position {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}:{}", self.line_number, self.column_number)
@@ -57,10 +73,14 @@ impl fmt::Display for Position {
 ///
 /// Stores a start position and an end position.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Finalize)]
 pub struct Span {
     start: Position,
     end: Position,
+}
+
+unsafe impl Trace for Span {
+    empty_trace!();
 }
 
 impl Span {
@@ -97,10 +117,21 @@ impl Span {
 }
 
 impl From<Position> for Span {
+    #[inline]
     fn from(pos: Position) -> Self {
         Self {
             start: pos,
             end: pos,
+        }
+    }
+}
+
+impl Default for Span {
+    #[inline]
+    fn default() -> Self {
+        Self {
+            start: Position::default(),
+            end: Position::default(),
         }
     }
 }

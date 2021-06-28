@@ -1,6 +1,6 @@
 //! Block AST node.
 
-use super::{Node, StatementList};
+use super::{Node, NodeKind, StatementList};
 use crate::{
     environment::declarative_environment_record::DeclarativeEnvironmentRecord,
     exec::Executable,
@@ -119,7 +119,7 @@ impl fmt::Display for Block {
     }
 }
 
-impl From<Block> for Node {
+impl From<Block> for NodeKind {
     fn from(block: Block) -> Self {
         Self::Block(block)
     }

@@ -113,16 +113,19 @@ where
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-automatic-semicolon-insertion
     #[inline]
-    pub(super) fn expect_semicolon(&mut self, context: &'static str) -> Result<(), ParseError> {
+    pub(super) fn expect_semicolon(
+        &mut self,
+        context: &'static str,
+    ) -> Result<Option<Token>, ParseError> {
         match self.peek_semicolon()? {
             SemicolonResult::Found(Some(tk)) => match *tk.kind() {
                 TokenKind::Punctuator(Punctuator::Semicolon) | TokenKind::LineTerminator => {
-                    let _ = self.buffered_lexer.next(false)?;
-                    Ok(())
+                    let tk = self.buffered_lexer.next(false)?;
+                    Ok(tk)
                 }
-                _ => Ok(()),
+                _ => Ok(None),
             },
-            SemicolonResult::Found(None) => Ok(()),
+            SemicolonResult::Found(None) => Ok(None),
             SemicolonResult::NotFound(tk) => Err(ParseError::expected(
                 vec![TokenKind::Punctuator(Punctuator::Semicolon)],
                 tk.clone(),

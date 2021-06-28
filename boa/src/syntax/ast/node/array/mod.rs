@@ -1,6 +1,6 @@
 //! Array declaration node.
 
-use super::{join_nodes, Node};
+use super::{join_nodes, Node, NodeKind};
 use crate::{
     builtins::{iterable, Array},
     exec::Executable,
@@ -43,8 +43,8 @@ impl Executable for ArrayDecl {
         let _timer = BoaProfiler::global().start_event("ArrayDecl", "exec");
         let array = Array::new_array(context);
         let mut elements = Vec::new();
-        for elem in self.as_ref() {
-            if let Node::Spread(ref x) = elem {
+        for elem in self.arr.iter().map(Node::kind) {
+            if let NodeKind::Spread(ref x) = elem {
                 let val = x.run(context)?;
                 let iterator_record = iterable::get_iterator(context, val)?;
                 // TODO after proper internal Array representation as per https://github.com/boa-dev/boa/pull/811#discussion_r502460858
@@ -92,7 +92,7 @@ impl fmt::Display for ArrayDecl {
     }
 }
 
-impl From<ArrayDecl> for Node {
+impl From<ArrayDecl> for NodeKind {
     fn from(arr: ArrayDecl) -> Self {
         Self::ArrayDecl(arr)
     }

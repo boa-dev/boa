@@ -13,8 +13,8 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
-            node::{self, FunctionExpr, MethodDefinitionKind, Node, Object},
-            Punctuator,
+            node::{self, FunctionExpr, MethodDefinitionKind, Object},
+            Node, Punctuator, Span,
         },
         parser::{
             expression::AssignmentExpression,
@@ -58,22 +58,28 @@ impl<R> TokenParser<R> for ObjectLiteral
 where
     R: Read,
 {
-    type Output = Object;
+    type Output = (Object, Span);
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ObjectLiteral", "Parsing");
+
+        let span_start = cursor
+            .expect(Punctuator::OpenBlock, "object literal")?
+            .span()
+            .start();
+
         let mut elements = Vec::new();
 
-        loop {
-            if cursor.next_if(Punctuator::CloseBlock)?.is_some() {
-                break;
+        let span_end = loop {
+            if let Some(tok) = cursor.next_if(Punctuator::CloseBlock)? {
+                break tok.span().end();
             }
 
             elements
                 .push(PropertyDefinition::new(self.allow_yield, self.allow_await).parse(cursor)?);
 
-            if cursor.next_if(Punctuator::CloseBlock)?.is_some() {
-                break;
+            if let Some(tok) = cursor.next_if(Punctuator::CloseBlock)? {
+                break tok.span().end();
             }
 
             if cursor.next_if(Punctuator::Comma)?.is_none() {
@@ -87,9 +93,9 @@ where
                     "object literal",
                 ));
             }
-        }
+        };
 
-        Ok(Object::from(elements))
+        Ok((Object::from(elements), Span::new(span_start, span_end)))
     }
 }
 
@@ -312,7 +318,14 @@ where
     fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("Initializer", "Parsing");
 
-        cursor.expect(Punctuator::Assign, "initializer")?;
-        AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await).parse(cursor)
+        let span_start = cursor
+            .expect(Punctuator::Assign, "initializer")?
+            .span()
+            .start();
+        let node = AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
+            .parse(cursor)?;
+        let span_end = node.span().end();
+
+        Ok(Node::new(node.into_kind(), Span::new(span_start, span_end)))
     }
 }

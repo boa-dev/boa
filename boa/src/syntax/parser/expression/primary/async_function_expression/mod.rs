@@ -3,7 +3,7 @@ mod tests;
 
 use crate::{
     syntax::{
-        ast::{node::AsyncFunctionExpr, Keyword, Punctuator},
+        ast::{node::AsyncFunctionExpr, Keyword, Punctuator, Span},
         lexer::{Error as LexError, Position, TokenKind},
         parser::{
             function::{FormalParameters, FunctionBody},
@@ -45,10 +45,15 @@ impl<R> TokenParser<R> for AsyncFunctionExpression
 where
     R: Read,
 {
-    type Output = AsyncFunctionExpr;
+    type Output = (AsyncFunctionExpr, Span);
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("AsyncFunctionExpression", "Parsing");
+
+        let span_start = cursor
+            .expect(Keyword::Async, "async function expression")?
+            .span()
+            .end();
         cursor.peek_expect_no_lineterminator(0, "async function expression")?;
         cursor.expect(Keyword::Function, "async function expression")?;
 
@@ -72,7 +77,10 @@ where
 
         let body = FunctionBody::new(false, true).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseBlock, "async function expression")?;
+        let span_end = cursor
+            .expect(Punctuator::CloseBlock, "async function expression")?
+            .span()
+            .end();
 
         // It is a Syntax Error if any element of the BoundNames of FormalParameters
         // also occurs in the LexicallyDeclaredNames of FunctionBody.
@@ -92,6 +100,9 @@ where
             }
         }
 
-        Ok(AsyncFunctionExpr::new(name, params, body))
+        Ok((
+            AsyncFunctionExpr::new(name.map(|name| name.0), params, body),
+            Span::new(span_start, span_end),
+        ))
     }
 }

@@ -1,7 +1,7 @@
 use crate::{
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
-    syntax::ast::node::Node,
+    syntax::ast::node::NodeKind,
     Context, Result, Value,
 };
 use std::fmt;
@@ -65,8 +65,8 @@ impl fmt::Display for Continue {
     }
 }
 
-impl From<Continue> for Node {
-    fn from(cont: Continue) -> Node {
+impl From<Continue> for NodeKind {
+    fn from(cont: Continue) -> Self {
         Self::Continue(cont)
     }
 }

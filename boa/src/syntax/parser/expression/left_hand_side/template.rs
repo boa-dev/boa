@@ -1,8 +1,7 @@
 use crate::{
     profiler::BoaProfiler,
     syntax::{
-        ast::node::TaggedTemplate,
-        ast::{Node, Position, Punctuator},
+        ast::{node::TaggedTemplate, Node, Position, Punctuator, Span},
         lexer::TokenKind,
         parser::{
             cursor::Cursor, expression::Expression, AllowAwait, AllowYield, ParseError,
@@ -56,6 +55,7 @@ where
         let mut exprs = Vec::new();
 
         let mut token = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
+        let span_start = token.span().start();
 
         loop {
             match token.kind() {
@@ -73,9 +73,12 @@ where
                 TokenKind::TemplateNoSubstitution(template_string) => {
                     raws.push(template_string.as_raw().to_owned().into_boxed_str());
                     cookeds.push(template_string.to_owned_cooked().ok());
-                    return Ok(Node::from(TaggedTemplate::new(
-                        self.tag, raws, cookeds, exprs,
-                    )));
+
+                    let span = Span::new(span_start, token.span().end());
+                    return Ok(Node::new(
+                        TaggedTemplate::new(self.tag, raws, cookeds, exprs),
+                        span,
+                    ));
                 }
                 _ => {
                     return Err(ParseError::general(

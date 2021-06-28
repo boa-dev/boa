@@ -2,7 +2,7 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node::FunctionDecl, Keyword, Punctuator},
+    ast::{node::FunctionDecl, Keyword, Punctuator, Span},
     parser::{
         function::FormalParameters,
         function::FunctionBody,
@@ -48,10 +48,10 @@ impl<R> TokenParser<R> for FunctionDeclaration
 where
     R: Read,
 {
-    type Output = FunctionDecl;
+    type Output = (FunctionDecl, Span);
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        cursor.expect(Keyword::Function, "function declaration")?;
+        let start_token = cursor.expect(Keyword::Function, "function declaration")?;
 
         // TODO: If self.is_default, then this can be empty.
         let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
@@ -65,7 +65,7 @@ where
 
         let body = FunctionBody::new(self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseBlock, "function declaration")?;
+        let end_token = cursor.expect(Punctuator::CloseBlock, "function declaration")?;
 
         // It is a Syntax Error if any element of the BoundNames of FormalParameters
         // also occurs in the LexicallyDeclaredNames of FunctionBody.
@@ -85,6 +85,8 @@ where
             }
         }
 
-        Ok(FunctionDecl::new(name, params, body))
+        let span = Span::new(start_token.span().start(), end_token.span().end());
+
+        Ok((FunctionDecl::new(name, params, body), span))
     }
 }

@@ -1,4 +1,4 @@
-use super::Node;
+use super::NodeKind;
 use crate::{
     exec::Executable,
     exec::InterpreterState,
@@ -75,8 +75,8 @@ impl fmt::Display for Break {
     }
 }
 
-impl From<Break> for Node {
-    fn from(break_smt: Break) -> Node {
+impl From<Break> for NodeKind {
+    fn from(break_smt: Break) -> Self {
         Self::Break(break_smt)
     }
 }

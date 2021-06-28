@@ -12,7 +12,7 @@ mod tests;
 
 use crate::{
     syntax::{
-        ast::{node::FunctionExpr, Keyword, Punctuator},
+        ast::{node::FunctionExpr, Keyword, Punctuator, Span},
         lexer::{Error as LexError, Position, TokenKind},
         parser::{
             function::{FormalParameters, FunctionBody},
@@ -40,10 +40,15 @@ impl<R> TokenParser<R> for FunctionExpression
 where
     R: Read,
 {
-    type Output = FunctionExpr;
+    type Output = (FunctionExpr, Span);
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FunctionExpression", "Parsing");
+
+        let span_start = cursor
+            .expect(Keyword::Function, "function expression")?
+            .span()
+            .start();
 
         let name = if let Some(token) = cursor.peek(0)? {
             match token.kind() {
@@ -67,7 +72,10 @@ where
 
         let body = FunctionBody::new(false, false).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseBlock, "function expression")?;
+        let span_end = cursor
+            .expect(Punctuator::CloseBlock, "function expression")?
+            .span()
+            .end();
 
         // It is a Syntax Error if any element of the BoundNames of FormalParameters
         // also occurs in the LexicallyDeclaredNames of FunctionBody.
@@ -87,6 +95,9 @@ where
             }
         }
 
-        Ok(FunctionExpr::new(name, params, body))
+        Ok((
+            FunctionExpr::new(name.map(|name| name.0), params, body),
+            Span::new(span_start, span_end),
+        ))
     }
 }

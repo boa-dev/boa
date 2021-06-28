@@ -3,7 +3,7 @@ use crate::{
     exec::Executable,
     exec::InterpreterState,
     gc::{Finalize, Trace},
-    syntax::ast::node::{join_nodes, Node},
+    syntax::ast::node::{join_nodes, Node, NodeKind},
     value::{Type, Value},
     BoaProfiler, Context, Result,
 };
@@ -63,8 +63,8 @@ impl Call {
 impl Executable for Call {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Call", "exec");
-        let (this, func) = match self.expr() {
-            Node::GetConstField(ref get_const_field) => {
+        let (this, func) = match self.expr().kind() {
+            NodeKind::GetConstField(ref get_const_field) => {
                 let mut obj = get_const_field.obj().run(context)?;
                 if obj.get_type() != Type::Object {
                     obj = Value::Object(obj.to_object(context)?);
@@ -74,7 +74,7 @@ impl Executable for Call {
                     obj.get_field(get_const_field.field(), context)?,
                 )
             }
-            Node::GetField(ref get_field) => {
+            NodeKind::GetField(ref get_field) => {
                 let mut obj = get_field.obj().run(context)?;
                 if obj.get_type() != Type::Object {
                     obj = Value::Object(obj.to_object(context)?);
@@ -92,8 +92,8 @@ impl Executable for Call {
             ),
         };
         let mut v_args = Vec::with_capacity(self.args().len());
-        for arg in self.args() {
-            if let Node::Spread(ref x) = arg {
+        for arg in self.args().iter().map(Node::kind) {
+            if let NodeKind::Spread(ref x) = arg {
                 let val = x.run(context)?;
                 let iterator_record = iterable::get_iterator(context, val)?;
                 loop {
@@ -130,7 +130,7 @@ impl fmt::Display for Call {
     }
 }
 
-impl From<Call> for Node {
+impl From<Call> for NodeKind {
     fn from(call: Call) -> Self {
         Self::Call(call)
     }

@@ -46,7 +46,7 @@ pub use self::{
     throw::Throw,
     try_node::{Catch, Finally, Try},
 };
-use super::Const;
+use super::{Const, Span};
 use crate::{
     exec::Executable,
     gc::{empty_trace, Finalize, Trace},
@@ -60,9 +60,76 @@ use std::{
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
+/// An AST node.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-pub enum Node {
+pub struct Node {
+    kind: NodeKind,
+    span: Span,
+}
+
+impl Node {
+    /// Creates a new node.
+    #[inline]
+    pub fn new<K>(kind: K, span: Span) -> Self
+    where
+        K: Into<NodeKind>,
+    {
+        Self {
+            kind: kind.into(),
+            span,
+        }
+    }
+
+    /// Retrieves the kind of node.
+    #[inline]
+    pub fn kind(&self) -> &NodeKind {
+        &self.kind
+    }
+
+    /// Discards the span information.
+    #[inline]
+    pub(crate) fn into_kind(self) -> NodeKind {
+        self.kind
+    }
+
+    /// Retrieves the span of the node.
+    #[inline]
+    pub fn span(&self) -> Span {
+        self.span
+    }
+
+    /// Implements the display formatting with indentation.
+    #[inline]
+    fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
+        self.kind.display(f, indentation)
+    }
+
+    /// Returns a node ordering based on the hoistability of each node.
+    #[inline]
+    pub(crate) fn hoistable_order(a: &Node, b: &Node) -> Ordering {
+        NodeKind::hoistable_order(a.kind(), b.kind())
+    }
+}
+
+impl Executable for Node {
+    #[inline]
+    fn run(&self, context: &mut Context) -> Result<Value> {
+        self.kind.run(context)
+    }
+}
+
+impl Display for Node {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.kind.display(f, 0)
+    }
+}
+
+/// The kind of node, with all the relevant information.
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub enum NodeKind {
     /// Array declaration node. [More information](./array/struct.ArrayDecl.html).
     ArrayDecl(ArrayDecl),
 
@@ -210,28 +277,42 @@ pub enum Node {
     Empty,
 }
 
-impl Display for Node {
+impl Display for NodeKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.display(f, 0)
     }
 }
 
-impl From<Const> for Node {
+impl From<Const> for NodeKind {
     fn from(c: Const) -> Self {
         Self::Const(c)
     }
 }
 
-impl Node {
+impl NodeKind {
     /// Returns a node ordering based on the hoistability of each node.
-    pub(crate) fn hoistable_order(a: &Node, b: &Node) -> Ordering {
+    pub(crate) fn hoistable_order(a: &NodeKind, b: &NodeKind) -> Ordering {
         match (a, b) {
-            (Node::FunctionDecl(_), Node::FunctionDecl(_)) => Ordering::Equal,
-            (_, Node::FunctionDecl(_)) => Ordering::Greater,
-            (Node::FunctionDecl(_), _) => Ordering::Less,
-
+            (NodeKind::FunctionDecl(_), NodeKind::FunctionDecl(_)) => Ordering::Equal,
+            (_, NodeKind::FunctionDecl(_)) => Ordering::Greater,
+            (NodeKind::FunctionDecl(_), _) => Ordering::Less,
             (_, _) => Ordering::Equal,
         }
+    }
+
+    /// Returns true if as per the [spec][spec] the node can be assigned a value.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
+    pub(crate) fn is_assignable(&self) -> bool {
+        matches!(
+            self,
+            Self::GetConstField(_)
+                | Self::GetField(_)
+                | Self::Assign(_)
+                | Self::Call(_)
+                | Self::Identifier(_)
+                | Self::Object(_)
+        )
     }
 
     /// Creates a `This` AST node.
@@ -305,63 +386,63 @@ impl Node {
     }
 }
 
-impl Executable for Node {
+impl Executable for NodeKind {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Executable", "exec");
         match *self {
-            Node::AsyncFunctionDecl(ref decl) => decl.run(context),
-            Node::AsyncFunctionExpr(ref function_expr) => function_expr.run(context),
-            Node::AwaitExpr(ref expr) => expr.run(context),
-            Node::Call(ref call) => call.run(context),
-            Node::Const(Const::Null) => Ok(Value::null()),
-            Node::Const(Const::Num(num)) => Ok(Value::rational(num)),
-            Node::Const(Const::Int(num)) => Ok(Value::integer(num)),
-            Node::Const(Const::BigInt(ref num)) => Ok(Value::from(num.clone())),
-            Node::Const(Const::Undefined) => Ok(Value::Undefined),
+            Self::AsyncFunctionDecl(ref decl) => decl.run(context),
+            Self::AsyncFunctionExpr(ref function_expr) => function_expr.run(context),
+            Self::AwaitExpr(ref expr) => expr.run(context),
+            Self::Call(ref call) => call.run(context),
+            Self::Const(Const::Null) => Ok(Value::null()),
+            Self::Const(Const::Num(num)) => Ok(Value::rational(num)),
+            Self::Const(Const::Int(num)) => Ok(Value::integer(num)),
+            Self::Const(Const::BigInt(ref num)) => Ok(Value::from(num.clone())),
+            Self::Const(Const::Undefined) => Ok(Value::Undefined),
             // we can't move String from Const into value, because const is a garbage collected value
             // Which means Drop() get's called on Const, but str will be gone at that point.
             // Do Const values need to be garbage collected? We no longer need them once we've generated Values
-            Node::Const(Const::String(ref value)) => Ok(Value::string(value.to_string())),
-            Node::Const(Const::Bool(value)) => Ok(Value::boolean(value)),
-            Node::Block(ref block) => block.run(context),
-            Node::Identifier(ref identifier) => identifier.run(context),
-            Node::GetConstField(ref get_const_field_node) => get_const_field_node.run(context),
-            Node::GetField(ref get_field) => get_field.run(context),
-            Node::WhileLoop(ref while_loop) => while_loop.run(context),
-            Node::DoWhileLoop(ref do_while) => do_while.run(context),
-            Node::ForLoop(ref for_loop) => for_loop.run(context),
-            Node::ForOfLoop(ref for_of_loop) => for_of_loop.run(context),
-            Node::ForInLoop(ref for_in_loop) => for_in_loop.run(context),
-            Node::If(ref if_smt) => if_smt.run(context),
-            Node::ConditionalOp(ref op) => op.run(context),
-            Node::Switch(ref switch) => switch.run(context),
-            Node::Object(ref obj) => obj.run(context),
-            Node::ArrayDecl(ref arr) => arr.run(context),
+            Self::Const(Const::String(ref value)) => Ok(Value::string(value.to_string())),
+            Self::Const(Const::Bool(value)) => Ok(Value::boolean(value)),
+            Self::Block(ref block) => block.run(context),
+            Self::Identifier(ref identifier) => identifier.run(context),
+            Self::GetConstField(ref get_const_field_node) => get_const_field_node.run(context),
+            Self::GetField(ref get_field) => get_field.run(context),
+            Self::WhileLoop(ref while_loop) => while_loop.run(context),
+            Self::DoWhileLoop(ref do_while) => do_while.run(context),
+            Self::ForLoop(ref for_loop) => for_loop.run(context),
+            Self::ForOfLoop(ref for_of_loop) => for_of_loop.run(context),
+            Self::ForInLoop(ref for_in_loop) => for_in_loop.run(context),
+            Self::If(ref if_smt) => if_smt.run(context),
+            Self::ConditionalOp(ref op) => op.run(context),
+            Self::Switch(ref switch) => switch.run(context),
+            Self::Object(ref obj) => obj.run(context),
+            Self::ArrayDecl(ref arr) => arr.run(context),
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>
-            Node::FunctionDecl(ref decl) => decl.run(context),
+            Self::FunctionDecl(ref decl) => decl.run(context),
             // <https://tc39.es/ecma262/#sec-createdynamicfunction>
-            Node::FunctionExpr(ref function_expr) => function_expr.run(context),
-            Node::ArrowFunctionDecl(ref decl) => decl.run(context),
-            Node::BinOp(ref op) => op.run(context),
-            Node::UnaryOp(ref op) => op.run(context),
-            Node::New(ref call) => call.run(context),
-            Node::Return(ref ret) => ret.run(context),
-            Node::TaggedTemplate(ref template) => template.run(context),
-            Node::TemplateLit(ref template) => template.run(context),
-            Node::Throw(ref throw) => throw.run(context),
-            Node::Assign(ref op) => op.run(context),
-            Node::VarDeclList(ref decl) => decl.run(context),
-            Node::LetDeclList(ref decl) => decl.run(context),
-            Node::ConstDeclList(ref decl) => decl.run(context),
-            Node::Spread(ref spread) => spread.run(context),
-            Node::This => {
+            Self::FunctionExpr(ref function_expr) => function_expr.run(context),
+            Self::ArrowFunctionDecl(ref decl) => decl.run(context),
+            Self::BinOp(ref op) => op.run(context),
+            Self::UnaryOp(ref op) => op.run(context),
+            Self::New(ref call) => call.run(context),
+            Self::Return(ref ret) => ret.run(context),
+            Self::TaggedTemplate(ref template) => template.run(context),
+            Self::TemplateLit(ref template) => template.run(context),
+            Self::Throw(ref throw) => throw.run(context),
+            Self::Assign(ref op) => op.run(context),
+            Self::VarDeclList(ref decl) => decl.run(context),
+            Self::LetDeclList(ref decl) => decl.run(context),
+            Self::ConstDeclList(ref decl) => decl.run(context),
+            Self::Spread(ref spread) => spread.run(context),
+            Self::This => {
                 // Will either return `this` binding or undefined
                 context.get_this_binding()
             }
-            Node::Try(ref try_node) => try_node.run(context),
-            Node::Break(ref break_node) => break_node.run(context),
-            Node::Continue(ref continue_node) => continue_node.run(context),
-            Node::Empty => Ok(Value::Undefined),
+            Self::Try(ref try_node) => try_node.run(context),
+            Self::Break(ref break_node) => break_node.run(context),
+            Self::Continue(ref continue_node) => continue_node.run(context),
+            Self::Empty => Ok(Value::Undefined),
         }
     }
 }

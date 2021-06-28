@@ -18,7 +18,7 @@ use crate::{
                 statement_list::RcStatementList, Call, FormalParameter, Identifier, New,
                 StatementList,
             },
-            Const, Node,
+            Const, Node, NodeKind, Span,
         },
         Parser,
     },
@@ -336,8 +336,8 @@ impl Context {
     {
         // Runs a `new RangeError(message)`.
         New::from(Call::new(
-            Identifier::from("RangeError"),
-            vec![Const::from(message.into()).into()],
+            Node::new(Identifier::from("RangeError"), Span::default()),
+            vec![Node::new(Const::from(message.into()), Span::default())],
         ))
         .run(self)
         .expect("Into<String> used as message")
@@ -360,8 +360,8 @@ impl Context {
     {
         // Runs a `new TypeError(message)`.
         New::from(Call::new(
-            Identifier::from("TypeError"),
-            vec![Const::from(message.into()).into()],
+            Node::new(Identifier::from("TypeError"), Span::default()),
+            vec![Node::new(Const::from(message.into()), Span::default())],
         ))
         .run(self)
         .expect("Into<String> used as message")
@@ -383,8 +383,8 @@ impl Context {
         M: Into<Box<str>>,
     {
         New::from(Call::new(
-            Identifier::from("ReferenceError"),
-            vec![Const::from(message.into()).into()],
+            Node::new(Identifier::from("ReferenceError"), Span::default()),
+            vec![Node::new(Const::from(message.into()), Span::default())],
         ))
         .run(self)
         .expect("Into<String> used as message")
@@ -406,8 +406,8 @@ impl Context {
         M: Into<Box<str>>,
     {
         New::from(Call::new(
-            Identifier::from("SyntaxError"),
-            vec![Const::from(message.into()).into()],
+            Node::new(Identifier::from("SyntaxError"), Span::default()),
+            vec![Node::new(Const::from(message.into()), Span::default())],
         ))
         .run(self)
         .expect("Into<String> used as message")
@@ -428,8 +428,8 @@ impl Context {
         M: Into<Box<str>>,
     {
         New::from(Call::new(
-            Identifier::from("EvalError"),
-            vec![Const::from(message.into()).into()],
+            Node::new(Identifier::from("EvalError"), Span::default()),
+            vec![Node::new(Const::from(message.into()), Span::default())],
         ))
         .run(self)
         .expect("Into<String> used as message")
@@ -441,8 +441,8 @@ impl Context {
         M: Into<Box<str>>,
     {
         New::from(Call::new(
-            Identifier::from("URIError"),
-            vec![Const::from(message.into()).into()],
+            Node::new(Identifier::from("URIError"), Span::default()),
+            vec![Node::new(Const::from(message.into()), Span::default())],
         ))
         .run(self)
         .expect("Into<String> used as message")
@@ -465,15 +465,14 @@ impl Context {
     }
 
     /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
-    pub(crate) fn create_function<P, B>(
+    pub(crate) fn create_function<P>(
         &mut self,
         params: P,
-        body: B,
+        body: StatementList,
         flags: FunctionFlags,
     ) -> Result<Value>
     where
         P: Into<Box<[FormalParameter]>>,
-        B: Into<StatementList>,
     {
         let function_prototype: Value =
             self.standard_objects().function_object().prototype().into();
@@ -485,7 +484,7 @@ impl Context {
         let params_len = params.len();
         let func = Function::Ordinary {
             flags,
-            body: RcStatementList::from(body.into()),
+            body: RcStatementList::from(body),
             params,
             environment: self.get_current_environment().clone(),
         };
@@ -549,12 +548,12 @@ impl Context {
 
     #[inline]
     pub(crate) fn set_value(&mut self, node: &Node, value: Value) -> Result<Value> {
-        match node {
-            Node::Identifier(ref name) => {
+        match node.kind() {
+            NodeKind::Identifier(ref name) => {
                 self.set_mutable_binding(name.as_ref(), value.clone(), true)?;
                 Ok(value)
             }
-            Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node
+            NodeKind::GetConstField(ref get_const_field_node) => Ok(get_const_field_node
                 .obj()
                 .run(self)?
                 .set_field(get_const_field_node.field(), value, false, self)?),

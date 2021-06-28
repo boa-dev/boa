@@ -40,7 +40,7 @@ use super::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser
 
 use crate::{
     syntax::{
-        ast::{node, Keyword, Node, Punctuator},
+        ast::{node, Keyword, Node, NodeKind, Punctuator, Span},
         lexer::{Error as LexError, InputElement, Position, TokenKind},
         parser::expression::await_expr::AwaitExpression,
     },
@@ -106,7 +106,7 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("Statement", "Parsing");
         // TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
         let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
@@ -114,37 +114,37 @@ where
         match tok.kind() {
             TokenKind::Keyword(Keyword::Await) => AwaitExpression::new(self.allow_yield)
                 .parse(cursor)
-                .map(Node::from),
+                .map(|(kind, span)| Node::new(kind, span)),
             TokenKind::Keyword(Keyword::If) => {
                 IfStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)
-                    .map(Node::from)
+                    .map(|(kind, span)| Node::new(kind, span))
             }
             TokenKind::Keyword(Keyword::Var) => {
                 VariableStatement::new(self.allow_yield, self.allow_await)
                     .parse(cursor)
-                    .map(Node::from)
+                    .map(|(kind, span)| Node::new(kind, span))
             }
             TokenKind::Keyword(Keyword::While) => {
                 WhileStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)
-                    .map(Node::from)
+                    .map(|(kind, span)| Node::new(kind, span))
             }
             TokenKind::Keyword(Keyword::Do) => {
                 DoWhileStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)
-                    .map(Node::from)
+                    .map(|(kind, span)| Node::new(kind, span))
             }
             TokenKind::Keyword(Keyword::For) => {
                 ForStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)
-                    .map(Node::from)
+                    .map(|(kind, span)| Node::new(kind, span))
             }
             TokenKind::Keyword(Keyword::Return) => {
                 if self.allow_return.0 {
                     ReturnStatement::new(self.allow_yield, self.allow_await)
                         .parse(cursor)
-                        .map(Node::from)
+                        .map(|(kind, span)| Node::new(kind, span))
                 } else {
                     Err(ParseError::unexpected(tok.clone(), "statement"))
                 }
@@ -152,37 +152,37 @@ where
             TokenKind::Keyword(Keyword::Break) => {
                 BreakStatement::new(self.allow_yield, self.allow_await)
                     .parse(cursor)
-                    .map(Node::from)
+                    .map(|(kind, span)| Node::new(kind, span))
             }
             TokenKind::Keyword(Keyword::Continue) => {
                 ContinueStatement::new(self.allow_yield, self.allow_await)
                     .parse(cursor)
-                    .map(Node::from)
+                    .map(|(kind, span)| Node::new(kind, span))
             }
             TokenKind::Keyword(Keyword::Try) => {
                 TryStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)
-                    .map(Node::from)
+                    .map(|(kind, span)| Node::new(kind, span))
             }
             TokenKind::Keyword(Keyword::Throw) => {
                 ThrowStatement::new(self.allow_yield, self.allow_await)
                     .parse(cursor)
-                    .map(Node::from)
+                    .map(|(kind, span)| Node::new(kind, span))
             }
             TokenKind::Keyword(Keyword::Switch) => {
                 SwitchStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)
-                    .map(Node::from)
+                    .map(|(kind, span)| Node::new(kind, span))
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
                 BlockStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor)
-                    .map(Node::from)
+                    .map(|(kind, span)| Node::new(kind, span))
             }
             TokenKind::Punctuator(Punctuator::Semicolon) => {
                 // parse the EmptyStatement
                 cursor.next().expect("semicolon disappeared");
-                Ok(Node::Empty)
+                Ok(Node::new(NodeKind::Empty, tok.span()))
             }
             TokenKind::Identifier(_) => {
                 // Labelled Statement check
@@ -200,7 +200,7 @@ where
                         self.allow_return,
                     )
                     .parse(cursor)
-                    .map(Node::from);
+                    .map(|(kind, span)| Node::new(kind, span));
                 }
 
                 ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor)
@@ -254,7 +254,7 @@ impl<R> TokenParser<R> for StatementList
 where
     R: Read,
 {
-    type Output = node::StatementList;
+    type Output = Option<node::StatementList>;
 
     /// The function parses a node::StatementList using the StatementList's
     /// break_nodes to know when to terminate.
@@ -297,9 +297,9 @@ where
             let mut var_declared_names: HashSet<&str> = HashSet::new();
 
             // TODO: Use more helpful positions in errors when spans are added to Nodes
-            for item in &items {
+            for item in items.iter().map(Node::kind) {
                 match item {
-                    Node::LetDeclList(decl_list) | Node::ConstDeclList(decl_list) => {
+                    NodeKind::LetDeclList(decl_list) | NodeKind::ConstDeclList(decl_list) => {
                         for decl in decl_list.as_ref() {
                             // if name in VarDeclaredNames or can't be added to
                             // LexicallyDeclaredNames, raise an error
@@ -316,7 +316,7 @@ where
                             }
                         }
                     }
-                    Node::VarDeclList(decl_list) => {
+                    NodeKind::VarDeclList(decl_list) => {
                         for decl in decl_list.as_ref() {
                             // if name in LexicallyDeclaredNames, raise an error
                             if lexically_declared_names.contains(decl.name()) {
@@ -339,7 +339,14 @@ where
 
         items.sort_by(Node::hoistable_order);
 
-        Ok(items.into())
+        if items.is_empty() {
+            Ok(None)
+        } else {
+            let start = items.first().expect("item disappeared").span().start();
+            let end = items.last().expect("item disappeared").span().end();
+
+            Ok(Some(node::StatementList::new(items, Span::new(start, end))))
+        }
     }
 }
 
@@ -449,7 +456,7 @@ impl<R> TokenParser<R> for BindingIdentifier
 where
     R: Read,
 {
-    type Output = Box<str>;
+    type Output = (Box<str>, Span);
 
     /// Strict mode parsing as per <https://tc39.es/ecma262/#sec-identifiers-static-semantics-early-errors>.
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
@@ -457,7 +464,7 @@ where
 
         let next_token = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
-        match next_token.kind() {
+        let ident = match next_token.kind() {
             TokenKind::Identifier(ref s) => Ok(s.clone()),
             TokenKind::Keyword(k @ Keyword::Yield) if !self.allow_yield.0 => {
                 if cursor.strict_mode() {
@@ -484,6 +491,8 @@ where
                 next_token,
                 "binding identifier",
             )),
-        }
+        }?;
+
+        Ok((ident, next_token.span()))
     }
 }

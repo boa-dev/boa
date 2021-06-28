@@ -4,7 +4,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor},
-    syntax::ast::node::{join_nodes, MethodDefinitionKind, Node, PropertyDefinition},
+    syntax::ast::node::{join_nodes, MethodDefinitionKind, NodeKind, PropertyDefinition},
     BoaProfiler, Context, Result, Value,
 };
 use std::fmt;
@@ -64,7 +64,7 @@ impl Object {
                 }
                 PropertyDefinition::Property(key, value) => {
                     write!(f, "{}{}: ", indentation, key,)?;
-                    value.display_no_indent(f, indent + 1)?;
+                    value.kind().display_no_indent(f, indent + 1)?;
                     writeln!(f, ",")?;
                 }
                 PropertyDefinition::SpreadObject(key) => {
@@ -190,7 +190,7 @@ where
     }
 }
 
-impl From<Object> for Node {
+impl From<Object> for NodeKind {
     fn from(obj: Object) -> Self {
         Self::Object(obj)
     }

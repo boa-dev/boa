@@ -13,8 +13,8 @@ mod tests;
 use crate::{
     syntax::{
         ast::{
-            node::{ArrayDecl, Node, Spread},
-            Const, Punctuator,
+            node::{ArrayDecl, Spread},
+            Const, Node, Punctuator, Span,
         },
         parser::{
             expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError,
@@ -58,28 +58,38 @@ impl<R> TokenParser<R> for ArrayLiteral
 where
     R: Read,
 {
-    type Output = ArrayDecl;
+    type Output = (ArrayDecl, Span);
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ArrayLiteral", "Parsing");
+
+        let span_start = cursor
+            .expect(Punctuator::OpenBracket, "array literal")?
+            .span()
+            .start();
+
         let mut elements = Vec::new();
 
-        loop {
+        let span_end = loop {
             // TODO: Support all features.
-            while cursor.next_if(Punctuator::Comma)?.is_some() {
-                elements.push(Node::Const(Const::Undefined));
+            while let Some(tok) = cursor.next_if(Punctuator::Comma)? {
+                elements.push(Node::new(Const::Undefined, tok.span()));
             }
 
-            if cursor.next_if(Punctuator::CloseBracket)?.is_some() {
-                break;
+            if let Some(tok) = cursor.next_if(Punctuator::CloseBracket)? {
+                break tok.span().end();
             }
 
             let _ = cursor.peek(0)?.ok_or(ParseError::AbruptEnd); // Check that there are more tokens to read.
 
-            if cursor.next_if(Punctuator::Spread)?.is_some() {
+            if let Some(tok) = cursor.next_if(Punctuator::Spread)? {
+                let span_start = tok.span().start();
                 let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
                     .parse(cursor)?;
-                elements.push(Spread::new(node).into());
+                elements.push(Node::new(
+                    Spread::new(node),
+                    Span::new(span_start, node.span().end()),
+                ));
             } else {
                 elements.push(
                     AssignmentExpression::new(true, self.allow_yield, self.allow_await)
@@ -87,8 +97,8 @@ where
                 );
             }
             cursor.next_if(Punctuator::Comma)?;
-        }
+        };
 
-        Ok(elements.into())
+        Ok((elements.into(), Span::new(span_start, span_end)))
     }
 }

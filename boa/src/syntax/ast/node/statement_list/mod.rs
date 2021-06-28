@@ -3,7 +3,7 @@
 use crate::{
     exec::{Executable, InterpreterState},
     gc::{empty_trace, Finalize, Trace},
-    syntax::ast::node::Node,
+    syntax::ast::{Node, NodeKind, Span},
     BoaProfiler, Context, Result, Value,
 };
 use std::{collections::HashSet, fmt, ops::Deref, rc::Rc};
@@ -25,14 +25,32 @@ use crate::vm::{compilation::CodeGen, Compiler};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct StatementList {
-    #[cfg_attr(feature = "deser", serde(flatten))]
     items: Box<[Node]>,
+    span: Span,
 }
 
 impl StatementList {
+    /// Creates a new statement list
+    pub(crate) fn new<N>(items: N, span: Span) -> Self
+    where
+        N: Into<Box<[Node]>>,
+    {
+        let items = items.into();
+        debug_assert_ne!(items.len(), 0, "empty statement list created");
+
+        Self { items, span }
+    }
+
     /// Gets the list of items.
+    #[inline]
     pub fn items(&self) -> &[Node] {
         &self.items
+    }
+
+    /// Gets the span of the statement list.
+    #[inline]
+    pub fn span(&self) -> Span {
+        self.span
     }
 
     /// Implements the display formatting with indentation.
@@ -42,13 +60,15 @@ impl StatementList {
         indentation: usize,
     ) -> fmt::Result {
         // Print statements
-        for node in self.items.iter() {
+        for node in self.items.iter().map(Node::kind) {
             // We rely on the node to add the correct indent.
             node.display(f, indentation)?;
 
-            match node {
-                Node::Block(_) | Node::If(_) | Node::Switch(_) | Node::WhileLoop(_) => {}
-                _ => write!(f, ";")?,
+            if !matches!(
+                node,
+                NodeKind::Block(_) | NodeKind::If(_) | NodeKind::Switch(_) | NodeKind::WhileLoop(_)
+            ) {
+                write!(f, ";")?
             }
             writeln!(f)?;
         }
@@ -58,7 +78,9 @@ impl StatementList {
     pub fn lexically_declared_names(&self) -> HashSet<&str> {
         let mut set = HashSet::new();
         for stmt in self.items() {
-            if let Node::LetDeclList(decl_list) | Node::ConstDeclList(decl_list) = stmt {
+            if let NodeKind::LetDeclList(decl_list) | NodeKind::ConstDeclList(decl_list) =
+                stmt.kind()
+            {
                 for decl in decl_list.as_ref() {
                     if !set.insert(decl.name()) {
                         // It is a Syntax Error if the LexicallyDeclaredNames of StatementList contains any duplicate entries.
@@ -72,19 +94,22 @@ impl StatementList {
     }
 
     pub fn function_declared_names(&self) -> HashSet<&str> {
-        let mut set = HashSet::new();
-        for stmt in self.items() {
-            if let Node::FunctionDecl(decl) = stmt {
-                set.insert(decl.name());
-            }
-        }
-        set
+        self.items
+            .iter()
+            .filter_map(|node| {
+                if let NodeKind::FunctionDecl(decl) = node.kind() {
+                    Some(decl.name())
+                } else {
+                    None
+                }
+            })
+            .collect::<HashSet<_>>()
     }
 
     pub fn var_declared_names(&self) -> HashSet<&str> {
         let mut set = HashSet::new();
         for stmt in self.items() {
-            if let Node::VarDeclList(decl_list) = stmt {
+            if let NodeKind::VarDeclList(decl_list) = stmt.kind() {
                 for decl in decl_list.as_ref() {
                     set.insert(decl.name());
                 }
@@ -142,15 +167,6 @@ impl CodeGen for StatementList {
         for item in self.items().iter() {
             item.compile(compiler);
         }
-    }
-}
-
-impl<T> From<T> for StatementList
-where
-    T: Into<Box<[Node]>>,
-{
-    fn from(stm: T) -> Self {
-        Self { items: stm.into() }
     }
 }
 

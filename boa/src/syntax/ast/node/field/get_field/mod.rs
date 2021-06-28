@@ -1,7 +1,7 @@
 use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
-    syntax::ast::node::Node,
+    syntax::ast::node::{Node, NodeKind},
     value::{Type, Value},
     Context, Result,
 };
@@ -79,7 +79,7 @@ impl fmt::Display for GetField {
     }
 }
 
-impl From<GetField> for Node {
+impl From<GetField> for NodeKind {
     fn from(get_field: GetField) -> Self {
         Self::GetField(get_field)
     }

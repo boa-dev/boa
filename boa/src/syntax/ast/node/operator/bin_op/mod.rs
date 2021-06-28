@@ -3,7 +3,7 @@ use crate::{
     gc::{Finalize, Trace},
     symbol::WellKnownSymbols,
     syntax::ast::{
-        node::Node,
+        node::{Node, NodeKind},
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
     },
     Context, Result, Value,
@@ -204,15 +204,15 @@ impl Executable for BinOp {
                     }
                 }
             }),
-            op::BinOp::Assign(op) => match self.lhs() {
-                Node::Identifier(ref name) => {
+            op::BinOp::Assign(op) => match self.lhs().kind() {
+                NodeKind::Identifier(ref name) => {
                     let v_a = context.get_binding_value(name.as_ref())?;
 
                     let value = Self::run_assign(op, v_a, self.rhs(), context)?;
                     context.set_mutable_binding(name.as_ref(), value.clone(), true)?;
                     Ok(value)
                 }
-                Node::GetConstField(ref get_const_field) => {
+                NodeKind::GetConstField(ref get_const_field) => {
                     let v_r_a = get_const_field.obj().run(context)?;
                     let v_a = v_r_a.get_field(get_const_field.field(), context)?;
                     let value = Self::run_assign(op, v_a, self.rhs(), context)?;
@@ -285,7 +285,7 @@ impl fmt::Display for BinOp {
     }
 }
 
-impl From<BinOp> for Node {
+impl From<BinOp> for NodeKind {
     fn from(op: BinOp) -> Self {
         Self::BinOp(op)
     }

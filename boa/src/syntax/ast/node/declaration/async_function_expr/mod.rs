@@ -2,7 +2,7 @@
 
 use crate::{
     exec::Executable,
-    syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
+    syntax::ast::node::{join_nodes, FormalParameter, Node, NodeKind, StatementList},
     Context, Result, Value,
 };
 use gc::{Finalize, Trace};
@@ -93,7 +93,7 @@ impl fmt::Display for AsyncFunctionExpr {
     }
 }
 
-impl From<AsyncFunctionExpr> for Node {
+impl From<AsyncFunctionExpr> for NodeKind {
     fn from(expr: AsyncFunctionExpr) -> Self {
         Self::AsyncFunctionExpr(expr)
     }

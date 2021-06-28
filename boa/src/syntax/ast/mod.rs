@@ -10,7 +10,7 @@ pub mod punctuator;
 pub use self::{
     constant::Const,
     keyword::Keyword,
-    node::Node,
+    node::{Node, NodeKind},
     position::{Position, Span},
     punctuator::Punctuator,
 };

@@ -3,7 +3,7 @@ use crate::{
     environment::lexical_environment::VariableScope,
     exec::Executable,
     gc::{Finalize, Trace},
-    syntax::ast::node::{join_nodes, Identifier, Node},
+    syntax::ast::node::{join_nodes, Identifier, Node, NodeKind},
     Context, Result, Value,
 };
 use std::fmt;
@@ -171,13 +171,13 @@ impl fmt::Display for DeclarationList {
     }
 }
 
-impl From<DeclarationList> for Node {
+impl From<DeclarationList> for NodeKind {
     fn from(list: DeclarationList) -> Self {
         use DeclarationList::*;
         match &list {
-            Let(_) => Node::LetDeclList(list),
-            Const(_) => Node::ConstDeclList(list),
-            Var(_) => Node::VarDeclList(list),
+            Let(_) => Self::LetDeclList(list),
+            Const(_) => Self::ConstDeclList(list),
+            Var(_) => Self::VarDeclList(list),
         }
     }
 }

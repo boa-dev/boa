@@ -3,7 +3,7 @@
 use crate::{
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
-    syntax::ast::node::Node,
+    syntax::ast::node::{Node, NodeKind},
     Context, Result, Value,
 };
 use std::fmt;
@@ -208,7 +208,7 @@ impl fmt::Display for Switch {
     }
 }
 
-impl From<Switch> for Node {
+impl From<Switch> for NodeKind {
     fn from(switch: Switch) -> Self {
         Self::Switch(switch)
     }

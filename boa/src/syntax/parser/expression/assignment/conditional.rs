@@ -10,7 +10,7 @@
 use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
-        ast::{node::ConditionalOp, Node, Punctuator},
+        ast::{node::ConditionalOp, Node, Punctuator, Span},
         parser::{
             expression::{AssignmentExpression, ShortCircuitExpression},
             AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
@@ -79,7 +79,12 @@ where
                 let else_clause =
                     AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
                         .parse(cursor)?;
-                return Ok(ConditionalOp::new(lhs, then_clause, else_clause).into());
+
+                let span = Span::new(lhs.span().start(), else_clause.span().end());
+                return Ok(Node::new(
+                    ConditionalOp::new(lhs, then_clause, else_clause),
+                    span,
+                ));
             }
         }
 

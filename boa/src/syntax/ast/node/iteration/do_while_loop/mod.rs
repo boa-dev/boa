@@ -1,7 +1,7 @@
 use crate::{
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
-    syntax::ast::node::Node,
+    syntax::ast::node::{Node, NodeKind},
     Context, Result, Value,
 };
 use std::fmt;
@@ -109,7 +109,7 @@ impl fmt::Display for DoWhileLoop {
     }
 }
 
-impl From<DoWhileLoop> for Node {
+impl From<DoWhileLoop> for NodeKind {
     fn from(do_while: DoWhileLoop) -> Self {
         Self::DoWhileLoop(do_while)
     }

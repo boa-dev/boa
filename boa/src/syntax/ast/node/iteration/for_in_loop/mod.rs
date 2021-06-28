@@ -6,7 +6,7 @@ use crate::{
     },
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
-    syntax::ast::node::Node,
+    syntax::ast::node::{Node, NodeKind},
     BoaProfiler, Context, Result, Value,
 };
 use std::fmt;
@@ -73,8 +73,8 @@ impl fmt::Display for ForInLoop {
     }
 }
 
-impl From<ForInLoop> for Node {
-    fn from(for_in: ForInLoop) -> Node {
+impl From<ForInLoop> for NodeKind {
+    fn from(for_in: ForInLoop) -> Self {
         Self::ForInLoop(for_in)
     }
 }
@@ -108,8 +108,8 @@ impl Executable for ForInLoop {
             }
             let next_result = iterator_result.value();
 
-            match self.variable() {
-                Node::Identifier(ref name) => {
+            match self.variable().kind() {
+                NodeKind::Identifier(ref name) => {
                     if context.has_binding(name.as_ref()) {
                         // Binding already exists
                         context.set_mutable_binding(name.as_ref(), next_result.clone(), true)?;
@@ -122,7 +122,7 @@ impl Executable for ForInLoop {
                         context.initialize_binding(name.as_ref(), next_result.clone())?;
                     }
                 }
-                Node::VarDeclList(ref list) => match list.as_ref() {
+                NodeKind::VarDeclList(ref list) => match list.as_ref() {
                     [var] => {
                         if var.init().is_some() {
                             return context.throw_syntax_error("a declaration in the head of a for-in loop can't have an initializer");
@@ -145,7 +145,7 @@ impl Executable for ForInLoop {
                         )
                     }
                 },
-                Node::LetDeclList(ref list) => match list.as_ref() {
+                NodeKind::LetDeclList(ref list) => match list.as_ref() {
                     [var] => {
                         if var.init().is_some() {
                             return context.throw_syntax_error("a declaration in the head of a for-in loop can't have an initializer");
@@ -164,7 +164,7 @@ impl Executable for ForInLoop {
                         )
                     }
                 },
-                Node::ConstDeclList(ref list) => match list.as_ref() {
+                NodeKind::ConstDeclList(ref list) => match list.as_ref() {
                     [var] => {
                         if var.init().is_some() {
                             return context.throw_syntax_error("a declaration in the head of a for-in loop can't have an initializer");
@@ -183,7 +183,7 @@ impl Executable for ForInLoop {
                         )
                     }
                 },
-                Node::Assign(_) => {
+                NodeKind::Assign(_) => {
                     return context.throw_syntax_error(
                         "a declaration in the head of a for-in loop can't have an initializer",
                     );

@@ -2,7 +2,7 @@ use crate::{
     builtins::function::FunctionFlags,
     exec::Executable,
     gc::{Finalize, Trace},
-    syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
+    syntax::ast::node::{join_nodes, FormalParameter, Node, NodeKind, StatementList},
     Context, Result, Value,
 };
 use std::fmt;
@@ -100,8 +100,8 @@ impl FunctionExpr {
 impl Executable for FunctionExpr {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let val = context.create_function(
-            self.parameters().to_vec(),
-            self.body().to_vec(),
+            self.parameters.clone(),
+            self.body.clone(),
             FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
         )?;
 
@@ -119,7 +119,7 @@ impl fmt::Display for FunctionExpr {
     }
 }
 
-impl From<FunctionExpr> for Node {
+impl From<FunctionExpr> for NodeKind {
     fn from(expr: FunctionExpr) -> Self {
         Self::FunctionExpr(expr)
     }

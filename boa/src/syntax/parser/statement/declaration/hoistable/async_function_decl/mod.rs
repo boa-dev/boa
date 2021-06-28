@@ -2,7 +2,7 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node::AsyncFunctionDecl, Keyword, Punctuator},
+    ast::{node::AsyncFunctionDecl, Keyword, Punctuator, Span},
     lexer::TokenKind,
     parser::{
         function::FormalParameters,
@@ -48,10 +48,10 @@ impl<R> TokenParser<R> for AsyncFunctionDeclaration
 where
     R: Read,
 {
-    type Output = AsyncFunctionDecl;
+    type Output = (AsyncFunctionDecl, Span);
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        cursor.expect(Keyword::Async, "async function declaration")?;
+        let start_token = cursor.expect(Keyword::Async, "async function declaration")?;
         cursor.peek_expect_no_lineterminator(0, "async function declaration")?;
         cursor.expect(Keyword::Function, "async function declaration")?;
         let tok = cursor.peek(0)?;
@@ -84,7 +84,7 @@ where
 
         let body = FunctionBody::new(false, true).parse(cursor)?;
 
-        cursor.expect(Punctuator::CloseBlock, "async function declaration")?;
+        let end_token = cursor.expect(Punctuator::CloseBlock, "async function declaration")?;
 
         // It is a Syntax Error if any element of the BoundNames of FormalParameters
         // also occurs in the LexicallyDeclaredNames of FunctionBody.
@@ -104,6 +104,8 @@ where
             }
         }
 
-        Ok(AsyncFunctionDecl::new(name, params, body))
+        let span = Span::new(start_token.span().start(), end_token.span().end());
+
+        Ok((AsyncFunctionDecl::new(name, params, body), span))
     }
 }

@@ -8,10 +8,12 @@ mod statement;
 #[cfg(test)]
 mod tests;
 
+use self::cursor::Cursor;
 pub use self::error::{ParseError, ParseResult};
-use crate::syntax::{ast::node::StatementList, lexer::TokenKind};
-
-use cursor::Cursor;
+use crate::syntax::{
+    ast::{node::StatementList, Position},
+    lexer::TokenKind,
+};
 
 use std::io::Read;
 
@@ -132,7 +134,7 @@ where
                 }
                 ScriptBody.parse(cursor)
             }
-            None => Ok(StatementList::from(Vec::new())),
+            None => Ok(StatementList::new(Vec::new(), Position::new(0, 0).into())),
         }
     }
 }

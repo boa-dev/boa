@@ -1,7 +1,7 @@
 use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
-    syntax::ast::node::Node,
+    syntax::ast::node::{Node, NodeKind},
     Context, Result, Value,
 };
 use std::fmt;
@@ -61,8 +61,8 @@ impl fmt::Display for Throw {
     }
 }
 
-impl From<Throw> for Node {
-    fn from(trw: Throw) -> Node {
+impl From<Throw> for NodeKind {
+    fn from(trw: Throw) -> Self {
         Self::Throw(trw)
     }
 }

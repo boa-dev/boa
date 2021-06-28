@@ -1,7 +1,10 @@
 use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
-    syntax::ast::{node::Node, op},
+    syntax::ast::{
+        node::{Node, NodeKind},
+        op,
+    },
     Context, Result, Value,
 };
 use std::fmt;
@@ -94,15 +97,15 @@ impl Executable for UnaryOp {
                 self.target().run(context)?;
                 Value::undefined()
             }
-            op::UnaryOp::Delete => match *self.target() {
-                Node::GetConstField(ref get_const_field) => Value::boolean(
+            op::UnaryOp::Delete => match self.target().kind() {
+                NodeKind::GetConstField(ref get_const_field) => Value::boolean(
                     get_const_field
                         .obj()
                         .run(context)?
                         .to_object(context)?
                         .delete(&get_const_field.field().into()),
                 ),
-                Node::GetField(ref get_field) => {
+                NodeKind::GetField(ref get_field) => {
                     let obj = get_field.obj().run(context)?;
                     let field = &get_field.field().run(context)?;
                     let res = obj
@@ -110,15 +113,15 @@ impl Executable for UnaryOp {
                         .delete(&field.to_property_key(context)?);
                     return Ok(Value::boolean(res));
                 }
-                Node::Identifier(_) => Value::boolean(false),
-                Node::ArrayDecl(_)
-                | Node::Block(_)
-                | Node::Const(_)
-                | Node::FunctionDecl(_)
-                | Node::FunctionExpr(_)
-                | Node::New(_)
-                | Node::Object(_)
-                | Node::UnaryOp(_) => Value::boolean(true),
+                NodeKind::Identifier(_) => Value::boolean(false),
+                NodeKind::ArrayDecl(_)
+                | NodeKind::Block(_)
+                | NodeKind::Const(_)
+                | NodeKind::FunctionDecl(_)
+                | NodeKind::FunctionExpr(_)
+                | NodeKind::New(_)
+                | NodeKind::Object(_)
+                | NodeKind::UnaryOp(_) => Value::boolean(true),
                 _ => return context.throw_syntax_error(format!("wrong delete argument {}", self)),
             },
             op::UnaryOp::TypeOf => Value::from(self.target().run(context)?.get_type().as_str()),
@@ -132,7 +135,7 @@ impl fmt::Display for UnaryOp {
     }
 }
 
-impl From<UnaryOp> for Node {
+impl From<UnaryOp> for NodeKind {
     fn from(op: UnaryOp) -> Self {
         Self::UnaryOp(op)
     }

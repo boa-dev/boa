@@ -1,7 +1,7 @@
 use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
-    syntax::ast::node::Node,
+    syntax::ast::node::{Node, NodeKind},
     Context, Result, Value,
 };
 use std::fmt;
@@ -64,8 +64,8 @@ impl fmt::Display for Spread {
     }
 }
 
-impl From<Spread> for Node {
-    fn from(spread: Spread) -> Node {
+impl From<Spread> for NodeKind {
+    fn from(spread: Spread) -> Self {
         Self::Spread(spread)
     }
 }

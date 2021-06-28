@@ -11,9 +11,9 @@ use crate::{
         ast::{
             node::{
                 field::{GetConstField, GetField},
-                Call, New, Node,
+                Call, New,
             },
-            Keyword, Punctuator,
+            Keyword, Node, Punctuator, Span,
         },
         lexer::TokenKind,
         parser::{
@@ -67,28 +67,40 @@ where
         let mut lhs = if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
             == &TokenKind::Keyword(Keyword::New)
         {
-            let _ = cursor.next().expect("new keyword disappeared");
+            let start_span = cursor
+                .next()?
+                .expect("new keyword disappeared")
+                .span()
+                .start();
             let lhs = self.parse(cursor)?;
-            let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            let (args, args_span) =
+                Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
             let call_node = Call::new(lhs, args);
 
-            Node::from(New::from(call_node))
+            let span = Span::new(start_span, args_span.end());
+            Node::new(New::from(call_node), span)
         } else {
             PrimaryExpression::new(self.allow_yield, self.allow_await).parse(cursor)?
         };
         while let Some(tok) = cursor.peek(0)? {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Dot) => {
-                    cursor.next()?.expect("dot punctuator token disappeared"); // We move the parser forward.
+                    let span_start = cursor
+                        .next()?
+                        .expect("dot punctuator token disappeared")
+                        .span()
+                        .start(); // We move the parser forward.
 
                     let token = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
+                    let span = Span::new(span_start, token.span().end());
+
                     match token.kind() {
                         TokenKind::Identifier(name) => {
-                            lhs = GetConstField::new(lhs, name.clone()).into()
+                            lhs = Node::new(GetConstField::new(lhs, name.clone()), span);
                         }
                         TokenKind::Keyword(kw) => {
-                            lhs = GetConstField::new(lhs, kw.to_string()).into()
+                            lhs = Node::new(GetConstField::new(lhs, kw.to_string()), span);
                         }
                         _ => {
                             return Err(ParseError::expected(
@@ -100,13 +112,20 @@ where
                     }
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                    cursor
+                    let span_start = cursor
                         .next()?
-                        .expect("open bracket punctuator token disappeared"); // We move the parser forward.
+                        .expect("open bracket punctuator token disappeared")
+                        .span()
+                        .start(); // We move the parser forward.
+
                     let idx =
                         Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
-                    cursor.expect(Punctuator::CloseBracket, "member expression")?;
-                    lhs = GetField::new(lhs, idx).into();
+                    let span_end = cursor
+                        .expect(Punctuator::CloseBracket, "member expression")?
+                        .span()
+                        .end();
+
+                    lhs = Node::new(GetField::new(lhs, idx), Span::new(span_start, span_end));
                 }
                 TokenKind::TemplateNoSubstitution { .. } | TokenKind::TemplateMiddle { .. } => {
                     lhs = TaggedTemplateLiteral::new(

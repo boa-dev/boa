@@ -65,16 +65,18 @@ where
         let _timer = BoaProfiler::global().start_event("HoistableDeclaration", "Parsing");
         let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
+        let start = tok.span().start();
+
         match tok.kind() {
             TokenKind::Keyword(Keyword::Function) => {
                 FunctionDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
                     .parse(cursor)
-                    .map(Node::from)
+                    .map(|(kind, span)| Node::new(kind, span))
             }
             TokenKind::Keyword(Keyword::Async) => {
                 AsyncFunctionDeclaration::new(self.allow_yield, self.allow_await, false)
                     .parse(cursor)
-                    .map(Node::from)
+                    .map(|(kind, span)| Node::new(kind, span))
             }
             _ => unreachable!("unknown token found: {:?}", tok),
         }

@@ -2,7 +2,7 @@ use crate::{
     environment::declarative_environment_record::DeclarativeEnvironmentRecord,
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
-    syntax::ast::node::Node,
+    syntax::ast::node::{Node, NodeKind},
     BoaProfiler, Context, Result, Value,
 };
 use std::fmt;
@@ -155,7 +155,7 @@ impl fmt::Display for ForLoop {
     }
 }
 
-impl From<ForLoop> for Node {
+impl From<ForLoop> for NodeKind {
     fn from(for_loop: ForLoop) -> Self {
         Self::ForLoop(for_loop)
     }

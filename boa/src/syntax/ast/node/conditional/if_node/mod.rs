@@ -1,7 +1,7 @@
 use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
-    syntax::ast::node::Node,
+    syntax::ast::node::{Node, NodeKind},
     Context, Result, Value,
 };
 use std::fmt;
@@ -96,8 +96,8 @@ impl fmt::Display for If {
     }
 }
 
-impl From<If> for Node {
-    fn from(if_stm: If) -> Node {
+impl From<If> for NodeKind {
+    fn from(if_stm: If) -> Self {
         Self::If(if_stm)
     }
 }

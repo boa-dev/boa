@@ -16,7 +16,7 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     profiler::BoaProfiler,
     syntax::{
-        ast::{node, Punctuator},
+        ast::{node, Punctuator, Span},
         parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
     },
 };
@@ -73,11 +73,17 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Block", "Parsing");
-        cursor.expect(Punctuator::OpenBlock, "block")?;
+
+        let start_token = cursor.expect(Punctuator::OpenBlock, "block")?;
         if let Some(tk) = cursor.peek(0)? {
             if tk.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) {
                 cursor.next()?.expect("} token vanished");
-                return Ok(node::Block::from(vec![]));
+
+                let span = Span::new(start_token.span().start(), tk.span().end());
+                return Ok(node::Block::from(node::StatementList::new(
+                    Vec::new(),
+                    span,
+                )));
             }
         }
 

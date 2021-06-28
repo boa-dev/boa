@@ -1,7 +1,7 @@
 use crate::{
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
-    syntax::ast::node::Node,
+    syntax::ast::node::{Node, NodeKind},
     Context, Result, Value,
 };
 use std::fmt;
@@ -104,7 +104,7 @@ impl fmt::Display for WhileLoop {
     }
 }
 
-impl From<WhileLoop> for Node {
+impl From<WhileLoop> for NodeKind {
     fn from(while_loop: WhileLoop) -> Self {
         Self::WhileLoop(while_loop)
     }

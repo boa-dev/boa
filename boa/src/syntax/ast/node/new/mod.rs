@@ -2,7 +2,7 @@ use crate::{
     builtins::iterable,
     exec::Executable,
     gc::{Finalize, Trace},
-    syntax::ast::node::{Call, Node},
+    syntax::ast::node::{Call, Node, NodeKind},
     value::Value,
     BoaProfiler, Context, Result,
 };
@@ -54,7 +54,7 @@ impl Executable for New {
         let func_object = self.expr().run(context)?;
         let mut v_args = Vec::with_capacity(self.args().len());
         for arg in self.args() {
-            if let Node::Spread(ref x) = arg {
+            if let NodeKind::Spread(ref x) = arg.kind() {
                 let val = x.run(context)?;
                 let iterator_record = iterable::get_iterator(context, val)?;
                 loop {
@@ -91,7 +91,7 @@ impl fmt::Display for New {
     }
 }
 
-impl From<New> for Node {
+impl From<New> for NodeKind {
     fn from(new: New) -> Self {
         Self::New(new)
     }

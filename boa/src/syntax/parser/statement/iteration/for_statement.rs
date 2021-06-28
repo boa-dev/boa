@@ -78,7 +78,7 @@ where
                 Some(
                     VariableDeclarationList::new(false, self.allow_yield, self.allow_await)
                         .parse(cursor)
-                        .map(Node::from)?,
+                        .map(|(kind, span)| Node::new(kind, span))?,
                 )
             }
             TokenKind::Keyword(Keyword::Let) | TokenKind::Keyword(Keyword::Const) => {

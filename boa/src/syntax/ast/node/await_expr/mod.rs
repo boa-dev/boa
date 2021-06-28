@@ -1,6 +1,6 @@
 //! Await expression node.
 
-use super::Node;
+use super::{Node, NodeKind};
 use crate::{exec::Executable, BoaProfiler, Context, Result, Value};
 use gc::{Finalize, Trace};
 use std::fmt;
@@ -50,7 +50,7 @@ impl fmt::Display for AwaitExpr {
     }
 }
 
-impl From<AwaitExpr> for Node {
+impl From<AwaitExpr> for NodeKind {
     fn from(awaitexpr: AwaitExpr) -> Self {
         Self::AwaitExpr(awaitexpr)
     }

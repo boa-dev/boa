@@ -1,8 +1,13 @@
 //! Template literal node.
 
-use super::Node;
-use crate::{builtins::Array, exec::Executable, value::Type, BoaProfiler, Context, Result, Value};
-use gc::{Finalize, Trace};
+use super::{Node, NodeKind};
+use crate::{
+    builtins::Array,
+    exec::Executable,
+    gc::{Finalize, Trace},
+    value::Type,
+    BoaProfiler, Context, Result, Value,
+};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -64,6 +69,14 @@ impl fmt::Display for TemplateLit {
         write!(f, "`")
     }
 }
+
+impl From<TemplateLit> for NodeKind {
+    #[inline]
+    fn from(templ: TemplateLit) -> Self {
+        Self::TemplateLit(templ)
+    }
+}
+
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct TaggedTemplate {
@@ -109,8 +122,8 @@ impl Executable for TaggedTemplate {
         }
         template_object.set_field("raw", raw_array, false, context)?;
 
-        let (this, func) = match *self.tag {
-            Node::GetConstField(ref get_const_field) => {
+        let (this, func) = match self.tag.kind() {
+            NodeKind::GetConstField(ref get_const_field) => {
                 let mut obj = get_const_field.obj().run(context)?;
                 if obj.get_type() != Type::Object {
                     obj = Value::Object(obj.to_object(context)?);
@@ -120,7 +133,7 @@ impl Executable for TaggedTemplate {
                     obj.get_field(get_const_field.field(), context)?,
                 )
             }
-            Node::GetField(ref get_field) => {
+            NodeKind::GetField(ref get_field) => {
                 let obj = get_field.obj().run(context)?;
                 let field = get_field.field().run(context)?;
                 (
@@ -150,9 +163,9 @@ impl fmt::Display for TaggedTemplate {
     }
 }
 
-impl From<TaggedTemplate> for Node {
+impl From<TaggedTemplate> for NodeKind {
     fn from(template: TaggedTemplate) -> Self {
-        Node::TaggedTemplate(template)
+        Self::TaggedTemplate(template)
     }
 }
 

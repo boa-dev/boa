@@ -16,8 +16,8 @@ use crate::syntax::lexer::{Error as LexError, InputElement, TokenKind};
 use crate::{
     syntax::{
         ast::{
-            node::{Assign, BinOp, Node},
-            Keyword, Punctuator,
+            node::{Assign, BinOp, Node, NodeKind},
+            Keyword, Punctuator, Span,
         },
         parser::{AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
     },
@@ -90,13 +90,11 @@ where
             | TokenKind::Keyword(Keyword::Await) => {
                 if let Ok(tok) = cursor.peek_expect_no_lineterminator(1, "assignment expression") {
                     if tok.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
-                        return ArrowFunction::new(
-                            self.allow_in,
-                            self.allow_yield,
-                            self.allow_await,
-                        )
-                        .parse(cursor)
-                        .map(Node::ArrowFunctionDecl);
+                        let (decl, span) =
+                            ArrowFunction::new(self.allow_in, self.allow_yield, self.allow_await)
+                                .parse(cursor)?;
+
+                        return Ok(Node::new(NodeKind::ArrowFunctionDecl(decl), span));
                     }
                 }
             }
@@ -110,37 +108,43 @@ where
                             // otherwise it is an expression of the form (b).
                             if let Some(t) = cursor.peek(2)? {
                                 if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
-                                    return ArrowFunction::new(
+                                    let (decl, span) = ArrowFunction::new(
                                         self.allow_in,
                                         self.allow_yield,
                                         self.allow_await,
                                     )
-                                    .parse(cursor)
-                                    .map(Node::ArrowFunctionDecl);
+                                    .parse(cursor)?;
+
+                                    return Ok(Node::new(NodeKind::ArrowFunctionDecl(decl), span));
                                 }
                             }
                         }
                         TokenKind::Punctuator(Punctuator::Spread) => {
-                            return ArrowFunction::new(
+                            let (decl, span) = ArrowFunction::new(
                                 self.allow_in,
                                 self.allow_yield,
                                 self.allow_await,
                             )
-                            .parse(cursor)
-                            .map(Node::ArrowFunctionDecl);
+                            .parse(cursor)?;
+
+                            return Ok(Node::new(NodeKind::ArrowFunctionDecl(decl), span));
                         }
                         TokenKind::Identifier(_) => {
                             if let Some(t) = cursor.peek(2)? {
                                 match *t.kind() {
                                     TokenKind::Punctuator(Punctuator::Comma) => {
                                         // This must be an argument list and therefore (a, b) => {}
-                                        return ArrowFunction::new(
+                                        let (decl, span) = ArrowFunction::new(
                                             self.allow_in,
                                             self.allow_yield,
                                             self.allow_await,
                                         )
-                                        .parse(cursor)
-                                        .map(Node::ArrowFunctionDecl);
+                                        .parse(cursor)?;
+
+                                        return Ok(Node::new(
+                                            NodeKind::ArrowFunctionDecl(decl),
+                                            span,
+                                        ));
                                     }
                                     TokenKind::Punctuator(Punctuator::CloseParen) => {
                                         // Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction
@@ -148,13 +152,17 @@ where
                                         if let Some(t) = cursor.peek(3)? {
                                             if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow)
                                             {
-                                                return ArrowFunction::new(
+                                                let (decl, span) = ArrowFunction::new(
                                                     self.allow_in,
                                                     self.allow_yield,
                                                     self.allow_await,
                                                 )
-                                                .parse(cursor)
-                                                .map(Node::ArrowFunctionDecl);
+                                                .parse(cursor)?;
+
+                                                return Ok(Node::new(
+                                                    NodeKind::ArrowFunctionDecl(decl),
+                                                    span,
+                                                ));
                                             }
                                         }
                                     }
@@ -181,8 +189,11 @@ where
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {
                     cursor.next()?.expect("= token vanished"); // Consume the token.
-                    if is_assignable(&lhs) {
-                        lhs = Assign::new(lhs, self.parse(cursor)?).into();
+                    if lhs.kind().is_assignable() {
+                        let expr = self.parse(cursor)?;
+                        let span = Span::new(lhs.span().start(), expr.span().end());
+
+                        lhs = Node::new(Assign::new(lhs, expr), span);
                     } else {
                         return Err(ParseError::lex(LexError::Syntax(
                             "Invalid left-hand side in assignment".into(),
@@ -192,11 +203,13 @@ where
                 }
                 TokenKind::Punctuator(p) if p.as_binop().is_some() && p != &Punctuator::Comma => {
                     cursor.next()?.expect("token vanished"); // Consume the token.
-                    if is_assignable(&lhs) {
+                    if lhs.kind().is_assignable() {
                         let binop = p.as_binop().expect("binop disappeared");
                         let expr = self.parse(cursor)?;
 
-                        lhs = BinOp::new(binop, lhs, expr).into();
+                        let span = Span::new(lhs.span().start(), expr.span().end());
+
+                        lhs = Node::new(BinOp::new(binop, lhs, expr), span);
                     } else {
                         return Err(ParseError::lex(LexError::Syntax(
                             "Invalid left-hand side in assignment".into(),
@@ -210,20 +223,4 @@ where
 
         Ok(lhs)
     }
-}
-
-/// Returns true if as per spec[spec] the node can be assigned a value.
-///
-/// [spec]: https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
-#[inline]
-pub(crate) fn is_assignable(node: &Node) -> bool {
-    matches!(
-        node,
-        Node::GetConstField(_)
-            | Node::GetField(_)
-            | Node::Assign(_)
-            | Node::Call(_)
-            | Node::Identifier(_)
-            | Node::Object(_)
-    )
 }

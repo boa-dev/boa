@@ -1,7 +1,7 @@
 use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
-    syntax::ast::node::Node,
+    syntax::ast::node::{Node, NodeKind},
     Context, Result, Value,
 };
 use std::fmt;
@@ -81,8 +81,8 @@ impl fmt::Display for ConditionalOp {
     }
 }
 
-impl From<ConditionalOp> for Node {
-    fn from(cond_op: ConditionalOp) -> Node {
+impl From<ConditionalOp> for NodeKind {
+    fn from(cond_op: ConditionalOp) -> Self {
         Self::ConditionalOp(cond_op)
     }
 }

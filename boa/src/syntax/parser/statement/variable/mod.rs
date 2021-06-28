@@ -4,7 +4,7 @@ use crate::{
     syntax::{
         ast::{
             node::{Declaration, DeclarationList},
-            Keyword, Punctuator,
+            Keyword, Punctuator, Span,
         },
         lexer::TokenKind,
         parser::{
@@ -52,18 +52,25 @@ impl<R> TokenParser<R> for VariableStatement
 where
     R: Read,
 {
-    type Output = DeclarationList;
+    type Output = (DeclarationList, Span);
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("VariableStatement", "Parsing");
-        cursor.expect(Keyword::Var, "variable statement")?;
 
-        let decl_list =
+        let start_token = cursor.expect(Keyword::Var, "variable statement")?;
+
+        let (decl_list, list_span) =
             VariableDeclarationList::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect_semicolon("variable statement")?;
+        let end_token = cursor.expect_semicolon("variable statement")?;
+        let end_pos = if let Some(tk) = end_token {
+            tk.span().end()
+        } else {
+            list_span.end()
+        };
+        let span = Span::new(start_token.span().start(), end_pos);
 
-        Ok(decl_list)
+        Ok((decl_list, span))
     }
 }
 
@@ -106,16 +113,21 @@ impl<R> TokenParser<R> for VariableDeclarationList
 where
     R: Read,
 {
-    type Output = DeclarationList;
+    type Output = (DeclarationList, Span);
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let mut list = Vec::new();
+        let mut start_pos = None;
+        let mut end_pos = None;
 
         loop {
-            list.push(
+            let (decl, span) =
                 VariableDeclaration::new(self.allow_in, self.allow_yield, self.allow_await)
-                    .parse(cursor)?,
-            );
+                    .parse(cursor)?;
+            list.push(decl);
+
+            start_pos.get_or_insert(span.start());
+            end_pos.replace(span.end());
 
             match cursor.peek_semicolon()? {
                 SemicolonResult::NotFound(tk)
@@ -127,7 +139,12 @@ where
             }
         }
 
-        Ok(DeclarationList::Var(list.into()))
+        let span = Span::new(
+            start_pos.expect("no starting position"),
+            end_pos.expect("no ending position"),
+        );
+
+        Ok((DeclarationList::Var(list.into()), span))
     }
 }
 
@@ -164,16 +181,22 @@ impl<R> TokenParser<R> for VariableDeclaration
 where
     R: Read,
 {
-    type Output = Declaration;
+    type Output = (Declaration, Span);
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         // TODO: BindingPattern
 
-        let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let (name, span) =
+            BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let span_start = span.start();
+        let mut span_end = span.end();
 
         let init = if let Some(t) = cursor.peek(0)? {
             if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
+                let init =
+                    Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                span_end = init.span().end();
+                Some(init)
             } else {
                 None
             }
@@ -181,6 +204,9 @@ where
             None
         };
 
-        Ok(Declaration::new(name, init))
+        Ok((
+            Declaration::new(name, init),
+            Span::new(span_start, span_end),
+        ))
     }
 }

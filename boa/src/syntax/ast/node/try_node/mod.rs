@@ -5,7 +5,7 @@ use crate::{
     },
     exec::Executable,
     gc::{Finalize, Trace},
-    syntax::ast::node::{Block, Identifier, Node},
+    syntax::ast::node::{Block, Identifier, NodeKind},
     BoaProfiler, Context, Result, Value,
 };
 use std::fmt;
@@ -141,7 +141,7 @@ impl fmt::Display for Try {
     }
 }
 
-impl From<Try> for Node {
+impl From<Try> for NodeKind {
     fn from(try_catch: Try) -> Self {
         Self::Try(try_catch)
     }

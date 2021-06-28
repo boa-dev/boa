@@ -3,7 +3,7 @@ use crate::{
     environment::lexical_environment::VariableScope,
     exec::Executable,
     gc::{Finalize, Trace},
-    syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
+    syntax::ast::node::{join_nodes, FormalParameter, Node, NodeKind, StatementList},
     BoaProfiler, Context, Result, Value,
 };
 use std::fmt;
@@ -89,8 +89,8 @@ impl Executable for FunctionDecl {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("FunctionDecl", "exec");
         let val = context.create_function(
-            self.parameters().to_vec(),
-            self.body().to_vec(),
+            self.parameters.clone(),
+            self.body.clone(),
             FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
         )?;
 
@@ -112,7 +112,7 @@ impl Executable for FunctionDecl {
     }
 }
 
-impl From<FunctionDecl> for Node {
+impl From<FunctionDecl> for NodeKind {
     fn from(decl: FunctionDecl) -> Self {
         Self::FunctionDecl(decl)
     }

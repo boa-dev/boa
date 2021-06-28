@@ -12,7 +12,7 @@ use crate::{
     syntax::{
         ast::{
             node::{ArrowFunctionDecl, FormalParameter, Node, Return, StatementList},
-            Punctuator,
+            Punctuator, Span,
         },
         lexer::{Error as LexError, Position, TokenKind},
         parser::{
@@ -66,11 +66,13 @@ impl<R> TokenParser<R> for ArrowFunction
 where
     R: Read,
 {
-    type Output = ArrowFunctionDecl;
+    type Output = (ArrowFunctionDecl, Span);
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ArrowFunction", "Parsing");
+
         let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+        let span_start = next_token.span().start();
 
         let params = if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token.kind() {
             // CoverParenthesizedExpressionAndArrowParameterList
@@ -80,7 +82,7 @@ where
             cursor.expect(Punctuator::CloseParen, "arrow function")?;
             params
         } else {
-            let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
+            let (param, _span) = BindingIdentifier::new(self.allow_yield, self.allow_await)
                 .parse(cursor)
                 .context("arrow function")?;
             Box::new([FormalParameter::new(param, None, false)])
@@ -109,7 +111,9 @@ where
             }
         }
 
-        Ok(ArrowFunctionDecl::new(params, body))
+        let span = Span::new(span_start, body.span().end());
+
+        Ok((ArrowFunctionDecl::new(params, body), span))
     }
 }
 
@@ -138,18 +142,22 @@ where
     type Output = StatementList;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
+        let next = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+        match next.kind() {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
                 let _ = cursor.next();
                 let body = FunctionBody::new(false, false).parse(cursor)?;
                 cursor.expect(Punctuator::CloseBlock, "arrow function")?;
                 Ok(body)
             }
-            _ => Ok(StatementList::from(vec![Return::new(
-                ExpressionBody::new(self.allow_in, false).parse(cursor)?,
-                None,
-            )
-            .into()])),
+            _ => {
+                let expr = ExpressionBody::new(self.allow_in, false).parse(cursor)?;
+
+                Ok(StatementList::new(
+                    vec![Node::new(Return::new(expr, None), expr.span())],
+                    expr.span(),
+                ))
+            }
         }
     }
 }

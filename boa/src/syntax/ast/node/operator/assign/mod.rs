@@ -2,7 +2,7 @@ use crate::{
     environment::lexical_environment::VariableScope,
     exec::Executable,
     gc::{Finalize, Trace},
-    syntax::ast::node::Node,
+    syntax::ast::node::{Node, NodeKind},
     BoaProfiler, Context, Result, Value,
 };
 use std::fmt;
@@ -56,8 +56,8 @@ impl Executable for Assign {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("Assign", "exec");
         let val = self.rhs().run(context)?;
-        match self.lhs() {
-            Node::Identifier(ref name) => {
+        match self.lhs().kind() {
+            NodeKind::Identifier(ref name) => {
                 if context.has_binding(name.as_ref()) {
                     // Binding already exists
                     context.set_mutable_binding(name.as_ref(), val.clone(), true)?;
@@ -70,11 +70,11 @@ impl Executable for Assign {
                     context.initialize_binding(name.as_ref(), val.clone())?;
                 }
             }
-            Node::GetConstField(ref get_const_field) => {
+            NodeKind::GetConstField(ref get_const_field) => {
                 let val_obj = get_const_field.obj().run(context)?;
                 val_obj.set_field(get_const_field.field(), val.clone(), false, context)?;
             }
-            Node::GetField(ref get_field) => {
+            NodeKind::GetField(ref get_field) => {
                 let object = get_field.obj().run(context)?;
                 let field = get_field.field().run(context)?;
                 let key = field.to_property_key(context)?;
@@ -92,7 +92,7 @@ impl fmt::Display for Assign {
     }
 }
 
-impl From<Assign> for Node {
+impl From<Assign> for NodeKind {
     fn from(op: Assign) -> Self {
         Self::Assign(op)
     }
