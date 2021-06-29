@@ -182,20 +182,16 @@ impl RegExp {
             .set_prototype_instance(prototype.into());
         let arg = args.get(0).ok_or_else(Value::undefined)?;
 
-        let (regex_body, mut regex_flags) = match arg {
-            Value::Undefined => (
-                String::new().into_boxed_str(),
-                String::new().into_boxed_str(),
-            ),
-            _ => (
-                arg.to_string(ctx)?.to_string().into_boxed_str(),
-                String::new().into_boxed_str(),
-            ),
+        let regex_body = match arg {
+            Value::Undefined => String::new().into_boxed_str(),
+            _ => arg.to_string(ctx)?.to_string().into_boxed_str(),
         };
         // if a second argument is given and it's a string, use it as flags
-        if let Some(Value::String(flags)) = args.get(1) {
-            regex_flags = flags.to_string().into_boxed_str();
-        }
+        let regex_flags = if let Some(Value::String(flags)) = args.get(1) {
+            flags.to_string().into_boxed_str()
+        } else {
+            String::new().into_boxed_str()
+        };
 
         // parse flags
         let mut sorted_flags = String::new();
