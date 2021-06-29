@@ -794,10 +794,6 @@ impl String {
         )))
     }
 
-    // pub(crate) fn replace_all(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-    //
-    // }
-
     /// `String.prototype.indexOf( searchValue[, fromIndex] )`
     ///
     /// The `indexOf()` method returns the index within the calling `String` object of the first occurrence
@@ -1345,7 +1341,6 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.normalize
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize
-
     pub(crate) fn normalize(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let this = this.require_object_coercible(context)?;
         let s = this.to_string(context)?;
@@ -1353,12 +1348,11 @@ impl String {
 
         let f_str;
 
-        let f = match form.is_undefined() {
-            true => "NFC",
-            false => {
-                f_str = form.to_string(context)?;
-                f_str.as_str()
-            }
+        let f = if form.is_undefined() {
+            "NFC"
+        } else {
+            f_str = form.to_string(context)?;
+            f_str.as_str()
         };
 
         match f {
