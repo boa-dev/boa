@@ -894,12 +894,39 @@ impl String {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match
     /// [regex]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
     pub(crate) fn r#match(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let re = RegExp::constructor(
-            &Value::from(Object::default()),
-            &[args.get(0).cloned().unwrap_or_default()],
-            context,
-        )?;
-        RegExp::r#match(&re, this.to_string(context)?, context)
+        // 1. Let O be ? RequireObjectCoercible(this value).
+        let this = this.require_object_coercible(context)?;
+        let regexp = args.get(0).cloned().unwrap_or_default();
+        // 2. If regexp is neither undefined nor null, then
+        if !regexp.is_null_or_undefined() {
+            // a. Let matcher be ? GetMethod(regexp, @@match).
+            // b. If matcher is not undefined, then
+            if let Some(matcher) = regexp
+                .to_object(context)?
+                .get_method(context, WellKnownSymbols::match_())?
+            {
+                // i. Return ? Call(matcher, regexp, « O »).
+                return matcher.call(&regexp, &[this.clone()], context);
+            }
+        }
+
+        // 3. Let S be ? ToString(O).
+        let s = this.to_string(context)?;
+
+        // 4. Let rx be ? RegExpCreate(regexp, undefined).
+        let rx = RegExp::constructor(&Value::from(Object::default()), &[regexp], context)?;
+
+        // 5. Return ? Invoke(rx, @@search, « string »).
+        // todo: work out why below doesn't work
+        // if let Some(matcher) = rx
+        //     .to_object(context)?
+        //     .get_method(context, WellKnownSymbols::match_())?
+        // {
+        //     matcher.call(&rx, &[Value::from(s)], context)
+        // } else {
+        //     context.throw_type_error("regexp[Symbol.match] is not a function")
+        // }
+        RegExp::r#match(&rx, s, context)
     }
 
     /// Abstract method `StringPad`.
