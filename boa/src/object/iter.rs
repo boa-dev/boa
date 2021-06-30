@@ -1,5 +1,5 @@
 use super::{Object, PropertyDescriptor, PropertyKey};
-use crate::{symbol::RcSymbol, value::RcString};
+use crate::{value::RcString, JsSymbol};
 use std::{collections::hash_map, iter::FusedIterator};
 
 impl Object {
@@ -110,7 +110,7 @@ impl Object {
 pub struct Iter<'a> {
     indexed_properties: hash_map::Iter<'a, u32, PropertyDescriptor>,
     string_properties: hash_map::Iter<'a, RcString, PropertyDescriptor>,
-    symbol_properties: hash_map::Iter<'a, RcSymbol, PropertyDescriptor>,
+    symbol_properties: hash_map::Iter<'a, JsSymbol, PropertyDescriptor>,
 }
 
 impl<'a> Iterator for Iter<'a> {
@@ -180,10 +180,10 @@ impl FusedIterator for Values<'_> {}
 
 /// An iterator over the `Symbol` property entries of an `Object`
 #[derive(Debug, Clone)]
-pub struct SymbolProperties<'a>(hash_map::Iter<'a, RcSymbol, PropertyDescriptor>);
+pub struct SymbolProperties<'a>(hash_map::Iter<'a, JsSymbol, PropertyDescriptor>);
 
 impl<'a> Iterator for SymbolProperties<'a> {
-    type Item = (&'a RcSymbol, &'a PropertyDescriptor);
+    type Item = (&'a JsSymbol, &'a PropertyDescriptor);
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
@@ -207,10 +207,10 @@ impl FusedIterator for SymbolProperties<'_> {}
 
 /// An iterator over the keys (`RcSymbol`) of an `Object`.
 #[derive(Debug, Clone)]
-pub struct SymbolPropertyKeys<'a>(hash_map::Keys<'a, RcSymbol, PropertyDescriptor>);
+pub struct SymbolPropertyKeys<'a>(hash_map::Keys<'a, JsSymbol, PropertyDescriptor>);
 
 impl<'a> Iterator for SymbolPropertyKeys<'a> {
-    type Item = &'a RcSymbol;
+    type Item = &'a JsSymbol;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
@@ -234,7 +234,7 @@ impl FusedIterator for SymbolPropertyKeys<'_> {}
 
 /// An iterator over the `Symbol` values (`Property`) of an `Object`.
 #[derive(Debug, Clone)]
-pub struct SymbolPropertyValues<'a>(hash_map::Values<'a, RcSymbol, PropertyDescriptor>);
+pub struct SymbolPropertyValues<'a>(hash_map::Values<'a, JsSymbol, PropertyDescriptor>);
 
 impl<'a> Iterator for SymbolPropertyValues<'a> {
     type Item = &'a PropertyDescriptor;

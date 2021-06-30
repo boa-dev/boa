@@ -15,9 +15,8 @@ use crate::{
     context::StandardConstructor,
     gc::{Finalize, Trace},
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
-    symbol::RcSymbol,
     value::{RcBigInt, RcString, Value},
-    BoaProfiler, Context,
+    BoaProfiler, Context, JsSymbol,
 };
 use rustc_hash::FxHashMap;
 use std::{
@@ -72,7 +71,7 @@ pub struct Object {
     /// Properties
     string_properties: FxHashMap<RcString, PropertyDescriptor>,
     /// Symbol Properties
-    symbol_properties: FxHashMap<RcSymbol, PropertyDescriptor>,
+    symbol_properties: FxHashMap<JsSymbol, PropertyDescriptor>,
     /// Instance prototype `__proto__`.
     prototype: Value,
     /// Whether it can have new properties added to it.
@@ -97,7 +96,7 @@ pub enum ObjectData {
     String(RcString),
     StringIterator(StringIterator),
     Number(f64),
-    Symbol(RcSymbol),
+    Symbol(JsSymbol),
     Error,
     Ordinary,
     Date(Date),
@@ -442,7 +441,7 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_symbol(&self) -> Option<RcSymbol> {
+    pub fn as_symbol(&self) -> Option<JsSymbol> {
         match self.data {
             ObjectData::Symbol(ref symbol) => Some(symbol.clone()),
             _ => None,

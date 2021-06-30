@@ -11,7 +11,6 @@ use crate::{
     object::{FunctionBuilder, GcObject, Object, PROTOTYPE},
     property::{Attribute, DataDescriptor, PropertyKey},
     realm::Realm,
-    symbol::{RcSymbol, Symbol},
     syntax::{
         ast::{
             node::{
@@ -22,8 +21,7 @@ use crate::{
         },
         Parser,
     },
-    value::{RcString, Value},
-    BoaProfiler, Executable, Result,
+    BoaProfiler, Executable, Result, Value,
 };
 
 #[cfg(feature = "console")]
@@ -295,12 +293,6 @@ impl Context {
         let _timer = BoaProfiler::global().start_event("create_intrinsics", "interpreter");
         // Create intrinsics, add global objects here
         builtins::init(self);
-    }
-
-    /// Construct a new `Symbol` with an optional description.
-    #[inline]
-    pub fn construct_symbol(&mut self, description: Option<RcString>) -> RcSymbol {
-        RcSymbol::from(Symbol::new(description))
     }
 
     /// Construct an empty object.

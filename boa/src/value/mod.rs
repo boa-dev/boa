@@ -13,7 +13,7 @@ use crate::{
     },
     object::{GcObject, Object, ObjectData},
     property::{Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
-    symbol::{RcSymbol, WellKnownSymbols},
+    symbol::{JsSymbol, WellKnownSymbols},
     BoaProfiler, Context, Result,
 };
 use gc::{Finalize, Trace};
@@ -63,7 +63,7 @@ pub enum Value {
     /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values.
     Object(GcObject),
     /// `Symbol` - A Symbol Primitive type.
-    Symbol(RcSymbol),
+    Symbol(JsSymbol),
 }
 
 /// Represents the result of ToIntegerOrInfinity operation
@@ -164,7 +164,7 @@ impl Value {
 
     /// Creates a new symbol value.
     #[inline]
-    pub fn symbol(symbol: RcSymbol) -> Self {
+    pub fn symbol(symbol: JsSymbol) -> Self {
         Self::Symbol(symbol)
     }
 
@@ -293,7 +293,7 @@ impl Value {
         matches!(self, Self::Symbol(_))
     }
 
-    pub fn as_symbol(&self) -> Option<RcSymbol> {
+    pub fn as_symbol(&self) -> Option<JsSymbol> {
         match self {
             Self::Symbol(symbol) => Some(symbol.clone()),
             _ => None,
