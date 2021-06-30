@@ -276,7 +276,7 @@ impl String {
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://tc39.es/proposal-relative-indexing-method/#sec-string-prototype-additions
+    /// [spec]: https://tc39.es/proposal-relative-indexing-method/#sec-string.prototype.at
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/at
     pub(crate) fn at(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let this = this.require_object_coercible(context)?;
@@ -285,7 +285,7 @@ impl String {
         let relative_index = args
             .get(0)
             .cloned()
-            .expect("No index provided")
+            .unwrap_or_default()
             .to_integer(context)?;
         let k = if relative_index < 0 as f64 {
             len - (-relative_index as usize)
@@ -294,7 +294,9 @@ impl String {
         };
 
         if let Some(utf16_val) = s.encode_utf16().nth(k) {
-            Ok(Value::from(from_u32(utf16_val as u32).unwrap()))
+            Ok(Value::from(
+                from_u32(u32::from(utf16_val)).expect("invalid utf-16 character"),
+            ))
         } else {
             Ok(Value::undefined())
         }
