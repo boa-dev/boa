@@ -278,7 +278,7 @@ impl Array {
 
     /// `get Array [ @@species ]`
     ///
-    /// The Array[@@species] accessor property returns the Array constructor.
+    /// The `Array [ @@species ]` accessor property returns the Array constructor.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
