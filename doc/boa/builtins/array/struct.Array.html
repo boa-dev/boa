@@ -25,7 +25,7 @@
 <p><code>array_obj</code> can be any array with prototype already set (it will be wiped and
 recreated from <code>array_contents</code>)</p>
 </div><h4 id="method.get_species" class="method"><code>fn <a href="#method.get_species" class="fnname">get_species</a>(this: &amp;<a class="enum" href="../../enum.Value.html" title="enum boa::Value">Value</a>, _: <a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">&amp;[</a><a class="enum" href="../../enum.Value.html" title="enum boa::Value">Value</a><a class="primitive" href="https://doc.rust-lang.org/nightly/std/primitive.slice.html">]</a>, _: &amp;mut <a class="struct" href="../../struct.Context.html" title="struct boa::Context">Context</a>) -&gt; <a class="type" href="../../type.Result.html" title="type boa::Result">Result</a>&lt;<a class="enum" href="../../enum.Value.html" title="enum boa::Value">Value</a>&gt;</code><a href="#method.get_species" class="anchor"></a><a class="srclink" href="../../../src/boa/builtins/array/mod.rs.html#289-292" title="goto source code">[src]</a></h4><div class="docblock"><p><code>get Array [ @@species ]</code></p>
-<p>The Array[@@species] accessor property returns the Array constructor.</p>
+<p>The <code>Array [ @@species ]</code> accessor property returns the Array constructor.</p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#sec-get-array-@@species">ECMAScript reference</a></li>
