@@ -174,7 +174,7 @@ impl Map {
 
     /// `get Map [ @@species ]`
     ///
-    /// The Map[@@species] accessor property returns the Map constructor.
+    /// The `Map [ @@species ]` accessor property returns the Map constructor.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]

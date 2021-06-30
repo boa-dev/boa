@@ -270,9 +270,9 @@ impl RegExp {
         Ok(this)
     }
 
-    /// `get RegExp[@@species]`
+    /// `get RegExp [ @@species ]`
     ///
-    /// The RegExp[@@species] accessor property returns the RegExp constructor.
+    /// The `RegExp [ @@species ]` accessor property returns the RegExp constructor.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
