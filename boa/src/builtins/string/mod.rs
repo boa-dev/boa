@@ -281,7 +281,7 @@ impl String {
     pub(crate) fn at(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let this = this.require_object_coercible(context)?;
         let s = this.to_string(context)?;
-        let len = s.len();
+        let len = s.encode_utf16().count();
         let relative_index = args
             .get(0)
             .cloned()
