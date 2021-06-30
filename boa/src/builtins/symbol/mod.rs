@@ -126,7 +126,7 @@ impl Symbol {
             return context.throw_type_error("Symbol is not a constructor");
         }
         let description = match args.get(0) {
-            Some(ref value) if !value.is_undefined() => Some(value.to_string(context)?),
+            Some(value) if !value.is_undefined() => Some(value.to_string(context)?),
             _ => None,
         };
 

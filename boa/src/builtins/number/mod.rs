@@ -160,7 +160,7 @@ impl Number {
         context: &mut Context,
     ) -> Result<Value> {
         let data = match args.get(0) {
-            Some(ref value) => value.to_numeric_number(context)?,
+            Some(value) => value.to_numeric_number(context)?,
             None => 0.0,
         };
         if new_target.is_undefined() {

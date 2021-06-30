@@ -78,7 +78,7 @@ impl Object {
                         MethodDefinitionKind::Ordinary => (),
                     }
                     write!(f, "{}(", key)?;
-                    join_nodes(f, &node.parameters())?;
+                    join_nodes(f, node.parameters())?;
                     write!(f, ") ")?;
                     node.display_block(f, indent + 1)?;
                     writeln!(f, ",")?;

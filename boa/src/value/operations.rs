@@ -12,8 +12,8 @@ impl Value {
             (Self::Rational(x), Self::Integer(y)) => Self::rational(x + f64::from(*y)),
 
             (Self::String(ref x), Self::String(ref y)) => Self::string(format!("{}{}", x, y)),
-            (Self::String(ref x), ref y) => Self::string(format!("{}{}", x, y.to_string(context)?)),
-            (ref x, Self::String(ref y)) => Self::string(format!("{}{}", x.to_string(context)?, y)),
+            (Self::String(ref x), y) => Self::string(format!("{}{}", x, y.to_string(context)?)),
+            (x, Self::String(ref y)) => Self::string(format!("{}{}", x.to_string(context)?, y)),
             (Self::BigInt(ref n1), Self::BigInt(ref n2)) => {
                 Self::bigint(n1.as_inner().clone() + n2.as_inner().clone())
             }
@@ -505,14 +505,14 @@ impl Value {
                         unreachable!()
                     }
                     (Self::BigInt(ref x), Self::String(ref y)) => {
-                        if let Some(y) = string_to_bigint(&y) {
+                        if let Some(y) = string_to_bigint(y) {
                             (*x.as_inner() < y).into()
                         } else {
                             AbstractRelation::Undefined
                         }
                     }
                     (Self::String(ref x), Self::BigInt(ref y)) => {
-                        if let Some(x) = string_to_bigint(&x) {
+                        if let Some(x) = string_to_bigint(x) {
                             (x < *y.as_inner()).into()
                         } else {
                             AbstractRelation::Undefined

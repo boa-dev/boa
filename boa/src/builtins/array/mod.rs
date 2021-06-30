@@ -1094,7 +1094,7 @@ impl Array {
         let len = Self::flatten_into_array(
             context,
             &new_array,
-            &this,
+            this,
             source_len,
             0,
             depth,
@@ -1154,7 +1154,7 @@ impl Array {
                 if !mapper_function.is_undefined() {
                     // 6.c.ii.1. Set element to Call(mapperFunction, thisArg, <<element, sourceIndex, source>>)
                     let args = [element, Value::from(source_index), target.clone()];
-                    element = context.call(&mapper_function, &this_arg, &args)?;
+                    element = context.call(mapper_function, this_arg, &args)?;
                 }
                 let element_as_object = element.as_object();
 
@@ -1499,7 +1499,7 @@ impl Array {
                     Value::from(k),
                     this.clone(),
                 ];
-                accumulator = context.call(&callback, &Value::undefined(), &arguments)?;
+                accumulator = context.call(callback, &Value::undefined(), &arguments)?;
                 /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
                 It may also be necessary to do this since shortening the array length does not
                 delete array elements. See: https://github.com/boa-dev/boa/issues/557 */
@@ -1580,7 +1580,7 @@ impl Array {
                     Value::from(k),
                     this.clone(),
                 ];
-                accumulator = context.call(&callback, &Value::undefined(), &arguments)?;
+                accumulator = context.call(callback, &Value::undefined(), &arguments)?;
                 /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
                 It may also be necessary to do this since shortening the array length does not
                 delete array elements. See: https://github.com/boa-dev/boa/issues/557 */

@@ -61,7 +61,7 @@ impl GcObject {
     pub fn delete(&mut self, key: &PropertyKey) -> bool {
         match self.get_own_property(key) {
             Some(desc) if desc.configurable() => {
-                self.remove(&key);
+                self.remove(key);
                 true
             }
             Some(_) => false,
@@ -254,13 +254,13 @@ impl GcObject {
                 // 8.
                 if !current.configurable() {
                     if let (Some(current_get), Some(desc_get)) = (current.getter(), desc.getter()) {
-                        if !GcObject::equals(&current_get, &desc_get) {
+                        if !GcObject::equals(current_get, desc_get) {
                             return false;
                         }
                     }
 
                     if let (Some(current_set), Some(desc_set)) = (current.setter(), desc.setter()) {
-                        if !GcObject::equals(&current_set, &desc_set) {
+                        if !GcObject::equals(current_set, desc_set) {
                             return false;
                         }
                     }
@@ -467,7 +467,7 @@ impl GcObject {
     pub fn ordinary_get_own_property(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         let object = self.borrow();
         let property = match key {
-            PropertyKey::Index(index) => object.indexed_properties.get(&index),
+            PropertyKey::Index(index) => object.indexed_properties.get(index),
             PropertyKey::String(ref st) => object.string_properties.get(st),
             PropertyKey::Symbol(ref symbol) => object.symbol_properties.get(symbol),
         };
@@ -700,7 +700,7 @@ impl Object {
     #[inline]
     pub(crate) fn remove(&mut self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         match key {
-            PropertyKey::Index(index) => self.indexed_properties.remove(&index),
+            PropertyKey::Index(index) => self.indexed_properties.remove(index),
             PropertyKey::String(ref string) => self.string_properties.remove(string),
             PropertyKey::Symbol(ref symbol) => self.symbol_properties.remove(symbol),
         }

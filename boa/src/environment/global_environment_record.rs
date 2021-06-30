@@ -185,7 +185,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     }
 
     fn initialize_binding(&self, name: &str, value: Value, context: &mut Context) -> Result<()> {
-        if self.declarative_record.has_binding(&name) {
+        if self.declarative_record.has_binding(name) {
             return self
                 .declarative_record
                 .initialize_binding(name, value, context);
@@ -205,7 +205,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         strict: bool,
         context: &mut Context,
     ) -> Result<()> {
-        if self.declarative_record.has_binding(&name) {
+        if self.declarative_record.has_binding(name) {
             return self
                 .declarative_record
                 .set_mutable_binding(name, value, strict, context);
@@ -215,7 +215,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     }
 
     fn get_binding_value(&self, name: &str, strict: bool, context: &mut Context) -> Result<Value> {
-        if self.declarative_record.has_binding(&name) {
+        if self.declarative_record.has_binding(name) {
             return self
                 .declarative_record
                 .get_binding_value(name, strict, context);
@@ -224,7 +224,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
     }
 
     fn delete_binding(&self, name: &str) -> bool {
-        if self.declarative_record.has_binding(&name) {
+        if self.declarative_record.has_binding(name) {
             return self.declarative_record.delete_binding(name);
         }
 

@@ -557,7 +557,7 @@ impl Value {
                     PreferredType::Default => "default",
                 }
                 .into();
-                let result = exotic_to_prim.call(&self, &[hint], context)?;
+                let result = exotic_to_prim.call(self, &[hint], context)?;
                 return if result.is_object() {
                     Err(context.construct_type_error("Symbol.toPrimitive cannot return an object"))
                 } else {
@@ -881,7 +881,7 @@ impl Value {
     /// See: <https://tc39.es/ecma262/#sec-tonumeric>
     pub fn to_numeric_number(&self, context: &mut Context) -> Result<f64> {
         let primitive = self.to_primitive(context, PreferredType::Number)?;
-        if let Some(ref bigint) = primitive.as_bigint() {
+        if let Some(bigint) = primitive.as_bigint() {
             return Ok(bigint.to_f64());
         }
         primitive.to_number(context)

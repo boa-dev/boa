@@ -168,7 +168,7 @@ impl String {
                     .expect("'Symbol::to_string' returns 'Value::String'")
                     .clone()
             }
-            Some(ref value) => value.to_string(context)?,
+            Some(value) => value.to_string(context)?,
             None => RcString::default(),
         };
 
@@ -775,7 +775,7 @@ impl String {
                     // Push the whole string being examined
                     results.push(Value::from(primitive_val.to_string()));
 
-                    let result = context.call(&replace_object, this, &results)?;
+                    let result = context.call(replace_object, this, &results)?;
 
                     result.to_string(context)?.to_string()
                 }

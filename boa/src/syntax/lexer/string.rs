@@ -257,7 +257,7 @@ impl StringLiteral {
                 .ok()
                 .and_then(|code_point_str| {
                     // The `code_point_str` should represent a single unicode codepoint, convert to u32
-                    u32::from_str_radix(&code_point_str, 16).ok()
+                    u32::from_str_radix(code_point_str, 16).ok()
                 })
                 .ok_or_else(|| {
                     Error::syntax("malformed Unicode character escape sequence", start_pos)
@@ -281,7 +281,7 @@ impl StringLiteral {
             // Convert to u16
             let code_point = str::from_utf8(&code_point_utf8_bytes)
                 .ok()
-                .and_then(|code_point_str| u16::from_str_radix(&code_point_str, 16).ok())
+                .and_then(|code_point_str| u16::from_str_radix(code_point_str, 16).ok())
                 .ok_or_else(|| Error::syntax("invalid Unicode escape sequence", start_pos))?;
 
             Ok(code_point as u32)
@@ -300,7 +300,7 @@ impl StringLiteral {
         cursor.fill_bytes(&mut code_point_utf8_bytes)?;
         let code_point = str::from_utf8(&code_point_utf8_bytes)
             .ok()
-            .and_then(|code_point_str| u16::from_str_radix(&code_point_str, 16).ok())
+            .and_then(|code_point_str| u16::from_str_radix(code_point_str, 16).ok())
             .ok_or_else(|| Error::syntax("invalid Hexadecimal escape sequence", start_pos))?;
 
         Ok(code_point as u32)

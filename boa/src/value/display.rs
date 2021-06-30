@@ -178,7 +178,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                         format!("Set({})", size)
                     }
                 }
-                _ => display_obj(&x, print_internals),
+                _ => display_obj(x, print_internals),
             }
         }
         Value::Symbol(ref symbol) => symbol.to_string(),

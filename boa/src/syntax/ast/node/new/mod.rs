@@ -38,12 +38,12 @@ pub struct New {
 impl New {
     /// Gets the name of the function call.
     pub fn expr(&self) -> &Node {
-        &self.call.expr()
+        self.call.expr()
     }
 
     /// Retrieves the arguments passed to the function.
     pub fn args(&self) -> &[Node] {
-        &self.call.args()
+        self.call.args()
     }
 }
 
