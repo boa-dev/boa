@@ -1,9 +1,4 @@
-use crate::{
-    exec::Executable,
-    gc::{Finalize, Trace},
-    syntax::ast::{node::Node, op},
-    Context, Result, Value,
-};
+use crate::{exec::Executable, gc::{Finalize, Trace}, syntax::ast::{node::Node, op}, Context, Result, Value, JsBigInt};
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -77,18 +72,15 @@ impl Executable for UnaryOp {
             op::UnaryOp::Not => self.target().run(context)?.not(context)?.into(),
             op::UnaryOp::Tilde => {
                 let num_v_a = self.target().run(context)?.to_numeric_number(context)?;
-                if num_v_a.is_nan() {
-                    Value::from(-1)
-                } else if num_v_a.is_infinite() {
-                    Value::from(-1)
+                if num_v_a.is_nan() || num_v_a.is_infinite() {
+                    Value::from(-1) // special case for inf or nan
+                } else if let Some(num_bigint) = self.target.run(context)?.as_bigint() {
+
+                    Value::from(JsBigInt::not(num_bigint))
+                // add bigint support
                 } else {
-                    if self.target.run(context)?.is_bigint() {
-                        Value::from(Value::from(-num_v_a-1f64).to_bigint(context)?)
-                    }
-                    else {
-                        let temp = (num_v_a as i64) & 0x00000000ffffffff;
-                        Value::from(!(temp as i32))
-                    }
+                    let masked = (num_v_a as i64) & 0x00000000ffffffff; // converts float to i32 following spec to ignore MSB using mask
+                    Value::from(!(masked as i32)) // Nots i32 conversion and creates value from this
                 }
             }
             op::UnaryOp::Void => {

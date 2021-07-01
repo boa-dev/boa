@@ -9,7 +9,7 @@ use crate::{
 use std::{
     convert::TryFrom,
     fmt::{self, Display},
-    ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Rem, Shl, Shr, Sub},
+    ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Not, Rem, Shl, Shr, Sub},
     rc::Rc,
 };
 
@@ -259,6 +259,9 @@ impl JsBigInt {
     pub fn neg(x: &Self) -> Self {
         Self::new(x.as_inner().neg())
     }
+
+    #[inline]
+    pub fn not(x: &Self) -> Self { Self::new(x.as_inner().not())}
 
     #[inline]
     pub(crate) fn as_inner(&self) -> &RawBigInt {
