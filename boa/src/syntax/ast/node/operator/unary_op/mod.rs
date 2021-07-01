@@ -76,13 +76,20 @@ impl Executable for UnaryOp {
             }
             op::UnaryOp::Not => self.target().run(context)?.not(context)?.into(),
             op::UnaryOp::Tilde => {
-                let num_v_a = self.target().run(context)?.to_number(context)?;
-                Value::from(if num_v_a.is_nan() {
-                    -1
+                let num_v_a = self.target().run(context)?.to_numeric_number(context)?;
+                if num_v_a.is_nan() {
+                    Value::from(-1)
+                } else if num_v_a.is_infinite() {
+                    Value::from(-1)
                 } else {
-                    // TODO: this is not spec compliant.
-                    !(num_v_a as i32)
-                })
+                    if self.target.run(context)?.is_bigint() {
+                        Value::from(Value::from(-num_v_a-1f64).to_bigint(context)?)
+                    }
+                    else {
+                        let temp = (num_v_a as i64) & 0x00000000ffffffff;
+                        Value::from(!(temp as i32))
+                    }
+                }
             }
             op::UnaryOp::Void => {
                 self.target().run(context)?;
