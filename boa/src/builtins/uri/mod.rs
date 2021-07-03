@@ -1,18 +1,11 @@
-//! This module implements the global `decodeURI` and encodURI functions.
-
-use std::borrow::Borrow;
-
+//! This module implements the global `decodeURI` and `encodURI` functions.
 use crate::value::RcString;
 use crate::{
     object::FunctionBuilder, property::Attribute, value::Value, BoaProfiler, Context, Result,
 };
-use percent_encoding::{percent_decode, utf8_percent_encode, AsciiSet, CONTROLS};
 use urlencoding::{decode, encode};
 
 type EncodeFuncType = fn(&RcString) -> Value;
-
-// https://url.spec.whatwg.org/#fragment-percent-encode-set
-const ENCODE_FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b'>').add(b'`');
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Uri;
@@ -76,29 +69,16 @@ impl Uri {
         match args.get(0) {
             Some(Value::String(ref arg_str_ref)) => {
                 if arg_str_ref.is_empty() {
-                    return Ok(Value::string(""));
+                    Ok(Value::string(""))
                 } else {
-                    let decoded = decode(arg_str_ref);
-                    match decoded {
-                        Ok(val) => return Ok(Value::string(val)),
-                        Err(err) => {
-                            return _context.throw_uri_error("URI malformed");
-                        }
+                    match decode(arg_str_ref) {
+                        Ok(val) => Ok(Value::string(val)),
+                        Err(_) => _context.throw_uri_error("URI malformed"),
                     }
                 }
             }
-            _ => return Ok(Value::string("undefined")),
-        };
-        // Self::handle_uri(args, |arg_str: &RcString| -> Value {
-        //     let decoded = decode(arg_str);
-        //     match decoded {
-        //         Ok(val) => Value::string(val),
-        //         Err(err) => {
-        //             // println!("DECODE {:?}, str:{}", err, arg_str);
-        //             return _context.throw_uri_error("WTF??!!");
-        //         }
-        //     }
-        // })
+            _ => Ok(Value::string("undefined")),
+        }
     }
 
     // The encodeURI() function encodes a URI by replacing each instance of certain characters by one, two, three,
