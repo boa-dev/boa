@@ -93,6 +93,18 @@ impl Value {
         Self::number(f64::NAN)
     }
 
+    /// Creates a new number with `Infinity` value.
+    #[inline]
+    pub fn positive_inifnity() -> Self {
+        Self::number(f64::INFINITY)
+    }
+
+    /// Creates a new number with `-Infinity` value.
+    #[inline]
+    pub fn negative_inifnity() -> Self {
+        Self::number(f64::NEG_INFINITY)
+    }
+
     /// Creates a new string value.
     #[inline]
     pub fn string<S>(value: S) -> Self

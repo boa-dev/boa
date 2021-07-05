@@ -90,8 +90,6 @@ impl Executable for Block {
                 InterpreterState::Executing => {
                     // Continue execution
                 }
-                #[cfg(feature = "vm")]
-                InterpreterState::Error => {}
             }
         }
 

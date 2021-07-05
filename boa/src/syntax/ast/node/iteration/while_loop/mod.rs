@@ -24,7 +24,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct WhileLoop {
     cond: Box<Node>,
-    expr: Box<Node>,
+    body: Box<Node>,
     label: Option<Box<str>>,
 }
 
@@ -33,8 +33,8 @@ impl WhileLoop {
         &self.cond
     }
 
-    pub fn expr(&self) -> &Node {
-        &self.expr
+    pub fn body(&self) -> &Node {
+        &self.body
     }
 
     pub fn label(&self) -> Option<&str> {
@@ -53,7 +53,7 @@ impl WhileLoop {
     {
         Self {
             cond: Box::new(condition.into()),
-            expr: Box::new(body.into()),
+            body: Box::new(body.into()),
             label: None,
         }
     }
@@ -67,7 +67,7 @@ impl WhileLoop {
             write!(f, "{}: ", label)?;
         }
         write!(f, "while ({}) ", self.cond())?;
-        self.expr().display(f, indentation)
+        self.body().display(f, indentation)
     }
 }
 
@@ -75,7 +75,7 @@ impl Executable for WhileLoop {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let mut result = Value::undefined();
         while self.cond().run(context)?.to_boolean() {
-            result = self.expr().run(context)?;
+            result = self.body().run(context)?;
             match context.executor().get_current_state() {
                 InterpreterState::Break(label) => {
                     handle_state_with_labels!(self, label, context, break);
@@ -90,8 +90,6 @@ impl Executable for WhileLoop {
                 InterpreterState::Executing => {
                     // Continue execution.
                 }
-                #[cfg(feature = "vm")]
-                InterpreterState::Error => {}
             }
         }
         Ok(result)

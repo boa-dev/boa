@@ -14,8 +14,6 @@ pub trait Executable {
 pub(crate) enum InterpreterState {
     Executing,
     Return,
-    #[cfg(feature = "vm")]
-    Error,
     Break(Option<Box<str>>),
     Continue(Option<Box<str>>),
 }

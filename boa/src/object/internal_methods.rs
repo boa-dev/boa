@@ -96,7 +96,7 @@ impl GcObject {
     pub fn set(
         &mut self,
         key: PropertyKey,
-        val: Value,
+        value: Value,
         receiver: Value,
         context: &mut Context,
     ) -> Result<bool> {
@@ -106,7 +106,7 @@ impl GcObject {
         let own_desc = if let Some(desc) = self.get_own_property(&key) {
             desc
         } else if let Some(ref mut parent) = self.get_prototype_of().as_object() {
-            return parent.set(key, val, receiver, context);
+            return parent.set(key, value, receiver, context);
         } else {
             DataDescriptor::new(Value::undefined(), Attribute::all()).into()
         };
@@ -126,7 +126,7 @@ impl GcObject {
                                 }
                                 receiver.define_own_property(
                                     key,
-                                    DataDescriptor::new(val, existing_data_desc.attributes())
+                                    DataDescriptor::new(value, existing_data_desc.attributes())
                                         .into(),
                                     context,
                                 )
@@ -135,7 +135,7 @@ impl GcObject {
                     } else {
                         receiver.define_own_property(
                             key,
-                            DataDescriptor::new(val, Attribute::all()).into(),
+                            DataDescriptor::new(value, Attribute::all()).into(),
                             context,
                         )
                     }
@@ -144,7 +144,7 @@ impl GcObject {
                 }
             }
             PropertyDescriptor::Accessor(AccessorDescriptor { set: Some(set), .. }) => {
-                set.call(&receiver, &[val], context)?;
+                set.call(&receiver, &[value], context)?;
                 Ok(true)
             }
             _ => Ok(false),
