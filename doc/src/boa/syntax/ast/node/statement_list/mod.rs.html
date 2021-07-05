@@ -169,22 +169,6 @@
 <span id="168">168</span>
 <span id="169">169</span>
 <span id="170">170</span>
-<span id="171">171</span>
-<span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Statement list node.</span>
 
@@ -198,9 +182,6 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::vm</span>::{<span class="ident">compilation::CodeGen</span>, <span class="ident">Compiler</span>};
 
 <span class="doccomment">/// List of statements.</span>
 <span class="doccomment">///</span>
@@ -310,8 +291,6 @@
                 <span class="ident">InterpreterState::Executing</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Continue execution</span>
                 }
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
-                <span class="ident">InterpreterState::Error</span> <span class="op">=</span><span class="op">&gt;</span> {}
             }
             <span class="kw">if</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span> <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">items</span>().<span class="ident">len</span>() {
                 <span class="ident">obj</span> <span class="op">=</span> <span class="ident">val</span>;
@@ -319,17 +298,6 @@
         }
 
         <span class="prelude-val">Ok</span>(<span class="ident">obj</span>)
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">CodeGen</span> <span class="kw">for</span> <span class="ident">StatementList</span> {
-    <span class="kw">fn</span> <span class="ident">compile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">compiler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Compiler</span>) {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;StatementList - Code Gen&quot;</span>, <span class="string">&quot;codeGen&quot;</span>);
-
-        <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">items</span>().<span class="ident">iter</span>() {
-            <span class="ident">item</span>.<span class="ident">compile</span>(<span class="ident">compiler</span>);
-        }
     }
 }
 

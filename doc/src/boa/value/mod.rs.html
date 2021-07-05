@@ -1043,6 +1043,18 @@
 <span id="1042">1042</span>
 <span id="1043">1043</span>
 <span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -1137,6 +1149,18 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nan</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span><span class="ident">::number</span>(<span class="ident">f64::NAN</span>)
+    }
+
+    <span class="doccomment">/// Creates a new number with `Infinity` value.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">positive_inifnity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span><span class="ident">::number</span>(<span class="ident">f64::INFINITY</span>)
+    }
+
+    <span class="doccomment">/// Creates a new number with `-Infinity` value.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">negative_inifnity</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="self">Self</span><span class="ident">::number</span>(<span class="ident">f64::NEG_INFINITY</span>)
     }
 
     <span class="doccomment">/// Creates a new string value.</span>

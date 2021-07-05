@@ -132,33 +132,6 @@
 <span id="131">131</span>
 <span id="132">132</span>
 <span id="133">133</span>
-<span id="134">134</span>
-<span id="135">135</span>
-<span id="136">136</span>
-<span id="137">137</span>
-<span id="138">138</span>
-<span id="139">139</span>
-<span id="140">140</span>
-<span id="141">141</span>
-<span id="142">142</span>
-<span id="143">143</span>
-<span id="144">144</span>
-<span id="145">145</span>
-<span id="146">146</span>
-<span id="147">147</span>
-<span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
-<span id="152">152</span>
-<span id="153">153</span>
-<span id="154">154</span>
-<span id="155">155</span>
-<span id="156">156</span>
-<span id="157">157</span>
-<span id="158">158</span>
-<span id="159">159</span>
-<span id="160">160</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">exec::Executable</span>,
@@ -170,12 +143,6 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">profiler::BoaProfiler</span>,
-    <span class="ident">vm</span>::{<span class="ident">compilation::CodeGen</span>, <span class="ident">Compiler</span>, <span class="ident">Instruction</span>},
-};
 
 <span class="doccomment">/// A unary operation is an operation with only one operand.</span>
 <span class="doccomment">///</span>
@@ -297,27 +264,6 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">UnaryOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Node</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">op</span>: <span class="ident">UnaryOp</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span><span class="ident">::UnaryOp</span>(<span class="ident">op</span>)
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">CodeGen</span> <span class="kw">for</span> <span class="ident">UnaryOp</span> {
-    <span class="kw">fn</span> <span class="ident">compile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">compiler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Compiler</span>) {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;UnaryOp&quot;</span>, <span class="string">&quot;codeGen&quot;</span>);
-        <span class="self">self</span>.<span class="ident">target</span>().<span class="ident">compile</span>(<span class="ident">compiler</span>);
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">op</span> {
-            <span class="ident">op::UnaryOp::Void</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::Void</span>),
-            <span class="ident">op::UnaryOp::Plus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::Pos</span>),
-            <span class="ident">op::UnaryOp::Minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::Neg</span>),
-            <span class="ident">op::UnaryOp::TypeOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::TypeOf</span>),
-            <span class="ident">op::UnaryOp::Not</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::Not</span>),
-            <span class="ident">op::UnaryOp::Tilde</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::BitNot</span>),
-            <span class="ident">op::UnaryOp::IncrementPost</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">op::UnaryOp::IncrementPre</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">op::UnaryOp::DecrementPost</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">op::UnaryOp::DecrementPre</span> <span class="op">=</span><span class="op">&gt;</span> {}
-            <span class="ident">op::UnaryOp::Delete</span> <span class="op">=</span><span class="op">&gt;</span> {}
-        }
     }
 }
 </pre></div>
