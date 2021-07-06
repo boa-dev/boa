@@ -12,15 +12,20 @@
           Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue",
           Helvetica, Arial, sans-serif;
         -webkit-font-smoothing: antialiased;
-        background-color: #fff;
         font-size: 16px;
       }
 
       body {
         color: #4a4a4a;
-        margin: 8px;
+        background-color: #FFF;
+        padding: 8px;
         font-size: 1em;
         font-weight: 400;
+      }
+
+      body.dark {
+        color: #FFF;
+        background-color: #0f1419;
       }
 
       header {
@@ -45,6 +50,10 @@
         color: #000;
       }
 
+      body.dark a:hover {
+        color: #FFF;
+      }
+
       button {
         color: #fff;
         background-color: #3298dc;
@@ -56,6 +65,14 @@
       button:hover {
         background-color: #2793da;
         flex: none;
+      }
+
+      body.dark button {
+        background-color: #0078c8;
+      }
+
+      body.dark button:hover {
+        background-color: #278ccf;
       }
 
       .spacer {
@@ -74,6 +91,44 @@
 
       .header-label {
         margin-right: 4px;
+      }
+
+      .dark-mode-toggle {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 0;
+      }
+
+      .dark-mode-toggle span {
+        font-size: 1.5rem;
+      }
+
+      .dark-mode-toggle input[type=checkbox] {
+        display: none;
+      }
+
+      .dark-mode-toggle .slot {
+        display: inline-flex;
+        justify-content: flex-start;
+        align-items: center;
+        background-color: #2299e9;
+        width: 40px;
+        height: 15px;
+        border-radius: 15px;
+        padding: 2px;
+      }
+
+      .dark-mode-toggle .slot .handle {
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background-color: white;
+        transition: transform ease-out 0.1s;
+        transform: translateX(1px);
+      }
+
+      body.dark .dark-mode-toggle .slot .handle {
+        transform: translateX(25px);
       }
 
       .benchmark-set {
@@ -101,6 +156,7 @@
 
       .benchmark-chart {
         max-width: 1000px;
+        max-height: 500px;
       }
     </style>
     <title>Benchmarks</title>
@@ -116,6 +172,14 @@
         <strong class="header-label">Repository:</strong>
         <a id="repository-link" rel="noopener"></a>
       </div>
+      <label class="dark-mode-toggle" for="checkbox">
+        <input type="checkbox" id="checkbox">
+        <span>&#9728;</span>
+        <div class="slot">
+          <div class="handle"></div>
+        </div>
+        <span>&#9789;</span>
+      </label>
     </header>
     <main id="main"></main>
     <footer>
@@ -132,8 +196,8 @@
     </footer>
 
     <script
-      src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"
-      integrity="sha256-t9UJPrESBeG2ojKTIcFLPGF7nHi2vEc7f5A2KpH/UBU="
+      src="https://cdn.jsdelivr.net/npm/chart.js@3.4.1/dist/chart.min.js"
+      integrity="sha256-GMN9UIJeUeOsn/Uq4xDheGItEeSpI5Hcfp/63GclDZk=" 
       crossorigin="anonymous"
     ></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjs@9.4.0/lib/browser/math.min.js"></script>
@@ -152,6 +216,8 @@
           catch2: "#f34b7d",
           _: "#333333",
         };
+
+        Chart.defaults.color = toolColors._
 
         function isNumeric(n) {
           return !isNaN(parseFloat(n)) && isFinite(n);
@@ -308,30 +374,27 @@
                   }),
                   borderColor: color,
                   backgroundColor: color + "60", // Add alpha for #rrggbbaa
+                  fill: true
                 },
               ],
             };
             const options = {
               scales: {
-                xAxes: [
-                  {
-                    scaleLabel: {
-                      display: true,
-                      labelString: "commit",
-                    },
+                x: {
+                  title: {
+                    display: true,
+                    text: "Commit",
                   },
-                ],
-                yAxes: [
-                  {
-                    scaleLabel: {
-                      display: true,
-                      labelString: dataset.length > 0 ? unit : "",
-                    },
-                    ticks: {
-                      beginAtZero: true,
-                    },
+                },
+                y: {
+                  title: {
+                    display: true,
+                    text: dataset.length > 0 ? unit : "",
                   },
-                ],
+                  ticks: {
+                    beginAtZero: true,
+                  },
+                },
               },
               tooltips: {
                 callbacks: {
@@ -367,14 +430,13 @@
                 if (activeElems.length === 0) {
                   return;
                 }
-                // XXX: Undocumented. How can we know the index?
-                const index = activeElems[0]._index;
+                const index = activeElems[0].index;
                 const url = dataset[index].commit.url;
                 window.open(url, "_blank");
               },
             };
 
-            new Chart(canvas, {
+            return new Chart(canvas, {
               type: "line",
               data,
               options,
@@ -395,16 +457,34 @@
             graphsElem.className = "benchmark-graphs";
             setElem.appendChild(graphsElem);
 
+            const charts = []
             for (const [benchName, benches] of benchSet.entries()) {
               const benchUnit = unit.get(benchName);
-              renderGraph(graphsElem, benchName, benchUnit, benches);
+              charts.push(renderGraph(graphsElem, benchName, benchUnit, benches))
             }
+            return charts
           }
 
+          const allCharts = []
           const main = document.getElementById("main");
           for (const { name, dataSet, unit } of dataSets) {
-            renderBenchSet(name, dataSet, unit, main);
+            allCharts.push(...renderBenchSet(name, dataSet, unit, main));
           }
+
+          const darkModeCheckbox = document.querySelector('.dark-mode-toggle input[type=checkbox]')
+          const darkModeHandle = document.querySelector('.dark-mode-toggle .handle')
+          darkModeCheckbox.addEventListener('change', async (e) => {
+            document.body.classList.toggle('dark')
+            const chartTextColor = e.target.checked ? '#CCC' : Chart.defaults.color
+            for (const chart of allCharts) {
+              chart.options.color = chartTextColor
+              chart.options.scales.x.title.color = chartTextColor
+              chart.options.scales.x.ticks.color = chartTextColor
+              chart.options.scales.y.title.color = chartTextColor
+              chart.options.scales.y.ticks.color = chartTextColor
+              chart.update()
+            }
+          })
         }
 
         renderAllChars(init()); // Start
