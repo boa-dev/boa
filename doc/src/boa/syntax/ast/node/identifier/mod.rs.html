@@ -67,18 +67,6 @@
 <span id="66">66</span>
 <span id="67">67</span>
 <span id="68">68</span>
-<span id="69">69</span>
-<span id="70">70</span>
-<span id="71">71</span>
-<span id="72">72</span>
-<span id="73">73</span>
-<span id="74">74</span>
-<span id="75">75</span>
-<span id="76">76</span>
-<span id="77">77</span>
-<span id="78">78</span>
-<span id="79">79</span>
-<span id="80">80</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Local identifier node.</span>
 
@@ -92,10 +80,6 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::vm</span>::{<span class="ident">compilation::CodeGen</span>, <span class="ident">Compiler</span>, <span class="ident">Instruction</span>};
-
 <span class="doccomment">/// An `identifier` is a sequence of characters in the code that identifies a variable,</span>
 <span class="doccomment">/// function, or property.</span>
 <span class="doccomment">///</span>
@@ -123,14 +107,6 @@
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Identifier&quot;</span>, <span class="string">&quot;exec&quot;</span>);
         <span class="ident">context</span>.<span class="ident">get_binding_value</span>(<span class="self">self</span>.<span class="ident">as_ref</span>())
-    }
-}
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">CodeGen</span> <span class="kw">for</span> <span class="ident">Identifier</span> {
-    <span class="kw">fn</span> <span class="ident">compile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">compiler</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Compiler</span>) {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Identifier&quot;</span>, <span class="string">&quot;codeGen&quot;</span>);
-        <span class="ident">compiler</span>.<span class="ident">add_instruction</span>(<span class="ident">Instruction::GetName</span>(<span class="ident">String::from</span>(<span class="self">self</span>.<span class="ident">ident</span>.<span class="ident">as_ref</span>())));
     }
 }
 

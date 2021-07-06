@@ -214,8 +214,6 @@
 <span id="213">213</span>
 <span id="214">214</span>
 <span id="215">215</span>
-<span id="216">216</span>
-<span id="217">217</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">iterable::IteratorRecord</span>, <span class="ident">ForInIterator</span>},
@@ -426,8 +424,6 @@
                 <span class="ident">InterpreterState::Executing</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="comment">// Continue execution.</span>
                 }
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
-                <span class="ident">InterpreterState::Error</span> <span class="op">=</span><span class="op">&gt;</span> {}
             }
             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">pop_environment</span>();
         }
