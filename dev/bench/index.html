@@ -219,6 +219,11 @@
 
         Chart.defaults.color = toolColors._
 
+        const lightTextColor = Chart.defaults.color
+        const darkTextColor = '#CCC'
+        const lightGridColor = 'rgba(0, 0, 0, 0.1)'
+        const darkGridColor = 'rgba(255, 255, 255, 0.1)'
+
         function isNumeric(n) {
           return !isNaN(parseFloat(n)) && isFinite(n);
         }
@@ -385,6 +390,9 @@
                     display: true,
                     text: "Commit",
                   },
+                  grid: {
+                    color: lightGridColor
+                  }
                 },
                 y: {
                   title: {
@@ -394,6 +402,9 @@
                   ticks: {
                     beginAtZero: true,
                   },
+                  grid: {
+                    color: lightGridColor
+                  }
                 },
               },
               tooltips: {
@@ -475,13 +486,16 @@
           const darkModeHandle = document.querySelector('.dark-mode-toggle .handle')
           darkModeCheckbox.addEventListener('change', async (e) => {
             document.body.classList.toggle('dark')
-            const chartTextColor = e.target.checked ? '#CCC' : Chart.defaults.color
+            const chartTextColor = e.target.checked ? darkTextColor : lightTextColor
+            const chartGridColor = e.target.checked ? darkGridColor : lightGridColor
             for (const chart of allCharts) {
               chart.options.color = chartTextColor
               chart.options.scales.x.title.color = chartTextColor
               chart.options.scales.x.ticks.color = chartTextColor
+              chart.options.scales.x.grid.color = chartGridColor
               chart.options.scales.y.title.color = chartTextColor
               chart.options.scales.y.ticks.color = chartTextColor
+              chart.options.scales.y.grid.color = chartGridColor
               chart.update()
             }
           })
