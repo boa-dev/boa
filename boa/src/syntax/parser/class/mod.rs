@@ -216,63 +216,58 @@ where
                         }
                         constructor = Some(FunctionDecl::new(name, params, body));
                         None
-                    } else {
-                        if is_getter {
-                            // This is a getter, so a setter with the same name is valid.
-                            if field_names.contains(&name) || getter_names.contains_key(&name) {
-                                return Err(ParseError::general("Duplicate getter name", name_pos));
-                            }
-                            if setter_names.get(&name) == Some(&!is_static) {
-                                if is_static {
-                                    return Err(ParseError::general(
-                                        "A static setter cannot have a non-static getter",
-                                        name_pos,
-                                    ));
-                                } else {
-                                    return Err(ParseError::general(
-                                        "A non-static setter cannot have a static getter",
-                                        name_pos,
-                                    ));
-                                }
-                            }
-                            if !params.is_empty() {
+                    } else if is_getter {
+                        // This is a getter, so a setter with the same name is valid.
+                        if field_names.contains(&name) || getter_names.contains_key(&name) {
+                            return Err(ParseError::general("Duplicate getter name", name_pos));
+                        }
+                        if setter_names.get(&name) == Some(&!is_static) {
+                            if is_static {
                                 return Err(ParseError::general(
-                                    "Getters take no arguments",
-                                    arg_pos,
+                                    "A static setter cannot have a non-static getter",
+                                    name_pos,
+                                ));
+                            } else {
+                                return Err(ParseError::general(
+                                    "A non-static setter cannot have a static getter",
+                                    name_pos,
                                 ));
                             }
-                            getter_names.insert(name.clone(), is_static);
-                            Some(ClassField::Getter(FunctionDecl::new(name, params, body)))
-                        } else if is_setter {
-                            // This is a setter, so a getter with the same name is valid.
-                            if field_names.contains(&name) || setter_names.contains_key(&name) {
-                                return Err(ParseError::general("Duplicate setter name", name_pos));
-                            }
-                            if getter_names.get(&name) == Some(&!is_static) {
-                                if is_static {
-                                    return Err(ParseError::general(
-                                        "A static getter cannot have a non-static setter",
-                                        name_pos,
-                                    ));
-                                } else {
-                                    return Err(ParseError::general(
-                                        "A non-static getter cannot have a static setter",
-                                        name_pos,
-                                    ));
-                                }
-                            }
-                            setter_names.insert(name.clone(), is_static);
-                            Some(ClassField::Setter(FunctionDecl::new(name, params, body)))
-                        } else {
-                            if field_names.contains(&name)
-                                || getter_names.contains_key(&name)
-                                || setter_names.contains_key(&name)
-                            {
-                                return Err(ParseError::general("Duplicate method name", name_pos));
-                            }
-                            field_names.insert(name.clone());
-                            Some(ClassField::Method(FunctionDecl::new(name, params, body)))
                         }
+                        if !params.is_empty() {
+                            return Err(ParseError::general("Getters take no arguments", arg_pos));
+                        }
+                        getter_names.insert(name.clone(), is_static);
+                        Some(ClassField::Getter(FunctionDecl::new(name, params, body)))
+                    } else if is_setter {
+                        // This is a setter, so a getter with the same name is valid.
+                        if field_names.contains(&name) || setter_names.contains_key(&name) {
+                            return Err(ParseError::general("Duplicate setter name", name_pos));
+                        }
+                        if getter_names.get(&name) == Some(&!is_static) {
+                            if is_static {
+                                return Err(ParseError::general(
+                                    "A static getter cannot have a non-static setter",
+                                    name_pos,
+                                ));
+                            } else {
+                                return Err(ParseError::general(
+                                    "A non-static getter cannot have a static setter",
+                                    name_pos,
+                                ));
+                            }
+                        }
+                        setter_names.insert(name.clone(), is_static);
+                        Some(ClassField::Setter(FunctionDecl::new(name, params, body)))
+                    } else {
+                        if field_names.contains(&name)
+                            || getter_names.contains_key(&name)
+                            || setter_names.contains_key(&name)
+                        {
+                            return Err(ParseError::general("Duplicate method name", name_pos));
+                        }
+                        field_names.insert(name.clone());
+                        Some(ClassField::Method(FunctionDecl::new(name, params, body)))
                     }
                 }
                 // A field definition
