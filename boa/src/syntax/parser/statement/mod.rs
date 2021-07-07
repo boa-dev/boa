@@ -332,6 +332,20 @@ where
                             var_declared_names.insert(decl.name());
                         }
                     }
+                    // Class declarations act like `let`, not `var`.
+                    Node::ClassDecl(class) => {
+                        if var_declared_names.contains(class.name())
+                            || !lexically_declared_names.insert(class.name())
+                        {
+                            return Err(ParseError::lex(LexError::Syntax(
+                                format!("Redeclaration of variable `{}`", class.name()).into(),
+                                match cursor.peek(0)? {
+                                    Some(token) => token.span().end(),
+                                    None => Position::new(1, 1),
+                                },
+                            )));
+                        }
+                    }
                     _ => (),
                 }
             }
