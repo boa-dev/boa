@@ -7,12 +7,14 @@ use crate::{
     builtins::function::{
         create_unmapped_arguments_object, BuiltInFunction, Function, NativeFunction,
     },
+    context::StandardConstructor,
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
         function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
         lexical_environment::Environment,
     },
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
+    symbol::WellKnownSymbols,
     syntax::ast::node::RcStatementList,
     value::PreferredType,
     Context, Executable, Result, Value,
@@ -859,6 +861,57 @@ impl GcObject {
             Err(context.construct_type_error(format!("Cannot redefine property: {}", key)))
         } else {
             Ok(())
+        }
+    }
+
+    /// `7.3.22 SpeciesConstructor ( O, defaultConstructor )`
+    ///
+    /// The abstract operation SpeciesConstructor takes arguments O (an Object) and defaultConstructor (a constructor).
+    /// It is used to retrieve the constructor that should be used to create new objects that are derived from O.
+    /// defaultConstructor is the constructor to use if a constructor @@species property cannot be found starting from O.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-speciesconstructor
+    pub(crate) fn species_constructor(
+        &self,
+        default_donstructor: StandardConstructor,
+        context: &mut Context,
+    ) -> Result<Value> {
+        // 1. Assert: Type(O) is Object.
+
+        // 2. Let C be ? Get(O, "constructor").
+        let c = self.clone().get(
+            &PropertyKey::from("constructor"),
+            self.clone().into(),
+            context,
+        )?;
+
+        // 3. If C is undefined, return defaultConstructor.
+        if c.is_undefined() {
+            return Ok(Value::from(default_donstructor.prototype()));
+        }
+
+        // 4. If Type(C) is not Object, throw a TypeError exception.
+        if !c.is_object() {
+            return context.throw_type_error("property 'constructor' is not an object");
+        }
+
+        // 5. Let S be ? Get(C, @@species).
+        let s = c.get_field(WellKnownSymbols::species(), context)?;
+
+        // 6. If S is either undefined or null, return defaultConstructor.
+        if s.is_null_or_undefined() {
+            return Ok(Value::from(default_donstructor.prototype()));
+        }
+
+        // 7. If IsConstructor(S) is true, return S.
+        // 8. Throw a TypeError exception.
+        if s.as_object().unwrap_or_default().is_constructable() {
+            Ok(s)
+        } else {
+            context.throw_type_error("property 'constructor' is not a constructor")
         }
     }
 }

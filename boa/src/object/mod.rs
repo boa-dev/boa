@@ -6,6 +6,7 @@ use crate::{
         function::{BuiltInFunction, Function, FunctionFlags, NativeFunction},
         map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
+        regexp::regexp_string_iterator::RegExpStringIterator,
         set::ordered_set::OrderedSet,
         set::set_iterator::SetIterator,
         string::string_iterator::StringIterator,
@@ -86,6 +87,7 @@ pub enum ObjectData {
     Map(OrderedMap<Value, Value>),
     MapIterator(MapIterator),
     RegExp(Box<RegExp>),
+    RegExpStringIterator(RegExpStringIterator),
     BigInt(RcBigInt),
     Boolean(bool),
     ForInIterator(ForInIterator),
@@ -114,6 +116,7 @@ impl Display for ObjectData {
                 Self::ForInIterator(_) => "ForInIterator",
                 Self::Function(_) => "Function",
                 Self::RegExp(_) => "RegExp",
+                Self::RegExpStringIterator(_) => "RegExpStringIterator",
                 Self::Map(_) => "Map",
                 Self::MapIterator(_) => "MapIterator",
                 Self::Set(_) => "Set",
@@ -317,6 +320,14 @@ impl Object {
     pub fn as_string_iterator_mut(&mut self) -> Option<&mut StringIterator> {
         match &mut self.data {
             ObjectData::StringIterator(iter) => Some(iter),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_regexp_string_iterator_mut(&mut self) -> Option<&mut RegExpStringIterator> {
+        match &mut self.data {
+            ObjectData::RegExpStringIterator(iter) => Some(iter),
             _ => None,
         }
     }

@@ -206,7 +206,11 @@ impl Array {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-arraycreate
-    fn array_create(length: u32, prototype: Option<GcObject>, context: &mut Context) -> Value {
+    pub(crate) fn array_create(
+        length: u32,
+        prototype: Option<GcObject>,
+        context: &mut Context,
+    ) -> Value {
         let prototype = match prototype {
             Some(prototype) => prototype,
             None => context.standard_objects().array_object().prototype(),
