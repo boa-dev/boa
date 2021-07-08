@@ -54,6 +54,7 @@ use crate::{
 };
 use std::{
     cmp::Ordering,
+    collections::HashSet,
     fmt::{self, Display},
 };
 
@@ -302,6 +303,78 @@ impl Node {
             Self::AsyncFunctionExpr(ref expr) => expr.display(f, indentation),
             Self::AwaitExpr(ref expr) => Display::fmt(expr, f),
             Self::Empty => write!(f, ";"),
+        }
+    }
+
+    /// Returns the var declared names of this node, according to
+    /// the [spec](https://tc39.es/ecma262/#sec-static-semantics-vardeclarednames).
+    pub(crate) fn var_declared_names(&self) -> HashSet<&str> {
+        match self {
+            Node::Block(ref block) => {
+                let mut names = HashSet::new();
+                for item in block.items() {
+                    names.extend(item.var_declared_names());
+                }
+                names
+            }
+            Node::VarDeclList(ref decl_list) => {
+                let mut names = HashSet::new();
+                names.extend(decl_list.as_ref().iter().map(|decl| decl.name()));
+                names
+            }
+            Node::If(ref stmt) => {
+                let mut names = stmt.body().var_declared_names();
+                if let Some(else_node) = stmt.else_node() {
+                    names.extend(else_node.var_declared_names());
+                }
+                names
+            }
+            Node::DoWhileLoop(ref stmt) => stmt.body().var_declared_names(),
+            Node::WhileLoop(ref stmt) => stmt.body().var_declared_names(),
+            Node::ForLoop(ref stmt) => {
+                let mut names = stmt.body().var_declared_names();
+                // If the for loop has a var keyword, those variables live longer than the loop.
+                if let Some(Node::VarDeclList(decl_list)) = stmt.init() {
+                    names.extend(decl_list.as_ref().iter().map(|decl| decl.name()));
+                }
+                names
+            }
+            Node::ForInLoop(ref stmt) => {
+                let mut names = stmt.body().var_declared_names();
+                if let Node::VarDeclList(decl_list) = stmt.variable() {
+                    names.extend(decl_list.as_ref().iter().map(|decl| decl.name()));
+                }
+                names
+            }
+            Node::ForOfLoop(ref stmt) => {
+                let mut names = stmt.body().var_declared_names();
+                if let Node::VarDeclList(decl_list) = stmt.variable() {
+                    names.extend(decl_list.as_ref().iter().map(|decl| decl.name()));
+                }
+                names
+            }
+            Node::Switch(ref stmt) => {
+                let mut names = HashSet::new();
+                for case in stmt.cases() {
+                    for node in case.body().items() {
+                        names.extend(node.var_declared_names());
+                    }
+                }
+                names
+            }
+            Node::Try(ref stmt) => {
+                let mut names = HashSet::new();
+                for node in stmt.block().items() {
+                    names.extend(node.var_declared_names());
+                }
+                if let Some(catch) = stmt.catch() {
+                    for node in catch.block().items() {
+                        names.extend(node.var_declared_names());
+                    }
+                }
+                names
+            }
+            _ => HashSet::new(),
         }
     }
 }
