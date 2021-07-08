@@ -19,7 +19,8 @@ use crate::{
         ast::{Keyword, Node},
         lexer::TokenKind,
         parser::{
-            AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+            AllowAwait, AllowDefault, AllowYield, Cursor, DeclaredNames, ParseError, ParseResult,
+            TokenParser,
         },
     },
     BoaProfiler,
@@ -61,19 +62,19 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, env: &mut DeclaredNames) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("HoistableDeclaration", "Parsing");
         let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::Function) => {
                 FunctionDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
-                    .parse(cursor)
+                    .parse(cursor, env)
                     .map(Node::from)
             }
             TokenKind::Keyword(Keyword::Async) => {
                 AsyncFunctionDeclaration::new(self.allow_yield, self.allow_await, false)
-                    .parse(cursor)
+                    .parse(cursor, env)
                     .map(Node::from)
             }
             _ => unreachable!("unknown token found: {:?}", tok),

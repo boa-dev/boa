@@ -11,7 +11,9 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{node::Try, Keyword},
-        parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
+        parser::{
+            AllowAwait, AllowReturn, AllowYield, Cursor, DeclaredNames, ParseError, TokenParser,
+        },
     },
     BoaProfiler,
 };
@@ -55,13 +57,13 @@ where
 {
     type Output = Try;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Try, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, env: &mut DeclaredNames) -> Result<Try, ParseError> {
         let _timer = BoaProfiler::global().start_event("TryStatement", "Parsing");
         // TRY
         cursor.expect(Keyword::Try, "try statement")?;
 
         let try_clause =
-            Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+            Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor, env)?;
 
         let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
@@ -79,7 +81,10 @@ where
         }
 
         let catch = if next_token.kind() == &TokenKind::Keyword(Keyword::Catch) {
-            Some(Catch::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?)
+            Some(
+                Catch::new(self.allow_yield, self.allow_await, self.allow_return)
+                    .parse(cursor, env)?,
+            )
         } else {
             None
         };
@@ -89,7 +94,7 @@ where
             match token.kind() {
                 TokenKind::Keyword(Keyword::Finally) => Some(
                     Finally::new(self.allow_yield, self.allow_await, self.allow_return)
-                        .parse(cursor)?,
+                        .parse(cursor, env)?,
                 ),
                 _ => None,
             }

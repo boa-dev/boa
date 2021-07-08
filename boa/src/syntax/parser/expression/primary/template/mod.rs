@@ -16,7 +16,7 @@ use crate::{
         lexer::TokenKind,
         parser::cursor::Cursor,
         parser::expression::Expression,
-        parser::{AllowAwait, AllowYield, ParseError, TokenParser},
+        parser::{AllowAwait, AllowYield, DeclaredNames, ParseError, TokenParser},
     },
 };
 use std::io::Read;
@@ -59,13 +59,17 @@ where
 {
     type Output = TemplateLit;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("TemplateLiteral", "Parsing");
 
         let mut elements = vec![
             TemplateElement::String(self.first.into_boxed_str()),
             TemplateElement::Expr(
-                Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?,
+                Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, env)?,
             ),
         ];
         cursor.expect(
@@ -80,7 +84,8 @@ where
 
                     elements.push(TemplateElement::String(cooked));
                     elements.push(TemplateElement::Expr(
-                        Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?,
+                        Expression::new(true, self.allow_yield, self.allow_await)
+                            .parse(cursor, env)?,
                     ));
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::CloseBlock),

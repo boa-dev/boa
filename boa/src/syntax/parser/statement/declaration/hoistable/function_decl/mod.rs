@@ -7,7 +7,7 @@ use crate::syntax::{
         function::FormalParameters,
         function::FunctionBody,
         statement::{BindingIdentifier, LexError, Position},
-        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
+        AllowAwait, AllowDefault, AllowYield, Cursor, DeclaredNames, ParseError, TokenParser,
     },
 };
 use std::io::Read;
@@ -50,20 +50,24 @@ where
 {
     type Output = FunctionDecl;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Function, "function declaration")?;
 
         // TODO: If self.is_default, then this can be empty.
-        let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor, env)?;
 
         cursor.expect(Punctuator::OpenParen, "function declaration")?;
 
-        let params = FormalParameters::new(false, false).parse(cursor)?;
+        let params = FormalParameters::new(false, false).parse(cursor, env)?;
 
         cursor.expect(Punctuator::CloseParen, "function declaration")?;
         cursor.expect(Punctuator::OpenBlock, "function declaration")?;
 
-        let body = FunctionBody::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let body = FunctionBody::new(self.allow_yield, self.allow_await).parse(cursor, env)?;
 
         cursor.expect(Punctuator::CloseBlock, "function declaration")?;
 

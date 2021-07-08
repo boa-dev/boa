@@ -8,7 +8,7 @@ use crate::{
         parser::{
             function::{FormalParameters, FunctionBody},
             statement::BindingIdentifier,
-            AllowYield, Cursor, ParseError, TokenParser,
+            AllowYield, Cursor, DeclaredNames, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -47,7 +47,11 @@ where
 {
     type Output = AsyncFunctionExpr;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("AsyncFunctionExpression", "Parsing");
         cursor.peek_expect_no_lineterminator(0, "async function expression")?;
         cursor.expect(Keyword::Function, "async function expression")?;
@@ -57,7 +61,7 @@ where
         let name = if let Some(token) = tok {
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => None,
-                _ => Some(BindingIdentifier::new(self.allow_yield, true).parse(cursor)?),
+                _ => Some(BindingIdentifier::new(self.allow_yield, true).parse(cursor, env)?),
             }
         } else {
             return Err(ParseError::AbruptEnd);
@@ -65,12 +69,12 @@ where
 
         cursor.expect(Punctuator::OpenParen, "async function expression")?;
 
-        let params = FormalParameters::new(false, true).parse(cursor)?;
+        let params = FormalParameters::new(false, true).parse(cursor, env)?;
 
         cursor.expect(Punctuator::CloseParen, "async function expression")?;
         cursor.expect(Punctuator::OpenBlock, "async function expression")?;
 
-        let body = FunctionBody::new(false, true).parse(cursor)?;
+        let body = FunctionBody::new(false, true).parse(cursor, env)?;
 
         cursor.expect(Punctuator::CloseBlock, "async function expression")?;
 

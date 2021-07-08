@@ -2,7 +2,7 @@ use super::super::{expression::Expression, ParseResult};
 use crate::{
     syntax::{
         ast::node::Node,
-        parser::{AllowAwait, AllowYield, Cursor, TokenParser},
+        parser::{AllowAwait, AllowYield, Cursor, DeclaredNames, TokenParser},
     },
     BoaProfiler,
 };
@@ -40,10 +40,10 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, env: &mut DeclaredNames) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ExpressionStatement", "Parsing");
         // TODO: lookahead
-        let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, env)?;
 
         cursor.expect_semicolon("expression statement")?;
 

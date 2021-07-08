@@ -30,7 +30,7 @@ use crate::{
         lexer::{token::Numeric, InputElement, TokenKind},
         parser::{
             expression::primary::template::TemplateLiteral, AllowAwait, AllowYield, Cursor,
-            ParseError, ParseResult, TokenParser,
+            DeclaredNames, ParseError, ParseResult, TokenParser,
         },
     },
 };
@@ -72,7 +72,7 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, env: &mut DeclaredNames) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("PrimaryExpression", "Parsing");
 
         let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
@@ -80,28 +80,28 @@ where
         match tok.kind() {
             TokenKind::Keyword(Keyword::This) => Ok(Node::This),
             TokenKind::Keyword(Keyword::Function) => {
-                FunctionExpression.parse(cursor).map(Node::from)
+                FunctionExpression.parse(cursor, env).map(Node::from)
             }
             TokenKind::Keyword(Keyword::Async) => AsyncFunctionExpression::new(self.allow_yield)
-                .parse(cursor)
+                .parse(cursor, env)
                 .map(Node::from),
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 cursor.set_goal(InputElement::RegExp);
                 let expr =
-                    Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                    Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, env)?;
                 cursor.expect(Punctuator::CloseParen, "primary expression")?;
                 Ok(expr)
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 cursor.set_goal(InputElement::RegExp);
                 ArrayLiteral::new(self.allow_yield, self.allow_await)
-                    .parse(cursor)
+                    .parse(cursor, env)
                     .map(Node::ArrayDecl)
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
                 cursor.set_goal(InputElement::RegExp);
                 Ok(ObjectLiteral::new(self.allow_yield, self.allow_await)
-                    .parse(cursor)?
+                    .parse(cursor, env)?
                     .into())
             }
             TokenKind::BooleanLiteral(boolean) => Ok(Const::from(*boolean).into()),
@@ -148,7 +148,7 @@ where
                     .map_err(ParseError::lex)?
                     .as_ref(),
             )
-            .parse(cursor)
+            .parse(cursor, env)
             .map(Node::TemplateLit),
             _ => Err(ParseError::unexpected(tok.clone(), "primary expression")),
         }

@@ -18,7 +18,7 @@ use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{Keyword, Node},
-        parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
+        parser::{AllowAwait, AllowYield, Cursor, DeclaredNames, ParseError, TokenParser},
     },
     BoaProfiler,
 };
@@ -58,13 +58,18 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Declaration", "Parsing");
         let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::Function) | TokenKind::Keyword(Keyword::Async) => {
-                HoistableDeclaration::new(self.allow_yield, self.allow_await, false).parse(cursor)
+                HoistableDeclaration::new(self.allow_yield, self.allow_await, false)
+                    .parse(cursor, env)
             }
             TokenKind::Keyword(Keyword::Const) | TokenKind::Keyword(Keyword::Let) => {
                 LexicalDeclaration::new(
@@ -73,7 +78,7 @@ where
                     self.allow_await,
                     self.const_init_required,
                 )
-                .parse(cursor)
+                .parse(cursor, env)
             }
             _ => unreachable!("unknown token found: {:?}", tok),
         }

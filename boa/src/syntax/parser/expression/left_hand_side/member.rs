@@ -21,7 +21,7 @@ use crate::{
                 left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression,
                 Expression,
             },
-            AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+            AllowAwait, AllowYield, Cursor, DeclaredNames, ParseError, ParseResult, TokenParser,
         },
     },
     BoaProfiler,
@@ -61,20 +61,20 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, env: &mut DeclaredNames) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("MemberExpression", "Parsing");
 
         let mut lhs = if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()
             == &TokenKind::Keyword(Keyword::New)
         {
             let _ = cursor.next().expect("new keyword disappeared");
-            let lhs = self.parse(cursor)?;
-            let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            let lhs = self.parse(cursor, env)?;
+            let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor, env)?;
             let call_node = Call::new(lhs, args);
 
             Node::from(New::from(call_node))
         } else {
-            PrimaryExpression::new(self.allow_yield, self.allow_await).parse(cursor)?
+            PrimaryExpression::new(self.allow_yield, self.allow_await).parse(cursor, env)?
         };
         while let Some(tok) = cursor.peek(0)? {
             match tok.kind() {
@@ -103,8 +103,8 @@ where
                     cursor
                         .next()?
                         .expect("open bracket punctuator token disappeared"); // We move the parser forward.
-                    let idx =
-                        Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                    let idx = Expression::new(true, self.allow_yield, self.allow_await)
+                        .parse(cursor, env)?;
                     cursor.expect(Punctuator::CloseBracket, "member expression")?;
                     lhs = GetField::new(lhs, idx).into();
                 }
@@ -115,7 +115,7 @@ where
                         tok.span().start(),
                         lhs,
                     )
-                    .parse(cursor)?;
+                    .parse(cursor, env)?;
                 }
                 _ => break,
             }

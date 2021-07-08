@@ -11,7 +11,7 @@ use crate::{
             cursor::{Cursor, SemicolonResult},
             expression::Initializer,
             statement::BindingIdentifier,
-            AllowAwait, AllowIn, AllowYield, ParseError, TokenParser,
+            AllowAwait, AllowIn, AllowYield, DeclaredNames, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -54,12 +54,16 @@ where
 {
     type Output = DeclarationList;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("VariableStatement", "Parsing");
         cursor.expect(Keyword::Var, "variable statement")?;
 
-        let decl_list =
-            VariableDeclarationList::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let decl_list = VariableDeclarationList::new(true, self.allow_yield, self.allow_await)
+            .parse(cursor, env)?;
 
         cursor.expect_semicolon("variable statement")?;
 
@@ -108,13 +112,17 @@ where
 {
     type Output = DeclarationList;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let mut list = Vec::new();
 
         loop {
             list.push(
                 VariableDeclaration::new(self.allow_in, self.allow_yield, self.allow_await)
-                    .parse(cursor)?,
+                    .parse(cursor, env)?,
             );
 
             match cursor.peek_semicolon()? {
@@ -166,14 +174,21 @@ where
 {
     type Output = Declaration;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         // TODO: BindingPattern
 
-        let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor, env)?;
 
         let init = if let Some(t) = cursor.peek(0)? {
             if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
+                Some(
+                    Initializer::new(true, self.allow_yield, self.allow_await)
+                        .parse(cursor, env)?,
+                )
             } else {
                 None
             }
@@ -181,6 +196,7 @@ where
             None
         };
 
-        Ok(Declaration::new(name, init))
+        let decl = Declaration::new(name, init);
+        Ok(decl)
     }
 }

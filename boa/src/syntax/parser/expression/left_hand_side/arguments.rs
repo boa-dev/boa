@@ -13,8 +13,8 @@ use crate::{
         ast::{node::Spread, Node, Punctuator},
         lexer::InputElement,
         parser::{
-            expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError,
-            TokenParser,
+            expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, DeclaredNames,
+            ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -56,7 +56,11 @@ where
 {
     type Output = Box<[Node]>;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Arguments", "Parsing");
 
         cursor.expect(Punctuator::OpenParen, "arguments")?;
@@ -98,7 +102,7 @@ where
                 args.push(
                     Spread::new(
                         AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                            .parse(cursor)?,
+                            .parse(cursor, env)?,
                     )
                     .into(),
                 );
@@ -106,7 +110,7 @@ where
                 cursor.set_goal(InputElement::RegExp);
                 args.push(
                     AssignmentExpression::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor)?,
+                        .parse(cursor, env)?,
                 );
             }
         }

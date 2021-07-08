@@ -18,7 +18,7 @@ use crate::{
             expression::Expression,
             statement::declaration::Declaration,
             statement::{variable::VariableDeclarationList, Statement},
-            AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
+            AllowAwait, AllowReturn, AllowYield, Cursor, DeclaredNames, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -67,7 +67,11 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ForStatement", "Parsing");
         cursor.expect(Keyword::For, "for statement")?;
         cursor.expect(Punctuator::OpenParen, "for statement")?;
@@ -77,34 +81,36 @@ where
                 let _ = cursor.next()?;
                 Some(
                     VariableDeclarationList::new(false, self.allow_yield, self.allow_await)
-                        .parse(cursor)
+                        .parse(cursor, env)
                         .map(Node::from)?,
                 )
             }
-            TokenKind::Keyword(Keyword::Let) | TokenKind::Keyword(Keyword::Const) => {
-                Some(Declaration::new(self.allow_yield, self.allow_await, false).parse(cursor)?)
-            }
+            TokenKind::Keyword(Keyword::Let) | TokenKind::Keyword(Keyword::Const) => Some(
+                Declaration::new(self.allow_yield, self.allow_await, false).parse(cursor, env)?,
+            ),
             TokenKind::Punctuator(Punctuator::Semicolon) => None,
-            _ => Some(Expression::new(false, self.allow_yield, self.allow_await).parse(cursor)?),
+            _ => Some(
+                Expression::new(false, self.allow_yield, self.allow_await).parse(cursor, env)?,
+            ),
         };
 
         match cursor.peek(0)? {
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::In) && init.is_some() => {
                 let _ = cursor.next();
                 let expr =
-                    Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                    Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, env)?;
                 cursor.expect(Punctuator::CloseParen, "for in statement")?;
                 let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)?;
+                    .parse(cursor, env)?;
                 return Ok(ForInLoop::new(init.unwrap(), expr, body).into());
             }
             Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::Of) && init.is_some() => {
                 let _ = cursor.next();
                 let iterable =
-                    Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                    Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, env)?;
                 cursor.expect(Punctuator::CloseParen, "for of statement")?;
                 let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)?;
+                    .parse(cursor, env)?;
                 return Ok(ForOfLoop::new(init.unwrap(), iterable, body).into());
             }
             _ => {}
@@ -115,7 +121,8 @@ where
         let cond = if cursor.next_if(Punctuator::Semicolon)?.is_some() {
             Const::from(true).into()
         } else {
-            let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+            let step =
+                Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, env)?;
             cursor.expect(Punctuator::Semicolon, "for statement")?;
             step
         };
@@ -123,7 +130,8 @@ where
         let step = if cursor.next_if(Punctuator::CloseParen)?.is_some() {
             None
         } else {
-            let step = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+            let step =
+                Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, env)?;
             cursor.expect(
                 TokenKind::Punctuator(Punctuator::CloseParen),
                 "for statement",
@@ -131,8 +139,8 @@ where
             Some(step)
         };
 
-        let body =
-            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+        let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+            .parse(cursor, env)?;
 
         // TODO: do not encapsulate the `for` in a block just to have an inner scope.
         Ok(ForLoop::new(init, cond, step, body).into())

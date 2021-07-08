@@ -8,7 +8,7 @@ use crate::{
         parser::{
             cursor::{Cursor, SemicolonResult},
             expression::Expression,
-            AllowAwait, AllowYield, ParseError, TokenParser,
+            AllowAwait, AllowYield, DeclaredNames, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -50,7 +50,11 @@ where
 {
     type Output = Return;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ReturnStatement", "Parsing");
         cursor.expect(Keyword::Return, "return statement")?;
 
@@ -65,7 +69,7 @@ where
             return Ok(Return::new::<Node, Option<_>, Option<_>>(None, None));
         }
 
-        let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, env)?;
 
         cursor.expect_semicolon("return statement")?;
 

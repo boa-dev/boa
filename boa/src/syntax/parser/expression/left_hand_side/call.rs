@@ -20,7 +20,7 @@ use crate::{
         lexer::TokenKind,
         parser::{
             expression::{left_hand_side::template::TaggedTemplateLiteral, Expression},
-            AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+            AllowAwait, AllowYield, Cursor, DeclaredNames, ParseError, ParseResult, TokenParser,
         },
     },
     BoaProfiler,
@@ -62,13 +62,13 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, env: &mut DeclaredNames) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("CallExpression", "Parsing");
 
         let token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
         let mut lhs = if token.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-            let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor, env)?;
             Node::from(Call::new(self.first_member_expr, args))
         } else {
             let next_token = cursor.next()?.expect("token vanished");
@@ -83,7 +83,8 @@ where
             let token = tok.clone();
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
-                    let args = Arguments::new(self.allow_yield, self.allow_await).parse(cursor)?;
+                    let args =
+                        Arguments::new(self.allow_yield, self.allow_await).parse(cursor, env)?;
                     lhs = Node::from(Call::new(lhs, args));
                 }
                 TokenKind::Punctuator(Punctuator::Dot) => {
@@ -107,8 +108,8 @@ where
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     let _ = cursor.next()?.ok_or(ParseError::AbruptEnd)?; // We move the parser.
-                    let idx =
-                        Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                    let idx = Expression::new(true, self.allow_yield, self.allow_await)
+                        .parse(cursor, env)?;
                     cursor.expect(Punctuator::CloseBracket, "call expression")?;
                     lhs = GetField::new(lhs, idx).into();
                 }
@@ -119,7 +120,7 @@ where
                         tok.span().start(),
                         lhs,
                     )
-                    .parse(cursor)?;
+                    .parse(cursor, env)?;
                 }
                 _ => break,
             }

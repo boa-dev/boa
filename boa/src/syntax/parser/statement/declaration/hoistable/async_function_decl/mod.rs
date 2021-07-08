@@ -8,7 +8,7 @@ use crate::syntax::{
         function::FormalParameters,
         function::FunctionBody,
         statement::{BindingIdentifier, LexError, Position},
-        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
+        AllowAwait, AllowDefault, AllowYield, Cursor, DeclaredNames, ParseError, TokenParser,
     },
 };
 use std::io::Read;
@@ -50,7 +50,11 @@ where
 {
     type Output = AsyncFunctionDecl;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         cursor.expect(Keyword::Async, "async function declaration")?;
         cursor.peek_expect_no_lineterminator(0, "async function declaration")?;
         cursor.expect(Keyword::Function, "async function declaration")?;
@@ -67,9 +71,10 @@ where
                     }
                     None
                 }
-                _ => {
-                    Some(BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?)
-                }
+                _ => Some(
+                    BindingIdentifier::new(self.allow_yield, self.allow_await)
+                        .parse(cursor, env)?,
+                ),
             }
         } else {
             return Err(ParseError::AbruptEnd);
@@ -77,12 +82,12 @@ where
 
         cursor.expect(Punctuator::OpenParen, "async function declaration")?;
 
-        let params = FormalParameters::new(false, true).parse(cursor)?;
+        let params = FormalParameters::new(false, true).parse(cursor, env)?;
 
         cursor.expect(Punctuator::CloseParen, "async function declaration")?;
         cursor.expect(Punctuator::OpenBlock, "async function declaration")?;
 
-        let body = FunctionBody::new(false, true).parse(cursor)?;
+        let body = FunctionBody::new(false, true).parse(cursor, env)?;
 
         cursor.expect(Punctuator::CloseBlock, "async function declaration")?;
 

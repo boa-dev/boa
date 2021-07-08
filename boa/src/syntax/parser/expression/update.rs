@@ -12,8 +12,8 @@ use crate::{
         ast::{node, op::UnaryOp, Node, Punctuator},
         lexer::TokenKind,
         parser::{
-            expression::unary::UnaryExpression, AllowAwait, AllowYield, Cursor, ParseError,
-            ParseResult, TokenParser,
+            expression::unary::UnaryExpression, AllowAwait, AllowYield, Cursor, DeclaredNames,
+            ParseError, ParseResult, TokenParser,
         },
     },
 };
@@ -52,7 +52,7 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, env: &mut DeclaredNames) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("UpdateExpression", "Parsing");
 
         let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
@@ -61,7 +61,7 @@ where
                 cursor.next()?.expect("Punctuator::Inc token disappeared");
                 return Ok(node::UnaryOp::new(
                     UnaryOp::IncrementPre,
-                    UnaryExpression::new(self.allow_yield, self.allow_await).parse(cursor)?,
+                    UnaryExpression::new(self.allow_yield, self.allow_await).parse(cursor, env)?,
                 )
                 .into());
             }
@@ -69,14 +69,15 @@ where
                 cursor.next()?.expect("Punctuator::Dec token disappeared");
                 return Ok(node::UnaryOp::new(
                     UnaryOp::DecrementPre,
-                    UnaryExpression::new(self.allow_yield, self.allow_await).parse(cursor)?,
+                    UnaryExpression::new(self.allow_yield, self.allow_await).parse(cursor, env)?,
                 )
                 .into());
             }
             _ => {}
         }
 
-        let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let lhs =
+            LeftHandSideExpression::new(self.allow_yield, self.allow_await).parse(cursor, env)?;
         if let Some(tok) = cursor.peek(0)? {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Inc) => {

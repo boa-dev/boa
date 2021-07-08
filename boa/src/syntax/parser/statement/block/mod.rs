@@ -17,7 +17,9 @@ use crate::{
     profiler::BoaProfiler,
     syntax::{
         ast::{node, Punctuator},
-        parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
+        parser::{
+            AllowAwait, AllowReturn, AllowYield, Cursor, DeclaredNames, ParseError, TokenParser,
+        },
     },
 };
 
@@ -71,7 +73,11 @@ where
 {
     type Output = node::Block;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Block", "Parsing");
         cursor.expect(Punctuator::OpenBlock, "block")?;
         if let Some(tk) = cursor.peek(0)? {
@@ -88,7 +94,7 @@ where
             true,
             &BLOCK_BREAK_TOKENS,
         )
-        .parse(cursor)
+        .parse(cursor, env)
         .map(node::Block::from)?;
         cursor.expect(Punctuator::CloseBlock, "block")?;
 

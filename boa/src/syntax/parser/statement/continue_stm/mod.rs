@@ -17,7 +17,7 @@ use crate::{
         parser::{
             cursor::{Cursor, SemicolonResult},
             statement::LabelIdentifier,
-            AllowAwait, AllowYield, ParseError, TokenParser,
+            AllowAwait, AllowYield, DeclaredNames, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -59,7 +59,11 @@ where
 {
     type Output = Continue;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ContinueStatement", "Parsing");
         cursor.expect(Keyword::Continue, "continue statement")?;
 
@@ -73,7 +77,8 @@ where
 
             None
         } else {
-            let label = LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            let label =
+                LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor, env)?;
             cursor.expect_semicolon("continue statement")?;
 
             Some(label)

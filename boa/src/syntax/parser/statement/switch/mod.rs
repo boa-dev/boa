@@ -7,7 +7,7 @@ use crate::{
         lexer::TokenKind,
         parser::{
             expression::Expression, statement::StatementList, AllowAwait, AllowReturn, AllowYield,
-            Cursor, ParseError, TokenParser,
+            Cursor, DeclaredNames, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -59,17 +59,23 @@ where
 {
     type Output = Switch;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("SwitchStatement", "Parsing");
         cursor.expect(Keyword::Switch, "switch statement")?;
         cursor.expect(Punctuator::OpenParen, "switch statement")?;
 
-        let condition = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let condition =
+            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, env)?;
 
         cursor.expect(Punctuator::CloseParen, "switch statement")?;
 
         let (cases, default) =
-            CaseBlock::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+            CaseBlock::new(self.allow_yield, self.allow_await, self.allow_return)
+                .parse(cursor, env)?;
 
         Ok(Switch::new(condition, cases, default))
     }
@@ -110,7 +116,11 @@ where
 {
     type Output = (Box<[node::Case]>, Option<node::StatementList>);
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         cursor.expect(Punctuator::OpenBlock, "switch case block")?;
 
         let mut cases = Vec::new();
@@ -120,8 +130,8 @@ where
             match cursor.next()? {
                 Some(token) if token.kind() == &TokenKind::Keyword(Keyword::Case) => {
                     // Case statement.
-                    let cond =
-                        Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+                    let cond = Expression::new(true, self.allow_yield, self.allow_await)
+                        .parse(cursor, env)?;
 
                     cursor.expect(Punctuator::Colon, "switch case block")?;
 
@@ -132,7 +142,7 @@ where
                         false,
                         &CASE_BREAK_TOKENS,
                     )
-                    .parse(cursor)?;
+                    .parse(cursor, env)?;
 
                     cases.push(node::Case::new(cond, statement_list));
                 }
@@ -154,7 +164,7 @@ where
                         false,
                         &CASE_BREAK_TOKENS,
                     )
-                    .parse(cursor)?;
+                    .parse(cursor, env)?;
 
                     default = Some(statement_list);
                 }

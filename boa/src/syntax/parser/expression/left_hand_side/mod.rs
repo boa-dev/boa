@@ -18,7 +18,7 @@ use crate::{
     syntax::{
         ast::{Node, Punctuator},
         lexer::{InputElement, TokenKind},
-        parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
+        parser::{AllowAwait, AllowYield, Cursor, DeclaredNames, ParseError, TokenParser},
     },
 };
 
@@ -58,16 +58,21 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("LeftHandSIdeExpression", "Parsing");
 
         cursor.set_goal(InputElement::TemplateTail);
 
         // TODO: Implement NewExpression: new MemberExpression
-        let lhs = MemberExpression::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let lhs = MemberExpression::new(self.allow_yield, self.allow_await).parse(cursor, env)?;
         if let Some(tok) = cursor.peek(0)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-                return CallExpression::new(self.allow_yield, self.allow_await, lhs).parse(cursor);
+                return CallExpression::new(self.allow_yield, self.allow_await, lhs)
+                    .parse(cursor, env);
             }
         }
         Ok(lhs)

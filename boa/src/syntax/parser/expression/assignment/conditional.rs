@@ -13,7 +13,7 @@ use crate::{
         ast::{node::ConditionalOp, Node, Punctuator},
         parser::{
             expression::{AssignmentExpression, ShortCircuitExpression},
-            AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
+            AllowAwait, AllowIn, AllowYield, Cursor, DeclaredNames, ParseResult, TokenParser,
         },
     },
     BoaProfiler,
@@ -62,23 +62,23 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, env: &mut DeclaredNames) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ConditionalExpression", "Parsing");
 
         let lhs = ShortCircuitExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-            .parse(cursor)?;
+            .parse(cursor, env)?;
 
         if let Some(tok) = cursor.peek(0)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::Question) {
                 cursor.next()?.expect("? character vanished"); // Consume the token.
                 let then_clause =
                     AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor)?;
+                        .parse(cursor, env)?;
                 cursor.expect(Punctuator::Colon, "conditional expression")?;
 
                 let else_clause =
                     AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor)?;
+                        .parse(cursor, env)?;
                 return Ok(ConditionalOp::new(lhs, then_clause, else_clause).into());
             }
         }

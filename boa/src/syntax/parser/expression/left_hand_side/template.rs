@@ -5,8 +5,8 @@ use crate::{
         ast::{Node, Position, Punctuator},
         lexer::TokenKind,
         parser::{
-            cursor::Cursor, expression::Expression, AllowAwait, AllowYield, ParseError,
-            ParseResult, TokenParser,
+            cursor::Cursor, expression::Expression, AllowAwait, AllowYield, DeclaredNames,
+            ParseError, ParseResult, TokenParser,
         },
     },
 };
@@ -48,7 +48,7 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, env: &mut DeclaredNames) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("TaggedTemplateLiteral", "Parsing");
 
         let mut raws = Vec::new();
@@ -63,7 +63,8 @@ where
                     raws.push(template_string.as_raw().to_owned().into_boxed_str());
                     cookeds.push(template_string.to_owned_cooked().ok());
                     exprs.push(
-                        Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?,
+                        Expression::new(true, self.allow_yield, self.allow_await)
+                            .parse(cursor, env)?,
                     );
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::CloseBlock),

@@ -19,7 +19,7 @@ use crate::{
             error::{ErrorContext, ParseError, ParseResult},
             function::{FormalParameters, FunctionBody},
             statement::BindingIdentifier,
-            AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
+            AllowAwait, AllowIn, AllowYield, Cursor, DeclaredNames, TokenParser,
         },
     },
     BoaProfiler,
@@ -68,7 +68,11 @@ where
 {
     type Output = ArrowFunctionDecl;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("ArrowFunction", "Parsing");
         let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
@@ -76,12 +80,13 @@ where
             // CoverParenthesizedExpressionAndArrowParameterList
             cursor.expect(Punctuator::OpenParen, "arrow function")?;
 
-            let params = FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor)?;
+            let params =
+                FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor, env)?;
             cursor.expect(Punctuator::CloseParen, "arrow function")?;
             params
         } else {
             let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
-                .parse(cursor)
+                .parse(cursor, env)
                 .context("arrow function")?;
             Box::new([FormalParameter::new(param, None, false)])
         };
@@ -89,7 +94,7 @@ where
         cursor.peek_expect_no_lineterminator(0, "arrow function")?;
 
         cursor.expect(TokenKind::Punctuator(Punctuator::Arrow), "arrow function")?;
-        let body = ConciseBody::new(self.allow_in).parse(cursor)?;
+        let body = ConciseBody::new(self.allow_in).parse(cursor, env)?;
 
         // It is a Syntax Error if any element of the BoundNames of ArrowParameters
         // also occurs in the LexicallyDeclaredNames of ConciseBody.
@@ -137,16 +142,20 @@ where
 {
     type Output = StatementList;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
                 let _ = cursor.next();
-                let body = FunctionBody::new(false, false).parse(cursor)?;
+                let body = FunctionBody::new(false, false).parse(cursor, env)?;
                 cursor.expect(Punctuator::CloseBlock, "arrow function")?;
                 Ok(body)
             }
             _ => Ok(StatementList::from(vec![Return::new(
-                ExpressionBody::new(self.allow_in, false).parse(cursor)?,
+                ExpressionBody::new(self.allow_in, false).parse(cursor, env)?,
                 None,
             )
             .into()])),
@@ -181,7 +190,7 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
-        AssignmentExpression::new(self.allow_in, false, self.allow_await).parse(cursor)
+    fn parse(self, cursor: &mut Cursor<R>, env: &mut DeclaredNames) -> ParseResult {
+        AssignmentExpression::new(self.allow_in, false, self.allow_await).parse(cursor, env)
     }
 }

@@ -42,7 +42,7 @@ use crate::{
     syntax::{
         ast::{node, Keyword, Node, Punctuator},
         lexer::{Error as LexError, InputElement, Position, TokenKind},
-        parser::expression::await_expr::AwaitExpression,
+        parser::{expression::await_expr::AwaitExpression, DeclaredNames},
     },
     BoaProfiler,
 };
@@ -106,44 +106,48 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Statement", "Parsing");
         // TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
         let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::Await) => AwaitExpression::new(self.allow_yield)
-                .parse(cursor)
+                .parse(cursor, env)
                 .map(Node::from),
             TokenKind::Keyword(Keyword::If) => {
                 IfStatement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)
+                    .parse(cursor, env)
                     .map(Node::from)
             }
             TokenKind::Keyword(Keyword::Var) => {
                 VariableStatement::new(self.allow_yield, self.allow_await)
-                    .parse(cursor)
+                    .parse(cursor, env)
                     .map(Node::from)
             }
             TokenKind::Keyword(Keyword::While) => {
                 WhileStatement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)
+                    .parse(cursor, env)
                     .map(Node::from)
             }
             TokenKind::Keyword(Keyword::Do) => {
                 DoWhileStatement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)
+                    .parse(cursor, env)
                     .map(Node::from)
             }
             TokenKind::Keyword(Keyword::For) => {
                 ForStatement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)
+                    .parse(cursor, env)
                     .map(Node::from)
             }
             TokenKind::Keyword(Keyword::Return) => {
                 if self.allow_return.0 {
                     ReturnStatement::new(self.allow_yield, self.allow_await)
-                        .parse(cursor)
+                        .parse(cursor, env)
                         .map(Node::from)
                 } else {
                     Err(ParseError::unexpected(tok.clone(), "statement"))
@@ -151,32 +155,32 @@ where
             }
             TokenKind::Keyword(Keyword::Break) => {
                 BreakStatement::new(self.allow_yield, self.allow_await)
-                    .parse(cursor)
+                    .parse(cursor, env)
                     .map(Node::from)
             }
             TokenKind::Keyword(Keyword::Continue) => {
                 ContinueStatement::new(self.allow_yield, self.allow_await)
-                    .parse(cursor)
+                    .parse(cursor, env)
                     .map(Node::from)
             }
             TokenKind::Keyword(Keyword::Try) => {
                 TryStatement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)
+                    .parse(cursor, env)
                     .map(Node::from)
             }
             TokenKind::Keyword(Keyword::Throw) => {
                 ThrowStatement::new(self.allow_yield, self.allow_await)
-                    .parse(cursor)
+                    .parse(cursor, env)
                     .map(Node::from)
             }
             TokenKind::Keyword(Keyword::Switch) => {
                 SwitchStatement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)
+                    .parse(cursor, env)
                     .map(Node::from)
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
                 BlockStatement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor)
+                    .parse(cursor, env)
                     .map(Node::from)
             }
             TokenKind::Punctuator(Punctuator::Semicolon) => {
@@ -199,14 +203,14 @@ where
                         self.allow_await,
                         self.allow_return,
                     )
-                    .parse(cursor)
+                    .parse(cursor, env)
                     .map(Node::from);
                 }
 
-                ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor)
+                ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor, env)
             }
 
-            _ => ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor),
+            _ => ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor, env),
         }
     }
 }
@@ -266,7 +270,11 @@ where
     ///
     /// Note that the last token which causes the parse to finish is not
     /// consumed.
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("StatementList", "Parsing");
         let mut items = Vec::new();
 
@@ -283,7 +291,7 @@ where
                 self.allow_return,
                 self.in_block,
             )
-            .parse(cursor)?;
+            .parse(cursor, env)?;
             items.push(item);
 
             // move the cursor forward for any consecutive semicolon.
@@ -395,7 +403,11 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("StatementListItem", "Parsing");
         let strict_mode = cursor.strict_mode();
         let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
@@ -408,14 +420,13 @@ where
                         tok.span().start(),
                     )));
                 }
-                Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor)
+                Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor, env)
             }
             TokenKind::Keyword(Keyword::Const) | TokenKind::Keyword(Keyword::Let) => {
-                Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor)
+                Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor, env)
             }
-            _ => {
-                Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)
-            }
+            _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+                .parse(cursor, env),
         }
     }
 }
@@ -463,7 +474,11 @@ where
     type Output = Box<str>;
 
     /// Strict mode parsing as per <https://tc39.es/ecma262/#sec-identifiers-static-semantics-early-errors>.
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("BindingIdentifier", "Parsing");
 
         let next_token = cursor.next()?.ok_or(ParseError::AbruptEnd)?;

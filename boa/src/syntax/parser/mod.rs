@@ -13,7 +13,7 @@ use crate::syntax::{ast::node::StatementList, lexer::TokenKind};
 
 use cursor::Cursor;
 
-use std::io::Read;
+use std::{collections::HashSet, io::Read};
 
 /// Trait implemented by parsers.
 ///
@@ -28,7 +28,11 @@ where
     /// Parses the token stream using the current parser.
     ///
     /// This method needs to be provided by the implementor type.
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError>;
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError>;
 }
 
 /// Boolean representing if the parser should allow a `yield` keyword.
@@ -81,6 +85,23 @@ impl From<bool> for AllowDefault {
     }
 }
 
+/// Tracks all of the declared names during parsing. This is a small wrapper over two
+/// `HashSet`s, which store the var delcared names, and the lexically declared names.
+#[derive(Debug, Clone)]
+pub struct DeclaredNames {
+    vars: HashSet<Box<str>>,
+    lex: HashSet<Box<str>>,
+}
+
+impl Default for DeclaredNames {
+    fn default() -> Self {
+        DeclaredNames {
+            vars: HashSet::new(),
+            lex: HashSet::new(),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Parser<R> {
     /// Cursor of the parser, pointing to the lexer and used to get tokens for the parser.
@@ -102,7 +123,7 @@ impl<R> Parser<R> {
     where
         R: Read,
     {
-        Script.parse(&mut self.cursor)
+        Script.parse(&mut self.cursor, &mut DeclaredNames::default())
     }
 }
 
@@ -121,7 +142,11 @@ where
 {
     type Output = StatementList;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         match cursor.peek(0)? {
             Some(tok) => {
                 match tok.kind() {
@@ -130,7 +155,7 @@ where
                     }
                     _ => {}
                 }
-                ScriptBody.parse(cursor)
+                ScriptBody.parse(cursor, env)
             }
             None => Ok(StatementList::from(Vec::new())),
         }
@@ -152,7 +177,11 @@ where
 {
     type Output = StatementList;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        self::statement::StatementList::new(false, false, false, false, &[]).parse(cursor)
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
+        self::statement::StatementList::new(false, false, false, false, &[]).parse(cursor, env)
     }
 }

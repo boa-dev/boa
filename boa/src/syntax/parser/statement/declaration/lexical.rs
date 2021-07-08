@@ -21,7 +21,7 @@ use crate::{
             cursor::{Cursor, SemicolonResult},
             expression::Initializer,
             statement::BindingIdentifier,
-            AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, TokenParser,
+            AllowAwait, AllowIn, AllowYield, DeclaredNames, ParseError, ParseResult, TokenParser,
         },
     },
     BoaProfiler,
@@ -71,7 +71,7 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, env: &mut DeclaredNames) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("LexicalDeclaration", "Parsing");
         let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
 
@@ -83,7 +83,7 @@ where
                 true,
                 self.const_init_required,
             )
-            .parse(cursor),
+            .parse(cursor, env),
             TokenKind::Keyword(Keyword::Let) => BindingList::new(
                 self.allow_in,
                 self.allow_yield,
@@ -91,7 +91,7 @@ where
                 false,
                 self.const_init_required,
             )
-            .parse(cursor),
+            .parse(cursor, env),
             _ => unreachable!("unknown token found: {:?}", tok),
         }
     }
@@ -145,7 +145,7 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, env: &mut DeclaredNames) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("BindingList", "Parsing");
 
         // Create vectors to store the variable declarations
@@ -156,7 +156,7 @@ where
         loop {
             let (ident, init) =
                 LexicalBinding::new(self.allow_in, self.allow_yield, self.allow_await)
-                    .parse(cursor)?;
+                    .parse(cursor, env)?;
 
             if self.is_const {
                 if self.const_init_required {
@@ -245,16 +245,21 @@ where
 {
     type Output = (Box<str>, Option<Node>);
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("LexicalBinding", "Parsing");
 
-        let ident = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let ident =
+            BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor, env)?;
 
         let init = if let Some(t) = cursor.peek(0)? {
             if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
                 Some(
                     Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor)?,
+                        .parse(cursor, env)?,
                 )
             } else {
                 None

@@ -17,7 +17,7 @@ use crate::{
         parser::{
             expression::Initializer,
             statement::{BindingIdentifier, StatementList},
-            AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+            AllowAwait, AllowYield, Cursor, DeclaredNames, ParseError, TokenParser,
         },
     },
     BoaProfiler,
@@ -58,7 +58,11 @@ where
 {
     type Output = Box<[node::FormalParameter]>;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FormalParameters", "Parsing");
         cursor.set_goal(InputElement::RegExp);
 
@@ -78,9 +82,10 @@ where
             let next_param = match cursor.peek(0)? {
                 Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Spread) => {
                     rest_param = true;
-                    FunctionRestParameter::new(self.allow_yield, self.allow_await).parse(cursor)?
+                    FunctionRestParameter::new(self.allow_yield, self.allow_await)
+                        .parse(cursor, env)?
                 }
-                _ => FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor)?,
+                _ => FormalParameter::new(self.allow_yield, self.allow_await).parse(cursor, env)?,
             };
             if param_names.contains(next_param.name()) {
                 return Err(ParseError::general("duplicate parameter name", position));
@@ -153,11 +158,16 @@ where
 {
     type Output = node::FormalParameter;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("BindingRestElement", "Parsing");
         cursor.expect(Punctuator::Spread, "rest parameter")?;
 
-        let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let param =
+            BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor, env)?;
         // TODO: BindingPattern
 
         Ok(Self::Output::new(param, None, true))
@@ -198,17 +208,25 @@ where
 {
     type Output = node::FormalParameter;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FormalParameter", "Parsing");
 
         // TODO: BindingPattern
 
-        let param = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let param =
+            BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor, env)?;
 
         let init = if let Some(t) = cursor.peek(0)? {
             // Check that this is an initilizer before attempting parse.
             if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
+                Some(
+                    Initializer::new(true, self.allow_yield, self.allow_await)
+                        .parse(cursor, env)?,
+                )
             } else {
                 None
             }
@@ -263,7 +281,11 @@ where
 {
     type Output = node::StatementList;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        env: &mut DeclaredNames,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("FunctionStatementList", "Parsing");
 
         let global_strict_mode = cursor.strict_mode();
@@ -286,7 +308,7 @@ where
             true,
             &FUNCTION_BREAK_TOKENS,
         )
-        .parse(cursor);
+        .parse(cursor, env);
 
         // Reset strict mode back to the global scope.
         cursor.set_strict_mode(global_strict_mode);
