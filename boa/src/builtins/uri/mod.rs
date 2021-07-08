@@ -53,7 +53,10 @@ impl Uri {
                         cb(arg_str_ref)
                     }
                 }
-                _ => Value::Undefined,
+                x => {
+                    println!("Rust! {:?}", x); // how I can call built in toString method
+                    Value::Undefined
+                }
             })
             .unwrap_or(Value::Undefined))
     }
