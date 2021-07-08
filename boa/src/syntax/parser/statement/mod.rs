@@ -298,6 +298,19 @@ where
 
             // TODO: Use more helpful positions in errors when spans are added to Nodes
             for item in &items {
+                for new_name in item.var_declared_names() {
+                    if lexically_declared_names.contains(new_name) {
+                        return Err(ParseError::lex(LexError::Syntax(
+                            format!("Redeclaration of variable `{}`", new_name).into(),
+                            match cursor.peek(0)? {
+                                Some(token) => token.span().end(),
+                                None => Position::new(1, 1),
+                            },
+                        )));
+                    }
+                    var_declared_names.insert(new_name);
+                }
+                // This is an inline impl of item.lexically_declared_names(). This will be its own function soon.
                 match item {
                     Node::LetDeclList(decl_list) | Node::ConstDeclList(decl_list) => {
                         for decl in decl_list.as_ref() {
@@ -328,22 +341,6 @@ where
                                     None => Position::new(1, 1),
                                 },
                             )));
-                        }
-                    }
-                    Node::VarDeclList(decl_list) => {
-                        for decl in decl_list.as_ref() {
-                            // if name in LexicallyDeclaredNames, raise an error
-                            if lexically_declared_names.contains(decl.name()) {
-                                return Err(ParseError::lex(LexError::Syntax(
-                                    format!("Redeclaration of variable `{}`", decl.name()).into(),
-                                    match cursor.peek(0)? {
-                                        Some(token) => token.span().end(),
-                                        None => Position::new(1, 1),
-                                    },
-                                )));
-                            }
-                            // otherwise, add to VarDeclaredNames
-                            var_declared_names.insert(decl.name());
                         }
                     }
                     _ => (),
