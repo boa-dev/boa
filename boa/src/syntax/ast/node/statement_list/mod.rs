@@ -78,6 +78,10 @@ impl StatementList {
         set
     }
 
+    #[deprecated(
+        since = "0.13.0",
+        note = "Use `Node::var_declared_names` instead. This function is out of date, and does not correctly get all var declared names."
+    )]
     pub fn var_declared_names(&self) -> HashSet<&str> {
         let mut set = HashSet::new();
         for stmt in self.items() {
