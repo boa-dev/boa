@@ -55,6 +55,8 @@ where
         let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
         if *name == *"yield" {
             return Err(ParseError::general("Invalid class name `yield`", pos));
+        } else if *name == *"static" {
+            return Err(ParseError::general("Invalid class name `static`", pos));
         }
 
         cursor.expect(Punctuator::OpenBlock, "class declaration")?;
