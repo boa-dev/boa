@@ -316,6 +316,20 @@ where
                             }
                         }
                     }
+                    Node::FunctionDecl(decl) => {
+                        // Function declarations act like `let`
+                        if var_declared_names.contains(decl.name())
+                            || !lexically_declared_names.insert(decl.name())
+                        {
+                            return Err(ParseError::lex(LexError::Syntax(
+                                format!("Redeclaration of variable `{}`", decl.name()).into(),
+                                match cursor.peek(0)? {
+                                    Some(token) => token.span().end(),
+                                    None => Position::new(1, 1),
+                                },
+                            )));
+                        }
+                    }
                     Node::VarDeclList(decl_list) => {
                         for decl in decl_list.as_ref() {
                             // if name in LexicallyDeclaredNames, raise an error
