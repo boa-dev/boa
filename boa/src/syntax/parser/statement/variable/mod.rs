@@ -181,6 +181,7 @@ where
     ) -> Result<Self::Output, ParseError> {
         // TODO: BindingPattern
 
+        let pos = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
         let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor, env)?;
 
         let init = if let Some(t) = cursor.peek(0)? {
@@ -195,6 +196,9 @@ where
         } else {
             None
         };
+
+        env.check_lex_name(&name, pos)?;
+        env.insert_var_name(&name);
 
         let decl = Declaration::new(name, init);
         Ok(decl)

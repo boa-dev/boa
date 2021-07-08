@@ -9,7 +9,10 @@ mod statement;
 mod tests;
 
 pub use self::error::{ParseError, ParseResult};
-use crate::syntax::{ast::node::StatementList, lexer::TokenKind};
+use crate::syntax::{
+    ast::node::StatementList,
+    lexer::{Error as LexError, Position, TokenKind},
+};
 
 use cursor::Cursor;
 
@@ -98,6 +101,39 @@ impl Default for DeclaredNames {
         DeclaredNames {
             vars: HashSet::new(),
             lex: HashSet::new(),
+        }
+    }
+}
+
+impl DeclaredNames {
+    /// Inserts a new variable name.
+    pub fn insert_var_name(&mut self, name: &str) -> bool {
+        self.vars.insert(name.into())
+    }
+    /// Returns an error if the a variable with the same name already has been declared.
+    pub fn check_var_name(&mut self, name: &str, pos: Position) -> Result<(), ParseError> {
+        if self.vars.contains(name) {
+            Err(ParseError::lex(LexError::Syntax(
+                format!("Redeclaration of variable `{}`", name).into(),
+                pos,
+            )))
+        } else {
+            Ok(())
+        }
+    }
+    /// Inserts a lexically declared name.
+    pub fn insert_lex_name(&mut self, name: &str) -> bool {
+        self.vars.insert(name.into())
+    }
+    /// Returns an error if the a lexically declared name already exists.
+    pub fn check_lex_name(&mut self, name: &str, pos: Position) -> Result<(), ParseError> {
+        if self.vars.contains(name) {
+            Err(ParseError::lex(LexError::Syntax(
+                format!("Redeclaration of variable `{}`", name).into(),
+                pos,
+            )))
+        } else {
+            Ok(())
         }
     }
 }
