@@ -94,6 +94,7 @@ impl From<bool> for AllowDefault {
 pub struct DeclaredNames {
     vars: HashSet<Box<str>>,
     lex: HashSet<Box<str>>,
+    lex_restore: Vec<HashSet<Box<str>>>,
 }
 
 impl Default for DeclaredNames {
@@ -101,14 +102,23 @@ impl Default for DeclaredNames {
         DeclaredNames {
             vars: HashSet::new(),
             lex: HashSet::new(),
+            lex_restore: vec![],
         }
     }
 }
 
 impl DeclaredNames {
-    /// Inserts a new variable name.
-    pub fn insert_var_name(&mut self, name: &str) -> bool {
-        self.vars.insert(name.into())
+    /// Inserts a new variable name. If the variable name already exists, this will return
+    /// an error. The pos argument is used to generate an error message.
+    pub fn insert_var_name(&mut self, name: &str, pos: Position) -> Result<(), ParseError> {
+        if self.vars.insert(name.into()) {
+            Err(ParseError::lex(LexError::Syntax(
+                format!("Redeclaration of variable `{}`", name).into(),
+                pos,
+            )))
+        } else {
+            Ok(())
+        }
     }
     /// Returns an error if the a variable with the same name already has been declared.
     pub fn check_var_name(&mut self, name: &str, pos: Position) -> Result<(), ParseError> {
@@ -122,8 +132,18 @@ impl DeclaredNames {
         }
     }
     /// Inserts a lexically declared name.
-    pub fn insert_lex_name(&mut self, name: &str) -> bool {
-        self.vars.insert(name.into())
+    pub fn insert_lex_name(&mut self, name: &str, pos: Position) -> Result<(), ParseError> {
+        if self.lex.insert(name.into()) {
+            Err(ParseError::lex(LexError::Syntax(
+                format!("Redeclaration of variable `{}`", name).into(),
+                pos,
+            )))
+        } else {
+            if let Some(restore) = self.lex_restore.last() {
+                restore.insert(name.into());
+            }
+            Ok(())
+        }
     }
     /// Returns an error if the a lexically declared name already exists.
     pub fn check_lex_name(&mut self, name: &str, pos: Position) -> Result<(), ParseError> {
@@ -134,6 +154,40 @@ impl DeclaredNames {
             )))
         } else {
             Ok(())
+        }
+    }
+    /// This adds an element to the lexical names restore list. If
+    /// [`pop_lex_restore`](Self::pop_lex_restore) is called, then
+    /// the current copy of lexically declared names will be restored.
+    /// This works like a stack:
+    ///
+    /// ```
+    /// let env = DeclaredNames::default();
+    ///
+    /// env.push_lex_restore();
+    /// env.insert_lex_name("hello");
+    /// env.insert_lex_name("world");
+    /// env.push_lex_restore();
+    /// env.insert_lex_name("second");
+    /// env.insert_lex_name("level"); // Env now has four lexically declared names.
+    ///
+    /// env.pop_lex_restore(); // Returns true, and env now has two lexically declared names ("hello" and "world").
+    /// env.pop_lex_restore(); // Returns true, and env now has no lexically declared names.
+    ///
+    /// env.pop_lex_restore(); // Returns false, and does nothing.
+    /// ```
+    pub fn push_lex_restore(&mut self) {
+        self.lex_restore.push(HashSet::new());
+    }
+    /// See the documentation on [`push_lex_restore`](Self::push_lex_restore).
+    pub fn pop_lex_restore(&mut self) -> bool {
+        if let Some(new_names) = self.lex_restore.pop() {
+            for n in new_names {
+                self.lex.remove(&n);
+            }
+            true
+        } else {
+            false
         }
     }
 }
