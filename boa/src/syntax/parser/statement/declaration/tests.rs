@@ -1,6 +1,6 @@
 use crate::syntax::{
     ast::{
-        node::{Declaration, DeclarationList, Node},
+        node::{Block, Declaration, DeclarationList, Node},
         Const,
     },
     parser::tests::{check_invalid, check_parser},
@@ -210,4 +210,32 @@ fn multiple_const_declaration() {
         )
         .into()],
     );
+}
+
+/// Checks for redeclaration errors.
+#[test]
+fn redeclaration_errors() {
+    check_invalid("let a; var a;");
+    check_invalid("let a; let a;");
+    check_invalid("var a; let a;");
+    check_parser(
+        "var a; var a;",
+        vec![
+            DeclarationList::Var(vec![Declaration::new("a", None)].into()).into(),
+            DeclarationList::Var(vec![Declaration::new("a", None)].into()).into(),
+        ],
+    );
+    // Scoping errors
+    check_parser(
+        "{ let a }; var a;",
+        vec![
+            Block::from(vec![DeclarationList::Let(
+                vec![Declaration::new("a", None)].into(),
+            )
+            .into()])
+            .into(),
+            DeclarationList::Var(vec![Declaration::new("a", None)].into()).into(),
+        ],
+    );
+    check_invalid("{ var a }; let a;");
 }

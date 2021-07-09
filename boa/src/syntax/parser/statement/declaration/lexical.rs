@@ -252,6 +252,7 @@ where
     ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("LexicalBinding", "Parsing");
 
+        let pos = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
         let ident =
             BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor, env)?;
 
@@ -268,6 +269,7 @@ where
             None
         };
 
+        env.insert_lex_name(&ident, pos)?;
         Ok((ident, init))
     }
 }
