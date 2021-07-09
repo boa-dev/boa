@@ -83,7 +83,15 @@ where
         cursor.expect(Punctuator::CloseParen, "async function declaration")?;
         cursor.expect(Punctuator::OpenBlock, "async function declaration")?;
 
-        let body = FunctionBody::new(false, true).parse(cursor, env)?;
+        let mut inner_env = DeclaredNames::default();
+        for param in params.iter() {
+            // This can never fail, as FormalParameters makes sure that there
+            // are not duplicate names.
+            inner_env
+                .insert_var_name(param.name(), Position::new(1, 1))
+                .unwrap();
+        }
+        let body = FunctionBody::new(false, true).parse(cursor, &mut inner_env)?;
 
         cursor.expect(Punctuator::CloseBlock, "async function declaration")?;
 

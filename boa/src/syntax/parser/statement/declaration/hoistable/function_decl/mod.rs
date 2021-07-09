@@ -71,10 +71,11 @@ where
 
         let mut inner_env = DeclaredNames::default();
         for param in params.iter() {
-            // TODO: Generate a better position for each parameter.
             // This can never fail, as FormalParameters makes sure that there
             // are not duplicate names.
-            inner_env.insert_var_name(param.name(), params_pos).unwrap();
+            inner_env
+                .insert_var_name(param.name(), Position::new(1, 1))
+                .unwrap();
         }
         // This checks for variable name collisions.
         let body =
