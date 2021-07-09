@@ -58,28 +58,22 @@ where
         cursor.expect(Keyword::Async, "async function declaration")?;
         cursor.peek_expect_no_lineterminator(0, "async function declaration")?;
         cursor.expect(Keyword::Function, "async function declaration")?;
-        let tok = cursor.peek(0)?;
+        let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
-        let pos;
-        let name = if let Some(token) = tok {
-            pos = token.span().start();
-            match token.kind() {
-                TokenKind::Punctuator(Punctuator::OpenParen) => {
-                    if !self.is_default.0 {
-                        return Err(ParseError::unexpected(
-                            token.clone(),
-                            " in async function declaration",
-                        ));
-                    }
-                    None
+        let pos = tok.span().start();
+        let name = match tok.kind() {
+            TokenKind::Punctuator(Punctuator::OpenParen) => {
+                if !self.is_default.0 {
+                    return Err(ParseError::unexpected(
+                        tok.clone(),
+                        " in async function declaration",
+                    ));
                 }
-                _ => Some(
-                    BindingIdentifier::new(self.allow_yield, self.allow_await)
-                        .parse(cursor, env)?,
-                ),
+                None
             }
-        } else {
-            return Err(ParseError::AbruptEnd);
+            _ => Some(
+                BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor, env)?,
+            ),
         };
 
         cursor.expect(Punctuator::OpenParen, "async function declaration")?;
