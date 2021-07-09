@@ -230,13 +230,14 @@ fn redeclaration_errors() {
     check_invalid("let a; let a;");
     check_valid("var a; var a;");
     // First in block
-    check_valid("{ let a }; var a;"); // let stays within its scope
-    check_invalid("{ var a }; let a;"); // vars live in function scope
+    check_valid("{ let a }; var a;");
+    check_invalid("{ var a }; let a;");
     check_valid("{ let a }; let a;");
     check_valid("{ var a }; var a;");
     // Second in block
-    check_invalid("let a; { var a }"); // var is within the scope of let
-    check_valid("var a; { let a }"); // let is in its own scope
+    check_invalid("let a; { var a }");
+    check_valid("var a; { let a }");
     check_valid("let a; { let a }");
     check_valid("var a; { var a }");
+    panic!();
 }
