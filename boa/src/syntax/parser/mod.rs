@@ -162,6 +162,31 @@ impl DeclaredNames {
     ///
     /// // env.pop_lex_restore(); Will panic
     /// ```
+    ///
+    /// For variables (not lexically declared names) there is slightly different behavior:
+    /// ```
+    /// # use boa::syntax::lexer::Position;
+    /// use boa::syntax::parser::DeclaredNames;
+    ///
+    /// let mut env = DeclaredNames::default();
+    ///
+    /// env.insert_var_name("hello", Position::new(1, 1));
+    /// env.insert_var_name("world", Position::new(1, 1));
+    /// env.push_stack(); // Env is now empty again
+    /// env.insert_var_name("second", Position::new(1, 1));
+    /// env.insert_var_name("level", Position::new(1, 1)); // Env now has two lexically declared names.
+    /// env.push_stack(); // Env is empty again
+    ///
+    /// assert!(env.pop_stack().is_ok()); // Env now has two lexically declared names ("second" and "level").
+    /// assert!(env.pop_stack().is_ok()); // Env now has all of the lexically declared names.
+    ///
+    /// // env.pop_lex_restore(); Will panic
+    /// ```
+    ///
+    /// The reason these act differently is a matter of scope. A `let` or `const` statement only lives
+    /// within the current block, so `pop_stack` should remove the value from scope. However, `var` lives
+    /// within the scope of the function. Therefore, `pop_stack` only merges the inner `var` statements
+    /// and the outer `var` list each time you call `pop_stack`.
     pub fn push_stack(&mut self) {
         // When moving to a new stack level, we clear all declared variables. This is because
         // variable declarations are parsed the same way no matter what order the inner statements
