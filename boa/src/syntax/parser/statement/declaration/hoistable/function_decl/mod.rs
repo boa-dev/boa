@@ -63,12 +63,21 @@ where
 
         cursor.expect(Punctuator::OpenParen, "function declaration")?;
 
+        let params_pos = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
         let params = FormalParameters::new(false, false).parse(cursor, env)?;
 
         cursor.expect(Punctuator::CloseParen, "function declaration")?;
         cursor.expect(Punctuator::OpenBlock, "function declaration")?;
 
-        let body = FunctionBody::new(self.allow_yield, self.allow_await).parse(cursor, env)?;
+        let mut inner_env = DeclaredNames::default();
+        for param in params.iter() {
+            // TODO: Generate a better position for each parameter.
+            // This can never fail, as FormalParameters makes sure that there
+            // are not duplicate names.
+            inner_env.insert_var_name(param.name(), params_pos).unwrap();
+        }
+        let body =
+            FunctionBody::new(self.allow_yield, self.allow_await).parse(cursor, &mut inner_env)?;
 
         cursor.expect(Punctuator::CloseBlock, "function declaration")?;
 
