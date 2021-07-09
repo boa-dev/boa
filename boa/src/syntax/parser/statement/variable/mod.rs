@@ -197,9 +197,7 @@ where
             None
         };
 
-        env.check_lex_name(&name, pos)?;
-        env.insert_var_name(&name);
-
+        env.insert_var_name(&name, pos)?;
         let decl = Declaration::new(name, init);
         Ok(decl)
     }

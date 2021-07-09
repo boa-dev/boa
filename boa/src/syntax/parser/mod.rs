@@ -139,7 +139,7 @@ impl DeclaredNames {
                 pos,
             )))
         } else {
-            if let Some(restore) = self.lex_restore.last() {
+            if let Some(restore) = self.lex_restore.last_mut() {
                 restore.insert(name.into());
             }
             Ok(())
