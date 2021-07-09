@@ -113,9 +113,8 @@ where
             }
         }
 
-        // Functions act like `var` statements
         if let Some(ref name) = name {
-            env.insert_var_name(name, pos)?;
+            env.insert_func_name(name, pos)?;
         }
 
         Ok(AsyncFunctionDecl::new(name, params, body))

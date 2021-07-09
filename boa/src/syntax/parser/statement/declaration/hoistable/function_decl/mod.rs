@@ -63,7 +63,6 @@ where
 
         cursor.expect(Punctuator::OpenParen, "function declaration")?;
 
-        let params_pos = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
         let params = FormalParameters::new(false, false).parse(cursor, env)?;
 
         cursor.expect(Punctuator::CloseParen, "function declaration")?;
@@ -83,8 +82,7 @@ where
 
         cursor.expect(Punctuator::CloseBlock, "function declaration")?;
 
-        // Functions act like `var` statements
-        env.insert_var_name(&name, pos)?;
+        env.insert_func_name(&name, pos)?;
 
         Ok(FunctionDecl::new(name, params, body))
     }

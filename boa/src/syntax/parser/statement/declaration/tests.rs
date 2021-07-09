@@ -257,4 +257,7 @@ fn redeclaration_errors() {
 
     check_valid("let a; function f(a) {}");
     check_valid("var a; function f(a) {}");
+
+    check_invalid("let f; function f() {}");
+    check_invalid("var f; function f() {}");
 }

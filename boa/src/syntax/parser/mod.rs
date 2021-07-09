@@ -98,8 +98,10 @@ pub struct DeclaredNames {
 
 #[derive(Debug, Clone)]
 struct Names {
+    // Lexically declared names
     lex: HashMap<Box<str>, Position>,
-    var: HashMap<Box<str>, Position>,
+    // Variable and function names. The value will be true if it is a function.
+    var: HashMap<Box<str>, (Position, bool)>,
 }
 
 impl Default for DeclaredNames {
@@ -127,7 +129,7 @@ impl DeclaredNames {
                 pos,
             )))
         } else {
-            self.names.var.insert(name.into(), pos);
+            self.names.var.insert(name.into(), (pos, false));
             Ok(())
         }
     }
@@ -143,6 +145,23 @@ impl DeclaredNames {
             )))
         } else {
             Ok(())
+        }
+    }
+    /// Inserts a new function name. If a variable name or a lex name
+    /// already exists, then this will will return an error.
+    pub fn insert_func_name(&mut self, name: &str, pos: Position) -> Result<(), ParseError> {
+        // This checks for lex names and var names. Duplicate function names are ok.
+        match self.names.var.get(name) {
+            Some((_, is_func)) if !is_func || self.names.lex.insert(name.into(), pos).is_some() => {
+                Err(ParseError::lex(LexError::Syntax(
+                    format!("Redeclaration of variable `{}`", name).into(),
+                    pos,
+                )))
+            }
+            _ => {
+                self.names.var.insert(name.into(), (pos, true));
+                Ok(())
+            }
         }
     }
     /// This adds an element to the lexical names restore list. If
@@ -237,11 +256,10 @@ impl DeclaredNames {
             // variables get restored to their outer enfironment.
             self.names.lex = outer.lex;
             self.names.var.extend(outer.var);
-            for (name, pos) in self.names.var.iter() {
+            for (name, (pos, _)) in self.names.var.iter() {
                 if self.check_any_lex(name) {
                     // We want to use the `var` position here, as that is the declaration
                     // that is causing this error.
-                    dbg!("error in pop inner");
                     return Err(ParseError::lex(LexError::Syntax(
                         format!("Redeclaration of variable (in pop) `{}`", name).into(),
                         *pos,
