@@ -355,22 +355,45 @@ fn declared_names_test() {
 
     env.insert_lex_name("hello", Position::new(1, 1)).unwrap();
     env.insert_lex_name("world", Position::new(1, 1)).unwrap();
-    assert_eq!(env.lex.len(), 2);
+    assert_eq!(env.names.lex.len(), 2);
     env.push_stack();
-    assert_eq!(env.lex.len(), 0);
+    assert_eq!(env.names.lex.len(), 0);
     env.insert_lex_name("second", Position::new(1, 1)).unwrap();
     env.insert_lex_name("level", Position::new(1, 1)).unwrap();
-    assert_eq!(env.lex.len(), 2);
+    assert_eq!(env.names.lex.len(), 2);
     env.push_stack();
-    assert_eq!(env.lex.len(), 0);
+    assert_eq!(env.names.lex.len(), 0);
 
     assert!(env.pop_stack().is_ok());
-    assert_eq!(env.lex.len(), 2);
-    assert!(env.lex.contains_key("second"));
-    assert!(env.lex.contains_key("level"));
+    assert_eq!(env.names.lex.len(), 2);
+    assert!(env.names.lex.contains_key("second"));
+    assert!(env.names.lex.contains_key("level"));
     assert!(env.pop_stack().is_ok());
-    assert_eq!(env.lex.len(), 2);
-    assert!(env.lex.contains_key("hello"));
-    assert!(env.lex.contains_key("world"));
+    assert_eq!(env.names.lex.len(), 2);
+    assert!(env.names.lex.contains_key("hello"));
+    assert!(env.names.lex.contains_key("world"));
     // Calling pop again will panic
+    let mut env = DeclaredNames::default();
+
+    env.insert_var_name("hello", Position::new(1, 1)).unwrap();
+    env.insert_var_name("world", Position::new(1, 1)).unwrap();
+    assert_eq!(env.names.lex.len(), 2);
+    env.push_stack();
+    assert_eq!(env.names.lex.len(), 0);
+    env.insert_var_name("second", Position::new(1, 1)).unwrap();
+    env.insert_var_name("level", Position::new(1, 1)).unwrap();
+    assert_eq!(env.names.lex.len(), 2);
+    env.push_stack();
+    assert_eq!(env.names.lex.len(), 0);
+
+    assert!(env.pop_stack().is_ok());
+    assert_eq!(env.names.lex.len(), 2);
+    assert!(env.names.lex.contains_key("second"));
+    assert!(env.names.lex.contains_key("level"));
+    assert!(env.pop_stack().is_ok());
+    assert_eq!(env.names.lex.len(), 4);
+    assert!(env.names.lex.contains_key("hello"));
+    assert!(env.names.lex.contains_key("world"));
+    assert!(env.names.lex.contains_key("second"));
+    assert!(env.names.lex.contains_key("level"));
 }

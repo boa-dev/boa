@@ -1,6 +1,6 @@
 use crate::syntax::{
     ast::{
-        node::{Block, Declaration, DeclarationList, Node},
+        node::{Declaration, DeclarationList, Node},
         Const,
     },
     parser::tests::{check_invalid, check_parser, check_valid},
