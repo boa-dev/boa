@@ -69,6 +69,8 @@ where
         let _timer = BoaProfiler::global().start_event("DoWhileStatement", "Parsing");
         cursor.expect(Keyword::Do, "do while statement")?;
 
+        env.push_stack();
+
         let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
             .parse(cursor, env)?;
 
@@ -98,6 +100,8 @@ where
                 cursor.next()?;
             }
         }
+
+        env.pop_stack()?;
 
         Ok(DoWhileLoop::new(body, cond))
     }

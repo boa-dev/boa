@@ -76,6 +76,9 @@ where
         cursor.expect(Keyword::For, "for statement")?;
         cursor.expect(Punctuator::OpenParen, "for statement")?;
 
+        // The init decl is within the scope of the for loop.
+        env.push_stack();
+
         let init = match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
             TokenKind::Keyword(Keyword::Var) => {
                 let _ = cursor.next()?;
@@ -141,6 +144,8 @@ where
 
         let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
             .parse(cursor, env)?;
+
+        env.pop_stack()?;
 
         // TODO: do not encapsulate the `for` in a block just to have an inner scope.
         Ok(ForLoop::new(init, cond, step, body).into())

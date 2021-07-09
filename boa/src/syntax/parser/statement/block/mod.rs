@@ -79,6 +79,13 @@ where
         env: &mut DeclaredNames,
     ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Block", "Parsing");
+
+        // Even if this is part of a for loop, the initializer of the for loop is considered in its
+        // own scope from the values within the for loop. So this is valid:
+        // for (let a; ...) {
+        //   let a;
+        // }
+        env.push_stack();
         cursor.expect(Punctuator::OpenBlock, "block")?;
         if let Some(tk) = cursor.peek(0)? {
             if tk.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) {
@@ -97,6 +104,7 @@ where
         .parse(cursor, env)
         .map(node::Block::from)?;
         cursor.expect(Punctuator::CloseBlock, "block")?;
+        env.pop_stack()?;
 
         Ok(statement_list)
     }

@@ -278,7 +278,7 @@ where
         let _timer = BoaProfiler::global().start_event("StatementList", "Parsing");
         let mut items = Vec::new();
 
-        env.push_stack();
+        // We don't call `env.push_stack` here, as that should happen in `Block` (that's what usually calls this).
         loop {
             match cursor.peek(0)? {
                 Some(token) if self.break_nodes.contains(token.kind()) => break,
@@ -298,7 +298,6 @@ where
             // move the cursor forward for any consecutive semicolon.
             while cursor.next_if(Punctuator::Semicolon)?.is_some() {}
         }
-        env.pop_stack()?;
 
         items.sort_by(Node::hoistable_order);
 
