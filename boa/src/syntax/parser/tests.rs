@@ -1,13 +1,17 @@
 //! Tests for the parser.
 
-use super::Parser;
-use crate::syntax::ast::{
-    node::{
-        field::GetConstField, ArrowFunctionDecl, Assign, BinOp, Call, Declaration, DeclarationList,
-        FormalParameter, FunctionDecl, Identifier, If, New, Node, Return, StatementList, UnaryOp,
+use super::{DeclaredNames, Parser};
+use crate::syntax::{
+    ast::{
+        node::{
+            field::GetConstField, ArrowFunctionDecl, Assign, BinOp, Call, Declaration,
+            DeclarationList, FormalParameter, FunctionDecl, Identifier, If, New, Node, Return,
+            StatementList, UnaryOp,
+        },
+        op::{self, CompOp, LogOp, NumOp},
+        Const,
     },
-    op::{self, CompOp, LogOp, NumOp},
-    Const,
+    lexer::Position,
 };
 
 /// Checks that the given JavaScript string gives the expected expression.
@@ -337,4 +341,25 @@ fn empty_statement() {
             )),
         ],
     );
+}
+
+#[test]
+fn declared_names_test() {
+    let mut env = DeclaredNames::default();
+
+    env.push_lex_restore();
+    env.insert_lex_name("hello", Position::new(1, 1)).unwrap();
+    env.insert_lex_name("world", Position::new(1, 1)).unwrap();
+    env.push_lex_restore();
+    env.insert_lex_name("second", Position::new(1, 1)).unwrap();
+    env.insert_lex_name("level", Position::new(1, 1)).unwrap();
+
+    assert_eq!(env.lex.len(), 4);
+
+    assert!(env.pop_lex_restore());
+    assert_eq!(env.lex.len(), 2);
+    assert!(env.pop_lex_restore());
+    assert_eq!(env.lex.len(), 0);
+    assert!(!env.pop_lex_restore());
+    assert_eq!(env.lex.len(), 0);
 }
