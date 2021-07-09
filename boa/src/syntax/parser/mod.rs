@@ -92,16 +92,23 @@ impl From<bool> for AllowDefault {
 /// `HashSet`s, which store the var delcared names, and the lexically declared names.
 #[derive(Debug, Clone)]
 pub struct DeclaredNames {
+    names: Names,
+    stack: Vec<Names>,
+}
+
+#[derive(Debug, Clone)]
+struct Names {
     lex: HashMap<Box<str>, Position>,
     var: HashMap<Box<str>, Position>,
-    stack: Vec<(HashMap<Box<str>, Position>, HashMap<Box<str>, Position>)>,
 }
 
 impl Default for DeclaredNames {
     fn default() -> Self {
         DeclaredNames {
-            lex: HashMap::new(),
-            var: HashMap::new(),
+            names: Names {
+                lex: HashMap::new(),
+                var: HashMap::new(),
+            },
             stack: vec![],
         }
     }
@@ -120,7 +127,7 @@ impl DeclaredNames {
                 pos,
             )))
         } else {
-            self.var.insert(name.into(), pos);
+            self.names.var.insert(name.into(), pos);
             Ok(())
         }
     }
@@ -129,7 +136,7 @@ impl DeclaredNames {
     pub fn insert_lex_name(&mut self, name: &str, pos: Position) -> Result<(), ParseError> {
         // This only cares about the current lex level. Lexically declared names that are
         // outside the current scope are not checked here (see `pop_stack`).
-        if self.var.contains_key(name) || self.lex.insert(name.into(), pos).is_some() {
+        if self.names.var.contains_key(name) || self.names.lex.insert(name.into(), pos).is_some() {
             Err(ParseError::lex(LexError::Syntax(
                 format!("Redeclaration of variable `{}`", name).into(),
                 pos,
@@ -192,11 +199,11 @@ impl DeclaredNames {
         // variable declarations are parsed the same way no matter what order the inner statements
         // are in; if there is a nested block before/after a let statement, we should get the
         // same result. So, we do all of the handling for those errors in `pop_stack`.
-        let mut lex_old = HashMap::new();
-        let mut var_old = HashMap::new();
-        mem::swap(&mut self.lex, &mut lex_old);
-        mem::swap(&mut self.var, &mut var_old);
-        self.stack.push((lex_old, var_old));
+        let mut lex = HashMap::new();
+        let mut var = HashMap::new();
+        mem::swap(&mut self.names.lex, &mut lex);
+        mem::swap(&mut self.names.var, &mut var);
+        self.stack.push(Names { lex, var });
     }
     /// See the documentation on [`push_stack`](Self::push_stack).
     ///
@@ -211,9 +218,9 @@ impl DeclaredNames {
         if let Some(outer) = self.stack.pop() {
             // When you leave a stack level, var declarations stay the same, but lexical
             // variables get restored to their outer enfironment.
-            self.lex = outer.0;
-            self.var.extend(outer.1);
-            for (name, pos) in self.var.iter() {
+            self.names.lex = outer.lex;
+            self.names.var.extend(outer.var);
+            for (name, pos) in self.names.var.iter() {
                 if self.check_any_lex(name) {
                     // We want to use the `var` position here, as that is the declaration
                     // that is causing this error.
@@ -234,11 +241,11 @@ impl DeclaredNames {
 
     // Checks if the given name exists in either the current or outer stack levels.
     fn check_any_lex(&self, name: &str) -> bool {
-        if self.lex.contains_key(name) {
+        if self.names.lex.contains_key(name) {
             return true;
         }
         for level in &self.stack {
-            if level.0.contains_key(name) {
+            if level.lex.contains_key(name) {
                 return true;
             }
         }
