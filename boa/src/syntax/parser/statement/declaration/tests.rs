@@ -239,5 +239,13 @@ fn redeclaration_errors() {
     check_valid("var a; { let a }");
     check_valid("let a; { let a }");
     check_valid("var a; { var a }");
-    panic!();
+    // Multiple blocks
+    check_invalid("let a; { var a } { let a }");
+    check_valid("var a; { let a } { let a }");
+    check_valid("let a; { let a } { let a }");
+    check_valid("var a; { var a } { let a }");
+    check_invalid("let a; { var a } { var a }");
+    check_valid("var a; { let a } { var a }");
+    check_invalid("let a; { let a } { var a }");
+    check_valid("var a; { var a } { var a }");
 }
