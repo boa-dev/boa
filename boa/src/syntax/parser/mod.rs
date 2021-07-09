@@ -132,7 +132,7 @@ impl DeclaredNames {
         }
     }
     /// Inserts a lexically declared name. Returns an error if the var name or the lexically
-    /// declared name already exists.
+    /// declared name already exists. The pos argument is used to generate an error message.
     pub fn insert_lex_name(&mut self, name: &str, pos: Position) -> Result<(), ParseError> {
         // This only cares about the current lex level. Lexically declared names that are
         // outside the current scope are not checked here (see `pop_stack`).
@@ -159,7 +159,7 @@ impl DeclaredNames {
     ///
     /// env.insert_lex_name("hello", Position::new(1, 1));
     /// env.insert_lex_name("world", Position::new(1, 1));
-    /// env.push_stack(); // Env is now empty again
+    /// env.push_stack(); // Env is now empty
     /// env.insert_lex_name("second", Position::new(1, 1));
     /// env.insert_lex_name("level", Position::new(1, 1)); // Env now has two lexically declared names.
     /// env.push_stack(); // Env is empty again
@@ -179,21 +179,38 @@ impl DeclaredNames {
     ///
     /// env.insert_var_name("hello", Position::new(1, 1));
     /// env.insert_var_name("world", Position::new(1, 1));
-    /// env.push_stack(); // Env is now empty again
+    /// env.push_stack(); // Env is now empty
     /// env.insert_var_name("second", Position::new(1, 1));
-    /// env.insert_var_name("level", Position::new(1, 1)); // Env now has two lexically declared names.
+    /// env.insert_var_name("level", Position::new(1, 1)); // Env now has two var names.
     /// env.push_stack(); // Env is empty again
     ///
-    /// assert!(env.pop_stack().is_ok()); // Env now has two lexically declared names ("second" and "level").
-    /// assert!(env.pop_stack().is_ok()); // Env now has all of the lexically declared names.
+    /// assert!(env.pop_stack().is_ok()); // Env now has two var names ("second" and "level").
+    /// assert!(env.pop_stack().is_ok()); // Env now has all of the var names.
     ///
     /// // env.pop_lex_restore(); Will panic
     /// ```
     ///
     /// The reason these act differently is a matter of scope. A `let` or `const` statement only lives
     /// within the current block, so `pop_stack` should remove the value from scope. However, `var` lives
-    /// within the scope of the function. Therefore, `pop_stack` only merges the inner `var` statements
-    /// and the outer `var` list each time you call `pop_stack`.
+    /// within the scope of the function. Therefore, `pop_stack` merges the inner `var` statements
+    /// and the outer `var` statements.
+    ///
+    /// Clearing both of these lists when calling `push_stack` might seem unintuitive. This is an artifact
+    /// of how variables are meant to be parsed in javascrip. When you check for redeclarations, the order
+    /// of statements does not matter. So these should both pass:
+    ///
+    /// ```js
+    /// let f; { let f; }
+    /// ```
+    /// and
+    /// ```js
+    /// { let f; } let f;
+    /// ```
+    ///
+    /// If we didn't clear the variables when entering a new scope, then the first test would fail because
+    /// of the second`let` statement. This makes no sense to me, but it is how all browsers work today.
+    /// This is also how the [spec](https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation) says
+    /// the lexically declared names should act when we enter a new scope.
     pub fn push_stack(&mut self) {
         // When moving to a new stack level, we clear all declared variables. This is because
         // variable declarations are parsed the same way no matter what order the inner statements
@@ -207,13 +224,13 @@ impl DeclaredNames {
     }
     /// See the documentation on [`push_stack`](Self::push_stack).
     ///
-    /// This will return true if there was something to pop, false if otherwise.
-    /// In normal usage, this should never return false.
-    ///
-    /// This will also check for any redeclaration errors. Since this is called at
+    /// This will check for any redeclaration errors. Since this is called at
     /// the end of a block, it will check for errors like `{ let a; { var a; } }`.
     /// After the inner block is parsed, the `a` in lexically declared names will
     /// be restored. And then there will be a collision in vars and lex.
+    ///
+    /// # Panics
+    /// - This will panic if there is no stack to pop.
     pub fn pop_stack(&mut self) -> Result<(), ParseError> {
         if let Some(outer) = self.stack.pop() {
             // When you leave a stack level, var declarations stay the same, but lexical
