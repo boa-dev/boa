@@ -353,19 +353,24 @@ fn empty_statement() {
 fn declared_names_test() {
     let mut env = DeclaredNames::default();
 
-    env.push_lex_restore();
     env.insert_lex_name("hello", Position::new(1, 1)).unwrap();
     env.insert_lex_name("world", Position::new(1, 1)).unwrap();
-    env.push_lex_restore();
+    assert_eq!(env.lex.len(), 2);
+    env.push_stack();
+    assert_eq!(env.lex.len(), 0);
     env.insert_lex_name("second", Position::new(1, 1)).unwrap();
     env.insert_lex_name("level", Position::new(1, 1)).unwrap();
-
-    assert_eq!(env.lex.len(), 4);
-
-    assert!(env.pop_lex_restore());
     assert_eq!(env.lex.len(), 2);
-    assert!(env.pop_lex_restore());
+    env.push_stack();
     assert_eq!(env.lex.len(), 0);
-    assert!(!env.pop_lex_restore());
-    assert_eq!(env.lex.len(), 0);
+
+    assert!(env.pop_stack().is_ok());
+    assert_eq!(env.lex.len(), 2);
+    assert!(env.lex.contains_key("second"));
+    assert!(env.lex.contains_key("level"));
+    assert!(env.pop_stack().is_ok());
+    assert_eq!(env.lex.len(), 2);
+    assert!(env.lex.contains_key("hello"));
+    assert!(env.lex.contains_key("world"));
+    // Calling pop again will panic
 }

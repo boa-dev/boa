@@ -16,7 +16,7 @@ use crate::syntax::{
 
 use cursor::Cursor;
 
-use std::{collections::HashSet, io::Read};
+use std::{collections::HashMap, io::Read, mem};
 
 /// Trait implemented by parsers.
 ///
@@ -92,17 +92,17 @@ impl From<bool> for AllowDefault {
 /// `HashSet`s, which store the var delcared names, and the lexically declared names.
 #[derive(Debug, Clone)]
 pub struct DeclaredNames {
-    vars: HashSet<Box<str>>,
-    lex: HashSet<Box<str>>,
-    lex_restore: Vec<HashSet<Box<str>>>,
+    lex: HashMap<Box<str>, Position>,
+    vars: HashMap<Box<str>, Position>,
+    stack: Vec<(HashMap<Box<str>, Position>, HashMap<Box<str>, Position>)>,
 }
 
 impl Default for DeclaredNames {
     fn default() -> Self {
         DeclaredNames {
-            vars: HashSet::new(),
-            lex: HashSet::new(),
-            lex_restore: vec![],
+            lex: HashMap::new(),
+            vars: HashMap::new(),
+            stack: vec![],
         }
     }
 }
@@ -111,45 +111,27 @@ impl DeclaredNames {
     /// Inserts a new variable name. If the variable name already exists, this will return
     /// an error. The pos argument is used to generate an error message.
     pub fn insert_var_name(&mut self, name: &str, pos: Position) -> Result<(), ParseError> {
-        if self.lex.contains(name) {
+        // This only checks for lexically declared names that have already been defined. It
+        // does not check for situations like `{ let a; { var a; } }`, because the var is valid
+        // at the point when this function is called.
+        if self.lex.contains_key(name) {
+            dbg!("error in var");
             Err(ParseError::lex(LexError::Syntax(
                 format!("Redeclaration of variable `{}`", name).into(),
                 pos,
             )))
         } else {
-            self.vars.insert(name.into());
-            Ok(())
-        }
-    }
-    /// Returns an error if the a variable with the same name already has been declared.
-    pub fn check_var_name(&mut self, name: &str, pos: Position) -> Result<(), ParseError> {
-        if self.vars.contains(name) {
-            Err(ParseError::lex(LexError::Syntax(
-                format!("Redeclaration of variable `{}`", name).into(),
-                pos,
-            )))
-        } else {
+            self.vars.insert(name.into(), pos);
             Ok(())
         }
     }
     /// Inserts a lexically declared name. Returns an error if the var name or the lexically
     /// declared name already exists.
     pub fn insert_lex_name(&mut self, name: &str, pos: Position) -> Result<(), ParseError> {
-        if self.vars.contains(name) || !self.lex.insert(name.into()) {
-            Err(ParseError::lex(LexError::Syntax(
-                format!("Redeclaration of variable `{}`", name).into(),
-                pos,
-            )))
-        } else {
-            if let Some(restore) = self.lex_restore.last_mut() {
-                restore.insert(name.into());
-            }
-            Ok(())
-        }
-    }
-    /// Returns an error if the lexically declared name already exists.
-    pub fn check_lex_name(&mut self, name: &str, pos: Position) -> Result<(), ParseError> {
-        if self.lex.contains(name) {
+        // This only checks for variables that have already been defined. It does not cover
+        // `{ let a; { var a; } }`, because self.vars will not contain `a` yet.
+        if self.vars.contains_key(name) || self.lex.insert(name.into(), pos).is_some() {
+            dbg!("error in lex");
             Err(ParseError::lex(LexError::Syntax(
                 format!("Redeclaration of variable `{}`", name).into(),
                 pos,
@@ -159,8 +141,9 @@ impl DeclaredNames {
         }
     }
     /// This adds an element to the lexical names restore list. If
-    /// [`pop_lex_restore`](Self::pop_lex_restore) is called, then
-    /// the current copy of lexically declared names will be restored.
+    /// [`pop_stack`](Self::pop_stack) is called, then the current
+    /// copy of lexically declared names will be restored.
+    ///
     /// This works like a stack:
     ///
     /// ```
@@ -169,33 +152,54 @@ impl DeclaredNames {
     ///
     /// let mut env = DeclaredNames::default();
     ///
-    /// env.push_lex_restore();
     /// env.insert_lex_name("hello", Position::new(1, 1));
     /// env.insert_lex_name("world", Position::new(1, 1));
-    /// env.push_lex_restore();
+    /// env.push_stack(); // Env is now empty again
     /// env.insert_lex_name("second", Position::new(1, 1));
-    /// env.insert_lex_name("level", Position::new(1, 1)); // Env now has four lexically declared names.
+    /// env.insert_lex_name("level", Position::new(1, 1)); // Env now has two lexically declared names.
+    /// env.push_stack(); // Env is empty again
     ///
-    /// assert!(env.pop_lex_restore()); // Env now has two lexically declared names ("hello" and "world").
-    /// assert!(env.pop_lex_restore()); // Env now has no lexically declared names.
+    /// assert!(env.pop_stack().is_ok()); // Env now has two lexically declared names ("second" and "level").
+    /// assert!(env.pop_stack().is_ok()); // Env now has two lexically declared names ("hello" and "world").
     ///
-    /// assert!(!env.pop_lex_restore()); // Does nothing.
+    /// // env.pop_lex_restore(); Will panic
     /// ```
-    pub fn push_lex_restore(&mut self) {
-        self.lex_restore.push(HashSet::new());
+    pub fn push_stack(&mut self) {
+        let mut old_lex = HashMap::new();
+        let mut old_vars = HashMap::new();
+        mem::swap(&mut self.lex, &mut old_lex);
+        mem::swap(&mut self.vars, &mut old_vars);
+        self.stack.push((old_lex, old_vars));
     }
-    /// See the documentation on [`push_lex_restore`](Self::push_lex_restore).
+    /// See the documentation on [`push_stack`](Self::push_stack).
     ///
     /// This will return true if there was something to pop, false if otherwise.
     /// In normal usage, this should never return false.
-    pub fn pop_lex_restore(&mut self) -> bool {
-        if let Some(new_names) = self.lex_restore.pop() {
-            for n in new_names {
-                self.lex.remove(&n);
+    ///
+    /// This will also check for any redeclaration errors. Since this is called at
+    /// the end of a block, it will check for errors like `{ let a; { var a; } }`.
+    /// After the inner block is parsed, the `a` in lexically declared names will
+    /// be restored. And then there will be a collision in vars and lex.
+    pub fn pop_stack(&mut self) -> Result<(), ParseError> {
+        if let Some(old) = self.stack.pop() {
+            self.lex = old.0;
+            self.vars = old.1;
+            for name in self.lex.keys() {
+                if let Some(pos) = self.vars.get(name) {
+                    // We want to use the `var` position here, as that is the declaration
+                    // that is causing this error.
+                    dbg!("error in pop");
+                    return Err(ParseError::lex(LexError::Syntax(
+                        format!("Redeclaration of variable (in pop) `{}`", name).into(),
+                        *pos,
+                    )));
+                }
             }
-            true
+            Ok(())
         } else {
-            false
+            // Might not want to panic here, but if we are here, then something
+            // has definitly gone wrong.
+            unreachable!("Called pop without any lex restore to pop!");
         }
     }
 }

@@ -278,7 +278,7 @@ where
         let _timer = BoaProfiler::global().start_event("StatementList", "Parsing");
         let mut items = Vec::new();
 
-        env.push_lex_restore();
+        env.push_stack();
         loop {
             match cursor.peek(0)? {
                 Some(token) if self.break_nodes.contains(token.kind()) => break,
@@ -298,9 +298,7 @@ where
             // move the cursor forward for any consecutive semicolon.
             while cursor.next_if(Punctuator::Semicolon)?.is_some() {}
         }
-        // This makes sure that any variable declared with
-        // `let` does not live outside of the StatementList scope.
-        env.pop_lex_restore();
+        env.pop_stack()?;
 
         items.sort_by(Node::hoistable_order);
 

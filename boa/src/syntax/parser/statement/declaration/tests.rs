@@ -236,7 +236,7 @@ fn redeclaration_errors() {
     check_valid("{ var a }; var a;");
     // Second in block
     check_invalid("let a; { var a }");
-    check_invalid("var a; { let a }");
-    check_invalid("let a; { let a }");
+    check_valid("var a; { let a }"); // This is valid because new blocks get empty lex names
+    check_valid("let a; { let a }");
     check_valid("var a; { var a }");
 }
