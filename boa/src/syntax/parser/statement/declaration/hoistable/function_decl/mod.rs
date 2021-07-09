@@ -58,6 +58,7 @@ where
         cursor.expect(Keyword::Function, "function declaration")?;
 
         // TODO: If self.is_default, then this can be empty.
+        let pos = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.span().start();
         let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor, env)?;
 
         cursor.expect(Punctuator::OpenParen, "function declaration")?;
@@ -88,6 +89,9 @@ where
                 }
             }
         }
+
+        // Functions act like `var` statements
+        env.insert_var_name(&name, pos)?;
 
         Ok(FunctionDecl::new(name, params, body))
     }

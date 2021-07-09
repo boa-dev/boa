@@ -60,7 +60,9 @@ where
         cursor.expect(Keyword::Function, "async function declaration")?;
         let tok = cursor.peek(0)?;
 
+        let pos;
         let name = if let Some(token) = tok {
+            pos = token.span().start();
             match token.kind() {
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
                     if !self.is_default.0 {
@@ -107,6 +109,11 @@ where
                     )));
                 }
             }
+        }
+
+        // Functions act like `var` statements
+        if let Some(ref name) = name {
+            env.insert_var_name(name, pos)?;
         }
 
         Ok(AsyncFunctionDecl::new(name, params, body))
