@@ -248,4 +248,13 @@ fn redeclaration_errors() {
     check_valid("var a; { let a } { var a }");
     check_invalid("let a; { let a } { var a }");
     check_valid("var a; { var a } { var a }");
+
+    // Function scoping
+    check_invalid("function f(a) { let a; }");
+    check_valid("function f(a) { var a; }");
+    check_valid("function f(a) { { let a; } }");
+    check_valid("function f(a) { { var a; } }");
+
+    check_valid("let a; function f(a) {}");
+    check_valid("var a; function f(a) {}");
 }
