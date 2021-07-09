@@ -687,6 +687,7 @@ unsafe impl Trace for MethodDefinitionKind {
 /// any strings which may have been changed in a different indent
 /// level.
 #[cfg(test)]
+#[track_caller]
 fn test_formatting(source: &'static str) {
     // Remove preceding newline.
     let source = &source[1..];
