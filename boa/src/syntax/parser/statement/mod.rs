@@ -48,7 +48,6 @@ use crate::{
 };
 use labelled_stm::LabelledStatement;
 
-use std::collections::HashSet;
 use std::io::Read;
 
 /// Statement parsing.
@@ -420,7 +419,7 @@ where
     fn parse(
         self,
         cursor: &mut Cursor<R>,
-        env: &mut DeclaredNames,
+        _env: &mut DeclaredNames,
     ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("BindingIdentifier", "Parsing");
 

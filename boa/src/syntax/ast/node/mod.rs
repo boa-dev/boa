@@ -308,7 +308,7 @@ impl Node {
 
     /// Returns the var declared names of this node, according to
     /// the [spec](https://tc39.es/ecma262/#sec-static-semantics-vardeclarednames).
-    pub(crate) fn var_declared_names(&self) -> HashSet<&str> {
+    pub fn var_declared_names(&self) -> HashSet<&str> {
         match self {
             Node::Block(ref block) => {
                 let mut names = HashSet::new();
