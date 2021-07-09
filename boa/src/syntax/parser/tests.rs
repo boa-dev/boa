@@ -35,6 +35,12 @@ pub(super) fn check_invalid(js: &str) {
     assert!(Parser::new(js.as_bytes(), false).parse_all().is_err());
 }
 
+/// Checks that the given javascript string does not create a parse error.
+#[track_caller]
+pub(super) fn check_valid(js: &str) {
+    assert!(Parser::new(js.as_bytes(), false).parse_all().is_ok());
+}
+
 /// Should be parsed as `new Class().method()` instead of `new (Class().method())`
 #[test]
 fn check_construct_call_precedence() {

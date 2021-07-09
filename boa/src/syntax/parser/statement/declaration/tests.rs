@@ -3,7 +3,7 @@ use crate::syntax::{
         node::{Block, Declaration, DeclarationList, Node},
         Const,
     },
-    parser::tests::{check_invalid, check_parser},
+    parser::tests::{check_invalid, check_parser, check_valid},
 };
 
 /// Checks `var` declaration parsing.
@@ -215,27 +215,28 @@ fn multiple_const_declaration() {
 /// Checks for redeclaration errors.
 #[test]
 fn redeclaration_errors() {
+    // Throughout this test, we test four combinations:
+    //
+    // - let-var
+    // - var-let
+    // - let-let
+    // - var-var
+    //
+    // Depending on the block/function scope, these are sometimes valid, and sometimes not valid.
+
+    // Same scope
     check_invalid("let a; var a;");
-    check_invalid("let a; let a;");
     check_invalid("var a; let a;");
-    check_parser(
-        "var a; var a;",
-        vec![
-            DeclarationList::Var(vec![Declaration::new("a", None)].into()).into(),
-            DeclarationList::Var(vec![Declaration::new("a", None)].into()).into(),
-        ],
-    );
-    // Scoping errors
-    check_parser(
-        "{ let a }; var a;",
-        vec![
-            Block::from(vec![DeclarationList::Let(
-                vec![Declaration::new("a", None)].into(),
-            )
-            .into()])
-            .into(),
-            DeclarationList::Var(vec![Declaration::new("a", None)].into()).into(),
-        ],
-    );
+    check_invalid("let a; let a;");
+    check_valid("var a; var a;");
+    // First in block
+    check_valid("{ let a }; var a;");
     check_invalid("{ var a }; let a;");
+    check_valid("{ let a }; let a;");
+    check_valid("{ var a }; var a;");
+    // Second in block
+    check_invalid("let a; { var a }");
+    check_invalid("var a; { let a }");
+    check_invalid("let a; { let a }");
+    check_valid("var a; { var a }");
 }
