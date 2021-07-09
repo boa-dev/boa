@@ -98,10 +98,10 @@ pub struct DeclaredNames {
 
 #[derive(Debug, Clone)]
 struct Names {
-    // Lexically declared names
-    lex: HashMap<Box<str>, Position>,
-    // Variable and function names. The value will be true if it is a function.
-    var: HashMap<Box<str>, (Position, bool)>,
+    // Lexically declared names and function names. The bool will be true for functions
+    lex: HashMap<Box<str>, (Position, bool)>,
+    // Variable names.
+    var: HashMap<Box<str>, Position>,
 }
 
 impl Default for DeclaredNames {
@@ -129,7 +129,7 @@ impl DeclaredNames {
                 pos,
             )))
         } else {
-            self.names.var.insert(name.into(), (pos, false));
+            self.names.var.insert(name.into(), pos);
             Ok(())
         }
     }
@@ -138,7 +138,9 @@ impl DeclaredNames {
     pub fn insert_lex_name(&mut self, name: &str, pos: Position) -> Result<(), ParseError> {
         // This only cares about the current lex level. Lexically declared names that are
         // outside the current scope are not checked here (see `pop_stack`).
-        if self.names.var.contains_key(name) || self.names.lex.insert(name.into(), pos).is_some() {
+        if self.names.var.contains_key(name)
+            || self.names.lex.insert(name.into(), (pos, false)).is_some()
+        {
             Err(ParseError::lex(LexError::Syntax(
                 format!("Redeclaration of variable `{}`", name).into(),
                 pos,
@@ -150,19 +152,22 @@ impl DeclaredNames {
     /// Inserts a new function name. If a variable name or a lex name
     /// already exists, then this will will return an error.
     pub fn insert_func_name(&mut self, name: &str, pos: Position) -> Result<(), ParseError> {
-        // This checks for lex names and var names. Duplicate function names are ok.
-        match self.names.var.get(name) {
-            Some((_, is_func)) if !is_func || self.names.lex.insert(name.into(), pos).is_some() => {
-                Err(ParseError::lex(LexError::Syntax(
+        if let Some((_, is_func)) = self.names.lex.insert(name.into(), (pos, true)) {
+            // This means we did this: `let f; function f() {}`
+            if !is_func {
+                return Err(ParseError::lex(LexError::Syntax(
                     format!("Redeclaration of variable `{}`", name).into(),
                     pos,
-                )))
+                )));
             }
-            _ => {
-                self.names.var.insert(name.into(), (pos, true));
-                Ok(())
-            }
+        } else if self.names.var.contains_key(name) {
+            // This means we did this: `var f; function f() {}`
+            return Err(ParseError::lex(LexError::Syntax(
+                format!("Redeclaration of variable `{}`", name).into(),
+                pos,
+            )));
         }
+        Ok(())
     }
     /// This adds an element to the lexical names restore list. If
     /// [`pop_stack`](Self::pop_stack) is called, then the current
@@ -256,12 +261,12 @@ impl DeclaredNames {
             // variables get restored to their outer enfironment.
             self.names.lex = outer.lex;
             self.names.var.extend(outer.var);
-            for (name, (pos, _)) in self.names.var.iter() {
+            for (name, pos) in self.names.var.iter() {
                 if self.check_any_lex(name) {
                     // We want to use the `var` position here, as that is the declaration
                     // that is causing this error.
                     return Err(ParseError::lex(LexError::Syntax(
-                        format!("Redeclaration of variable (in pop) `{}`", name).into(),
+                        format!("Redeclaration of variable `{}`", name).into(),
                         *pos,
                     )));
                 }
