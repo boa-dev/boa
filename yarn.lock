@@ -3344,10 +3344,10 @@ strip-final-newline@^2.0.0:
   resolved "https://registry.yarnpkg.com/strip-final-newline/-/strip-final-newline-2.0.0.tgz#89b852fb2fcbe936f6f4b3187afb0a12c1ab58ad"
   integrity sha512-BrpvfNAE3dcvq7ll3xVumzjKjZQ5tI1sEUIKr3Uoks0XUl45St3FlatVqef9prk4jRDzhW6WZg+3bk93y6pLjA==
 
-style-loader@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/style-loader/-/style-loader-3.0.0.tgz#2eafcd0dbe70b07438e0256a9714ea94dd63cbe0"
-  integrity sha512-pqJTDiCtLr8D2eyVWXPiwNkLsAMDuvPHnu+Z/Edo9hu+DzdJwdO5eZv9zUBF6tWI8GJGhAkenWJaVjXI+sHnuQ==
+style-loader@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/style-loader/-/style-loader-3.1.0.tgz#e52a22ca2fd1f54c03f2c3e69b10182e68120908"
+  integrity sha512-HYVvBMX3RX7zx71pquZV6EcnPN7Deba+zQteSxCLqt3bxYRphmeMr+2mZMrIZjZ7IMa6aOUhNGn8cXGvWMjClw==
 
 supports-color@^5.3.0:
   version "5.5.0"
