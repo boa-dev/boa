@@ -7,6 +7,7 @@ use crate::{
             Keyword, Punctuator,
         },
         lexer::TokenKind,
+        parser::statement::{ArrayBindingPattern, ObjectBindingPattern},
         parser::{
             cursor::{Cursor, SemicolonResult},
             expression::Initializer,
@@ -167,20 +168,69 @@ where
     type Output = Declaration;
 
     fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        // TODO: BindingPattern
+        let peek_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
 
-        let name = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        match peek_token.kind() {
+            TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                let bindings =
+                    ObjectBindingPattern::new(self.allow_in, self.allow_yield, self.allow_await)
+                        .parse(cursor)?;
 
-        let init = if let Some(t) = cursor.peek(0)? {
-            if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                Some(Initializer::new(true, self.allow_yield, self.allow_await).parse(cursor)?)
-            } else {
-                None
+                let init = if let Some(t) = cursor.peek(0)? {
+                    if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
+                        Some(
+                            Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
+                                .parse(cursor)?,
+                        )
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
+
+                Ok(Declaration::new_with_object_pattern(bindings, init))
             }
-        } else {
-            None
-        };
+            TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                let bindings =
+                    ArrayBindingPattern::new(self.allow_in, self.allow_yield, self.allow_await)
+                        .parse(cursor)?;
 
-        Ok(Declaration::new(name, init))
+                let init = if let Some(t) = cursor.peek(0)? {
+                    if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
+                        Some(
+                            Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
+                                .parse(cursor)?,
+                        )
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
+
+                Ok(Declaration::new_with_array_pattern(bindings, init))
+            }
+
+            _ => {
+                let ident =
+                    BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+
+                let init = if let Some(t) = cursor.peek(0)? {
+                    if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
+                        Some(
+                            Initializer::new(true, self.allow_yield, self.allow_await)
+                                .parse(cursor)?,
+                        )
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
+
+                Ok(Declaration::new_with_identifier(ident, init))
+            }
+        }
     }
 }

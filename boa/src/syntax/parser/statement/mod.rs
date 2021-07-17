@@ -35,12 +35,24 @@ use self::{
     try_stm::TryStatement,
     variable::VariableStatement,
 };
+use crate::syntax::{
+    ast::node::declaration::{
+        DeclarationPattern, DeclarationPatternArray, DeclarationPatternObject,
+    },
+    parser::expression::Initializer,
+};
 
-use super::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser};
+use super::{AllowAwait, AllowIn, AllowReturn, AllowYield, Cursor, ParseError, TokenParser};
 
 use crate::{
     syntax::{
-        ast::{node, Keyword, Node, Punctuator},
+        ast::{
+            node::{
+                self,
+                declaration::{BindingPatternTypeArray, BindingPatternTypeObject},
+            },
+            Keyword, Node, Punctuator,
+        },
         lexer::{Error as LexError, InputElement, Position, TokenKind},
         parser::expression::await_expr::AwaitExpression,
     },
@@ -48,8 +60,8 @@ use crate::{
 };
 use labelled_stm::LabelledStatement;
 
-use std::collections::HashSet;
 use std::io::Read;
+use std::{collections::HashSet, vec};
 
 /// Statement parsing.
 ///
@@ -303,33 +315,82 @@ where
                         for decl in decl_list.as_ref() {
                             // if name in VarDeclaredNames or can't be added to
                             // LexicallyDeclaredNames, raise an error
-                            if var_declared_names.contains(decl.name())
-                                || !lexically_declared_names.insert(decl.name())
-                            {
-                                return Err(ParseError::lex(LexError::Syntax(
-                                    format!("Redeclaration of variable `{}`", decl.name()).into(),
-                                    match cursor.peek(0)? {
-                                        Some(token) => token.span().end(),
-                                        None => Position::new(1, 1),
-                                    },
-                                )));
+                            match decl {
+                                node::Declaration::Identifier(ident, _) => {
+                                    if var_declared_names.contains(ident.as_ref())
+                                        || !lexically_declared_names.insert(ident.as_ref())
+                                    {
+                                        return Err(ParseError::lex(LexError::Syntax(
+                                            format!(
+                                                "Redeclaration of variable `{}`",
+                                                ident.as_ref()
+                                            )
+                                            .into(),
+                                            match cursor.peek(0)? {
+                                                Some(token) => token.span().end(),
+                                                None => Position::new(1, 1),
+                                            },
+                                        )));
+                                    }
+                                }
+                                node::Declaration::Pattern(p) => {
+                                    for ident in p.idents() {
+                                        if var_declared_names.contains(ident)
+                                            || !lexically_declared_names.insert(ident.as_ref())
+                                        {
+                                            return Err(ParseError::lex(LexError::Syntax(
+                                                format!("Redeclaration of variable `{}`", ident)
+                                                    .into(),
+                                                match cursor.peek(0)? {
+                                                    Some(token) => token.span().end(),
+                                                    None => Position::new(1, 1),
+                                                },
+                                            )));
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                     Node::VarDeclList(decl_list) => {
                         for decl in decl_list.as_ref() {
-                            // if name in LexicallyDeclaredNames, raise an error
-                            if lexically_declared_names.contains(decl.name()) {
-                                return Err(ParseError::lex(LexError::Syntax(
-                                    format!("Redeclaration of variable `{}`", decl.name()).into(),
-                                    match cursor.peek(0)? {
-                                        Some(token) => token.span().end(),
-                                        None => Position::new(1, 1),
-                                    },
-                                )));
+                            match decl {
+                                node::Declaration::Identifier(ident, _) => {
+                                    // if name in LexicallyDeclaredNames, raise an error
+                                    if lexically_declared_names.contains(ident.as_ref()) {
+                                        return Err(ParseError::lex(LexError::Syntax(
+                                            format!(
+                                                "Redeclaration of variable `{}`",
+                                                ident.as_ref()
+                                            )
+                                            .into(),
+                                            match cursor.peek(0)? {
+                                                Some(token) => token.span().end(),
+                                                None => Position::new(1, 1),
+                                            },
+                                        )));
+                                    }
+                                    // otherwise, add to VarDeclaredNames
+                                    var_declared_names.insert(ident.as_ref());
+                                }
+                                node::Declaration::Pattern(p) => {
+                                    for ident in p.idents() {
+                                        // if name in LexicallyDeclaredNames, raise an error
+                                        if lexically_declared_names.contains(ident) {
+                                            return Err(ParseError::lex(LexError::Syntax(
+                                                format!("Redeclaration of variable `{}`", ident)
+                                                    .into(),
+                                                match cursor.peek(0)? {
+                                                    Some(token) => token.span().end(),
+                                                    None => Position::new(1, 1),
+                                                },
+                                            )));
+                                        }
+                                        // otherwise, add to VarDeclaredNames
+                                        var_declared_names.insert(ident.as_ref());
+                                    }
+                                }
                             }
-                            // otherwise, add to VarDeclaredNames
-                            var_declared_names.insert(decl.name());
                         }
                     }
                     _ => (),
@@ -485,5 +546,484 @@ where
                 "binding identifier",
             )),
         }
+    }
+}
+
+/// ObjectBindingPattern pattern parsing.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-ObjectBindingPattern
+#[derive(Debug, Clone, Copy)]
+pub(super) struct ObjectBindingPattern {
+    allow_in: AllowIn,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+}
+
+impl ObjectBindingPattern {
+    /// Creates a new `ObjectBindingPattern` parser.
+    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
+    where
+        I: Into<AllowIn>,
+        Y: Into<AllowYield>,
+        A: Into<AllowAwait>,
+    {
+        Self {
+            allow_in: allow_in.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+        }
+    }
+}
+
+impl<R> TokenParser<R> for ObjectBindingPattern
+where
+    R: Read,
+{
+    type Output = Vec<BindingPatternTypeObject>;
+
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("ObjectBindingPattern", "Parsing");
+
+        cursor.expect(
+            TokenKind::Punctuator(Punctuator::OpenBlock),
+            "object binding pattern",
+        )?;
+
+        let mut patterns = Vec::new();
+        let mut property_names = Vec::new();
+        let mut rest_property_name = None;
+
+        loop {
+            let property_name = match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
+                TokenKind::Punctuator(Punctuator::CloseBlock) => {
+                    cursor.expect(
+                        TokenKind::Punctuator(Punctuator::CloseBlock),
+                        "object binding pattern",
+                    )?;
+                    break;
+                }
+                TokenKind::Punctuator(Punctuator::Spread) => {
+                    cursor.expect(
+                        TokenKind::Punctuator(Punctuator::Spread),
+                        "object binding pattern",
+                    )?;
+                    rest_property_name = Some(
+                        BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?,
+                    );
+                    cursor.expect(
+                        TokenKind::Punctuator(Punctuator::CloseBlock),
+                        "object binding pattern",
+                    )?;
+                    break;
+                }
+                _ => BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?,
+            };
+
+            property_names.push(property_name.clone());
+
+            if let Some(peek_token) = cursor.peek(0)? {
+                match peek_token.kind() {
+                    TokenKind::Punctuator(Punctuator::Assign) => {
+                        let init =
+                            Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
+                                .parse(cursor)?;
+                        patterns.push(BindingPatternTypeObject::SingleName {
+                            ident: property_name.clone(),
+                            property_name,
+                            default_init: Some(init),
+                        });
+                    }
+                    TokenKind::Punctuator(Punctuator::Colon) => {
+                        cursor.expect(
+                            TokenKind::Punctuator(Punctuator::Colon),
+                            "object binding pattern",
+                        )?;
+
+                        if let Some(peek_token) = cursor.peek(0)? {
+                            match peek_token.kind() {
+                                TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                                    let bindings = ObjectBindingPattern::new(
+                                        self.allow_in,
+                                        self.allow_yield,
+                                        self.allow_await,
+                                    )
+                                    .parse(cursor)?;
+
+                                    if let Some(peek_token) = cursor.peek(0)? {
+                                        match peek_token.kind() {
+                                            TokenKind::Punctuator(Punctuator::Assign) => {
+                                                let init = Initializer::new(
+                                                    self.allow_in,
+                                                    self.allow_yield,
+                                                    self.allow_await,
+                                                )
+                                                .parse(cursor)?;
+                                                patterns.push(
+                                                    BindingPatternTypeObject::BindingPattern {
+                                                        property_name,
+                                                        pattern: DeclarationPattern::Object(
+                                                            DeclarationPatternObject::new(
+                                                                bindings, None,
+                                                            ),
+                                                        ),
+                                                        default_init: Some(init),
+                                                    },
+                                                );
+                                            }
+                                            _ => {
+                                                patterns.push(
+                                                    BindingPatternTypeObject::BindingPattern {
+                                                        property_name,
+                                                        pattern: DeclarationPattern::Object(
+                                                            DeclarationPatternObject::new(
+                                                                bindings, None,
+                                                            ),
+                                                        ),
+                                                        default_init: None,
+                                                    },
+                                                );
+                                            }
+                                        }
+                                    }
+                                }
+                                TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                                    let bindings = ArrayBindingPattern::new(
+                                        self.allow_in,
+                                        self.allow_yield,
+                                        self.allow_await,
+                                    )
+                                    .parse(cursor)?;
+
+                                    if let Some(peek_token) = cursor.peek(0)? {
+                                        match peek_token.kind() {
+                                            TokenKind::Punctuator(Punctuator::Assign) => {
+                                                let init = Initializer::new(
+                                                    self.allow_in,
+                                                    self.allow_yield,
+                                                    self.allow_await,
+                                                )
+                                                .parse(cursor)?;
+                                                patterns.push(
+                                                    BindingPatternTypeObject::BindingPattern {
+                                                        property_name,
+                                                        pattern: DeclarationPattern::Array(
+                                                            DeclarationPatternArray::new(
+                                                                bindings, None,
+                                                            ),
+                                                        ),
+                                                        default_init: Some(init),
+                                                    },
+                                                );
+                                            }
+                                            _ => {
+                                                patterns.push(
+                                                    BindingPatternTypeObject::BindingPattern {
+                                                        property_name,
+                                                        pattern: DeclarationPattern::Array(
+                                                            DeclarationPatternArray::new(
+                                                                bindings, None,
+                                                            ),
+                                                        ),
+                                                        default_init: None,
+                                                    },
+                                                );
+                                            }
+                                        }
+                                    }
+                                }
+                                _ => {
+                                    // TODO: Currently parses only BindingIdentifier.
+                                    //       Should parse https://tc39.es/ecma262/#prod-PropertyName
+                                    let ident =
+                                        BindingIdentifier::new(self.allow_yield, self.allow_await)
+                                            .parse(cursor)?;
+
+                                    if let Some(peek_token) = cursor.peek(0)? {
+                                        match peek_token.kind() {
+                                            TokenKind::Punctuator(Punctuator::Assign) => {
+                                                let init = Initializer::new(
+                                                    self.allow_in,
+                                                    self.allow_yield,
+                                                    self.allow_await,
+                                                )
+                                                .parse(cursor)?;
+                                                patterns.push(
+                                                    BindingPatternTypeObject::SingleName {
+                                                        ident,
+                                                        property_name,
+                                                        default_init: Some(init),
+                                                    },
+                                                );
+                                            }
+                                            _ => {
+                                                patterns.push(
+                                                    BindingPatternTypeObject::SingleName {
+                                                        ident,
+                                                        property_name,
+                                                        default_init: None,
+                                                    },
+                                                );
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    _ => {
+                        patterns.push(BindingPatternTypeObject::SingleName {
+                            ident: property_name.clone(),
+                            property_name,
+                            default_init: None,
+                        });
+                    }
+                }
+            }
+
+            if let Some(peek_token) = cursor.peek(0)? {
+                if let TokenKind::Punctuator(Punctuator::Comma) = peek_token.kind() {
+                    cursor.expect(
+                        TokenKind::Punctuator(Punctuator::Comma),
+                        "object binding pattern",
+                    )?;
+                }
+            }
+        }
+
+        if let Some(rest) = rest_property_name {
+            if patterns.is_empty() {
+                Ok(vec![BindingPatternTypeObject::RestProperty {
+                    property_name: rest,
+                    excluded_keys: property_names,
+                }])
+            } else {
+                patterns.push(BindingPatternTypeObject::RestProperty {
+                    property_name: rest,
+                    excluded_keys: property_names,
+                });
+                Ok(patterns)
+            }
+        } else if patterns.is_empty() {
+            Ok(vec![BindingPatternTypeObject::Empty])
+        } else {
+            Ok(patterns)
+        }
+    }
+}
+
+/// ArrayBindingPattern pattern parsing.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
+#[derive(Debug, Clone, Copy)]
+pub(super) struct ArrayBindingPattern {
+    allow_in: AllowIn,
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+}
+
+impl ArrayBindingPattern {
+    /// Creates a new `ArrayBindingPattern` parser.
+    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
+    where
+        I: Into<AllowIn>,
+        Y: Into<AllowYield>,
+        A: Into<AllowAwait>,
+    {
+        Self {
+            allow_in: allow_in.into(),
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+        }
+    }
+}
+
+impl<R> TokenParser<R> for ArrayBindingPattern
+where
+    R: Read,
+{
+    type Output = Vec<BindingPatternTypeArray>;
+
+    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+        let _timer = BoaProfiler::global().start_event("ArrayBindingPattern", "Parsing");
+
+        cursor.expect(
+            TokenKind::Punctuator(Punctuator::OpenBracket),
+            "array binding pattern",
+        )?;
+
+        let mut patterns = Vec::new();
+        let mut last_elision_or_first = true;
+
+        loop {
+            match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
+                TokenKind::Punctuator(Punctuator::CloseBracket) => {
+                    cursor.expect(
+                        TokenKind::Punctuator(Punctuator::CloseBracket),
+                        "array binding pattern",
+                    )?;
+                    break;
+                }
+                TokenKind::Punctuator(Punctuator::Comma) => {
+                    cursor.expect(
+                        TokenKind::Punctuator(Punctuator::Comma),
+                        "array binding pattern",
+                    )?;
+                    if last_elision_or_first {
+                        patterns.push(BindingPatternTypeArray::Elision);
+                    } else {
+                        last_elision_or_first = true;
+                    }
+                    continue;
+                }
+                TokenKind::Punctuator(Punctuator::Spread) => {
+                    cursor.expect(
+                        TokenKind::Punctuator(Punctuator::Spread),
+                        "array binding pattern",
+                    )?;
+
+                    match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
+                        TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                            let bindings = ObjectBindingPattern::new(
+                                self.allow_in,
+                                self.allow_yield,
+                                self.allow_await,
+                            )
+                            .parse(cursor)?;
+                            patterns.push(BindingPatternTypeArray::BindingPatternRest {
+                                pattern: DeclarationPattern::Object(DeclarationPatternObject::new(
+                                    bindings, None,
+                                )),
+                            });
+                        }
+                        TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                            let bindings = ArrayBindingPattern::new(
+                                self.allow_in,
+                                self.allow_yield,
+                                self.allow_await,
+                            )
+                            .parse(cursor)?;
+                            patterns.push(BindingPatternTypeArray::BindingPatternRest {
+                                pattern: DeclarationPattern::Array(DeclarationPatternArray::new(
+                                    bindings, None,
+                                )),
+                            });
+                        }
+                        _ => {
+                            let rest_property_name =
+                                BindingIdentifier::new(self.allow_yield, self.allow_await)
+                                    .parse(cursor)?;
+                            patterns.push(BindingPatternTypeArray::SingleNameRest {
+                                ident: rest_property_name,
+                            });
+                        }
+                    }
+
+                    cursor.expect(
+                        TokenKind::Punctuator(Punctuator::CloseBracket),
+                        "array binding pattern",
+                    )?;
+                    break;
+                }
+                TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                    last_elision_or_first = false;
+
+                    let bindings = ObjectBindingPattern::new(
+                        self.allow_in,
+                        self.allow_yield,
+                        self.allow_await,
+                    )
+                    .parse(cursor)?;
+
+                    match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
+                        TokenKind::Punctuator(Punctuator::Assign) => {
+                            let default_init =
+                                Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
+                                    .parse(cursor)?;
+                            patterns.push(BindingPatternTypeArray::BindingPattern {
+                                pattern: DeclarationPattern::Object(DeclarationPatternObject::new(
+                                    bindings,
+                                    Some(default_init),
+                                )),
+                            });
+                        }
+                        _ => {
+                            patterns.push(BindingPatternTypeArray::BindingPattern {
+                                pattern: DeclarationPattern::Object(DeclarationPatternObject::new(
+                                    bindings, None,
+                                )),
+                            });
+                        }
+                    }
+                }
+                TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                    last_elision_or_first = false;
+
+                    let bindings =
+                        ArrayBindingPattern::new(self.allow_in, self.allow_yield, self.allow_await)
+                            .parse(cursor)?;
+
+                    match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
+                        TokenKind::Punctuator(Punctuator::Assign) => {
+                            let default_init =
+                                Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
+                                    .parse(cursor)?;
+                            patterns.push(BindingPatternTypeArray::BindingPattern {
+                                pattern: DeclarationPattern::Array(DeclarationPatternArray::new(
+                                    bindings,
+                                    Some(default_init),
+                                )),
+                            });
+                        }
+                        _ => {
+                            patterns.push(BindingPatternTypeArray::BindingPattern {
+                                pattern: DeclarationPattern::Array(DeclarationPatternArray::new(
+                                    bindings, None,
+                                )),
+                            });
+                        }
+                    }
+                }
+                _ => {
+                    last_elision_or_first = false;
+
+                    let ident =
+                        BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+                    match cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind() {
+                        TokenKind::Punctuator(Punctuator::Assign) => {
+                            let default_init =
+                                Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
+                                    .parse(cursor)?;
+                            patterns.push(BindingPatternTypeArray::SingleName {
+                                ident,
+                                default_init: Some(default_init),
+                            })
+                        }
+                        _ => {
+                            patterns.push(BindingPatternTypeArray::SingleName {
+                                ident,
+                                default_init: None,
+                            });
+                        }
+                    }
+                }
+            }
+
+            if let Some(peek_token) = cursor.peek(0)? {
+                if let TokenKind::Punctuator(Punctuator::Comma) = peek_token.kind() {
+                    cursor.expect(
+                        TokenKind::Punctuator(Punctuator::Comma),
+                        "array binding pattern",
+                    )?;
+                }
+            }
+        }
+
+        Ok(patterns)
     }
 }

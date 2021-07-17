@@ -1,6 +1,6 @@
 use crate::{
     syntax::ast::{
-        node::{GetConstField, GetField, Identifier, StatementList},
+        node::{Declaration, GetConstField, GetField, Identifier, StatementList},
         op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
         Const, Node,
     },
@@ -588,35 +588,80 @@ impl ByteCompiler {
         match node {
             Node::VarDeclList(list) => {
                 for decl in list.as_ref() {
-                    let index = self.get_or_insert_name(decl.name());
-                    self.emit(Opcode::DefVar, &[index]);
+                    match decl {
+                        Declaration::Identifier(ident, _) => {
+                            let index = self.get_or_insert_name(ident.as_ref());
+                            self.emit(Opcode::DefVar, &[index]);
 
-                    if let Some(expr) = decl.init() {
-                        self.compile_expr(expr, true);
-                        self.emit(Opcode::InitLexical, &[index]);
-                    };
+                            if let Some(expr) = decl.init() {
+                                self.compile_expr(expr, true);
+                                self.emit(Opcode::InitLexical, &[index]);
+                            };
+                        }
+                        Declaration::Pattern(pattern) => {
+                            for ident in pattern.idents() {
+                                let index = self.get_or_insert_name(ident.as_ref());
+                                self.emit(Opcode::DefVar, &[index]);
+
+                                if let Some(expr) = decl.init() {
+                                    self.compile_expr(expr, true);
+                                    self.emit(Opcode::InitLexical, &[index]);
+                                };
+                            }
+                        }
+                    }
                 }
             }
             Node::LetDeclList(list) => {
                 for decl in list.as_ref() {
-                    let index = self.get_or_insert_name(decl.name());
-                    self.emit(Opcode::DefLet, &[index]);
+                    match decl {
+                        Declaration::Identifier(ident, _) => {
+                            let index = self.get_or_insert_name(ident.as_ref());
+                            self.emit(Opcode::DefLet, &[index]);
 
-                    if let Some(expr) = decl.init() {
-                        self.compile_expr(expr, true);
-                        self.emit(Opcode::InitLexical, &[index]);
-                    };
+                            if let Some(expr) = decl.init() {
+                                self.compile_expr(expr, true);
+                                self.emit(Opcode::InitLexical, &[index]);
+                            };
+                        }
+                        Declaration::Pattern(pattern) => {
+                            for ident in pattern.idents() {
+                                let index = self.get_or_insert_name(ident.as_ref());
+                                self.emit(Opcode::DefLet, &[index]);
+
+                                if let Some(expr) = decl.init() {
+                                    self.compile_expr(expr, true);
+                                    self.emit(Opcode::InitLexical, &[index]);
+                                };
+                            }
+                        }
+                    }
                 }
             }
             Node::ConstDeclList(list) => {
                 for decl in list.as_ref() {
-                    let index = self.get_or_insert_name(decl.name());
-                    self.emit(Opcode::DefConst, &[index]);
+                    match decl {
+                        Declaration::Identifier(ident, _) => {
+                            let index = self.get_or_insert_name(ident.as_ref());
+                            self.emit(Opcode::DefConst, &[index]);
 
-                    if let Some(expr) = decl.init() {
-                        self.compile_expr(expr, true);
-                        self.emit(Opcode::InitLexical, &[index]);
-                    };
+                            if let Some(expr) = decl.init() {
+                                self.compile_expr(expr, true);
+                                self.emit(Opcode::InitLexical, &[index]);
+                            };
+                        }
+                        Declaration::Pattern(pattern) => {
+                            for ident in pattern.idents() {
+                                let index = self.get_or_insert_name(ident.as_ref());
+                                self.emit(Opcode::DefConst, &[index]);
+
+                                if let Some(expr) = decl.init() {
+                                    self.compile_expr(expr, true);
+                                    self.emit(Opcode::InitLexical, &[index]);
+                                };
+                            }
+                        }
+                    }
                 }
             }
             Node::If(node) => {

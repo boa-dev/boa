@@ -15,7 +15,7 @@ fn check_function_expression() {
         };
         ",
         vec![DeclarationList::Const(
-            vec![Declaration::new(
+            vec![Declaration::new_with_identifier(
                 "add",
                 Some(
                     FunctionExpr::new::<Option<Box<str>>, _, StatementList>(
@@ -43,14 +43,14 @@ fn check_nested_function_expression() {
         };
         ",
         vec![DeclarationList::Const(
-            vec![Declaration::new(
+            vec![Declaration::new_with_identifier(
                 "a",
                 Some(
                     FunctionExpr::new::<Option<Box<str>>, _, StatementList>(
                         None,
                         [],
                         vec![DeclarationList::Const(
-                            vec![Declaration::new(
+                            vec![Declaration::new_with_identifier(
                                 "b",
                                 Some(
                                     FunctionExpr::new::<Option<Box<str>>, _, StatementList>(

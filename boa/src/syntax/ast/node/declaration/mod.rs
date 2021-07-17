@@ -1,5 +1,6 @@
 //! Declaration nodes
 use crate::{
+    builtins::{iterable::get_iterator, Array},
     environment::lexical_environment::VariableScope,
     exec::Executable,
     gc::{Finalize, Trace},
@@ -101,32 +102,66 @@ impl Executable for DeclarationList {
                 None => JsValue::undefined(),
             };
 
-            if self.is_var() && context.has_binding(decl.name()) {
-                if decl.init().is_some() {
-                    context.set_mutable_binding(decl.name(), val, true)?;
+            match &decl {
+                Declaration::Identifier(name, init) => {
+                    if self.is_var() && context.has_binding(name.as_ref()) {
+                        if init.is_some() {
+                            context.set_mutable_binding(name.as_ref(), val, true)?;
+                        }
+                        continue;
+                    }
+
+                    match &self {
+                        Const(_) => context.create_immutable_binding(
+                            name.to_string(),
+                            false,
+                            VariableScope::Block,
+                        )?,
+                        Let(_) => context.create_mutable_binding(
+                            name.to_string(),
+                            false,
+                            VariableScope::Block,
+                        )?,
+                        Var(_) => context.create_mutable_binding(
+                            name.to_string(),
+                            false,
+                            VariableScope::Function,
+                        )?,
+                    }
+
+                    context.initialize_binding(name.as_ref(), val)?;
                 }
-                continue;
-            }
+                Declaration::Pattern(p) => {
+                    for (ident, value) in p.run(None, context)? {
+                        if self.is_var() && context.has_binding(ident.as_ref()) {
+                            if !value.is_undefined() {
+                                context.set_mutable_binding(ident.as_ref(), value, true)?;
+                            }
+                            continue;
+                        }
 
-            match &self {
-                Const(_) => context.create_immutable_binding(
-                    decl.name().to_owned(),
-                    false,
-                    VariableScope::Block,
-                )?,
-                Let(_) => context.create_mutable_binding(
-                    decl.name().to_owned(),
-                    false,
-                    VariableScope::Block,
-                )?,
-                Var(_) => context.create_mutable_binding(
-                    decl.name().to_owned(),
-                    false,
-                    VariableScope::Function,
-                )?,
-            }
+                        match &self {
+                            Const(_) => context.create_immutable_binding(
+                                ident.to_string(),
+                                false,
+                                VariableScope::Block,
+                            )?,
+                            Let(_) => context.create_mutable_binding(
+                                ident.to_string(),
+                                false,
+                                VariableScope::Block,
+                            )?,
+                            Var(_) => context.create_mutable_binding(
+                                ident.to_string(),
+                                false,
+                                VariableScope::Function,
+                            )?,
+                        }
 
-            context.initialize_binding(decl.name(), val)?;
+                        context.initialize_binding(ident.as_ref(), value)?;
+                    }
+                }
+            }
         }
 
         Ok(JsValue::undefined())
@@ -191,41 +226,560 @@ impl From<Declaration> for Box<[Declaration]> {
 /// Individual declaration.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-pub struct Declaration {
-    name: Identifier,
-    init: Option<Node>,
+pub enum Declaration {
+    Identifier(Identifier, Option<Node>),
+    Pattern(DeclarationPattern),
 }
 
 impl fmt::Display for Declaration {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(&self.name, f)?;
-        if let Some(ref init) = self.init {
-            write!(f, " = {}", init)?;
+        match &self {
+            Self::Identifier(ident, init) => {
+                fmt::Display::fmt(&ident, f)?;
+                if let Some(ref init) = &init {
+                    write!(f, " = {}", init)?;
+                }
+            }
+            Self::Pattern(_) => {
+                fmt::Display::fmt("PatternFMT", f)?;
+            }
         }
         Ok(())
     }
 }
 
 impl Declaration {
-    /// Creates a new variable declaration.
-    pub(in crate::syntax) fn new<N, I>(name: N, init: I) -> Self
+    /// Creates a new variable declaration with a BindingIdentifier.
+    pub(in crate::syntax) fn new_with_identifier<N, I>(name: N, init: I) -> Self
     where
         N: Into<Identifier>,
         I: Into<Option<Node>>,
     {
-        Self {
-            name: name.into(),
-            init: init.into(),
-        }
+        Self::Identifier(name.into(), init.into())
     }
 
-    /// Gets the name of the variable.
-    pub fn name(&self) -> &str {
-        self.name.as_ref()
+    /// Creates a new variable declaration with an ObjectBindingPattern.
+    pub(in crate::syntax) fn new_with_object_pattern<I>(
+        bindings: Vec<BindingPatternTypeObject>,
+        init: I,
+    ) -> Self
+    where
+        I: Into<Option<Node>>,
+    {
+        Self::Pattern(DeclarationPattern::Object(DeclarationPatternObject::new(
+            bindings,
+            init.into(),
+        )))
+    }
+
+    /// Creates a new variable declaration with an ArrayBindingPattern.
+    pub(in crate::syntax) fn new_with_array_pattern<I>(
+        bindings: Vec<BindingPatternTypeArray>,
+        init: I,
+    ) -> Self
+    where
+        I: Into<Option<Node>>,
+    {
+        Self::Pattern(DeclarationPattern::Array(DeclarationPatternArray::new(
+            bindings,
+            init.into(),
+        )))
     }
 
     /// Gets the initialization node for the variable, if any.
-    pub fn init(&self) -> Option<&Node> {
+    pub(crate) fn init(&self) -> Option<&Node> {
+        match &self {
+            Self::Identifier(_, init) => init.as_ref(),
+            Self::Pattern(pattern) => pattern.init(),
+        }
+    }
+}
+
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub struct DeclarationPatternObject {
+    bindings: Vec<BindingPatternTypeObject>,
+    init: Option<Node>,
+}
+
+impl DeclarationPatternObject {
+    pub(in crate::syntax) fn new(
+        bindings: Vec<BindingPatternTypeObject>,
+        init: Option<Node>,
+    ) -> Self {
+        Self { bindings, init }
+    }
+
+    pub(in crate::syntax) fn init(&self) -> Option<&Node> {
         self.init.as_ref()
     }
+
+    /// Initialize the values of an object binding pattern.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 8.5.2 Runtime Semantics: BindingInitialization][spec1]
+    ///  - [ECMAScript reference:14.3.3.3 Runtime Semantics: KeyedBindingInitialization][spec2]
+    ///  - [ECMAScript reference:14.3.3.2 Runtime Semantics: RestBindingInitialization][spec3]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#sec-runtime-semantics-bindinginitialization
+    /// [spec2]: https://tc39.es/ecma262/#sec-runtime-semantics-keyedbindinginitialization
+    /// [spec3]:  https://tc39.es/ecma262/#sec-destructuring-binding-patterns-runtime-semantics-restbindinginitialization
+    pub(in crate::syntax) fn run(
+        &self,
+        init: Option<JsValue>,
+        context: &mut Context,
+    ) -> Result<Vec<(Box<str>, JsValue)>> {
+        let value = if let Some(value) = init {
+            value
+        } else if let Some(node) = &self.init {
+            node.run(context)?
+        } else {
+            JsValue::undefined()
+        };
+
+        if value.is_null() {
+            return Err(context.construct_type_error("Cannot destructure 'null' value"));
+        }
+        if value.is_undefined() {
+            return Err(context.construct_type_error("Cannot destructure 'undefined' value"));
+        }
+
+        // 1. Perform ? RequireObjectCoercible(value).
+        let value = value.require_object_coercible(context)?;
+        let mut results = Vec::new();
+
+        // 2. Return the result of performing BindingInitialization for ObjectBindingPattern using value and environment as arguments.
+        for binding in &self.bindings {
+            use BindingPatternTypeObject::*;
+
+            match binding {
+                // ObjectBindingPattern : { }
+                Empty => {
+                    // 1. Return NormalCompletion(empty).
+                }
+                //  SingleNameBinding : BindingIdentifier Initializer[opt]
+                SingleName {
+                    ident,
+                    property_name,
+                    default_init,
+                } => {
+                    // 1. Let bindingId be StringValue of BindingIdentifier.
+                    // 2. Let lhs be ? ResolveBinding(bindingId, environment).
+
+                    // 3. Let v be ? GetV(value, propertyName).
+                    let mut v = value.get_field(property_name.as_ref(), context)?;
+
+                    // 4. If Initializer is present and v is undefined, then
+                    if let Some(init) = default_init {
+                        if v.is_undefined() {
+                            // TODO: a. not implemented yet:
+                            // a. If IsAnonymousFunctionDefinition(Initializer) is true, then
+                            // i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
+
+                            // b. Else,
+                            // i. Let defaultValue be the result of evaluating Initializer.
+                            // ii. Set v to ? GetValue(defaultValue).
+                            v = init.run(context)?;
+                        }
+                    }
+
+                    // 5. If environment is undefined, return ? PutValue(lhs, v).
+                    // 6. Return InitializeReferencedBinding(lhs, v).
+                    results.push((ident.clone(), v));
+                }
+                //  BindingRestProperty : ... BindingIdentifier
+                RestProperty {
+                    property_name,
+                    excluded_keys,
+                } => {
+                    // 1. Let lhs be ? ResolveBinding(StringValue of BindingIdentifier, environment).
+
+                    // 2. Let restObj be ! OrdinaryObjectCreate(%Object.prototype%).
+                    let rest_obj = JsValue::new_object(context);
+
+                    // 3. Perform ? CopyDataProperties(restObj, value, excludedNames).
+                    rest_obj.copy_data_properties(&value, excluded_keys.clone(), context)?;
+
+                    // 4. If environment is undefined, return PutValue(lhs, restObj).
+                    // 5. Return InitializeReferencedBinding(lhs, restObj).
+                    results.push((property_name.clone(), rest_obj));
+                }
+                //  BindingElement : BindingPattern Initializer[opt]
+                BindingPattern {
+                    property_name,
+                    pattern,
+                    default_init,
+                } => {
+                    // 1. Let v be ? GetV(value, propertyName).
+                    let mut v = value.get_field(property_name.as_ref(), context)?;
+
+                    // 2. If Initializer is present and v is undefined, then
+                    if let Some(init) = default_init {
+                        if v.is_undefined() {
+                            // a. Let defaultValue be the result of evaluating Initializer.
+                            // b. Set v to ? GetValue(defaultValue).
+                            v = init.run(context)?;
+                        }
+                    }
+
+                    // 3. Return the result of performing BindingInitialization for BindingPattern passing v and environment as arguments.
+                    results.append(&mut pattern.run(Some(v), context)?);
+                }
+            }
+        }
+
+        Ok(results)
+    }
+
+    pub(in crate::syntax) fn idents(&self) -> Vec<&str> {
+        let mut idents = Vec::new();
+
+        for binding in &self.bindings {
+            use BindingPatternTypeObject::*;
+
+            match binding {
+                Empty => {}
+                SingleName {
+                    ident,
+                    property_name: _,
+                    default_init: _,
+                } => {
+                    idents.push(ident.as_ref());
+                }
+                RestProperty {
+                    property_name,
+                    excluded_keys: _,
+                } => {
+                    idents.push(property_name.as_ref());
+                }
+                BindingPattern {
+                    property_name: _,
+                    pattern,
+                    default_init: _,
+                } => {
+                    for ident in pattern.idents() {
+                        idents.push(ident);
+                    }
+                }
+            }
+        }
+
+        idents
+    }
+}
+
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub struct DeclarationPatternArray {
+    bindings: Vec<BindingPatternTypeArray>,
+    init: Option<Node>,
+}
+
+impl DeclarationPatternArray {
+    pub(in crate::syntax) fn new(
+        bindings: Vec<BindingPatternTypeArray>,
+        init: Option<Node>,
+    ) -> Self {
+        Self { bindings, init }
+    }
+
+    pub(in crate::syntax) fn init(&self) -> Option<&Node> {
+        self.init.as_ref()
+    }
+
+    /// Initialize the values of an array binding pattern.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 8.5.2 Runtime Semantics: BindingInitialization][spec1]
+    ///  - [ECMAScript reference: 8.5.3 Runtime Semantics: IteratorBindingInitialization][spec2]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#sec-runtime-semantics-bindinginitialization
+    /// [spec2]: https://tc39.es/ecma262/#sec-runtime-semantics-iteratorbindinginitialization
+    pub(in crate::syntax) fn run(
+        &self,
+        init: Option<JsValue>,
+        context: &mut Context,
+    ) -> Result<Vec<(Box<str>, JsValue)>> {
+        let value = if let Some(value) = init {
+            value
+        } else if let Some(node) = &self.init {
+            node.run(context)?
+        } else {
+            JsValue::undefined()
+        };
+
+        if value.is_null() {
+            return Err(context.construct_type_error("Cannot destructure 'null' value"));
+        }
+        if value.is_undefined() {
+            return Err(context.construct_type_error("Cannot destructure 'undefined' value"));
+        }
+
+        // 1. Let iteratorRecord be ? GetIterator(value).
+        let iterator = get_iterator(context, value)?;
+        let mut result = Vec::new();
+
+        // 2. Let result be IteratorBindingInitialization of ArrayBindingPattern with arguments iteratorRecord and environment.
+        for binding in &self.bindings {
+            use BindingPatternTypeArray::*;
+
+            match binding {
+                // ArrayBindingPattern : [ ]
+                Empty => {
+                    // 1. Return NormalCompletion(empty).
+                }
+                // ArrayBindingPattern : [ Elision ]
+                // Note: This captures all elisions due to our representation of a the binding pattern.
+                Elision => {
+                    // 1. If iteratorRecord.[[Done]] is false, then
+                    // a. Let next be IteratorStep(iteratorRecord).
+                    // b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+                    // c. ReturnIfAbrupt(next).
+                    // d. If next is false, set iteratorRecord.[[Done]] to true.
+                    let _ = iterator.next(context)?;
+
+                    // 2. Return NormalCompletion(empty).
+                }
+                // SingleNameBinding : BindingIdentifier Initializer[opt]
+                SingleName {
+                    ident,
+                    default_init,
+                } => {
+                    // 1. Let bindingId be StringValue of BindingIdentifier.
+                    // 2. Let lhs be ? ResolveBinding(bindingId, environment).
+
+                    let next = iterator.next(context)?;
+
+                    // 3. If iteratorRecord.[[Done]] is false, then
+                    // 4. If iteratorRecord.[[Done]] is true, let v be undefined.
+                    let mut v = if !next.is_done() {
+                        // a. Let next be IteratorStep(iteratorRecord).
+                        // b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+                        // c. ReturnIfAbrupt(next).
+                        // d. If next is false, set iteratorRecord.[[Done]] to true.
+                        // e. Else,
+                        // i. Let v be IteratorValue(next).
+                        // ii. If v is an abrupt completion, set iteratorRecord.[[Done]] to true.
+                        // iii. ReturnIfAbrupt(v).
+                        next.value()
+                    } else {
+                        JsValue::undefined()
+                    };
+
+                    // 5. If Initializer is present and v is undefined, then
+                    if let Some(init) = default_init {
+                        if v.is_undefined() {
+                            // TODO: a. not implemented yet:
+                            // a. If IsAnonymousFunctionDefinition(Initializer) is true, then
+                            // i. Set v to the result of performing NamedEvaluation for Initializer with argument bindingId.
+
+                            // b. Else,
+                            // i. Let defaultValue be the result of evaluating Initializer.
+                            // ii. Set v to ? GetValue(defaultValue).
+                            v = init.run(context)?
+                        }
+                    }
+
+                    // 6. If environment is undefined, return ? PutValue(lhs, v).
+                    // 7. Return InitializeReferencedBinding(lhs, v).
+                    result.push((ident.clone(), v));
+                }
+                // BindingElement : BindingPattern Initializer[opt]
+                BindingPattern { pattern } => {
+                    let next = iterator.next(context)?;
+
+                    // 1. If iteratorRecord.[[Done]] is false, then
+                    // 2. If iteratorRecord.[[Done]] is true, let v be undefined.
+                    let v = if !next.is_done() {
+                        // a. Let next be IteratorStep(iteratorRecord).
+                        // b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+                        // c. ReturnIfAbrupt(next).
+                        // d. If next is false, set iteratorRecord.[[Done]] to true.
+                        // e. Else,
+                        // i. Let v be IteratorValue(next).
+                        // ii. If v is an abrupt completion, set iteratorRecord.[[Done]] to true.
+                        // iii. ReturnIfAbrupt(v).
+                        Some(next.value())
+                    } else {
+                        None
+                    };
+
+                    // 3. If Initializer is present and v is undefined, then
+                    // a. Let defaultValue be the result of evaluating Initializer.
+                    // b. Set v to ? GetValue(defaultValue).
+
+                    // 4. Return the result of performing BindingInitialization of BindingPattern with v and environment as the arguments.
+                    result.append(&mut pattern.run(v, context)?);
+                }
+                // BindingRestElement : ... BindingIdentifier
+                SingleNameRest { ident } => {
+                    // 1. Let lhs be ? ResolveBinding(StringValue of BindingIdentifier, environment).
+                    // 2. Let A be ! ArrayCreate(0).
+                    // 3. Let n be 0.
+                    let a = Array::array_create(0, None, context)
+                        .expect("Array creation with 0 length should never fail.");
+
+                    // 4. Repeat,
+                    loop {
+                        let next = iterator.next(context)?;
+                        // a. If iteratorRecord.[[Done]] is false, then
+                        // i. Let next be IteratorStep(iteratorRecord).
+                        // ii. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+                        // iii. ReturnIfAbrupt(next).
+                        // iv. If next is false, set iteratorRecord.[[Done]] to true.
+
+                        // b. If iteratorRecord.[[Done]] is true, then
+                        if next.is_done() {
+                            // i. If environment is undefined, return ? PutValue(lhs, A).
+                            // ii. Return InitializeReferencedBinding(lhs, A).
+                            break result.push((ident.clone(), a.clone().into()));
+                        }
+
+                        // c. Let nextValue be IteratorValue(next).
+                        // d. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
+                        // e. ReturnIfAbrupt(nextValue).
+
+                        // f. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), nextValue).
+                        // g. Set n to n + 1.
+                        Array::add_to_array_object(&a.clone().into(), &[next.value()], context)?;
+                    }
+                }
+                // BindingRestElement : ... BindingPattern
+                BindingPatternRest { pattern } => {
+                    // 1. Let A be ! ArrayCreate(0).
+                    // 2. Let n be 0.
+                    let a = Array::array_create(0, None, context)
+                        .expect("Array creation with 0 length should never fail.");
+
+                    // 3. Repeat,
+                    loop {
+                        // a. If iteratorRecord.[[Done]] is false, then
+                        // i. Let next be IteratorStep(iteratorRecord).
+                        // ii. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+                        // iii. ReturnIfAbrupt(next).
+                        // iv. If next is false, set iteratorRecord.[[Done]] to true.
+                        let next = iterator.next(context)?;
+
+                        // b. If iteratorRecord.[[Done]] is true, then
+                        if next.is_done() {
+                            // i. Return the result of performing BindingInitialization of BindingPattern with A and environment as the arguments.
+                            break result
+                                .append(&mut pattern.run(Some(a.clone().into()), context)?);
+                        }
+
+                        // c. Let nextValue be IteratorValue(next).
+                        // d. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
+                        // e. ReturnIfAbrupt(nextValue).
+                        // f. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), nextValue).
+                        // g. Set n to n + 1.
+                        Array::add_to_array_object(&a.clone().into(), &[next.value()], context)?;
+                    }
+                }
+            }
+        }
+
+        // 3. If iteratorRecord.[[Done]] is false, return ? IteratorClose(iteratorRecord, result).
+        // 4. Return result.
+        Ok(result)
+    }
+
+    pub(in crate::syntax) fn idents(&self) -> Vec<&str> {
+        let mut idents = Vec::new();
+
+        for binding in &self.bindings {
+            use BindingPatternTypeArray::*;
+
+            match binding {
+                Empty => {}
+                Elision => {}
+                SingleName {
+                    ident,
+                    default_init: _,
+                } => {
+                    idents.push(ident.as_ref());
+                }
+                BindingPattern { pattern } | BindingPatternRest { pattern } => {
+                    let mut i = pattern.idents();
+                    idents.append(&mut i)
+                }
+                SingleNameRest { ident } => idents.push(ident),
+            }
+        }
+
+        idents
+    }
+}
+
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub enum DeclarationPattern {
+    Object(DeclarationPatternObject),
+    Array(DeclarationPatternArray),
+}
+
+impl DeclarationPattern {
+    pub(in crate::syntax) fn run(
+        &self,
+        init: Option<JsValue>,
+        context: &mut Context,
+    ) -> Result<Vec<(Box<str>, JsValue)>> {
+        match &self {
+            DeclarationPattern::Object(pattern) => pattern.run(init, context),
+            DeclarationPattern::Array(pattern) => pattern.run(init, context),
+        }
+    }
+
+    pub(crate) fn idents(&self) -> Vec<&str> {
+        match &self {
+            DeclarationPattern::Object(pattern) => pattern.idents(),
+            DeclarationPattern::Array(pattern) => pattern.idents(),
+        }
+    }
+
+    pub(crate) fn init(&self) -> Option<&Node> {
+        match &self {
+            DeclarationPattern::Object(pattern) => pattern.init(),
+            DeclarationPattern::Array(pattern) => pattern.init(),
+        }
+    }
+}
+
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub enum BindingPatternTypeObject {
+    Empty,
+    SingleName {
+        ident: Box<str>,
+        property_name: Box<str>,
+        default_init: Option<Node>,
+    },
+    RestProperty {
+        property_name: Box<str>,
+        excluded_keys: Vec<Box<str>>,
+    },
+    BindingPattern {
+        property_name: Box<str>,
+        pattern: DeclarationPattern,
+        default_init: Option<Node>,
+    },
+}
+
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub enum BindingPatternTypeArray {
+    Empty,
+    Elision,
+    SingleName {
+        ident: Box<str>,
+        default_init: Option<Node>,
+    },
+    BindingPattern {
+        pattern: DeclarationPattern,
+    },
+    SingleNameRest {
+        ident: Box<str>,
+    },
+    BindingPatternRest {
+        pattern: DeclarationPattern,
+    },
 }
