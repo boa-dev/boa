@@ -51,9 +51,9 @@ impl From<RcString> for Value {
     }
 }
 
-impl From<RcSymbol> for Value {
+impl From<JsSymbol> for Value {
     #[inline]
-    fn from(value: RcSymbol) -> Self {
+    fn from(value: JsSymbol) -> Self {
         Value::Symbol(value)
     }
 }

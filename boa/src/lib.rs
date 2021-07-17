@@ -71,7 +71,7 @@ pub(crate) use crate::{exec::Executable, profiler::BoaProfiler};
 
 // Export things to root level
 #[doc(inline)]
-pub use crate::{context::Context, value::Value};
+pub use crate::{context::Context, symbol::JsSymbol, value::Value};
 
 use crate::syntax::{
     ast::node::StatementList,

@@ -22,7 +22,7 @@ use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, FunctionBuilder},
     property::Attribute,
-    symbol::{RcSymbol, WellKnownSymbols},
+    symbol::{JsSymbol, WellKnownSymbols},
     value::Value,
     BoaProfiler, Context, Result,
 };
@@ -130,10 +130,10 @@ impl Symbol {
             _ => None,
         };
 
-        Ok(context.construct_symbol(description).into())
+        Ok(JsSymbol::new(description).into())
     }
 
-    fn this_symbol_value(value: &Value, context: &mut Context) -> Result<RcSymbol> {
+    fn this_symbol_value(value: &Value, context: &mut Context) -> Result<JsSymbol> {
         match value {
             Value::Symbol(ref symbol) => return Ok(symbol.clone()),
             Value::Object(ref object) => {
@@ -161,8 +161,7 @@ impl Symbol {
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         let symbol = Self::this_symbol_value(this, context)?;
-        let description = symbol.description().unwrap_or("");
-        Ok(Value::from(format!("Symbol({})", description)))
+        Ok(symbol.to_string().into())
     }
 
     /// `get Symbol.prototype.description`
@@ -180,7 +179,8 @@ impl Symbol {
         _: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        if let Some(ref description) = Self::this_symbol_value(this, context)?.description {
+        let symbol = Self::this_symbol_value(this, context)?;
+        if let Some(ref description) = symbol.description() {
             Ok(description.clone().into())
         } else {
             Ok(Value::undefined())

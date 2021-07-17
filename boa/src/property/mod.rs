@@ -17,8 +17,8 @@
 use crate::{
     gc::{Finalize, Trace},
     object::GcObject,
-    symbol::RcSymbol,
     value::{RcString, Value},
+    JsSymbol,
 };
 use std::{convert::TryFrom, fmt};
 
@@ -307,7 +307,7 @@ impl PropertyDescriptor {
 #[derive(Trace, Finalize, Debug, Clone)]
 pub enum PropertyKey {
     String(RcString),
-    Symbol(RcSymbol),
+    Symbol(JsSymbol),
     Index(u32),
 }
 
@@ -355,9 +355,9 @@ impl From<Box<str>> for PropertyKey {
     }
 }
 
-impl From<RcSymbol> for PropertyKey {
+impl From<JsSymbol> for PropertyKey {
     #[inline]
-    fn from(symbol: RcSymbol) -> PropertyKey {
+    fn from(symbol: JsSymbol) -> PropertyKey {
         PropertyKey::Symbol(symbol)
     }
 }
