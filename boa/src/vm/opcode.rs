@@ -496,7 +496,7 @@ pub enum Opcode {
     ///
     /// Operands: address: `u32`
     ///
-    /// Stack: `value`, `cond` **=>** `cond` (if `cond === value`).
+    /// Stack: `value`, `cond` **=>** `cond` (if `cond !== value`).
     Case,
 
     /// Pops the top of stack and jump to address.
