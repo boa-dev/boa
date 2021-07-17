@@ -144,15 +144,15 @@
 <span id="143">143</span>
 <span id="144">144</span>
 </pre><div class="example-wrap"><pre class="rust ">
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::value::RcString</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">function::make_builtin_fn</span>, <span class="ident">iterable::create_iter_result_object</span>},
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">ObjectData</span>},
+    <span class="ident">property::PropertyKey</span>,
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>},
-    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
+    <span class="ident">symbol::WellKnownSymbols</span>,
+    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsString</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">property::PropertyKey</span>, <span class="ident">symbol::WellKnownSymbols</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashSet</span>;
 <span class="kw">use</span> <span class="ident">std::collections::VecDeque</span>;
 
@@ -166,8 +166,8 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ForInIterator</span> {
     <span class="ident">object</span>: <span class="ident">Value</span>,
-    <span class="ident">visited_keys</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">RcString</span><span class="op">&gt;</span>,
-    <span class="ident">remaining_keys</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">RcString</span><span class="op">&gt;</span>,
+    <span class="ident">visited_keys</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
+    <span class="ident">remaining_keys</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
     <span class="ident">object_was_visited</span>: <span class="ident">bool</span>,
 }
 

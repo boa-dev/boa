@@ -585,8 +585,8 @@
     <span class="ident">builtins::BuiltIn</span>,
     <span class="ident">object::ObjectInitializer</span>,
     <span class="ident">property::Attribute</span>,
-    <span class="ident">value</span>::{<span class="ident">display::display_obj</span>, <span class="ident">RcString</span>, <span class="ident">Value</span>},
-    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>,
+    <span class="ident">value</span>::{<span class="ident">display::display_obj</span>, <span class="ident">Value</span>},
+    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsString</span>, <span class="prelude-ty">Result</span>,
 };
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 <span class="kw">use</span> <span class="ident">std::time::SystemTime</span>;
@@ -702,8 +702,8 @@
 <span class="doccomment">/// This is the internal console object state.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Console</span> {
-    <span class="ident">count_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">RcString</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
-    <span class="ident">timer_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">RcString</span>, <span class="ident">u128</span><span class="op">&gt;</span>,
+    <span class="ident">count_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">JsString</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
+    <span class="ident">timer_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">JsString</span>, <span class="ident">u128</span><span class="op">&gt;</span>,
     <span class="ident">groups</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
 }
 

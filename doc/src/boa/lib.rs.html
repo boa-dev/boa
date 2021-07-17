@@ -154,6 +154,7 @@
 <span id="153">153</span>
 <span id="154">154</span>
 <span id="155">155</span>
+<span id="156">156</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">/*!
 This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.
@@ -211,6 +212,7 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">profiler</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">property</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">realm</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">string</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">symbol</span>;
 <span class="comment">// syntax module has a lot of acronyms</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::upper_case_acronyms</span>)]</span>
@@ -228,7 +230,7 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 
 <span class="comment">// Export things to root level</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">context::Context</span>, <span class="ident">symbol::JsSymbol</span>, <span class="ident">value::Value</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">context::Context</span>, <span class="ident">string::JsString</span>, <span class="ident">symbol::JsSymbol</span>, <span class="ident">value::Value</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::syntax</span>::{
     <span class="ident">ast::node::StatementList</span>,

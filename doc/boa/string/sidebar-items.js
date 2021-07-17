@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Inner","The inner representation of a [`JsString`]."],["JsString","This represents a JavaScript primitive string."]]});

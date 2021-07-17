@@ -269,6 +269,7 @@
 <span id="268">268</span>
 <span id="269">269</span>
 <span id="270">270</span>
+<span id="271">271</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `JSON` object.</span>
 <span class="doccomment">//!</span>
@@ -287,12 +288,13 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::BuiltIn</span>,
+    <span class="ident">object::Object</span>,
     <span class="ident">object::ObjectInitializer</span>,
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>, <span class="ident">PropertyKey</span>},
+    <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">value::IntegerOrInfinity</span>,
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">object::Object</span>, <span class="ident">symbol::WellKnownSymbols</span>};
 <span class="kw">use</span> <span class="ident">serde::Serialize</span>;
 <span class="kw">use</span> <span class="ident">serde_json</span>::{<span class="self">self</span>, <span class="ident">ser::PrettyFormatter</span>, <span class="ident">Serializer</span>, <span class="ident">Value</span> <span class="kw">as</span> <span class="ident">JSONValue</span>};
 
