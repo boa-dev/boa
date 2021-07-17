@@ -228,7 +228,7 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 
 <span class="comment">// Export things to root level</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">context::Context</span>, <span class="ident">value::Value</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">context::Context</span>, <span class="ident">symbol::JsSymbol</span>, <span class="ident">value::Value</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::syntax</span>::{
     <span class="ident">ast::node::StatementList</span>,

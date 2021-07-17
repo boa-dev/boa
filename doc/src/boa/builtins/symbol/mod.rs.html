@@ -213,7 +213,7 @@
     <span class="ident">builtins::BuiltIn</span>,
     <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>},
     <span class="ident">property::Attribute</span>,
-    <span class="ident">symbol</span>::{<span class="ident">RcSymbol</span>, <span class="ident">WellKnownSymbols</span>},
+    <span class="ident">symbol</span>::{<span class="ident">JsSymbol</span>, <span class="ident">WellKnownSymbols</span>},
     <span class="ident">value::Value</span>,
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>,
 };
@@ -321,10 +321,10 @@
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
         };
 
-        <span class="prelude-val">Ok</span>(<span class="ident">context</span>.<span class="ident">construct_symbol</span>(<span class="ident">description</span>).<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(<span class="ident">JsSymbol::new</span>(<span class="ident">description</span>).<span class="ident">into</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">this_symbol_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RcSymbol</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">this_symbol_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsSymbol</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">value</span> {
             <span class="ident">Value::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">symbol</span>.<span class="ident">clone</span>()),
             <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> {
@@ -352,8 +352,7 @@
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::this_symbol_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">description</span> <span class="op">=</span> <span class="ident">symbol</span>.<span class="ident">description</span>().<span class="ident">unwrap_or</span>(<span class="string">&quot;&quot;</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="macro">format!</span>(<span class="string">&quot;Symbol({})&quot;</span>, <span class="ident">description</span>)))
+        <span class="prelude-val">Ok</span>(<span class="ident">symbol</span>.<span class="ident">to_string</span>().<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `get Symbol.prototype.description`</span>
@@ -371,7 +370,8 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">description</span>) <span class="op">=</span> <span class="self">Self</span><span class="ident">::this_symbol_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">description</span> {
+        <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::this_symbol_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">description</span>) <span class="op">=</span> <span class="ident">symbol</span>.<span class="ident">description</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">description</span>.<span class="ident">clone</span>().<span class="ident">into</span>())
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">Value::undefined</span>())

@@ -495,8 +495,8 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">object::GcObject</span>,
-    <span class="ident">symbol::RcSymbol</span>,
     <span class="ident">value</span>::{<span class="ident">RcString</span>, <span class="ident">Value</span>},
+    <span class="ident">JsSymbol</span>,
 };
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert::TryFrom</span>, <span class="ident">fmt</span>};
 
@@ -785,7 +785,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PropertyKey</span> {
     <span class="ident">String</span>(<span class="ident">RcString</span>),
-    <span class="ident">Symbol</span>(<span class="ident">RcSymbol</span>),
+    <span class="ident">Symbol</span>(<span class="ident">JsSymbol</span>),
     <span class="ident">Index</span>(<span class="ident">u32</span>),
 }
 
@@ -833,9 +833,9 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">RcSymbol</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsSymbol</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">symbol</span>: <span class="ident">RcSymbol</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PropertyKey</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">symbol</span>: <span class="ident">JsSymbol</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PropertyKey</span> {
         <span class="ident">PropertyKey::Symbol</span>(<span class="ident">symbol</span>)
     }
 }

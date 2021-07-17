@@ -1071,7 +1071,7 @@
     },
     <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
-    <span class="ident">symbol</span>::{<span class="ident">RcSymbol</span>, <span class="ident">WellKnownSymbols</span>},
+    <span class="ident">symbol</span>::{<span class="ident">JsSymbol</span>, <span class="ident">WellKnownSymbols</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>,
 };
 <span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
@@ -1121,7 +1121,7 @@
     <span class="doccomment">/// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values.</span>
     <span class="ident">Object</span>(<span class="ident">GcObject</span>),
     <span class="doccomment">/// `Symbol` - A Symbol Primitive type.</span>
-    <span class="ident">Symbol</span>(<span class="ident">RcSymbol</span>),
+    <span class="ident">Symbol</span>(<span class="ident">JsSymbol</span>),
 }
 
 <span class="doccomment">/// Represents the result of ToIntegerOrInfinity operation</span>
@@ -1222,7 +1222,7 @@
 
     <span class="doccomment">/// Creates a new symbol value.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">symbol</span>(<span class="ident">symbol</span>: <span class="ident">RcSymbol</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">symbol</span>(<span class="ident">symbol</span>: <span class="ident">JsSymbol</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span><span class="ident">::Symbol</span>(<span class="ident">symbol</span>)
     }
 
@@ -1351,7 +1351,7 @@
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="self">Self</span><span class="ident">::Symbol</span>(<span class="kw">_</span>))
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RcSymbol</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsSymbol</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="self">Self</span><span class="ident">::Symbol</span>(<span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">symbol</span>.<span class="ident">clone</span>()),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,

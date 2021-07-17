@@ -423,7 +423,7 @@
 <span id="422">422</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Object</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">symbol::RcSymbol</span>, <span class="ident">value::RcString</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">value::RcString</span>, <span class="ident">JsSymbol</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::hash_map</span>, <span class="ident">iter::FusedIterator</span>};
 
 <span class="kw">impl</span> <span class="ident">Object</span> {
@@ -534,7 +534,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">indexed_properties</span>: <span class="ident">hash_map::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">u32</span>, <span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
     <span class="ident">string_properties</span>: <span class="ident">hash_map::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">RcString</span>, <span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
-    <span class="ident">symbol_properties</span>: <span class="ident">hash_map::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">RcSymbol</span>, <span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
+    <span class="ident">symbol_properties</span>: <span class="ident">hash_map::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">JsSymbol</span>, <span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
@@ -604,10 +604,10 @@
 
 <span class="doccomment">/// An iterator over the `Symbol` property entries of an `Object`</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SymbolProperties</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">hash_map::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">RcSymbol</span>, <span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SymbolProperties</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">hash_map::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">JsSymbol</span>, <span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">SymbolProperties</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">RcSymbol</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PropertyDescriptor</span>);
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">JsSymbol</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PropertyDescriptor</span>);
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span> {
@@ -631,10 +631,10 @@
 
 <span class="doccomment">/// An iterator over the keys (`RcSymbol`) of an `Object`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SymbolPropertyKeys</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">hash_map::Keys</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">RcSymbol</span>, <span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SymbolPropertyKeys</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">hash_map::Keys</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">JsSymbol</span>, <span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">SymbolPropertyKeys</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">RcSymbol</span>;
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">JsSymbol</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span> {
@@ -658,7 +658,7 @@
 
 <span class="doccomment">/// An iterator over the `Symbol` values (`Property`) of an `Object`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SymbolPropertyValues</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">hash_map::Values</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">RcSymbol</span>, <span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SymbolPropertyValues</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">hash_map::Values</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">JsSymbol</span>, <span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">SymbolPropertyValues</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PropertyDescriptor</span>;

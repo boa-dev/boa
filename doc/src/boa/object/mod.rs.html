@@ -1183,7 +1183,6 @@
 <span id="1182">1182</span>
 <span id="1183">1183</span>
 <span id="1184">1184</span>
-<span id="1185">1185</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
@@ -1202,9 +1201,8 @@
     <span class="ident">context::StandardConstructor</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">property</span>::{<span class="ident">AccessorDescriptor</span>, <span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
-    <span class="ident">symbol::RcSymbol</span>,
     <span class="ident">value</span>::{<span class="ident">RcBigInt</span>, <span class="ident">RcString</span>, <span class="ident">Value</span>},
-    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>,
+    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsSymbol</span>,
 };
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -1259,7 +1257,7 @@
     <span class="doccomment">/// Properties</span>
     <span class="ident">string_properties</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">RcString</span>, <span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Symbol Properties</span>
-    <span class="ident">symbol_properties</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">RcSymbol</span>, <span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
+    <span class="ident">symbol_properties</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">JsSymbol</span>, <span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Instance prototype `__proto__`.</span>
     <span class="ident">prototype</span>: <span class="ident">Value</span>,
     <span class="doccomment">/// Whether it can have new properties added to it.</span>
@@ -1284,7 +1282,7 @@
     <span class="ident">String</span>(<span class="ident">RcString</span>),
     <span class="ident">StringIterator</span>(<span class="ident">StringIterator</span>),
     <span class="ident">Number</span>(<span class="ident">f64</span>),
-    <span class="ident">Symbol</span>(<span class="ident">RcSymbol</span>),
+    <span class="ident">Symbol</span>(<span class="ident">JsSymbol</span>),
     <span class="ident">Error</span>,
     <span class="ident">Ordinary</span>,
     <span class="ident">Date</span>(<span class="ident">Date</span>),
@@ -1629,7 +1627,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RcSymbol</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_symbol</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsSymbol</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
             <span class="ident">ObjectData::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">symbol</span>.<span class="ident">clone</span>()),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,
