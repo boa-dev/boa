@@ -54,6 +54,7 @@ pub mod object;
 pub mod profiler;
 pub mod property;
 pub mod realm;
+pub mod string;
 pub mod symbol;
 // syntax module has a lot of acronyms
 #[allow(clippy::upper_case_acronyms)]
@@ -71,7 +72,7 @@ pub(crate) use crate::{exec::Executable, profiler::BoaProfiler};
 
 // Export things to root level
 #[doc(inline)]
-pub use crate::{context::Context, symbol::JsSymbol, value::Value};
+pub use crate::{context::Context, string::JsString, symbol::JsSymbol, value::Value};
 
 use crate::syntax::{
     ast::node::StatementList,

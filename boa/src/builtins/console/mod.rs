@@ -20,8 +20,8 @@ use crate::{
     builtins::BuiltIn,
     object::ObjectInitializer,
     property::Attribute,
-    value::{display::display_obj, RcString, Value},
-    BoaProfiler, Context, Result,
+    value::{display::display_obj, Value},
+    BoaProfiler, Context, JsString, Result,
 };
 use rustc_hash::FxHashMap;
 use std::time::SystemTime;
@@ -137,8 +137,8 @@ pub fn formatter(data: &[Value], context: &mut Context) -> Result<String> {
 /// This is the internal console object state.
 #[derive(Debug, Default)]
 pub(crate) struct Console {
-    count_map: FxHashMap<RcString, u32>,
-    timer_map: FxHashMap<RcString, u128>,
+    count_map: FxHashMap<JsString, u32>,
+    timer_map: FxHashMap<JsString, u128>,
     groups: Vec<String>,
 }
 

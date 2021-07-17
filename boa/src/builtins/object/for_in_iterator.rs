@@ -1,12 +1,12 @@
-use crate::value::RcString;
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object},
     gc::{Finalize, Trace},
     object::{GcObject, ObjectData},
+    property::PropertyKey,
     property::{Attribute, DataDescriptor},
-    BoaProfiler, Context, Result, Value,
+    symbol::WellKnownSymbols,
+    BoaProfiler, Context, JsString, Result, Value,
 };
-use crate::{property::PropertyKey, symbol::WellKnownSymbols};
 use rustc_hash::FxHashSet;
 use std::collections::VecDeque;
 
@@ -20,8 +20,8 @@ use std::collections::VecDeque;
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct ForInIterator {
     object: Value,
-    visited_keys: FxHashSet<RcString>,
-    remaining_keys: VecDeque<RcString>,
+    visited_keys: FxHashSet<JsString>,
+    remaining_keys: VecDeque<JsString>,
     object_was_visited: bool,
 }
 

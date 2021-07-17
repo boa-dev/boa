@@ -15,12 +15,13 @@
 
 use crate::{
     builtins::BuiltIn,
+    object::Object,
     object::ObjectInitializer,
     property::{Attribute, DataDescriptor, PropertyKey},
+    symbol::WellKnownSymbols,
     value::IntegerOrInfinity,
     BoaProfiler, Context, Result, Value,
 };
-use crate::{object::Object, symbol::WellKnownSymbols};
 use serde::Serialize;
 use serde_json::{self, ser::PrettyFormatter, Serializer, Value as JSONValue};
 

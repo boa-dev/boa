@@ -17,15 +17,14 @@ use crate::{
     object::{GcObject, ObjectData},
     property::{Attribute, DataDescriptor},
     symbol::WellKnownSymbols,
-    value::RcString,
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsString, Result, Value,
 };
 
 // TODO: See todos in create_regexp_string_iterator and next.
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct RegExpStringIterator {
     matcher: Value,
-    string: RcString,
+    string: JsString,
     global: bool,
     unicode: bool,
     completed: bool,
@@ -33,7 +32,7 @@ pub struct RegExpStringIterator {
 
 // TODO: See todos in create_regexp_string_iterator and next.
 impl RegExpStringIterator {
-    fn new(matcher: Value, string: RcString, global: bool, unicode: bool) -> Self {
+    fn new(matcher: Value, string: JsString, global: bool, unicode: bool) -> Self {
         Self {
             matcher,
             string,
@@ -51,7 +50,7 @@ impl RegExpStringIterator {
     /// [spec]: https://tc39.es/ecma262/#sec-createregexpstringiterator
     pub(crate) fn create_regexp_string_iterator(
         matcher: &Value,
-        string: RcString,
+        string: JsString,
         global: bool,
         unicode: bool,
         context: &mut Context,

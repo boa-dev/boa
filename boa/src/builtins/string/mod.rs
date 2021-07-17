@@ -21,8 +21,7 @@ use crate::{
     object::{ConstructorBuilder, Object, ObjectData},
     property::Attribute,
     symbol::WellKnownSymbols,
-    value::{RcString, Value},
-    BoaProfiler, Context, Result,
+    BoaProfiler, Context, JsString, Result, Value,
 };
 use std::{
     char::{decode_utf16, from_u32},
@@ -31,7 +30,7 @@ use std::{
 };
 use unicode_normalization::UnicodeNormalization;
 
-pub(crate) fn code_point_at(string: RcString, position: i32) -> Option<(u32, u8, bool)> {
+pub(crate) fn code_point_at(string: JsString, position: i32) -> Option<(u32, u8, bool)> {
     let size = string.encode_utf16().count() as i32;
     if position < 0 || position >= size {
         return None;
@@ -170,7 +169,7 @@ impl String {
                     .clone()
             }
             Some(ref value) => value.to_string(context)?,
-            None => RcString::default(),
+            None => JsString::default(),
         };
 
         if new_target.is_undefined() {
@@ -202,7 +201,7 @@ impl String {
         Ok(this)
     }
 
-    fn this_string_value(this: &Value, context: &mut Context) -> Result<RcString> {
+    fn this_string_value(this: &Value, context: &mut Context) -> Result<JsString> {
         match this {
             Value::String(ref string) => return Ok(string.clone()),
             Value::Object(ref object) => {
@@ -685,10 +684,9 @@ impl String {
 
         // 11. If functionalReplace is true, then
         // 12. Else,
-        let replacement: RcString;
-        if functional_replace {
+        let replacement = if functional_replace {
             // a. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(position), string »)).
-            replacement = context
+            context
                 .call(
                     &replace_value,
                     &Value::Undefined,
@@ -698,22 +696,22 @@ impl String {
                         this_str.clone().into(),
                     ],
                 )?
-                .to_string(context)?;
+                .to_string(context)?
         } else {
             // a. Assert: Type(replaceValue) is String.
             // b. Let captures be a new empty List.
             let captures = Vec::new();
 
             // c. Let replacement be ! GetSubstitution(searchString, string, position, captures, undefined, replaceValue).
-            replacement = get_substitution(
+            get_substitution(
                 search_str.to_string(),
                 this_str.to_string(),
                 position.unwrap(),
                 captures,
                 Value::undefined(),
                 replace_value.to_string(context)?.to_string(),
-            )?;
-        }
+            )?
+        };
 
         // 13. Return the string-concatenation of preserved, replacement, and the substring of string from position + searchLength.
         Ok(format!(
@@ -862,9 +860,9 @@ impl String {
     /// Performs the actual string padding for padStart/End.
     /// <https://tc39.es/ecma262/#sec-stringpad/>
     fn string_pad(
-        primitive: RcString,
+        primitive: JsString,
         max_length: i32,
-        fill_string: Option<RcString>,
+        fill_string: Option<JsString>,
         at_start: bool,
     ) -> Value {
         let primitive_length = primitive.len() as i32;
@@ -1480,7 +1478,7 @@ pub(crate) fn get_substitution(
     captures: Vec<Value>,
     _named_captures: Value,
     replacement: StdString,
-) -> Result<RcString> {
+) -> Result<JsString> {
     // 1. Assert: Type(matched) is String.
 
     // 2. Let matchLength be the number of code units in matched.

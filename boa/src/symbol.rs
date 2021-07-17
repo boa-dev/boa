@@ -17,7 +17,7 @@
 
 use crate::{
     gc::{empty_trace, Finalize, Trace},
-    value::RcString,
+    JsString,
 };
 use std::{
     cell::Cell,
@@ -246,7 +246,7 @@ impl WellKnownSymbols {
 #[derive(Debug, Clone)]
 struct Inner {
     hash: u64,
-    description: Option<RcString>,
+    description: Option<JsString>,
 }
 
 /// This represents a JavaScript symbol primitive.
@@ -258,7 +258,7 @@ pub struct JsSymbol {
 impl JsSymbol {
     /// Create a new symbol.
     #[inline]
-    pub fn new(description: Option<RcString>) -> Self {
+    pub fn new(description: Option<JsString>) -> Self {
         let hash = SYMBOL_HASH_COUNT.with(|count| {
             let hash = count.get();
             count.set(hash + 1);
@@ -272,7 +272,7 @@ impl JsSymbol {
 
     /// Create a new symbol with a specified hash and description.
     #[inline]
-    fn with_hash(hash: u64, description: Option<RcString>) -> Self {
+    fn with_hash(hash: u64, description: Option<JsString>) -> Self {
         Self {
             inner: Rc::new(Inner { hash, description }),
         }
@@ -280,7 +280,7 @@ impl JsSymbol {
 
     /// Returns the `Symbol`s description.
     #[inline]
-    pub fn description(&self) -> Option<RcString> {
+    pub fn description(&self) -> Option<JsString> {
         self.inner.description.clone()
     }
 
