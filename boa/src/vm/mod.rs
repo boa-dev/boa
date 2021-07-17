@@ -59,6 +59,7 @@ impl<'a> Vm<'a> {
     ///
     /// If there is nothing to pop, then this will panic.
     #[inline]
+    #[track_caller]
     pub fn pop(&mut self) -> Value {
         self.stack.pop().unwrap()
     }
@@ -422,6 +423,22 @@ impl<'a> Vm<'a> {
             Opcode::This => {
                 let this = self.context.get_this_binding()?;
                 self.push(this);
+            }
+            Opcode::Case => {
+                let address = self.read::<u32>();
+                let cond = self.pop();
+                let value = self.pop();
+
+                if !value.strict_equals(&cond) {
+                    self.push(value);
+                } else {
+                    self.pc = address as usize;
+                }
+            }
+            Opcode::Default => {
+                let exit = self.read::<u32>();
+                let _ = self.pop();
+                self.pc = exit as usize;
             }
         }
 

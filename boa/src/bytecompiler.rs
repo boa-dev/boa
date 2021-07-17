@@ -8,29 +8,7 @@ use crate::{
     vm::{CodeBlock, Opcode},
     JsString, Value,
 };
-
 use std::collections::HashMap;
-
-#[inline]
-fn u16_to_array(value: u16) -> [u8; 2] {
-    // Safety: Transmuting a `u16` primitive to
-    // an array of 2 bytes is safe.
-    unsafe { std::mem::transmute(value) }
-}
-
-#[inline]
-fn u32_to_array(value: u32) -> [u8; 4] {
-    // Safety: Transmuting a `u32` primitive to
-    // an array of 4 bytes is safe.
-    unsafe { std::mem::transmute(value) }
-}
-
-#[inline]
-fn u64_to_array(value: u64) -> [u8; 8] {
-    // Safety: Transmuting a `u64` primitive to
-    // an array of 8 bytes is safe.
-    unsafe { std::mem::transmute(value) }
-}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum Literal {
@@ -45,10 +23,10 @@ struct Label {
 }
 
 #[derive(Debug, Clone)]
-struct LoopControlInfo {
+struct JumpControlInfo {
     label: Option<Box<str>>,
-    loop_start: u32,
-    continues: Vec<Label>,
+    start_address: u32,
+    is_loop: bool,
     breaks: Vec<Label>,
 }
 
@@ -65,7 +43,7 @@ pub struct ByteCompiler {
     code_block: CodeBlock,
     literals_map: HashMap<Literal, u32>,
     names_map: HashMap<JsString, u32>,
-    loops: Vec<LoopControlInfo>,
+    jump_info: Vec<JumpControlInfo>,
 }
 
 impl Default for ByteCompiler {
@@ -84,7 +62,7 @@ impl ByteCompiler {
             code_block: CodeBlock::new(),
             literals_map: HashMap::new(),
             names_map: HashMap::new(),
-            loops: Vec::new(),
+            jump_info: Vec::new(),
         }
     }
 
@@ -134,17 +112,17 @@ impl ByteCompiler {
 
     #[inline]
     fn emit_u64(&mut self, value: u64) {
-        self.code_block.code.extend(&u64_to_array(value));
+        self.code_block.code.extend(&value.to_ne_bytes());
     }
 
     #[inline]
     fn emit_u32(&mut self, value: u32) {
-        self.code_block.code.extend(&u32_to_array(value));
+        self.code_block.code.extend(&value.to_ne_bytes());
     }
 
     #[inline]
     fn emit_u16(&mut self, value: u16) {
-        self.code_block.code.extend(&u16_to_array(value));
+        self.code_block.code.extend(&value.to_ne_bytes());
     }
 
     #[inline]
@@ -232,7 +210,7 @@ impl ByteCompiler {
 
         let index = index as usize;
 
-        let bytes = u32_to_array(target);
+        let bytes = target.to_ne_bytes();
         self.code_block.code[index + 1] = bytes[0];
         self.code_block.code[index + 2] = bytes[1];
         self.code_block.code[index + 3] = bytes[2];
@@ -246,24 +224,43 @@ impl ByteCompiler {
     }
 
     #[inline]
-    fn push_loop_control_info(&mut self, label: Option<Box<str>>, loop_start: u32) {
-        self.loops.push(LoopControlInfo {
+    fn push_loop_control_info(&mut self, label: Option<Box<str>>, start_address: u32) {
+        self.jump_info.push(JumpControlInfo {
             label,
-            loop_start,
-            continues: Vec::new(),
+            start_address,
+            is_loop: true,
             breaks: Vec::new(),
         })
     }
 
     #[inline]
     fn pop_loop_control_info(&mut self) {
-        let loop_info = self.loops.pop().unwrap();
+        let loop_info = self.jump_info.pop().unwrap();
 
-        for label in loop_info.continues {
-            self.patch_jump_with_target(label, loop_info.loop_start);
-        }
+        assert!(loop_info.is_loop);
 
         for label in loop_info.breaks {
+            self.patch_jump(label);
+        }
+    }
+
+    #[inline]
+    fn push_switch_control_info(&mut self, label: Option<Box<str>>, start_address: u32) {
+        self.jump_info.push(JumpControlInfo {
+            label,
+            start_address,
+            is_loop: false,
+            breaks: Vec::new(),
+        })
+    }
+
+    #[inline]
+    fn pop_switch_control_info(&mut self) {
+        let info = self.jump_info.pop().unwrap();
+
+        assert!(!info.is_loop);
+
+        for label in info.breaks {
             self.patch_jump(label);
         }
     }
@@ -331,7 +328,7 @@ impl ByteCompiler {
                 self.compile_expr(node.obj(), true);
                 self.emit(Opcode::SetPropertyByValue, &[]);
             }
-            Access::This => todo!("access_get 'this'"),
+            Access::This => todo!("access_set 'this'"),
         }
     }
 
@@ -403,6 +400,10 @@ impl ByteCompiler {
                             NumOp::Exp => self.emit_opcode(Opcode::Pow),
                             NumOp::Mod => self.emit_opcode(Opcode::Mod),
                         }
+
+                        if !use_expr {
+                            self.emit(Opcode::Pop, &[]);
+                        }
                     }
                     BinOp::Bit(op) => {
                         self.compile_expr(binary.rhs(), true);
@@ -413,6 +414,10 @@ impl ByteCompiler {
                             BitOp::Shl => self.emit_opcode(Opcode::ShiftLeft),
                             BitOp::Shr => self.emit_opcode(Opcode::ShiftRight),
                             BitOp::UShr => self.emit_opcode(Opcode::UnsignedShiftRight),
+                        }
+
+                        if !use_expr {
+                            self.emit(Opcode::Pop, &[]);
                         }
                     }
                     BinOp::Comp(op) => {
@@ -428,6 +433,10 @@ impl ByteCompiler {
                             CompOp::LessThanOrEqual => self.emit_opcode(Opcode::LessThanOrEq),
                             CompOp::In => self.emit_opcode(Opcode::In),
                             CompOp::InstanceOf => self.emit_opcode(Opcode::InstanceOf),
+                        }
+
+                        if !use_expr {
+                            self.emit(Opcode::Pop, &[]);
                         }
                     }
                     BinOp::Log(op) => {
@@ -450,6 +459,10 @@ impl ByteCompiler {
                                 self.patch_jump(exit);
                             }
                         };
+
+                        if !use_expr {
+                            self.emit(Opcode::Pop, &[]);
+                        }
                     }
                     BinOp::Assign(op) => {
                         let opcode = match op {
@@ -501,11 +514,11 @@ impl ByteCompiler {
                     BinOp::Comma => {
                         self.emit(Opcode::Pop, &[]);
                         self.compile_expr(binary.rhs(), true);
-                    }
-                }
 
-                if !use_expr {
-                    self.emit(Opcode::Pop, &[]);
+                        if !use_expr {
+                            self.emit(Opcode::Pop, &[]);
+                        }
+                    }
                 }
             }
             Node::Object(object) => {
@@ -626,48 +639,50 @@ impl ByteCompiler {
                 }
             }
             Node::WhileLoop(while_) => {
-                let loop_start = self.next_opcode_location();
-                self.push_loop_control_info(while_.label().map(Into::into), loop_start);
+                let start_address = self.next_opcode_location();
+                self.push_loop_control_info(while_.label().map(Into::into), start_address);
 
                 self.compile_expr(while_.cond(), true);
                 let exit = self.jump_if_false();
                 self.compile_stmt(while_.body(), false);
-                self.emit(Opcode::Jump, &[loop_start]);
+                self.emit(Opcode::Jump, &[start_address]);
                 self.patch_jump(exit);
 
                 self.pop_loop_control_info();
             }
             Node::DoWhileLoop(do_while) => {
-                let loop_start = self.next_opcode_location();
-                self.push_loop_control_info(do_while.label().map(Into::into), loop_start);
+                let start_address = self.next_opcode_location();
+                self.push_loop_control_info(do_while.label().map(Into::into), start_address);
 
                 self.compile_stmt(do_while.body(), false);
 
                 self.compile_expr(do_while.cond(), true);
-                self.emit(Opcode::JumpIfTrue, &[loop_start]);
+                self.emit(Opcode::JumpIfTrue, &[start_address]);
 
                 self.pop_loop_control_info();
             }
             Node::Continue(node) => {
-                let jump_label = self.jump();
-                if node.label().is_none() {
-                    self.loops.last_mut().unwrap().continues.push(jump_label);
+                let label = self.jump();
+                let mut items = self.jump_info.iter_mut().rev().filter(|info| info.is_loop);
+                let target = if node.label().is_none() {
+                    items.next()
                 } else {
-                    for loop_ in self.loops.iter_mut().rev() {
-                        if loop_.label.as_deref() == node.label() {
-                            loop_.continues.push(jump_label);
-                        }
-                    }
+                    items.find(|info| info.label.as_deref() == node.label())
                 }
+                .expect("continue target")
+                .start_address;
+
+                self.patch_jump_with_target(label, target);
             }
             Node::Break(node) => {
-                let jump_label = self.jump();
+                let label = self.jump();
                 if node.label().is_none() {
-                    self.loops.last_mut().unwrap().breaks.push(jump_label);
+                    self.jump_info.last_mut().unwrap().breaks.push(label);
                 } else {
-                    for loop_ in self.loops.iter_mut().rev() {
-                        if loop_.label.as_deref() == node.label() {
-                            loop_.breaks.push(jump_label);
+                    for info in self.jump_info.iter_mut().rev() {
+                        if info.label.as_deref() == node.label() {
+                            info.breaks.push(label);
+                            break;
                         }
                     }
                 }
@@ -680,6 +695,33 @@ impl ByteCompiler {
             Node::Throw(throw) => {
                 self.compile_expr(throw.expr(), true);
                 self.emit(Opcode::Throw, &[]);
+            }
+            Node::Switch(switch) => {
+                let start_address = self.next_opcode_location();
+                self.push_switch_control_info(None, start_address);
+
+                self.compile_expr(switch.val(), true);
+                let mut labels = Vec::with_capacity(switch.cases().len());
+                for case in switch.cases() {
+                    self.compile_expr(case.condition(), true);
+                    labels.push(self.jump_with_custom_opcode(Opcode::Case));
+                }
+
+                let exit = self.jump_with_custom_opcode(Opcode::Default);
+
+                for (label, case) in labels.into_iter().zip(switch.cases()) {
+                    self.patch_jump(label);
+                    self.compile_statement_list(case.body(), false);
+                }
+
+                self.patch_jump(exit);
+                if let Some(body) = switch.default() {
+                    for node in body {
+                        self.compile_stmt(node, false);
+                    }
+                }
+
+                self.pop_switch_control_info();
             }
             Node::Empty => {}
             expr => self.compile_expr(expr, use_expr),
