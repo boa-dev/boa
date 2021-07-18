@@ -86,7 +86,7 @@ where
                 return Err(ParseError::general("duplicate parameter name", position));
             }
 
-            param_names.insert(Box::from(next_param.name()));
+            param_names.insert(next_param.name().clone());
             params.push(next_param);
 
             if cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?.kind()

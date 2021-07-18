@@ -6,7 +6,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{Block, Identifier, Node},
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsString, Result, Value,
 };
 use std::fmt;
 
@@ -106,7 +106,7 @@ impl Executable for Try {
 
                         if let Some(param) = catch.parameter() {
                             context.create_mutable_binding(
-                                param.to_owned(),
+                                param.clone(),
                                 false,
                                 VariableScope::Block,
                             )?;
@@ -170,7 +170,7 @@ impl Catch {
     }
 
     /// Gets the parameter of the catch block.
-    pub fn parameter(&self) -> Option<&str> {
+    pub fn parameter(&self) -> Option<&JsString> {
         self.parameter.as_ref().map(Identifier::as_ref)
     }
 

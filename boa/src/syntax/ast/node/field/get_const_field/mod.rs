@@ -2,8 +2,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    value::{Type, Value},
-    Context, Result,
+    Context, JsString, Result, Value,
 };
 use std::fmt;
 
@@ -35,7 +34,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct GetConstField {
     obj: Box<Node>,
-    field: Box<str>,
+    field: JsString,
 }
 
 impl GetConstField {
@@ -43,7 +42,7 @@ impl GetConstField {
     pub fn new<V, L>(value: V, label: L) -> Self
     where
         V: Into<Node>,
-        L: Into<Box<str>>,
+        L: Into<JsString>,
     {
         Self {
             obj: Box::new(value.into()),
@@ -57,15 +56,15 @@ impl GetConstField {
     }
 
     /// Gets the name of the field to retrieve.
-    pub fn field(&self) -> &str {
-        &self.field
+    pub fn field(&self) -> JsString {
+        self.field.clone()
     }
 }
 
 impl Executable for GetConstField {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let mut obj = self.obj().run(context)?;
-        if obj.get_type() != Type::Object {
+        if !obj.is_object() {
             obj = Value::Object(obj.to_object(context)?);
         }
 

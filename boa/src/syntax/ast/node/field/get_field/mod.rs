@@ -2,8 +2,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    value::{Type, Value},
-    Context, Result,
+    Context, Result, Value,
 };
 use std::fmt;
 
@@ -64,7 +63,7 @@ impl GetField {
 impl Executable for GetField {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let mut obj = self.obj().run(context)?;
-        if obj.get_type() != Type::Object {
+        if !obj.is_object() {
             obj = Value::Object(obj.to_object(context)?);
         }
         let field = self.field().run(context)?;

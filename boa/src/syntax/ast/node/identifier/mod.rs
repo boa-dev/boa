@@ -4,7 +4,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsString, Result, Value,
 };
 use std::fmt;
 
@@ -30,7 +30,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", serde(transparent))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Identifier {
-    ident: Box<str>,
+    ident: JsString,
 }
 
 impl Executable for Identifier {
@@ -46,15 +46,15 @@ impl fmt::Display for Identifier {
     }
 }
 
-impl AsRef<str> for Identifier {
-    fn as_ref(&self) -> &str {
+impl AsRef<JsString> for Identifier {
+    fn as_ref(&self) -> &JsString {
         &self.ident
     }
 }
 
 impl<T> From<T> for Identifier
 where
-    T: Into<Box<str>>,
+    T: Into<JsString>,
 {
     fn from(stm: T) -> Self {
         Self { ident: stm.into() }

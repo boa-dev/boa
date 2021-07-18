@@ -18,7 +18,7 @@ use crate::{
     },
     gc::{empty_trace, Finalize, Trace},
     object::GcObject,
-    Context, Result, Value,
+    Context, JsString, Result, Value,
 };
 
 /// Different binding status for `this`.
@@ -113,13 +113,13 @@ impl FunctionEnvironmentRecord {
 }
 
 impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
-    fn has_binding(&self, name: &str) -> bool {
+    fn has_binding(&self, name: &JsString) -> bool {
         self.declarative_record.has_binding(name)
     }
 
     fn create_mutable_binding(
         &self,
-        name: String,
+        name: JsString,
         deletion: bool,
         allow_name_reuse: bool,
         context: &mut Context,
@@ -130,7 +130,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
 
     fn create_immutable_binding(
         &self,
-        name: String,
+        name: JsString,
         strict: bool,
         context: &mut Context,
     ) -> Result<()> {
@@ -138,14 +138,19 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
             .create_immutable_binding(name, strict, context)
     }
 
-    fn initialize_binding(&self, name: &str, value: Value, context: &mut Context) -> Result<()> {
+    fn initialize_binding(
+        &self,
+        name: &JsString,
+        value: Value,
+        context: &mut Context,
+    ) -> Result<()> {
         self.declarative_record
             .initialize_binding(name, value, context)
     }
 
     fn set_mutable_binding(
         &self,
-        name: &str,
+        name: &JsString,
         value: Value,
         strict: bool,
         context: &mut Context,
@@ -154,12 +159,17 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
             .set_mutable_binding(name, value, strict, context)
     }
 
-    fn get_binding_value(&self, name: &str, strict: bool, context: &mut Context) -> Result<Value> {
+    fn get_binding_value(
+        &self,
+        name: &JsString,
+        strict: bool,
+        context: &mut Context,
+    ) -> Result<Value> {
         self.declarative_record
             .get_binding_value(name, strict, context)
     }
 
-    fn delete_binding(&self, name: &str) -> bool {
+    fn delete_binding(&self, name: &JsString) -> bool {
         self.declarative_record.delete_binding(name)
     }
 
@@ -205,7 +215,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
 
     fn recursive_create_mutable_binding(
         &self,
-        name: String,
+        name: JsString,
         deletion: bool,
         _scope: VariableScope,
         context: &mut Context,
@@ -215,7 +225,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
 
     fn recursive_create_immutable_binding(
         &self,
-        name: String,
+        name: JsString,
         deletion: bool,
         _scope: VariableScope,
         context: &mut Context,

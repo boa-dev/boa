@@ -12,7 +12,7 @@ use crate::{
     },
     gc::{Finalize, Trace},
     object::GcObject,
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsString, Result, Value,
 };
 use gc::{Gc, GcCell};
 use rustc_hash::FxHashMap;
@@ -34,7 +34,7 @@ pub struct DeclarativeEnvironmentRecordBinding {
 /// declarations contained within its scope.
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct DeclarativeEnvironmentRecord {
-    pub env_rec: GcCell<FxHashMap<Box<str>, DeclarativeEnvironmentRecordBinding>>,
+    pub env_rec: GcCell<FxHashMap<JsString, DeclarativeEnvironmentRecordBinding>>,
     pub outer_env: Option<Environment>,
 }
 
@@ -49,27 +49,27 @@ impl DeclarativeEnvironmentRecord {
 }
 
 impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
-    fn has_binding(&self, name: &str) -> bool {
+    fn has_binding(&self, name: &JsString) -> bool {
         self.env_rec.borrow().contains_key(name)
     }
 
     fn create_mutable_binding(
         &self,
-        name: String,
+        name: JsString,
         deletion: bool,
         allow_name_reuse: bool,
         _context: &mut Context,
     ) -> Result<()> {
         if !allow_name_reuse {
             assert!(
-                !self.env_rec.borrow().contains_key(name.as_str()),
+                !self.env_rec.borrow().contains_key(&name),
                 "Identifier {} has already been declared",
                 name
             );
         }
 
         self.env_rec.borrow_mut().insert(
-            name.into_boxed_str(),
+            name,
             DeclarativeEnvironmentRecordBinding {
                 value: None,
                 can_delete: deletion,
@@ -82,18 +82,18 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
 
     fn create_immutable_binding(
         &self,
-        name: String,
+        name: JsString,
         strict: bool,
         _context: &mut Context,
     ) -> Result<()> {
         assert!(
-            !self.env_rec.borrow().contains_key(name.as_str()),
+            !self.env_rec.borrow().contains_key(&name),
             "Identifier {} has already been declared",
             name
         );
 
         self.env_rec.borrow_mut().insert(
-            name.into_boxed_str(),
+            name,
             DeclarativeEnvironmentRecordBinding {
                 value: None,
                 can_delete: true,
@@ -104,7 +104,12 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         Ok(())
     }
 
-    fn initialize_binding(&self, name: &str, value: Value, _context: &mut Context) -> Result<()> {
+    fn initialize_binding(
+        &self,
+        name: &JsString,
+        value: Value,
+        _context: &mut Context,
+    ) -> Result<()> {
         if let Some(ref mut record) = self.env_rec.borrow_mut().get_mut(name) {
             if record.value.is_none() {
                 record.value = Some(value);
@@ -117,7 +122,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     #[allow(clippy::else_if_without_else)]
     fn set_mutable_binding(
         &self,
-        name: &str,
+        name: &JsString,
         value: Value,
         mut strict: bool,
         context: &mut Context,
@@ -127,7 +132,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
                 return Err(context.construct_reference_error(format!("{} not found", name)));
             }
 
-            self.create_mutable_binding(name.to_owned(), true, false, context)?;
+            self.create_mutable_binding(name.clone(), true, false, context)?;
             self.initialize_binding(name, value, context)?;
             return Ok(());
         }
@@ -159,7 +164,12 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         Ok(())
     }
 
-    fn get_binding_value(&self, name: &str, _strict: bool, context: &mut Context) -> Result<Value> {
+    fn get_binding_value(
+        &self,
+        name: &JsString,
+        _strict: bool,
+        context: &mut Context,
+    ) -> Result<Value> {
         if let Some(binding) = self.env_rec.borrow().get(name) {
             if let Some(ref val) = binding.value {
                 Ok(val.clone())
@@ -171,7 +181,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         }
     }
 
-    fn delete_binding(&self, name: &str) -> bool {
+    fn delete_binding(&self, name: &JsString) -> bool {
         match self.env_rec.borrow().get(name) {
             Some(binding) => {
                 if binding.can_delete {

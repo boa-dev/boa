@@ -9,6 +9,9 @@ use std::{
     ptr::{copy_nonoverlapping, NonNull},
 };
 
+#[cfg(feature = "deser")]
+use serde::{Deserialize, Serialize};
+
 /// The inner representation of a [`JsString`].
 #[repr(C)]
 struct Inner {
@@ -132,6 +135,26 @@ impl Default for JsString {
     #[inline]
     fn default() -> Self {
         Self::new("")
+    }
+}
+
+#[cfg(feature = "deser")]
+impl Serialize for JsString {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.as_str().serialize(serializer)
+    }
+}
+
+#[cfg(feature = "deser")]
+impl<'de> Deserialize<'de> for JsString {
+    fn deserialize<D>(_deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        todo!()
     }
 }
 

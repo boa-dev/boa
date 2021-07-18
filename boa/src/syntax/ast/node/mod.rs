@@ -50,7 +50,7 @@ use super::Const;
 use crate::{
     exec::Executable,
     gc::{empty_trace, Finalize, Trace},
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsString, Result, Value,
 };
 use std::{
     cmp::Ordering,
@@ -401,7 +401,7 @@ where
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub struct FormalParameter {
-    name: Box<str>,
+    name: JsString,
     init: Option<Node>,
     is_rest_param: bool,
 }
@@ -410,7 +410,7 @@ impl FormalParameter {
     /// Creates a new formal parameter.
     pub(in crate::syntax) fn new<N>(name: N, init: Option<Node>, is_rest_param: bool) -> Self
     where
-        N: Into<Box<str>>,
+        N: Into<JsString>,
     {
         Self {
             name: name.into(),
@@ -420,7 +420,7 @@ impl FormalParameter {
     }
 
     /// Gets the name of the formal parameter.
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> &JsString {
         &self.name
     }
 

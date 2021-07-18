@@ -115,7 +115,7 @@ impl Executable for ForInLoop {
                         context.set_mutable_binding(name.as_ref(), next_result.clone(), true)?;
                     } else {
                         context.create_mutable_binding(
-                            name.as_ref().to_owned(),
+                            name.as_ref().clone(),
                             true,
                             VariableScope::Function,
                         )?;
@@ -132,7 +132,7 @@ impl Executable for ForInLoop {
                             context.set_mutable_binding(var.name(), next_result, true)?;
                         } else {
                             context.create_mutable_binding(
-                                var.name().to_owned(),
+                                var.name().clone(),
                                 false,
                                 VariableScope::Function,
                             )?;

@@ -4,7 +4,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Identifier, Node},
-    Context, Result, Value,
+    Context, JsString, Result, Value,
 };
 use std::fmt;
 
@@ -110,17 +110,17 @@ impl Executable for DeclarationList {
 
             match &self {
                 Const(_) => context.create_immutable_binding(
-                    decl.name().to_owned(),
+                    decl.name().clone(),
                     false,
                     VariableScope::Block,
                 )?,
                 Let(_) => context.create_mutable_binding(
-                    decl.name().to_owned(),
+                    decl.name().clone(),
                     false,
                     VariableScope::Block,
                 )?,
                 Var(_) => context.create_mutable_binding(
-                    decl.name().to_owned(),
+                    decl.name().clone(),
                     false,
                     VariableScope::Function,
                 )?,
@@ -220,7 +220,7 @@ impl Declaration {
     }
 
     /// Gets the name of the variable.
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> &JsString {
         self.name.as_ref()
     }
 

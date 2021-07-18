@@ -4,7 +4,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsString, Result, Value,
 };
 use std::fmt;
 
@@ -32,7 +32,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct FunctionDecl {
-    name: Box<str>,
+    name: JsString,
     parameters: Box<[FormalParameter]>,
     body: StatementList,
 }
@@ -41,7 +41,7 @@ impl FunctionDecl {
     /// Creates a new function declaration.
     pub(in crate::syntax) fn new<N, P, B>(name: N, parameters: P, body: B) -> Self
     where
-        N: Into<Box<str>>,
+        N: Into<JsString>,
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
     {
@@ -53,7 +53,7 @@ impl FunctionDecl {
     }
 
     /// Gets the name of the function declaration.
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> &JsString {
         &self.name
     }
 
@@ -95,16 +95,12 @@ impl Executable for FunctionDecl {
         )?;
 
         // Set the name and assign it in the current environment
-        val.set_field("name", self.name(), false, context)?;
+        val.set_field("name", self.name().clone(), false, context)?;
 
         if context.has_binding(self.name()) {
             context.set_mutable_binding(self.name(), val, true)?;
         } else {
-            context.create_mutable_binding(
-                self.name().to_owned(),
-                false,
-                VariableScope::Function,
-            )?;
+            context.create_mutable_binding(self.name().clone(), false, VariableScope::Function)?;
 
             context.initialize_binding(self.name(), val)?;
         }

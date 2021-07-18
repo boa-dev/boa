@@ -126,7 +126,7 @@ impl Function {
         // Create binding
         local_env
             // Function parameters can share names in JavaScript...
-            .create_mutable_binding(param.name().to_owned(), false, true, context)
+            .create_mutable_binding(param.name().clone(), false, true, context)
             .expect("Failed to create binding for rest param");
 
         // Set Binding to value
@@ -145,7 +145,7 @@ impl Function {
     ) {
         // Create binding
         local_env
-            .create_mutable_binding(param.name().to_owned(), false, true, context)
+            .create_mutable_binding(param.name().clone(), false, true, context)
             .expect("Failed to create binding");
 
         // Set Binding to value

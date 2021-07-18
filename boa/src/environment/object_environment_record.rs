@@ -17,7 +17,7 @@ use crate::{
     object::GcObject,
     property::PropertyDescriptor,
     property::{Attribute, DataDescriptor},
-    Context, Result, Value,
+    Context, JsString, Result, Value,
 };
 
 #[derive(Debug, Trace, Finalize, Clone)]
@@ -44,8 +44,8 @@ impl ObjectEnvironmentRecord {
 }
 
 impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
-    fn has_binding(&self, name: &str) -> bool {
-        if self.bindings.has_field(name) {
+    fn has_binding(&self, name: &JsString) -> bool {
+        if self.bindings.has_field(name.clone()) {
             if self.with_environment {
                 // TODO: implement unscopables
             }
@@ -57,7 +57,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
 
     fn create_mutable_binding(
         &self,
-        name: String,
+        name: JsString,
         deletion: bool,
         _allow_name_reuse: bool,
         _context: &mut Context,
@@ -77,24 +77,29 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
 
     fn create_immutable_binding(
         &self,
-        _name: String,
+        _name: JsString,
         _strict: bool,
         _context: &mut Context,
     ) -> Result<()> {
         Ok(())
     }
 
-    fn initialize_binding(&self, name: &str, value: Value, context: &mut Context) -> Result<()> {
+    fn initialize_binding(
+        &self,
+        name: &JsString,
+        value: Value,
+        context: &mut Context,
+    ) -> Result<()> {
         // We should never need to check if a binding has been created,
         // As all calls to create_mutable_binding are followed by initialized binding
         // The below is just a check.
-        debug_assert!(self.has_binding(&name));
+        debug_assert!(self.has_binding(name));
         self.set_mutable_binding(name, value, false, context)
     }
 
     fn set_mutable_binding(
         &self,
-        name: &str,
+        name: &JsString,
         value: Value,
         strict: bool,
         _context: &mut Context,
@@ -105,13 +110,18 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         self.bindings
             .as_object()
             .expect("binding object")
-            .insert(name, property);
+            .insert(name.clone(), property);
         Ok(())
     }
 
-    fn get_binding_value(&self, name: &str, strict: bool, context: &mut Context) -> Result<Value> {
-        if self.bindings.has_field(name) {
-            match self.bindings.get_property(name) {
+    fn get_binding_value(
+        &self,
+        name: &JsString,
+        strict: bool,
+        context: &mut Context,
+    ) -> Result<Value> {
+        if self.bindings.has_field(name.clone()) {
+            match self.bindings.get_property(name.clone()) {
                 Some(PropertyDescriptor::Data(ref d)) => Ok(d.value()),
                 _ => Ok(Value::undefined()),
             }
@@ -122,8 +132,8 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         }
     }
 
-    fn delete_binding(&self, name: &str) -> bool {
-        self.bindings.remove_property(name);
+    fn delete_binding(&self, name: &JsString) -> bool {
+        self.bindings.remove_property(name.clone());
         true
     }
 

@@ -17,7 +17,7 @@ use crate::{
     symbol::WellKnownSymbols,
     syntax::ast::node::RcStatementList,
     value::PreferredType,
-    Context, Executable, Result, Value,
+    Context, Executable, JsString, Result, Value,
 };
 use gc::{Finalize, Gc, GcCell, GcCellRef, GcCellRefMut, Trace};
 use serde_json::{map::Map, Value as JSONValue};
@@ -217,18 +217,26 @@ impl GcObject {
                         if !flags.is_lexical_this_mode()
                             && !arguments_in_parameter_names
                             && (has_parameter_expressions
-                                || (!body.lexically_declared_names().contains("arguments")
-                                    && !body.function_declared_names().contains("arguments")))
+                                || (!body
+                                    .lexically_declared_names()
+                                    .contains(&JsString::new("arguments"))
+                                    && !body
+                                        .function_declared_names()
+                                        .contains(&JsString::new("arguments"))))
                         {
                             // Add arguments object
                             let arguments_obj = create_unmapped_arguments_object(args);
                             local_env.create_mutable_binding(
-                                "arguments".to_string(),
+                                "arguments".into(),
                                 false,
                                 true,
                                 context,
                             )?;
-                            local_env.initialize_binding("arguments", arguments_obj, context)?;
+                            local_env.initialize_binding(
+                                &"arguments".into(),
+                                arguments_obj,
+                                context,
+                            )?;
                         }
 
                         // Turn local_env into Environment so it can be cloned

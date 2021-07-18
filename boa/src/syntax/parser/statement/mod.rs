@@ -293,8 +293,8 @@ where
         // Handle any redeclarations
         // https://tc39.es/ecma262/#sec-block-static-semantics-early-errors
         {
-            let mut lexically_declared_names: HashSet<&str> = HashSet::new();
-            let mut var_declared_names: HashSet<&str> = HashSet::new();
+            let mut lexically_declared_names = HashSet::new();
+            let mut var_declared_names = HashSet::new();
 
             // TODO: Use more helpful positions in errors when spans are added to Nodes
             for item in &items {
@@ -303,7 +303,7 @@ where
                         for decl in decl_list.as_ref() {
                             // if name in VarDeclaredNames or can't be added to
                             // LexicallyDeclaredNames, raise an error
-                            if var_declared_names.contains(decl.name())
+                            if var_declared_names.contains(&decl.name())
                                 || !lexically_declared_names.insert(decl.name())
                             {
                                 return Err(ParseError::lex(LexError::Syntax(
@@ -319,7 +319,7 @@ where
                     Node::VarDeclList(decl_list) => {
                         for decl in decl_list.as_ref() {
                             // if name in LexicallyDeclaredNames, raise an error
-                            if lexically_declared_names.contains(decl.name()) {
+                            if lexically_declared_names.contains(&decl.name()) {
                                 return Err(ParseError::lex(LexError::Syntax(
                                     format!("Redeclaration of variable `{}`", decl.name()).into(),
                                     match cursor.peek(0)? {

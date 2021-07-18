@@ -8,7 +8,7 @@
 use super::global_environment_record::GlobalEnvironmentRecord;
 use crate::{
     environment::environment_record_trait::EnvironmentRecordTrait, object::GcObject, BoaProfiler,
-    Context, Result, Value,
+    Context, JsString, Result, Value,
 };
 use gc::Gc;
 use std::{collections::VecDeque, error, fmt};
@@ -95,7 +95,7 @@ impl Context {
 
     pub(crate) fn create_mutable_binding(
         &mut self,
-        name: String,
+        name: JsString,
         deletion: bool,
         scope: VariableScope,
     ) -> Result<()> {
@@ -105,7 +105,7 @@ impl Context {
 
     pub(crate) fn create_immutable_binding(
         &mut self,
-        name: String,
+        name: JsString,
         deletion: bool,
         scope: VariableScope,
     ) -> Result<()> {
@@ -115,7 +115,7 @@ impl Context {
 
     pub(crate) fn set_mutable_binding(
         &mut self,
-        name: &str,
+        name: &JsString,
         value: Value,
         strict: bool,
     ) -> Result<()> {
@@ -123,7 +123,7 @@ impl Context {
             .recursive_set_mutable_binding(name, value, strict, self)
     }
 
-    pub(crate) fn initialize_binding(&mut self, name: &str, value: Value) -> Result<()> {
+    pub(crate) fn initialize_binding(&mut self, name: &JsString, value: Value) -> Result<()> {
         self.get_current_environment()
             .recursive_initialize_binding(name, value, self)
     }
@@ -139,11 +139,11 @@ impl Context {
             .clone()
     }
 
-    pub(crate) fn has_binding(&mut self, name: &str) -> bool {
+    pub(crate) fn has_binding(&mut self, name: &JsString) -> bool {
         self.get_current_environment().recursive_has_binding(name)
     }
 
-    pub(crate) fn get_binding_value(&mut self, name: &str) -> Result<Value> {
+    pub(crate) fn get_binding_value(&mut self, name: &JsString) -> Result<Value> {
         self.get_current_environment()
             .recursive_get_binding_value(name, self)
     }

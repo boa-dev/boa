@@ -4,7 +4,7 @@ use crate::{
     exec::{Executable, InterpreterState},
     gc::{empty_trace, Finalize, Trace},
     syntax::ast::node::Node,
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsString, Result, Value,
 };
 use std::{collections::HashSet, fmt, ops::Deref, rc::Rc};
 
@@ -52,7 +52,7 @@ impl StatementList {
         Ok(())
     }
 
-    pub fn lexically_declared_names(&self) -> HashSet<&str> {
+    pub fn lexically_declared_names(&self) -> HashSet<&JsString> {
         let mut set = HashSet::new();
         for stmt in self.items() {
             if let Node::LetDeclList(decl_list) | Node::ConstDeclList(decl_list) = stmt {
@@ -68,7 +68,7 @@ impl StatementList {
         set
     }
 
-    pub fn function_declared_names(&self) -> HashSet<&str> {
+    pub fn function_declared_names(&self) -> HashSet<&JsString> {
         let mut set = HashSet::new();
         for stmt in self.items() {
             if let Node::FunctionDecl(decl) = stmt {
@@ -78,7 +78,7 @@ impl StatementList {
         set
     }
 
-    pub fn var_declared_names(&self) -> HashSet<&str> {
+    pub fn var_declared_names(&self) -> HashSet<&JsString> {
         let mut set = HashSet::new();
         for stmt in self.items() {
             if let Node::VarDeclList(decl_list) = stmt {

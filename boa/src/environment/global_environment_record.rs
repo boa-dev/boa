@@ -17,7 +17,7 @@ use crate::{
     gc::{Finalize, Trace},
     object::GcObject,
     property::{Attribute, DataDescriptor},
-    Context, Result, Value,
+    Context, JsString, Result, Value,
 };
 use gc::{Gc, GcCell};
 use rustc_hash::FxHashSet;
@@ -27,7 +27,7 @@ pub struct GlobalEnvironmentRecord {
     pub object_record: ObjectEnvironmentRecord,
     pub global_this_binding: GcObject,
     pub declarative_record: DeclarativeEnvironmentRecord,
-    pub var_names: GcCell<FxHashSet<Box<str>>>,
+    pub var_names: GcCell<FxHashSet<JsString>>,
 }
 
 impl GlobalEnvironmentRecord {
@@ -53,11 +53,11 @@ impl GlobalEnvironmentRecord {
         }
     }
 
-    pub fn has_var_declaration(&self, name: &str) -> bool {
+    pub fn has_var_declaration(&self, name: &JsString) -> bool {
         self.var_names.borrow().contains(name)
     }
 
-    pub fn has_lexical_declaration(&self, name: &str) -> bool {
+    pub fn has_lexical_declaration(&self, name: &JsString) -> bool {
         self.declarative_record.has_binding(name)
     }
 
@@ -101,7 +101,7 @@ impl GlobalEnvironmentRecord {
 
     pub fn create_global_var_binding(
         &mut self,
-        name: String,
+        name: JsString,
         deletion: bool,
         context: &mut Context,
     ) -> Result<()> {
@@ -115,8 +115,8 @@ impl GlobalEnvironmentRecord {
         }
 
         let mut var_declared_names = self.var_names.borrow_mut();
-        if !var_declared_names.contains(name.as_str()) {
-            var_declared_names.insert(name.into_boxed_str());
+        if !var_declared_names.contains(&name) {
+            var_declared_names.insert(name);
         }
         Ok(())
     }
@@ -144,7 +144,7 @@ impl GlobalEnvironmentRecord {
 }
 
 impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
-    fn has_binding(&self, name: &str) -> bool {
+    fn has_binding(&self, name: &JsString) -> bool {
         if self.declarative_record.has_binding(name) {
             return true;
         }
@@ -153,7 +153,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn create_mutable_binding(
         &self,
-        name: String,
+        name: JsString,
         deletion: bool,
         allow_name_reuse: bool,
         context: &mut Context,
@@ -170,7 +170,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn create_immutable_binding(
         &self,
-        name: String,
+        name: JsString,
         strict: bool,
         context: &mut Context,
     ) -> Result<()> {
@@ -184,7 +184,12 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
             .create_immutable_binding(name, strict, context)
     }
 
-    fn initialize_binding(&self, name: &str, value: Value, context: &mut Context) -> Result<()> {
+    fn initialize_binding(
+        &self,
+        name: &JsString,
+        value: Value,
+        context: &mut Context,
+    ) -> Result<()> {
         if self.declarative_record.has_binding(&name) {
             return self
                 .declarative_record
@@ -200,7 +205,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn set_mutable_binding(
         &self,
-        name: &str,
+        name: &JsString,
         value: Value,
         strict: bool,
         context: &mut Context,
@@ -214,7 +219,12 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
             .set_mutable_binding(name, value, strict, context)
     }
 
-    fn get_binding_value(&self, name: &str, strict: bool, context: &mut Context) -> Result<Value> {
+    fn get_binding_value(
+        &self,
+        name: &JsString,
+        strict: bool,
+        context: &mut Context,
+    ) -> Result<Value> {
         if self.declarative_record.has_binding(&name) {
             return self
                 .declarative_record
@@ -223,13 +233,13 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         self.object_record.get_binding_value(name, strict, context)
     }
 
-    fn delete_binding(&self, name: &str) -> bool {
+    fn delete_binding(&self, name: &JsString) -> bool {
         if self.declarative_record.has_binding(&name) {
             return self.declarative_record.delete_binding(name);
         }
 
         let global: &Value = &self.object_record.bindings;
-        if global.has_field(name) {
+        if global.has_field(name.clone()) {
             let status = self.object_record.delete_binding(name);
             if status {
                 let mut var_names = self.var_names.borrow_mut();
@@ -277,7 +287,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn recursive_create_mutable_binding(
         &self,
-        name: String,
+        name: JsString,
         deletion: bool,
         _scope: VariableScope,
         context: &mut Context,
@@ -287,7 +297,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn recursive_create_immutable_binding(
         &self,
-        name: String,
+        name: JsString,
         deletion: bool,
         _scope: VariableScope,
         context: &mut Context,
@@ -297,7 +307,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn recursive_set_mutable_binding(
         &self,
-        name: &str,
+        name: &JsString,
         value: Value,
         strict: bool,
         context: &mut Context,
@@ -307,7 +317,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
 
     fn recursive_initialize_binding(
         &self,
-        name: &str,
+        name: &JsString,
         value: Value,
         context: &mut Context,
     ) -> Result<()> {

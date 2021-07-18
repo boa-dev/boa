@@ -9,6 +9,7 @@
 //! There are 5 Environment record kinds. They all have methods in common, these are implemented as a the `EnvironmentRecordTrait`
 //!
 
+use crate::JsString;
 use crate::{environment::lexical_environment::VariableScope, object::GcObject};
 use crate::{
     environment::lexical_environment::{Environment, EnvironmentType},
@@ -24,7 +25,7 @@ use std::fmt::Debug;
 pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// Determine if an Environment Record has a binding for the String value N.
     /// Return true if it does and false if it does not.
-    fn has_binding(&self, name: &str) -> bool;
+    fn has_binding(&self, name: &JsString) -> bool;
 
     /// Create a new but uninitialized mutable binding in an Environment Record. The String value N is the text of the bound name.
     /// If the Boolean argument deletion is true the binding may be subsequently deleted.
@@ -35,7 +36,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// paraments with the same name.
     fn create_mutable_binding(
         &self,
-        name: String,
+        name: JsString,
         deletion: bool,
         allow_name_reuse: bool,
         context: &mut Context,
@@ -47,7 +48,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// regardless of the strict mode setting of operations that reference that binding.
     fn create_immutable_binding(
         &self,
-        name: String,
+        name: JsString,
         strict: bool,
         context: &mut Context,
     ) -> Result<()>;
@@ -55,7 +56,12 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// Set the value of an already existing but uninitialized binding in an Environment Record.
     /// The String value N is the text of the bound name.
     /// V is the value for the binding and is a value of any ECMAScript language type.
-    fn initialize_binding(&self, name: &str, value: Value, context: &mut Context) -> Result<()>;
+    fn initialize_binding(
+        &self,
+        name: &JsString,
+        value: Value,
+        context: &mut Context,
+    ) -> Result<()>;
 
     /// Set the value of an already existing mutable binding in an Environment Record.
     /// The String value `name` is the text of the bound name.
@@ -63,7 +69,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// If `strict` is true and the binding cannot be set throw a TypeError exception.
     fn set_mutable_binding(
         &self,
-        name: &str,
+        name: &JsString,
         value: Value,
         strict: bool,
         context: &mut Context,
@@ -73,13 +79,18 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// The String value N is the text of the bound name.
     /// S is used to identify references originating in strict mode code or that
     /// otherwise require strict mode reference semantics.
-    fn get_binding_value(&self, name: &str, strict: bool, context: &mut Context) -> Result<Value>;
+    fn get_binding_value(
+        &self,
+        name: &JsString,
+        strict: bool,
+        context: &mut Context,
+    ) -> Result<Value>;
 
     /// Delete a binding from an Environment Record.
     /// The String value name is the text of the bound name.
     /// If a binding for name exists, remove the binding and return true.
     /// If the binding exists but cannot be removed return false. If the binding does not exist return true.
-    fn delete_binding(&self, name: &str) -> bool;
+    fn delete_binding(&self, name: &JsString) -> bool;
 
     /// Determine if an Environment Record establishes a this binding.
     /// Return true if it does and false if it does not.
@@ -123,7 +134,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// Create mutable binding while handling outer environments
     fn recursive_create_mutable_binding(
         &self,
-        name: String,
+        name: JsString,
         deletion: bool,
         scope: VariableScope,
         context: &mut Context,
@@ -140,7 +151,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// Create immutable binding while handling outer environments
     fn recursive_create_immutable_binding(
         &self,
-        name: String,
+        name: JsString,
         deletion: bool,
         scope: VariableScope,
         context: &mut Context,
@@ -157,7 +168,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// Set mutable binding while handling outer environments
     fn recursive_set_mutable_binding(
         &self,
-        name: &str,
+        name: &JsString,
         value: Value,
         strict: bool,
         context: &mut Context,
@@ -174,7 +185,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// Initialize binding while handling outer environments
     fn recursive_initialize_binding(
         &self,
-        name: &str,
+        name: &JsString,
         value: Value,
         context: &mut Context,
     ) -> Result<()> {
@@ -188,7 +199,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     }
 
     /// Check if a binding exists in current or any outer environment
-    fn recursive_has_binding(&self, name: &str) -> bool {
+    fn recursive_has_binding(&self, name: &JsString) -> bool {
         self.has_binding(name)
             || match self.get_outer_environment_ref() {
                 Some(outer) => outer.recursive_has_binding(name),
@@ -197,7 +208,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     }
 
     /// Retrieve binding from current or any outer environment
-    fn recursive_get_binding_value(&self, name: &str, context: &mut Context) -> Result<Value> {
+    fn recursive_get_binding_value(&self, name: &JsString, context: &mut Context) -> Result<Value> {
         if self.has_binding(name) {
             self.get_binding_value(name, false, context)
         } else {
