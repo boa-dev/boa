@@ -240,8 +240,9 @@ impl fmt::Display for Declaration {
                     write!(f, " = {}", init)?;
                 }
             }
+            // TODO: fmt for binding pattern
             Self::Pattern(_) => {
-                fmt::Display::fmt("PatternFMT", f)?;
+                fmt::Display::fmt("binding pattern fmt", f)?;
             }
         }
         Ok(())

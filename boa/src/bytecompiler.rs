@@ -600,7 +600,7 @@ impl ByteCompiler {
                         }
                         Declaration::Pattern(pattern) => {
                             for ident in pattern.idents() {
-                                let index = self.get_or_insert_name(ident.as_ref());
+                                let index = self.get_or_insert_name(ident);
                                 self.emit(Opcode::DefVar, &[index]);
 
                                 if let Some(expr) = decl.init() {
@@ -626,7 +626,7 @@ impl ByteCompiler {
                         }
                         Declaration::Pattern(pattern) => {
                             for ident in pattern.idents() {
-                                let index = self.get_or_insert_name(ident.as_ref());
+                                let index = self.get_or_insert_name(ident);
                                 self.emit(Opcode::DefLet, &[index]);
 
                                 if let Some(expr) = decl.init() {
@@ -652,7 +652,7 @@ impl ByteCompiler {
                         }
                         Declaration::Pattern(pattern) => {
                             for ident in pattern.idents() {
-                                let index = self.get_or_insert_name(ident.as_ref());
+                                let index = self.get_or_insert_name(ident);
                                 self.emit(Opcode::DefConst, &[index]);
 
                                 if let Some(expr) = decl.init() {
