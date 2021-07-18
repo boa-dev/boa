@@ -2,12 +2,13 @@ use crate::gc::{empty_trace, Finalize, Trace};
 use std::{
     alloc::{alloc, dealloc, Layout},
     cell::Cell,
-    collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
     marker::PhantomData,
     ops::Deref,
     ptr::{copy_nonoverlapping, NonNull},
 };
+
+use rustc_hash::FxHasher;
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -221,7 +222,7 @@ impl JsString {
             hash
         } else {
             let hash = {
-                let mut hasher = DefaultHasher::new();
+                let mut hasher = FxHasher::default();
                 this.as_str().hash(&mut hasher);
                 hasher.finish()
             };
@@ -396,6 +397,8 @@ mod tests {
     use super::JsString;
     use std::mem::size_of;
 
+    use rustc_hash::FxHasher;
+
     #[test]
     fn empty() {
         let _ = JsString::new("");
@@ -453,7 +456,6 @@ mod tests {
 
     #[test]
     fn hash() {
-        use std::collections::hash_map::DefaultHasher;
         use std::hash::{Hash, Hasher};
 
         let s = "Hello, world!";
@@ -463,7 +465,7 @@ mod tests {
 
         assert!(!JsString::has_hash(&x));
 
-        let mut hasher = DefaultHasher::new();
+        let mut hasher = FxHasher::default();
         s.hash(&mut hasher);
         let s_hash = hasher.finish();
 
