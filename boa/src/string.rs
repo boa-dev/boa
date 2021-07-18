@@ -1,8 +1,8 @@
 use crate::gc::{empty_trace, Finalize, Trace};
 use std::{
     alloc::{alloc, dealloc, Layout},
-    borrow::Borrow,
     cell::Cell,
+    collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
     marker::PhantomData,
     ops::Deref,
@@ -19,6 +19,9 @@ struct Inner {
     ///
     /// When this reaches `0` the string is deallocated.
     refcount: Cell<usize>,
+
+    /// Lazely computed hash
+    hash: Cell<Option<u64>>,
 
     /// An empty array which is used to get the offset of string data.
     data: [u8; 0],
@@ -42,6 +45,7 @@ impl Inner {
             inner.write(Inner {
                 len: s.len(),
                 refcount: Cell::new(1),
+                hash: Cell::new(None),
                 data: [0; 0],
             });
 
@@ -79,6 +83,7 @@ impl Inner {
             inner.write(Inner {
                 len: total_string_size,
                 refcount: Cell::new(1),
+                hash: Cell::new(None),
                 data: [0; 0],
             });
 
@@ -179,6 +184,30 @@ impl JsString {
         this.inner().refcount.get()
     }
 
+    /// Has the hash been computed for this string.
+    #[inline]
+    pub fn has_hash(this: &Self) -> bool {
+        this.inner().hash.get().is_some()
+    }
+
+    /// Compute the hash for this string, if not already and return it.
+    #[inline]
+    pub fn hash(this: &Self) -> u64 {
+        let inner = this.inner();
+        if let Some(hash) = inner.hash.get() {
+            hash
+        } else {
+            let hash = {
+                let mut hasher = DefaultHasher::new();
+                this.as_str().hash(&mut hasher);
+                hasher.finish()
+            };
+
+            inner.hash.set(Some(hash));
+            hash
+        }
+    }
+
     /// Returns `true` if the two `JsString`s point to the same allocation (in a vein similar to [`ptr::eq`]).
     ///
     /// [`ptr::eq`]: std::ptr::eq
@@ -267,13 +296,6 @@ impl AsRef<str> for JsString {
     }
 }
 
-impl Borrow<str> for JsString {
-    #[inline]
-    fn borrow(&self) -> &str {
-        self.as_str()
-    }
-}
-
 impl Deref for JsString {
     type Target = str;
 
@@ -300,21 +322,21 @@ impl Eq for JsString {}
 impl Hash for JsString {
     #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.as_str().hash(state);
+        Self::hash(self).hash(state)
     }
 }
 
 impl PartialOrd for JsString {
     #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.as_str().partial_cmp(other)
+        self.as_str().partial_cmp(other.as_str())
     }
 }
 
 impl Ord for JsString {
     #[inline]
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.as_str().cmp(other)
+        self.as_str().cmp(other.as_str())
     }
 }
 
@@ -416,12 +438,15 @@ mod tests {
 
         assert_eq!(x.as_str(), s);
 
+        assert!(!JsString::has_hash(&x));
+
         let mut hasher = DefaultHasher::new();
         s.hash(&mut hasher);
         let s_hash = hasher.finish();
-        let mut hasher = DefaultHasher::new();
-        x.hash(&mut hasher);
-        let x_hash = hasher.finish();
+
+        let x_hash = JsString::hash(&x);
+
+        assert!(JsString::has_hash(&x));
 
         assert_eq!(s_hash, x_hash);
     }

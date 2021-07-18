@@ -487,7 +487,7 @@ impl Console {
             None => "default".into(),
         };
 
-        if let Some(t) = context.console_mut().timer_map.remove(label.as_str()) {
+        if let Some(t) = context.console_mut().timer_map.remove(&label) {
             let time = Self::system_time_in_ms();
             logger(
                 LogMessage::Info(format!("{}: {} ms - timer removed", label, time - t)),

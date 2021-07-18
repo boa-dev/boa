@@ -106,12 +106,11 @@ impl ByteCompiler {
     }
 
     #[inline]
-    fn get_or_insert_name(&mut self, name: &str) -> u32 {
-        if let Some(index) = self.names_map.get(name) {
+    fn get_or_insert_name(&mut self, name: JsString) -> u32 {
+        if let Some(index) = self.names_map.get(&name) {
             return *index;
         }
 
-        let name = JsString::new(name);
         let index = self.code_block.names.len() as u32;
         self.code_block.names.push(name.clone());
         self.names_map.insert(name, index);
@@ -283,11 +282,11 @@ impl ByteCompiler {
     fn access_get(&mut self, access: Access<'_>, use_expr: bool) {
         match access {
             Access::Variable { name } => {
-                let index = self.get_or_insert_name(name.as_ref());
+                let index = self.get_or_insert_name(name.as_ref().into());
                 self.emit(Opcode::GetName, &[index]);
             }
             Access::ByName { node } => {
-                let index = self.get_or_insert_name(node.field());
+                let index = self.get_or_insert_name(node.field().into());
                 self.compile_expr(node.obj(), true);
                 self.emit(Opcode::GetPropertyByName, &[index]);
             }
@@ -318,12 +317,12 @@ impl ByteCompiler {
 
         match access {
             Access::Variable { name } => {
-                let index = self.get_or_insert_name(name.as_ref());
+                let index = self.get_or_insert_name(name.as_ref().into());
                 self.emit(Opcode::SetName, &[index]);
             }
             Access::ByName { node } => {
                 self.compile_expr(node.obj(), true);
-                let index = self.get_or_insert_name(node.field());
+                let index = self.get_or_insert_name(node.field().into());
                 self.emit(Opcode::SetPropertyByName, &[index]);
             }
             Access::ByValue { node } => {
@@ -576,7 +575,7 @@ impl ByteCompiler {
         match node {
             Node::VarDeclList(list) => {
                 for decl in list.as_ref() {
-                    let index = self.get_or_insert_name(decl.name());
+                    let index = self.get_or_insert_name(decl.name().into());
                     self.emit(Opcode::DefVar, &[index]);
 
                     if let Some(expr) = decl.init() {
@@ -587,7 +586,7 @@ impl ByteCompiler {
             }
             Node::LetDeclList(list) => {
                 for decl in list.as_ref() {
-                    let index = self.get_or_insert_name(decl.name());
+                    let index = self.get_or_insert_name(decl.name().into());
                     self.emit(Opcode::DefLet, &[index]);
 
                     if let Some(expr) = decl.init() {
@@ -598,7 +597,7 @@ impl ByteCompiler {
             }
             Node::ConstDeclList(list) => {
                 for decl in list.as_ref() {
-                    let index = self.get_or_insert_name(decl.name());
+                    let index = self.get_or_insert_name(decl.name().into());
                     self.emit(Opcode::DefConst, &[index]);
 
                     if let Some(expr) = decl.init() {
