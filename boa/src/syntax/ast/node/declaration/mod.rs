@@ -240,9 +240,8 @@ impl fmt::Display for Declaration {
                     write!(f, " = {}", init)?;
                 }
             }
-            // TODO: fmt for binding pattern
-            Self::Pattern(_) => {
-                fmt::Display::fmt("binding pattern fmt", f)?;
+            Self::Pattern(pattern) => {
+                fmt::Display::fmt(&pattern, f)?;
             }
         }
         Ok(())
@@ -298,9 +297,69 @@ impl Declaration {
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub enum DeclarationPattern {
+    Object(DeclarationPatternObject),
+    Array(DeclarationPatternArray),
+}
+
+impl fmt::Display for DeclarationPattern {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self {
+            DeclarationPattern::Object(o) => {
+                write!(f, "{{ {} }}", o)?;
+            }
+            DeclarationPattern::Array(a) => {
+                write!(f, "[ {} ]", a)?;
+            }
+        }
+        Ok(())
+    }
+}
+
+impl DeclarationPattern {
+    pub(in crate::syntax) fn run(
+        &self,
+        init: Option<JsValue>,
+        context: &mut Context,
+    ) -> Result<Vec<(Box<str>, JsValue)>> {
+        match &self {
+            DeclarationPattern::Object(pattern) => pattern.run(init, context),
+            DeclarationPattern::Array(pattern) => pattern.run(init, context),
+        }
+    }
+
+    pub fn idents(&self) -> Vec<&str> {
+        match &self {
+            DeclarationPattern::Object(pattern) => pattern.idents(),
+            DeclarationPattern::Array(pattern) => pattern.idents(),
+        }
+    }
+
+    pub fn init(&self) -> Option<&Node> {
+        match &self {
+            DeclarationPattern::Object(pattern) => pattern.init(),
+            DeclarationPattern::Array(pattern) => pattern.init(),
+        }
+    }
+}
+
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct DeclarationPatternObject {
     bindings: Vec<BindingPatternTypeObject>,
     init: Option<Node>,
+}
+
+impl fmt::Display for DeclarationPatternObject {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for binding in &self.bindings {
+            write!(f, " {},", binding)?;
+        }
+        if let Some(ref init) = self.init {
+            write!(f, " = {}", init)?;
+        }
+        Ok(())
+    }
 }
 
 impl DeclarationPatternObject {
@@ -474,6 +533,18 @@ impl DeclarationPatternObject {
 pub struct DeclarationPatternArray {
     bindings: Vec<BindingPatternTypeArray>,
     init: Option<Node>,
+}
+
+impl fmt::Display for DeclarationPatternArray {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for binding in &self.bindings {
+            write!(f, " {},", binding)?;
+        }
+        if let Some(ref init) = self.init {
+            write!(f, " = {}", init)?;
+        }
+        Ok(())
+    }
 }
 
 impl DeclarationPatternArray {
@@ -713,40 +784,6 @@ impl DeclarationPatternArray {
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-pub enum DeclarationPattern {
-    Object(DeclarationPatternObject),
-    Array(DeclarationPatternArray),
-}
-
-impl DeclarationPattern {
-    pub(in crate::syntax) fn run(
-        &self,
-        init: Option<JsValue>,
-        context: &mut Context,
-    ) -> Result<Vec<(Box<str>, JsValue)>> {
-        match &self {
-            DeclarationPattern::Object(pattern) => pattern.run(init, context),
-            DeclarationPattern::Array(pattern) => pattern.run(init, context),
-        }
-    }
-
-    pub(crate) fn idents(&self) -> Vec<&str> {
-        match &self {
-            DeclarationPattern::Object(pattern) => pattern.idents(),
-            DeclarationPattern::Array(pattern) => pattern.idents(),
-        }
-    }
-
-    pub(crate) fn init(&self) -> Option<&Node> {
-        match &self {
-            DeclarationPattern::Object(pattern) => pattern.init(),
-            DeclarationPattern::Array(pattern) => pattern.init(),
-        }
-    }
-}
-
-#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum BindingPatternTypeObject {
     Empty,
     SingleName {
@@ -763,6 +800,45 @@ pub enum BindingPatternTypeObject {
         pattern: DeclarationPattern,
         default_init: Option<Node>,
     },
+}
+
+impl fmt::Display for BindingPatternTypeObject {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self {
+            BindingPatternTypeObject::Empty => {}
+            BindingPatternTypeObject::SingleName {
+                ident,
+                property_name,
+                default_init,
+            } => {
+                if ident == property_name {
+                    fmt::Display::fmt(ident, f)?;
+                } else {
+                    write!(f, "{} : {}", property_name, ident)?;
+                }
+                if let Some(ref init) = default_init {
+                    write!(f, " = {}", init)?;
+                }
+            }
+            BindingPatternTypeObject::RestProperty {
+                property_name,
+                excluded_keys: _,
+            } => {
+                write!(f, "... {}", property_name)?;
+            }
+            BindingPatternTypeObject::BindingPattern {
+                property_name,
+                pattern,
+                default_init,
+            } => {
+                write!(f, "{} : {}", property_name, pattern)?;
+                if let Some(ref init) = default_init {
+                    write!(f, " = {}", init)?;
+                }
+            }
+        }
+        Ok(())
+    }
 }
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
@@ -783,4 +859,34 @@ pub enum BindingPatternTypeArray {
     BindingPatternRest {
         pattern: DeclarationPattern,
     },
+}
+
+impl fmt::Display for BindingPatternTypeArray {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self {
+            BindingPatternTypeArray::Empty => {}
+            BindingPatternTypeArray::Elision => {
+                fmt::Display::fmt(",", f)?;
+            }
+            BindingPatternTypeArray::SingleName {
+                ident,
+                default_init,
+            } => {
+                fmt::Display::fmt(ident, f)?;
+                if let Some(ref init) = default_init {
+                    write!(f, " = {}", init)?;
+                }
+            }
+            BindingPatternTypeArray::BindingPattern { pattern } => {
+                fmt::Display::fmt(pattern, f)?;
+            }
+            BindingPatternTypeArray::SingleNameRest { ident } => {
+                fmt::Display::fmt(ident, f)?;
+            }
+            BindingPatternTypeArray::BindingPatternRest { pattern } => {
+                write!(f, "... {}", pattern)?;
+            }
+        }
+        Ok(())
+    }
 }
