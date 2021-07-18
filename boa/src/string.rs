@@ -307,7 +307,7 @@ impl Hash for JsString {
 impl PartialOrd for JsString {
     #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.as_str().partial_cmp(other)
+        self.as_str().partial_cmp(other.as_str())
     }
 }
 

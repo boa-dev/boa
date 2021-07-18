@@ -90,14 +90,8 @@ impl From<i32> for Value {
     }
 }
 
-impl From<BigInt> for Value {
-    fn from(value: BigInt) -> Self {
-        Value::bigint(value)
-    }
-}
-
-impl From<RcBigInt> for Value {
-    fn from(value: RcBigInt) -> Self {
+impl From<JsBigInt> for Value {
+    fn from(value: JsBigInt) -> Self {
         Value::BigInt(value)
     }
 }

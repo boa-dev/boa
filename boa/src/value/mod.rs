@@ -9,12 +9,12 @@ use crate::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
         string::is_trimmable_whitespace,
-        BigInt, Number,
+        Number,
     },
     object::{GcObject, Object, ObjectData},
     property::{Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
     symbol::{JsSymbol, WellKnownSymbols},
-    BoaProfiler, Context, JsString, Result,
+    BoaProfiler, Context, JsBigInt, JsString, Result,
 };
 use gc::{Finalize, Trace};
 use serde_json::{Number as JSONNumber, Value as JSONValue};
@@ -30,7 +30,6 @@ pub(crate) mod display;
 mod equality;
 mod hash;
 mod operations;
-mod rcbigint;
 mod r#type;
 
 pub use conversions::*;
@@ -39,7 +38,6 @@ pub use equality::*;
 pub use hash::*;
 pub use operations::*;
 pub use r#type::Type;
-pub use rcbigint::RcBigInt;
 
 /// A Javascript value
 #[derive(Trace, Finalize, Debug, Clone)]
@@ -57,7 +55,7 @@ pub enum Value {
     /// `Number` - A 32-bit integer, such as `42`.
     Integer(i32),
     /// `BigInt` - holds any arbitrary large signed integer.
-    BigInt(RcBigInt),
+    BigInt(JsBigInt),
     /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values.
     Object(GcObject),
     /// `Symbol` - A Symbol Primitive type.
@@ -143,7 +141,7 @@ impl Value {
     #[inline]
     pub fn bigint<B>(value: B) -> Self
     where
-        B: Into<RcBigInt>,
+        B: Into<JsBigInt>,
     {
         Self::BigInt(value.into())
     }
@@ -395,7 +393,7 @@ impl Value {
 
     /// Returns an optional reference to a `BigInt` if the value is a BigInt primitive.
     #[inline]
-    pub fn as_bigint(&self) -> Option<&BigInt> {
+    pub fn as_bigint(&self) -> Option<&JsBigInt> {
         match self {
             Self::BigInt(bigint) => Some(bigint),
             _ => None,
@@ -415,7 +413,7 @@ impl Value {
             Self::String(ref s) if !s.is_empty() => true,
             Self::Rational(n) if n != 0.0 && !n.is_nan() => true,
             Self::Integer(n) if n != 0 => true,
-            Self::BigInt(ref n) if *n.as_inner() != 0 => true,
+            Self::BigInt(ref n) if !n.is_zero() => true,
             Self::Boolean(v) => v,
             _ => false,
         }
@@ -592,19 +590,28 @@ impl Value {
     /// Converts the value to a `BigInt`.
     ///
     /// This function is equivelent to `BigInt(value)` in JavaScript.
-    pub fn to_bigint(&self, context: &mut Context) -> Result<RcBigInt> {
+    pub fn to_bigint(&self, context: &mut Context) -> Result<JsBigInt> {
         match self {
             Value::Null => Err(context.construct_type_error("cannot convert null to a BigInt")),
             Value::Undefined => {
                 Err(context.construct_type_error("cannot convert undefined to a BigInt"))
             }
-            Value::String(ref string) => Ok(RcBigInt::from(BigInt::from_string(string, context)?)),
-            Value::Boolean(true) => Ok(RcBigInt::from(BigInt::from(1))),
-            Value::Boolean(false) => Ok(RcBigInt::from(BigInt::from(0))),
-            Value::Integer(num) => Ok(RcBigInt::from(BigInt::from(*num))),
+            Value::String(ref string) => {
+                if let Some(value) = JsBigInt::from_string(string) {
+                    Ok(value)
+                } else {
+                    Err(context.construct_syntax_error(format!(
+                        "cannot convert string '{}' to bigint primitive",
+                        string
+                    )))
+                }
+            }
+            Value::Boolean(true) => Ok(JsBigInt::one()),
+            Value::Boolean(false) => Ok(JsBigInt::zero()),
+            Value::Integer(num) => Ok(JsBigInt::new(*num)),
             Value::Rational(num) => {
-                if let Ok(bigint) = BigInt::try_from(*num) {
-                    return Ok(RcBigInt::from(bigint));
+                if let Ok(bigint) = JsBigInt::try_from(*num) {
+                    return Ok(bigint);
                 }
                 Err(context.construct_type_error(format!(
                     "The number {} cannot be converted to a BigInt because it is not an integer",
@@ -978,7 +985,7 @@ pub enum Numeric {
     /// Double precision floating point number.
     Number(f64),
     /// BigInt an integer of arbitrary size.
-    BigInt(RcBigInt),
+    BigInt(JsBigInt),
 }
 
 impl From<f64> for Numeric {
@@ -1030,16 +1037,9 @@ impl From<u8> for Numeric {
     }
 }
 
-impl From<BigInt> for Numeric {
+impl From<JsBigInt> for Numeric {
     #[inline]
-    fn from(value: BigInt) -> Self {
-        Self::BigInt(value.into())
-    }
-}
-
-impl From<RcBigInt> for Numeric {
-    #[inline]
-    fn from(value: RcBigInt) -> Self {
+    fn from(value: JsBigInt) -> Self {
         Self::BigInt(value)
     }
 }
