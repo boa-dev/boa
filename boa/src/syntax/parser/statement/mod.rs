@@ -1020,6 +1020,11 @@ where
                         TokenKind::Punctuator(Punctuator::Comma),
                         "array binding pattern",
                     )?;
+                    if last_elision_or_first {
+                        patterns.push(BindingPatternTypeArray::Elision);
+                    } else {
+                        last_elision_or_first = true;
+                    }
                 }
             }
         }

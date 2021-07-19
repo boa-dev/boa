@@ -306,10 +306,10 @@ impl fmt::Display for DeclarationPattern {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self {
             DeclarationPattern::Object(o) => {
-                write!(f, "{{ {} }}", o)?;
+                fmt::Display::fmt(o, f)?;
             }
             DeclarationPattern::Array(a) => {
-                write!(f, "[ {} ]", a)?;
+                fmt::Display::fmt(a, f)?;
             }
         }
         Ok(())
@@ -352,9 +352,15 @@ pub struct DeclarationPatternObject {
 
 impl fmt::Display for DeclarationPatternObject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for binding in &self.bindings {
-            write!(f, " {},", binding)?;
+        fmt::Display::fmt("{", f)?;
+        for (i, binding) in self.bindings.iter().enumerate() {
+            if i == self.bindings.len() - 1 {
+                write!(f, "{} ", binding)?;
+            } else {
+                write!(f, "{},", binding)?;
+            }
         }
+        fmt::Display::fmt("}", f)?;
         if let Some(ref init) = self.init {
             write!(f, " = {}", init)?;
         }
@@ -537,9 +543,18 @@ pub struct DeclarationPatternArray {
 
 impl fmt::Display for DeclarationPatternArray {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for binding in &self.bindings {
-            write!(f, " {},", binding)?;
+        fmt::Display::fmt("[", f)?;
+        for (i, binding) in self.bindings.iter().enumerate() {
+            if i == self.bindings.len() - 1 {
+                match binding {
+                    BindingPatternTypeArray::Elision => write!(f, "{}, ", binding)?,
+                    _ => write!(f, "{} ", binding)?,
+                }
+            } else {
+                write!(f, "{},", binding)?;
+            }
         }
+        fmt::Display::fmt("]", f)?;
         if let Some(ref init) = self.init {
             write!(f, " = {}", init)?;
         }
@@ -812,9 +827,9 @@ impl fmt::Display for BindingPatternTypeObject {
                 default_init,
             } => {
                 if ident == property_name {
-                    fmt::Display::fmt(ident, f)?;
+                    write!(f, " {}", ident)?;
                 } else {
-                    write!(f, "{} : {}", property_name, ident)?;
+                    write!(f, " {} : {}", property_name, ident)?;
                 }
                 if let Some(ref init) = default_init {
                     write!(f, " = {}", init)?;
@@ -824,14 +839,14 @@ impl fmt::Display for BindingPatternTypeObject {
                 property_name,
                 excluded_keys: _,
             } => {
-                write!(f, "... {}", property_name)?;
+                write!(f, " ... {}", property_name)?;
             }
             BindingPatternTypeObject::BindingPattern {
                 property_name,
                 pattern,
                 default_init,
             } => {
-                write!(f, "{} : {}", property_name, pattern)?;
+                write!(f, " {} : {}", property_name, pattern)?;
                 if let Some(ref init) = default_init {
                     write!(f, " = {}", init)?;
                 }
@@ -866,25 +881,25 @@ impl fmt::Display for BindingPatternTypeArray {
         match &self {
             BindingPatternTypeArray::Empty => {}
             BindingPatternTypeArray::Elision => {
-                fmt::Display::fmt(",", f)?;
+                fmt::Display::fmt(" ", f)?;
             }
             BindingPatternTypeArray::SingleName {
                 ident,
                 default_init,
             } => {
-                fmt::Display::fmt(ident, f)?;
+                write!(f, " {}", ident)?;
                 if let Some(ref init) = default_init {
                     write!(f, " = {}", init)?;
                 }
             }
             BindingPatternTypeArray::BindingPattern { pattern } => {
-                fmt::Display::fmt(pattern, f)?;
+                write!(f, " {}", pattern)?;
             }
             BindingPatternTypeArray::SingleNameRest { ident } => {
-                fmt::Display::fmt(ident, f)?;
+                write!(f, " ... {}", ident)?;
             }
             BindingPatternTypeArray::BindingPatternRest { pattern } => {
-                write!(f, "... {}", pattern)?;
+                write!(f, " ... {}", pattern)?;
             }
         }
         Ok(())
