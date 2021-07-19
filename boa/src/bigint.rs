@@ -169,6 +169,12 @@ impl JsBigInt {
             return Err(context.construct_range_error("BigInt negative exponent"));
         };
 
+        let num_bits= (y.to_f64().expect("Unable to convert from BigUInt to f64") * x.inner.bits() as f64).floor() + 1f64;
+
+        if num_bits > 1_000_000_000f64 {
+            return Err(context.construct_range_error("Maximum BigInt size exceeded"));
+        }
+
         Ok(Self::new(x.inner.as_ref().clone().pow(y)))
     }
 
