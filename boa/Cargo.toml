@@ -28,7 +28,6 @@ serde_json = "1.0.64"
 rand = "0.8.4"
 num-traits = "0.2.14"
 regress = "0.4.1"
-rustc-hash = "1.1.0"
 num-bigint = { version = "0.4.0", features = ["serde"] }
 num-integer = "0.1.44"
 bitflags = "1.2.1"

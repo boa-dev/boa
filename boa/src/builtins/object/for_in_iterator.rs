@@ -1,13 +1,13 @@
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object},
     gc::{Finalize, Trace},
+    hash::FxHashSet,
     object::{GcObject, ObjectData},
     property::PropertyKey,
     property::{Attribute, DataDescriptor},
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsString, Result, Value,
 };
-use rustc_hash::FxHashSet;
 use std::collections::VecDeque;
 
 /// The ForInIterator object represents an iteration over some specific object.

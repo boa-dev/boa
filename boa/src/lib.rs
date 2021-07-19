@@ -61,6 +61,8 @@ pub mod symbol;
 pub mod syntax;
 pub mod value;
 
+pub mod hash;
+
 #[cfg(feature = "vm")]
 pub mod bytecompiler;
 #[cfg(feature = "vm")]

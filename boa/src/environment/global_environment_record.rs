@@ -15,12 +15,12 @@ use crate::{
         object_environment_record::ObjectEnvironmentRecord,
     },
     gc::{Finalize, Trace},
+    hash::FxHashSet,
     object::GcObject,
     property::{Attribute, DataDescriptor},
     Context, Result, Value,
 };
 use gc::{Gc, GcCell};
-use rustc_hash::FxHashSet;
 
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct GlobalEnvironmentRecord {

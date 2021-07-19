@@ -11,11 +11,11 @@ use crate::{
         lexical_environment::{Environment, EnvironmentType},
     },
     gc::{Finalize, Trace},
+    hash::FxHashMap,
     object::GcObject,
     BoaProfiler, Context, Result, Value,
 };
 use gc::{Gc, GcCell};
-use rustc_hash::FxHashMap;
 
 /// Declarative Bindings have a few properties for book keeping purposes, such as mutability (const vs let).
 /// Can it be deleted? and strict mode.

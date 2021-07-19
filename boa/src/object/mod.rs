@@ -14,11 +14,11 @@ use crate::{
     },
     context::StandardConstructor,
     gc::{Finalize, Trace},
+    hash::FxHashMap,
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
     value::{RcBigInt, Value},
     BoaProfiler, Context, JsString, JsSymbol,
 };
-use rustc_hash::FxHashMap;
 use std::{
     any::Any,
     fmt::{self, Debug, Display},

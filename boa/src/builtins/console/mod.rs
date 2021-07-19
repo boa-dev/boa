@@ -18,12 +18,12 @@ mod tests;
 
 use crate::{
     builtins::BuiltIn,
+    hash::FxHashMap,
     object::ObjectInitializer,
     property::Attribute,
     value::{display::display_obj, Value},
     BoaProfiler, Context, JsString, Result,
 };
-use rustc_hash::FxHashMap;
 use std::time::SystemTime;
 
 /// This represents the different types of log messages.
