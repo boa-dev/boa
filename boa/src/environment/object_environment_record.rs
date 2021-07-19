@@ -99,6 +99,9 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         strict: bool,
         _context: &mut Context,
     ) -> Result<()> {
+        if name == "NaN" {
+            return Ok(());
+        }
         debug_assert!(value.is_object() || value.is_function());
         let mut property = DataDescriptor::new(value, Attribute::ENUMERABLE);
         property.set_configurable(strict);
