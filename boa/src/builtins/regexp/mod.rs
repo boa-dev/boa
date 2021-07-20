@@ -1345,10 +1345,10 @@ impl RegExp {
             .to_string(context)?;
 
         // 4. Let previousLastIndex be ? Get(rx, "lastIndex").
-        let previous_last_index = this.get_field("lastIndex", context)?.to_length(context)?;
+        let previous_last_index = this.get_field("lastIndex", context)?;
 
         // 5. If SameValue(previousLastIndex, +0𝔽) is false, then
-        if previous_last_index != 0 {
+        if !Value::same_value(&previous_last_index, &Value::from(0)) {
             // a. Perform ? Set(rx, "lastIndex", +0𝔽, true).
             this.set_field("lastIndex", 0, true, context)?;
         }
@@ -1357,10 +1357,10 @@ impl RegExp {
         let result = Self::abstract_exec(this, arg_str, context)?;
 
         // 7. Let currentLastIndex be ? Get(rx, "lastIndex").
-        let current_last_index = this.get_field("lastIndex", context)?.to_length(context)?;
+        let current_last_index = this.get_field("lastIndex", context)?;
 
         // 8. If SameValue(currentLastIndex, previousLastIndex) is false, then
-        if current_last_index != previous_last_index {
+        if !Value::same_value(&current_last_index, &previous_last_index) {
             // a. Perform ? Set(rx, "lastIndex", previousLastIndex, true).
             this.set_field("lastIndex", previous_last_index, true, context)?;
         }
@@ -1370,9 +1370,7 @@ impl RegExp {
         if result.is_null() {
             Ok(Value::from(-1))
         } else {
-            result
-                .get_field("index", context)
-                .map_err(|_| context.construct_type_error("Could not find property `index`"))
+            result.get_field("index", context)
         }
     }
 
