@@ -21,7 +21,7 @@ use crate::{
     property::{Attribute, DataDescriptor},
     symbol::WellKnownSymbols,
     value::{IntegerOrInfinity, Value},
-    BoaProfiler, Context, Result,
+    BoaProfiler, Context, JsString, Result,
 };
 use num_traits::*;
 use std::{
@@ -126,78 +126,77 @@ impl Array {
     const LENGTH: usize = 1;
 
     fn constructor(new_target: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        // If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
+        // 2. Let proto be ? GetPrototypeFromConstructor(newTarget, "%Array.prototype%").
         let prototype = new_target
             .as_object()
             .and_then(|obj| {
-                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
                     .map(|o| o.as_object())
                     .transpose()
             })
             .transpose()?
             .unwrap_or_else(|| context.standard_objects().array_object().prototype());
-        // Delegate to the appropriate constructor based on the number of arguments
-        match args.len() {
-            0 => Ok(Array::construct_array_empty(prototype, context)),
-            1 => Array::construct_array_length(prototype, &args[0], context),
-            _ => Array::construct_array_values(prototype, args, context),
-        }
-    }
 
-    /// No argument constructor for `Array`.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-array-constructor-array
-    fn construct_array_empty(proto: GcObject, context: &mut Context) -> Value {
-        Array::array_create(0, Some(proto), context)
-    }
+        // 3. Let numberOfArgs be the number of elements in values.
+        let number_of_args = args.len();
 
-    /// By length constructor for `Array`.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-array-len
-    fn construct_array_length(
-        prototype: GcObject,
-        length: &Value,
-        context: &mut Context,
-    ) -> Result<Value> {
-        let array = Array::array_create(0, Some(prototype), context);
-
-        if !length.is_number() {
-            array.set_property(0, DataDescriptor::new(length, Attribute::all()));
-            array.set_field("length", 1, true, context)?;
+        // 4. If numberOfArgs = 0, then
+        if number_of_args == 0 {
+            // 4.a. Return ! ArrayCreate(0, proto).
+            Ok(Array::array_create(0, Some(prototype), context)
+                .unwrap()
+                .into())
+        // 5. Else if numberOfArgs = 1, then
+        } else if number_of_args == 1 {
+            // a. Let len be values[0].
+            let len = &args[0];
+            // b. Let array be ! ArrayCreate(0, proto).
+            let array = Array::array_create(0, Some(prototype), context).unwrap();
+            // c. If Type(len) is not Number, then
+            let int_len = if !len.is_number() {
+                // i. Perform ! CreateDataPropertyOrThrow(array, "0", len).
+                array
+                    .create_data_property_or_throw(0, len, context)
+                    .unwrap();
+                // ii. Let intLen be 1𝔽.
+                1
+            // d. Else,
+            } else {
+                // i. Let intLen be ! ToUint32(len).
+                let int_len = len.to_u32(context).unwrap();
+                // ii. If SameValueZero(intLen, len) is false, throw a RangeError exception.
+                if !Value::same_value_zero(&int_len.into(), &len) {
+                    return Err(context.construct_range_error("invalid array length"));
+                }
+                int_len
+            };
+            // e. Perform ! Set(array, "length", intLen, true).
+            array.set("length", int_len, true, context).unwrap();
+            // f. Return array.
+            Ok(array.into())
+        // 6. Else,
         } else {
-            if length.is_double() {
-                return context.throw_range_error("Invalid array length");
+            // 6.a. Assert: numberOfArgs ≥ 2.
+            debug_assert!(number_of_args >= 2);
+
+            // b. Let array be ? ArrayCreate(numberOfArgs, proto).
+            let array = Array::array_create(number_of_args as u64, Some(prototype), context)?;
+            // c. Let k be 0.
+            // d. Repeat, while k < numberOfArgs,
+            for (i, item) in args.iter().cloned().enumerate() {
+                // i. Let Pk be ! ToString(𝔽(k)).
+                // ii. Let itemK be values[k].
+                // iii. Perform ! CreateDataPropertyOrThrow(array, Pk, itemK).
+                array
+                    .create_data_property_or_throw(i, item, context)
+                    .unwrap();
+                // iv. Set k to k + 1.
             }
-            array.set_field("length", length.to_u32(context).unwrap(), true, context)?;
+            // e. Assert: The mathematical value of array's "length" property is numberOfArgs.
+            // f. Return array.
+            Ok(array.into())
         }
-
-        Ok(array)
-    }
-
-    /// From items constructor for `Array`.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-array-items
-    fn construct_array_values(
-        prototype: GcObject,
-        items: &[Value],
-        context: &mut Context,
-    ) -> Result<Value> {
-        let items_len = items.len().try_into().map_err(interror_to_value)?;
-        let array = Array::array_create(items_len, Some(prototype), context);
-
-        for (k, item) in items.iter().enumerate() {
-            array.set_property(k, DataDescriptor::new(item.clone(), Attribute::all()));
-        }
-
-        Ok(array)
     }
 
     /// Utility for constructing `Array` objects.
@@ -207,31 +206,38 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-arraycreate
     pub(crate) fn array_create(
-        length: u32,
+        length: u64,
         prototype: Option<GcObject>,
         context: &mut Context,
-    ) -> Value {
+    ) -> Result<GcObject> {
+        // 1. If length > 2^32 - 1, throw a RangeError exception.
+        if length > 2u64.pow(32) - 1 {
+            return Err(context.construct_range_error("array exceeded max size"));
+        }
+        // 7. Return A.
+        // 2. If proto is not present, set proto to %Array.prototype%.
+        // 3. Let A be ! MakeBasicObject(« [[Prototype]], [[Extensible]] »).
+        // 4. Set A.[[Prototype]] to proto.
+        // 5. Set A.[[DefineOwnProperty]] as specified in 10.4.2.1.
         let prototype = match prototype {
             Some(prototype) => prototype,
             None => context.standard_objects().array_object().prototype(),
         };
-        let array = Value::new_object(context);
+        let array = context.construct_object();
 
-        array
-            .as_object()
-            .expect("'array' should be an object")
-            .set_prototype_instance(prototype.into());
+        array.set_prototype_instance(prototype.into());
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
-        array.set_data(ObjectData::Array);
+        array.borrow_mut().data = ObjectData::Array;
 
+        // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
         let length = DataDescriptor::new(
-            length,
+            length as f64,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
         );
-        array.set_property("length", length);
+        array.ordinary_define_own_property("length".into(), length.into());
 
-        array
+        Ok(array)
     }
 
     /// Creates a new `Array` instance.
@@ -301,24 +307,29 @@ impl Array {
     /// see: <https://tc39.es/ecma262/#sec-arrayspeciescreate>
     pub(crate) fn array_species_create(
         original_array: &GcObject,
-        length: u32,
+        length: u64,
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> Result<GcObject> {
+        // 1. Let isArray be ? IsArray(originalArray).
+        // 2. If isArray is false, return ? ArrayCreate(length).
         if !original_array.is_array() {
-            return Ok(Self::array_create(length, None, context));
+            return Self::array_create(length, None, context);
         }
-        let c = original_array.get(
-            &"constructor".into(),
-            original_array.clone().into(),
-            context,
-        )?;
-        // Step 4 is ignored, as there are no different realms for now
+        // 3. Let C be ? Get(originalArray, "constructor").
+        let c = original_array.get("constructor", context)?;
+
+        // 4. If IsConstructor(C) is true, then
+        //     a. Let thisRealm be the current Realm Record.
+        //     b. Let realmC be ? GetFunctionRealm(C).
+        //     c. If thisRealm and realmC are not the same Realm Record, then
+        //         i. If SameValue(C, realmC.[[Intrinsics]].[[%Array%]]) is true, set C to undefined.
+        // TODO: Step 4 is ignored, as there are no different realms for now
+
+        // 5. If Type(C) is Object, then
         let c = if let Some(c) = c.as_object() {
-            let c = c.get(
-                &WellKnownSymbols::species().into(),
-                c.clone().into(),
-                context,
-            )?;
+            // 5.a. Set C to ? Get(C, @@species).
+            let c = c.get(WellKnownSymbols::species(), context)?;
+            // 5.b. If C is null, set C to undefined.
             if c.is_null_or_undefined() {
                 Value::undefined()
             } else {
@@ -327,16 +338,25 @@ impl Array {
         } else {
             c
         };
+
+        // 6. If C is undefined, return ? ArrayCreate(length).
         if c.is_undefined() {
-            return Ok(Self::array_create(length, None, context));
+            return Self::array_create(length, None, context);
         }
+
+        // 7. If IsConstructor(C) is false, throw a TypeError exception.
         if let Some(c) = c.as_object() {
             if !c.is_constructable() {
-                return context.throw_type_error("Symbol.species must be a constructor");
+                return Err(context.construct_type_error("Symbol.species must be a constructor"));
             }
-            c.construct(&[Value::from(length)], &c.clone().into(), context)
+            // 8. Return ? Construct(C, « 𝔽(length) »).
+            Ok(
+                c.construct(&[Value::from(length)], &c.clone().into(), context)?
+                    .as_object()
+                    .unwrap(),
+            )
         } else {
-            context.throw_type_error("Symbol.species must be a constructor")
+            Err(context.construct_type_error("Symbol.species must be a constructor"))
         }
     }
 
@@ -382,7 +402,7 @@ impl Array {
         }
     }
 
-    /// `Array.of(...arguments)`
+    /// `Array.of(...items)`
     ///
     /// The Array.of method creates a new Array instance from a variable number of arguments,
     /// regardless of the number or type of arguments.
@@ -394,22 +414,38 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.of
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/of
     pub(crate) fn of(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let array = match this.as_object() {
-            Some(object) if object.is_constructable() => {
-                object.construct(&[args.len().into()], this, context)?
-            }
-            _ => Array::array_create(args.len() as u32, None, context),
+        // 1. Let len be the number of elements in items.
+        // 2. Let lenNumber be 𝔽(len).
+        let len = args.len();
+
+        // 3. Let C be the this value.
+        // 4. If IsConstructor(C) is true, then
+        //     a. Let A be ? Construct(C, « lenNumber »).
+        // 5. Else,
+        //     a. Let A be ? ArrayCreate(len).
+        let a = match this.as_object() {
+            Some(object) if object.is_constructable() => object
+                .construct(&[len.into()], this, context)?
+                .as_object()
+                .unwrap(),
+            _ => Array::array_create(len as u64, None, context)?,
         };
 
-        // add properties
-        for (i, value) in args.iter().enumerate() {
-            array.set_property(i, DataDescriptor::new(value, Attribute::all()));
+        // 6. Let k be 0.
+        // 7. Repeat, while k < len,
+        for (k, value) in args.iter().enumerate() {
+            // a. Let kValue be items[k].
+            // b. Let Pk be ! ToString(𝔽(k)).
+            // c. Perform ? CreateDataPropertyOrThrow(A, Pk, kValue).
+            a.create_data_property_or_throw(k, value, context)?;
+            // d. Set k to k + 1.
         }
 
-        // set length
-        array.set_field("length", args.len(), true, context)?;
+        // 8. Perform ? Set(A, "length", lenNumber, true).
+        a.set("length", len, true, context)?;
 
-        Ok(array)
+        // 9. Return A.
+        Ok(a.into())
     }
 
     /// `Array.prototype.concat(...arguments)`
@@ -464,17 +500,29 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.push
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push
     pub(crate) fn push(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let length = this.get_field("length", context)?.to_length(context)?;
-        let arg_count = args.len();
-
-        if length + arg_count > Number::MAX_SAFE_INTEGER as usize {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let mut len = o.length_of_array_like(context)? as u64;
+        // 3. Let argCount be the number of elements in items.
+        let arg_count = args.len() as u64;
+        // 4. If len + argCount > 2^53 - 1, throw a TypeError exception.
+        if len + arg_count > 2u64.pow(53) - 1 {
             return context.throw_type_error(
                 "the length + the number of arguments exceed the maximum safe integer limit",
             );
         }
-
-        let new_array = Self::add_to_array_object(this, args, context)?;
-        new_array.get_field("length", context)
+        // 5. For each element E of items, do
+        for element in args.iter().cloned() {
+            // a. Perform ? Set(O, ! ToString(𝔽(len)), E, true).
+            o.set(len, element, true, context)?;
+            // b. Set len to len + 1.
+            len += 1;
+        }
+        // 6. Perform ? Set(O, "length", 𝔽(len), true).
+        o.set("length", len, true, context)?;
+        // 7. Return 𝔽(len).
+        Ok(len.into())
     }
 
     /// `Array.prototype.pop()`
@@ -488,16 +536,32 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.pop
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/pop
     pub(crate) fn pop(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        let curr_length = this.get_field("length", context)?.to_length(context)?;
-
-        if curr_length < 1 {
-            return Ok(Value::undefined());
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
+        // 3. If len = 0, then
+        if len == 0 {
+            // a. Perform ? Set(O, "length", +0𝔽, true).
+            o.set("length", 0, true, context)?;
+            // b. Return undefined.
+            Ok(Value::undefined())
+        // 4. Else,
+        } else {
+            // a. Assert: len > 0.
+            // b. Let newLen be 𝔽(len - 1).
+            let new_len = len - 1;
+            // c. Let index be ! ToString(newLen).
+            let index = new_len;
+            // d. Let element be ? Get(O, index).
+            let element = o.get(index, context)?;
+            // e. Perform ? DeletePropertyOrThrow(O, index).
+            o.delete_property_or_throw(index, context)?;
+            // f. Perform ? Set(O, "length", newLen, true).
+            o.set("length", new_len, true, context)?;
+            // g. Return element.
+            Ok(element)
         }
-        let pop_index = curr_length.wrapping_sub(1);
-        let pop_value: Value = this.get_field(pop_index.to_string(), context)?;
-        this.remove_property(pop_index);
-        this.set_field("length", Value::from(pop_index), true, context)?;
-        Ok(pop_value)
     }
 
     /// `Array.prototype.forEach( callbackFn [ , thisArg ] )`
@@ -511,22 +575,38 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.foreach
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
     pub(crate) fn for_each(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        if args.is_empty() {
-            return Err(Value::from("Missing argument for Array.prototype.forEach"));
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
+        // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
+        let callback = if let Some(arg) = args
+            .get(0)
+            .and_then(Value::as_object)
+            .filter(GcObject::is_callable)
+        {
+            arg
+        } else {
+            return context.throw_type_error("Array.prototype.forEach: invalid callback function");
+        };
+        // 4. Let k be 0.
+        // 5. Repeat, while k < len,
+        for k in 0..len {
+            // a. Let Pk be ! ToString(𝔽(k)).
+            let pk = k;
+            // b. Let kPresent be ? HasProperty(O, Pk).
+            let present = o.has_property(pk, context)?;
+            // c. If kPresent is true, then
+            if present {
+                // i. Let kValue be ? Get(O, Pk).
+                let k_value = o.get(pk, context)?;
+                // ii. Perform ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).
+                let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
+                callback.call(&this_arg, &[k_value, k.into(), o.clone().into()], context)?;
+            }
+            // d. Set k to k + 1.
         }
-
-        let callback_arg = args.get(0).expect("Could not get `callbackFn` argument.");
-        let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
-
-        let length = this.get_field("length", context)?.to_length(context)?;
-
-        for i in 0..length {
-            let element = this.get_field(i, context)?;
-            let arguments = [element, Value::from(i), this.clone()];
-
-            context.call(callback_arg, &this_arg, &arguments)?;
-        }
-
+        // 6. Return undefined.
         Ok(Value::undefined())
     }
 
@@ -543,23 +623,41 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.join
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/join
     pub(crate) fn join(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let separator = if args.is_empty() {
-            String::from(",")
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
+        // 3. If separator is undefined, let sep be the single-element String ",".
+        // 4. Else, let sep be ? ToString(separator).
+        let separator = if let Some(separator) = args.get(0) {
+            separator.to_string(context)?
         } else {
-            args.get(0)
-                .expect("Could not get argument")
-                .to_string(context)?
-                .to_string()
+            JsString::new(",")
         };
 
-        let mut elem_strs = Vec::new();
-        let length = this.get_field("length", context)?.to_length(context)?;
-        for n in 0..length {
-            let elem_str = this.get_field(n, context)?.to_string(context)?.to_string();
-            elem_strs.push(elem_str);
+        // 5. Let R be the empty String.
+        let mut r = String::new();
+        // 6. Let k be 0.
+        // 7. Repeat, while k < len,
+        for k in 0..len {
+            // a. If k > 0, set R to the string-concatenation of R and sep.
+            if k > 0 {
+                r.push_str(&separator);
+            }
+            // b. Let element be ? Get(O, ! ToString(𝔽(k))).
+            let element = o.get(k, context)?;
+            // c. If element is undefined or null, let next be the empty String; otherwise, let next be ? ToString(element).
+            let next = if element.is_null_or_undefined() {
+                JsString::new("")
+            } else {
+                element.to_string(context)?
+            };
+            // d. Set R to the string-concatenation of R and next.
+            r.push_str(&next);
+            // e. Set k to k + 1.
         }
-
-        Ok(Value::from(elem_strs.join(&separator)))
+        // 8. Return R.
+        Ok(r.into())
     }
 
     /// `Array.prototype.toString( separator )`
@@ -576,31 +674,17 @@ impl Array {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/toString
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        let method_name = "join";
-        let mut arguments = vec![Value::from(",")];
-        // 2.
-        let mut method = this.get_field(method_name, context)?;
-        // 3.
-        if !method.is_function() {
-            let object_prototype: Value = context
-                .standard_objects()
-                .object_object()
-                .prototype()
-                .into();
-            method = object_prototype.get_field("toString", context)?;
-
-            arguments = Vec::new();
-        }
-        // 4.
-        let join = context.call(&method, this, &arguments)?;
-
-        let string = if let Value::String(ref s) = join {
-            Value::from(s.as_str())
+        // 1. Let array be ? ToObject(this value).
+        let array = this.to_object(context)?;
+        // 2. Let func be ? Get(array, "join").
+        let func = array.get("join", context)?;
+        // 3. If IsCallable(func) is false, set func to the intrinsic function %Object.prototype.toString%.
+        // 4. Return ? Call(func, array).
+        if let Some(func) = func.as_object().filter(GcObject::is_callable) {
+            func.call(&array.into(), &[], context)
         } else {
-            Value::from("")
-        };
-
-        Ok(string)
+            crate::builtins::object::Object::to_string(&array.into(), &[], context)
+        }
     }
 
     /// `Array.prototype.reverse()`
@@ -616,32 +700,70 @@ impl Array {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse
     #[allow(clippy::else_if_without_else)]
     pub(crate) fn reverse(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        let len = this.get_field("length", context)?.to_length(context)?;
-
-        let middle = len.wrapping_div(2);
-
-        for lower in 0..middle {
-            let upper = len.wrapping_sub(lower).wrapping_sub(1);
-
-            let upper_exists = this.has_field(upper);
-            let lower_exists = this.has_field(lower);
-
-            let upper_value = this.get_field(upper, context)?;
-            let lower_value = this.get_field(lower, context)?;
-
-            if upper_exists && lower_exists {
-                this.set_property(upper, DataDescriptor::new(lower_value, Attribute::all()));
-                this.set_property(lower, DataDescriptor::new(upper_value, Attribute::all()));
-            } else if upper_exists {
-                this.set_property(lower, DataDescriptor::new(upper_value, Attribute::all()));
-                this.remove_property(upper);
-            } else if lower_exists {
-                this.set_property(upper, DataDescriptor::new(lower_value, Attribute::all()));
-                this.remove_property(lower);
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
+        // 3. Let middle be floor(len / 2).
+        let middle = len / 2;
+        // 4. Let lower be 0.
+        let mut lower = 0;
+        // 5. Repeat, while lower ≠ middle,
+        while lower != middle {
+            // a. Let upper be len - lower - 1.
+            let upper = len - lower - 1;
+            // Skiped: b. Let upperP be ! ToString(𝔽(upper)).
+            // Skiped: c. Let lowerP be ! ToString(𝔽(lower)).
+            // d. Let lowerExists be ? HasProperty(O, lowerP).
+            let lower_exists = o.has_property(lower, context)?;
+            // e. If lowerExists is true, then
+            let mut lower_value = Value::undefined();
+            if lower_exists {
+                // i. Let lowerValue be ? Get(O, lowerP).
+                lower_value = o.get(lower, context)?;
             }
-        }
+            // f. Let upperExists be ? HasProperty(O, upperP).
+            let upper_exists = o.has_property(upper, context)?;
+            // g. If upperExists is true, then
+            let mut upper_value = Value::undefined();
+            if upper_exists {
+                // i. Let upperValue be ? Get(O, upperP).
+                upper_value = o.get(upper, context)?;
+            }
+            match (lower_exists, upper_exists) {
+                // h. If lowerExists is true and upperExists is true, then
+                (true, true) => {
+                    // i. Perform ? Set(O, lowerP, upperValue, true).
+                    o.set(lower, upper_value, true, context)?;
+                    // ii. Perform ? Set(O, upperP, lowerValue, true).
+                    o.set(upper, lower_value, true, context)?;
+                }
+                // i. Else if lowerExists is false and upperExists is true, then
+                (false, true) => {
+                    // i. Perform ? Set(O, lowerP, upperValue, true).
+                    o.set(lower, upper_value, true, context)?;
+                    // ii. Perform ? DeletePropertyOrThrow(O, upperP).
+                    o.delete_property_or_throw(upper, context)?;
+                }
+                // j. Else if lowerExists is true and upperExists is false, then
+                (true, false) => {
+                    // i. Perform ? DeletePropertyOrThrow(O, lowerP).
+                    o.delete_property_or_throw(lower, context)?;
+                    // ii. Perform ? Set(O, upperP, lowerValue, true).
+                    o.set(upper, lower_value, true, context)?;
+                }
+                // k. Else,
+                (false, false) => {
+                    // i. Assert: lowerExists and upperExists are both false.
+                    // ii. No action is required.
+                }
+            }
 
-        Ok(this.clone())
+            // l. Set lower to lower + 1.
+            lower += 1;
+        }
+        // 6. Return O.
+        Ok(o.into())
     }
 
     /// `Array.prototype.shift()`
@@ -655,31 +777,47 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.shift
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/shift
     pub(crate) fn shift(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        let len = this.get_field("length", context)?.to_length(context)?;
-
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
+        // 3. If len = 0, then
         if len == 0 {
-            this.set_field("length", 0, true, context)?;
+            // a. Perform ? Set(O, "length", +0𝔽, true).
+            o.set("length", 0, true, context)?;
+            // b. Return undefined.
             return Ok(Value::undefined());
         }
-
-        let first: Value = this.get_field(0, context)?;
-
+        // 4. Let first be ? Get(O, "0").
+        let first = o.get(0, context)?;
+        // 5. Let k be 1.
+        // 6. Repeat, while k < len,
         for k in 1..len {
+            // a. Let from be ! ToString(𝔽(k)).
             let from = k;
-            let to = k.wrapping_sub(1);
-
-            let from_value = this.get_field(from, context)?;
-            if from_value.is_undefined() {
-                this.remove_property(to);
+            // b. Let to be ! ToString(𝔽(k - 1)).
+            let to = k - 1;
+            // c. Let fromPresent be ? HasProperty(O, from).
+            let from_present = o.has_property(from, context)?;
+            // d. If fromPresent is true, then
+            if from_present {
+                // i. Let fromVal be ? Get(O, from).
+                let from_val = o.get(from, context)?;
+                // ii. Perform ? Set(O, to, fromVal, true).
+                o.set(to, from_val, true, context)?;
+            // e. Else,
             } else {
-                this.set_property(to, DataDescriptor::new(from_value, Attribute::all()));
+                // i. Assert: fromPresent is false.
+                // ii. Perform ? DeletePropertyOrThrow(O, to).
+                o.delete_property_or_throw(to, context)?;
             }
+            // f. Set k to k + 1.
         }
-
-        let final_index = len.wrapping_sub(1);
-        this.remove_property(final_index);
-        this.set_field("length", Value::from(final_index), true, context)?;
-
+        // 7. Perform ? DeletePropertyOrThrow(O, ! ToString(𝔽(len - 1))).
+        o.delete_property_or_throw(len - 1, context)?;
+        // 8. Perform ? Set(O, "length", 𝔽(len - 1), true).
+        o.set("length", len - 1, true, context)?;
+        // 9. Return first.
         Ok(first)
     }
 
@@ -696,41 +834,57 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.unshift
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/unshift
     pub(crate) fn unshift(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let len = this.get_field("length", context)?.to_length(context)?;
-
-        let arg_c = args.len();
-
-        if arg_c > 0 {
-            if len + arg_c > Number::MAX_SAFE_INTEGER as usize {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)? as u64;
+        // 3. Let argCount be the number of elements in items.
+        let arg_count = args.len() as u64;
+        // 4. If argCount > 0, then
+        if arg_count > 0 {
+            // a. If len + argCount > 2^53 - 1, throw a TypeError exception.
+            if len + arg_count > 2u64.pow(53) - 1 {
                 return context.throw_type_error(
-                    "the length + the number of arguments exceed the maximum safe integer limit",
+                    "length + number of arguments exceeds the max safe integer limit",
                 );
             }
-            for k in (1..=len).rev() {
-                let from = k.wrapping_sub(1);
-                let to = k.wrapping_add(arg_c).wrapping_sub(1);
-
-                let from_value = this.get_field(from, context)?;
-                if from_value.is_undefined() {
-                    this.remove_property(to);
+            // b. Let k be len.
+            let mut k = len;
+            // c. Repeat, while k > 0,
+            while k > 0 {
+                // i. Let from be ! ToString(𝔽(k - 1)).
+                let from = k - 1;
+                // ii. Let to be ! ToString(𝔽(k + argCount - 1)).
+                let to = k + arg_count - 1;
+                // iii. Let fromPresent be ? HasProperty(O, from).
+                let from_present = o.has_property(from, context)?;
+                // iv. If fromPresent is true, then
+                if from_present {
+                    // 1. Let fromValue be ? Get(O, from).
+                    let from_value = o.get(from, context)?;
+                    // 2. Perform ? Set(O, to, fromValue, true).
+                    o.set(to, from_value, true, context)?;
+                // v. Else,
                 } else {
-                    this.set_property(to, DataDescriptor::new(from_value, Attribute::all()));
+                    // 1. Assert: fromPresent is false.
+                    // 2. Perform ? DeletePropertyOrThrow(O, to).
+                    o.delete_property_or_throw(to, context)?;
                 }
+                // vi. Set k to k - 1.
+                k -= 1;
             }
-            for j in 0..arg_c {
-                this.set_property(
-                    j,
-                    DataDescriptor::new(
-                        args.get(j).expect("Could not get argument").clone(),
-                        Attribute::all(),
-                    ),
-                );
+            // d. Let j be +0𝔽.
+            // e. For each element E of items, do
+            for (j, e) in args.iter().enumerate() {
+                // i. Perform ? Set(O, ! ToString(j), E, true).
+                o.set(j, e, true, context)?;
+                // ii. Set j to j + 1𝔽.
             }
         }
-
-        let temp = len.wrapping_add(arg_c);
-        this.set_field("length", Value::from(temp), true, context)?;
-        Ok(Value::from(temp))
+        // 5. Perform ? Set(O, "length", 𝔽(len + argCount), true).
+        o.set("length", len + arg_count, true, context)?;
+        // 6. Return 𝔽(len + argCount).
+        Ok((len + arg_count).into())
     }
 
     /// `Array.prototype.every( callback, [ thisArg ] )`
@@ -747,33 +901,44 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.every
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every
     pub(crate) fn every(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        if args.is_empty() {
-            return Err(Value::from(
-                "missing callback when calling function Array.prototype.every",
-            ));
-        }
-        let callback = &args[0];
-        let this_arg = if args.len() > 1 {
-            args[1].clone()
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
+        // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
+        let callback = if let Some(arg) = args
+            .get(0)
+            .and_then(Value::as_object)
+            .filter(GcObject::is_callable)
+        {
+            arg
         } else {
-            Value::undefined()
+            return context.throw_type_error("Array.prototype.every: callback is not callable");
         };
-        let mut i = 0;
-        let max_len = this.get_field("length", context)?.to_length(context)?;
-        let mut len = max_len;
-        while i < len {
-            let element = this.get_field(i, context)?;
-            let arguments = [element, Value::from(i), this.clone()];
-            let result = context.call(callback, &this_arg, &arguments)?;
-            if !result.to_boolean() {
-                return Ok(Value::from(false));
+
+        // 4. Let k be 0.
+        // 5. Repeat, while k < len,
+        for k in 0..len {
+            // a. Let Pk be ! ToString(𝔽(k)).
+            // b. Let kPresent be ? HasProperty(O, Pk).
+            let k_present = o.has_property(k, context)?;
+            // c. If kPresent is true, then
+            if k_present {
+                // i. Let kValue be ? Get(O, Pk).
+                let k_value = o.get(k, context)?;
+                // ii. Let testResult be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).
+                let this_arg = args.get(1).cloned().unwrap_or_default();
+                let test_result = callback
+                    .call(&this_arg, &[k_value, k.into(), o.clone().into()], context)?
+                    .to_boolean();
+                // iii. If testResult is false, return false.
+                if !test_result {
+                    return Ok(Value::from(false));
+                }
             }
-            len = min(
-                max_len,
-                this.get_field("length", context)?.to_length(context)?,
-            );
-            i += 1;
+            // d. Set k to k + 1.
         }
+        // 6. Return true.
         Ok(Value::from(true))
     }
 
@@ -1147,52 +1312,52 @@ impl Array {
 
         // 6. Repeat, while R(sourceIndex) < sourceLen
         while source_index < source_len {
-            // 6.a. Let P be ToString(sourceIndex)
-            // 6.b. Let exists be HasProperty(source, P)
-            // 6.c. If exists is true, then
+            // a. Let P be ToString(sourceIndex)
+            // b. Let exists be HasProperty(source, P)
+            // c. If exists is true, then
             if source.has_field(source_index) {
-                // 6.c.i. Let element be Get(source, P)
+                // i. Let element be Get(source, P)
                 let mut element = source.get_field(source_index, context)?;
 
-                // 6.c.ii. If mapperFunction is present, then
+                // ii. If mapperFunction is present, then
                 if !mapper_function.is_undefined() {
-                    // 6.c.ii.1. Set element to Call(mapperFunction, thisArg, <<element, sourceIndex, source>>)
+                    // 1. Set element to Call(mapperFunction, thisArg, <<element, sourceIndex, source>>)
                     let args = [element, Value::from(source_index), target.clone()];
                     element = context.call(&mapper_function, &this_arg, &args)?;
                 }
                 let element_as_object = element.as_object();
 
-                // 6.c.iii. Let shouldFlatten be false
+                // iii. Let shouldFlatten be false
                 let mut should_flatten = false;
 
-                // 6.c.iv. If depth > 0, then
+                // iv. If depth > 0, then
                 let depth_is_positive = match depth {
                     IntegerOrInfinity::PositiveInfinity => true,
                     IntegerOrInfinity::NegativeInfinity => false,
                     IntegerOrInfinity::Integer(i) => i > 0,
                 };
                 if depth_is_positive {
-                    // 6.c.iv.1. Set shouldFlatten is IsArray(element)
+                    // 1. Set shouldFlatten is IsArray(element)
                     should_flatten = match element_as_object {
                         Some(obj) => obj.is_array(),
                         _ => false,
                     };
                 }
-                // 6.c.v. If shouldFlatten is true
+                // v. If shouldFlatten is true
                 if should_flatten {
-                    // 6.c.v.1. If depth is +Infinity let newDepth be +Infinity
-                    // 6.c.v.2. Else, let newDepth be depth - 1
+                    // 1. If depth is +Infinity let newDepth be +Infinity
+                    // 2. Else, let newDepth be depth - 1
                     let new_depth = match depth {
                         IntegerOrInfinity::PositiveInfinity => IntegerOrInfinity::PositiveInfinity,
                         IntegerOrInfinity::Integer(d) => IntegerOrInfinity::Integer(d - 1),
                         IntegerOrInfinity::NegativeInfinity => IntegerOrInfinity::NegativeInfinity,
                     };
 
-                    // 6.c.v.3. Let elementLen be LengthOfArrayLike(element)
+                    // 3. Let elementLen be LengthOfArrayLike(element)
                     let element_len =
                         element.get_field("length", context)?.to_length(context)? as u32;
 
-                    // 6.c.v.4. Set targetIndex to FlattenIntoArray(target, element, elementLen, targetIndex, newDepth)
+                    // 4. Set targetIndex to FlattenIntoArray(target, element, elementLen, targetIndex, newDepth)
                     target_index = Self::flatten_into_array(
                         context,
                         target,
@@ -1205,23 +1370,23 @@ impl Array {
                     )?
                     .to_u32(context)?;
 
-                // 6.c.vi. Else
+                // vi. Else
                 } else {
-                    // 6.c.vi.1. If targetIndex >= 2^53 - 1, throw a TypeError exception
+                    // 1. If targetIndex >= 2^53 - 1, throw a TypeError exception
                     if target_index.to_f64().ok_or(0)? >= Number::MAX_SAFE_INTEGER {
                         return context
                             .throw_type_error("Target index exceeded max safe integer value");
                     }
 
-                    // 6.c.vi.2. Perform CreateDataPropertyOrThrow(target, targetIndex, element)
+                    // 2. Perform CreateDataPropertyOrThrow(target, targetIndex, element)
                     target
                         .set_property(target_index, DataDescriptor::new(element, Attribute::all()));
 
-                    // 6.c.vi.3. Set targetIndex to targetIndex + 1
+                    // 3. Set targetIndex to targetIndex + 1
                     target_index = target_index.saturating_add(1);
                 }
             }
-            // 6.d. Set sourceIndex to sourceIndex + 1
+            // d. Set sourceIndex to sourceIndex + 1
             source_index = source_index.saturating_add(1);
         }
 
@@ -1351,11 +1516,13 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.filter
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter
     pub(crate) fn filter(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
-        let length = o
-            .get(&"length".into(), Value::from(o.clone()), context)?
-            .to_length(context)?;
 
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let length = o.length_of_array_like(context)?;
+
+        // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback = args
             .get(0)
             .map(|a| a.to_object(context))
@@ -1371,36 +1538,37 @@ impl Array {
             return context.throw_type_error("the callback must be callable");
         }
 
-        let mut a = Self::array_species_create(&o, 0, context)?
-            .as_object()
-            .expect("array_species_create must create an object");
+        // 4. Let A be ? ArraySpeciesCreate(O, 0).
+        let a = Self::array_species_create(&o, 0, context)?;
 
+        // 5. Let k be 0.
+        // 6. Let to be 0.
         let mut to = 0u32;
+        // 7. Repeat, while k < len,
         for idx in 0..length {
-            if o.has_property(&idx.into()) {
-                let element = o.get(&idx.into(), Value::from(o.clone()), context)?;
+            // a. Let Pk be ! ToString(𝔽(k)).
+            // b. Let kPresent be ? HasProperty(O, Pk).
+            // c. If kPresent is true, then
+            if o.has_property(idx, context)? {
+                // i. Let kValue be ? Get(O, Pk).
+                let element = o.get(idx, context)?;
 
                 let args = [element.clone(), Value::from(idx), Value::from(o.clone())];
 
-                let callback_result = callback.call(&this_val, &args, context)?;
+                // ii. Let selected be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).
+                let selected = callback.call(&this_val, &args, context)?.to_boolean();
 
-                if callback_result.to_boolean() {
-                    if !a.define_own_property(
-                        to,
-                        DataDescriptor::new(
-                            element,
-                            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
-                        )
-                        .into(),
-                        context,
-                    )? {
-                        return context.throw_type_error("cannot set property in array");
-                    }
+                // iii. If selected is true, then
+                if selected {
+                    // 1. Perform ? CreateDataPropertyOrThrow(A, ! ToString(𝔽(to)), kValue).
+                    a.create_data_property_or_throw(to, element, context)?;
+                    // 2. Set to to to + 1.
                     to += 1;
                 }
             }
         }
 
+        // 8. Return A.
         Ok(a.into())
     }
 
@@ -1420,34 +1588,44 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.some
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/some
     pub(crate) fn some(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        if args.is_empty() {
-            return Err(Value::from(
-                "missing callback when calling function Array.prototype.some",
-            ));
-        }
-        let callback = &args[0];
-        let this_arg = if args.len() > 1 {
-            args[1].clone()
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
+        // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
+        let callback = if let Some(arg) = args
+            .get(0)
+            .and_then(Value::as_object)
+            .filter(GcObject::is_callable)
+        {
+            arg
         } else {
-            Value::undefined()
+            return context.throw_type_error("Array.prototype.some: callback is not callable");
         };
-        let mut i = 0;
-        let max_len = this.get_field("length", context)?.to_length(context)?;
-        let mut len = max_len;
-        while i < len {
-            let element = this.get_field(i, context)?;
-            let arguments = [element, Value::from(i), this.clone()];
-            let result = context.call(callback, &this_arg, &arguments)?;
-            if result.to_boolean() {
-                return Ok(Value::from(true));
+
+        // 4. Let k be 0.
+        // 5. Repeat, while k < len,
+        for k in 0..len {
+            // a. Let Pk be ! ToString(𝔽(k)).
+            // b. Let kPresent be ? HasProperty(O, Pk).
+            let k_present = o.has_property(k, context)?;
+            // c. If kPresent is true, then
+            if k_present {
+                // i. Let kValue be ? Get(O, Pk).
+                let k_value = o.get(k, context)?;
+                // ii. Let testResult be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).
+                let this_arg = args.get(1).cloned().unwrap_or_default();
+                let test_result = callback
+                    .call(&this_arg, &[k_value, k.into(), o.clone().into()], context)?
+                    .to_boolean();
+                // iii. If testResult is true, return true.
+                if test_result {
+                    return Ok(Value::from(true));
+                }
             }
-            // the length of the array must be updated because the callback can mutate it.
-            len = min(
-                max_len,
-                this.get_field("length", context)?.to_length(context)?,
-            );
-            i += 1;
+            // d. Set k to k + 1.
         }
+        // 6. Return false.
         Ok(Value::from(false))
     }
 

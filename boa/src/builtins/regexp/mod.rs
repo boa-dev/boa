@@ -15,7 +15,7 @@ use crate::{
     builtins::{array::Array, BuiltIn},
     gc::{empty_trace, Finalize, Trace},
     object::{ConstructorBuilder, FunctionBuilder, GcObject, ObjectData, PROTOTYPE},
-    property::{Attribute, DataDescriptor},
+    property::Attribute,
     symbol::WellKnownSymbols,
     value::{IntegerOrInfinity, Value},
     BoaProfiler, Context, JsString, Result,
@@ -197,7 +197,7 @@ impl RegExp {
         let prototype = new_target
             .as_object()
             .and_then(|obj| {
-                obj.get(&PROTOTYPE.into(), obj.clone().into(), ctx)
+                obj.__get__(&PROTOTYPE.into(), obj.clone().into(), ctx)
                     .map(|o| o.as_object())
                     .transpose()
             })
@@ -454,45 +454,46 @@ impl RegExp {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/flags
     /// [flags]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Advanced_searching_with_flags_2
     pub(crate) fn get_flags(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        // 1. Let R be the this value.
+        // 2. If Type(R) is not Object, throw a TypeError exception.
         if let Some(object) = this.as_object() {
+            // 3. Let result be the empty String.
             let mut result = String::new();
-            if object
-                .get(&"global".into(), this.clone(), context)?
-                .to_boolean()
-            {
+            // 4. Let global be ! ToBoolean(? Get(R, "global")).
+            // 5. If global is true, append the code unit 0x0067 (LATIN SMALL LETTER G) as the last code unit of result.
+            if object.get("global", context)?.to_boolean() {
                 result.push('g');
             }
-            if object
-                .get(&"ignoreCase".into(), this.clone(), context)?
-                .to_boolean()
-            {
+            // 6. Let ignoreCase be ! ToBoolean(? Get(R, "ignoreCase")).
+            // 7. If ignoreCase is true, append the code unit 0x0069 (LATIN SMALL LETTER I) as the last code unit of result.
+            if object.get("ignoreCase", context)?.to_boolean() {
                 result.push('i');
             }
-            if object
-                .get(&"multiline".into(), this.clone(), context)?
-                .to_boolean()
-            {
+
+            // 8. Let multiline be ! ToBoolean(? Get(R, "multiline")).
+            // 9. If multiline is true, append the code unit 0x006D (LATIN SMALL LETTER M) as the last code unit of result.
+            if object.get("multiline", context)?.to_boolean() {
                 result.push('m');
             }
-            if object
-                .get(&"dotAll".into(), this.clone(), context)?
-                .to_boolean()
-            {
+
+            // 10. Let dotAll be ! ToBoolean(? Get(R, "dotAll")).
+            // 11. If dotAll is true, append the code unit 0x0073 (LATIN SMALL LETTER S) as the last code unit of result.
+            if object.get("dotAll", context)?.to_boolean() {
                 result.push('s');
             }
-            if object
-                .get(&"unicode".into(), this.clone(), context)?
-                .to_boolean()
-            {
+            // 12. Let unicode be ! ToBoolean(? Get(R, "unicode")).
+            // 13. If unicode is true, append the code unit 0x0075 (LATIN SMALL LETTER U) as the last code unit of result.
+            if object.get("unicode", context)?.to_boolean() {
                 result.push('u');
             }
-            if object
-                .get(&"sticky".into(), this.clone(), context)?
-                .to_boolean()
-            {
+
+            // 14. Let sticky be ! ToBoolean(? Get(R, "sticky")).
+            // 15. If sticky is true, append the code unit 0x0079 (LATIN SMALL LETTER Y) as the last code unit of result.
+            if object.get("sticky", context)?.to_boolean() {
                 result.push('y');
             }
 
+            // 16. Return result.
             return Ok(result.into());
         }
 
@@ -819,24 +820,21 @@ impl RegExp {
         }
 
         // 16. Let n be the number of elements in r's captures List. (This is the same value as 22.2.2.1's NcapturingParens.)
+        let n = match_value.captures.len() as u64;
         // 17. Assert: n < 23^2 - 1.
-        let n: u32 = match_value.captures.len() as u32;
+        assert!(n < 23u64.pow(2) - 1);
 
         // 18. Let A be ! ArrayCreate(n + 1).
         // 19. Assert: The mathematical value of A's "length" property is n + 1.
-        let a = Array::array_create(n + 1, None, context);
+        let a = Array::array_create(n + 1, None, context)?;
 
         // 20. Perform ! CreateDataPropertyOrThrow(A, "index", 𝔽(lastIndex)).
-        a.set_property(
-            "index",
-            DataDescriptor::new(match_value.start(), Attribute::all()),
-        );
+        a.create_data_property_or_throw("index", match_value.start(), context)
+            .unwrap();
 
         // 21. Perform ! CreateDataPropertyOrThrow(A, "input", S).
-        a.set_property(
-            "input",
-            DataDescriptor::new(input.clone(), Attribute::all()),
-        );
+        a.create_data_property_or_throw("input", input.clone(), context)
+            .unwrap();
 
         // 22. Let matchedSubstr be the substring of S from lastIndex to e.
         let matched_substr = if let Some(s) = input.get(match_value.range()) {
@@ -846,7 +844,8 @@ impl RegExp {
         };
 
         // 23. Perform ! CreateDataPropertyOrThrow(A, "0", matchedSubstr).
-        a.set_property("0", DataDescriptor::new(matched_substr, Attribute::all()));
+        a.create_data_property_or_throw(0, matched_substr, context)
+            .unwrap();
 
         // TODO: named capture groups
         // 24. If R contains any GroupName, then
@@ -856,7 +855,8 @@ impl RegExp {
         let groups = Value::undefined();
 
         // 26. Perform ! CreateDataPropertyOrThrow(A, "groups", groups).
-        a.set_property("groups", DataDescriptor::new(groups, Attribute::all()));
+        a.create_data_property_or_throw("groups", groups, context)
+            .unwrap();
 
         // 27. For each integer i such that i ≥ 1 and i ≤ n, in ascending order, do
         for i in 1..=n {
@@ -878,7 +878,8 @@ impl RegExp {
             };
 
             // e. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), capturedValue).
-            a.set_property(i, DataDescriptor::new(captured_value, Attribute::all()));
+            a.create_data_property_or_throw(i, captured_value, context)
+                .unwrap();
 
             // TODO: named capture groups
             // f. If the ith capture of R was defined with a GroupName, then
@@ -887,7 +888,7 @@ impl RegExp {
         }
 
         // 28. Return A.
-        Ok(a)
+        Ok(a.into())
     }
 
     /// `RegExp.prototype[ @@match ]( string )`
@@ -933,7 +934,7 @@ impl RegExp {
             this.set_field("lastIndex", Value::from(0), true, context)?;
 
             // d. Let A be ! ArrayCreate(0).
-            let a = Array::array_create(0, None, context);
+            let a = Array::array_create(0, None, context).unwrap();
 
             // e. Let n be 0.
             let mut n = 0;
@@ -951,14 +952,15 @@ impl RegExp {
                     if n == 0 {
                         return Ok(Value::null());
                     } else {
-                        return Ok(a);
+                        return Ok(a.into());
                     }
                 } else {
                     // 1. Let matchStr be ? ToString(? Get(result, "0")).
                     let match_str = result.get_field("0", context)?.to_string(context)?;
 
                     // 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), matchStr).
-                    Array::add_to_array_object(&a, &[match_str.clone().into()], context)?;
+                    a.create_data_property_or_throw(n, match_str.clone(), context)
+                        .unwrap();
 
                     // 3. If matchStr is the empty String, then
                     if match_str.is_empty() {
@@ -1412,7 +1414,7 @@ impl RegExp {
             RegExp::constructor(&constructor, &[this.clone(), new_flags.into()], context)?;
 
         // 11. Let A be ! ArrayCreate(0).
-        let a = Array::array_create(0, None, context);
+        let a = Array::array_create(0, None, context).unwrap();
 
         // 12. Let lengthA be 0.
         let mut length_a = 0;
@@ -1427,7 +1429,7 @@ impl RegExp {
 
         // 14. If lim is 0, return A.
         if lim == 0 {
-            return Ok(a);
+            return Ok(a.into());
         }
 
         // 15. Let size be the length of S.
@@ -1440,14 +1442,15 @@ impl RegExp {
 
             // b. If z is not null, return A.
             if !result.is_null() {
-                return Ok(a);
+                return Ok(a.into());
             }
 
             // c. Perform ! CreateDataPropertyOrThrow(A, "0", S).
-            Array::add_to_array_object(&a, &[Value::from(arg_str)], context)?;
+            a.create_data_property_or_throw(0, arg_str, context)
+                .unwrap();
 
             // d. Return A.
-            return Ok(a);
+            return Ok(a.into());
         }
 
         // 17. Let p be 0.
@@ -1488,14 +1491,15 @@ impl RegExp {
                     let arg_str_substring: String = arg_str.chars().skip(p).take(q - p).collect();
 
                     // 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
-                    Array::add_to_array_object(&a, &[Value::from(arg_str_substring)], context)?;
+                    a.create_data_property_or_throw(length_a, arg_str_substring, context)
+                        .unwrap();
 
                     // 3. Set lengthA to lengthA + 1.
                     length_a += 1;
 
                     // 4. If lengthA = lim, return A.
                     if length_a == lim {
-                        return Ok(a);
+                        return Ok(a.into());
                     }
 
                     // 5. Set p to e.
@@ -1519,14 +1523,15 @@ impl RegExp {
                         let next_capture = result.get_field(i.to_string(), context)?;
 
                         // b. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), nextCapture).
-                        Array::add_to_array_object(&a, &[next_capture], context)?;
+                        a.create_data_property_or_throw(length_a, next_capture, context)
+                            .unwrap();
 
                         // d. Set lengthA to lengthA + 1.
                         length_a += 1;
 
                         // e. If lengthA = lim, return A.
                         if length_a == lim {
-                            return Ok(a);
+                            return Ok(a.into());
                         }
                     }
 
@@ -1540,10 +1545,11 @@ impl RegExp {
         let arg_str_substring: String = arg_str.chars().skip(p).take(size - p).collect();
 
         // 21. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
-        Array::add_to_array_object(&a, &[Value::from(arg_str_substring)], context)?;
+        a.create_data_property_or_throw(length_a, arg_str_substring, context)
+            .unwrap();
 
         // 22. Return A.
-        Ok(a)
+        Ok(a.into())
     }
 }
 

@@ -267,7 +267,7 @@ fn string_length_is_not_enumerable() {
 
     let object = Value::from("foo").to_object(&mut context).unwrap();
     let length_desc = object
-        .get_own_property(&PropertyKey::from("length"))
+        .__get_own_property__(&PropertyKey::from("length"))
         .unwrap();
     assert!(!length_desc.enumerable());
 }
@@ -279,7 +279,7 @@ fn string_length_is_in_utf16_codeunits() {
     // 😀 is one Unicode code point, but 2 UTF-16 code units
     let object = Value::from("😀").to_object(&mut context).unwrap();
     let length_desc = object
-        .get_own_property(&PropertyKey::from("length"))
+        .__get_own_property__(&PropertyKey::from("length"))
         .unwrap();
     assert_eq!(
         length_desc

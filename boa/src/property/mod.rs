@@ -434,6 +434,16 @@ impl From<usize> for PropertyKey {
     }
 }
 
+impl From<u64> for PropertyKey {
+    fn from(value: u64) -> Self {
+        if let Ok(index) = u32::try_from(value) {
+            PropertyKey::Index(index)
+        } else {
+            PropertyKey::String(JsString::from(value.to_string()))
+        }
+    }
+}
+
 impl From<isize> for PropertyKey {
     fn from(value: isize) -> Self {
         if let Ok(index) = u32::try_from(value) {

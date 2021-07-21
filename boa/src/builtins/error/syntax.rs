@@ -64,13 +64,13 @@ impl SyntaxError {
         let prototype = new_target
             .as_object()
             .and_then(|obj| {
-                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
                     .map(|o| o.as_object())
                     .transpose()
             })
             .transpose()?
             .unwrap_or_else(|| context.standard_objects().error_object().prototype());
-        let mut obj = context.construct_object();
+        let obj = context.construct_object();
         obj.set_prototype_instance(prototype.into());
         let this = Value::from(obj);
         if let Some(message) = args.get(0) {
