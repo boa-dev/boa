@@ -200,7 +200,6 @@ pub(crate) struct MapLock(GcObject);
 
 impl Clone for MapLock {
     fn clone(&self) -> Self {
-        println!("Clone called");
         let mut map = self.0.borrow_mut();
         let map = map.as_map_mut().expect("MapLock does not point to a map");
         map.lock(self.0.clone())
