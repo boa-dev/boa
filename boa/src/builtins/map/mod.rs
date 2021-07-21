@@ -388,7 +388,7 @@ impl Map {
 
         let lock = Map::lock(this, context)?;
 
-        while index < Map::get_size(this, context)? {
+        while index < Map::get_full_len(this, context)? {
             let arguments = if let Value::Object(ref object) = this {
                 let object = object.borrow();
                 if let Some(map) = object.as_map_ref() {
@@ -416,12 +416,12 @@ impl Map {
         Ok(Value::Undefined)
     }
 
-    /// Helper function to get the size of the map.
-    fn get_size(map: &Value, context: &mut Context) -> Result<usize> {
+    /// Helper function to get the full size of the map.
+    fn get_full_len(map: &Value, context: &mut Context) -> Result<usize> {
         if let Value::Object(ref object) = map {
             let object = object.borrow();
             if let Some(map) = object.as_map_ref() {
-                Ok(map.len())
+                Ok(map.full_len())
             } else {
                 Err(context.construct_type_error("'this' is not a Map"))
             }

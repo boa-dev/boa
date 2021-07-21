@@ -85,15 +85,17 @@ impl<V> OrderedMap<V> {
         }
     }
 
-    /// Return the number of key-value pairs in the map.
+    /// Return the number of key-value pairs in the map, including empty values.
     ///
     /// Computes in **O(1)** time.
-    pub fn len(&self) -> usize {
+    pub fn full_len(&self) -> usize {
         self.map.len()
     }
 
-    /// Gets the number of
-    pub fn num_values(&self) -> usize {
+    /// Gets the number of key-value pairs in the map, not including empty values.
+    ///
+    /// Computes in **O(1)** time.
+    pub fn len(&self) -> usize {
         self.map.len() - self.empty_count
     }
 

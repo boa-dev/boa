@@ -88,7 +88,7 @@ impl MapIterator {
 
                 if let Value::Object(ref object) = m {
                     if let Some(entries) = object.borrow().as_map_ref() {
-                        let num_entries = entries.len();
+                        let num_entries = entries.full_len();
                         while index < num_entries {
                             let e = entries.get_index(index);
                             index += 1;
