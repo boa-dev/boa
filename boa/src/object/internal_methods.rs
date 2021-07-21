@@ -82,7 +82,7 @@ impl GcObject {
                 }
             }
             Some(ref desc) => match desc {
-                PropertyDescriptor::Data(desc) => Ok(desc.value()),
+                PropertyDescriptor::Data(desc) => Ok(desc.value().unwrap_or_else(Value::undefined)),
                 PropertyDescriptor::Accessor(AccessorDescriptor { get: Some(get), .. }) => {
                     get.call(&receiver, &[], context)
                 }
@@ -195,7 +195,19 @@ impl GcObject {
                 return false;
             }
 
-            self.insert(key, desc);
+            if let PropertyDescriptor::Data(data) = &desc {
+                if data.value.is_some() {
+                    self.insert(key, desc);
+                } else {
+                    self.insert(
+                        key,
+                        DataDescriptor::new(Value::undefined(), data.attributes()),
+                    );
+                }
+            } else {
+                self.insert(key, desc);
+            }
+
             return true;
         };
 
@@ -234,8 +246,14 @@ impl GcObject {
                     return false;
                 }
 
-                let current = DataDescriptor::new(value, current.attributes());
-                self.insert(key, current);
+                self.insert(
+                    key,
+                    DataDescriptor::new(
+                        value.clone().unwrap_or_else(Value::undefined),
+                        current.attributes(),
+                    ),
+                );
+
                 return true;
             }
             (PropertyDescriptor::Data(current), PropertyDescriptor::Data(desc)) => {
@@ -245,7 +263,10 @@ impl GcObject {
                         return false;
                     }
 
-                    if !Value::same_value(&desc.value(), &current.value()) {
+                    if !Value::same_value(
+                        &desc.value().unwrap_or_else(Value::undefined),
+                        &current.value().unwrap_or_else(Value::undefined),
+                    ) {
                         return false;
                     }
                 }
@@ -268,7 +289,22 @@ impl GcObject {
             }
         }
 
-        self.insert(key, desc);
+        if let PropertyDescriptor::Data(data) = &desc {
+            let value = if let PropertyDescriptor::Data(data) = &current {
+                data.value.clone().unwrap_or_else(Value::undefined)
+            } else {
+                Value::undefined()
+            };
+
+            if data.value.is_some() {
+                self.insert(key, desc);
+            } else {
+                self.insert(key, DataDescriptor::new(value, data.attributes()));
+            }
+        } else {
+            self.insert(key, desc);
+        }
+
         true
     }
 
@@ -295,11 +331,14 @@ impl GcObject {
                         return Ok(self.ordinary_define_own_property("length", desc))
                     }
                     PropertyDescriptor::Data(ref d) => {
-                        if d.value().is_undefined() {
+                        if d.value().unwrap_or_else(Value::undefined).is_undefined() {
                             return Ok(self.ordinary_define_own_property("length", desc));
                         }
-                        let new_len = d.value().to_u32(context)?;
-                        let number_len = d.value().to_number(context)?;
+                        let new_len = d.value().unwrap_or_else(Value::undefined).to_u32(context)?;
+                        let number_len = d
+                            .value()
+                            .unwrap_or_else(Value::undefined)
+                            .to_number(context)?;
                         #[allow(clippy::float_cmp)]
                         if new_len as f64 != number_len {
                             return Err(context.construct_range_error("bad length for array"));
@@ -308,7 +347,7 @@ impl GcObject {
                             PropertyDescriptor::Data(DataDescriptor::new(new_len, d.attributes()));
                         let old_len_desc = self.get_own_property(&"length".into()).unwrap();
                         let old_len_desc = old_len_desc.as_data_descriptor().unwrap();
-                        let old_len = old_len_desc.value();
+                        let old_len = old_len_desc.value().unwrap_or_else(Value::undefined);
                         if new_len >= old_len.to_u32(context)? {
                             return Ok(self.ordinary_define_own_property("length", new_len_desc));
                         }
@@ -369,7 +408,10 @@ impl GcObject {
             PropertyKey::Index(index) => {
                 let old_len_desc = self.get_own_property(&"length".into()).unwrap();
                 let old_len_data_desc = old_len_desc.as_data_descriptor().unwrap();
-                let old_len = old_len_data_desc.value().to_u32(context)?;
+                let old_len = old_len_data_desc
+                    .value()
+                    .unwrap_or_else(Value::undefined)
+                    .to_u32(context)?;
                 if index >= old_len && !old_len_data_desc.writable() {
                     return Ok(false);
                 }

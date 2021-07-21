@@ -52,7 +52,8 @@ macro_rules! print_obj_value {
                 let v = &val
                     .as_data_descriptor()
                     .unwrap()
-                    .value();
+                    .value()
+                    .unwrap_or(Value::undefined());
                 format!(
                     "{:>width$}: {}",
                     key,
@@ -109,6 +110,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                         .as_data_descriptor()
                         .unwrap()
                         .value()
+                        .unwrap_or_else(Value::undefined)
                         .as_number()
                         .map(|n| n as i32)
                         .unwrap_or_default();
@@ -125,7 +127,10 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                                 log_string_from(
                                     &v.get_own_property(&i.into())
                                         // FIXME: handle accessor descriptors
-                                        .and_then(|p| p.as_data_descriptor().map(|d| d.value()))
+                                        .and_then(|p| {
+                                            p.as_data_descriptor()
+                                                .map(|d| d.value().unwrap_or_else(Value::undefined))
+                                        })
                                         .unwrap_or_default(),
                                     print_internals,
                                     false,
@@ -205,13 +210,13 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
                 .get_property("name")
                 .as_ref()
                 .and_then(|p| p.as_data_descriptor())
-                .map(|d| d.value())
+                .map(|d| d.value().unwrap_or_else(Value::undefined))
                 .unwrap_or_else(Value::undefined);
             let message = v
                 .get_property("message")
                 .as_ref()
                 .and_then(|p| p.as_data_descriptor())
-                .map(|d| d.value())
+                .map(|d| d.value().unwrap_or_else(Value::undefined))
                 .unwrap_or_else(Value::undefined);
             return format!("{}: {}", name.display(), message.display());
         }
