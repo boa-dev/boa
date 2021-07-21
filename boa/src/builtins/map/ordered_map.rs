@@ -103,7 +103,7 @@ impl<V> OrderedMap<V> {
     ///
     /// Computes in **O(1)** time.
     pub fn is_empty(&self) -> bool {
-        self.map.len() == 0
+        self.len() == 0
     }
 
     /// Insert a key-value pair in the map.
@@ -151,7 +151,7 @@ impl<V> OrderedMap<V> {
     }
 
     /// Get a key-value pair by index
-    /// Valid indices are 0 <= index < self.len()
+    /// Valid indices are 0 <= index < self.full_len()
     /// Computes in O(1) time.
     pub fn get_index(&self, index: usize) -> Option<(&Value, &V)> {
         if let (MapKey::Key(key), Some(value)) = self.map.get_index(index)? {
@@ -197,6 +197,7 @@ impl<V> OrderedMap<V> {
     }
 }
 
+/// Increases the lock count of the map for the lifetime of the guard. This should not be dropped until iteration has completed.
 #[derive(Debug, Trace)]
 pub(crate) struct MapLock(GcObject);
 
