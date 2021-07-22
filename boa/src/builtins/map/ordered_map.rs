@@ -1,63 +1,109 @@
-use crate::gc::{custom_trace, Finalize, Trace};
-use indexmap::{map::IntoIter, map::Iter, map::IterMut, IndexMap};
+use crate::{
+    gc::{custom_trace, Finalize, Trace},
+    object::GcObject,
+    Value,
+};
+use indexmap::{Equivalent, IndexMap};
 use std::{
     collections::hash_map::RandomState,
     fmt::Debug,
-    hash::{BuildHasher, Hash},
+    hash::{BuildHasher, Hash, Hasher},
 };
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+enum MapKey {
+    Key(Value),
+    Empty(usize), // Necessary to ensure empty keys are still unique.
+}
+
+// This ensures that a MapKey::Key(value) hashes to the same as value. The derived PartialEq implementation still holds.
+#[allow(clippy::derive_hash_xor_eq)]
+impl Hash for MapKey {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        match self {
+            MapKey::Key(v) => v.hash(state),
+            MapKey::Empty(e) => e.hash(state),
+        }
+    }
+}
+
+impl Equivalent<MapKey> for Value {
+    fn equivalent(&self, key: &MapKey) -> bool {
+        match key {
+            MapKey::Key(v) => v == self,
+            _ => false,
+        }
+    }
+}
 
 /// A newtype wrapping indexmap::IndexMap
 #[derive(Clone)]
-pub struct OrderedMap<K, V, S = RandomState>(IndexMap<K, V, S>)
-where
-    K: Hash + Eq;
+pub struct OrderedMap<V, S = RandomState> {
+    map: IndexMap<MapKey, Option<V>, S>,
+    lock: u32,
+    empty_count: usize,
+}
 
-impl<K: Eq + Hash + Trace, V: Trace, S: BuildHasher> Finalize for OrderedMap<K, V, S> {}
-unsafe impl<K: Eq + Hash + Trace, V: Trace, S: BuildHasher> Trace for OrderedMap<K, V, S> {
+impl<V: Trace, S: BuildHasher> Finalize for OrderedMap<V, S> {}
+unsafe impl<V: Trace, S: BuildHasher> Trace for OrderedMap<V, S> {
     custom_trace!(this, {
-        for (k, v) in this.0.iter() {
-            mark(k);
+        for (k, v) in this.map.iter() {
+            if let MapKey::Key(key) = k {
+                mark(key);
+            }
             mark(v);
         }
     });
 }
 
-impl<K: Hash + Eq + Debug, V: Debug> Debug for OrderedMap<K, V> {
+impl<V: Debug> Debug for OrderedMap<V> {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        self.0.fmt(formatter)
+        self.map.fmt(formatter)
     }
 }
 
-impl<K: Hash + Eq, V> Default for OrderedMap<K, V> {
+impl<V> Default for OrderedMap<V> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<K, V> OrderedMap<K, V>
-where
-    K: Hash + Eq,
-{
+impl<V> OrderedMap<V> {
     pub fn new() -> Self {
-        OrderedMap(IndexMap::new())
+        OrderedMap {
+            map: IndexMap::new(),
+            lock: 0,
+            empty_count: 0,
+        }
     }
 
     pub fn with_capacity(capacity: usize) -> Self {
-        OrderedMap(IndexMap::with_capacity(capacity))
+        OrderedMap {
+            map: IndexMap::with_capacity(capacity),
+            lock: 0,
+            empty_count: 0,
+        }
     }
 
-    /// Return the number of key-value pairs in the map.
+    /// Return the number of key-value pairs in the map, including empty values.
+    ///
+    /// Computes in **O(1)** time.
+    pub fn full_len(&self) -> usize {
+        self.map.len()
+    }
+
+    /// Gets the number of key-value pairs in the map, not including empty values.
     ///
     /// Computes in **O(1)** time.
     pub fn len(&self) -> usize {
-        self.0.len()
+        self.map.len() - self.empty_count
     }
 
     /// Returns true if the map contains no elements.
     ///
     /// Computes in **O(1)** time.
     pub fn is_empty(&self) -> bool {
-        self.0.len() == 0
+        self.len() == 0
     }
 
     /// Insert a key-value pair in the map.
@@ -70,8 +116,8 @@ where
     /// inserted, last in order, and `None` is returned.
     ///
     /// Computes in **O(1)** time (amortized average).
-    pub fn insert(&mut self, key: K, value: V) -> Option<V> {
-        self.0.insert(key, value)
+    pub fn insert(&mut self, key: Value, value: V) -> Option<V> {
+        self.map.insert(MapKey::Key(key), Some(value)).flatten()
     }
 
     /// Remove the key-value pair equivalent to `key` and return
@@ -84,70 +130,89 @@ where
     /// Return `None` if `key` is not in map.
     ///
     /// Computes in **O(n)** time (average).
-    pub fn remove(&mut self, key: &K) -> Option<V> {
-        self.0.shift_remove(key)
+    pub fn remove(&mut self, key: &Value) -> Option<V> {
+        if self.lock == 0 {
+            self.map.shift_remove(key).flatten()
+        } else if self.map.contains_key(key) {
+            self.map.insert(MapKey::Empty(self.empty_count), None);
+            self.empty_count += 1;
+            self.map.swap_remove(key).flatten()
+        } else {
+            None
+        }
     }
 
     /// Return a reference to the value stored for `key`, if it is present,
     /// else `None`.
     ///
     /// Computes in **O(1)** time (average).
-    pub fn get(&self, key: &K) -> Option<&V> {
-        self.0.get(key)
+    pub fn get(&self, key: &Value) -> Option<&V> {
+        self.map.get(key).map(Option::as_ref).flatten()
     }
 
     /// Get a key-value pair by index
-    /// Valid indices are 0 <= index < self.len()
+    /// Valid indices are 0 <= index < self.full_len()
     /// Computes in O(1) time.
-    pub fn get_index(&self, index: usize) -> Option<(&K, &V)> {
-        self.0.get_index(index)
+    pub fn get_index(&self, index: usize) -> Option<(&Value, &V)> {
+        if let (MapKey::Key(key), Some(value)) = self.map.get_index(index)? {
+            Some((key, value))
+        } else {
+            None
+        }
     }
 
     /// Return an iterator over the key-value pairs of the map, in their order
-    pub fn iter(&self) -> Iter<'_, K, V> {
-        self.0.iter()
+    pub fn iter(&self) -> impl Iterator<Item = (&Value, &V)> {
+        self.map.iter().filter_map(|o| {
+            if let (MapKey::Key(key), Some(value)) = o {
+                Some((key, value))
+            } else {
+                None
+            }
+        })
     }
 
     /// Return `true` if an equivalent to `key` exists in the map.
     ///
     /// Computes in **O(1)** time (average).
-    pub fn contains_key(&self, key: &K) -> bool {
-        self.0.contains_key(key)
+    pub fn contains_key(&self, key: &Value) -> bool {
+        self.map.contains_key(key)
+    }
+
+    /// Increases the lock counter and returns a lock object that will decrement the counter when dropped.
+    ///
+    /// This allows objects to be removed from the map during iteration without affecting the indexes until the iteration has completed.
+    pub(crate) fn lock(&mut self, map: GcObject) -> MapLock {
+        self.lock += 1;
+        MapLock(map)
+    }
+
+    /// Decreases the lock counter and, if 0, removes all empty entries.
+    fn unlock(&mut self) {
+        self.lock -= 1;
+        if self.lock == 0 {
+            self.map.retain(|k, _| matches!(k, MapKey::Key(_)));
+            self.empty_count = 0;
+        }
     }
 }
 
-impl<'a, K, V, S> IntoIterator for &'a OrderedMap<K, V, S>
-where
-    K: Hash + Eq,
-    S: BuildHasher,
-{
-    type Item = (&'a K, &'a V);
-    type IntoIter = Iter<'a, K, V>;
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.iter()
+/// Increases the lock count of the map for the lifetime of the guard. This should not be dropped until iteration has completed.
+#[derive(Debug, Trace)]
+pub(crate) struct MapLock(GcObject);
+
+impl Clone for MapLock {
+    fn clone(&self) -> Self {
+        let mut map = self.0.borrow_mut();
+        let map = map.as_map_mut().expect("MapLock does not point to a map");
+        map.lock(self.0.clone())
     }
 }
 
-impl<'a, K, V, S> IntoIterator for &'a mut OrderedMap<K, V, S>
-where
-    K: Hash + Eq,
-    S: BuildHasher,
-{
-    type Item = (&'a K, &'a mut V);
-    type IntoIter = IterMut<'a, K, V>;
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.iter_mut()
-    }
-}
-
-impl<K, V, S> IntoIterator for OrderedMap<K, V, S>
-where
-    K: Hash + Eq,
-    S: BuildHasher,
-{
-    type Item = (K, V);
-    type IntoIter = IntoIter<K, V>;
-    fn into_iter(self) -> IntoIter<K, V> {
-        self.0.into_iter()
+impl Finalize for MapLock {
+    fn finalize(&self) {
+        let mut map = self.0.borrow_mut();
+        let map = map.as_map_mut().expect("MapLock does not point to a map");
+        map.unlock();
     }
 }

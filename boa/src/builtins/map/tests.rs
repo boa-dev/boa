@@ -354,3 +354,53 @@ fn not_a_function() {
         "\"TypeError: calling a builtin Map constructor without new is forbidden\""
     );
 }
+
+#[test]
+fn for_each_delete() {
+    let mut context = Context::new();
+    let init = r#"
+        let map = new Map([[0, "a"], [1, "b"], [2, "c"]]);
+        let result = [];
+        map.forEach(function(value, key) {
+            if (key === 0) {
+                map.delete(0);
+                map.set(3, "d");
+            }
+            result.push([key, value]);
+        })
+    "#;
+    forward(&mut context, init);
+    assert_eq!(forward(&mut context, "result[0][0]"), "0");
+    assert_eq!(forward(&mut context, "result[0][1]"), "\"a\"");
+    assert_eq!(forward(&mut context, "result[1][0]"), "1");
+    assert_eq!(forward(&mut context, "result[1][1]"), "\"b\"");
+    assert_eq!(forward(&mut context, "result[2][0]"), "2");
+    assert_eq!(forward(&mut context, "result[2][1]"), "\"c\"");
+    assert_eq!(forward(&mut context, "result[3][0]"), "3");
+    assert_eq!(forward(&mut context, "result[3][1]"), "\"d\"");
+}
+
+#[test]
+fn for_of_delete() {
+    let mut context = Context::new();
+    let init = r#"
+        let map = new Map([[0, "a"], [1, "b"], [2, "c"]]);
+        let result = [];
+        for (a of map) {
+            if (a[0] === 0) {
+                map.delete(0);
+                map.set(3, "d");
+            }
+            result.push([a[0], a[1]]);
+        }
+    "#;
+    forward(&mut context, init);
+    assert_eq!(forward(&mut context, "result[0][0]"), "0");
+    assert_eq!(forward(&mut context, "result[0][1]"), "\"a\"");
+    assert_eq!(forward(&mut context, "result[1][0]"), "1");
+    assert_eq!(forward(&mut context, "result[1][1]"), "\"b\"");
+    assert_eq!(forward(&mut context, "result[2][0]"), "2");
+    assert_eq!(forward(&mut context, "result[2][1]"), "\"c\"");
+    assert_eq!(forward(&mut context, "result[3][0]"), "3");
+    assert_eq!(forward(&mut context, "result[3][1]"), "\"d\"");
+}
