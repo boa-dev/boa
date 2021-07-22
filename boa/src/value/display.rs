@@ -73,6 +73,7 @@ macro_rules! print_obj_value {
     (impl $v:expr, $f:expr) => {
         $v
             .borrow()
+            .properties()
             .iter()
             .map($f)
             .collect::<Vec<String>>()

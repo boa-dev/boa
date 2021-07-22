@@ -526,11 +526,16 @@ impl GcObject {
                     return Ok(false);
                 }
 
-                let max_value = self.borrow().index_property_keys().max().copied();
+                let max_value = self
+                    .borrow()
+                    .properties
+                    .index_property_keys()
+                    .max()
+                    .copied();
 
                 if let Some(mut index) = max_value {
                     while index >= new_len {
-                        let contains_index = self.borrow().indexed_properties.contains_key(&index);
+                        let contains_index = self.borrow().properties.contains_key(&index.into());
                         if contains_index && !self.__delete__(&index.into()) {
                             new_len_desc = new_len_desc.value(index + 1);
                             if !new_writable {
@@ -661,11 +666,7 @@ impl GcObject {
     #[inline]
     pub fn ordinary_get_own_property(&self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         let object = self.borrow();
-        let property = match key {
-            PropertyKey::Index(index) => object.indexed_properties.get(index),
-            PropertyKey::String(ref st) => object.string_properties.get(st),
-            PropertyKey::Symbol(ref symbol) => object.symbol_properties.get(symbol),
-        };
+        let property = object.properties.get(key);
 
         property.cloned()
     }
@@ -679,7 +680,7 @@ impl GcObject {
     #[inline]
     #[track_caller]
     pub fn own_property_keys(&self) -> Vec<PropertyKey> {
-        self.borrow().keys().collect()
+        self.borrow().properties.keys().collect()
     }
 
     /// The abstract operation ObjectDefineProperties
@@ -895,26 +896,13 @@ impl Object {
         K: Into<PropertyKey>,
         P: Into<PropertyDescriptor>,
     {
-        let property = property.into();
-        match key.into() {
-            PropertyKey::Index(index) => self.indexed_properties.insert(index, property),
-            PropertyKey::String(ref string) => {
-                self.string_properties.insert(string.clone(), property)
-            }
-            PropertyKey::Symbol(ref symbol) => {
-                self.symbol_properties.insert(symbol.clone(), property)
-            }
-        }
+        self.properties.insert(key.into(), property.into())
     }
 
     /// Helper function for property removal.
     #[inline]
     pub(crate) fn remove(&mut self, key: &PropertyKey) -> Option<PropertyDescriptor> {
-        match key {
-            PropertyKey::Index(index) => self.indexed_properties.remove(index),
-            PropertyKey::String(ref string) => self.string_properties.remove(string),
-            PropertyKey::Symbol(ref symbol) => self.symbol_properties.remove(symbol),
-        }
+        self.properties.remove(key)
     }
 
     /// Inserts a field in the object `properties` without checking if it's writable.

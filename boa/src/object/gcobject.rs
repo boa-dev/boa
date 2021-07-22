@@ -428,7 +428,12 @@ impl GcObject {
         if rec_limiter.live {
             Err(context.construct_type_error("cyclic object value"))
         } else if self.is_array() {
-            let mut keys: Vec<u32> = self.borrow().index_property_keys().cloned().collect();
+            let mut keys: Vec<u32> = self
+                .borrow()
+                .properties
+                .index_property_keys()
+                .cloned()
+                .collect();
             keys.sort_unstable();
             let mut arr: Vec<JSONValue> = Vec::with_capacity(keys.len());
             let this = Value::from(self.clone());
@@ -444,7 +449,7 @@ impl GcObject {
         } else {
             let mut new_obj = Map::new();
             let this = Value::from(self.clone());
-            let keys: Vec<PropertyKey> = self.borrow().keys().collect();
+            let keys: Vec<PropertyKey> = self.borrow().properties.keys().collect();
             for k in keys {
                 let key = k.clone();
                 let value = this.get_field(k.to_string(), context)?;
