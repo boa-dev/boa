@@ -13,7 +13,6 @@ pub mod array_iterator;
 #[cfg(test)]
 mod tests;
 
-use crate::property::PropertyDescriptor;
 use crate::{
     builtins::array::array_iterator::{ArrayIterationKind, ArrayIterator},
     builtins::BuiltIn,
@@ -292,8 +291,7 @@ impl Array {
             return Ok(false);
         }
         // 2. Let spreadable be ? Get(O, @@isConcatSpreadable).
-        let spreadable = this
-            .get_field(WellKnownSymbols::is_concat_spreadable(), context)?;
+        let spreadable = this.get_field(WellKnownSymbols::is_concat_spreadable(), context)?;
 
         // 3. If spreadable is not undefined, return ! ToBoolean(spreadable).
         if !spreadable.is_undefined() {
