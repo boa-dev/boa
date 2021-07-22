@@ -562,7 +562,7 @@ impl Context {
     #[inline]
     pub(crate) fn has_property(&self, obj: &Value, key: &PropertyKey) -> bool {
         if let Some(obj) = obj.as_object() {
-            obj.has_property(key)
+            obj.__has_property__(key)
         } else {
             false
         }

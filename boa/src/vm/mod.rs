@@ -370,7 +370,7 @@ impl<'a> Vm<'a> {
                 };
 
                 let name = self.code.names[index as usize].clone();
-                let result = object.get(&name.into(), value, self.context)?;
+                let result = object.get(name, self.context)?;
 
                 self.push(result)
             }
@@ -384,7 +384,7 @@ impl<'a> Vm<'a> {
                 };
 
                 let key = key.to_property_key(self.context)?;
-                let result = object.get(&key, value, self.context)?;
+                let result = object.get(key, self.context)?;
 
                 self.push(result)
             }
@@ -393,7 +393,7 @@ impl<'a> Vm<'a> {
 
                 let object = self.pop();
                 let value = self.pop();
-                let mut object = if let Some(object) = object.as_object() {
+                let object = if let Some(object) = object.as_object() {
                     object
                 } else {
                     object.to_object(self.context)?
@@ -401,20 +401,20 @@ impl<'a> Vm<'a> {
 
                 let name = self.code.names[index as usize].clone();
 
-                object.set(name.into(), value, object.clone().into(), self.context)?;
+                object.set(name, value, true, self.context)?;
             }
             Opcode::SetPropertyByValue => {
                 let object = self.pop();
                 let key = self.pop();
                 let value = self.pop();
-                let mut object = if let Some(object) = object.as_object() {
+                let object = if let Some(object) = object.as_object() {
                     object
                 } else {
                     object.to_object(self.context)?
                 };
 
                 let key = key.to_property_key(self.context)?;
-                object.set(key, value, object.clone().into(), self.context)?;
+                object.set(key, value, true, self.context)?;
             }
             Opcode::Throw => {
                 let value = self.pop();

@@ -142,7 +142,7 @@ impl Reflect {
         context: &mut Context,
     ) -> Result<Value> {
         let undefined = Value::undefined();
-        let mut target = args
+        let target = args
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
@@ -154,7 +154,7 @@ impl Reflect {
             .to_property_descriptor(context)?;
 
         target
-            .define_own_property(key, prop_desc, context)
+            .__define_own_property__(key, prop_desc, context)
             .map(|b| b.into())
     }
 
@@ -172,13 +172,13 @@ impl Reflect {
         context: &mut Context,
     ) -> Result<Value> {
         let undefined = Value::undefined();
-        let mut target = args
+        let target = args
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
         let key = args.get(1).unwrap_or(&undefined).to_property_key(context)?;
 
-        Ok(target.delete(&key).into())
+        Ok(target.__delete__(&key).into())
     }
 
     /// Gets a property of an object.
@@ -191,17 +191,22 @@ impl Reflect {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/get
     pub(crate) fn get(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let undefined = Value::undefined();
+        // 1. If Type(target) is not Object, throw a TypeError exception.
         let target = args
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
+        // 2. Let key be ? ToPropertyKey(propertyKey).
         let key = args.get(1).unwrap_or(&undefined).to_property_key(context)?;
+        // 3. If receiver is not present, then
         let receiver = if let Some(receiver) = args.get(2).cloned() {
             receiver
         } else {
+            // 3.a. Set receiver to target.
             target.clone().into()
         };
-        target.get(&key, receiver, context)
+        // 4. Return ? target.[[Get]](key, receiver).
+        target.__get__(&key, receiver, context)
     }
 
     /// Gets a property of an object.
@@ -243,7 +248,7 @@ impl Reflect {
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
-        Ok(target.get_prototype_of())
+        Ok(target.__get_prototype_of__())
     }
 
     /// Returns `true` if the object has the property, `false` otherwise.
@@ -263,7 +268,7 @@ impl Reflect {
             .get(1)
             .unwrap_or(&Value::undefined())
             .to_property_key(context)?;
-        Ok(target.has_property(&key).into())
+        Ok(target.__has_property__(&key).into())
     }
 
     /// Returns `true` if the object is extensible, `false` otherwise.
@@ -279,7 +284,7 @@ impl Reflect {
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
-        Ok(target.is_extensible().into())
+        Ok(target.__is_extensible__().into())
     }
 
     /// Returns an array of object own property keys.
@@ -332,7 +337,7 @@ impl Reflect {
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
 
-        Ok(target.prevent_extensions().into())
+        Ok(target.__prevent_extensions__().into())
     }
 
     /// Sets a property of an object.
@@ -345,7 +350,7 @@ impl Reflect {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/set
     pub(crate) fn set(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let undefined = Value::undefined();
-        let mut target = args
+        let target = args
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
@@ -356,7 +361,9 @@ impl Reflect {
         } else {
             target.clone().into()
         };
-        Ok(target.set(key, value.clone(), receiver, context)?.into())
+        Ok(target
+            .__set__(key, value.clone(), receiver, context)?
+            .into())
     }
 
     /// Sets the prototype of an object.
@@ -381,6 +388,6 @@ impl Reflect {
         if !proto.is_null() && !proto.is_object() {
             return context.throw_type_error("proto must be an object or null");
         }
-        Ok(target.set_prototype_of(proto.clone()).into())
+        Ok(target.__set_prototype_of__(proto.clone()).into())
     }
 }

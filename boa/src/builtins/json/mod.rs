@@ -197,7 +197,7 @@ impl Json {
                 .map(|obj| {
                     let object_to_return = Value::object(Object::default());
                     for key in obj.borrow().keys() {
-                        let val = obj.get(&key, obj.clone().into(), context)?;
+                        let val = obj.__get__(&key, obj.clone().into(), context)?;
                         let this_arg = object.clone();
                         object_to_return.set_property(
                             key.to_owned(),

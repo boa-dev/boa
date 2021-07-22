@@ -149,7 +149,7 @@ impl MapIterator {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let mut map_iterator = context.construct_object();
+        let map_iterator = context.construct_object();
         make_builtin_fn(Self::next, "next", &map_iterator, 0, context);
         map_iterator.set_prototype_instance(iterator_prototype);
 

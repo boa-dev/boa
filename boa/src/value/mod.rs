@@ -426,9 +426,7 @@ impl Value {
     where
         Key: Into<PropertyKey>,
     {
-        self.as_object()
-            .map(|mut x| x.remove(&key.into()))
-            .is_some()
+        self.as_object().map(|x| x.remove(&key.into())).is_some()
     }
 
     /// Resolve the property in the object.
@@ -442,7 +440,7 @@ impl Value {
         let _timer = BoaProfiler::global().start_event("Value::get_property", "value");
         match self {
             Self::Object(ref object) => {
-                let property = object.get_own_property(&key);
+                let property = object.__get_own_property__(&key);
                 if property.is_some() {
                     return property;
                 }
@@ -461,7 +459,8 @@ impl Value {
     {
         let _timer = BoaProfiler::global().start_event("Value::get_field", "value");
         if let Self::Object(ref obj) = *self {
-            obj.clone().get(&key.into(), obj.clone().into(), context)
+            obj.clone()
+                .__get__(&key.into(), obj.clone().into(), context)
         } else {
             Ok(Value::undefined())
         }
@@ -475,7 +474,7 @@ impl Value {
     {
         let _timer = BoaProfiler::global().start_event("Value::has_field", "value");
         self.as_object()
-            .map(|object| object.has_property(&key.into()))
+            .map(|object| object.__has_property__(&key.into()))
             .unwrap_or(false)
     }
 
@@ -512,7 +511,7 @@ impl Value {
             // 4. Let success be ? O.[[Set]](P, V, O).
             let success = obj
                 .clone()
-                .set(key, value.clone(), obj.clone().into(), context)?;
+                .__set__(key, value.clone(), obj.clone().into(), context)?;
 
             // 5. If success is false and Throw is true, throw a TypeError exception.
             // 6. Return success.
@@ -540,7 +539,7 @@ impl Value {
         K: Into<PropertyKey>,
         P: Into<PropertyDescriptor>,
     {
-        if let Some(mut object) = self.as_object() {
+        if let Some(object) = self.as_object() {
             object.insert(key.into(), property.into());
         }
     }
@@ -699,7 +698,7 @@ impl Value {
             Value::String(ref string) => {
                 let prototype = context.standard_objects().string_object().prototype();
 
-                let mut object = GcObject::new(Object::with_prototype(
+                let object = GcObject::new(Object::with_prototype(
                     prototype.into(),
                     ObjectData::String(string.clone()),
                 ));
