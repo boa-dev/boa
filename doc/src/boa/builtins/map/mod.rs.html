@@ -470,6 +470,14 @@
 <span id="469">469</span>
 <span id="470">470</span>
 <span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Map` objest.</span>
 <span class="doccomment">//!</span>
@@ -497,12 +505,14 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">map_iterator</span>;
 <span class="kw">use</span> <span class="ident">map_iterator</span>::{<span class="ident">MapIterationKind</span>, <span class="ident">MapIterator</span>};
 
+<span class="kw">use</span> <span class="self">self</span><span class="ident">::ordered_map::MapLock</span>;
+
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ordered_map</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Map</span>(<span class="ident">OrderedMap</span><span class="op">&lt;</span><span class="ident">Value</span>, <span class="ident">Value</span><span class="op">&gt;</span>);
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Map</span>(<span class="ident">OrderedMap</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">Map</span> {
     <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Map&quot;</span>;
@@ -671,11 +681,7 @@
     <span class="doccomment">/// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-map.prototype.entries</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">entries</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">MapIterator::create_map_iterator</span>(
-            <span class="ident">context</span>,
-            <span class="ident">this</span>.<span class="ident">clone</span>(),
-            <span class="ident">MapIterationKind::KeyAndValue</span>,
-        ))
+        <span class="ident">MapIterator::create_map_iterator</span>(<span class="ident">context</span>, <span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">MapIterationKind::KeyAndValue</span>)
     }
 
     <span class="doccomment">/// `Map.prototype.keys()`</span>
@@ -689,11 +695,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.keys</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">keys</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">MapIterator::create_map_iterator</span>(
-            <span class="ident">context</span>,
-            <span class="ident">this</span>.<span class="ident">clone</span>(),
-            <span class="ident">MapIterationKind::Key</span>,
-        ))
+        <span class="ident">MapIterator::create_map_iterator</span>(<span class="ident">context</span>, <span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">MapIterationKind::Key</span>)
     }
 
     <span class="doccomment">/// Helper function to set the size property.</span>
@@ -865,7 +867,9 @@
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="number">0</span>;
 
-        <span class="kw">while</span> <span class="ident">index</span> <span class="op">&lt;</span> <span class="ident">Map::get_size</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
+        <span class="kw">let</span> <span class="ident">lock</span> <span class="op">=</span> <span class="ident">Map::lock</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="kw">while</span> <span class="ident">index</span> <span class="op">&lt;</span> <span class="ident">Map::get_full_len</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
             <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span> {
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>();
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">map</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_map_ref</span>() {
@@ -888,15 +892,31 @@
             <span class="ident">index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
 
+        <span class="ident">drop</span>(<span class="ident">lock</span>);
+
         <span class="prelude-val">Ok</span>(<span class="ident">Value::Undefined</span>)
     }
 
-    <span class="doccomment">/// Helper function to get the size of the map.</span>
-    <span class="kw">fn</span> <span class="ident">get_size</span>(<span class="ident">map</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Helper function to get the full size of the map.</span>
+    <span class="kw">fn</span> <span class="ident">get_full_len</span>(<span class="ident">map</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span> <span class="ident">map</span> {
             <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>();
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">map</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_map_ref</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">map</span>.<span class="ident">len</span>())
+                <span class="prelude-val">Ok</span>(<span class="ident">map</span>.<span class="ident">full_len</span>())
+            } <span class="kw">else</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>))
+            }
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>))
+        }
+    }
+
+    <span class="doccomment">/// Helper function to lock the map.</span>
+    <span class="kw">fn</span> <span class="ident">lock</span>(<span class="ident">map</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MapLock</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span> <span class="ident">map</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow_mut</span>();
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">map</span>) <span class="op">=</span> <span class="ident">map</span>.<span class="ident">as_map_mut</span>() {
+                <span class="prelude-val">Ok</span>(<span class="ident">map</span>.<span class="ident">lock</span>(<span class="ident">object</span>.<span class="ident">clone</span>()))
             } <span class="kw">else</span> {
                 <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>))
             }
@@ -916,11 +936,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.values</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/values</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">values</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">MapIterator::create_map_iterator</span>(
-            <span class="ident">context</span>,
-            <span class="ident">this</span>.<span class="ident">clone</span>(),
-            <span class="ident">MapIterationKind::Value</span>,
-        ))
+        <span class="ident">MapIterator::create_map_iterator</span>(<span class="ident">context</span>, <span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">MapIterationKind::Value</span>)
     }
 
     <span class="doccomment">/// Helper function to get a key-value pair from an array.</span>
