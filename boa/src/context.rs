@@ -252,7 +252,7 @@ impl StandardObjects {
 ///
 /// let value = context.eval("test(arg)").unwrap();
 ///
-/// assert_eq!(value, boa::value::Value::Integer(12))
+/// assert_eq!(value.as_number(), Some(12.0))
 /// ```
 #[derive(Debug)]
 pub struct Context {
