@@ -217,6 +217,38 @@ impl StandardObjects {
 /// `Context`s constructed in a thread share the same runtime, therefore it
 /// is possible to share objects from one context to another context, but they
 /// have to be in the same thread.
+///
+/// # Examples
+///
+/// ## Execute Function of Script File
+///
+/// ```rust
+/// use boa::{Context, object::ObjectInitializer, property::Attribute};
+///
+/// let script = r#"
+/// function test(arg1) {
+///     if(arg1 != null) {
+///         return arg1.x;
+///     }
+///     return 112233;
+/// }
+/// "#;
+///
+/// let mut context = Context::new();
+///
+/// // Populate the script definition to the context.
+/// context.eval(script).unwrap();
+///
+/// // Create an object that can be used in eval calls.
+/// let arg = ObjectInitializer::new(&mut context)
+///     .property("x", 12, Attribute::READONLY)
+///     .build();
+/// context.register_global_property("arg", arg, Attribute::all());
+///
+/// let value = context.eval("test(arg)").unwrap();
+///
+/// assert_eq!(value.as_number(), Some(12.0))
+/// ```
 #[derive(Debug)]
 pub struct Context {
     /// realm holds both the global object and the environment
