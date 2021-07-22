@@ -112,9 +112,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
     fn get_binding_value(&self, name: &str, strict: bool, context: &mut Context) -> Result<Value> {
         if self.bindings.has_field(name) {
             match self.bindings.get_property(name) {
-                Some(PropertyDescriptor::Data(ref d)) => {
-                    Ok(d.value().unwrap_or_else(Value::undefined))
-                }
+                Some(PropertyDescriptor::Data(ref d)) => Ok(d.value()),
                 _ => Ok(Value::undefined()),
             }
         } else if strict {

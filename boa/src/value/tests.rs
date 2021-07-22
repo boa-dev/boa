@@ -286,7 +286,6 @@ fn string_length_is_in_utf16_codeunits() {
             .as_data_descriptor()
             .unwrap()
             .value()
-            .unwrap()
             .to_integer_or_infinity(&mut context)
             .unwrap(),
         IntegerOrInfinity::Integer(2)

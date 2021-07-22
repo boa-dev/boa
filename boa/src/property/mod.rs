@@ -34,8 +34,9 @@ pub use attribute::Attribute;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct DataDescriptor {
-    pub(crate) value: Option<Value>,
+    pub(crate) value: Value,
     attributes: Attribute,
+    has_value: bool,
 }
 
 impl DataDescriptor {
@@ -46,8 +47,9 @@ impl DataDescriptor {
         V: Into<Value>,
     {
         Self {
-            value: Some(value.into()),
+            value: value.into(),
             attributes,
+            has_value: true,
         }
     }
 
@@ -55,15 +57,22 @@ impl DataDescriptor {
     #[inline]
     pub fn new_without_value(attributes: Attribute) -> Self {
         Self {
-            value: None,
+            value: Value::undefined(),
             attributes,
+            has_value: false,
         }
     }
 
     /// Return the `value` of the data descriptor.
     #[inline]
-    pub fn value(&self) -> Option<Value> {
+    pub fn value(&self) -> Value {
         self.value.clone()
+    }
+
+    /// Check whether the data descriptor has a value.
+    #[inline]
+    pub fn has_value(&self) -> bool {
+        self.has_value
     }
 
     /// Return the attributes of the descriptor.

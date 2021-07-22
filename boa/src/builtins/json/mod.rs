@@ -230,7 +230,7 @@ impl Json {
                             .get_property(key)
                             .as_ref()
                             .and_then(|p| p.as_data_descriptor())
-                            .map(|d| d.value().unwrap_or_else(Value::undefined))
+                            .map(|d| d.value())
                             .unwrap_or_else(Value::undefined),
                     )
                 }
