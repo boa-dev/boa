@@ -196,6 +196,7 @@ impl GcObject {
             }
 
             self.insert(key, desc);
+
             return true;
         };
 
@@ -234,8 +235,8 @@ impl GcObject {
                     return false;
                 }
 
-                let current = DataDescriptor::new(value, current.attributes());
-                self.insert(key, current);
+                self.insert(key, DataDescriptor::new(value, current.attributes()));
+
                 return true;
             }
             (PropertyDescriptor::Data(current), PropertyDescriptor::Data(desc)) => {
@@ -268,7 +269,22 @@ impl GcObject {
             }
         }
 
-        self.insert(key, desc);
+        match (&current, &desc) {
+            (PropertyDescriptor::Data(current_data), PropertyDescriptor::Data(desc_data)) => {
+                if desc_data.has_value() {
+                    self.insert(key, desc);
+                } else {
+                    self.insert(
+                        key,
+                        DataDescriptor::new(current_data.value.clone(), desc_data.attributes()),
+                    );
+                }
+            }
+            _ => {
+                self.insert(key, desc);
+            }
+        }
+
         true
     }
 

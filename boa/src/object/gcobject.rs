@@ -534,12 +534,14 @@ impl GcObject {
             }
 
             Ok(AccessorDescriptor::new(get, set, attribute).into())
+        } else if let Some(v) = value {
+            Ok(DataDescriptor::new(v, attribute).into())
         } else {
-            Ok(DataDescriptor::new(value.unwrap_or_else(Value::undefined), attribute).into())
+            Ok(DataDescriptor::new_without_value(attribute).into())
         }
     }
 
-    /// Reeturn `true` if it is a native object and the native type is `T`.
+    /// Return `true` if it is a native object and the native type is `T`.
     ///
     /// # Panics
     ///
