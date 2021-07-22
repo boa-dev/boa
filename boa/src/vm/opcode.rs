@@ -137,7 +137,7 @@ pub enum Opcode {
     ///
     /// Operands: n: `u32`
     ///
-    /// Stack: v1, v1, ... vn **=>** [v1, v2, ..., vn]    
+    /// Stack: v1, v1, ... vn **=>** [v1, v2, ..., vn]
     PushNewArray,
 
     /// Binary `+` operator.
@@ -235,7 +235,7 @@ pub enum Opcode {
     ///
     /// Operands:
     ///
-    /// Stack: lhs, rhs **=>** (lhs `in` rhs)    
+    /// Stack: lhs, rhs **=>** (lhs `in` rhs)
     In,
 
     /// Binary `==` operator.
@@ -491,6 +491,21 @@ pub enum Opcode {
     /// Stack: **=>** `this`
     This,
 
+    /// Pop the two values of the stack, strict equal compares the two values,
+    /// if true jumps to address, otherwise push the second poped value.
+    ///
+    /// Operands: address: `u32`
+    ///
+    /// Stack: `value`, `cond` **=>** `cond` (if `cond !== value`).
+    Case,
+
+    /// Pops the top of stack and jump to address.
+    ///
+    /// Operands: address: `u32`
+    ///
+    /// Stack: `value` **=>**
+    Default,
+
     /// No-operation instruction, does nothing.
     ///
     /// Operands:
@@ -579,6 +594,8 @@ impl Opcode {
             Opcode::Throw => "Throw",
             Opcode::ToBoolean => "ToBoolean",
             Opcode::This => "This",
+            Opcode::Case => "Case",
+            Opcode::Default => "Default",
             Opcode::Nop => "Nop",
         }
     }
