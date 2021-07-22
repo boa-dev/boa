@@ -757,7 +757,7 @@
 <span class="kw">impl</span> <span class="ident">PartialOrd</span> <span class="kw">for</span> <span class="ident">JsString</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">std::cmp::Ordering</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">as_str</span>().<span class="ident">partial_cmp</span>(<span class="ident">other</span>)
+        <span class="self">self</span>.<span class="ident">as_str</span>().<span class="ident">partial_cmp</span>(<span class="ident">other</span>.<span class="ident">as_str</span>())
     }
 }
 

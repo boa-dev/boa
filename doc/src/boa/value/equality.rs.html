@@ -181,22 +181,6 @@
 <span id="180">180</span>
 <span id="181">181</span>
 <span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins::Number</span>, <span class="ident">Context</span>};
@@ -215,7 +199,7 @@
         <span class="kw">match</span> (<span class="self">self</span>, <span class="ident">other</span>) {
             <span class="comment">// 2. If Type(x) is Number or BigInt, then</span>
             <span class="comment">//    a. Return ! Type(x)::equal(x, y).</span>
-            (<span class="self">Self</span><span class="ident">::BigInt</span>(<span class="ident">x</span>), <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BigInt::equal</span>(<span class="ident">x</span>, <span class="ident">y</span>),
+            (<span class="self">Self</span><span class="ident">::BigInt</span>(<span class="ident">x</span>), <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsBigInt::equal</span>(<span class="ident">x</span>, <span class="ident">y</span>),
             (<span class="self">Self</span><span class="ident">::Rational</span>(<span class="ident">x</span>), <span class="self">Self</span><span class="ident">::Rational</span>(<span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Number::equal</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="kw-2">*</span><span class="ident">y</span>),
             (<span class="self">Self</span><span class="ident">::Rational</span>(<span class="ident">x</span>), <span class="self">Self</span><span class="ident">::Integer</span>(<span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Number::equal</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
             (<span class="self">Self</span><span class="ident">::Integer</span>(<span class="ident">x</span>), <span class="self">Self</span><span class="ident">::Rational</span>(<span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Number::equal</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>), <span class="kw-2">*</span><span class="ident">y</span>),
@@ -268,14 +252,14 @@
             <span class="comment">//    a. Let n be ! StringToBigInt(y).</span>
             <span class="comment">//    b. If n is NaN, return false.</span>
             <span class="comment">//    c. Return the result of the comparison x == n.</span>
-            (<span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="self">Self</span><span class="ident">::String</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">string_to_bigint</span>(<span class="ident">b</span>) {
-                <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>.<span class="ident">as_inner</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>,
+            (<span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="self">Self</span><span class="ident">::String</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">JsBigInt::from_string</span>(<span class="ident">b</span>) {
+                <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">b</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>,
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
             },
 
             <span class="comment">// 7. If Type(x) is String and Type(y) is BigInt, return the result of the comparison y == x.</span>
-            (<span class="self">Self</span><span class="ident">::String</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">string_to_bigint</span>(<span class="ident">a</span>) {
-                <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>.<span class="ident">as_inner</span>(),
+            (<span class="self">Self</span><span class="ident">::String</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">JsBigInt::from_string</span>(<span class="ident">a</span>) {
+                <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">a</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>,
                 <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
             },
 
@@ -302,10 +286,10 @@
             <span class="comment">// 12. If Type(x) is BigInt and Type(y) is Number, or if Type(x) is Number and Type(y) is BigInt, then</span>
             <span class="comment">//    a. If x or y are any of NaN, +∞, or -∞, return false.</span>
             <span class="comment">//    b. If the mathematical value of x is equal to the mathematical value of y, return true; otherwise return false.</span>
-            (<span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="self">Self</span><span class="ident">::Rational</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>.<span class="ident">as_inner</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>,
-            (<span class="self">Self</span><span class="ident">::Rational</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>.<span class="ident">as_inner</span>(),
-            (<span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="self">Self</span><span class="ident">::Integer</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span>.<span class="ident">as_inner</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>,
-            (<span class="self">Self</span><span class="ident">::Integer</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>.<span class="ident">as_inner</span>(),
+            (<span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="self">Self</span><span class="ident">::Rational</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>,
+            (<span class="self">Self</span><span class="ident">::Rational</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>,
+            (<span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="self">Self</span><span class="ident">::Integer</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>,
+            (<span class="self">Self</span><span class="ident">::Integer</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>,
 
             <span class="comment">// 13. Return false.</span>
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
@@ -328,7 +312,7 @@
         <span class="kw">match</span> (<span class="ident">x</span>, <span class="ident">y</span>) {
             <span class="comment">// 2. If Type(x) is Number or BigInt, then</span>
             <span class="comment">//    a. Return ! Type(x)::SameValue(x, y).</span>
-            (<span class="ident">Value::BigInt</span>(<span class="ident">x</span>), <span class="ident">Value::BigInt</span>(<span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BigInt::same_value</span>(<span class="ident">x</span>, <span class="ident">y</span>),
+            (<span class="ident">Value::BigInt</span>(<span class="ident">x</span>), <span class="ident">Value::BigInt</span>(<span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsBigInt::same_value</span>(<span class="ident">x</span>, <span class="ident">y</span>),
             (<span class="ident">Value::Rational</span>(<span class="ident">x</span>), <span class="ident">Value::Rational</span>(<span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Number::same_value</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="kw-2">*</span><span class="ident">y</span>),
             (<span class="ident">Value::Rational</span>(<span class="ident">x</span>), <span class="ident">Value::Integer</span>(<span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Number::same_value</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
             (<span class="ident">Value::Integer</span>(<span class="ident">x</span>), <span class="ident">Value::Rational</span>(<span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Number::same_value</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>), <span class="kw-2">*</span><span class="ident">y</span>),
@@ -356,7 +340,7 @@
         <span class="kw">match</span> (<span class="ident">x</span>, <span class="ident">y</span>) {
             <span class="comment">// 2. If Type(x) is Number or BigInt, then</span>
             <span class="comment">//    a. Return ! Type(x)::SameValueZero(x, y).</span>
-            (<span class="ident">Value::BigInt</span>(<span class="ident">x</span>), <span class="ident">Value::BigInt</span>(<span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">BigInt::same_value_zero</span>(<span class="ident">x</span>, <span class="ident">y</span>),
+            (<span class="ident">Value::BigInt</span>(<span class="ident">x</span>), <span class="ident">Value::BigInt</span>(<span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsBigInt::same_value_zero</span>(<span class="ident">x</span>, <span class="ident">y</span>),
 
             (<span class="ident">Value::Rational</span>(<span class="ident">x</span>), <span class="ident">Value::Rational</span>(<span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Number::same_value_zero</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="kw-2">*</span><span class="ident">y</span>),
             (<span class="ident">Value::Rational</span>(<span class="ident">x</span>), <span class="ident">Value::Integer</span>(<span class="ident">y</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Number::same_value_zero</span>(<span class="kw-2">*</span><span class="ident">x</span>, <span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
@@ -379,22 +363,6 @@
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }
     }
-}
-
-<span class="doccomment">/// This function takes a string and conversts it to BigInt type.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// If the result is `NaN` than `None` is returned.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-stringtobigint</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">string_to_bigint</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BigInt</span><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="ident">string</span>.<span class="ident">is_empty</span>() {
-        <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">BigInt::from</span>(<span class="number">0</span>));
-    }
-
-    <span class="ident">BigInt::from_str</span>(<span class="ident">string</span>)
 }
 </pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>

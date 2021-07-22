@@ -1182,7 +1182,6 @@
 <span id="1181">1181</span>
 <span id="1182">1182</span>
 <span id="1183">1183</span>
-<span id="1184">1184</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
@@ -1196,13 +1195,12 @@
         <span class="ident">set::ordered_set::OrderedSet</span>,
         <span class="ident">set::set_iterator::SetIterator</span>,
         <span class="ident">string::string_iterator::StringIterator</span>,
-        <span class="ident">BigInt</span>, <span class="ident">Date</span>, <span class="ident">RegExp</span>,
+        <span class="ident">Date</span>, <span class="ident">RegExp</span>,
     },
     <span class="ident">context::StandardConstructor</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">property</span>::{<span class="ident">AccessorDescriptor</span>, <span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
-    <span class="ident">value</span>::{<span class="ident">RcBigInt</span>, <span class="ident">Value</span>},
-    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsString</span>, <span class="ident">JsSymbol</span>,
+    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsString</span>, <span class="ident">JsSymbol</span>, <span class="ident">Value</span>,
 };
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -1273,7 +1271,7 @@
     <span class="ident">MapIterator</span>(<span class="ident">MapIterator</span>),
     <span class="ident">RegExp</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">RegExp</span><span class="op">&gt;</span>),
     <span class="ident">RegExpStringIterator</span>(<span class="ident">RegExpStringIterator</span>),
-    <span class="ident">BigInt</span>(<span class="ident">RcBigInt</span>),
+    <span class="ident">BigInt</span>(<span class="ident">JsBigInt</span>),
     <span class="ident">Boolean</span>(<span class="ident">bool</span>),
     <span class="ident">ForInIterator</span>(<span class="ident">ForInIterator</span>),
     <span class="ident">Function</span>(<span class="ident">Function</span>),
@@ -1416,7 +1414,7 @@
 
     <span class="doccomment">/// Return a new `BigInt` object whose `[[BigIntData]]` internal slot is set to argument.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bigint</span>(<span class="ident">value</span>: <span class="ident">RcBigInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bigint</span>(<span class="ident">value</span>: <span class="ident">JsBigInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">data</span>: <span class="ident">ObjectData::BigInt</span>(<span class="ident">value</span>),
             <span class="ident">indexed_properties</span>: <span class="ident">FxHashMap::default</span>(),
@@ -1683,7 +1681,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_bigint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">BigInt</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_bigint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsBigInt</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
             <span class="ident">ObjectData::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Some</span>(<span class="ident">bigint</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">None</span>,

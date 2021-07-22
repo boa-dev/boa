@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["conversions",""],["equality",""],["operations","This module implements the `BigInt` operations."]],"struct":[["BigInt","`BigInt` implementation."]]});
+initSidebarItems({"struct":[["BigInt","`BigInt` implementation."]]});

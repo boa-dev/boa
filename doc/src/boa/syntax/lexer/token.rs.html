@@ -271,9 +271,9 @@
 <span class="kw">use</span> <span class="kw">super</span><span class="ident">::regex::RegExpFlags</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::BigInt</span>,
     <span class="ident">syntax::ast</span>::{<span class="ident">Keyword</span>, <span class="ident">Punctuator</span>, <span class="ident">Span</span>},
     <span class="ident">syntax::lexer::template::TemplateString</span>,
+    <span class="ident">JsBigInt</span>,
 };
 <span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>, <span class="ident">Formatter</span>};
 
@@ -332,7 +332,7 @@
     <span class="ident">Integer</span>(<span class="ident">i32</span>),
 
     <span class="comment">// A BigInt</span>
-    <span class="ident">BigInt</span>(<span class="ident">BigInt</span>),
+    <span class="ident">BigInt</span>(<span class="ident">JsBigInt</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
@@ -349,9 +349,9 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">BigInt</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsBigInt</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">n</span>: <span class="ident">BigInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">n</span>: <span class="ident">JsBigInt</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="ident">n</span>)
     }
 }

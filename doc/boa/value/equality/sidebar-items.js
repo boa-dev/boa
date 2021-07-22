@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["string_to_bigint","This function takes a string and conversts it to BigInt type."]]});
+initSidebarItems({});
