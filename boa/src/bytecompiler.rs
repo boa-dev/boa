@@ -4,16 +4,15 @@ use crate::{
         op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
         Const, Node,
     },
-    value::RcBigInt,
     vm::{CodeBlock, Opcode},
-    JsString, Value,
+    JsBigInt, JsString, Value,
 };
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum Literal {
     String(JsString),
-    BigInt(RcBigInt),
+    BigInt(JsBigInt),
 }
 
 #[must_use]
@@ -352,7 +351,7 @@ impl ByteCompiler {
                     Const::String(v) => self.emit_push_literal(Literal::String(v.as_ref().into())),
                     Const::Int(v) => self.emit_push_integer(*v),
                     Const::Num(v) => self.emit_push_rational(*v),
-                    Const::BigInt(v) => self.emit_push_literal(Literal::BigInt(v.clone().into())),
+                    Const::BigInt(v) => self.emit_push_literal(Literal::BigInt(v.clone())),
                     Const::Bool(true) => self.emit(Opcode::PushTrue, &[]),
                     Const::Bool(false) => self.emit(Opcode::PushFalse, &[]),
                     Const::Null => self.emit(Opcode::PushNull, &[]),

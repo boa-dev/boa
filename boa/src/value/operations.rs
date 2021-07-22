@@ -110,7 +110,7 @@ impl Value {
             (Self::Rational(x), Self::Integer(y)) => Self::rational(x / f64::from(*y)),
 
             (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                if b.as_inner().is_zero() {
+                if b.is_zero() {
                     return context.throw_range_error("BigInt division by zero");
                 }
                 Self::bigint(a.as_inner().clone() / b.as_inner().clone())
@@ -120,7 +120,7 @@ impl Value {
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(a), Numeric::Number(b)) => Self::rational(a / b),
                 (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
-                    if b.as_inner().is_zero() {
+                    if b.is_zero() {
                         return context.throw_range_error("BigInt division by zero");
                     }
                     Self::bigint(a.as_inner().clone() / b.as_inner().clone())
@@ -150,7 +150,7 @@ impl Value {
             (Self::Rational(x), Self::Integer(y)) => Self::rational(x % f64::from(*y)),
 
             (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                if b.as_inner().is_zero() {
+                if b.is_zero() {
                     return context.throw_range_error("BigInt division by zero");
                 }
                 Self::bigint(a.as_inner().clone() % b.as_inner().clone())
@@ -180,22 +180,16 @@ impl Value {
             (Self::Integer(x), Self::Rational(y)) => Self::rational(f64::from(*x).powf(*y)),
             (Self::Rational(x), Self::Integer(y)) => Self::rational(x.powi(*y)),
 
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => Self::bigint(
-                a.as_inner()
-                    .clone()
-                    .pow(b)
-                    .map_err(|msg| context.construct_range_error(msg))?,
-            ),
+            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+                Self::bigint(JsBigInt::pow(a, b, context)?)
+            }
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(a), Numeric::Number(b)) => Self::rational(a.powf(b)),
-                (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => Self::bigint(
-                    a.as_inner()
-                        .clone()
-                        .pow(b)
-                        .map_err(|msg| context.construct_range_error(msg))?,
-                ),
+                (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
+                    Self::bigint(JsBigInt::pow(a, b, context)?)
+                }
                 (_, _) => {
                     return context.throw_type_error(
                         "cannot mix BigInt and other types, use explicit conversions",
@@ -316,24 +310,18 @@ impl Value {
                 Self::integer(f64_to_int32(*x).wrapping_shl(*y as u32))
             }
 
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => Self::bigint(
-                a.as_inner()
-                    .clone()
-                    .shift_left(b.as_inner().clone())
-                    .map_err(|msg| context.construct_range_error(msg))?,
-            ),
+            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+                Self::bigint(JsBigInt::shift_left(a, b, context)?)
+            }
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(x), Numeric::Number(y)) => {
                     Self::integer(f64_to_int32(x).wrapping_shl(f64_to_uint32(y)))
                 }
-                (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => Self::bigint(
-                    x.as_inner()
-                        .clone()
-                        .shift_left(y.as_inner().clone())
-                        .map_err(|msg| context.construct_range_error(msg))?,
-                ),
+                (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => {
+                    Self::bigint(JsBigInt::shift_left(x, y, context)?)
+                }
                 (_, _) => {
                     return context.throw_type_error(
                         "cannot mix BigInt and other types, use explicit conversions",
@@ -358,24 +346,18 @@ impl Value {
                 Self::integer(f64_to_int32(*x).wrapping_shr(*y as u32))
             }
 
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => Self::bigint(
-                a.as_inner()
-                    .clone()
-                    .shift_right(b.as_inner().clone())
-                    .map_err(|msg| context.construct_range_error(msg))?,
-            ),
+            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+                Self::bigint(JsBigInt::shift_right(a, b, context)?)
+            }
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(x), Numeric::Number(y)) => {
                     Self::integer(f64_to_int32(x).wrapping_shr(f64_to_uint32(y)))
                 }
-                (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => Self::bigint(
-                    x.as_inner()
-                        .clone()
-                        .shift_right(y.as_inner().clone())
-                        .map_err(|msg| context.construct_range_error(msg))?,
-                ),
+                (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => {
+                    Self::bigint(JsBigInt::shift_right(x, y, context)?)
+                }
                 (_, _) => {
                     return context.throw_type_error(
                         "cannot mix BigInt and other types, use explicit conversions",
@@ -505,15 +487,15 @@ impl Value {
                         unreachable!()
                     }
                     (Self::BigInt(ref x), Self::String(ref y)) => {
-                        if let Some(y) = string_to_bigint(&y) {
-                            (*x.as_inner() < y).into()
+                        if let Some(y) = JsBigInt::from_string(&y) {
+                            (*x < y).into()
                         } else {
                             AbstractRelation::Undefined
                         }
                     }
                     (Self::String(ref x), Self::BigInt(ref y)) => {
-                        if let Some(x) = string_to_bigint(&x) {
-                            (x < *y.as_inner()).into()
+                        if let Some(x) = JsBigInt::from_string(&x) {
+                            (x < *y).into()
                         } else {
                             AbstractRelation::Undefined
                         }
@@ -533,7 +515,7 @@ impl Value {
                             } else {
                                 y.ceil()
                             };
-                            (*x.as_inner() < BigInt::try_from(n).unwrap()).into()
+                            (*x < JsBigInt::try_from(n).unwrap()).into()
                         }
                         (Numeric::Number(x), Numeric::BigInt(ref y)) => {
                             if x.is_nan() {
@@ -547,7 +529,7 @@ impl Value {
                             } else {
                                 x.ceil()
                             };
-                            (BigInt::try_from(n).unwrap() < *y.as_inner()).into()
+                            (JsBigInt::try_from(n).unwrap() < *y).into()
                         }
                     },
                 }
