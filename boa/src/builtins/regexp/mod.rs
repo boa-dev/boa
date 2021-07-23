@@ -14,7 +14,7 @@ pub mod regexp_string_iterator;
 use crate::{
     builtins::{array::Array, string, BuiltIn},
     gc::{empty_trace, Finalize, Trace},
-    object::{ConstructorBuilder, FunctionBuilder, GcObject, ObjectData, PROTOTYPE},
+    object::{ConstructorBuilder, FunctionBuilder, GcObject, Object, ObjectData, PROTOTYPE},
     property::Attribute,
     symbol::WellKnownSymbols,
     value::{IntegerOrInfinity, Value},
@@ -34,9 +34,6 @@ pub struct RegExp {
 
     /// Update last_index, set if global or sticky flags are set.
     use_last_index: bool,
-
-    /// String of parsed flags.
-    flags: Box<str>,
 
     /// Flag 's' - dot matches newline characters.
     dot_all: bool,
@@ -179,93 +176,171 @@ impl RegExp {
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 2;
 
-    /// Create a new `RegExp`
+    /// `22.2.3.1 RegExp ( pattern, flags )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-regexp-pattern-flags
     pub(crate) fn constructor(
         new_target: &Value,
         args: &[Value],
-        ctx: &mut Context,
+        context: &mut Context,
     ) -> Result<Value> {
-        let prototype = new_target
-            .as_object()
-            .and_then(|obj| {
-                obj.__get__(&PROTOTYPE.into(), obj.clone().into(), ctx)
-                    .map(|o| o.as_object())
-                    .transpose()
-            })
-            .transpose()?
-            .unwrap_or_else(|| ctx.standard_objects().regexp_object().prototype());
-        let this = Value::new_object(ctx);
+        let pattern = args.get(0).cloned().unwrap_or_else(Value::undefined);
+        let flags = args.get(1).cloned().unwrap_or_else(Value::undefined);
 
-        this.as_object()
-            .expect("this should be an object")
-            .set_prototype_instance(prototype.into());
-        let arg = args.get(0).ok_or_else(Value::undefined)?;
+        // 1. Let patternIsRegExp be ? IsRegExp(pattern).
+        let pattern_is_regexp = if let Value::Object(obj) = &pattern {
+            let obj = obj.borrow();
+            obj.is_regexp()
+        } else {
+            false
+        };
 
-        let (regex_body, mut regex_flags) = match arg {
-            Value::Undefined => (
-                String::new().into_boxed_str(),
-                String::new().into_boxed_str(),
-            ),
-            Value::Object(ref obj) => {
-                let obj = obj.borrow();
-                if let Some(regex) = obj.as_regexp() {
-                    // first argument is another `RegExp` object, so copy its pattern and flags
-                    (regex.original_source.clone(), regex.original_flags.clone())
-                } else {
-                    (
-                        arg.to_string(ctx)?.to_string().into_boxed_str(),
-                        String::new().into_boxed_str(),
-                    )
+        // 2. If NewTarget is undefined, then
+        // 3. Else, let newTarget be NewTarget.
+        if new_target.is_undefined() {
+            // a. Let newTarget be the active function object.
+            // b. If patternIsRegExp is true and flags is undefined, then
+            if pattern_is_regexp && flags.is_undefined() {
+                // i. Let patternConstructor be ? Get(pattern, "constructor").
+                let pattern_constructor = pattern.get_field("constructor", context)?;
+
+                // ii. If SameValue(newTarget, patternConstructor) is true, return pattern.
+                if Value::same_value(&new_target, &pattern_constructor) {
+                    return Ok(pattern);
                 }
             }
-            _ => (
-                arg.to_string(ctx)?.to_string().into_boxed_str(),
-                String::new().into_boxed_str(),
-            ),
-        };
-        // if a second argument is given and it's a string, use it as flags
-        if let Some(Value::String(flags)) = args.get(1) {
-            regex_flags = flags.to_string().into_boxed_str();
         }
 
-        // parse flags
-        let mut sorted_flags = String::new();
-        let mut dot_all = false;
+        // 4. If Type(pattern) is Object and pattern has a [[RegExpMatcher]] internal slot, then
+        // 6. Else,
+        let (p, f) = if pattern_is_regexp {
+            let o = pattern.as_object().unwrap();
+            let obj = o.borrow();
+            let regexp = obj.as_regexp().unwrap();
+
+            // a. Let P be pattern.[[OriginalSource]].
+            // b. If flags is undefined, let F be pattern.[[OriginalFlags]].
+            // c. Else, let F be flags.
+            if flags.is_undefined() {
+                (
+                    Value::from(regexp.original_source.clone()),
+                    Value::from(regexp.original_flags.clone()),
+                )
+            } else {
+                (Value::from(regexp.original_source.clone()), flags)
+            }
+        } else {
+            // a. Let P be pattern.
+            // b. Let F be flags.
+            (pattern, flags)
+        };
+
+        // 7. Let O be ? RegExpAlloc(newTarget).
+        let o = RegExp::alloc(new_target, &[], context)?;
+
+        // 8.Return ? RegExpInitialize(O, P, F).
+        RegExp::initialize(&o, &[p, f], context)
+    }
+
+    /// `22.2.3.2.1 RegExpAlloc ( newTarget )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-regexpalloc
+    fn alloc(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        let proto = if let Some(obj) = this.as_object() {
+            obj.get(PROTOTYPE, context)?
+        } else {
+            context
+                .standard_objects()
+                .regexp_object()
+                .prototype()
+                .into()
+        };
+
+        Ok(GcObject::new(Object::create(proto)).into())
+    }
+
+    /// `22.2.3.2.2 RegExpInitialize ( obj, pattern, flags )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-regexpinitialize
+    fn initialize(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let pattern = args.get(0).cloned().unwrap_or_else(Value::undefined);
+        let flags = args.get(1).cloned().unwrap_or_else(Value::undefined);
+
+        // 1. If pattern is undefined, let P be the empty String.
+        // 2. Else, let P be ? ToString(pattern).
+        let p = if pattern.is_undefined() {
+            String::new().into_boxed_str()
+        } else {
+            pattern.to_string(context)?.as_str().into()
+        };
+
+        // 3. If flags is undefined, let F be the empty String.
+        // 4. Else, let F be ? ToString(flags).
+        let f = if flags.is_undefined() {
+            String::new().into_boxed_str()
+        } else {
+            flags.to_string(context)?.as_str().into()
+        };
+
+        // 5. If F contains any code unit other than "g", "i", "m", "s", "u", or "y"
+        //    or if it contains the same code unit more than once, throw a SyntaxError exception.
         let mut global = false;
         let mut ignore_case = false;
         let mut multiline = false;
-        let mut sticky = false;
+        let mut dot_all = false;
         let mut unicode = false;
-        if regex_flags.contains('g') {
-            global = true;
-            sorted_flags.push('g');
-        }
-        if regex_flags.contains('i') {
-            ignore_case = true;
-            sorted_flags.push('i');
-        }
-        if regex_flags.contains('m') {
-            multiline = true;
-            sorted_flags.push('m');
-        }
-        if regex_flags.contains('s') {
-            dot_all = true;
-            sorted_flags.push('s');
-        }
-        if regex_flags.contains('u') {
-            unicode = true;
-            sorted_flags.push('u');
-        }
-        if regex_flags.contains('y') {
-            sticky = true;
-            sorted_flags.push('y');
+        let mut sticky = false;
+        for c in f.chars() {
+            match c {
+                'g' if global => {
+                    return context.throw_syntax_error("RegExp flags contains multiple 'g'")
+                }
+                'g' => global = true,
+                'i' if ignore_case => {
+                    return context.throw_syntax_error("RegExp flags contains multiple 'i'")
+                }
+                'i' => ignore_case = true,
+                'm' if multiline => {
+                    return context.throw_syntax_error("RegExp flags contains multiple 'm'")
+                }
+                'm' => multiline = true,
+                's' if dot_all => {
+                    return context.throw_syntax_error("RegExp flags contains multiple 's'")
+                }
+                's' => dot_all = true,
+                'u' if unicode => {
+                    return context.throw_syntax_error("RegExp flags contains multiple 'u'")
+                }
+                'u' => unicode = true,
+                'y' if sticky => {
+                    return context.throw_syntax_error("RegExp flags contains multiple 'y'")
+                }
+                'y' => sticky = true,
+                c => {
+                    return context.throw_syntax_error(format!(
+                        "RegExp flags contains unknown code unit '{}'",
+                        c
+                    ))
+                }
+            }
         }
 
-        let matcher = match Regex::with_flags(&regex_body, sorted_flags.as_str()) {
+        // 12. Set obj.[[OriginalSource]] to P.
+        // 13. Set obj.[[OriginalFlags]] to F.
+        // 14. Set obj.[[RegExpMatcher]] to the Abstract Closure that evaluates parseResult by applying the semantics provided in 22.2.2 using patternCharacters as the pattern's List of SourceCharacter values and F as the flag parameters.
+        let matcher = match Regex::with_flags(&p, f.as_ref()) {
             Err(error) => {
-                return Err(
-                    ctx.construct_syntax_error(format!("failed to create matcher: {}", error.text))
-                );
+                return Err(context
+                    .construct_syntax_error(format!("failed to create matcher: {}", error.text)));
             }
             Ok(val) => val,
         };
@@ -273,20 +348,38 @@ impl RegExp {
         let regexp = RegExp {
             matcher,
             use_last_index: global || sticky,
-            flags: sorted_flags.into_boxed_str(),
             dot_all,
             global,
             ignore_case,
             multiline,
             sticky,
             unicode,
-            original_source: regex_body,
-            original_flags: regex_flags,
+            original_source: p,
+            original_flags: f,
         };
 
         this.set_data(ObjectData::RegExp(Box::new(regexp)));
 
-        Ok(this)
+        // 16. Return obj.
+        Ok(this.clone())
+    }
+
+    /// `22.2.3.2.4 RegExpCreate ( P, F )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-regexpcreate
+    pub(crate) fn create(p: Value, f: Value, context: &mut Context) -> Result<Value> {
+        // 1. Let obj be ? RegExpAlloc(%RegExp%).
+        let obj = RegExp::alloc(
+            &context.global_object().get(RegExp::NAME, context)?,
+            &[],
+            context,
+        )?;
+
+        // 2. Return ? RegExpInitialize(obj, P, F).
+        RegExp::initialize(&obj, &[p, f], context)
     }
 
     /// `get RegExp [ @@species ]`
@@ -1016,7 +1109,7 @@ impl RegExp {
                     this.display()
                 ))
             })?;
-            (regex.original_source.clone(), regex.flags.clone())
+            (regex.original_source.clone(), regex.original_flags.clone())
         } else {
             return context.throw_type_error(format!(
                 "Method RegExp.prototype.toString called on incompatible receiver {}",
@@ -1056,7 +1149,7 @@ impl RegExp {
         let c = this
             .as_object()
             .unwrap_or_default()
-            .species_constructor(context.standard_objects().regexp_object().clone(), context)?;
+            .species_constructor(context.global_object().get(RegExp::NAME, context)?, context)?;
 
         // 5. Let flags be ? ToString(? Get(R, "flags")).
         let flags = this.get_field("flags", context)?.to_string(context)?;
@@ -1116,19 +1209,24 @@ impl RegExp {
         let length_arg_str = arg_str.encode_utf16().count();
 
         // 5. Let functionalReplace be IsCallable(replaceValue).
-        let replace_value = args.get(1).cloned().unwrap_or_default();
+        let mut replace_value = args.get(1).cloned().unwrap_or_default();
         let functional_replace = replace_value.is_function();
 
         // 6. If functionalReplace is false, then
-        // a. Set replaceValue to ? ToString(replaceValue).
+        if !functional_replace {
+            // a. Set replaceValue to ? ToString(replaceValue).
+            replace_value = replace_value.to_string(context)?.into();
+        }
 
         // 7. Let global be ! ToBoolean(? Get(rx, "global")).
         let global = this.get_field("global", context)?.to_boolean();
 
         // 8. If global is true, then
-        // a. Let fullUnicode be ! ToBoolean(? Get(rx, "unicode")).
-        let unicode = this.get_field("unicode", context)?.to_boolean();
+        let mut unicode = false;
         if global {
+            // a. Let fullUnicode be ! ToBoolean(? Get(rx, "unicode")).
+            unicode = this.get_field("unicode", context)?.to_boolean();
+
             // b. Perform ? Set(rx, "lastIndex", +0𝔽, true).
             this.set_field("lastIndex", 0, true, context)?;
         }
@@ -1278,7 +1376,7 @@ impl RegExp {
                     position,
                     captures,
                     named_captures,
-                    replace_value.to_string(context)?.to_string(),
+                    replace_value.to_string(context)?,
                     context,
                 )?;
             }
@@ -1403,7 +1501,7 @@ impl RegExp {
         let constructor = this
             .as_object()
             .unwrap_or_default()
-            .species_constructor(context.standard_objects().regexp_object().clone(), context)?;
+            .species_constructor(context.global_object().get(RegExp::NAME, context)?, context)?;
 
         // 5. Let flags be ? ToString(? Get(rx, "flags")).
         let flags = this.get_field("flags", context)?.to_string(context)?;

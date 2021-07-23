@@ -7,7 +7,6 @@ use crate::{
     builtins::function::{
         create_unmapped_arguments_object, ClosureFunction, Function, NativeFunction,
     },
-    context::StandardConstructor,
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
         function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
@@ -875,7 +874,7 @@ impl GcObject {
     /// [spec]: https://tc39.es/ecma262/#sec-speciesconstructor
     pub(crate) fn species_constructor(
         &self,
-        default_donstructor: StandardConstructor,
+        default_constructor: Value,
         context: &mut Context,
     ) -> Result<Value> {
         // 1. Assert: Type(O) is Object.
@@ -885,7 +884,7 @@ impl GcObject {
 
         // 3. If C is undefined, return defaultConstructor.
         if c.is_undefined() {
-            return Ok(Value::from(default_donstructor.prototype()));
+            return Ok(default_constructor);
         }
 
         // 4. If Type(C) is not Object, throw a TypeError exception.
@@ -898,15 +897,19 @@ impl GcObject {
 
         // 6. If S is either undefined or null, return defaultConstructor.
         if s.is_null_or_undefined() {
-            return Ok(Value::from(default_donstructor.prototype()));
+            return Ok(default_constructor);
         }
 
         // 7. If IsConstructor(S) is true, return S.
         // 8. Throw a TypeError exception.
-        if s.as_object().unwrap_or_default().is_constructable() {
-            Ok(s)
+        if let Some(obj) = s.as_object() {
+            if obj.is_constructable() {
+                Ok(s)
+            } else {
+                context.throw_type_error("property 'constructor' is not a constructor")
+            }
         } else {
-            context.throw_type_error("property 'constructor' is not a constructor")
+            context.throw_type_error("property 'constructor' is not an object")
         }
     }
 }
