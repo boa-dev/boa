@@ -181,7 +181,7 @@ impl Array {
             debug_assert!(number_of_args >= 2);
 
             // b. Let array be ? ArrayCreate(numberOfArgs, proto).
-            let array = Array::array_create(number_of_args as u64, Some(prototype), context)?;
+            let array = Array::array_create(number_of_args, Some(prototype), context)?;
             // c. Let k be 0.
             // d. Repeat, while k < numberOfArgs,
             for (i, item) in args.iter().cloned().enumerate() {
@@ -206,12 +206,12 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-arraycreate
     pub(crate) fn array_create(
-        length: u64,
+        length: usize,
         prototype: Option<GcObject>,
         context: &mut Context,
     ) -> Result<GcObject> {
         // 1. If length > 2^32 - 1, throw a RangeError exception.
-        if length > 2u64.pow(32) - 1 {
+        if length > 2usize.pow(32) - 1 {
             return Err(context.construct_range_error("array exceeded max size"));
         }
         // 7. Return A.
@@ -307,7 +307,7 @@ impl Array {
     /// see: <https://tc39.es/ecma262/#sec-arrayspeciescreate>
     pub(crate) fn array_species_create(
         original_array: &GcObject,
-        length: u64,
+        length: usize,
         context: &mut Context,
     ) -> Result<GcObject> {
         // 1. Let isArray be ? IsArray(originalArray).
@@ -428,7 +428,7 @@ impl Array {
                 .construct(&[len.into()], this, context)?
                 .as_object()
                 .unwrap(),
-            _ => Array::array_create(len as u64, None, context)?,
+            _ => Array::array_create(len, None, context)?,
         };
 
         // 6. Let k be 0.
@@ -954,33 +954,41 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.map
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
     pub(crate) fn map(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        if args.is_empty() {
-            return Err(Value::from(
-                "missing argument 0 when calling function Array.prototype.map",
-            ));
-        }
-
-        let callback = args.get(0).cloned().unwrap_or_else(Value::undefined);
+        // 1. Let O be ? ToObject(this value).
         let this_val = args.get(1).cloned().unwrap_or_else(Value::undefined);
-
-        let length = this.get_field("length", context)?.to_length(context)?;
-
-        if length > 2usize.pow(32) - 1 {
-            return context.throw_range_error("Invalid array length");
+        let obj = this.to_object(context)?;
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = this.get_field("length", context)?.to_length(context)?;
+        // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
+        let callback = args.get(0).cloned().unwrap_or_else(Value::undefined);
+        if !callback.is_function() {
+            return context.throw_type_error("Callbackfn is not callable");
         }
-
-        let new = Self::new_array(context);
-
-        let values = (0..length)
-            .map(|idx| {
-                let element = this.get_field(idx, context)?;
-                let args = [element, Value::from(idx), new.clone()];
-
-                context.call(&callback, &this_val, &args)
-            })
-            .collect::<Result<Vec<Value>>>()?;
-
-        Self::construct_array(&new, &values, context)
+        // 4. Let A be ? ArraySpeciesCreate(O, len).
+        let arr = Self::array_species_create(&obj, len, context)?;
+        // 5. Let k be 0.
+        // 6. Repeat, while k < len,
+        for k in 0..len {
+            // a. Let Pk be ! ToString(𝔽(k)).
+            // b. Let k_present be ? HasProperty(O, Pk).
+            let k_present = this.has_field(k);
+            // c. If k_present is true, then
+            if k_present {
+                // i. Let kValue be ? Get(O, Pk).
+                let k_value = this.get_field(k, context)?;
+                let args = [k_value, Value::from(k), this.into()];
+                // ii. Let mappedValue be ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).
+                let value = context.call(&callback, &this_val, &args)?;
+                // iii. Perform ? CreateDataPropertyOrThrow(A, Pk, mappedValue).
+                arr.ordinary_define_own_property(
+                    k.into(),
+                    DataDescriptor::new(value, Attribute::all()).into(),
+                );
+            }
+            // d. Set k to k + 1.
+        }
+        // 7. Return A.
+        Ok(Value::from(arr))
     }
 
     /// `Array.prototype.indexOf( searchElement[, fromIndex ] )`

@@ -820,9 +820,9 @@ impl RegExp {
         }
 
         // 16. Let n be the number of elements in r's captures List. (This is the same value as 22.2.2.1's NcapturingParens.)
-        let n = match_value.captures.len() as u64;
+        let n = match_value.captures.len();
         // 17. Assert: n < 23^2 - 1.
-        assert!(n < 23u64.pow(2) - 1);
+        debug_assert!(n < 23usize.pow(2) - 1);
 
         // 18. Let A be ! ArrayCreate(n + 1).
         // 19. Assert: The mathematical value of A's "length" property is n + 1.
@@ -861,7 +861,7 @@ impl RegExp {
         // 27. For each integer i such that i ≥ 1 and i ≤ n, in ascending order, do
         for i in 1..=n {
             // a. Let captureI be ith element of r's captures List.
-            let capture = match_value.group(i as usize);
+            let capture = match_value.group(i);
 
             let captured_value = match capture {
                 // b. If captureI is undefined, let capturedValue be undefined.

@@ -1189,7 +1189,7 @@ impl String {
         let this_str = this.to_string(context)?;
 
         // 4. Let A be ! ArrayCreate(0).
-        let a = Array::array_create(0, None, context).unwrap();
+        let a = Array::array_create(0, None, context)?;
 
         // 5. Let lengthA be 0.
         let mut length_a = 0;
