@@ -59,6 +59,7 @@ impl<'a> Vm<'a> {
     ///
     /// If there is nothing to pop, then this will panic.
     #[inline]
+    #[track_caller]
     pub fn pop(&mut self) -> Value {
         self.stack.pop().unwrap()
     }
@@ -369,7 +370,7 @@ impl<'a> Vm<'a> {
                 };
 
                 let name = self.code.names[index as usize].clone();
-                let result = object.get(&name.into(), value, self.context)?;
+                let result = object.get(name, self.context)?;
 
                 self.push(result)
             }
@@ -383,7 +384,7 @@ impl<'a> Vm<'a> {
                 };
 
                 let key = key.to_property_key(self.context)?;
-                let result = object.get(&key, value, self.context)?;
+                let result = object.get(key, self.context)?;
 
                 self.push(result)
             }
@@ -392,7 +393,7 @@ impl<'a> Vm<'a> {
 
                 let object = self.pop();
                 let value = self.pop();
-                let mut object = if let Some(object) = object.as_object() {
+                let object = if let Some(object) = object.as_object() {
                     object
                 } else {
                     object.to_object(self.context)?
@@ -400,20 +401,20 @@ impl<'a> Vm<'a> {
 
                 let name = self.code.names[index as usize].clone();
 
-                object.set(name.into(), value, object.clone().into(), self.context)?;
+                object.set(name, value, true, self.context)?;
             }
             Opcode::SetPropertyByValue => {
                 let object = self.pop();
                 let key = self.pop();
                 let value = self.pop();
-                let mut object = if let Some(object) = object.as_object() {
+                let object = if let Some(object) = object.as_object() {
                     object
                 } else {
                     object.to_object(self.context)?
                 };
 
                 let key = key.to_property_key(self.context)?;
-                object.set(key, value, object.clone().into(), self.context)?;
+                object.set(key, value, true, self.context)?;
             }
             Opcode::Throw => {
                 let value = self.pop();
@@ -422,6 +423,22 @@ impl<'a> Vm<'a> {
             Opcode::This => {
                 let this = self.context.get_this_binding()?;
                 self.push(this);
+            }
+            Opcode::Case => {
+                let address = self.read::<u32>();
+                let cond = self.pop();
+                let value = self.pop();
+
+                if !value.strict_equals(&cond) {
+                    self.push(value);
+                } else {
+                    self.pc = address as usize;
+                }
+            }
+            Opcode::Default => {
+                let exit = self.read::<u32>();
+                let _ = self.pop();
+                self.pc = exit as usize;
             }
         }
 

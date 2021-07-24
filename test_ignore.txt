@@ -10,7 +10,6 @@ feature:json-modules
 //feature:class
 
 // These seem to run forever:
-15.4.4.19-8-c-ii-1
 
 // These generate a stack overflow
 tco-call

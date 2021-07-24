@@ -36,6 +36,7 @@ pub use attribute::Attribute;
 pub struct DataDescriptor {
     pub(crate) value: Value,
     attributes: Attribute,
+    has_value: bool,
 }
 
 impl DataDescriptor {
@@ -48,6 +49,17 @@ impl DataDescriptor {
         Self {
             value: value.into(),
             attributes,
+            has_value: true,
+        }
+    }
+
+    /// Create a new `DataDescriptor` without a value.
+    #[inline]
+    pub fn new_without_value(attributes: Attribute) -> Self {
+        Self {
+            value: Value::undefined(),
+            attributes,
+            has_value: false,
         }
     }
 
@@ -55,6 +67,12 @@ impl DataDescriptor {
     #[inline]
     pub fn value(&self) -> Value {
         self.value.clone()
+    }
+
+    /// Check whether the data descriptor has a value.
+    #[inline]
+    pub fn has_value(&self) -> bool {
+        self.has_value
     }
 
     /// Return the attributes of the descriptor.
@@ -426,6 +444,16 @@ impl From<u32> for PropertyKey {
 
 impl From<usize> for PropertyKey {
     fn from(value: usize) -> Self {
+        if let Ok(index) = u32::try_from(value) {
+            PropertyKey::Index(index)
+        } else {
+            PropertyKey::String(JsString::from(value.to_string()))
+        }
+    }
+}
+
+impl From<u64> for PropertyKey {
+    fn from(value: u64) -> Self {
         if let Ok(index) = u32::try_from(value) {
             PropertyKey::Index(index)
         } else {

@@ -7,6 +7,8 @@ use crate::{
 };
 use gc::{Finalize, Trace};
 
+use super::{ordered_map::MapLock, Map};
+
 #[derive(Debug, Clone, Finalize, Trace)]
 pub enum MapIterationKind {
     Key,
@@ -25,18 +27,21 @@ pub struct MapIterator {
     iterated_map: Value,
     map_next_index: usize,
     map_iteration_kind: MapIterationKind,
+    lock: MapLock,
 }
 
 impl MapIterator {
     pub(crate) const NAME: &'static str = "MapIterator";
 
     /// Constructs a new `MapIterator`, that will iterate over `map`, starting at index 0
-    fn new(map: Value, kind: MapIterationKind) -> Self {
-        MapIterator {
+    fn new(map: Value, kind: MapIterationKind, context: &mut Context) -> Result<Self> {
+        let lock = Map::lock(&map, context)?;
+        Ok(MapIterator {
             iterated_map: map,
             map_next_index: 0,
             map_iteration_kind: kind,
-        }
+            lock,
+        })
     }
 
     /// Abstract operation CreateMapIterator( map, kind )
@@ -48,17 +53,17 @@ impl MapIterator {
     ///
     /// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-createmapiterator
     pub(crate) fn create_map_iterator(
-        context: &Context,
+        context: &mut Context,
         map: Value,
         kind: MapIterationKind,
-    ) -> Value {
+    ) -> Result<Value> {
         let map_iterator = Value::new_object(context);
-        map_iterator.set_data(ObjectData::MapIterator(Self::new(map, kind)));
+        map_iterator.set_data(ObjectData::MapIterator(Self::new(map, kind, context)?));
         map_iterator
             .as_object()
             .expect("map iterator object")
             .set_prototype_instance(context.iterator_prototypes().map_iterator().into());
-        map_iterator
+        Ok(map_iterator)
     }
 
     /// %MapIteratorPrototype%.next( )
@@ -83,7 +88,7 @@ impl MapIterator {
 
                 if let Value::Object(ref object) = m {
                     if let Some(entries) = object.borrow().as_map_ref() {
-                        let num_entries = entries.len();
+                        let num_entries = entries.full_len();
                         while index < num_entries {
                             let e = entries.get_index(index);
                             index += 1;
@@ -144,7 +149,7 @@ impl MapIterator {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let mut map_iterator = context.construct_object();
+        let map_iterator = context.construct_object();
         make_builtin_fn(Self::next, "next", &map_iterator, 0, context);
         map_iterator.set_prototype_instance(iterator_prototype);
 

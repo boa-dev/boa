@@ -15,7 +15,7 @@ impl Value {
         match (self, other) {
             // 2. If Type(x) is Number or BigInt, then
             //    a. Return ! Type(x)::equal(x, y).
-            (Self::BigInt(x), Self::BigInt(y)) => BigInt::equal(x, y),
+            (Self::BigInt(x), Self::BigInt(y)) => JsBigInt::equal(x, y),
             (Self::Rational(x), Self::Rational(y)) => Number::equal(*x, *y),
             (Self::Rational(x), Self::Integer(y)) => Number::equal(*x, f64::from(*y)),
             (Self::Integer(x), Self::Rational(y)) => Number::equal(f64::from(*x), *y),
@@ -68,14 +68,14 @@ impl Value {
             //    a. Let n be ! StringToBigInt(y).
             //    b. If n is NaN, return false.
             //    c. Return the result of the comparison x == n.
-            (Self::BigInt(ref a), Self::String(ref b)) => match string_to_bigint(b) {
-                Some(ref b) => a.as_inner() == b,
+            (Self::BigInt(ref a), Self::String(ref b)) => match JsBigInt::from_string(b) {
+                Some(ref b) => a == b,
                 None => false,
             },
 
             // 7. If Type(x) is String and Type(y) is BigInt, return the result of the comparison y == x.
-            (Self::String(ref a), Self::BigInt(ref b)) => match string_to_bigint(a) {
-                Some(ref a) => a == b.as_inner(),
+            (Self::String(ref a), Self::BigInt(ref b)) => match JsBigInt::from_string(a) {
+                Some(ref a) => a == b,
                 None => false,
             },
 
@@ -102,10 +102,10 @@ impl Value {
             // 12. If Type(x) is BigInt and Type(y) is Number, or if Type(x) is Number and Type(y) is BigInt, then
             //    a. If x or y are any of NaN, +∞, or -∞, return false.
             //    b. If the mathematical value of x is equal to the mathematical value of y, return true; otherwise return false.
-            (Self::BigInt(ref a), Self::Rational(ref b)) => a.as_inner() == b,
-            (Self::Rational(ref a), Self::BigInt(ref b)) => a == b.as_inner(),
-            (Self::BigInt(ref a), Self::Integer(ref b)) => a.as_inner() == b,
-            (Self::Integer(ref a), Self::BigInt(ref b)) => a == b.as_inner(),
+            (Self::BigInt(ref a), Self::Rational(ref b)) => a == b,
+            (Self::Rational(ref a), Self::BigInt(ref b)) => a == b,
+            (Self::BigInt(ref a), Self::Integer(ref b)) => a == b,
+            (Self::Integer(ref a), Self::BigInt(ref b)) => a == b,
 
             // 13. Return false.
             _ => false,
@@ -128,7 +128,7 @@ impl Value {
         match (x, y) {
             // 2. If Type(x) is Number or BigInt, then
             //    a. Return ! Type(x)::SameValue(x, y).
-            (Value::BigInt(x), Value::BigInt(y)) => BigInt::same_value(x, y),
+            (Value::BigInt(x), Value::BigInt(y)) => JsBigInt::same_value(x, y),
             (Value::Rational(x), Value::Rational(y)) => Number::same_value(*x, *y),
             (Value::Rational(x), Value::Integer(y)) => Number::same_value(*x, f64::from(*y)),
             (Value::Integer(x), Value::Rational(y)) => Number::same_value(f64::from(*x), *y),
@@ -156,7 +156,7 @@ impl Value {
         match (x, y) {
             // 2. If Type(x) is Number or BigInt, then
             //    a. Return ! Type(x)::SameValueZero(x, y).
-            (Value::BigInt(x), Value::BigInt(y)) => BigInt::same_value_zero(x, y),
+            (Value::BigInt(x), Value::BigInt(y)) => JsBigInt::same_value_zero(x, y),
 
             (Value::Rational(x), Value::Rational(y)) => Number::same_value_zero(*x, *y),
             (Value::Rational(x), Value::Integer(y)) => Number::same_value_zero(*x, f64::from(*y)),
@@ -179,20 +179,4 @@ impl Value {
             _ => false,
         }
     }
-}
-
-/// This function takes a string and conversts it to BigInt type.
-///
-/// If the result is `NaN` than `None` is returned.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-stringtobigint
-pub fn string_to_bigint(string: &str) -> Option<BigInt> {
-    if string.is_empty() {
-        return Some(BigInt::from(0));
-    }
-
-    BigInt::from_str(string)
 }

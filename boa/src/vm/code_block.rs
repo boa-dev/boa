@@ -92,6 +92,8 @@ impl CodeBlock {
             | Opcode::Jump
             | Opcode::JumpIfFalse
             | Opcode::JumpIfTrue
+            | Opcode::Case
+            | Opcode::Default
             | Opcode::LogicalAnd
             | Opcode::LogicalOr
             | Opcode::Coalesce => {

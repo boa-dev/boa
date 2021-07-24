@@ -10,13 +10,12 @@ use crate::{
         set::ordered_set::OrderedSet,
         set::set_iterator::SetIterator,
         string::string_iterator::StringIterator,
-        BigInt, Date, RegExp,
+        Date, RegExp,
     },
     context::StandardConstructor,
     gc::{Finalize, Trace},
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
-    value::{RcBigInt, Value},
-    BoaProfiler, Context, JsString, JsSymbol,
+    BoaProfiler, Context, JsBigInt, JsString, JsSymbol, Value,
 };
 use rustc_hash::FxHashMap;
 use std::{
@@ -83,11 +82,11 @@ pub struct Object {
 pub enum ObjectData {
     Array,
     ArrayIterator(ArrayIterator),
-    Map(OrderedMap<Value, Value>),
+    Map(OrderedMap<Value>),
     MapIterator(MapIterator),
     RegExp(Box<RegExp>),
     RegExpStringIterator(RegExpStringIterator),
-    BigInt(RcBigInt),
+    BigInt(JsBigInt),
     Boolean(bool),
     ForInIterator(ForInIterator),
     Function(Function),
@@ -230,7 +229,7 @@ impl Object {
 
     /// Return a new `BigInt` object whose `[[BigIntData]]` internal slot is set to argument.
     #[inline]
-    pub fn bigint(value: RcBigInt) -> Self {
+    pub fn bigint(value: JsBigInt) -> Self {
         Self {
             data: ObjectData::BigInt(value),
             indexed_properties: FxHashMap::default(),
@@ -354,7 +353,7 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_map_ref(&self) -> Option<&OrderedMap<Value, Value>> {
+    pub fn as_map_ref(&self) -> Option<&OrderedMap<Value>> {
         match self.data {
             ObjectData::Map(ref map) => Some(map),
             _ => None,
@@ -362,7 +361,7 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_map_mut(&mut self) -> Option<&mut OrderedMap<Value, Value>> {
+    pub fn as_map_mut(&mut self) -> Option<&mut OrderedMap<Value>> {
         match &mut self.data {
             ObjectData::Map(map) => Some(map),
             _ => None,
@@ -497,7 +496,7 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_bigint(&self) -> Option<&BigInt> {
+    pub fn as_bigint(&self) -> Option<&JsBigInt> {
         match self.data {
             ObjectData::BigInt(ref bigint) => Some(bigint),
             _ => None,

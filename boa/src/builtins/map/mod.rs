@@ -24,12 +24,14 @@ use ordered_map::OrderedMap;
 pub mod map_iterator;
 use map_iterator::{MapIterationKind, MapIterator};
 
+use self::ordered_map::MapLock;
+
 pub mod ordered_map;
 #[cfg(test)]
 mod tests;
 
 #[derive(Debug, Clone)]
-pub(crate) struct Map(OrderedMap<Value, Value>);
+pub(crate) struct Map(OrderedMap<Value>);
 
 impl BuiltIn for Map {
     const NAME: &'static str = "Map";
@@ -116,14 +118,14 @@ impl Map {
         let prototype = new_target
             .as_object()
             .and_then(|obj| {
-                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
                     .map(|o| o.as_object())
                     .transpose()
             })
             .transpose()?
             .unwrap_or(map_prototype);
 
-        let mut obj = context.construct_object();
+        let obj = context.construct_object();
         obj.set_prototype_instance(prototype.into());
         let this = Value::from(obj);
 
@@ -198,11 +200,7 @@ impl Map {
     /// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-map.prototype.entries
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries
     pub(crate) fn entries(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        Ok(MapIterator::create_map_iterator(
-            context,
-            this.clone(),
-            MapIterationKind::KeyAndValue,
-        ))
+        MapIterator::create_map_iterator(context, this.clone(), MapIterationKind::KeyAndValue)
     }
 
     /// `Map.prototype.keys()`
@@ -216,11 +214,7 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.keys
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
     pub(crate) fn keys(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        Ok(MapIterator::create_map_iterator(
-            context,
-            this.clone(),
-            MapIterationKind::Key,
-        ))
+        MapIterator::create_map_iterator(context, this.clone(), MapIterationKind::Key)
     }
 
     /// Helper function to set the size property.
@@ -392,7 +386,9 @@ impl Map {
 
         let mut index = 0;
 
-        while index < Map::get_size(this, context)? {
+        let lock = Map::lock(this, context)?;
+
+        while index < Map::get_full_len(this, context)? {
             let arguments = if let Value::Object(ref object) = this {
                 let object = object.borrow();
                 if let Some(map) = object.as_map_ref() {
@@ -415,15 +411,31 @@ impl Map {
             index += 1;
         }
 
+        drop(lock);
+
         Ok(Value::Undefined)
     }
 
-    /// Helper function to get the size of the map.
-    fn get_size(map: &Value, context: &mut Context) -> Result<usize> {
+    /// Helper function to get the full size of the map.
+    fn get_full_len(map: &Value, context: &mut Context) -> Result<usize> {
         if let Value::Object(ref object) = map {
             let object = object.borrow();
             if let Some(map) = object.as_map_ref() {
-                Ok(map.len())
+                Ok(map.full_len())
+            } else {
+                Err(context.construct_type_error("'this' is not a Map"))
+            }
+        } else {
+            Err(context.construct_type_error("'this' is not a Map"))
+        }
+    }
+
+    /// Helper function to lock the map.
+    fn lock(map: &Value, context: &mut Context) -> Result<MapLock> {
+        if let Value::Object(ref object) = map {
+            let mut map = object.borrow_mut();
+            if let Some(map) = map.as_map_mut() {
+                Ok(map.lock(object.clone()))
             } else {
                 Err(context.construct_type_error("'this' is not a Map"))
             }
@@ -443,11 +455,7 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/values
     pub(crate) fn values(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        Ok(MapIterator::create_map_iterator(
-            context,
-            this.clone(),
-            MapIterationKind::Value,
-        ))
+        MapIterator::create_map_iterator(context, this.clone(), MapIterationKind::Value)
     }
 
     /// Helper function to get a key-value pair from an array.

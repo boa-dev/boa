@@ -87,7 +87,7 @@ impl Object {
             let prototype = new_target
                 .as_object()
                 .and_then(|obj| {
-                    obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                    obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
                         .map(|o| o.as_object())
                         .transpose()
                 })
@@ -165,7 +165,7 @@ impl Object {
         if let Some(key) = args.get(1) {
             let key = key.to_property_key(context)?;
 
-            if let Some(desc) = object.get_own_property(&key) {
+            if let Some(desc) = object.__get_own_property__(&key) {
                 return Ok(Self::from_property_descriptor(desc, context));
             }
         }
@@ -197,7 +197,7 @@ impl Object {
         for key in object.borrow().keys() {
             let descriptor = {
                 let desc = object
-                    .get_own_property(&key)
+                    .__get_own_property__(&key)
                     .expect("Expected property to be on object.");
                 Self::from_property_descriptor(desc, context)
             };
@@ -318,7 +318,7 @@ impl Object {
         let status = obj
             .as_object()
             .expect("obj was not an object")
-            .set_prototype_of(proto);
+            .__set_prototype_of__(proto);
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
@@ -411,38 +411,52 @@ impl Object {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toString
     #[allow(clippy::wrong_self_convention)]
     pub fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+        // 1. If the this value is undefined, return "[object Undefined]".
         if this.is_undefined() {
-            Ok("[object Undefined]".into())
-        } else if this.is_null() {
-            Ok("[object Null]".into())
-        } else {
-            let o = this.to_object(context)?;
-            let builtin_tag = {
-                let o = o.borrow();
-                match &o.data {
-                    ObjectData::Array => "Array",
-                    // TODO: Arguments Exotic Objects are currently not supported
-                    ObjectData::Function(_) => "Function",
-                    ObjectData::Error => "Error",
-                    ObjectData::Boolean(_) => "Boolean",
-                    ObjectData::Number(_) => "Number",
-                    ObjectData::String(_) => "String",
-                    ObjectData::Date(_) => "Date",
-                    ObjectData::RegExp(_) => "RegExp",
-                    _ => "Object",
-                }
-            };
-
-            let tag = o.get(
-                &WellKnownSymbols::to_string_tag().into(),
-                o.clone().into(),
-                context,
-            )?;
-
-            let tag_str = tag.as_string().map(|s| s.as_str()).unwrap_or(builtin_tag);
-
-            Ok(format!("[object {}]", tag_str).into())
+            return Ok("[object Undefined]".into());
         }
+        // 2. If the this value is null, return "[object Null]".
+        if this.is_null() {
+            return Ok("[object Null]".into());
+        }
+        // 3. Let O be ! ToObject(this value).
+        let o = this.to_object(context)?;
+        // TODO: 4. Let isArray be ? IsArray(O).
+        // TODO: 5. If isArray is true, let builtinTag be "Array".
+
+        // 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
+        // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
+        // 8. Else if O has an [[ErrorData]] internal slot, let builtinTag be "Error".
+        // 9. Else if O has a [[BooleanData]] internal slot, let builtinTag be "Boolean".
+        // 10. Else if O has a [[NumberData]] internal slot, let builtinTag be "Number".
+        // 11. Else if O has a [[StringData]] internal slot, let builtinTag be "String".
+        // 12. Else if O has a [[DateValue]] internal slot, let builtinTag be "Date".
+        // 13. Else if O has a [[RegExpMatcher]] internal slot, let builtinTag be "RegExp".
+        // 14. Else, let builtinTag be "Object".
+        let builtin_tag = {
+            let o = o.borrow();
+            match &o.data {
+                ObjectData::Array => "Array",
+                // TODO: Arguments Exotic Objects are currently not supported
+                ObjectData::Function(_) => "Function",
+                ObjectData::Error => "Error",
+                ObjectData::Boolean(_) => "Boolean",
+                ObjectData::Number(_) => "Number",
+                ObjectData::String(_) => "String",
+                ObjectData::Date(_) => "Date",
+                ObjectData::RegExp(_) => "RegExp",
+                _ => "Object",
+            }
+        };
+
+        // 15. Let tag be ? Get(O, @@toStringTag).
+        let tag = o.get(WellKnownSymbols::to_string_tag(), context)?;
+
+        // 16. If Type(tag) is not String, set tag to builtinTag.
+        let tag_str = tag.as_string().map(|s| s.as_str()).unwrap_or(builtin_tag);
+
+        // 17. Return the string-concatenation of "[object ", tag, and "]".
+        Ok(format!("[object {}]", tag_str).into())
     }
 
     /// `Object.prototype.hasOwnPrototype( property )`
@@ -463,7 +477,7 @@ impl Object {
             .to_property_key(context)?;
         let object = this.to_object(context)?;
 
-        Ok(object.has_own_property(key).into())
+        Ok(object.has_own_property(key, context)?.into())
     }
 
     /// `Object.prototype.propertyIsEnumerable( property )`
@@ -488,7 +502,7 @@ impl Object {
         };
 
         let key = key.to_property_key(context)?;
-        let own_property = this.to_object(context)?.get_own_property(&key);
+        let own_property = this.to_object(context)?.__get_own_property__(&key);
 
         Ok(own_property.map_or(Value::from(false), |own_prop| {
             Value::from(own_prop.enumerable())
@@ -507,31 +521,45 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-object.assign
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
     pub fn assign(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let mut to = args
+        //
+        //
+        // 1. Let to be ? ToObject(target).
+        let to = args
             .get(0)
             .cloned()
             .unwrap_or_default()
             .to_object(context)?;
 
+        // 2. If only one argument was passed, return to.
         if args.len() == 1 {
             return Ok(to.into());
         }
 
+        // 3. For each element nextSource of sources, do
         for source in &args[1..] {
+            // 3.a. If nextSource is neither undefined nor null, then
             if !source.is_null_or_undefined() {
+                // 3.a.i. Let from be ! ToObject(nextSource).
                 let from = source.to_object(context).unwrap();
+                // 3.a.ii. Let keys be ? from.[[OwnPropertyKeys]]().
                 let keys = from.own_property_keys();
+                // 3.a.iii. For each element nextKey of keys, do
                 for key in keys {
-                    if let Some(desc) = from.get_own_property(&key) {
+                    // 3.a.iii.1. Let desc be ? from.[[GetOwnProperty]](nextKey).
+                    if let Some(desc) = from.__get_own_property__(&key) {
+                        // 3.a.iii.2. If desc is not undefined and desc.[[Enumerable]] is true, then
                         if desc.enumerable() {
-                            let property = from.get(&key, from.clone().into(), context)?;
-                            to.set(key, property, to.clone().into(), context)?;
+                            // 3.a.iii.2.a. Let propValue be ? Get(from, nextKey).
+                            let property = from.get(key.clone(), context)?;
+                            // 3.a.iii.2.b. Perform ? Set(to, nextKey, propValue, true).
+                            to.set(key, property, true, context)?;
                         }
                     }
                 }
             }
         }
 
+        // 4. Return to.
         Ok(to.into())
     }
 }

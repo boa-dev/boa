@@ -154,7 +154,7 @@ impl RegExpStringIterator {
         let _timer = BoaProfiler::global().start_event("RegExp String Iterator", "init");
 
         // Create prototype
-        let mut result = context.construct_object();
+        let result = context.construct_object();
         make_builtin_fn(Self::next, "next", &result, 0, context);
         result.set_prototype_instance(iterator_prototype);
 

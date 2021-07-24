@@ -87,7 +87,7 @@ impl ForInIterator {
                     while let Some(r) = iterator.remaining_keys.pop_front() {
                         if !iterator.visited_keys.contains(&r) {
                             if let Some(desc) =
-                                object.get_own_property(&PropertyKey::from(r.clone()))
+                                object.__get_own_property__(&PropertyKey::from(r.clone()))
                             {
                                 iterator.visited_keys.insert(r.clone());
                                 if desc.enumerable() {
@@ -129,7 +129,7 @@ impl ForInIterator {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let mut for_in_iterator = context.construct_object();
+        let for_in_iterator = context.construct_object();
         make_builtin_fn(Self::next, "next", &for_in_iterator, 0, context);
         for_in_iterator.set_prototype_instance(iterator_prototype);
 

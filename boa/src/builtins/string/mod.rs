@@ -134,6 +134,7 @@ impl BuiltIn for String {
         .method(Self::replace, "replace", 2)
         .method(Self::iterator, (symbol_iterator, "[Symbol.iterator]"), 0)
         .method(Self::search, "search", 1)
+        .method(Self::at, "at", 1)
         .build();
 
         (Self::NAME, string_object.into(), Self::attribute())
@@ -178,7 +179,7 @@ impl String {
         let prototype = new_target
             .as_object()
             .and_then(|obj| {
-                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
                     .map(|o| o.as_object())
                     .transpose()
             })
@@ -263,6 +264,41 @@ impl String {
             Ok(Value::from(from_u32(utf16_val as u32).unwrap()))
         } else {
             Ok("".into())
+        }
+    }
+
+    /// `String.prototype.at ( index )`
+    ///
+    /// This String object's at() method returns a String consisting of the single UTF-16 code unit located at the specified position.
+    /// Returns undefined if the given index cannot be found.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/proposal-relative-indexing-method/#sec-string.prototype.at
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/at
+    pub(crate) fn at(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let this = this.require_object_coercible(context)?;
+        let s = this.to_string(context)?;
+        let len = s.encode_utf16().count();
+        let relative_index = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_integer(context)?;
+        let k = if relative_index < 0 as f64 {
+            len - (-relative_index as usize)
+        } else {
+            relative_index as usize
+        };
+
+        if let Some(utf16_val) = s.encode_utf16().nth(k) {
+            Ok(Value::from(
+                from_u32(u32::from(utf16_val)).expect("invalid utf-16 character"),
+            ))
+        } else {
+            Ok(Value::undefined())
         }
     }
 
@@ -1156,7 +1192,7 @@ impl String {
     /// `String.prototype.split ( separator, limit )`
     ///
     /// The split() method divides a String into an ordered list of substrings, puts these substrings into an array, and returns the array.
-    /// The division is done by searching for a pattern; where the pattern is provided as the first parameter in the method's call.  
+    /// The division is done by searching for a pattern; where the pattern is provided as the first parameter in the method's call.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1189,7 +1225,7 @@ impl String {
         let this_str = this.to_string(context)?;
 
         // 4. Let A be ! ArrayCreate(0).
-        let a = Array::array_create(0, None, context);
+        let a = Array::array_create(0, None, context)?;
 
         // 5. Let lengthA be 0.
         let mut length_a = 0;
@@ -1206,16 +1242,17 @@ impl String {
 
         // 8. If lim = 0, return A.
         if lim == 0 {
-            return Ok(a);
+            return Ok(a.into());
         }
 
         // 9. If separator is undefined, then
         if separator.is_undefined() {
             // a. Perform ! CreateDataPropertyOrThrow(A, "0", S).
-            Array::add_to_array_object(&a, &[Value::from(this_str)], context)?;
+            a.create_data_property_or_throw(0, this_str, context)
+                .unwrap();
 
             // b. Return A.
-            return Ok(a);
+            return Ok(a.into());
         }
 
         // 10. Let s be the length of S.
@@ -1226,11 +1263,12 @@ impl String {
             // a. If R is not the empty String, then
             if !separator_str.is_empty() {
                 // i. Perform ! CreateDataPropertyOrThrow(A, "0", S).
-                Array::add_to_array_object(&a, &[Value::from(this_str)], context)?;
+                a.create_data_property_or_throw(0, this_str, context)
+                    .unwrap();
             }
 
             // b. Return A.
-            return Ok(a);
+            return Ok(a.into());
         }
 
         // 12. Let p be 0.
@@ -1264,18 +1302,15 @@ impl String {
                         );
 
                         // 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
-                        Array::add_to_array_object(
-                            &a,
-                            &[Value::from(this_str_substring)],
-                            context,
-                        )?;
+                        a.create_data_property_or_throw(length_a, this_str_substring, context)
+                            .unwrap();
 
                         // 3. Set lengthA to lengthA + 1.
                         length_a += 1;
 
                         // 4. If lengthA = lim, return A.
                         if length_a == lim {
-                            return Ok(a);
+                            return Ok(a.into());
                         }
 
                         // 5. Set p to e.
@@ -1298,10 +1333,11 @@ impl String {
         );
 
         // 16. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
-        Array::add_to_array_object(&a, &[Value::from(this_str_substring)], context)?;
+        a.create_data_property_or_throw(length_a, this_str_substring, context)
+            .unwrap();
 
         // 17. Return A.
-        Ok(a)
+        Ok(a.into())
     }
 
     /// String.prototype.valueOf()

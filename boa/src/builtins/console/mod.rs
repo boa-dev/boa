@@ -35,14 +35,6 @@ pub enum LogMessage {
     Error(String),
 }
 
-/// Helper function that returns the argument at a specified index.
-fn get_arg_at_index<'a, T>(args: &'a [Value], index: usize) -> Option<T>
-where
-    T: From<&'a Value> + Default,
-{
-    args.get(index).map(|s| T::from(s))
-}
-
 /// Helper function for logging messages.
 pub(crate) fn logger(msg: LogMessage, console_state: &Console) {
     let indent = 2 * console_state.groups.len();
@@ -193,7 +185,7 @@ impl Console {
     /// [spec]: https://console.spec.whatwg.org/#assert
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/assert
     pub(crate) fn assert(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let assertion = get_arg_at_index::<bool>(args, 0).unwrap_or_default();
+        let assertion = args.get(0).map(Value::to_boolean).unwrap_or(false);
 
         if !assertion {
             let mut args: Vec<Value> = args.iter().skip(1).cloned().collect();
