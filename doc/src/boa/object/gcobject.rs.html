@@ -1039,18 +1039,6 @@
 <span id="1038">1038</span>
 <span id="1039">1039</span>
 <span id="1040">1040</span>
-<span id="1041">1041</span>
-<span id="1042">1042</span>
-<span id="1043">1043</span>
-<span id="1044">1044</span>
-<span id="1045">1045</span>
-<span id="1046">1046</span>
-<span id="1047">1047</span>
-<span id="1048">1048</span>
-<span id="1049">1049</span>
-<span id="1050">1050</span>
-<span id="1051">1051</span>
-<span id="1052">1052</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the `GcObject` structure.</span>
 <span class="doccomment">//!</span>
@@ -1189,7 +1177,7 @@
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">as_function</span>() {
             <span class="kw">if</span> <span class="ident">construct</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">function</span>.<span class="ident">is_constructable</span>() {
                 <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="string">&quot;name&quot;</span>.<span class="ident">into</span>(), <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
+                    .<span class="ident">__get__</span>(<span class="kw-2">&amp;</span><span class="string">&quot;name&quot;</span>.<span class="ident">into</span>(), <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
                     .<span class="ident">display</span>()
                     .<span class="ident">to_string</span>();
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{} is not a constructor&quot;</span>, <span class="ident">name</span>));
@@ -1215,7 +1203,7 @@
                             <span class="comment">// prototype as prototype for the new object</span>
                             <span class="comment">// see &lt;https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor&gt;</span>
                             <span class="comment">// see &lt;https://tc39.es/ecma262/#sec-getprototypefromconstructor&gt;</span>
-                            <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">this_target</span>.<span class="ident">as_object</span>().<span class="ident">unwrap</span>().<span class="ident">get</span>(
+                            <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">this_target</span>.<span class="ident">as_object</span>().<span class="ident">unwrap</span>().<span class="ident">__get__</span>(
                                 <span class="kw-2">&amp;</span><span class="ident">PROTOTYPE</span>.<span class="ident">into</span>(),
                                 <span class="ident">this_target</span>.<span class="ident">clone</span>(),
                                 <span class="ident">context</span>,
@@ -1512,50 +1500,61 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_property_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. If Type(Obj) is not Object, throw a TypeError exception.</span>
+        <span class="comment">// 2. Let desc be a new Property Descriptor that initially has no fields.</span>
+
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">Attribute::empty</span>();
 
-        <span class="kw">let</span> <span class="ident">enumerable_key</span> <span class="op">=</span> <span class="ident">PropertyKey::from</span>(<span class="string">&quot;enumerable&quot;</span>);
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">enumerable_key</span>)
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>
-                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">enumerable_key</span>, <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
-                .<span class="ident">to_boolean</span>()
-        {
+        <span class="comment">// 3. Let hasEnumerable be ? HasProperty(Obj, &quot;enumerable&quot;).</span>
+        <span class="kw">let</span> <span class="ident">has_enumerable</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="string">&quot;enumerable&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 4. If hasEnumerable is true, then</span>
+        <span class="comment">//     a. Let enumerable be ! ToBoolean(? Get(Obj, &quot;enumerable&quot;)).</span>
+        <span class="comment">//     b. Set desc.[[Enumerable]] to enumerable.</span>
+        <span class="kw">if</span> <span class="ident">has_enumerable</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;enumerable&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
             <span class="ident">attribute</span> <span class="op">|</span><span class="op">=</span> <span class="ident">Attribute::ENUMERABLE</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">configurable_key</span> <span class="op">=</span> <span class="ident">PropertyKey::from</span>(<span class="string">&quot;configurable&quot;</span>);
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">configurable_key</span>)
-            <span class="op">&amp;&amp;</span> <span class="self">self</span>
-                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">configurable_key</span>, <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
-                .<span class="ident">to_boolean</span>()
-        {
+        <span class="comment">// 5. Let hasConfigurable be ? HasProperty(Obj, &quot;configurable&quot;).</span>
+        <span class="kw">let</span> <span class="ident">has_configurable</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="string">&quot;configurable&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 6. If hasConfigurable is true, then</span>
+        <span class="comment">//     a. Let configurable be ! ToBoolean(? Get(Obj, &quot;configurable&quot;)).</span>
+        <span class="comment">//     b. Set desc.[[Configurable]] to configurable.</span>
+        <span class="kw">if</span> <span class="ident">has_configurable</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;configurable&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
             <span class="ident">attribute</span> <span class="op">|</span><span class="op">=</span> <span class="ident">Attribute::CONFIGURABLE</span>;
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="ident">value_key</span> <span class="op">=</span> <span class="ident">PropertyKey::from</span>(<span class="string">&quot;value&quot;</span>);
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">value_key</span>) {
-            <span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">value_key</span>, <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>);
+        <span class="comment">// 7. Let hasValue be ? HasProperty(Obj, &quot;value&quot;).</span>
+        <span class="kw">let</span> <span class="ident">has_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 8. If hasValue is true, then</span>
+        <span class="kw">if</span> <span class="ident">has_value</span> {
+            <span class="comment">// a. Let value be ? Get(Obj, &quot;value&quot;).</span>
+            <span class="comment">// b. Set desc.[[Value]] to value.</span>
+            <span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>);
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_writable</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">let</span> <span class="ident">writable_key</span> <span class="op">=</span> <span class="ident">PropertyKey::from</span>(<span class="string">&quot;writable&quot;</span>);
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">writable_key</span>) {
-            <span class="ident">has_writable</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <span class="kw">if</span> <span class="self">self</span>
-                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">writable_key</span>, <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
-                .<span class="ident">to_boolean</span>()
-            {
+        <span class="comment">// 9. Let hasWritable be ? HasProperty(Obj, ).</span>
+        <span class="kw">let</span> <span class="ident">has_writable</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="string">&quot;writable&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 10. If hasWritable is true, then</span>
+        <span class="kw">if</span> <span class="ident">has_writable</span> {
+            <span class="comment">// a. Let writable be ! ToBoolean(? Get(Obj, &quot;writable&quot;)).</span>
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;writable&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
+                <span class="comment">// b. Set desc.[[Writable]] to writable.</span>
                 <span class="ident">attribute</span> <span class="op">|</span><span class="op">=</span> <span class="ident">Attribute::WRITABLE</span>;
             }
         }
 
+        <span class="comment">// 11. Let hasGet be ? HasProperty(Obj, &quot;get&quot;).</span>
+        <span class="kw">let</span> <span class="ident">has_get</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="string">&quot;get&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 12. If hasGet is true, then</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">get</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="ident">get_key</span> <span class="op">=</span> <span class="ident">PropertyKey::from</span>(<span class="string">&quot;get&quot;</span>);
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">get_key</span>) {
-            <span class="kw">let</span> <span class="ident">getter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">get_key</span>, <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="ident">has_get</span> {
+            <span class="comment">// a. Let getter be ? Get(Obj, &quot;get&quot;).</span>
+            <span class="kw">let</span> <span class="ident">getter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;get&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="comment">// b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.</span>
             <span class="kw">match</span> <span class="ident">getter</span> {
                 <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="comment">// c. Set desc.[[Get]] to getter.</span>
                     <span class="ident">get</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>.<span class="ident">clone</span>());
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
@@ -1566,12 +1565,17 @@
             }
         }
 
+        <span class="comment">// 13. Let hasSet be ? HasProperty(Obj, &quot;set&quot;).</span>
+        <span class="kw">let</span> <span class="ident">has_set</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="string">&quot;set&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 14. If hasSet is true, then</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="ident">set_key</span> <span class="op">=</span> <span class="ident">PropertyKey::from</span>(<span class="string">&quot;set&quot;</span>);
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">set_key</span>) {
-            <span class="kw">let</span> <span class="ident">setter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">set_key</span>, <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="ident">has_set</span> {
+            <span class="comment">// 14.a. Let setter be ? Get(Obj, &quot;set&quot;).</span>
+            <span class="kw">let</span> <span class="ident">setter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;set&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="comment">// 14.b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.</span>
             <span class="kw">match</span> <span class="ident">setter</span> {
                 <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="comment">// 14.c. Set desc.[[Set]] to setter.</span>
                     <span class="ident">set</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>.<span class="ident">clone</span>());
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
@@ -1582,7 +1586,10 @@
             };
         }
 
+        <span class="comment">// 15. If desc.[[Get]] is present or desc.[[Set]] is present, then</span>
+        <span class="comment">// 16. Return desc.</span>
         <span class="kw">if</span> <span class="ident">get</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">set</span>.<span class="ident">is_some</span>() {
+            <span class="comment">// 15.a. If desc.[[Value]] is present or desc.[[Writable]] is present, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">has_writable</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Invalid property descriptor. Cannot both specify accessors and a value or writable attribute&quot;</span>));
             }
@@ -1668,7 +1675,7 @@
     <span class="doccomment">/// or if th prototype is not an object or undefined.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_prototype_instance</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">prototype</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_prototype_instance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">prototype</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">borrow_mut</span>().<span class="ident">set_prototype_instance</span>(<span class="ident">prototype</span>)
     }
 
@@ -1826,13 +1833,17 @@
     <span class="kw">where</span>
         <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 1. Assert: IsPropertyKey(P) is true.</span>
+        <span class="comment">// 2. Let func be ? GetV(V, P).</span>
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
+        <span class="comment">// 3. If func is either undefined or null, return undefined.</span>
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_null_or_undefined</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
         }
 
+        <span class="comment">// 4. If IsCallable(func) is false, throw a TypeError exception.</span>
+        <span class="comment">// 5. Return func.</span>
         <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">as_object</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">object</span>)),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>
@@ -1852,25 +1863,31 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
         <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. If IsCallable(C) is false, return false.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_callable</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
         }
 
-        <span class="comment">// TODO: If C has a [[BoundTargetFunction]] internal slot, then</span>
-        <span class="comment">//           Let BC be C.[[BoundTargetFunction]].</span>
-        <span class="comment">//           Return ? InstanceofOperator(O, BC).</span>
+        <span class="comment">// TODO: 2. If C has a [[BoundTargetFunction]] internal slot, then</span>
+        <span class="comment">//         a. Let BC be C.[[BoundTargetFunction]].</span>
+        <span class="comment">//         b.  Return ? InstanceofOperator(O, BC).</span>
 
+        <span class="comment">// 3. If Type(O) is not Object, return false.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">value</span>.<span class="ident">as_object</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">prototype</span>) <span class="op">=</span> <span class="self">self</span>
-                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="string">&quot;prototype&quot;</span>.<span class="ident">into</span>(), <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
-                .<span class="ident">as_object</span>()
-            {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">get_prototype_of</span>();
+            <span class="comment">// 4. Let P be ? Get(C, &quot;prototype&quot;).</span>
+            <span class="comment">// 5. If Type(P) is not Object, throw a TypeError exception.</span>
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">prototype</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;prototype&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_object</span>() {
+                <span class="comment">// 6. Repeat,</span>
+                <span class="comment">//      a. Set O to ? O.[[GetPrototypeOf]]().</span>
+                <span class="comment">//      b. If O is null, return false.</span>
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">__get_prototype_of__</span>();
                 <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object_prototype</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_object</span>() {
+                    <span class="comment">//     c. If SameValue(P, O) is true, return true.</span>
                     <span class="kw">if</span> <span class="ident">GcObject::equals</span>(<span class="kw-2">&amp;</span><span class="ident">prototype</span>, <span class="kw-2">&amp;</span><span class="ident">object_prototype</span>) {
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
                     }
-                    <span class="ident">object</span> <span class="op">=</span> <span class="ident">object_prototype</span>.<span class="ident">get_prototype_of</span>();
+                    <span class="comment">// a. Set O to ? O.[[GetPrototypeOf]]().</span>
+                    <span class="ident">object</span> <span class="op">=</span> <span class="ident">object_prototype</span>.<span class="ident">__get_prototype_of__</span>();
                 }
 
                 <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
@@ -1880,43 +1897,6 @@
             }
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
-        }
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_own_property</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
-    {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">into</span>();
-        <span class="self">self</span>.<span class="ident">get_own_property</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">is_some</span>()
-    }
-
-    <span class="doccomment">/// Defines the property or throws a `TypeError` if the operation fails.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-definepropertyorthrow</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">define_property_or_throw</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">P</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
-        <span class="ident">key</span>: <span class="ident">K</span>,
-        <span class="ident">desc</span>: <span class="ident">P</span>,
-        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
-        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
-    {
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">into</span>();
-
-        <span class="kw">let</span> <span class="ident">success</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">define_own_property</span>(<span class="ident">key</span>.<span class="ident">clone</span>(), <span class="ident">desc</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">success</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="macro">format!</span>(<span class="string">&quot;Cannot redefine property: {}&quot;</span>, <span class="ident">key</span>)))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(())
         }
     }
 
@@ -1938,11 +1918,7 @@
         <span class="comment">// 1. Assert: Type(O) is Object.</span>
 
         <span class="comment">// 2. Let C be ? Get(O, &quot;constructor&quot;).</span>
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">get</span>(
-            <span class="kw-2">&amp;</span><span class="ident">PropertyKey::from</span>(<span class="string">&quot;constructor&quot;</span>),
-            <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="ident">context</span>,
-        )<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">get</span>(<span class="string">&quot;constructor&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If C is undefined, return defaultConstructor.</span>
         <span class="kw">if</span> <span class="ident">c</span>.<span class="ident">is_undefined</span>() {

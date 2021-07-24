@@ -1581,6 +1581,12 @@
 <span id="1580">1580</span>
 <span id="1581">1581</span>
 <span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
+<span id="1587">1587</span>
+<span id="1588">1588</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `RegExp` object.</span>
 <span class="doccomment">//!</span>
@@ -1599,7 +1605,7 @@
     <span class="ident">builtins</span>::{<span class="ident">array::Array</span>, <span class="ident">BuiltIn</span>},
     <span class="ident">gc</span>::{<span class="ident">empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>, <span class="ident">GcObject</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
-    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>},
+    <span class="ident">property::Attribute</span>,
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">value</span>::{<span class="ident">IntegerOrInfinity</span>, <span class="ident">Value</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsString</span>, <span class="prelude-ty">Result</span>,
@@ -1781,7 +1787,7 @@
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">new_target</span>
             .<span class="ident">as_object</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> {
-                <span class="ident">obj</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">PROTOTYPE</span>.<span class="ident">into</span>(), <span class="ident">obj</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">ctx</span>)
+                <span class="ident">obj</span>.<span class="ident">__get__</span>(<span class="kw-2">&amp;</span><span class="ident">PROTOTYPE</span>.<span class="ident">into</span>(), <span class="ident">obj</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">ctx</span>)
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="ident">o</span>.<span class="ident">as_object</span>())
                     .<span class="ident">transpose</span>()
             })
@@ -2038,45 +2044,46 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/flags</span>
     <span class="doccomment">/// [flags]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Advanced_searching_with_flags_2</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_flags</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Let R be the this value.</span>
+        <span class="comment">// 2. If Type(R) is not Object, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
+            <span class="comment">// 3. Let result be the empty String.</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">String::new</span>();
-            <span class="kw">if</span> <span class="ident">object</span>
-                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="string">&quot;global&quot;</span>.<span class="ident">into</span>(), <span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
-                .<span class="ident">to_boolean</span>()
-            {
+            <span class="comment">// 4. Let global be ! ToBoolean(? Get(R, &quot;global&quot;)).</span>
+            <span class="comment">// 5. If global is true, append the code unit 0x0067 (LATIN SMALL LETTER G) as the last code unit of result.</span>
+            <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">get</span>(<span class="string">&quot;global&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
                 <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;g&#39;</span>);
             }
-            <span class="kw">if</span> <span class="ident">object</span>
-                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="string">&quot;ignoreCase&quot;</span>.<span class="ident">into</span>(), <span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
-                .<span class="ident">to_boolean</span>()
-            {
+            <span class="comment">// 6. Let ignoreCase be ! ToBoolean(? Get(R, &quot;ignoreCase&quot;)).</span>
+            <span class="comment">// 7. If ignoreCase is true, append the code unit 0x0069 (LATIN SMALL LETTER I) as the last code unit of result.</span>
+            <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">get</span>(<span class="string">&quot;ignoreCase&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
                 <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;i&#39;</span>);
             }
-            <span class="kw">if</span> <span class="ident">object</span>
-                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="string">&quot;multiline&quot;</span>.<span class="ident">into</span>(), <span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
-                .<span class="ident">to_boolean</span>()
-            {
+
+            <span class="comment">// 8. Let multiline be ! ToBoolean(? Get(R, &quot;multiline&quot;)).</span>
+            <span class="comment">// 9. If multiline is true, append the code unit 0x006D (LATIN SMALL LETTER M) as the last code unit of result.</span>
+            <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">get</span>(<span class="string">&quot;multiline&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
                 <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;m&#39;</span>);
             }
-            <span class="kw">if</span> <span class="ident">object</span>
-                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="string">&quot;dotAll&quot;</span>.<span class="ident">into</span>(), <span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
-                .<span class="ident">to_boolean</span>()
-            {
+
+            <span class="comment">// 10. Let dotAll be ! ToBoolean(? Get(R, &quot;dotAll&quot;)).</span>
+            <span class="comment">// 11. If dotAll is true, append the code unit 0x0073 (LATIN SMALL LETTER S) as the last code unit of result.</span>
+            <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">get</span>(<span class="string">&quot;dotAll&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
                 <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;s&#39;</span>);
             }
-            <span class="kw">if</span> <span class="ident">object</span>
-                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="string">&quot;unicode&quot;</span>.<span class="ident">into</span>(), <span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
-                .<span class="ident">to_boolean</span>()
-            {
+            <span class="comment">// 12. Let unicode be ! ToBoolean(? Get(R, &quot;unicode&quot;)).</span>
+            <span class="comment">// 13. If unicode is true, append the code unit 0x0075 (LATIN SMALL LETTER U) as the last code unit of result.</span>
+            <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">get</span>(<span class="string">&quot;unicode&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
                 <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;u&#39;</span>);
             }
-            <span class="kw">if</span> <span class="ident">object</span>
-                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="string">&quot;sticky&quot;</span>.<span class="ident">into</span>(), <span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
-                .<span class="ident">to_boolean</span>()
-            {
+
+            <span class="comment">// 14. Let sticky be ! ToBoolean(? Get(R, &quot;sticky&quot;)).</span>
+            <span class="comment">// 15. If sticky is true, append the code unit 0x0079 (LATIN SMALL LETTER Y) as the last code unit of result.</span>
+            <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">get</span>(<span class="string">&quot;sticky&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
                 <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;y&#39;</span>);
             }
 
+            <span class="comment">// 16. Return result.</span>
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">result</span>.<span class="ident">into</span>());
         }
 
@@ -2403,24 +2410,21 @@
         }
 
         <span class="comment">// 16. Let n be the number of elements in r&#39;s captures List. (This is the same value as 22.2.2.1&#39;s NcapturingParens.)</span>
+        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">match_value</span>.<span class="ident">captures</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>;
         <span class="comment">// 17. Assert: n &lt; 23^2 - 1.</span>
-        <span class="kw">let</span> <span class="ident">n</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">match_value</span>.<span class="ident">captures</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="macro">assert!</span>(<span class="ident">n</span> <span class="op">&lt;</span> <span class="number">23u64</span>.<span class="ident">pow</span>(<span class="number">2</span>) <span class="op">-</span> <span class="number">1</span>);
 
         <span class="comment">// 18. Let A be ! ArrayCreate(n + 1).</span>
         <span class="comment">// 19. Assert: The mathematical value of A&#39;s &quot;length&quot; property is n + 1.</span>
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Array::array_create</span>(<span class="ident">n</span> <span class="op">+</span> <span class="number">1</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>);
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Array::array_create</span>(<span class="ident">n</span> <span class="op">+</span> <span class="number">1</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 20. Perform ! CreateDataPropertyOrThrow(A, &quot;index&quot;, 𝔽(lastIndex)).</span>
-        <span class="ident">a</span>.<span class="ident">set_property</span>(
-            <span class="string">&quot;index&quot;</span>,
-            <span class="ident">DataDescriptor::new</span>(<span class="ident">match_value</span>.<span class="ident">start</span>(), <span class="ident">Attribute::all</span>()),
-        );
+        <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;index&quot;</span>, <span class="ident">match_value</span>.<span class="ident">start</span>(), <span class="ident">context</span>)
+            .<span class="ident">unwrap</span>();
 
         <span class="comment">// 21. Perform ! CreateDataPropertyOrThrow(A, &quot;input&quot;, S).</span>
-        <span class="ident">a</span>.<span class="ident">set_property</span>(
-            <span class="string">&quot;input&quot;</span>,
-            <span class="ident">DataDescriptor::new</span>(<span class="ident">input</span>.<span class="ident">clone</span>(), <span class="ident">Attribute::all</span>()),
-        );
+        <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;input&quot;</span>, <span class="ident">input</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)
+            .<span class="ident">unwrap</span>();
 
         <span class="comment">// 22. Let matchedSubstr be the substring of S from lastIndex to e.</span>
         <span class="kw">let</span> <span class="ident">matched_substr</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">get</span>(<span class="ident">match_value</span>.<span class="ident">range</span>()) {
@@ -2430,7 +2434,8 @@
         };
 
         <span class="comment">// 23. Perform ! CreateDataPropertyOrThrow(A, &quot;0&quot;, matchedSubstr).</span>
-        <span class="ident">a</span>.<span class="ident">set_property</span>(<span class="string">&quot;0&quot;</span>, <span class="ident">DataDescriptor::new</span>(<span class="ident">matched_substr</span>, <span class="ident">Attribute::all</span>()));
+        <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="number">0</span>, <span class="ident">matched_substr</span>, <span class="ident">context</span>)
+            .<span class="ident">unwrap</span>();
 
         <span class="comment">// TODO: named capture groups</span>
         <span class="comment">// 24. If R contains any GroupName, then</span>
@@ -2440,7 +2445,8 @@
         <span class="kw">let</span> <span class="ident">groups</span> <span class="op">=</span> <span class="ident">Value::undefined</span>();
 
         <span class="comment">// 26. Perform ! CreateDataPropertyOrThrow(A, &quot;groups&quot;, groups).</span>
-        <span class="ident">a</span>.<span class="ident">set_property</span>(<span class="string">&quot;groups&quot;</span>, <span class="ident">DataDescriptor::new</span>(<span class="ident">groups</span>, <span class="ident">Attribute::all</span>()));
+        <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;groups&quot;</span>, <span class="ident">groups</span>, <span class="ident">context</span>)
+            .<span class="ident">unwrap</span>();
 
         <span class="comment">// 27. For each integer i such that i ≥ 1 and i ≤ n, in ascending order, do</span>
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">1</span>..<span class="op">=</span><span class="ident">n</span> {
@@ -2462,7 +2468,8 @@
             };
 
             <span class="comment">// e. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), capturedValue).</span>
-            <span class="ident">a</span>.<span class="ident">set_property</span>(<span class="ident">i</span>, <span class="ident">DataDescriptor::new</span>(<span class="ident">captured_value</span>, <span class="ident">Attribute::all</span>()));
+            <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">i</span>, <span class="ident">captured_value</span>, <span class="ident">context</span>)
+                .<span class="ident">unwrap</span>();
 
             <span class="comment">// TODO: named capture groups</span>
             <span class="comment">// f. If the ith capture of R was defined with a GroupName, then</span>
@@ -2471,7 +2478,7 @@
         }
 
         <span class="comment">// 28. Return A.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">a</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `RegExp.prototype[ @@match ]( string )`</span>
@@ -2517,7 +2524,7 @@
             <span class="ident">this</span>.<span class="ident">set_field</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">Value::from</span>(<span class="number">0</span>), <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// d. Let A be ! ArrayCreate(0).</span>
-            <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Array::array_create</span>(<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>);
+            <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Array::array_create</span>(<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>).<span class="ident">unwrap</span>();
 
             <span class="comment">// e. Let n be 0.</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span> <span class="op">=</span> <span class="number">0</span>;
@@ -2535,14 +2542,15 @@
                     <span class="kw">if</span> <span class="ident">n</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::null</span>());
                     } <span class="kw">else</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>);
+                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>());
                     }
                 } <span class="kw">else</span> {
                     <span class="comment">// 1. Let matchStr be ? ToString(? Get(result, &quot;0&quot;)).</span>
                     <span class="kw">let</span> <span class="ident">match_str</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">get_field</span>(<span class="string">&quot;0&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
                     <span class="comment">// 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), matchStr).</span>
-                    <span class="ident">Array::add_to_array_object</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>, <span class="kw-2">&amp;</span>[<span class="ident">match_str</span>.<span class="ident">clone</span>().<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">n</span>, <span class="ident">match_str</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)
+                        .<span class="ident">unwrap</span>();
 
                     <span class="comment">// 3. If matchStr is the empty String, then</span>
                     <span class="kw">if</span> <span class="ident">match_str</span>.<span class="ident">is_empty</span>() {
@@ -2996,7 +3004,7 @@
             <span class="ident">RegExp::constructor</span>(<span class="kw-2">&amp;</span><span class="ident">constructor</span>, <span class="kw-2">&amp;</span>[<span class="ident">this</span>.<span class="ident">clone</span>(), <span class="ident">new_flags</span>.<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 11. Let A be ! ArrayCreate(0).</span>
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Array::array_create</span>(<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>);
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Array::array_create</span>(<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>).<span class="ident">unwrap</span>();
 
         <span class="comment">// 12. Let lengthA be 0.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">length_a</span> <span class="op">=</span> <span class="number">0</span>;
@@ -3011,7 +3019,7 @@
 
         <span class="comment">// 14. If lim is 0, return A.</span>
         <span class="kw">if</span> <span class="ident">lim</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>);
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>());
         }
 
         <span class="comment">// 15. Let size be the length of S.</span>
@@ -3024,14 +3032,15 @@
 
             <span class="comment">// b. If z is not null, return A.</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span>.<span class="ident">is_null</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>);
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>());
             }
 
             <span class="comment">// c. Perform ! CreateDataPropertyOrThrow(A, &quot;0&quot;, S).</span>
-            <span class="ident">Array::add_to_array_object</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>, <span class="kw-2">&amp;</span>[<span class="ident">Value::from</span>(<span class="ident">arg_str</span>)], <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="number">0</span>, <span class="ident">arg_str</span>, <span class="ident">context</span>)
+                .<span class="ident">unwrap</span>();
 
             <span class="comment">// d. Return A.</span>
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>);
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>());
         }
 
         <span class="comment">// 17. Let p be 0.</span>
@@ -3072,14 +3081,15 @@
                     <span class="kw">let</span> <span class="ident">arg_str_substring</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">arg_str</span>.<span class="ident">chars</span>().<span class="ident">skip</span>(<span class="ident">p</span>).<span class="ident">take</span>(<span class="ident">q</span> <span class="op">-</span> <span class="ident">p</span>).<span class="ident">collect</span>();
 
                     <span class="comment">// 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).</span>
-                    <span class="ident">Array::add_to_array_object</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>, <span class="kw-2">&amp;</span>[<span class="ident">Value::from</span>(<span class="ident">arg_str_substring</span>)], <span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">length_a</span>, <span class="ident">arg_str_substring</span>, <span class="ident">context</span>)
+                        .<span class="ident">unwrap</span>();
 
                     <span class="comment">// 3. Set lengthA to lengthA + 1.</span>
                     <span class="ident">length_a</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 
                     <span class="comment">// 4. If lengthA = lim, return A.</span>
                     <span class="kw">if</span> <span class="ident">length_a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">lim</span> {
-                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>);
+                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>());
                     }
 
                     <span class="comment">// 5. Set p to e.</span>
@@ -3103,14 +3113,15 @@
                         <span class="kw">let</span> <span class="ident">next_capture</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">get_field</span>(<span class="ident">i</span>.<span class="ident">to_string</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
                         <span class="comment">// b. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), nextCapture).</span>
-                        <span class="ident">Array::add_to_array_object</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>, <span class="kw-2">&amp;</span>[<span class="ident">next_capture</span>], <span class="ident">context</span>)<span class="question-mark">?</span>;
+                        <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">length_a</span>, <span class="ident">next_capture</span>, <span class="ident">context</span>)
+                            .<span class="ident">unwrap</span>();
 
                         <span class="comment">// d. Set lengthA to lengthA + 1.</span>
                         <span class="ident">length_a</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 
                         <span class="comment">// e. If lengthA = lim, return A.</span>
                         <span class="kw">if</span> <span class="ident">length_a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">lim</span> {
-                            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>);
+                            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>());
                         }
                     }
 
@@ -3124,10 +3135,11 @@
         <span class="kw">let</span> <span class="ident">arg_str_substring</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">arg_str</span>.<span class="ident">chars</span>().<span class="ident">skip</span>(<span class="ident">p</span>).<span class="ident">take</span>(<span class="ident">size</span> <span class="op">-</span> <span class="ident">p</span>).<span class="ident">collect</span>();
 
         <span class="comment">// 21. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).</span>
-        <span class="ident">Array::add_to_array_object</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>, <span class="kw-2">&amp;</span>[<span class="ident">Value::from</span>(<span class="ident">arg_str_substring</span>)], <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">length_a</span>, <span class="ident">arg_str_substring</span>, <span class="ident">context</span>)
+            .<span class="ident">unwrap</span>();
 
         <span class="comment">// 22. Return A.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">a</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>())
     }
 }
 
