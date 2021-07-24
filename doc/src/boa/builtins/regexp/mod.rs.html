@@ -2410,9 +2410,9 @@
         }
 
         <span class="comment">// 16. Let n be the number of elements in r&#39;s captures List. (This is the same value as 22.2.2.1&#39;s NcapturingParens.)</span>
-        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">match_value</span>.<span class="ident">captures</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>;
+        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">match_value</span>.<span class="ident">captures</span>.<span class="ident">len</span>();
         <span class="comment">// 17. Assert: n &lt; 23^2 - 1.</span>
-        <span class="macro">assert!</span>(<span class="ident">n</span> <span class="op">&lt;</span> <span class="number">23u64</span>.<span class="ident">pow</span>(<span class="number">2</span>) <span class="op">-</span> <span class="number">1</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">n</span> <span class="op">&lt;</span> <span class="number">23usize</span>.<span class="ident">pow</span>(<span class="number">2</span>) <span class="op">-</span> <span class="number">1</span>);
 
         <span class="comment">// 18. Let A be ! ArrayCreate(n + 1).</span>
         <span class="comment">// 19. Assert: The mathematical value of A&#39;s &quot;length&quot; property is n + 1.</span>
@@ -2451,7 +2451,7 @@
         <span class="comment">// 27. For each integer i such that i ≥ 1 and i ≤ n, in ascending order, do</span>
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">1</span>..<span class="op">=</span><span class="ident">n</span> {
             <span class="comment">// a. Let captureI be ith element of r&#39;s captures List.</span>
-            <span class="kw">let</span> <span class="ident">capture</span> <span class="op">=</span> <span class="ident">match_value</span>.<span class="ident">group</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>);
+            <span class="kw">let</span> <span class="ident">capture</span> <span class="op">=</span> <span class="ident">match_value</span>.<span class="ident">group</span>(<span class="ident">i</span>);
 
             <span class="kw">let</span> <span class="ident">captured_value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">capture</span> {
                 <span class="comment">// b. If captureI is undefined, let capturedValue be undefined.</span>

@@ -2839,7 +2839,7 @@
         <span class="kw">let</span> <span class="ident">this_str</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let A be ! ArrayCreate(0).</span>
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Array::array_create</span>(<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Array::array_create</span>(<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Let lengthA be 0.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">length_a</span> <span class="op">=</span> <span class="number">0</span>;
