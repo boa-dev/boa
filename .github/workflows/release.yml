@@ -16,3 +16,37 @@ jobs:
       - run: cargo login ${CARGO_REGISTRY_TOKEN}
       - run: cargo publish
         working-directory: boa
+  doc-publish:
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with:
+          ref: master
+      - uses: actions/checkout@v2.3.4
+        with:
+          ref: gh-pages
+          path: dist
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - uses: Borales/actions-yarn@v2.3.0
+        with:
+          cmd: install
+      - name: Cache yarn build
+        uses: actions/cache@v2.1.6
+        with:
+          path: |
+            node_modules
+            target
+            boa_wasm/pkg
+          key: ${{ runner.os }}-yarn-build-target-${{ hashFiles('**/yarn.lock') }}
+      - uses: Borales/actions-yarn@v2.3.0
+        with:
+          cmd: build
+      - run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add .
+          git commit -m "Deploy to GitHub pages"
+          git push
+          git push --prefix dist origin gh-pages
