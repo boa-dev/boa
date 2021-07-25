@@ -1,8 +1,6 @@
 use crate::{forward, forward_val, Context};
 
-///TODO: re-enable when getProperty() is finished;
 #[test]
-#[ignore]
 fn length() {
     //TEST262: https://github.com/tc39/test262/blob/master/test/built-ins/String/length.js
     let mut context = Context::new();
@@ -16,7 +14,6 @@ fn length() {
     let a = forward(&mut context, "a.length");
     assert_eq!(a, "1");
     let b = forward(&mut context, "b.length");
-    // TODO: fix this
     // unicode surrogate pair length should be 1
     // utf16/usc2 length should be 2
     // utf8 length should be 4
@@ -448,42 +445,75 @@ fn includes_with_regex_arg() {
 fn match_all() {
     let mut context = Context::new();
 
-    assert_eq!(forward(&mut context, "'aa'.matchAll(null).length"), "0");
-    assert_eq!(forward(&mut context, "'aa'.matchAll(/b/).length"), "0");
-    assert_eq!(forward(&mut context, "'aa'.matchAll(/a/).length"), "1");
-    assert_eq!(forward(&mut context, "'aa'.matchAll(/a/g).length"), "2");
+    forward(
+        &mut context,
+        r#"
+        var groupMatches = 'test1test2'.matchAll(/t(e)(st(\d?))/g);
+        var m1 = groupMatches.next();
+        var m2 = groupMatches.next();
+        var m3 = groupMatches.next();
+        "#,
+    );
+
+    assert_eq!(forward(&mut context, "m1.done"), "false");
+    assert_eq!(forward(&mut context, "m2.done"), "false");
+    assert_eq!(forward(&mut context, "m3.done"), "true");
+
+    assert_eq!(forward(&mut context, "m1.value[0]"), "\"test1\"");
+    assert_eq!(forward(&mut context, "m1.value[1]"), "\"e\"");
+    assert_eq!(forward(&mut context, "m1.value[2]"), "\"st1\"");
+    assert_eq!(forward(&mut context, "m1.value[3]"), "\"1\"");
+    assert_eq!(forward(&mut context, "m1.value[4]"), "undefined");
+    assert_eq!(forward(&mut context, "m1.value.index"), "0");
+    assert_eq!(forward(&mut context, "m1.value.input"), "\"test1test2\"");
+    assert_eq!(forward(&mut context, "m1.value.groups"), "undefined");
+
+    assert_eq!(forward(&mut context, "m2.value[0]"), "\"test2\"");
+    assert_eq!(forward(&mut context, "m2.value[1]"), "\"e\"");
+    assert_eq!(forward(&mut context, "m2.value[2]"), "\"st2\"");
+    assert_eq!(forward(&mut context, "m2.value[3]"), "\"2\"");
+    assert_eq!(forward(&mut context, "m2.value[4]"), "undefined");
+    assert_eq!(forward(&mut context, "m2.value.index"), "5");
+    assert_eq!(forward(&mut context, "m2.value.input"), "\"test1test2\"");
+    assert_eq!(forward(&mut context, "m2.value.groups"), "undefined");
+
+    assert_eq!(forward(&mut context, "m3.value"), "undefined");
 
     forward(
         &mut context,
-        "var groupMatches = 'test1test2'.matchAll(/t(e)(st(\\d?))/g)",
-    );
-
-    assert_eq!(forward(&mut context, "groupMatches.length"), "2");
-    assert_eq!(forward(&mut context, "groupMatches[0][1]"), "\"e\"");
-    assert_eq!(forward(&mut context, "groupMatches[0][2]"), "\"st1\"");
-    assert_eq!(forward(&mut context, "groupMatches[0][3]"), "\"1\"");
-    assert_eq!(forward(&mut context, "groupMatches[1][3]"), "\"2\"");
-
-    assert_eq!(
-        forward(
-            &mut context,
-            "'test1test2'.matchAll(/t(e)(st(\\d?))/).length"
-        ),
-        "1"
-    );
-
-    let init = r#"
+        r#"
         var regexp = RegExp('foo[a-z]*','g');
         var str = 'table football, foosball';
         var matches = str.matchAll(regexp);
-        "#;
+        var m1 = matches.next();
+        var m2 = matches.next();
+        var m3 = matches.next();
+        "#,
+    );
 
-    forward(&mut context, init);
+    assert_eq!(forward(&mut context, "m1.done"), "false");
+    assert_eq!(forward(&mut context, "m2.done"), "false");
+    assert_eq!(forward(&mut context, "m3.done"), "true");
 
-    assert_eq!(forward(&mut context, "matches[0][0]"), "\"football\"");
-    assert_eq!(forward(&mut context, "matches[0].index"), "6");
-    assert_eq!(forward(&mut context, "matches[1][0]"), "\"foosball\"");
-    assert_eq!(forward(&mut context, "matches[1].index"), "16");
+    assert_eq!(forward(&mut context, "m1.value[0]"), "\"football\"");
+    assert_eq!(forward(&mut context, "m1.value[1]"), "undefined");
+    assert_eq!(forward(&mut context, "m1.value.index"), "6");
+    assert_eq!(
+        forward(&mut context, "m1.value.input"),
+        "\"table football, foosball\""
+    );
+    assert_eq!(forward(&mut context, "m1.value.groups"), "undefined");
+
+    assert_eq!(forward(&mut context, "m2.value[0]"), "\"foosball\"");
+    assert_eq!(forward(&mut context, "m2.value[1]"), "undefined");
+    assert_eq!(forward(&mut context, "m2.value.index"), "16");
+    assert_eq!(
+        forward(&mut context, "m1.value.input"),
+        "\"table football, foosball\""
+    );
+    assert_eq!(forward(&mut context, "m2.value.groups"), "undefined");
+
+    assert_eq!(forward(&mut context, "m3.value"), "undefined");
 }
 
 #[test]
@@ -694,7 +724,7 @@ fn split_with_symbol_split_method() {
             }
         "#
         ),
-        "\"TypeError: separator[Symbol.split] is not a function\""
+        "\"TypeError: value returned for property of object is not a function\""
     );
 }
 

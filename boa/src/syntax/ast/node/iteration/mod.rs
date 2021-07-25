@@ -9,7 +9,6 @@ pub use self::{
 mod tests;
 
 // Checking labels for break and continue is the same operation for `ForLoop`, `While` and `DoWhile`
-#[macro_use]
 macro_rules! handle_state_with_labels {
     ($self:ident, $label:ident, $interpreter:ident, $state:tt) => {{
         if let Some(brk_label) = $label {

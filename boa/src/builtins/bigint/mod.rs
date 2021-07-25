@@ -14,32 +14,17 @@
 
 use crate::{
     builtins::BuiltIn,
-    gc::{empty_trace, Finalize, Trace},
     object::{ConstructorBuilder, ObjectData},
     property::Attribute,
     symbol::WellKnownSymbols,
-    value::{RcBigInt, Value},
-    BoaProfiler, Context, Result,
+    BoaProfiler, Context, JsBigInt, Result, Value,
 };
-
-#[cfg(feature = "deser")]
-use serde::{Deserialize, Serialize};
-
-pub mod conversions;
-pub mod equality;
-pub mod operations;
-
-pub use conversions::*;
-pub use equality::*;
-pub use operations::*;
-
 #[cfg(test)]
 mod tests;
 
 /// `BigInt` implementation.
-#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
-pub struct BigInt(num_bigint::BigInt);
+#[derive(Debug, Clone, Copy)]
+pub struct BigInt;
 
 impl BuiltIn for BigInt {
     const NAME: &'static str = "BigInt";
@@ -93,8 +78,8 @@ impl BigInt {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
     fn constructor(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let data = match args.get(0) {
-            Some(ref value) => value.to_bigint(context)?,
-            None => RcBigInt::from(Self::from(0)),
+            Some(value) => value.to_bigint(context)?,
+            None => JsBigInt::zero(),
         };
         Ok(Value::from(data))
     }
@@ -110,7 +95,7 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisbigintvalue
     #[inline]
-    fn this_bigint_value(value: &Value, context: &mut Context) -> Result<RcBigInt> {
+    fn this_bigint_value(value: &Value, context: &mut Context) -> Result<JsBigInt> {
         match value {
             // 1. If Type(value) is BigInt, return value.
             Value::BigInt(ref bigint) => return Ok(bigint.clone()),
@@ -181,17 +166,12 @@ impl BigInt {
         let (modulo, bits) = Self::calculate_as_uint_n(args, context)?;
 
         if bits > 0
-            && modulo
-                >= BigInt::from(2)
-                    .pow(&BigInt::from(bits as i64 - 1))
-                    .expect("the exponent must be positive")
+            && modulo >= JsBigInt::pow(&JsBigInt::new(2), &JsBigInt::new(bits as i64 - 1), context)?
         {
-            Ok(Value::from(
-                modulo
-                    - BigInt::from(2)
-                        .pow(&BigInt::from(bits as i64))
-                        .expect("the exponent must be positive"),
-            ))
+            Ok(Value::from(JsBigInt::sub(
+                &modulo,
+                &JsBigInt::pow(&JsBigInt::new(2), &JsBigInt::new(bits as i64), context)?,
+            )))
         } else {
             Ok(Value::from(modulo))
         }
@@ -215,7 +195,7 @@ impl BigInt {
     /// This function expects the same arguments as `as_uint_n` and wraps the value of a `BigInt`.
     /// Additionally to the wrapped unsigned value it returns the converted `bits` argument, so it
     /// can be reused from the `as_int_n` method.
-    fn calculate_as_uint_n(args: &[Value], context: &mut Context) -> Result<(BigInt, u32)> {
+    fn calculate_as_uint_n(args: &[Value], context: &mut Context) -> Result<(JsBigInt, u32)> {
         use std::convert::TryFrom;
 
         let undefined_value = Value::undefined();
@@ -229,29 +209,11 @@ impl BigInt {
         let bigint = bigint_arg.to_bigint(context)?;
 
         Ok((
-            bigint.as_inner().clone().mod_floor(
-                &BigInt::from(2)
-                    .pow(&BigInt::from(bits as i64))
-                    .expect("the exponent must be positive"),
+            JsBigInt::mod_floor(
+                &bigint,
+                &JsBigInt::pow(&JsBigInt::new(2), &JsBigInt::new(bits as i64), context)?,
             ),
             bits,
         ))
     }
-
-    /// helper function for checking if the BigInt represents 0
-    ///
-    /// creating BigInts requires an allocation and for a few operations we need to know if the
-    /// inner value is 0, this solves that situation
-    pub(crate) fn is_zero(&self) -> bool {
-        use num_traits::Zero;
-        self.0.is_zero()
-    }
-}
-
-impl Finalize for BigInt {}
-unsafe impl Trace for BigInt {
-    // BigInt type implements an empty trace becasue the inner structure
-    // `num_bigint::BigInt` does not implement `Trace` trait.
-    // If it did this would be unsound.
-    empty_trace!();
 }

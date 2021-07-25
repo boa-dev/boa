@@ -120,7 +120,7 @@ impl Function {
     ) {
         // Create array of values
         let array = Array::new_array(context);
-        Array::add_to_array_object(&array, &args_list.get(index..).unwrap_or_default(), context)
+        Array::add_to_array_object(&array, args_list.get(index..).unwrap_or_default(), context)
             .unwrap();
 
         // Create binding
@@ -176,14 +176,14 @@ impl Function {
 /// <https://tc39.es/ecma262/#sec-createunmappedargumentsobject>
 pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
     let len = arguments_list.len();
-    let mut obj = GcObject::new(Object::default());
+    let obj = GcObject::new(Object::default());
     // Set length
     let length = DataDescriptor::new(
         len,
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
     );
     // Define length as a property
-    obj.ordinary_define_own_property("length", length.into());
+    obj.ordinary_define_own_property("length".into(), length.into());
     let mut index: usize = 0;
     while index < len {
         let val = arguments_list.get(index).expect("Could not get argument");
@@ -258,7 +258,7 @@ impl BuiltInFunctionObject {
         let prototype = new_target
             .as_object()
             .and_then(|obj| {
-                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
                     .map(|o| o.as_object())
                     .transpose()
             })

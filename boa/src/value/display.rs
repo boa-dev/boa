@@ -102,7 +102,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                 }
                 ObjectData::Array => {
                     let len = v
-                        .get_own_property(&PropertyKey::from("length"))
+                        .__get_own_property__(&PropertyKey::from("length"))
                         // TODO: do this in a better way `unwrap`
                         .unwrap()
                         // FIXME: handle accessor descriptors
@@ -123,7 +123,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                                 // Introduce recursive call to stringify any objects
                                 // which are part of the Array
                                 log_string_from(
-                                    &v.get_own_property(&i.into())
+                                    &v.__get_own_property__(&i.into())
                                         // FIXME: handle accessor descriptors
                                         .and_then(|p| p.as_data_descriptor().map(|d| d.value()))
                                         .unwrap_or_default(),
@@ -178,7 +178,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                         format!("Set({})", size)
                     }
                 }
-                _ => display_obj(&x, print_internals),
+                _ => display_obj(x, print_internals),
             }
         }
         Value::Symbol(ref symbol) => symbol.to_string(),

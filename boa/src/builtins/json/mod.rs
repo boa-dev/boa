@@ -15,12 +15,13 @@
 
 use crate::{
     builtins::BuiltIn,
+    object::Object,
     object::ObjectInitializer,
     property::{Attribute, DataDescriptor, PropertyKey},
+    symbol::WellKnownSymbols,
     value::IntegerOrInfinity,
     BoaProfiler, Context, Result, Value,
 };
-use crate::{object::Object, symbol::WellKnownSymbols};
 use serde::Serialize;
 use serde_json::{self, ser::PrettyFormatter, Serializer, Value as JSONValue};
 
@@ -196,7 +197,7 @@ impl Json {
                 .map(|obj| {
                     let object_to_return = Value::object(Object::default());
                     for key in obj.borrow().keys() {
-                        let val = obj.get(&key, obj.clone().into(), context)?;
+                        let val = obj.__get__(&key, obj.clone().into(), context)?;
                         let this_arg = object.clone();
                         object_to_return.set_property(
                             key.to_owned(),

@@ -9,12 +9,6 @@ use std::fmt;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "vm")]
-use crate::{
-    profiler::BoaProfiler,
-    vm::{compilation::CodeGen, Compiler, Instruction},
-};
-
 /// A unary operation is an operation with only one operand.
 ///
 /// More information:
@@ -100,14 +94,14 @@ impl Executable for UnaryOp {
                         .obj()
                         .run(context)?
                         .to_object(context)?
-                        .delete(&get_const_field.field().into()),
+                        .__delete__(&get_const_field.field().into()),
                 ),
                 Node::GetField(ref get_field) => {
                     let obj = get_field.obj().run(context)?;
                     let field = &get_field.field().run(context)?;
                     let res = obj
                         .to_object(context)?
-                        .delete(&field.to_property_key(context)?);
+                        .__delete__(&field.to_property_key(context)?);
                     return Ok(Value::boolean(res));
                 }
                 Node::Identifier(_) => Value::boolean(false),
@@ -135,26 +129,5 @@ impl fmt::Display for UnaryOp {
 impl From<UnaryOp> for Node {
     fn from(op: UnaryOp) -> Self {
         Self::UnaryOp(op)
-    }
-}
-
-#[cfg(feature = "vm")]
-impl CodeGen for UnaryOp {
-    fn compile(&self, compiler: &mut Compiler) {
-        let _timer = BoaProfiler::global().start_event("UnaryOp", "codeGen");
-        self.target().compile(compiler);
-        match self.op {
-            op::UnaryOp::Void => compiler.add_instruction(Instruction::Void),
-            op::UnaryOp::Plus => compiler.add_instruction(Instruction::Pos),
-            op::UnaryOp::Minus => compiler.add_instruction(Instruction::Neg),
-            op::UnaryOp::TypeOf => compiler.add_instruction(Instruction::TypeOf),
-            op::UnaryOp::Not => compiler.add_instruction(Instruction::Not),
-            op::UnaryOp::Tilde => compiler.add_instruction(Instruction::BitNot),
-            op::UnaryOp::IncrementPost => {}
-            op::UnaryOp::IncrementPre => {}
-            op::UnaryOp::DecrementPost => {}
-            op::UnaryOp::DecrementPre => {}
-            op::UnaryOp::Delete => {}
-        }
     }
 }

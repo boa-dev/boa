@@ -11,7 +11,6 @@ use crate::{
     object::{FunctionBuilder, GcObject, Object, PROTOTYPE},
     property::{Attribute, DataDescriptor, PropertyKey},
     realm::Realm,
-    symbol::{RcSymbol, Symbol},
     syntax::{
         ast::{
             node::{
@@ -22,18 +21,14 @@ use crate::{
         },
         Parser,
     },
-    value::{RcString, Value},
-    BoaProfiler, Executable, Result,
+    BoaProfiler, Executable, Result, Value,
 };
 
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;
 
 #[cfg(feature = "vm")]
-use crate::vm::{
-    compilation::{CodeGen, Compiler},
-    VM,
-};
+use crate::vm::Vm;
 
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
 #[derive(Debug, Clone)]
@@ -222,6 +217,38 @@ impl StandardObjects {
 /// `Context`s constructed in a thread share the same runtime, therefore it
 /// is possible to share objects from one context to another context, but they
 /// have to be in the same thread.
+///
+/// # Examples
+///
+/// ## Execute Function of Script File
+///
+/// ```rust
+/// use boa::{Context, object::ObjectInitializer, property::Attribute};
+///
+/// let script = r#"
+/// function test(arg1) {
+///     if(arg1 != null) {
+///         return arg1.x;
+///     }
+///     return 112233;
+/// }
+/// "#;
+///
+/// let mut context = Context::new();
+///
+/// // Populate the script definition to the context.
+/// context.eval(script).unwrap();
+///
+/// // Create an object that can be used in eval calls.
+/// let arg = ObjectInitializer::new(&mut context)
+///     .property("x", 12, Attribute::READONLY)
+///     .build();
+/// context.register_global_property("arg", arg, Attribute::all());
+///
+/// let value = context.eval("test(arg)").unwrap();
+///
+/// assert_eq!(value.as_number(), Some(12.0))
+/// ```
 #[derive(Debug)]
 pub struct Context {
     /// realm holds both the global object and the environment
@@ -298,12 +325,6 @@ impl Context {
         let _timer = BoaProfiler::global().start_event("create_intrinsics", "interpreter");
         // Create intrinsics, add global objects here
         builtins::init(self);
-    }
-
-    /// Construct a new `Symbol` with an optional description.
-    #[inline]
-    pub fn construct_symbol(&mut self, description: Option<RcString>) -> RcSymbol {
-        RcSymbol::from(Symbol::new(description))
     }
 
     /// Construct an empty object.
@@ -541,7 +562,7 @@ impl Context {
     #[inline]
     pub(crate) fn has_property(&self, obj: &Value, key: &PropertyKey) -> bool {
         if let Some(obj) = obj.as_object() {
-            obj.has_property(key)
+            obj.__has_property__(key)
         } else {
             false
         }
@@ -685,13 +706,12 @@ impl Context {
             Err(e) => return self.throw_syntax_error(e),
         };
 
-        let mut compiler = Compiler::default();
-        statement_list.compile(&mut compiler);
-
-        let mut vm = VM::new(compiler, self);
-        // Generate Bytecode and place it into instruction_stack
-        // Interpret the Bytecode
+        let mut compiler = crate::bytecompiler::ByteCompiler::default();
+        compiler.compile_statement_list(&statement_list, true);
+        let code_block = compiler.finish();
+        let mut vm = Vm::new(code_block, self);
         let result = vm.run();
+
         // The main_timer needs to be dropped before the BoaProfiler is.
         drop(main_timer);
         BoaProfiler::global().drop();

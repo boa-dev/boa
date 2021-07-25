@@ -20,8 +20,8 @@ use crate::{
     builtins::BuiltIn,
     object::ObjectInitializer,
     property::Attribute,
-    value::{display::display_obj, RcString, Value},
-    BoaProfiler, Context, Result,
+    value::{display::display_obj, Value},
+    BoaProfiler, Context, JsString, Result,
 };
 use rustc_hash::FxHashMap;
 use std::time::SystemTime;
@@ -33,14 +33,6 @@ pub enum LogMessage {
     Info(String),
     Warn(String),
     Error(String),
-}
-
-/// Helper function that returns the argument at a specified index.
-fn get_arg_at_index<'a, T>(args: &'a [Value], index: usize) -> Option<T>
-where
-    T: From<&'a Value> + Default,
-{
-    args.get(index).map(|s| T::from(s))
 }
 
 /// Helper function for logging messages.
@@ -137,8 +129,8 @@ pub fn formatter(data: &[Value], context: &mut Context) -> Result<String> {
 /// This is the internal console object state.
 #[derive(Debug, Default)]
 pub(crate) struct Console {
-    count_map: FxHashMap<RcString, u32>,
-    timer_map: FxHashMap<RcString, u128>,
+    count_map: FxHashMap<JsString, u32>,
+    timer_map: FxHashMap<JsString, u128>,
     groups: Vec<String>,
 }
 
@@ -193,7 +185,7 @@ impl Console {
     /// [spec]: https://console.spec.whatwg.org/#assert
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/assert
     pub(crate) fn assert(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let assertion = get_arg_at_index::<bool>(args, 0).unwrap_or_default();
+        let assertion = args.get(0).map(Value::to_boolean).unwrap_or(false);
 
         if !assertion {
             let mut args: Vec<Value> = args.iter().skip(1).cloned().collect();

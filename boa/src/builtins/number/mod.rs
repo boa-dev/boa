@@ -160,7 +160,7 @@ impl Number {
         context: &mut Context,
     ) -> Result<Value> {
         let data = match args.get(0) {
-            Some(ref value) => value.to_numeric_number(context)?,
+            Some(value) => value.to_numeric_number(context)?,
             None => 0.0,
         };
         if new_target.is_undefined() {
@@ -169,7 +169,7 @@ impl Number {
         let prototype = new_target
             .as_object()
             .and_then(|obj| {
-                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
                     .map(|o| o.as_object())
                     .transpose()
             })

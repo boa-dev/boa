@@ -376,13 +376,13 @@ impl Date {
             let prototype = new_target
                 .as_object()
                 .and_then(|obj| {
-                    obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
+                    obj.__get__(&PROTOTYPE.into(), obj.clone().into(), context)
                         .map(|o| o.as_object())
                         .transpose()
                 })
                 .transpose()?
                 .unwrap_or_else(|| context.standard_objects().object_object().prototype());
-            let mut obj = context.construct_object();
+            let obj = context.construct_object();
             obj.set_prototype_instance(prototype.into());
             let this = obj.into();
             if args.is_empty() {
@@ -444,7 +444,7 @@ impl Date {
         let tv = match this_time_value(value, context) {
             Ok(dt) => dt.0,
             _ => match value.to_primitive(context, PreferredType::Default)? {
-                Value::String(ref str) => match chrono::DateTime::parse_from_rfc3339(&str) {
+                Value::String(ref str) => match chrono::DateTime::parse_from_rfc3339(str) {
                     Ok(dt) => Some(dt.naive_utc()),
                     _ => None,
                 },
