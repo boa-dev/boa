@@ -767,12 +767,11 @@ fn map() {
         var one = ["x"];
         var many = ["x", "y", "z"];
 
-        // TODO: uncomment when `this` has been implemented
-        // var _this = { answer: 42 };
+        var _this = { answer: 42 };
 
-        // function callbackThatUsesThis() {
-        //      return 'The answer to life is: ' + this.answer;
-        // }
+        function callbackThatUsesThis() {
+             return 'The answer to life is: ' + this.answer;
+        }
 
         var empty_mapped = empty.map(v => v + '_');
         var one_mapped = one.map(v => '_' + v);
@@ -818,10 +817,9 @@ fn map() {
         String::from("\"_x__y__z_\"")
     );
 
-    // TODO: uncomment when `this` has been implemented
     // One but it uses `this` inside the callback
-    // let one_with_this = forward(&mut context, "one.map(callbackThatUsesThis, _this)[0];");
-    // assert_eq!(one_with_this, String::from("The answer to life is: 42"))
+    let one_with_this = forward(&mut context, "one.map(callbackThatUsesThis, _this)[0];");
+    assert_eq!(one_with_this, String::from("\"The answer to life is: 42\""))
 }
 
 #[test]

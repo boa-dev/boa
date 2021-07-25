@@ -78,7 +78,7 @@ impl BigInt {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
     fn constructor(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let data = match args.get(0) {
-            Some(ref value) => value.to_bigint(context)?,
+            Some(value) => value.to_bigint(context)?,
             None => JsBigInt::zero(),
         };
         Ok(Value::from(data))

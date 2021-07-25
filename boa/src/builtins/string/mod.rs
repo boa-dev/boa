@@ -169,7 +169,7 @@ impl String {
                     .expect("'Symbol::to_string' returns 'Value::String'")
                     .clone()
             }
-            Some(ref value) => value.to_string(context)?,
+            Some(value) => value.to_string(context)?,
             None => JsString::default(),
         };
 

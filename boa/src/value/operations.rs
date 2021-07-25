@@ -11,9 +11,12 @@ impl Value {
             (Self::Integer(x), Self::Rational(y)) => Self::rational(f64::from(*x) + y),
             (Self::Rational(x), Self::Integer(y)) => Self::rational(x + f64::from(*y)),
 
+            (Self::String(ref x), Self::String(ref y)) => Self::string(format!("{}{}", x, y)),
+            (Self::String(ref x), y) => Self::string(format!("{}{}", x, y.to_string(context)?)),
+            (x, Self::String(ref y)) => Self::string(format!("{}{}", x.to_string(context)?, y)),
             (Self::String(ref x), Self::String(ref y)) => Self::from(JsString::concat(x, y)),
-            (Self::String(ref x), ref y) => Self::from(JsString::concat(x, y.to_string(context)?)),
-            (ref x, Self::String(ref y)) => Self::from(JsString::concat(x.to_string(context)?, y)),
+            (Self::String(ref x), y) => Self::from(JsString::concat(x, y.to_string(context)?)),
+            (x, Self::String(ref y)) => Self::from(JsString::concat(x.to_string(context)?, y)),
             (Self::BigInt(ref n1), Self::BigInt(ref n2)) => {
                 Self::bigint(n1.as_inner().clone() + n2.as_inner().clone())
             }
@@ -487,14 +490,14 @@ impl Value {
                         unreachable!()
                     }
                     (Self::BigInt(ref x), Self::String(ref y)) => {
-                        if let Some(y) = JsBigInt::from_string(&y) {
+                        if let Some(y) = JsBigInt::from_string(y) {
                             (*x < y).into()
                         } else {
                             AbstractRelation::Undefined
                         }
                     }
                     (Self::String(ref x), Self::BigInt(ref y)) => {
-                        if let Some(x) = JsBigInt::from_string(&x) {
+                        if let Some(x) = JsBigInt::from_string(x) {
                             (x < *y).into()
                         } else {
                             AbstractRelation::Undefined

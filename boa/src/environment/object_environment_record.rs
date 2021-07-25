@@ -88,7 +88,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         // We should never need to check if a binding has been created,
         // As all calls to create_mutable_binding are followed by initialized binding
         // The below is just a check.
-        debug_assert!(self.has_binding(&name));
+        debug_assert!(self.has_binding(name));
         self.set_mutable_binding(name, value, false, context)
     }
 

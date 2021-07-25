@@ -1,8 +1,6 @@
 use crate::{forward, forward_val, Context};
 
-///TODO: re-enable when getProperty() is finished;
 #[test]
-#[ignore]
 fn length() {
     //TEST262: https://github.com/tc39/test262/blob/master/test/built-ins/String/length.js
     let mut context = Context::new();
@@ -16,7 +14,6 @@ fn length() {
     let a = forward(&mut context, "a.length");
     assert_eq!(a, "1");
     let b = forward(&mut context, "b.length");
-    // TODO: fix this
     // unicode surrogate pair length should be 1
     // utf16/usc2 length should be 2
     // utf8 length should be 4

@@ -444,7 +444,7 @@ impl Date {
         let tv = match this_time_value(value, context) {
             Ok(dt) => dt.0,
             _ => match value.to_primitive(context, PreferredType::Default)? {
-                Value::String(ref str) => match chrono::DateTime::parse_from_rfc3339(&str) {
+                Value::String(ref str) => match chrono::DateTime::parse_from_rfc3339(str) {
                     Ok(dt) => Some(dt.naive_utc()),
                     _ => None,
                 },

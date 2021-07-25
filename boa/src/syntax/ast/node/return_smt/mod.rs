@@ -63,7 +63,7 @@ impl Return {
 impl Executable for Return {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let result = match self.expr() {
-            Some(ref v) => v.run(context),
+            Some(v) => v.run(context),
             None => Ok(Value::undefined()),
         };
         // Set flag for return

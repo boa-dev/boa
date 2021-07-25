@@ -120,7 +120,7 @@ impl Function {
     ) {
         // Create array of values
         let array = Array::new_array(context);
-        Array::add_to_array_object(&array, &args_list.get(index..).unwrap_or_default(), context)
+        Array::add_to_array_object(&array, args_list.get(index..).unwrap_or_default(), context)
             .unwrap();
 
         // Create binding

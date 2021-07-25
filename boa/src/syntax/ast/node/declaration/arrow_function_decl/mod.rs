@@ -50,7 +50,7 @@ impl ArrowFunctionDecl {
 
     /// Gets the body of the arrow function.
     pub(crate) fn body(&self) -> &[Node] {
-        &self.body.items()
+        self.body.items()
     }
 
     /// Implements the display formatting with indentation.

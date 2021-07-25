@@ -292,7 +292,7 @@ impl GcObject {
 
         match body {
             FunctionBody::BuiltInConstructor(function) if construct => {
-                function(&this_target, args, context)
+                function(this_target, args, context)
             }
             FunctionBody::BuiltInConstructor(function) => {
                 function(&Value::undefined(), args, context)
@@ -378,7 +378,7 @@ impl GcObject {
         // a recursive structure
         // We can follow v8 & SpiderMonkey's lead and return a default value for the hint in this situation
         // (see https://repl.it/repls/IvoryCircularCertification#index.js)
-        let recursion_limiter = RecursionLimiter::new(&self);
+        let recursion_limiter = RecursionLimiter::new(self);
         if recursion_limiter.live {
             // we're in a recursive object, bail
             return Ok(match hint {
@@ -1023,7 +1023,7 @@ impl RecursionLimiter {
 
 impl Debug for GcObject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
-        let limiter = RecursionLimiter::new(&self);
+        let limiter = RecursionLimiter::new(self);
 
         // Typically, using `!limiter.live` would be good enough here.
         // However, the JS object hierarchy involves quite a bit of repitition, and the sheer amount of data makes
