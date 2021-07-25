@@ -261,7 +261,9 @@ impl JsBigInt {
     }
 
     #[inline]
-    pub fn not(x: &Self) -> Self { Self::new(x.as_inner().not())}
+    pub fn not(x: &Self) -> Self {
+        Self::new(x.as_inner().not())
+    }
 
     #[inline]
     pub(crate) fn as_inner(&self) -> &RawBigInt {

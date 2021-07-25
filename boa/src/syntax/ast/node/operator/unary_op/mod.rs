@@ -1,4 +1,9 @@
-use crate::{exec::Executable, gc::{Finalize, Trace}, syntax::ast::{node::Node, op}, Context, Result, Value, JsBigInt};
+use crate::{
+    exec::Executable,
+    gc::{Finalize, Trace},
+    syntax::ast::{node::Node, op},
+    Context, JsBigInt, Result, Value,
+};
 use std::fmt;
 
 #[cfg(feature = "deser")]
@@ -75,7 +80,6 @@ impl Executable for UnaryOp {
                 if num_v_a.is_nan() || num_v_a.is_infinite() {
                     Value::from(-1) // special case for inf or nan
                 } else if let Some(num_bigint) = self.target.run(context)?.as_bigint() {
-
                     Value::from(JsBigInt::not(num_bigint))
                 // add bigint support
                 } else {
