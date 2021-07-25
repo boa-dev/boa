@@ -1334,7 +1334,7 @@
 
         <span class="kw">match</span> <span class="ident">body</span> {
             <span class="ident">FunctionBody::BuiltInConstructor</span>(<span class="ident">function</span>) <span class="kw">if</span> <span class="ident">construct</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">this_target</span>, <span class="ident">args</span>, <span class="ident">context</span>)
+                <span class="ident">function</span>(<span class="ident">this_target</span>, <span class="ident">args</span>, <span class="ident">context</span>)
             }
             <span class="ident">FunctionBody::BuiltInConstructor</span>(<span class="ident">function</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">Value::undefined</span>(), <span class="ident">args</span>, <span class="ident">context</span>)
@@ -1420,7 +1420,7 @@
         <span class="comment">// a recursive structure</span>
         <span class="comment">// We can follow v8 &amp; SpiderMonkey&#39;s lead and return a default value for the hint in this situation</span>
         <span class="comment">// (see https://repl.it/repls/IvoryCircularCertification#index.js)</span>
-        <span class="kw">let</span> <span class="ident">recursion_limiter</span> <span class="op">=</span> <span class="ident">RecursionLimiter::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>);
+        <span class="kw">let</span> <span class="ident">recursion_limiter</span> <span class="op">=</span> <span class="ident">RecursionLimiter::new</span>(<span class="self">self</span>);
         <span class="kw">if</span> <span class="ident">recursion_limiter</span>.<span class="ident">live</span> {
             <span class="comment">// we&#39;re in a recursive object, bail</span>
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">hint</span> {
@@ -2065,7 +2065,7 @@
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">GcObject</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">std::fmt::Result</span> {
-        <span class="kw">let</span> <span class="ident">limiter</span> <span class="op">=</span> <span class="ident">RecursionLimiter::new</span>(<span class="kw-2">&amp;</span><span class="self">self</span>);
+        <span class="kw">let</span> <span class="ident">limiter</span> <span class="op">=</span> <span class="ident">RecursionLimiter::new</span>(<span class="self">self</span>);
 
         <span class="comment">// Typically, using `!limiter.live` would be good enough here.</span>
         <span class="comment">// However, the JS object hierarchy involves quite a bit of repitition, and the sheer amount of data makes</span>

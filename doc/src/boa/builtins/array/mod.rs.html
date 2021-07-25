@@ -3276,7 +3276,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::flatten_into_array</span>(
             <span class="ident">context</span>,
             <span class="kw-2">&amp;</span><span class="ident">new_array</span>,
-            <span class="kw-2">&amp;</span><span class="ident">this</span>,
+            <span class="ident">this</span>,
             <span class="ident">source_len</span>,
             <span class="number">0</span>,
             <span class="ident">depth</span>,
@@ -3336,7 +3336,7 @@
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">mapper_function</span>.<span class="ident">is_undefined</span>() {
                     <span class="comment">// 1. Set element to Call(mapperFunction, thisArg, &lt;&lt;element, sourceIndex, source&gt;&gt;)</span>
                     <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> [<span class="ident">element</span>, <span class="ident">Value::from</span>(<span class="ident">source_index</span>), <span class="ident">target</span>.<span class="ident">clone</span>()];
-                    <span class="ident">element</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">mapper_function</span>, <span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">args</span>)<span class="question-mark">?</span>;
+                    <span class="ident">element</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">mapper_function</span>, <span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">args</span>)<span class="question-mark">?</span>;
                 }
                 <span class="kw">let</span> <span class="ident">element_as_object</span> <span class="op">=</span> <span class="ident">element</span>.<span class="ident">as_object</span>();
 
@@ -3694,7 +3694,7 @@
                     <span class="ident">Value::from</span>(<span class="ident">k</span>),
                     <span class="ident">this</span>.<span class="ident">clone</span>(),
                 ];
-                <span class="ident">accumulator</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">Value::undefined</span>(), <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
+                <span class="ident">accumulator</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">Value::undefined</span>(), <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
                 <span class="comment">/* We keep track of possibly shortened length in order to prevent unnecessary iteration.
                 It may also be necessary to do this since shortening the array length does not
                 delete array elements. See: https://github.com/boa-dev/boa/issues/557 */</span>
@@ -3775,7 +3775,7 @@
                     <span class="ident">Value::from</span>(<span class="ident">k</span>),
                     <span class="ident">this</span>.<span class="ident">clone</span>(),
                 ];
-                <span class="ident">accumulator</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">Value::undefined</span>(), <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
+                <span class="ident">accumulator</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">call</span>(<span class="ident">callback</span>, <span class="kw-2">&amp;</span><span class="ident">Value::undefined</span>(), <span class="kw-2">&amp;</span><span class="ident">arguments</span>)<span class="question-mark">?</span>;
                 <span class="comment">/* We keep track of possibly shortened length in order to prevent unnecessary iteration.
                 It may also be necessary to do this since shortening the array length does not
                 delete array elements. See: https://github.com/boa-dev/boa/issues/557 */</span>

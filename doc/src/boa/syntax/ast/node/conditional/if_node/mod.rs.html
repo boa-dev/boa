@@ -187,7 +187,7 @@
     <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="self">self</span>.<span class="ident">cond</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
             <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">else_e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">else_node</span>() {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">else_e</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">else_node</span>() {
             <span class="ident">else_e</span>.<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
         } <span class="kw">else</span> {
             <span class="ident">Value::undefined</span>()

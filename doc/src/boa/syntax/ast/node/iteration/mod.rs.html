@@ -36,7 +36,6 @@
 <span id="35">35</span>
 <span id="36">36</span>
 <span id="37">37</span>
-<span id="38">38</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! Iteration nodes</span>
 
@@ -49,7 +48,6 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="comment">// Checking labels for break and continue is the same operation for `ForLoop`, `While` and `DoWhile`</span>
-<span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">handle_state_with_labels</span> {
     (<span class="macro-nonterminal">$</span><span class="self">self</span>:<span class="macro-nonterminal">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">label</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">interpreter</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">state</span>:<span class="ident">tt</span>) <span class="op">=</span><span class="op">&gt;</span> {{
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">brk_label</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">label</span> {

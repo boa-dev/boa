@@ -257,7 +257,7 @@
                         <span class="ident">MethodDefinitionKind::Ordinary</span> <span class="op">=</span><span class="op">&gt;</span> (),
                     }
                     <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}(&quot;</span>, <span class="ident">key</span>)<span class="question-mark">?</span>;
-                    <span class="ident">join_nodes</span>(<span class="ident">f</span>, <span class="kw-2">&amp;</span><span class="ident">node</span>.<span class="ident">parameters</span>())<span class="question-mark">?</span>;
+                    <span class="ident">join_nodes</span>(<span class="ident">f</span>, <span class="ident">node</span>.<span class="ident">parameters</span>())<span class="question-mark">?</span>;
                     <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;) &quot;</span>)<span class="question-mark">?</span>;
                     <span class="ident">node</span>.<span class="ident">display_block</span>(<span class="ident">f</span>, <span class="ident">indent</span> <span class="op">+</span> <span class="number">1</span>)<span class="question-mark">?</span>;
                     <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;,&quot;</span>)<span class="question-mark">?</span>;
