@@ -42,10 +42,12 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
     missing_doc_code_examples
 )]
 
+pub mod bigint;
 // builtins module has a lot of built-in functions that need unnecessary_wraps
 #[allow(clippy::unnecessary_wraps)]
 pub mod builtins;
 pub mod class;
+pub mod context;
 pub mod environment;
 pub mod exec;
 pub mod gc;
@@ -53,15 +55,17 @@ pub mod object;
 pub mod profiler;
 pub mod property;
 pub mod realm;
+pub mod string;
 pub mod symbol;
 // syntax module has a lot of acronyms
 #[allow(clippy::upper_case_acronyms)]
 pub mod syntax;
 pub mod value;
+
+#[cfg(feature = "vm")]
+pub mod bytecompiler;
 #[cfg(feature = "vm")]
 pub mod vm;
-
-pub mod context;
 
 use std::result::Result as StdResult;
 
@@ -69,7 +73,9 @@ pub(crate) use crate::{exec::Executable, profiler::BoaProfiler};
 
 // Export things to root level
 #[doc(inline)]
-pub use crate::{context::Context, value::Value};
+pub use crate::{
+    bigint::JsBigInt, context::Context, string::JsString, symbol::JsSymbol, value::Value,
+};
 
 use crate::syntax::{
     ast::node::StatementList,

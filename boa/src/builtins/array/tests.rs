@@ -711,7 +711,7 @@ fn fill() {
 
     assert_eq!(
         forward(&mut context, "a.fill().join()"),
-        String::from("\"undefined,undefined,undefined\"")
+        String::from("\",,\"")
     );
 
     // test object reference

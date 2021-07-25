@@ -22,10 +22,51 @@ use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, FunctionBuilder},
     property::Attribute,
-    symbol::{RcSymbol, WellKnownSymbols},
+    symbol::{JsSymbol, WellKnownSymbols},
     value::Value,
-    BoaProfiler, Context, Result,
+    BoaProfiler, Context, JsString, Result,
 };
+
+use std::cell::RefCell;
+
+use rustc_hash::FxHashMap;
+
+thread_local! {
+    static GLOBAL_SYMBOL_REGISTRY: RefCell<GlobalSymbolRegistry> = RefCell::new(GlobalSymbolRegistry::new());
+}
+
+struct GlobalSymbolRegistry {
+    keys: FxHashMap<JsString, JsSymbol>,
+    symbols: FxHashMap<JsSymbol, JsString>,
+}
+
+impl GlobalSymbolRegistry {
+    fn new() -> Self {
+        Self {
+            keys: FxHashMap::default(),
+            symbols: FxHashMap::default(),
+        }
+    }
+
+    fn get_or_insert_key(&mut self, key: JsString) -> JsSymbol {
+        if let Some(symbol) = self.keys.get(&key) {
+            return symbol.clone();
+        }
+
+        let symbol = JsSymbol::new(Some(key.clone()));
+        self.keys.insert(key.clone(), symbol.clone());
+        self.symbols.insert(symbol.clone(), key);
+        symbol
+    }
+
+    fn get_symbol(&self, sym: JsSymbol) -> Option<JsString> {
+        if let Some(key) = self.symbols.get(&sym) {
+            return Some(key.clone());
+        }
+
+        None
+    }
+}
 
 #[derive(Debug, Clone, Copy)]
 pub struct Symbol;
@@ -69,6 +110,8 @@ impl BuiltIn for Symbol {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
+        .static_method(Self::for_, "for", 1)
+        .static_method(Self::key_for, "keyFor", 1)
         .static_property("asyncIterator", symbol_async_iterator, attribute)
         .static_property("hasInstance", symbol_has_instance, attribute)
         .static_property("isConcatSpreadable", symbol_is_concat_spreadable, attribute)
@@ -130,10 +173,10 @@ impl Symbol {
             _ => None,
         };
 
-        Ok(context.construct_symbol(description).into())
+        Ok(JsSymbol::new(description).into())
     }
 
-    fn this_symbol_value(value: &Value, context: &mut Context) -> Result<RcSymbol> {
+    fn this_symbol_value(value: &Value, context: &mut Context) -> Result<JsSymbol> {
         match value {
             Value::Symbol(ref symbol) => return Ok(symbol.clone()),
             Value::Object(ref object) => {
@@ -161,8 +204,7 @@ impl Symbol {
     #[allow(clippy::wrong_self_convention)]
     pub(crate) fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         let symbol = Self::this_symbol_value(this, context)?;
-        let description = symbol.description().unwrap_or("");
-        Ok(Value::from(format!("Symbol({})", description)))
+        Ok(symbol.to_string().into())
     }
 
     /// `get Symbol.prototype.description`
@@ -180,10 +222,68 @@ impl Symbol {
         _: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        if let Some(ref description) = Self::this_symbol_value(this, context)?.description {
+        let symbol = Self::this_symbol_value(this, context)?;
+        if let Some(ref description) = symbol.description() {
             Ok(description.clone().into())
         } else {
             Ok(Value::undefined())
+        }
+    }
+
+    /// `Symbol.for( key )`
+    ///
+    /// More information:
+    /// - [MDN documentation][mdn]
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.for
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/for
+    pub(crate) fn for_(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        // 1. Let stringKey be ? ToString(key).
+        let string_key = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_string(context)?;
+        // 2. For each element e of the GlobalSymbolRegistry List, do
+        //     a. If SameValue(e.[[Key]], stringKey) is true, return e.[[Symbol]].
+        // 3. Assert: GlobalSymbolRegistry does not currently contain an entry for stringKey.
+        // 4. Let newSymbol be a new unique Symbol value whose [[Description]] value is stringKey.
+        // 5. Append the Record { [[Key]]: stringKey, [[Symbol]]: newSymbol } to the GlobalSymbolRegistry List.
+        // 6. Return newSymbol.
+        Ok(GLOBAL_SYMBOL_REGISTRY
+            .with(move |registry| {
+                let mut registry = registry.borrow_mut();
+                registry.get_or_insert_key(string_key)
+            })
+            .into())
+    }
+
+    /// `Symbol.keyFor( sym )`
+    ///
+    ///
+    /// More information:
+    /// - [MDN documentation][mdn]
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.keyfor
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/keyFor
+    pub(crate) fn key_for(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        let sym = args.get(0).cloned().unwrap_or_default();
+        // 1. If Type(sym) is not Symbol, throw a TypeError exception.
+        if let Some(sym) = sym.as_symbol() {
+            // 2. For each element e of the GlobalSymbolRegistry List (see 20.4.2.2), do
+            //     a. If SameValue(e.[[Symbol]], sym) is true, return e.[[Key]].
+            // 3. Assert: GlobalSymbolRegistry does not currently contain an entry for sym.
+            // 4. Return undefined.
+            let symbol = GLOBAL_SYMBOL_REGISTRY.with(move |registry| {
+                let registry = registry.borrow();
+                registry.get_symbol(sym)
+            });
+
+            Ok(symbol.map(Value::from).unwrap_or_default())
+        } else {
+            context.throw_type_error("Symbol.keyFor: sym is not a symbol")
         }
     }
 }

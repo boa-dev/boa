@@ -17,8 +17,7 @@
 use crate::{
     gc::{Finalize, Trace},
     object::GcObject,
-    symbol::RcSymbol,
-    value::{RcString, Value},
+    JsString, JsSymbol, Value,
 };
 use std::{convert::TryFrom, fmt};
 
@@ -37,6 +36,7 @@ pub use attribute::Attribute;
 pub struct DataDescriptor {
     pub(crate) value: Value,
     attributes: Attribute,
+    has_value: bool,
 }
 
 impl DataDescriptor {
@@ -49,6 +49,17 @@ impl DataDescriptor {
         Self {
             value: value.into(),
             attributes,
+            has_value: true,
+        }
+    }
+
+    /// Create a new `DataDescriptor` without a value.
+    #[inline]
+    pub fn new_without_value(attributes: Attribute) -> Self {
+        Self {
+            value: Value::undefined(),
+            attributes,
+            has_value: false,
         }
     }
 
@@ -56,6 +67,12 @@ impl DataDescriptor {
     #[inline]
     pub fn value(&self) -> Value {
         self.value.clone()
+    }
+
+    /// Check whether the data descriptor has a value.
+    #[inline]
+    pub fn has_value(&self) -> bool {
+        self.has_value
     }
 
     /// Return the attributes of the descriptor.
@@ -306,14 +323,14 @@ impl PropertyDescriptor {
 /// [spec]: https://tc39.es/ecma262/#sec-ispropertykey
 #[derive(Trace, Finalize, Debug, Clone)]
 pub enum PropertyKey {
-    String(RcString),
-    Symbol(RcSymbol),
+    String(JsString),
+    Symbol(JsSymbol),
     Index(u32),
 }
 
-impl From<RcString> for PropertyKey {
+impl From<JsString> for PropertyKey {
     #[inline]
-    fn from(string: RcString) -> PropertyKey {
+    fn from(string: JsString) -> PropertyKey {
         if let Ok(index) = string.parse() {
             PropertyKey::Index(index)
         } else {
@@ -355,9 +372,9 @@ impl From<Box<str>> for PropertyKey {
     }
 }
 
-impl From<RcSymbol> for PropertyKey {
+impl From<JsSymbol> for PropertyKey {
     #[inline]
-    fn from(symbol: RcSymbol) -> PropertyKey {
+    fn from(symbol: JsSymbol) -> PropertyKey {
         PropertyKey::Symbol(symbol)
     }
 }
@@ -430,7 +447,17 @@ impl From<usize> for PropertyKey {
         if let Ok(index) = u32::try_from(value) {
             PropertyKey::Index(index)
         } else {
-            PropertyKey::String(RcString::from(value.to_string()))
+            PropertyKey::String(JsString::from(value.to_string()))
+        }
+    }
+}
+
+impl From<u64> for PropertyKey {
+    fn from(value: u64) -> Self {
+        if let Ok(index) = u32::try_from(value) {
+            PropertyKey::Index(index)
+        } else {
+            PropertyKey::String(JsString::from(value.to_string()))
         }
     }
 }
@@ -440,7 +467,7 @@ impl From<isize> for PropertyKey {
         if let Ok(index) = u32::try_from(value) {
             PropertyKey::Index(index)
         } else {
-            PropertyKey::String(RcString::from(value.to_string()))
+            PropertyKey::String(JsString::from(value.to_string()))
         }
     }
 }
@@ -450,7 +477,7 @@ impl From<i32> for PropertyKey {
         if let Ok(index) = u32::try_from(value) {
             PropertyKey::Index(index)
         } else {
-            PropertyKey::String(RcString::from(value.to_string()))
+            PropertyKey::String(JsString::from(value.to_string()))
         }
     }
 }

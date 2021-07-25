@@ -23,19 +23,20 @@ console = []
 [dependencies]
 boa_unicode = { path = "../boa_unicode", version = "0.11.0" }
 gc = { version = "0.4.1", features = ["derive"] }
-serde = { version = "1.0.126", features = ["derive"] }
+serde = { version = "1.0.126", features = ["derive", "rc"] }
 serde_json = "1.0.64"
 rand = "0.8.4"
 num-traits = "0.2.14"
-regress = "0.3.0"
+regress = "0.4.1"
 rustc-hash = "1.1.0"
 num-bigint = { version = "0.4.0", features = ["serde"] }
 num-integer = "0.1.44"
 bitflags = "1.2.1"
-indexmap = "1.6.2"
+indexmap = "1.7.0"
 ryu-js = "0.2.1"
 chrono = "0.4.19"
 fast-float = "0.2.0"
+unicode-normalization = "0.1.19"
 
 # Optional Dependencies
 measureme = { version = "9.1.2", optional = true }
@@ -43,7 +44,7 @@ once_cell = { version = "1.8.0", optional = true }
 
 [dev-dependencies]
 criterion = "0.3.4"
-float-cmp = "0.8.0"
+float-cmp = "0.9.0"
 
 [target.x86_64-unknown-linux-gnu.dev-dependencies]
 jemallocator = "0.3.2"

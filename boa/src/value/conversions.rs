@@ -44,16 +44,16 @@ impl From<char> for Value {
     }
 }
 
-impl From<RcString> for Value {
+impl From<JsString> for Value {
     #[inline]
-    fn from(value: RcString) -> Self {
+    fn from(value: JsString) -> Self {
         Value::String(value)
     }
 }
 
-impl From<RcSymbol> for Value {
+impl From<JsSymbol> for Value {
     #[inline]
-    fn from(value: RcSymbol) -> Self {
+    fn from(value: JsSymbol) -> Self {
         Value::Symbol(value)
     }
 }
@@ -68,6 +68,7 @@ impl Display for TryFromCharError {
 }
 
 impl From<f64> for Value {
+    #[inline]
     fn from(value: f64) -> Self {
         Self::rational(value)
     }
@@ -85,38 +86,45 @@ impl From<u32> for Value {
 }
 
 impl From<i32> for Value {
+    #[inline]
     fn from(value: i32) -> Value {
         Value::integer(value)
     }
 }
 
-impl From<BigInt> for Value {
-    fn from(value: BigInt) -> Self {
-        Value::bigint(value)
-    }
-}
-
-impl From<RcBigInt> for Value {
-    fn from(value: RcBigInt) -> Self {
+impl From<JsBigInt> for Value {
+    #[inline]
+    fn from(value: JsBigInt) -> Self {
         Value::BigInt(value)
     }
 }
 
 impl From<usize> for Value {
+    #[inline]
     fn from(value: usize) -> Value {
-        Value::integer(value as i32)
+        if let Ok(value) = i32::try_from(value) {
+            Value::integer(value)
+        } else {
+            Value::rational(value as f64)
+        }
+    }
+}
+
+impl From<u64> for Value {
+    #[inline]
+    fn from(value: u64) -> Value {
+        if let Ok(value) = i32::try_from(value) {
+            Value::integer(value)
+        } else {
+            Value::rational(value as f64)
+        }
     }
 }
 
 impl From<bool> for Value {
+    #[inline]
     fn from(value: bool) -> Self {
         Value::boolean(value)
-    }
-}
-
-impl From<&Value> for bool {
-    fn from(value: &Value) -> Self {
-        value.to_boolean()
     }
 }
 
@@ -154,6 +162,7 @@ impl From<Object> for Value {
 }
 
 impl From<GcObject> for Value {
+    #[inline]
     fn from(object: GcObject) -> Self {
         let _timer = BoaProfiler::global().start_event("From<GcObject>", "value");
         Value::Object(object)
@@ -164,12 +173,14 @@ impl From<GcObject> for Value {
 pub struct TryFromObjectError;
 
 impl Display for TryFromObjectError {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Could not convert value to an Object type")
     }
 }
 
 impl From<()> for Value {
+    #[inline]
     fn from(_: ()) -> Self {
         Value::null()
     }
@@ -179,6 +190,7 @@ impl<T> From<Option<T>> for Value
 where
     T: Into<Value>,
 {
+    #[inline]
     fn from(value: Option<T>) -> Self {
         match value {
             Some(value) => value.into(),

@@ -123,7 +123,7 @@ impl ArrayIterator {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let mut array_iterator = context.construct_object();
+        let array_iterator = context.construct_object();
         make_builtin_fn(Self::next, "next", &array_iterator, 0, context);
         array_iterator.set_prototype_instance(iterator_prototype);
 

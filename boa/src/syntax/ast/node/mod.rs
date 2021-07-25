@@ -60,6 +60,7 @@ use std::{
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
+// TODO: This should be split into Expression and Statement.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum Node {

@@ -13,12 +13,6 @@ use std::fmt;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "vm")]
-use crate::{
-    profiler::BoaProfiler,
-    vm::{compilation::CodeGen, Compiler, Instruction},
-};
-
 /// Binary operators requires two operands, one before the operator and one after the operator.
 ///
 /// More information:
@@ -225,56 +219,6 @@ impl Executable for BinOp {
                 self.lhs().run(context)?;
                 Ok(self.rhs().run(context)?)
             }
-        }
-    }
-}
-
-#[cfg(feature = "vm")]
-impl CodeGen for BinOp {
-    fn compile(&self, compiler: &mut Compiler) {
-        let _timer = BoaProfiler::global().start_event("binOp", "codeGen");
-        match self.op() {
-            op::BinOp::Num(op) => {
-                self.lhs().compile(compiler);
-                self.rhs().compile(compiler);
-                match op {
-                    NumOp::Add => compiler.add_instruction(Instruction::Add),
-                    NumOp::Sub => compiler.add_instruction(Instruction::Sub),
-                    NumOp::Mul => compiler.add_instruction(Instruction::Mul),
-                    NumOp::Div => compiler.add_instruction(Instruction::Div),
-                    NumOp::Exp => compiler.add_instruction(Instruction::Pow),
-                    NumOp::Mod => compiler.add_instruction(Instruction::Mod),
-                }
-            }
-            op::BinOp::Bit(op) => {
-                self.lhs().compile(compiler);
-                self.rhs().compile(compiler);
-                match op {
-                    BitOp::And => compiler.add_instruction(Instruction::BitAnd),
-                    BitOp::Or => compiler.add_instruction(Instruction::BitOr),
-                    BitOp::Xor => compiler.add_instruction(Instruction::BitXor),
-                    BitOp::Shl => compiler.add_instruction(Instruction::Shl),
-                    BitOp::Shr => compiler.add_instruction(Instruction::Shr),
-                    BitOp::UShr => compiler.add_instruction(Instruction::UShr),
-                }
-            }
-            op::BinOp::Comp(op) => {
-                self.lhs().compile(compiler);
-                self.rhs().compile(compiler);
-                match op {
-                    CompOp::Equal => compiler.add_instruction(Instruction::Eq),
-                    CompOp::NotEqual => compiler.add_instruction(Instruction::NotEq),
-                    CompOp::StrictEqual => compiler.add_instruction(Instruction::StrictEq),
-                    CompOp::StrictNotEqual => compiler.add_instruction(Instruction::StrictNotEq),
-                    CompOp::GreaterThan => compiler.add_instruction(Instruction::Gt),
-                    CompOp::GreaterThanOrEqual => compiler.add_instruction(Instruction::Ge),
-                    CompOp::LessThan => compiler.add_instruction(Instruction::Lt),
-                    CompOp::LessThanOrEqual => compiler.add_instruction(Instruction::Le),
-                    CompOp::In => compiler.add_instruction(Instruction::In),
-                    CompOp::InstanceOf => compiler.add_instruction(Instruction::InstanceOf),
-                }
-            }
-            _ => unimplemented!(),
         }
     }
 }

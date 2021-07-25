@@ -6,17 +6,16 @@ use crate::{
         function::{BuiltInFunction, Function, FunctionFlags, NativeFunction},
         map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
+        regexp::regexp_string_iterator::RegExpStringIterator,
         set::ordered_set::OrderedSet,
         set::set_iterator::SetIterator,
         string::string_iterator::StringIterator,
-        BigInt, Date, RegExp,
+        Date, RegExp,
     },
     context::StandardConstructor,
     gc::{Finalize, Trace},
     property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
-    symbol::RcSymbol,
-    value::{RcBigInt, RcString, Value},
-    BoaProfiler, Context,
+    BoaProfiler, Context, JsBigInt, JsString, JsSymbol, Value,
 };
 use rustc_hash::FxHashMap;
 use std::{
@@ -69,9 +68,9 @@ pub struct Object {
     pub data: ObjectData,
     indexed_properties: FxHashMap<u32, PropertyDescriptor>,
     /// Properties
-    string_properties: FxHashMap<RcString, PropertyDescriptor>,
+    string_properties: FxHashMap<JsString, PropertyDescriptor>,
     /// Symbol Properties
-    symbol_properties: FxHashMap<RcSymbol, PropertyDescriptor>,
+    symbol_properties: FxHashMap<JsSymbol, PropertyDescriptor>,
     /// Instance prototype `__proto__`.
     prototype: Value,
     /// Whether it can have new properties added to it.
@@ -83,19 +82,20 @@ pub struct Object {
 pub enum ObjectData {
     Array,
     ArrayIterator(ArrayIterator),
-    Map(OrderedMap<Value, Value>),
+    Map(OrderedMap<Value>),
     MapIterator(MapIterator),
     RegExp(Box<RegExp>),
-    BigInt(RcBigInt),
+    RegExpStringIterator(RegExpStringIterator),
+    BigInt(JsBigInt),
     Boolean(bool),
     ForInIterator(ForInIterator),
     Function(Function),
     Set(OrderedSet<Value>),
     SetIterator(SetIterator),
-    String(RcString),
+    String(JsString),
     StringIterator(StringIterator),
     Number(f64),
-    Symbol(RcSymbol),
+    Symbol(JsSymbol),
     Error,
     Ordinary,
     Date(Date),
@@ -114,6 +114,7 @@ impl Display for ObjectData {
                 Self::ForInIterator(_) => "ForInIterator",
                 Self::Function(_) => "Function",
                 Self::RegExp(_) => "RegExp",
+                Self::RegExpStringIterator(_) => "RegExpStringIterator",
                 Self::Map(_) => "Map",
                 Self::MapIterator(_) => "MapIterator",
                 Self::Set(_) => "Set",
@@ -214,7 +215,7 @@ impl Object {
     #[inline]
     pub fn string<S>(value: S) -> Self
     where
-        S: Into<RcString>,
+        S: Into<JsString>,
     {
         Self {
             data: ObjectData::String(value.into()),
@@ -228,7 +229,7 @@ impl Object {
 
     /// Return a new `BigInt` object whose `[[BigIntData]]` internal slot is set to argument.
     #[inline]
-    pub fn bigint(value: RcBigInt) -> Self {
+    pub fn bigint(value: JsBigInt) -> Self {
         Self {
             data: ObjectData::BigInt(value),
             indexed_properties: FxHashMap::default(),
@@ -322,6 +323,14 @@ impl Object {
     }
 
     #[inline]
+    pub fn as_regexp_string_iterator_mut(&mut self) -> Option<&mut RegExpStringIterator> {
+        match &mut self.data {
+            ObjectData::RegExpStringIterator(iter) => Some(iter),
+            _ => None,
+        }
+    }
+
+    #[inline]
     pub fn as_for_in_iterator(&self) -> Option<&ForInIterator> {
         match &self.data {
             ObjectData::ForInIterator(iter) => Some(iter),
@@ -344,7 +353,7 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_map_ref(&self) -> Option<&OrderedMap<Value, Value>> {
+    pub fn as_map_ref(&self) -> Option<&OrderedMap<Value>> {
         match self.data {
             ObjectData::Map(ref map) => Some(map),
             _ => None,
@@ -352,7 +361,7 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_map_mut(&mut self) -> Option<&mut OrderedMap<Value, Value>> {
+    pub fn as_map_mut(&mut self) -> Option<&mut OrderedMap<Value>> {
         match &mut self.data {
             ObjectData::Map(map) => Some(map),
             _ => None,
@@ -403,7 +412,7 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_string(&self) -> Option<RcString> {
+    pub fn as_string(&self) -> Option<JsString> {
         match self.data {
             ObjectData::String(ref string) => Some(string.clone()),
             _ => None,
@@ -431,7 +440,7 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_symbol(&self) -> Option<RcSymbol> {
+    pub fn as_symbol(&self) -> Option<JsSymbol> {
         match self.data {
             ObjectData::Symbol(ref symbol) => Some(symbol.clone()),
             _ => None,
@@ -487,7 +496,7 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_bigint(&self) -> Option<&BigInt> {
+    pub fn as_bigint(&self) -> Option<&JsBigInt> {
         match self.data {
             ObjectData::BigInt(ref bigint) => Some(bigint),
             _ => None,
@@ -618,13 +627,13 @@ impl Object {
 #[derive(Debug, Clone)]
 pub struct FunctionBinding {
     binding: PropertyKey,
-    name: RcString,
+    name: JsString,
 }
 
 impl From<&str> for FunctionBinding {
     #[inline]
     fn from(name: &str) -> Self {
-        let name: RcString = name.into();
+        let name: JsString = name.into();
 
         Self {
             binding: name.clone().into(),
@@ -636,7 +645,7 @@ impl From<&str> for FunctionBinding {
 impl From<String> for FunctionBinding {
     #[inline]
     fn from(name: String) -> Self {
-        let name: RcString = name.into();
+        let name: JsString = name.into();
 
         Self {
             binding: name.clone().into(),
@@ -645,9 +654,9 @@ impl From<String> for FunctionBinding {
     }
 }
 
-impl From<RcString> for FunctionBinding {
+impl From<JsString> for FunctionBinding {
     #[inline]
-    fn from(name: RcString) -> Self {
+    fn from(name: JsString) -> Self {
         Self {
             binding: name.clone().into(),
             name,

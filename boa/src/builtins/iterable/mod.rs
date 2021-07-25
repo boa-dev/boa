@@ -1,9 +1,9 @@
 use crate::{
-    builtins::string::string_iterator::StringIterator,
-    builtins::ArrayIterator,
-    builtins::ForInIterator,
-    builtins::MapIterator,
-    builtins::SetIterator,
+    builtins::{
+        regexp::regexp_string_iterator::RegExpStringIterator,
+        string::string_iterator::StringIterator, ArrayIterator, ForInIterator, MapIterator,
+        SetIterator,
+    },
     object::{GcObject, ObjectInitializer},
     property::{Attribute, DataDescriptor},
     symbol::WellKnownSymbols,
@@ -16,6 +16,7 @@ pub struct IteratorPrototypes {
     array_iterator: GcObject,
     set_iterator: GcObject,
     string_iterator: GcObject,
+    regexp_string_iterator: GcObject,
     map_iterator: GcObject,
     for_in_iterator: GcObject,
 }
@@ -30,6 +31,10 @@ impl IteratorPrototypes {
             ),
             set_iterator: SetIterator::create_prototype(context, iterator_prototype.clone().into()),
             string_iterator: StringIterator::create_prototype(
+                context,
+                iterator_prototype.clone().into(),
+            ),
+            regexp_string_iterator: RegExpStringIterator::create_prototype(
                 context,
                 iterator_prototype.clone().into(),
             ),
@@ -60,6 +65,11 @@ impl IteratorPrototypes {
     #[inline]
     pub fn string_iterator(&self) -> GcObject {
         self.string_iterator.clone()
+    }
+
+    #[inline]
+    pub fn regexp_string_iterator(&self) -> GcObject {
+        self.regexp_string_iterator.clone()
     }
 
     #[inline]
