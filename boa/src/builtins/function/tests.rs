@@ -238,7 +238,7 @@ fn closure_capture_clone() {
 
     let func = FunctionBuilder::closure_with_captures(
         &mut context,
-        |_, _, context, captures| {
+        |_, _, captures, context| {
             let (string, object) = &captures;
 
             let hw = JsString::concat(
@@ -251,7 +251,7 @@ fn closure_capture_clone() {
             );
             Ok(hw.into())
         },
-        (string.clone(), object.clone()),
+        (string, object),
     )
     .name("closure")
     .build();

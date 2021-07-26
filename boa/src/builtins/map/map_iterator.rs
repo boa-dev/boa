@@ -1,6 +1,6 @@
 use crate::{
-    builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
-    object::{JsObject, ObjectData},
+    builtins::{iterable::create_iter_result_object, Array, JsValue},
+    object::{function::make_builtin_fn, JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsResult,

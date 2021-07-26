@@ -1,7 +1,7 @@
 use crate::{
-    builtins::function::FunctionFlags,
     exec::Executable,
     gc::{Finalize, Trace},
+    object::function::ThisMode,
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
     Context, JsResult, JsValue,
 };
@@ -103,7 +103,8 @@ impl Executable for FunctionExpr {
             self.name().unwrap_or(""),
             self.parameters().to_vec(),
             self.body().clone(),
-            FunctionFlags::CONSTRUCTABLE,
+            true,
+            ThisMode::Global,
         )?;
 
         Ok(val)

@@ -60,7 +60,7 @@ fn main() -> Result<(), JsValue> {
     // captures.
     let js_function = FunctionBuilder::closure_with_captures(
         &mut context,
-        |_, _, context, captures| {
+        |_, _, captures, context| {
             println!("Called `createMessage`");
             // We obtain the `name` property of `captures.object`
             let name = captures.object.get("name", context)?;
