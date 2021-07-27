@@ -583,7 +583,7 @@ impl String {
             length
         } else {
             args.get(1)
-                .expect("Could not get argumetn")
+                .expect("Could not get argument")
                 .to_integer(context)? as i32
         };
 
@@ -746,6 +746,7 @@ impl String {
                 captures,
                 Value::undefined(),
                 replace_value.to_string(context)?.to_string(),
+                context,
             )?
         };
 
@@ -1511,8 +1512,9 @@ pub(crate) fn get_substitution(
     str: StdString,
     position: usize,
     captures: Vec<Value>,
-    _named_captures: Value,
+    named_captures: Value,
     replacement: StdString,
+    context: &mut Context,
 ) -> Result<JsString> {
     // 1. Assert: Type(matched) is String.
 
@@ -1626,9 +1628,44 @@ pub(crate) fn get_substitution(
                 }
                 // $<
                 (Some('<'), _) => {
-                    // TODO: named capture groups
                     // 1. If namedCaptures is undefined, the replacement text is the String "$<".
-                    result.push_str("$<");
+                    // 2. Else,
+                    if named_captures.is_undefined() {
+                        result.push_str("$<")
+                    } else {
+                        // a. Assert: Type(namedCaptures) is Object.
+
+                        // b. Scan until the next > U+003E (GREATER-THAN SIGN).
+                        let mut group_name = StdString::new();
+                        let mut found = false;
+                        loop {
+                            match chars.next() {
+                                Some('>') => {
+                                    found = true;
+                                    break;
+                                }
+                                Some(c) => group_name.push(c),
+                                None => break,
+                            }
+                        }
+
+                        // c. If none is found, the replacement text is the String "$<".
+                        // d. Else,
+                        if !found {
+                            result.push_str("$<");
+                            result.push_str(&group_name);
+                        } else {
+                            // i. Let groupName be the enclosed substring.
+                            // ii. Let capture be ? Get(namedCaptures, groupName).
+                            let capture = named_captures.get_field(group_name, context)?;
+
+                            // iii. If capture is undefined, replace the text through > with the empty String.
+                            // iv. Otherwise, replace the text through > with ? ToString(capture).
+                            if !capture.is_undefined() {
+                                result.push_str(capture.to_string(context)?.as_str());
+                            }
+                        }
+                    }
                 }
                 // $?, ? is none of the above
                 _ => {

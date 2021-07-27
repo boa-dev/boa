@@ -12,7 +12,7 @@
 pub mod regexp_string_iterator;
 
 use crate::{
-    builtins::{array::Array, BuiltIn},
+    builtins::{array::Array, string, BuiltIn},
     gc::{empty_trace, Finalize, Trace},
     object::{ConstructorBuilder, FunctionBuilder, GcObject, ObjectData, PROTOTYPE},
     property::Attribute,
@@ -712,8 +712,7 @@ impl RegExp {
         // 2. Assert: Type(S) is String.
 
         // 3. Let length be the number of code units in S.
-        // Regress only works with utf8. According to the spec we would use the utf16 encoded count.
-        let length = input.chars().count();
+        let length = input.encode_utf16().count();
 
         // 4. Let lastIndex be ℝ(? ToLength(? Get(R, "lastIndex"))).
         let mut last_index = this.get_field("lastIndex", context)?.to_length(context)?;
@@ -755,10 +754,16 @@ impl RegExp {
 
             // b. Let r be matcher(S, lastIndex).
             // Check if last_index is a valid utf8 index into input.
-            if input.get(last_index..).is_none() {
-                return Ok(Value::null());
-            }
-            let r = matcher.find_from(&input, last_index).next();
+            let last_byte_index = match String::from_utf16(
+                &input.encode_utf16().take(last_index).collect::<Vec<u16>>(),
+            ) {
+                Ok(s) => s.len(),
+                Err(_) => {
+                    return context
+                        .throw_type_error("Failed to get byte index from utf16 encoded string")
+                }
+            };
+            let r = matcher.find_from(&input, last_byte_index).next();
 
             match r {
                 // c. If r is failure, then
@@ -809,8 +814,7 @@ impl RegExp {
             // Let eUTF be the smallest index into S that corresponds to the character at element e of Input.
             // If e is greater than or equal to the number of elements in Input, then eUTF is the number of code units in S.
             // b. Set e to eUTF.
-            // Regress only works with utf8. According to the spec we would use the utf16 encoded count.
-            e = input.split_at(e).0.chars().count() + 1;
+            e = input.split_at(e).0.encode_utf16().count();
         }
 
         // 15. If global is true or sticky is true, then
@@ -847,12 +851,36 @@ impl RegExp {
         a.create_data_property_or_throw(0, matched_substr, context)
             .unwrap();
 
-        // TODO: named capture groups
         // 24. If R contains any GroupName, then
-        //     a. Let groups be ! OrdinaryObjectCreate(null).
         // 25. Else,
-        //     a. Let groups be undefined.
-        let groups = Value::undefined();
+        let named_groups = match_value.named_groups();
+        let groups = if named_groups.clone().count() > 0 {
+            // a. Let groups be ! OrdinaryObjectCreate(null).
+            let groups = Value::new_object(context);
+
+            // Perform 27.f here
+            // f. If the ith capture of R was defined with a GroupName, then
+            // i. Let s be the CapturingGroupName of the corresponding RegExpIdentifierName.
+            // ii. Perform ! CreateDataPropertyOrThrow(groups, s, capturedValue).
+            for (name, range) in named_groups {
+                if let Some(range) = range {
+                    let value = if let Some(s) = input.get(range.clone()) {
+                        s
+                    } else {
+                        ""
+                    };
+
+                    groups
+                        .to_object(context)?
+                        .create_data_property_or_throw(name, value, context)
+                        .unwrap();
+                }
+            }
+            groups
+        } else {
+            // a. Let groups be undefined.
+            Value::undefined()
+        };
 
         // 26. Perform ! CreateDataPropertyOrThrow(A, "groups", groups).
         a.create_data_property_or_throw("groups", groups, context)
@@ -880,11 +908,6 @@ impl RegExp {
             // e. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), capturedValue).
             a.create_data_property_or_throw(i, captured_value, context)
                 .unwrap();
-
-            // TODO: named capture groups
-            // f. If the ith capture of R was defined with a GroupName, then
-            // i. Let s be the CapturingGroupName of the corresponding RegExpIdentifierName.
-            // ii. Perform ! CreateDataPropertyOrThrow(groups, s, capturedValue).
         }
 
         // 28. Return A.
@@ -931,7 +954,7 @@ impl RegExp {
             let unicode = this.get_field("unicode", context)?.to_boolean();
 
             // c. Perform ? Set(rx, "lastIndex", +0𝔽, true).
-            this.set_field("lastIndex", Value::from(0), true, context)?;
+            this.set_field("lastIndex", 0, true, context)?;
 
             // d. Let A be ! ArrayCreate(0).
             let a = Array::array_create(0, None, context).unwrap();
@@ -1099,8 +1122,7 @@ impl RegExp {
             .to_string(context)?;
 
         // 4. Let lengthS be the number of code unit elements in S.
-        // Regress only works with utf8. According to the spec we would use the utf16 encoded count.
-        let length_arg_str = arg_str.chars().count();
+        let length_arg_str = arg_str.encode_utf16().count();
 
         // 5. Let functionalReplace be IsCallable(replaceValue).
         let replace_value = args.get(1).cloned().unwrap_or_default();
@@ -1179,8 +1201,7 @@ impl RegExp {
             let matched = result.get_field("0", context)?.to_string(context)?;
 
             // d. Let matchLength be the number of code units in matched.
-            // Regress only works with utf8. According to the spec we would use the utf16 encoded count.
-            let match_length = matched.chars().count();
+            let match_length = matched.encode_utf16().count();
 
             // e. Let position be ? ToIntegerOrInfinity(? Get(result, "index")).
             let position = result
@@ -1260,13 +1281,14 @@ impl RegExp {
                 }
 
                 // ii. Let replacement be ? GetSubstitution(matched, S, position, captures, namedCaptures, replaceValue).
-                replacement = crate::builtins::string::get_substitution(
+                replacement = string::get_substitution(
                     matched.to_string(),
                     arg_str.to_string(),
                     position,
                     captures,
                     named_captures,
                     replace_value.to_string(context)?.to_string(),
+                    context,
                 )?;
             }
 
@@ -1433,7 +1455,7 @@ impl RegExp {
         }
 
         // 15. Let size be the length of S.
-        let size = arg_str.chars().count();
+        let size = arg_str.encode_utf16().count();
 
         // 16. If size is 0, then
         if size == 0 {
@@ -1485,10 +1507,13 @@ impl RegExp {
                     q = advance_string_index(arg_str.clone(), q, unicode);
                 } else {
                     // 1. Let T be the substring of S from p to q.
-                    //let arg_str_substring = arg_str
-                    //    .get(p..q)
-                    //    .expect("invalid index into string to split");
-                    let arg_str_substring: String = arg_str.chars().skip(p).take(q - p).collect();
+                    let arg_str_substring = String::from_utf16_lossy(
+                        &arg_str
+                            .encode_utf16()
+                            .skip(p)
+                            .take(q - p)
+                            .collect::<Vec<u16>>(),
+                    );
 
                     // 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
                     a.create_data_property_or_throw(length_a, arg_str_substring, context)
@@ -1542,7 +1567,13 @@ impl RegExp {
         }
 
         // 20. Let T be the substring of S from p to size.
-        let arg_str_substring: String = arg_str.chars().skip(p).take(size - p).collect();
+        let arg_str_substring = String::from_utf16_lossy(
+            &arg_str
+                .encode_utf16()
+                .skip(p)
+                .take(size - p)
+                .collect::<Vec<u16>>(),
+        );
 
         // 21. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
         a.create_data_property_or_throw(length_a, arg_str_substring, context)
@@ -1570,7 +1601,7 @@ fn advance_string_index(s: JsString, index: usize, unicode: bool) -> usize {
     }
 
     // 3. Let length be the number of code units in S.
-    let length = s.chars().count();
+    let length = s.encode_utf16().count();
 
     // 4. If index + 1 ≥ length, return index + 1.
     if index + 1 > length {
@@ -1578,11 +1609,8 @@ fn advance_string_index(s: JsString, index: usize, unicode: bool) -> usize {
     }
 
     // 5. Let cp be ! CodePointAt(S, index).
-    let offset = if let Some(c) = s.chars().nth(index) {
-        c.len_utf8()
-    } else {
-        1
-    };
+    let (_, offset, _) =
+        crate::builtins::string::code_point_at(s, index as i32).expect("Failed to get code point");
 
-    index + offset
+    index + offset as usize
 }
