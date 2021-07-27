@@ -86,6 +86,14 @@ fn mini_js(c: &mut Criterion) {
     });
 }
 
+static ARRAY_CONCAT: &str = include_str!("bench_scripts/array_concat.js");
+
+fn array_concat(c: &mut Criterion) {
+    c.bench_function("Array concat (Parser)", move |b| {
+        b.iter(|| Parser::new(black_box(ARRAY_CONCAT.as_bytes()), false).parse_all())
+    });
+}
+
 criterion_group!(
     parser,
     expression_parser,
@@ -95,5 +103,6 @@ criterion_group!(
     goal_symbol_switch,
     clean_js,
     mini_js,
+    array_concat,
 );
 criterion_main!(parser);

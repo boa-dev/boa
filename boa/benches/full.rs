@@ -196,6 +196,14 @@ fn mini_js(c: &mut Criterion) {
     });
 }
 
+static ARRAY_CONCAT: &str = include_str!("bench_scripts/array_concat.js");
+
+fn array_concat(c: &mut Criterion) {
+    c.bench_function("Array concat (Full)", move |b| {
+        b.iter(|| Context::new().eval(black_box(ARRAY_CONCAT)))
+    });
+}
+
 criterion_group!(
     full,
     symbol_creation,
@@ -220,5 +228,6 @@ criterion_group!(
     arithmetic_operations,
     clean_js,
     mini_js,
+    array_concat,
 );
 criterion_main!(full);
