@@ -28,6 +28,7 @@ use std::{
     cmp::{max, min},
     convert::{TryFrom, TryInto},
 };
+use std::collections::VecDeque;
 
 /// JavaScript `Array` built-in implementation.
 #[derive(Debug, Clone, Copy)]
@@ -291,24 +292,25 @@ impl Array {
     /// Returns a Boolean valued property that if `true` indicates that
     /// an object should be flattened to its array elements
     /// by `Array.prototype.concat`.
-    pub(crate) fn is_concat_spreadable(this: &Value, context: &mut Context) -> Result<bool> {
+    fn is_concat_spreadable(this: &GcObject, context: &mut Context) -> Result<bool> {
         // 1. If Type(O) is not Object, return false.
-        if !this.is_object() {
-            return Ok(false);
-        }
         // 2. Let spreadable be ? Get(O, @@isConcatSpreadable).
-        let spreadable = this.get_field(WellKnownSymbols::is_concat_spreadable(), context)?;
-
+        let spreadable = this.get(WellKnownSymbols::is_concat_spreadable(), context)?;
         // 3. If spreadable is not undefined, return ! ToBoolean(spreadable).
         if !spreadable.is_undefined() {
             return Ok(spreadable.to_boolean());
         }
-
         // 4. Return ? IsArray(O).
-        match this.as_object() {
-            Some(obj) => Ok(obj.is_array()),
-            _ => Ok(false),
-        }
+        Ok(this.is_array())
+    }
+
+    /// `LengthOfArrayLike ( obj )`
+    ///
+    /// The abstract operation LengthOfArrayLike takes argument obj.
+    /// It returns the value of the "length" property of an array-like object (as a non-negative integer).
+
+    fn length_of_array_like(this: &GcObject, context: &mut Context) -> Result<usize> {
+        this.get("length", context)?.to_length(context)
     }
 
     /// `get Array [ @@species ]`
@@ -486,45 +488,65 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.concat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/concat
     pub(crate) fn concat(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        if args.is_empty() {
-            // If concat is called with no arguments, it returns the original array
-            return Ok(this.clone());
-        }
-
-        // Make a new array (using this object as the prototype basis for the new
-        // one)
-        let mut new_values = Vec::new();
-
-        let this_length = this.get_field("length", context)?.to_length(context)?;
-        for n in 0..this_length {
-            new_values.push(this.get_field(n, context)?);
-        }
-
-        let mut n = this_length;
-
-        for concat_array in args {
-            let concat_length = concat_array
-                .get_field("length", context)?
-                .to_length(context)?;
-            let spreadable = Self::is_concat_spreadable(concat_array, context)?;
+        // 1. Let O be ? ToObject(this value).
+        let obj = this.to_object(context)?;
+        // 2. Let A be ? ArraySpeciesCreate(O, 0).
+        let arr = Self::array_species_create(&obj, 0, context)?;
+        // 3. Let n be 0.
+        let mut n = 0;
+        // 4. Prepend O to items.
+        let mut items = args.iter().flat_map(
+            |item_val| item_val.to_object(context)
+        ).collect::<VecDeque<GcObject>>();
+        items.push_front(obj);
+        // 5. For each element E of items, do
+        for item in items {
+            // a. Let spreadable be ? IsConcatSpreadable(E).
+            let spreadable = Self::is_concat_spreadable(&item, context)?;
+            // b. If spreadable is true, then
             if spreadable {
-                if n + concat_length > Number::MAX_SAFE_INTEGER as usize {
-                    return context.throw_type_error("Invalid array length");
+                // i. Let k be 0.
+                // ii. Let len be ? LengthOfArrayLike(E).
+                let len = Self::length_of_array_like(&item, context)?;
+                // iii. If n + len > 2^53 - 1, throw a TypeError exception.
+                if n + len > Number::MAX_SAFE_INTEGER as usize {
+                    return context.throw_type_error("length + number of arguments exceeds the max safe integer limit");
                 }
-                for k in 0..concat_length {
-                    new_values.push(concat_array.get_field(k, context)?);
+                // iv. Repeat, while k < len,
+                for k in 0..len {
+                    // 1. Let P be ! ToString(𝔽(k)).
+                    // 2. Let exists be ? HasProperty(E, P).
+                    let exists = item.has_property(k, context)?;
+                    // 3. If exists is true, then
+                    if exists {
+                        // a. Let subElement be ? Get(E, P).
+                        let sub_element = item.get(k, context)?;
+                        // b. Perform ? CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), subElement).
+                        arr.create_data_property_or_throw(n, sub_element, context)?;
+                    }
+                    // 4. Set n to n + 1.
                     n += 1;
+                    // 5. Set k to k + 1.
                 }
-            } else {
+            }
+            // c. Else,
+            else {
+                // i. NOTE: E is added as a single item rather than spread.
+                // ii. If n ≥ 253 - 1, throw a TypeError exception.
                 if n >= Number::MAX_SAFE_INTEGER as usize {
-                    return context.throw_type_error("Invalid array length");
+                    return context.throw_type_error("length exceeds the max safe integer limit");
                 }
-                new_values.push(concat_array.get_field(0, context)?);
-                n += 1;
+                // iii. Perform ? CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), E).
+                arr.create_data_property_or_throw(n, item, context)?;
+                // iv. Set n to n + 1.
+                n+=1
             }
         }
+        // 6. Perform ? Set(A, "length", 𝔽(n), true).
+        arr.set("length", n, true, context)?;
 
-        Self::construct_array(this, &new_values, context)
+        // 7. Return A.
+        Ok(Value::from(arr))
     }
 
     /// `Array.prototype.push( ...items )`
