@@ -1801,13 +1801,10 @@
         <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">ok_or_else</span>(<span class="ident">Value::undefined</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> (<span class="ident">regex_body</span>, <span class="kw-2">mut</span> <span class="ident">regex_flags</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">arg</span> {
-            <span class="ident">Value::String</span>(<span class="kw-2">ref</span> <span class="ident">body</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="comment">// first argument is a string -&gt; use it as regex pattern</span>
-                (
-                    <span class="ident">body</span>.<span class="ident">to_string</span>().<span class="ident">into_boxed_str</span>(),
-                    <span class="ident">String::new</span>().<span class="ident">into_boxed_str</span>(),
-                )
-            }
+            <span class="ident">Value::Undefined</span> <span class="op">=</span><span class="op">&gt;</span> (
+                <span class="ident">String::new</span>().<span class="ident">into_boxed_str</span>(),
+                <span class="ident">String::new</span>().<span class="ident">into_boxed_str</span>(),
+            ),
             <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">regex</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">as_regexp</span>() {
@@ -1815,12 +1812,15 @@
                     (<span class="ident">regex</span>.<span class="ident">original_source</span>.<span class="ident">clone</span>(), <span class="ident">regex</span>.<span class="ident">original_flags</span>.<span class="ident">clone</span>())
                 } <span class="kw">else</span> {
                     (
-                        <span class="ident">String::new</span>().<span class="ident">into_boxed_str</span>(),
+                        <span class="ident">arg</span>.<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>().<span class="ident">into_boxed_str</span>(),
                         <span class="ident">String::new</span>().<span class="ident">into_boxed_str</span>(),
                     )
                 }
             }
-            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value::undefined</span>()),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (
+                <span class="ident">arg</span>.<span class="ident">to_string</span>(<span class="ident">ctx</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>().<span class="ident">into_boxed_str</span>(),
+                <span class="ident">String::new</span>().<span class="ident">into_boxed_str</span>(),
+            ),
         };
         <span class="comment">// if a second argument is given and it&#39;s a string, use it as flags</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">Value::String</span>(<span class="ident">flags</span>)) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
