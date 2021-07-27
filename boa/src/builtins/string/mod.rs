@@ -872,12 +872,11 @@ impl String {
             // a. Let matcher be ? GetMethod(regexp, @@match).
             // b. If matcher is not undefined, then
             if let Some(matcher) = regexp
-                .as_object()
-                .unwrap_or_default()
-                .get_method(context, "match")?
+                .to_object(context)?
+                .get_method(context, WellKnownSymbols::match_())?
             {
                 // i. Return ? Call(matcher, regexp, « O »).
-                return matcher.call(&regexp, &[object.clone()], context);
+                return matcher.call(&regexp, &[this.clone()], context);
             }
         }
 

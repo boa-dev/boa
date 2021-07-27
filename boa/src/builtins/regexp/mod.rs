@@ -211,13 +211,10 @@ impl RegExp {
         let arg = args.get(0).ok_or_else(Value::undefined)?;
 
         let (regex_body, mut regex_flags) = match arg {
-            Value::String(ref body) => {
-                // first argument is a string -> use it as regex pattern
-                (
-                    body.to_string().into_boxed_str(),
-                    String::new().into_boxed_str(),
-                )
-            }
+            Value::Undefined => (
+                String::new().into_boxed_str(),
+                String::new().into_boxed_str(),
+            ),
             Value::Object(ref obj) => {
                 let obj = obj.borrow();
                 if let Some(regex) = obj.as_regexp() {
@@ -225,12 +222,15 @@ impl RegExp {
                     (regex.original_source.clone(), regex.original_flags.clone())
                 } else {
                     (
-                        String::new().into_boxed_str(),
+                        arg.to_string(ctx)?.to_string().into_boxed_str(),
                         String::new().into_boxed_str(),
                     )
                 }
             }
-            _ => return Err(Value::undefined()),
+            _ => (
+                arg.to_string(ctx)?.to_string().into_boxed_str(),
+                String::new().into_boxed_str(),
+            ),
         };
         // if a second argument is given and it's a string, use it as flags
         if let Some(Value::String(flags)) = args.get(1) {
