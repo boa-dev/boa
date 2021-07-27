@@ -334,7 +334,9 @@ static ARRAY_CONCAT: &str = include_str!("bench_scripts/array_concat.js");
 
 fn array_concat(c: &mut Criterion) {
     let mut context = Context::new();
-    let nodes = Parser::new(ARRAY_CONCAT.as_bytes(), false).parse_all().unwrap();
+    let nodes = Parser::new(ARRAY_CONCAT.as_bytes(), false)
+        .parse_all()
+        .unwrap();
     c.bench_function("Array concat (Execution)", move |b| {
         b.iter(|| black_box(&nodes).run(&mut context).unwrap())
     });
