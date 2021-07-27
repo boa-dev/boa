@@ -24,11 +24,11 @@ use crate::{
     BoaProfiler, Context, JsString, Result,
 };
 use num_traits::*;
+use std::collections::VecDeque;
 use std::{
     cmp::{max, min},
     convert::{TryFrom, TryInto},
 };
-use std::collections::VecDeque;
 
 /// JavaScript `Array` built-in implementation.
 #[derive(Debug, Clone, Copy)]
@@ -495,9 +495,10 @@ impl Array {
         // 3. Let n be 0.
         let mut n = 0;
         // 4. Prepend O to items.
-        let mut items = args.iter().flat_map(
-            |item_val| item_val.to_object(context)
-        ).collect::<VecDeque<GcObject>>();
+        let mut items = args
+            .iter()
+            .flat_map(|item_val| item_val.to_object(context))
+            .collect::<VecDeque<GcObject>>();
         items.push_front(obj);
         // 5. For each element E of items, do
         for item in items {
@@ -510,7 +511,9 @@ impl Array {
                 let len = Self::length_of_array_like(&item, context)?;
                 // iii. If n + len > 2^53 - 1, throw a TypeError exception.
                 if n + len > Number::MAX_SAFE_INTEGER as usize {
-                    return context.throw_type_error("length + number of arguments exceeds the max safe integer limit");
+                    return context.throw_type_error(
+                        "length + number of arguments exceeds the max safe integer limit",
+                    );
                 }
                 // iv. Repeat, while k < len,
                 for k in 0..len {
@@ -539,7 +542,7 @@ impl Array {
                 // iii. Perform ? CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), E).
                 arr.create_data_property_or_throw(n, item, context)?;
                 // iv. Set n to n + 1.
-                n+=1
+                n += 1
             }
         }
         // 6. Perform ? Set(A, "length", 𝔽(n), true).
