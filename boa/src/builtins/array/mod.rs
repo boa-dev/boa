@@ -310,15 +310,6 @@ impl Array {
         }
     }
 
-    /// `LengthOfArrayLike ( obj )`
-    ///
-    /// The abstract operation LengthOfArrayLike takes argument obj.
-    /// It returns the value of the "length" property of an array-like object (as a non-negative integer).
-
-    fn length_of_array_like(this: &Value, context: &mut Context) -> Result<usize> {
-        this.get_field("length", context)?.to_length(context)
-    }
-
     /// `get Array [ @@species ]`
     ///
     /// The `Array [ @@species ]` accessor property returns the Array constructor.
@@ -509,9 +500,12 @@ impl Array {
             let spreadable = Self::is_concat_spreadable(&item, context)?;
             // b. If spreadable is true, then
             if spreadable {
+                // item is guaranteed to be an object since is_concat_spreadable checks it,
+                // so we can call `.unwrap()`
+                let item = item.as_object().unwrap();
                 // i. Let k be 0.
                 // ii. Let len be ? LengthOfArrayLike(E).
-                let len = Self::length_of_array_like(&item, context)?;
+                let len = item.length_of_array_like(context)?;
                 // iii. If n + len > 2^53 - 1, throw a TypeError exception.
                 if n + len > Number::MAX_SAFE_INTEGER as usize {
                     return context.throw_type_error(
@@ -520,9 +514,6 @@ impl Array {
                 }
                 // iv. Repeat, while k < len,
                 for k in 0..len {
-                    // item is guaranteed to be an object since is_concat_spreadable checks it,
-                    // so we can call `.unwrap()`
-                    let item = item.as_object().unwrap();
                     // 1. Let P be ! ToString(𝔽(k)).
                     // 2. Let exists be ? HasProperty(E, P).
                     let exists = item.has_property(k, context)?;
