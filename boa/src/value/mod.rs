@@ -1051,3 +1051,16 @@ impl From<Numeric> for Value {
         }
     }
 }
+
+impl Numeric {
+    #[inline]
+    pub fn not(x: &Self) -> Value {
+        match x {
+            Numeric::Number(x) => {
+                let x = f64_to_int32(*x);
+                Value::from(!x)
+            }
+            Numeric::BigInt(x) => Value::from(JsBigInt::new(!x.as_inner())),
+        }
+    }
+}
