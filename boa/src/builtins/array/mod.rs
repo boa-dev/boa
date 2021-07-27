@@ -24,7 +24,6 @@ use crate::{
     BoaProfiler, Context, JsString, Result,
 };
 use num_traits::*;
-use std::collections::VecDeque;
 use std::{
     cmp::{max, min},
     convert::{TryFrom, TryInto},
@@ -292,16 +291,23 @@ impl Array {
     /// Returns a Boolean valued property that if `true` indicates that
     /// an object should be flattened to its array elements
     /// by `Array.prototype.concat`.
-    fn is_concat_spreadable(this: &GcObject, context: &mut Context) -> Result<bool> {
+    fn is_concat_spreadable(this: &Value, context: &mut Context) -> Result<bool> {
         // 1. If Type(O) is not Object, return false.
+        if !this.is_object() {
+            return Ok(false);
+        }
         // 2. Let spreadable be ? Get(O, @@isConcatSpreadable).
-        let spreadable = this.get(WellKnownSymbols::is_concat_spreadable(), context)?;
+        let spreadable = this.get_field(WellKnownSymbols::is_concat_spreadable(), context)?;
+
         // 3. If spreadable is not undefined, return ! ToBoolean(spreadable).
         if !spreadable.is_undefined() {
             return Ok(spreadable.to_boolean());
         }
         // 4. Return ? IsArray(O).
-        Ok(this.is_array())
+        match this.as_object() {
+            Some(obj) => Ok(obj.is_array()),
+            _ => Ok(false),
+        }
     }
 
     /// `LengthOfArrayLike ( obj )`
@@ -309,8 +315,8 @@ impl Array {
     /// The abstract operation LengthOfArrayLike takes argument obj.
     /// It returns the value of the "length" property of an array-like object (as a non-negative integer).
 
-    fn length_of_array_like(this: &GcObject, context: &mut Context) -> Result<usize> {
-        this.get("length", context)?.to_length(context)
+    fn length_of_array_like(this: &Value, context: &mut Context) -> Result<usize> {
+        this.get_field("length", context)?.to_length(context)
     }
 
     /// `get Array [ @@species ]`
@@ -495,11 +501,8 @@ impl Array {
         // 3. Let n be 0.
         let mut n = 0;
         // 4. Prepend O to items.
-        let mut items = args
-            .iter()
-            .flat_map(|item_val| item_val.to_object(context))
-            .collect::<VecDeque<GcObject>>();
-        items.push_front(obj);
+        let mut items = vec![Value::from(this)];
+        items.extend_from_slice(args);
         // 5. For each element E of items, do
         for item in items {
             // a. Let spreadable be ? IsConcatSpreadable(E).
@@ -517,6 +520,9 @@ impl Array {
                 }
                 // iv. Repeat, while k < len,
                 for k in 0..len {
+                    // item is guaranteed to be an object since is_concat_spreadable checks it,
+                    // so we can call `.unwrap()`
+                    let item = item.as_object().unwrap();
                     // 1. Let P be ! ToString(𝔽(k)).
                     // 2. Let exists be ? HasProperty(E, P).
                     let exists = item.has_property(k, context)?;
