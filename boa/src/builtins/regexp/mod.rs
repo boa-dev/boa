@@ -53,8 +53,8 @@ pub struct RegExp {
     /// Flag 'u' - Unicode.
     unicode: bool,
 
-    pub(crate) original_source: Box<str>,
-    original_flags: Box<str>,
+    original_source: JsString,
+    original_flags: JsString,
 }
 
 // Only safe while regress::Regex doesn't implement Trace itself.
@@ -278,17 +278,17 @@ impl RegExp {
         // 1. If pattern is undefined, let P be the empty String.
         // 2. Else, let P be ? ToString(pattern).
         let p = if pattern.is_undefined() {
-            String::new().into_boxed_str()
+            JsString::new("")
         } else {
-            pattern.to_string(context)?.as_str().into()
+            pattern.to_string(context)?
         };
 
         // 3. If flags is undefined, let F be the empty String.
         // 4. Else, let F be ? ToString(flags).
         let f = if flags.is_undefined() {
-            String::new().into_boxed_str()
+            JsString::new("")
         } else {
-            flags.to_string(context)?.as_str().into()
+            flags.to_string(context)?
         };
 
         // 5. If F contains any code unit other than "g", "i", "m", "s", "u", or "y"
