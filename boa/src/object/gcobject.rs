@@ -4,9 +4,7 @@
 
 use super::{NativeObject, Object, PROTOTYPE};
 use crate::{
-    builtins::function::{
-        create_unmapped_arguments_object, BuiltInFunction, Function, NativeFunction,
-    },
+    builtins::function::{create_unmapped_arguments_object, Function, NativeFunction},
     context::StandardConstructor,
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
@@ -139,16 +137,20 @@ impl GcObject {
                     .display()
                     .to_string();
                 return context.throw_type_error(format!("{} is not a constructor", name));
-            } else if !construct && !function.is_callable() {
-                return context.throw_type_error("function object is not callable");
             } else {
                 match function {
-                    Function::BuiltIn(BuiltInFunction(function), flags) => {
-                        if flags.is_constructable() || construct {
-                            FunctionBody::BuiltInConstructor(*function)
+                    Function::Native {
+                        function,
+                        constructable,
+                    } => {
+                        if *constructable || construct {
+                            FunctionBody::BuiltInConstructor(function.0)
                         } else {
-                            FunctionBody::BuiltInFunction(*function)
+                            FunctionBody::BuiltInFunction(function.0)
                         }
+                    }
+                    Function::Closure { function, .. } => {
+                        return (function)(this_target, args, context);
                     }
                     Function::Ordinary {
                         body,

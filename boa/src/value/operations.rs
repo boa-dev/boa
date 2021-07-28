@@ -11,9 +11,6 @@ impl Value {
             (Self::Integer(x), Self::Rational(y)) => Self::rational(f64::from(*x) + y),
             (Self::Rational(x), Self::Integer(y)) => Self::rational(x + f64::from(*y)),
 
-            (Self::String(ref x), Self::String(ref y)) => Self::string(format!("{}{}", x, y)),
-            (Self::String(ref x), y) => Self::string(format!("{}{}", x, y.to_string(context)?)),
-            (x, Self::String(ref y)) => Self::string(format!("{}{}", x.to_string(context)?, y)),
             (Self::String(ref x), Self::String(ref y)) => Self::from(JsString::concat(x, y)),
             (Self::String(ref x), y) => Self::from(JsString::concat(x, y.to_string(context)?)),
             (x, Self::String(ref y)) => Self::from(JsString::concat(x.to_string(context)?, y)),

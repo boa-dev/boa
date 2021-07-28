@@ -75,53 +75,44 @@ impl BuiltIn for RegExp {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let get_species = FunctionBuilder::new(context, Self::get_species)
+        let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
             .constructable(false)
-            .callable(true)
             .build();
 
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
-        let get_global = FunctionBuilder::new(context, Self::get_global)
+        let get_global = FunctionBuilder::native(context, Self::get_global)
             .name("get global")
             .constructable(false)
-            .callable(true)
             .build();
-        let get_ignore_case = FunctionBuilder::new(context, Self::get_ignore_case)
+        let get_ignore_case = FunctionBuilder::native(context, Self::get_ignore_case)
             .name("get ignoreCase")
             .constructable(false)
-            .callable(true)
             .build();
-        let get_multiline = FunctionBuilder::new(context, Self::get_multiline)
+        let get_multiline = FunctionBuilder::native(context, Self::get_multiline)
             .name("get multiline")
             .constructable(false)
-            .callable(true)
             .build();
-        let get_dot_all = FunctionBuilder::new(context, Self::get_dot_all)
+        let get_dot_all = FunctionBuilder::native(context, Self::get_dot_all)
             .name("get dotAll")
             .constructable(false)
-            .callable(true)
             .build();
-        let get_unicode = FunctionBuilder::new(context, Self::get_unicode)
+        let get_unicode = FunctionBuilder::native(context, Self::get_unicode)
             .name("get unicode")
             .constructable(false)
-            .callable(true)
             .build();
-        let get_sticky = FunctionBuilder::new(context, Self::get_sticky)
+        let get_sticky = FunctionBuilder::native(context, Self::get_sticky)
             .name("get sticky")
             .constructable(false)
-            .callable(true)
             .build();
-        let get_flags = FunctionBuilder::new(context, Self::get_flags)
+        let get_flags = FunctionBuilder::native(context, Self::get_flags)
             .name("get flags")
             .constructable(false)
-            .callable(true)
             .build();
-        let get_source = FunctionBuilder::new(context, Self::get_source)
+        let get_source = FunctionBuilder::native(context, Self::get_source)
             .name("get source")
             .constructable(false)
-            .callable(true)
             .build();
         let regexp_object = ConstructorBuilder::with_standard_object(
             context,

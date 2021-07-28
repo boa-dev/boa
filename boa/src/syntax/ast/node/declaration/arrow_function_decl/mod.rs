@@ -76,9 +76,7 @@ impl Executable for ArrowFunctionDecl {
         context.create_function(
             self.params().to_vec(),
             self.body().to_vec(),
-            FunctionFlags::CALLABLE
-                | FunctionFlags::CONSTRUCTABLE
-                | FunctionFlags::LEXICAL_THIS_MODE,
+            FunctionFlags::CONSTRUCTABLE | FunctionFlags::LEXICAL_THIS_MODE,
         )
     }
 }

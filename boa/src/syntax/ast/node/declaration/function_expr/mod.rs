@@ -102,7 +102,7 @@ impl Executable for FunctionExpr {
         let val = context.create_function(
             self.parameters().to_vec(),
             self.body().to_vec(),
-            FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
+            FunctionFlags::CONSTRUCTABLE,
         )?;
 
         if let Some(name) = self.name() {

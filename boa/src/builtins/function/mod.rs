@@ -15,7 +15,7 @@ use crate::object::PROTOTYPE;
 use crate::{
     builtins::{Array, BuiltIn},
     environment::lexical_environment::Environment,
-    gc::{empty_trace, Finalize, Trace},
+    gc::{custom_trace, empty_trace, Finalize, Trace},
     object::{ConstructorBuilder, FunctionBuilder, GcObject, Object, ObjectData},
     property::{Attribute, DataDescriptor},
     syntax::ast::node::{FormalParameter, RcStatementList},
@@ -52,31 +52,12 @@ impl Debug for BuiltInFunction {
 bitflags! {
     #[derive(Finalize, Default)]
     pub struct FunctionFlags: u8 {
-        const CALLABLE = 0b0000_0001;
         const CONSTRUCTABLE = 0b0000_0010;
         const LEXICAL_THIS_MODE = 0b0000_0100;
     }
 }
 
 impl FunctionFlags {
-    pub(crate) fn from_parameters(callable: bool, constructable: bool) -> Self {
-        let mut flags = Self::default();
-
-        if callable {
-            flags |= Self::CALLABLE;
-        }
-        if constructable {
-            flags |= Self::CONSTRUCTABLE;
-        }
-
-        flags
-    }
-
-    #[inline]
-    pub(crate) fn is_callable(&self) -> bool {
-        self.contains(Self::CALLABLE)
-    }
-
     #[inline]
     pub(crate) fn is_constructable(&self) -> bool {
         self.contains(Self::CONSTRUCTABLE)
@@ -97,15 +78,41 @@ unsafe impl Trace for FunctionFlags {
 /// FunctionBody is specific to this interpreter, it will either be Rust code or JavaScript code (AST Node)
 ///
 /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects>
-#[derive(Debug, Clone, Finalize, Trace)]
+#[derive(Finalize)]
 pub enum Function {
-    BuiltIn(BuiltInFunction, FunctionFlags),
+    Native {
+        function: BuiltInFunction,
+        constructable: bool,
+    },
+    Closure {
+        #[allow(clippy::type_complexity)]
+        function: Box<dyn Fn(&Value, &[Value], &mut Context) -> Result<Value>>,
+        constructable: bool,
+    },
     Ordinary {
         flags: FunctionFlags,
         body: RcStatementList,
         params: Box<[FormalParameter]>,
         environment: Environment,
     },
+}
+
+impl Debug for Function {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Function {{ ... }}")
+    }
+}
+
+unsafe impl Trace for Function {
+    custom_trace!(this, {
+        match this {
+            Function::Native { .. } => {}
+            Function::Closure { .. } => {}
+            Function::Ordinary { environment, .. } => {
+                mark(environment);
+            }
+        }
+    });
 }
 
 impl Function {
@@ -154,18 +161,11 @@ impl Function {
             .expect("Failed to intialize binding");
     }
 
-    /// Returns true if the function object is callable.
-    pub fn is_callable(&self) -> bool {
-        match self {
-            Self::BuiltIn(_, flags) => flags.is_callable(),
-            Self::Ordinary { flags, .. } => flags.is_callable(),
-        }
-    }
-
     /// Returns true if the function object is constructable.
     pub fn is_constructable(&self) -> bool {
         match self {
-            Self::BuiltIn(_, flags) => flags.is_constructable(),
+            Self::Native { constructable, .. } => *constructable,
+            Self::Closure { constructable, .. } => *constructable,
             Self::Ordinary { flags, .. } => flags.is_constructable(),
         }
     }
@@ -230,7 +230,10 @@ pub fn make_builtin_fn<N>(
     let _timer = BoaProfiler::global().start_event(&format!("make_builtin_fn: {}", &name), "init");
 
     let mut function = Object::function(
-        Function::BuiltIn(function.into(), FunctionFlags::CALLABLE),
+        Function::Native {
+            function: function.into(),
+            constructable: false,
+        },
         interpreter
             .standard_objects()
             .function_object()
@@ -270,10 +273,10 @@ impl BuiltInFunctionObject {
             .expect("this should be an object")
             .set_prototype_instance(prototype.into());
 
-        this.set_data(ObjectData::Function(Function::BuiltIn(
-            BuiltInFunction(|_, _, _| Ok(Value::undefined())),
-            FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
-        )));
+        this.set_data(ObjectData::Function(Function::Native {
+            function: BuiltInFunction(|_, _, _| Ok(Value::undefined())),
+            constructable: true,
+        }));
         Ok(this)
     }
 
@@ -342,10 +345,9 @@ impl BuiltIn for BuiltInFunctionObject {
         let _timer = BoaProfiler::global().start_event("function", "init");
 
         let function_prototype = context.standard_objects().function_object().prototype();
-        FunctionBuilder::new(context, Self::prototype)
+        FunctionBuilder::native(context, Self::prototype)
             .name("")
             .length(0)
-            .callable(true)
             .constructable(false)
             .build_function_prototype(&function_prototype);
 

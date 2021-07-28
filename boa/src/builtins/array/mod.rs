@@ -45,16 +45,14 @@ impl BuiltIn for Array {
 
         let symbol_iterator = WellKnownSymbols::iterator();
 
-        let get_species = FunctionBuilder::new(context, Self::get_species)
+        let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
             .constructable(false)
-            .callable(true)
             .build();
 
-        let values_function = FunctionBuilder::new(context, Self::values)
+        let values_function = FunctionBuilder::native(context, Self::values)
             .name("values")
             .length(0)
-            .callable(true)
             .constructable(false)
             .build();
 

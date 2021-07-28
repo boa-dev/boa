@@ -91,7 +91,7 @@ impl Executable for FunctionDecl {
         let val = context.create_function(
             self.parameters().to_vec(),
             self.body().to_vec(),
-            FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
+            FunctionFlags::CONSTRUCTABLE,
         )?;
 
         // Set the name and assign it in the current environment

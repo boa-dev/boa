@@ -543,10 +543,28 @@ impl Context {
         length: usize,
         body: NativeFunction,
     ) -> Result<()> {
-        let function = FunctionBuilder::new(self, body)
+        let function = FunctionBuilder::native(self, body)
             .name(name)
             .length(length)
-            .callable(true)
+            .constructable(true)
+            .build();
+
+        self.global_object().insert_property(
+            name,
+            function,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
+        Ok(())
+    }
+
+    #[inline]
+    pub fn register_global_closure<F>(&mut self, name: &str, length: usize, body: F) -> Result<()>
+    where
+        F: Fn(&Value, &[Value], &mut Context) -> Result<Value> + 'static,
+    {
+        let function = FunctionBuilder::closure(self, body)
+            .name(name)
+            .length(length)
             .constructable(true)
             .build();
 

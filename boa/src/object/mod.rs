@@ -3,7 +3,7 @@
 use crate::{
     builtins::{
         array::array_iterator::ArrayIterator,
-        function::{BuiltInFunction, Function, FunctionFlags, NativeFunction},
+        function::{Function, NativeFunction},
         map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
         regexp::regexp_string_iterator::RegExpStringIterator,
@@ -264,7 +264,7 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
     #[inline]
     pub fn is_callable(&self) -> bool {
-        matches!(self.data, ObjectData::Function(ref f) if f.is_callable())
+        matches!(self.data, ObjectData::Function(_))
     }
 
     /// It determines if Object is a function object with a `[[Construct]]` internal method.
@@ -682,24 +682,39 @@ where
 #[derive(Debug)]
 pub struct FunctionBuilder<'context> {
     context: &'context mut Context,
-    function: BuiltInFunction,
+    function: Option<Function>,
     name: Option<String>,
     length: usize,
-    callable: bool,
-    constructable: bool,
 }
 
 impl<'context> FunctionBuilder<'context> {
     /// Create a new `FunctionBuilder`
     #[inline]
-    pub fn new(context: &'context mut Context, function: NativeFunction) -> Self {
+    pub fn native(context: &'context mut Context, function: NativeFunction) -> Self {
         Self {
             context,
-            function: function.into(),
+            function: Some(Function::Native {
+                function: function.into(),
+                constructable: false,
+            }),
             name: None,
             length: 0,
-            callable: true,
-            constructable: false,
+        }
+    }
+
+    #[inline]
+    pub fn closure<F>(context: &'context mut Context, function: F) -> Self
+    where
+        F: Fn(&Value, &[Value], &mut Context) -> Result<Value, Value> + 'static,
+    {
+        Self {
+            context,
+            function: Some(Function::Closure {
+                function: Box::new(function),
+                constructable: false,
+            }),
+            name: None,
+            length: 0,
         }
     }
 
@@ -726,21 +741,16 @@ impl<'context> FunctionBuilder<'context> {
         self
     }
 
-    /// Specify the whether the object function object can be called.
-    ///
-    /// The default is `true`.
-    #[inline]
-    pub fn callable(&mut self, yes: bool) -> &mut Self {
-        self.callable = yes;
-        self
-    }
-
     /// Specify the whether the object function object can be called with `new` keyword.
     ///
     /// The default is `false`.
     #[inline]
     pub fn constructable(&mut self, yes: bool) -> &mut Self {
-        self.constructable = yes;
+        match self.function.as_mut() {
+            Some(Function::Native { constructable, .. }) => *constructable = yes,
+            Some(Function::Closure { constructable, .. }) => *constructable = yes,
+            _ => unreachable!(),
+        }
         self
     }
 
@@ -748,10 +758,7 @@ impl<'context> FunctionBuilder<'context> {
     #[inline]
     pub fn build(&mut self) -> GcObject {
         let mut function = Object::function(
-            Function::BuiltIn(
-                self.function,
-                FunctionFlags::from_parameters(self.callable, self.constructable),
-            ),
+            self.function.take().unwrap(),
             self.context
                 .standard_objects()
                 .function_object()
@@ -772,10 +779,7 @@ impl<'context> FunctionBuilder<'context> {
     /// Initializes the `Function.prototype` function object.
     pub(crate) fn build_function_prototype(&mut self, object: &GcObject) {
         let mut object = object.borrow_mut();
-        object.data = ObjectData::Function(Function::BuiltIn(
-            self.function,
-            FunctionFlags::from_parameters(self.callable, self.constructable),
-        ));
+        object.data = ObjectData::Function(self.function.take().unwrap());
         object.set_prototype_instance(
             self.context
                 .standard_objects()
@@ -783,7 +787,7 @@ impl<'context> FunctionBuilder<'context> {
                 .prototype()
                 .into(),
         );
-        let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
+        let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
         if let Some(name) = self.name.take() {
             object.insert_property("name", name, attribute);
         } else {
@@ -836,10 +840,9 @@ impl<'context> ObjectInitializer<'context> {
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function = FunctionBuilder::new(self.context, function)
+        let function = FunctionBuilder::native(self.context, function)
             .name(binding.name)
             .length(length)
-            .callable(true)
             .constructable(false)
             .build();
 
@@ -940,10 +943,9 @@ impl<'context> ConstructorBuilder<'context> {
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function = FunctionBuilder::new(self.context, function)
+        let function = FunctionBuilder::native(self.context, function)
             .name(binding.name)
             .length(length)
-            .callable(true)
             .constructable(false)
             .build();
 
@@ -967,10 +969,9 @@ impl<'context> ConstructorBuilder<'context> {
         B: Into<FunctionBinding>,
     {
         let binding = binding.into();
-        let function = FunctionBuilder::new(self.context, function)
+        let function = FunctionBuilder::native(self.context, function)
             .name(binding.name)
             .length(length)
-            .callable(true)
             .constructable(false)
             .build();
 
@@ -1122,10 +1123,10 @@ impl<'context> ConstructorBuilder<'context> {
     /// Build the constructor function object.
     pub fn build(&mut self) -> GcObject {
         // Create the native function
-        let function = Function::BuiltIn(
-            self.constructor_function.into(),
-            FunctionFlags::from_parameters(self.callable, self.constructable),
-        );
+        let function = Function::Native {
+            function: self.constructor_function.into(),
+            constructable: self.constructable,
+        };
 
         let length = DataDescriptor::new(
             self.length,
