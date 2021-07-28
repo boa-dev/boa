@@ -360,7 +360,7 @@ impl Object {
     /// Define a property in an object
     pub fn define_property(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         let object = args.get(0).cloned().unwrap_or_else(Value::undefined);
-        if let Some(mut object) = object.as_object() {
+        if let Some(object) = object.as_object() {
             let key = args
                 .get(1)
                 .unwrap_or(&Value::undefined())

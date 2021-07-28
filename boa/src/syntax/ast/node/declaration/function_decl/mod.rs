@@ -89,13 +89,11 @@ impl Executable for FunctionDecl {
     fn run(&self, context: &mut Context) -> Result<Value> {
         let _timer = BoaProfiler::global().start_event("FunctionDecl", "exec");
         let val = context.create_function(
+            self.name(),
             self.parameters().to_vec(),
             self.body().to_vec(),
             FunctionFlags::CONSTRUCTABLE,
         )?;
-
-        // Set the name and assign it in the current environment
-        val.set_field("name", self.name(), false, context)?;
 
         if context.has_binding(self.name()) {
             context.set_mutable_binding(self.name(), val, true)?;

@@ -21,7 +21,7 @@ use crate::{
         },
         Parser,
     },
-    BoaProfiler, Executable, Result, Value,
+    BoaProfiler, Executable, JsString, Result, Value,
 };
 
 #[cfg(feature = "console")]
@@ -486,21 +486,24 @@ impl Context {
     }
 
     /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
-    pub(crate) fn create_function<P, B>(
+    pub(crate) fn create_function<N, P, B>(
         &mut self,
+        name: N,
         params: P,
         body: B,
         flags: FunctionFlags,
     ) -> Result<Value>
     where
+        N: Into<JsString>,
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
     {
+        let name = name.into();
         let function_prototype: Value =
             self.standard_objects().function_object().prototype().into();
 
         // Every new function has a prototype property pre-made
-        let proto = Value::new_object(self);
+        let prototype = self.construct_object();
 
         let params = params.into();
         let params_len = params.len();
@@ -511,17 +514,32 @@ impl Context {
             environment: self.get_current_environment().clone(),
         };
 
-        let new_func = Object::function(func, function_prototype);
-
-        let val = Value::from(new_func);
+        let function = GcObject::new(Object::function(func, function_prototype));
 
         // Set constructor field to the newly created Value (function object)
-        proto.set_field("constructor", val.clone(), false, self)?;
+        let constructor = DataDescriptor::new(
+            function.clone(),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
+        prototype.define_property_or_throw("constructor", constructor, self)?;
 
-        val.set_field(PROTOTYPE, proto, false, self)?;
-        val.set_field("length", Value::from(params_len), false, self)?;
+        let prototype = DataDescriptor::new(
+            prototype,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        );
+        function.define_property_or_throw(PROTOTYPE, prototype, self)?;
+        let length = DataDescriptor::new(
+            params_len,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
+        function.define_property_or_throw("length", length, self)?;
+        let name = DataDescriptor::new(
+            name,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
+        function.define_property_or_throw("name", name, self)?;
 
-        Ok(val)
+        Ok(function.into())
     }
 
     /// Register a global function.
