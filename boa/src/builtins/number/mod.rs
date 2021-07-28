@@ -1094,4 +1094,10 @@ impl Number {
         }
         (x < y).into()
     }
+
+    #[inline]
+    pub(crate) fn not(x: f64) -> i32 {
+        let x = f64_to_int32(x);
+        !x
+    }
 }
