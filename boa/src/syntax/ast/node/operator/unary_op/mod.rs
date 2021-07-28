@@ -2,10 +2,11 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::{node::Node, op},
-    Context, Result, Value,
+    Context, JsBigInt, Result, Value,
 };
 use std::fmt;
 
+use crate::builtins::Number;
 use crate::value::Numeric;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -79,15 +80,10 @@ impl Executable for UnaryOp {
             op::UnaryOp::Tilde => {
                 let expr = self.target().run(context)?;
                 let old_v = expr.to_numeric(context)?;
-                Numeric::not(&old_v)
-                // if num_v_a.is_nan() || num_v_a.is_infinite() {
-                //     Value::from(-1) // special case for inf or nan
-                // } else if let Some(num_bigint) = self.target.run(context)?.as_bigint() {
-                // // add bigint support
-                // } else {
-                //     let masked = (num_v_a as i64) & 0x00000000ffffffff; // converts float to i32 following spec to ignore MSB using mask
-                //     Value::from(!(masked as i32)) // Nots i32 conversion and creates value from this
-                // }
+                match old_v {
+                    Numeric::Number(x) => Value::from(Number::not(x)),
+                    Numeric::BigInt(x) => Value::from(JsBigInt::not(&x)),
+                }
             }
             op::UnaryOp::Void => {
                 self.target().run(context)?;
