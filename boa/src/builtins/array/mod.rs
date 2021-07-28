@@ -492,10 +492,8 @@ impl Array {
         // 3. Let n be 0.
         let mut n = 0;
         // 4. Prepend O to items.
-        let mut items = vec![Value::from(this)];
-        items.extend_from_slice(args);
         // 5. For each element E of items, do
-        for item in items {
+        for item in [Value::from(obj)].iter().chain(args.iter()) {
             // a. Let spreadable be ? IsConcatSpreadable(E).
             let spreadable = Self::is_concat_spreadable(&item, context)?;
             // b. If spreadable is true, then
