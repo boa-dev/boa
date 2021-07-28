@@ -16,7 +16,7 @@ use crate::{
     },
     gc::{Finalize, Trace},
     object::GcObject,
-    property::{Attribute, DataDescriptor},
+    property::PropertyDescriptor,
     Context, Result, Value,
 };
 use gc::{Gc, GcCell};
@@ -66,7 +66,7 @@ impl GlobalEnvironmentRecord {
         let existing_prop = global_object.get_property(name);
         match existing_prop {
             Some(desc) => {
-                if desc.configurable() {
+                if desc.expect_configurable() {
                     return false;
                 }
                 true
@@ -89,11 +89,11 @@ impl GlobalEnvironmentRecord {
         let existing_prop = global_object.get_property(name);
         match existing_prop {
             Some(prop) => {
-                if prop.configurable() {
-                    true
-                } else {
-                    prop.is_data_descriptor() && prop.attributes().writable() && prop.enumerable()
-                }
+                prop.expect_configurable()
+                    || prop
+                        .enumerable()
+                        .zip(prop.writable())
+                        .map_or(false, |(a, b)| a && b)
             }
             None => global_object.is_extensible(),
         }
@@ -124,18 +124,18 @@ impl GlobalEnvironmentRecord {
     pub fn create_global_function_binding(&mut self, name: &str, value: Value, deletion: bool) {
         let global_object = &mut self.object_record.bindings;
         let existing_prop = global_object.get_property(name);
+        // TODO: change to desc.is_undefined()
         let desc = match existing_prop {
-            Some(desc) if desc.configurable() => DataDescriptor::new(value, Attribute::empty()),
-            Some(_) => {
-                let mut attributes = Attribute::WRITABLE | Attribute::ENUMERABLE;
-                if deletion {
-                    attributes |= Attribute::CONFIGURABLE;
-                }
-                DataDescriptor::new(value, attributes)
-            }
-            None => DataDescriptor::new(value, Attribute::empty()),
+            Some(desc) if desc.expect_configurable() => PropertyDescriptor::builder().value(value),
+            Some(_) => PropertyDescriptor::builder()
+                .value(value)
+                .writable(true)
+                .enumerable(true)
+                .configurable(deletion),
+            None => PropertyDescriptor::builder().value(value),
         };
 
+        // TODO: fix spec by adding Set and append name to varDeclaredNames
         global_object
             .as_object()
             .expect("global object")

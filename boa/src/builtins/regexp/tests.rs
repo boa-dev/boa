@@ -56,7 +56,6 @@ fn species() {
         "\"function\""
     );
     assert_eq!(forward(&mut context, "descriptor.enumerable"), "false");
-    assert_eq!(forward(&mut context, "descriptor.writable"), "false");
     assert_eq!(forward(&mut context, "descriptor.configurable"), "true");
 }
 

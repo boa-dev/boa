@@ -232,7 +232,7 @@ impl Set {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/clear
     pub(crate) fn clear(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
         if let Some(object) = this.as_object() {
-            if object.borrow_mut().is_set() {
+            if object.borrow().is_set() {
                 this.set_data(ObjectData::Set(OrderedSet::new()));
                 Ok(Value::Undefined)
             } else {

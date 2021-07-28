@@ -17,7 +17,7 @@ use crate::{
     environment::lexical_environment::Environment,
     gc::{custom_trace, empty_trace, Finalize, Trace},
     object::{ConstructorBuilder, FunctionBuilder, GcObject, Object, ObjectData},
-    property::{Attribute, DataDescriptor},
+    property::{Attribute, PropertyDescriptor},
     syntax::ast::node::{FormalParameter, RcStatementList},
     BoaProfiler, Context, Result, Value,
 };
@@ -181,19 +181,21 @@ pub fn create_unmapped_arguments_object(arguments_list: &[Value]) -> Value {
     let len = arguments_list.len();
     let obj = GcObject::new(Object::default());
     // Set length
-    let length = DataDescriptor::new(
-        len,
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-    );
+    let length = PropertyDescriptor::builder()
+        .value(len)
+        .writable(true)
+        .enumerable(false)
+        .configurable(true);
     // Define length as a property
     obj.ordinary_define_own_property("length".into(), length.into());
     let mut index: usize = 0;
     while index < len {
         let val = arguments_list.get(index).expect("Could not get argument");
-        let prop = DataDescriptor::new(
-            val.clone(),
-            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        let prop = PropertyDescriptor::builder()
+            .value(val.clone())
+            .writable(true)
+            .enumerable(true)
+            .configurable(true);
 
         obj.insert(index, prop);
         index += 1;
@@ -243,14 +245,20 @@ pub fn make_builtin_fn<N>(
             .prototype()
             .into(),
     );
-    let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-    function.insert_property("length", length, attribute);
-    function.insert_property("name", name.as_str(), attribute);
+    let attribute = PropertyDescriptor::builder()
+        .writable(false)
+        .enumerable(false)
+        .configurable(true);
+    function.insert_property("length", attribute.clone().value(length));
+    function.insert_property("name", attribute.value(name.as_str()));
 
     parent.clone().insert_property(
         name,
-        function,
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        PropertyDescriptor::builder()
+            .value(function)
+            .writable(true)
+            .enumerable(false)
+            .configurable(true),
     );
 }
 

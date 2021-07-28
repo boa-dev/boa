@@ -15,11 +15,10 @@ mod tests;
 
 use crate::builtins::Symbol;
 use crate::object::PROTOTYPE;
-use crate::property::DataDescriptor;
 use crate::{
     builtins::{string::string_iterator::StringIterator, Array, BuiltIn, RegExp},
     object::{ConstructorBuilder, ObjectData},
-    property::Attribute,
+    property::{Attribute, PropertyDescriptor},
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsString, Result, Value,
 };
@@ -191,11 +190,14 @@ impl String {
             .expect("this should be an object")
             .set_prototype_instance(prototype.into());
 
-        let length = DataDescriptor::new(
-            Value::from(string.encode_utf16().count()),
-            Attribute::NON_ENUMERABLE,
+        this.set_property(
+            "length",
+            PropertyDescriptor::builder()
+                .value(string.encode_utf16().count())
+                .writable(false)
+                .enumerable(false)
+                .configurable(false),
         );
-        this.set_property("length", length);
 
         this.set_data(ObjectData::String(string));
 

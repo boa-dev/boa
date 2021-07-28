@@ -15,7 +15,7 @@ use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object, regexp},
     gc::{Finalize, Trace},
     object::{GcObject, ObjectData},
-    property::{Attribute, DataDescriptor},
+    property::PropertyDescriptor,
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsString, Result, Value,
 };
@@ -162,10 +162,11 @@ impl RegExpStringIterator {
         result.set_prototype_instance(iterator_prototype);
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
-        let to_string_tag_property = DataDescriptor::new(
-            "RegExp String Iterator",
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        let to_string_tag_property = PropertyDescriptor::builder()
+            .value("RegExp String Iterator")
+            .writable(false)
+            .enumerable(false)
+            .configurable(true);
         result.insert(to_string_tag, to_string_tag_property);
         result
     }

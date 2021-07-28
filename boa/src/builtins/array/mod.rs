@@ -18,7 +18,7 @@ use crate::{
     builtins::BuiltIn,
     builtins::Number,
     object::{ConstructorBuilder, FunctionBuilder, GcObject, ObjectData, PROTOTYPE},
-    property::{Attribute, DataDescriptor},
+    property::{Attribute, PropertyDescriptor},
     symbol::WellKnownSymbols,
     value::{IntegerOrInfinity, Value},
     BoaProfiler, Context, JsString, Result,
@@ -225,11 +225,16 @@ impl Array {
         array.borrow_mut().data = ObjectData::Array;
 
         // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
-        let length = DataDescriptor::new(
-            length as f64,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+
+        array.ordinary_define_own_property(
+            "length".into(),
+            PropertyDescriptor::builder()
+                .value(length as f64)
+                .writable(true)
+                .enumerable(false)
+                .configurable(false)
+                .build(),
         );
-        array.ordinary_define_own_property("length".into(), length.into());
 
         Ok(array)
     }
@@ -242,11 +247,15 @@ impl Array {
             .as_object()
             .expect("'array' should be an object")
             .set_prototype_instance(context.standard_objects().array_object().prototype().into());
-        let length = DataDescriptor::new(
-            Value::from(0),
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        array.set_property(
+            "length",
+            PropertyDescriptor::builder()
+                .value(0)
+                .writable(true)
+                .enumerable(false)
+                .configurable(false)
+                .build(),
         );
-        array.set_property("length", length);
         array
     }
 
@@ -268,14 +277,25 @@ impl Array {
         }
 
         // Create length
-        let length = DataDescriptor::new(
-            array_contents.len(),
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        array_obj_ptr.set_property(
+            "length".to_string(),
+            PropertyDescriptor::builder()
+                .value(array_contents.len())
+                .writable(true)
+                .enumerable(false)
+                .configurable(false)
+                .build(),
         );
-        array_obj_ptr.set_property("length".to_string(), length);
 
         for (n, value) in array_contents.iter().enumerate() {
-            array_obj_ptr.set_property(n, DataDescriptor::new(value, Attribute::all()));
+            array_obj_ptr.set_property(
+                n,
+                PropertyDescriptor::builder()
+                    .value(value)
+                    .configurable(true)
+                    .enumerable(true)
+                    .writable(true),
+            );
         }
         Ok(array_obj_ptr)
     }
@@ -389,7 +409,14 @@ impl Array {
 
         for (n, value) in add_values.iter().enumerate() {
             let new_index = orig_length.wrapping_add(n);
-            array_ptr.set_property(new_index, DataDescriptor::new(value, Attribute::all()));
+            array_ptr.set_property(
+                new_index,
+                PropertyDescriptor::builder()
+                    .value(value)
+                    .configurable(true)
+                    .enumerable(true)
+                    .writable(true),
+            );
         }
 
         array_ptr.set_field(

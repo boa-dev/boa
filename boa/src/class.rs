@@ -74,7 +74,7 @@ pub trait Class: NativeObject + Sized {
     /// The amount of arguments the class `constructor` takes, default is `0`.
     const LENGTH: usize = 0;
     /// The attibutes the class will be binded with, default is `writable`, `enumerable`, `configurable`.
-    const ATTRIBUTE: Attribute = Attribute::all();
+    const ATTRIBUTES: Attribute = Attribute::all();
 
     /// The constructor of the class.
     fn constructor(this: &Value, args: &[Value], context: &mut Context) -> Result<Self>;

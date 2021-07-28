@@ -17,7 +17,7 @@ use crate::{
     builtins::BuiltIn,
     object::Object,
     object::ObjectInitializer,
-    property::{Attribute, DataDescriptor, PropertyKey},
+    property::{Attribute, PropertyDescriptor, PropertyKey},
     symbol::WellKnownSymbols,
     value::IntegerOrInfinity,
     BoaProfiler, Context, Result, Value,
@@ -201,15 +201,16 @@ impl Json {
                         let this_arg = object.clone();
                         object_to_return.set_property(
                             key.to_owned(),
-                            DataDescriptor::new(
-                                context.call(
+                            PropertyDescriptor::builder()
+                                .value(context.call(
                                     replacer,
                                     &this_arg,
                                     &[Value::from(key.clone()), val.clone()],
-                                )?,
-                                Attribute::all(),
-                            ),
-                        );
+                                )?)
+                                .writable(true)
+                                .enumerable(true)
+                                .configurable(true),
+                        )
                     }
                     if let Some(value) = object_to_return.to_json(context)? {
                         Ok(Value::from(json_to_pretty_string(&value, gap)))
@@ -229,9 +230,10 @@ impl Json {
                         replacer
                             .get_property(key)
                             .as_ref()
-                            .and_then(|p| p.as_data_descriptor())
                             .map(|d| d.value())
-                            .unwrap_or_else(Value::undefined),
+                            .flatten()
+                            .cloned()
+                            .unwrap_or_default(),
                     )
                 }
             });

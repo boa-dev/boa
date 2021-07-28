@@ -14,7 +14,7 @@ use crate::{
     },
     context::StandardConstructor,
     gc::{Finalize, Trace},
-    property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
+    property::{Attribute, PropertyDescriptor, PropertyKey},
     BoaProfiler, Context, JsBigInt, JsString, JsSymbol, Value,
 };
 use rustc_hash::FxHashMap;
@@ -767,9 +767,12 @@ impl<'context> FunctionBuilder<'context> {
                 .prototype()
                 .into(),
         );
-        let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        function.insert_property("name", self.name.clone(), attribute);
-        function.insert_property("length", self.length, attribute);
+        let property = PropertyDescriptor::builder()
+            .writable(false)
+            .enumerable(false)
+            .configurable(true);
+        function.insert_property("name", property.clone().value(self.name.clone()));
+        function.insert_property("length", property.value(self.length));
 
         GcObject::new(function)
     }
@@ -785,9 +788,13 @@ impl<'context> FunctionBuilder<'context> {
                 .prototype()
                 .into(),
         );
-        let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        object.insert_property("name", self.name.clone(), attribute);
-        object.insert_property("length", self.length, attribute);
+
+        let property = PropertyDescriptor::builder()
+            .writable(false)
+            .enumerable(false)
+            .configurable(true);
+        object.insert_property("name", property.clone().value(self.name.clone()));
+        object.insert_property("length", property.value(self.length));
     }
 }
 
@@ -799,8 +806,16 @@ impl<'context> FunctionBuilder<'context> {
 /// # use boa::{Context, Value, object::ObjectInitializer, property::Attribute};
 /// let mut context = Context::new();
 /// let object = ObjectInitializer::new(&mut context)
-///     .property("hello", "world", Attribute::all())
-///     .property(1, 1, Attribute::all())
+///     .property(
+///         "hello",
+///         "world",
+///         Attribute::all()
+///     )
+///     .property(
+///         1,
+///         1,
+///         Attribute::all()
+///     )
 ///     .function(|_, _, _| Ok(Value::undefined()), "func", 0)
 ///     .build();
 /// ```
@@ -842,8 +857,11 @@ impl<'context> ObjectInitializer<'context> {
 
         self.object.borrow_mut().insert_property(
             binding.binding,
-            function,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            PropertyDescriptor::builder()
+                .value(function)
+                .writable(true)
+                .enumerable(false)
+                .configurable(true),
         );
         self
     }
@@ -855,7 +873,11 @@ impl<'context> ObjectInitializer<'context> {
         K: Into<PropertyKey>,
         V: Into<Value>,
     {
-        let property = DataDescriptor::new(value, attribute);
+        let property = PropertyDescriptor::builder()
+            .value(value)
+            .writable(attribute.writable())
+            .enumerable(attribute.enumerable())
+            .configurable(attribute.configurable());
         self.object.borrow_mut().insert(key, property);
         self
     }
@@ -945,8 +967,11 @@ impl<'context> ConstructorBuilder<'context> {
 
         self.prototype.borrow_mut().insert_property(
             binding.binding,
-            function,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            PropertyDescriptor::builder()
+                .value(function)
+                .writable(true)
+                .enumerable(false)
+                .configurable(true),
         );
         self
     }
@@ -971,8 +996,11 @@ impl<'context> ConstructorBuilder<'context> {
 
         self.constructor_object.borrow_mut().insert_property(
             binding.binding,
-            function,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            PropertyDescriptor::builder()
+                .value(function)
+                .writable(true)
+                .enumerable(false)
+                .configurable(true),
         );
         self
     }
@@ -984,7 +1012,11 @@ impl<'context> ConstructorBuilder<'context> {
         K: Into<PropertyKey>,
         V: Into<Value>,
     {
-        let property = DataDescriptor::new(value, attribute);
+        let property = PropertyDescriptor::builder()
+            .value(value)
+            .writable(attribute.writable())
+            .enumerable(attribute.enumerable())
+            .configurable(attribute.configurable());
         self.prototype.borrow_mut().insert(key, property);
         self
     }
@@ -996,7 +1028,11 @@ impl<'context> ConstructorBuilder<'context> {
         K: Into<PropertyKey>,
         V: Into<Value>,
     {
-        let property = DataDescriptor::new(value, attribute);
+        let property = PropertyDescriptor::builder()
+            .value(value)
+            .writable(attribute.writable())
+            .enumerable(attribute.enumerable())
+            .configurable(attribute.configurable());
         self.constructor_object.borrow_mut().insert(key, property);
         self
     }
@@ -1013,7 +1049,11 @@ impl<'context> ConstructorBuilder<'context> {
     where
         K: Into<PropertyKey>,
     {
-        let property = AccessorDescriptor::new(get, set, attribute);
+        let property = PropertyDescriptor::builder()
+            .maybe_get(get)
+            .maybe_set(set)
+            .enumerable(attribute.enumerable())
+            .configurable(attribute.configurable());
         self.prototype.borrow_mut().insert(key, property);
         self
     }
@@ -1030,7 +1070,11 @@ impl<'context> ConstructorBuilder<'context> {
     where
         K: Into<PropertyKey>,
     {
-        let property = AccessorDescriptor::new(get, set, attribute);
+        let property = PropertyDescriptor::builder()
+            .maybe_get(get)
+            .maybe_set(set)
+            .enumerable(attribute.enumerable())
+            .configurable(attribute.configurable());
         self.constructor_object.borrow_mut().insert(key, property);
         self
     }
@@ -1122,14 +1166,16 @@ impl<'context> ConstructorBuilder<'context> {
             constructable: self.constructable,
         };
 
-        let length = DataDescriptor::new(
-            self.length,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
-        let name = DataDescriptor::new(
-            self.name.clone(),
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        let length = PropertyDescriptor::builder()
+            .value(self.length)
+            .writable(false)
+            .enumerable(false)
+            .configurable(true);
+        let name = PropertyDescriptor::builder()
+            .value(self.name.clone())
+            .writable(false)
+            .enumerable(false)
+            .configurable(true);
 
         {
             let mut constructor = self.constructor_object.borrow_mut();
@@ -1147,8 +1193,11 @@ impl<'context> ConstructorBuilder<'context> {
 
             constructor.insert_property(
                 PROTOTYPE,
-                self.prototype.clone(),
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+                PropertyDescriptor::builder()
+                    .value(self.prototype.clone())
+                    .writable(false)
+                    .enumerable(false)
+                    .configurable(false),
             );
         }
 
@@ -1156,8 +1205,11 @@ impl<'context> ConstructorBuilder<'context> {
             let mut prototype = self.prototype.borrow_mut();
             prototype.insert_property(
                 "constructor",
-                self.constructor_object.clone(),
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+                PropertyDescriptor::builder()
+                    .value(self.constructor_object.clone())
+                    .writable(true)
+                    .enumerable(false)
+                    .configurable(true),
             );
 
             if let Some(proto) = self.inherit.take() {

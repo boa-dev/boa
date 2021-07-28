@@ -16,7 +16,7 @@ pub(super) fn init(context: &mut Context) -> GcObject {
         // .property("agent", agent, Attribute::default())
         .build();
 
-    context.register_global_property("$262", obj.clone(), Attribute::default());
+    context.register_global_property("$262", obj.clone(), Attribute::empty());
 
     obj
 }

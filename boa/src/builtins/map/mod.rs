@@ -15,7 +15,7 @@
 use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
-    property::{Attribute, DataDescriptor},
+    property::{Attribute, PropertyDescriptor},
     symbol::WellKnownSymbols,
     BoaProfiler, Context, Result, Value,
 };
@@ -217,12 +217,13 @@ impl Map {
 
     /// Helper function to set the size property.
     fn set_size(this: &Value, size: usize) {
-        let size = DataDescriptor::new(
-            size,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-        );
+        let size = PropertyDescriptor::builder()
+            .value(size)
+            .writable(false)
+            .enumerable(false)
+            .configurable(false);
 
-        this.set_property("size".to_string(), size);
+        this.set_property("size", size);
     }
 
     /// `Map.prototype.set( key, value )`

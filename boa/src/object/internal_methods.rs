@@ -7,7 +7,7 @@
 
 use crate::{
     object::{GcObject, Object, ObjectData},
-    property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
+    property::{DescriptorKind, PropertyDescriptor, PropertyKey},
     value::{Type, Value},
     BoaProfiler, Context, Result,
 };
@@ -193,10 +193,11 @@ impl GcObject {
         // 1. Assert: Type(O) is Object.
         // 2. Assert: IsPropertyKey(P) is true.
         // 3. Let newDesc be the PropertyDescriptor { [[Value]]: V, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
-        let new_desc = DataDescriptor::new(
-            value,
-            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        let new_desc = PropertyDescriptor::builder()
+            .value(value)
+            .writable(true)
+            .enumerable(true)
+            .configurable(true);
         // 4. Return ? O.[[DefineOwnProperty]](P, newDesc).
         self.__define_own_property__(key.into(), new_desc.into(), context)
     }
@@ -272,7 +273,7 @@ impl GcObject {
     #[inline]
     pub(crate) fn __delete__(&self, key: &PropertyKey) -> bool {
         match self.__get_own_property__(key) {
-            Some(desc) if desc.configurable() => {
+            Some(desc) if desc.expect_configurable() => {
                 self.remove(key);
                 true
             }
@@ -297,10 +298,12 @@ impl GcObject {
                     Ok(Value::undefined())
                 }
             }
-            Some(ref desc) => match desc {
-                PropertyDescriptor::Data(desc) => Ok(desc.value()),
-                PropertyDescriptor::Accessor(AccessorDescriptor { get: Some(get), .. }) => {
-                    get.call(&receiver, &[], context)
+            Some(ref desc) => match desc.kind() {
+                DescriptorKind::Data {
+                    value: Some(value), ..
+                } => Ok(value.clone()),
+                DescriptorKind::Accessor { get: Some(get), .. } if !get.is_undefined() => {
+                    context.call(get, &receiver, &[])
                 }
                 _ => Ok(Value::undefined()),
             },
@@ -323,43 +326,44 @@ impl GcObject {
         } else if let Some(ref mut parent) = self.__get_prototype_of__().as_object() {
             return parent.__set__(key, value, receiver, context);
         } else {
-            DataDescriptor::new(Value::undefined(), Attribute::all()).into()
+            PropertyDescriptor::builder()
+                .value(Value::undefined())
+                .writable(true)
+                .enumerable(true)
+                .configurable(true)
+                .build()
         };
 
-        match &own_desc {
-            PropertyDescriptor::Data(desc) => {
-                if !desc.writable() {
+        if own_desc.is_data_descriptor() {
+            if !own_desc.expect_writable() {
+                return Ok(false);
+            }
+
+            let receiver = match receiver.as_object() {
+                Some(obj) => obj,
+                _ => return Ok(false),
+            };
+
+            if let Some(ref existing_desc) = receiver.__get_own_property__(&key) {
+                if existing_desc.is_accessor_descriptor() {
                     return Ok(false);
                 }
-                if let Some(ref mut receiver) = receiver.as_object() {
-                    if let Some(ref existing_desc) = receiver.__get_own_property__(&key) {
-                        match existing_desc {
-                            PropertyDescriptor::Accessor(_) => Ok(false),
-                            PropertyDescriptor::Data(existing_data_desc) => {
-                                if !existing_data_desc.writable() {
-                                    return Ok(false);
-                                }
-                                receiver.__define_own_property__(
-                                    key,
-                                    DataDescriptor::new(value, existing_data_desc.attributes())
-                                        .into(),
-                                    context,
-                                )
-                            }
-                        }
-                    } else {
-                        receiver.__define_own_property__(
-                            key,
-                            DataDescriptor::new(value, Attribute::all()).into(),
-                            context,
-                        )
-                    }
-                } else {
-                    Ok(false)
+                if !existing_desc.expect_writable() {
+                    return Ok(false);
                 }
+                return receiver.__define_own_property__(
+                    key,
+                    PropertyDescriptor::builder().value(value).build(),
+                    context,
+                );
+            } else {
+                return receiver.create_data_property(key, value, context);
             }
-            PropertyDescriptor::Accessor(AccessorDescriptor { set: Some(set), .. }) => {
-                set.call(&receiver, &[value], context)?;
+        }
+
+        match own_desc.set() {
+            Some(set) if !set.is_undefined() => {
+                context.call(set, &receiver, &[value])?;
                 Ok(true)
             }
             _ => Ok(false),
@@ -391,102 +395,77 @@ impl GcObject {
 
         let extensible = self.__is_extensible__();
 
-        let current = if let Some(desc) = self.__get_own_property__(&key) {
-            desc
+        let mut current = if let Some(own) = self.__get_own_property__(&key) {
+            own
         } else {
             if !extensible {
                 return false;
             }
 
-            self.insert(key, desc);
+            self.insert(
+                key,
+                if desc.is_generic_descriptor() || desc.is_data_descriptor() {
+                    desc.into_data_defaulted()
+                } else {
+                    desc.into_accessor_defaulted()
+                },
+            );
 
             return true;
         };
 
+        // 3
+        if desc.is_empty() {
+            return true;
+        }
+
         // 4
-        if !current.configurable() {
-            if desc.configurable() {
+        if !current.expect_configurable() {
+            if matches!(desc.configurable(), Some(true)) {
                 return false;
             }
 
-            if desc.enumerable() != current.enumerable() {
+            if matches!(desc.enumerable(), Some(desc_enum) if desc_enum != current.expect_enumerable())
+            {
                 return false;
             }
         }
 
-        match (&current, &desc) {
-            (
-                PropertyDescriptor::Data(current),
-                PropertyDescriptor::Accessor(AccessorDescriptor { get, set, .. }),
-            ) => {
-                // 6. b
-                if !current.configurable() {
+        // 5
+        if desc.is_generic_descriptor() {
+            // no further validation required
+        } else if current.is_data_descriptor() != desc.is_data_descriptor() {
+            if !current.expect_configurable() {
+                return false;
+            }
+            if current.is_data_descriptor() {
+                current = current.into_accessor_defaulted();
+            } else {
+                current = current.into_data_defaulted();
+            }
+        } else if current.is_data_descriptor() && desc.is_data_descriptor() {
+            if !current.expect_configurable() && !current.expect_writable() {
+                if matches!(desc.writable(), Some(true)) {
                     return false;
                 }
-
-                let current =
-                    AccessorDescriptor::new(get.clone(), set.clone(), current.attributes());
-                self.insert(key, current);
-                return true;
-            }
-            (
-                PropertyDescriptor::Accessor(current),
-                PropertyDescriptor::Data(DataDescriptor { value, .. }),
-            ) => {
-                // 6. c
-                if !current.configurable() {
+                if matches!(desc.value(), Some(value) if !Value::same_value(value, current.expect_value()))
+                {
                     return false;
                 }
-
-                self.insert(key, DataDescriptor::new(value, current.attributes()));
-
                 return true;
             }
-            (PropertyDescriptor::Data(current), PropertyDescriptor::Data(desc)) => {
-                // 7.
-                if !current.configurable() && !current.writable() {
-                    if desc.writable() {
-                        return false;
-                    }
-
-                    if !Value::same_value(&desc.value(), &current.value()) {
-                        return false;
-                    }
-                }
+        } else if !current.expect_configurable() {
+            if matches!(desc.set(), Some(set) if !Value::same_value(set, current.expect_set())) {
+                return false;
             }
-            (PropertyDescriptor::Accessor(current), PropertyDescriptor::Accessor(desc)) => {
-                // 8.
-                if !current.configurable() {
-                    if let (Some(current_get), Some(desc_get)) = (current.getter(), desc.getter()) {
-                        if !GcObject::equals(current_get, desc_get) {
-                            return false;
-                        }
-                    }
-
-                    if let (Some(current_set), Some(desc_set)) = (current.setter(), desc.setter()) {
-                        if !GcObject::equals(current_set, desc_set) {
-                            return false;
-                        }
-                    }
-                }
+            if matches!(desc.get(), Some(get) if !Value::same_value(get, current.expect_get())) {
+                return false;
             }
+            return true;
         }
 
-        match (&current, &desc) {
-            (PropertyDescriptor::Data(current_data), PropertyDescriptor::Data(desc_data)) => {
-                if desc_data.has_value() {
-                    self.insert(key, desc);
-                } else {
-                    self.insert(
-                        key,
-                        DataDescriptor::new(current_data.value.clone(), desc_data.attributes()),
-                    );
-                }
-            }
-            _ => {
-                self.insert(key, desc);
-            }
-        }
+        current.fill_with(desc);
+        self.insert(key, current);
 
         true
     }
@@ -505,99 +484,95 @@ impl GcObject {
     ) -> Result<bool> {
         match key {
             PropertyKey::String(ref s) if s == "length" => {
-                match desc {
-                    PropertyDescriptor::Accessor(_) => {
-                        return Ok(self.ordinary_define_own_property("length".into(), desc))
-                    }
-                    PropertyDescriptor::Data(ref d) => {
-                        if d.value().is_undefined() {
-                            return Ok(self.ordinary_define_own_property("length".into(), desc));
-                        }
-                        let new_len = d.value().to_u32(context)?;
-                        let number_len = d.value().to_number(context)?;
-                        #[allow(clippy::float_cmp)]
-                        if new_len as f64 != number_len {
-                            return Err(context.construct_range_error("bad length for array"));
-                        }
-                        let mut new_len_desc =
-                            PropertyDescriptor::Data(DataDescriptor::new(new_len, d.attributes()));
-                        let old_len_desc = self.__get_own_property__(&"length".into()).unwrap();
-                        let old_len_desc = old_len_desc.as_data_descriptor().unwrap();
-                        let old_len = old_len_desc.value();
-                        if new_len >= old_len.to_u32(context)? {
-                            return Ok(
-                                self.ordinary_define_own_property("length".into(), new_len_desc)
-                            );
-                        }
-                        if !old_len_desc.writable() {
-                            return Ok(false);
-                        }
-                        let new_writable = if new_len_desc.attributes().writable() {
-                            true
-                        } else {
-                            let mut new_attributes = new_len_desc.attributes();
-                            new_attributes.set_writable(true);
-                            new_len_desc = PropertyDescriptor::Data(DataDescriptor::new(
-                                new_len,
-                                new_attributes,
-                            ));
-                            false
-                        };
-                        if !self.ordinary_define_own_property("length".into(), new_len_desc.clone())
-                        {
-                            return Ok(false);
-                        }
-                        let keys_to_delete = {
-                            let obj = self.borrow();
-                            let mut keys = obj
-                                .index_property_keys()
-                                .filter(|&&k| k >= new_len)
-                                .cloned()
-                                .collect::<Vec<_>>();
-                            keys.sort_unstable();
-                            keys
-                        };
-                        for key in keys_to_delete.into_iter().rev() {
-                            if !self.__delete__(&key.into()) {
-                                let mut new_len_desc_attribute = new_len_desc.attributes();
-                                if !new_writable {
-                                    new_len_desc_attribute.set_writable(false);
-                                }
-                                let new_len_desc = PropertyDescriptor::Data(DataDescriptor::new(
-                                    key + 1,
-                                    new_len_desc_attribute,
-                                ));
-                                self.ordinary_define_own_property("length".into(), new_len_desc);
-                                return Ok(false);
+                let new_len_val = match desc.value() {
+                    Some(value) => value,
+                    _ => return Ok(self.ordinary_define_own_property("length".into(), desc)),
+                };
+
+                let new_len = new_len_val.to_u32(context)?;
+                let number_len = new_len_val.to_number(context)?;
+
+                #[allow(clippy::float_cmp)]
+                if new_len as f64 != number_len {
+                    return Err(context.construct_range_error("bad length for array"));
+                }
+
+                let mut new_len_desc = PropertyDescriptor::builder()
+                    .value(new_len)
+                    .maybe_writable(desc.writable())
+                    .maybe_enumerable(desc.enumerable())
+                    .maybe_configurable(desc.configurable());
+                let old_len_desc = self.__get_own_property__(&"length".into()).unwrap();
+                let old_len = old_len_desc.expect_value();
+                if new_len >= old_len.to_u32(context)? {
+                    return Ok(
+                        self.ordinary_define_own_property("length".into(), new_len_desc.build())
+                    );
+                }
+
+                if !old_len_desc.expect_writable() {
+                    return Ok(false);
+                }
+
+                let new_writable = if new_len_desc.inner().writable().unwrap_or(true) {
+                    true
+                } else {
+                    new_len_desc = new_len_desc.writable(true);
+                    false
+                };
+
+                if !self.ordinary_define_own_property("length".into(), new_len_desc.clone().build())
+                {
+                    return Ok(false);
+                }
+
+                let max_value = self.borrow().index_property_keys().max().copied();
+
+                if let Some(mut index) = max_value {
+                    while index >= new_len {
+                        let contains_index = self.borrow().indexed_properties.contains_key(&index);
+                        if contains_index && !self.__delete__(&index.into()) {
+                            new_len_desc = new_len_desc.value(index + 1);
+                            if !new_writable {
+                                new_len_desc = new_len_desc.writable(false);
                             }
+                            self.ordinary_define_own_property(
+                                "length".into(),
+                                new_len_desc.build(),
+                            );
+                            return Ok(false);
                         }
-                        if !new_writable {
-                            let mut new_desc_attr = new_len_desc.attributes();
-                            new_desc_attr.set_writable(false);
-                            let new_desc = PropertyDescriptor::Data(DataDescriptor::new(
-                                new_len,
-                                new_desc_attr,
-                            ));
-                            self.ordinary_define_own_property("length".into(), new_desc);
+
+                        index = if let Some(sub) = index.checked_sub(1) {
+                            sub
+                        } else {
+                            break;
                         }
                     }
+                }
+
+                if !new_writable {
+                    self.ordinary_define_own_property(
+                        "length".into(),
+                        PropertyDescriptor::builder().writable(false).build(),
+                    );
                 }
                 Ok(true)
             }
             PropertyKey::Index(index) => {
                 let old_len_desc = self.__get_own_property__(&"length".into()).unwrap();
-                let old_len_data_desc = old_len_desc.as_data_descriptor().unwrap();
-                let old_len = old_len_data_desc.value().to_u32(context)?;
-                if index >= old_len && !old_len_data_desc.writable() {
+                let old_len = old_len_desc.expect_value().to_u32(context)?;
+                if index >= old_len && !old_len_desc.expect_writable() {
                     return Ok(false);
                 }
                 if self.ordinary_define_own_property(key, desc) {
                     if index >= old_len && index < u32::MAX {
-                        let desc = PropertyDescriptor::Data(DataDescriptor::new(
-                            index + 1,
-                            old_len_data_desc.attributes(),
-                        ));
-                        self.ordinary_define_own_property("length".into(), desc);
+                        let desc = PropertyDescriptor::builder()
+                            .value(index + 1)
+                            .maybe_writable(old_len_desc.writable())
+                            .maybe_enumerable(old_len_desc.enumerable())
+                            .maybe_configurable(old_len_desc.configurable());
+                        self.ordinary_define_own_property("length".into(), desc.into());
                     }
                     Ok(true)
                 } else {
@@ -645,10 +620,12 @@ impl GcObject {
                         .map_or_else(|| Value::from(format!("\\u{:x}", utf16_val)), Value::from)
                 })?;
 
-                let desc = PropertyDescriptor::from(DataDescriptor::new(
-                    result_str,
-                    Attribute::READONLY | Attribute::ENUMERABLE | Attribute::PERMANENT,
-                ));
+                let desc = PropertyDescriptor::builder()
+                    .value(result_str)
+                    .writable(false)
+                    .enumerable(true)
+                    .configurable(false)
+                    .build();
 
                 Some(desc)
             }
@@ -719,8 +696,8 @@ impl GcObject {
 
         for next_key in keys {
             if let Some(prop_desc) = props.__get_own_property__(&next_key) {
-                if prop_desc.enumerable() {
-                    let desc_obj = props.__get__(&next_key, props.clone().into(), context)?;
+                if prop_desc.expect_enumerable() {
+                    let desc_obj = props.get(next_key.clone(), context)?;
                     let desc = desc_obj.to_property_descriptor(context)?;
                     descriptors.push((next_key, desc));
                 }
@@ -728,7 +705,7 @@ impl GcObject {
         }
 
         for (p, d) in descriptors {
-            self.__define_own_property__(p, d, context)?;
+            self.define_property_or_throw(p, d, context)?;
         }
 
         Ok(())
@@ -811,17 +788,12 @@ impl GcObject {
     /// If a field was already in the object with the same name that a `Some` is returned
     /// with that field, otherwise None is returned.
     #[inline]
-    pub fn insert_property<K, V>(
-        &self,
-        key: K,
-        value: V,
-        attribute: Attribute,
-    ) -> Option<PropertyDescriptor>
+    pub fn insert_property<K, P>(&self, key: K, property: P) -> Option<PropertyDescriptor>
     where
         K: Into<PropertyKey>,
-        V: Into<Value>,
+        P: Into<PropertyDescriptor>,
     {
-        self.insert(key.into(), DataDescriptor::new(value, attribute))
+        self.insert(key.into(), property)
     }
 
     /// It determines if Object is a callable function with a `[[Call]]` internal method.
@@ -950,16 +922,11 @@ impl Object {
     /// If a field was already in the object with the same name that a `Some` is returned
     /// with that field, otherwise None is retuned.
     #[inline]
-    pub fn insert_property<K, V>(
-        &mut self,
-        key: K,
-        value: V,
-        attribute: Attribute,
-    ) -> Option<PropertyDescriptor>
+    pub fn insert_property<K, P>(&mut self, key: K, property: P) -> Option<PropertyDescriptor>
     where
         K: Into<PropertyKey>,
-        V: Into<Value>,
+        P: Into<PropertyDescriptor>,
     {
-        self.insert(key.into(), DataDescriptor::new(value, attribute))
+        self.insert(key, property)
     }
 }
