@@ -1096,6 +1096,12 @@
 <span id="1095">1095</span>
 <span id="1096">1096</span>
 <span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
@@ -2192,6 +2198,12 @@
             <span class="kw">return</span> <span class="ident">AbstractRelation::False</span>;
         }
         (<span class="ident">x</span> <span class="op">&lt;</span> <span class="ident">y</span>).<span class="ident">into</span>()
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">not</span>(<span class="ident">x</span>: <span class="ident">f64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span> {
+        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">f64_to_int32</span>(<span class="ident">x</span>);
+        <span class="op">!</span><span class="ident">x</span>
     }
 }
 </pre></div>

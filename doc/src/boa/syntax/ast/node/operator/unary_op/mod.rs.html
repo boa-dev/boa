@@ -132,15 +132,18 @@
 <span id="131">131</span>
 <span id="132">132</span>
 <span id="133">133</span>
+<span id="134">134</span>
 </pre><div class="example-wrap"><pre class="rust ">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">exec::Executable</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">syntax::ast</span>::{<span class="ident">node::Node</span>, <span class="ident">op</span>},
-    <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
+    <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
 
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::builtins::Number</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::value::Numeric</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
@@ -211,13 +214,12 @@
             }
             <span class="ident">op::UnaryOp::Not</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">target</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">not</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>(),
             <span class="ident">op::UnaryOp::Tilde</span> <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="kw">let</span> <span class="ident">num_v_a</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">target</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-                <span class="ident">Value::from</span>(<span class="kw">if</span> <span class="ident">num_v_a</span>.<span class="ident">is_nan</span>() {
-                    <span class="op">-</span><span class="number">1</span>
-                } <span class="kw">else</span> {
-                    <span class="comment">// TODO: this is not spec compliant.</span>
-                    <span class="op">!</span>(<span class="ident">num_v_a</span> <span class="kw">as</span> <span class="ident">i32</span>)
-                })
+                <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">target</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">old_v</span> <span class="op">=</span> <span class="ident">expr</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+                <span class="kw">match</span> <span class="ident">old_v</span> {
+                    <span class="ident">Numeric::Number</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::from</span>(<span class="ident">Number::not</span>(<span class="ident">x</span>)),
+                    <span class="ident">Numeric::BigInt</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::from</span>(<span class="ident">JsBigInt::not</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)),
+                }
             }
             <span class="ident">op::UnaryOp::Void</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">target</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
