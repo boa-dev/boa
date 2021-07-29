@@ -21,7 +21,7 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, JsResult, JsValue,
+    BoaProfiler, Context, JsBigInt, JsResult, JsValue,
 };
 use ordered_map::OrderedMap;
 
@@ -31,6 +31,7 @@ use map_iterator::MapIterator;
 use self::ordered_map::MapLock;
 
 use super::JsArgs;
+use num_traits::Zero;
 
 pub mod ordered_map;
 #[cfg(test)]
@@ -248,7 +249,31 @@ impl Map {
 
         let size = if let Some(object) = this.as_object() {
             if let Some(map) = object.borrow_mut().as_map_mut() {
-                map.insert(key.clone(), value.clone());
+                let key = match key {
+                    JsValue::Rational(r) => {
+                        if r.is_zero() {
+                            JsValue::Rational(0f64)
+                        } else {
+                            key.into()
+                        }
+                    }
+                    JsValue::Integer(i) => {
+                        if i.is_zero() {
+                            JsValue::Integer(0)
+                        } else {
+                            key.into()
+                        }
+                    }
+                    JsValue::BigInt(b) => {
+                        if b.is_zero() {
+                            JsValue::BigInt(JsBigInt::from(0))
+                        } else {
+                            key.into()
+                        }
+                    }
+                    _ => key.into(),
+                };
+                map.insert(key, value.into());
                 map.len()
             } else {
                 return Err(context.construct_type_error("'this' is not a Map"));
@@ -276,6 +301,15 @@ impl Map {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let M be the this value.
+        // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+        {
+            let obj = this.as_object().unwrap_or_default();
+            let obj = obj.borrow();
+            obj.as_map_ref().ok_or_else(|| {
+                context.construct_type_error("Map.prototype.clear called with invalid value")
+            })?;
+        }
         let key = args.get_or_undefined(0);
 
         let (deleted, size) = if let Some(object) = this.as_object() {
@@ -309,6 +343,36 @@ impl Map {
     ) -> JsResult<JsValue> {
         let key = args.get_or_undefined(0);
 
+        let temp_v;
+
+        let key = match key {
+            JsValue::Rational(r) => {
+                if r.is_zero() {
+                    temp_v = JsValue::Rational(0f64);
+                    &temp_v
+                } else {
+                    key
+                }
+            }
+            JsValue::Integer(i) => {
+                if i.is_zero() {
+                    temp_v = JsValue::Integer(0);
+                    &temp_v
+                } else {
+                    key
+                }
+            }
+            JsValue::BigInt(b) => {
+                if b.is_zero() {
+                    temp_v = JsValue::BigInt(JsBigInt::from(0));
+                    &temp_v
+                } else {
+                    key
+                }
+            }
+            _ => key,
+        };
+
         if let JsValue::Object(ref object) = this {
             let object = object.borrow();
             if let Some(map) = object.as_map_ref() {
@@ -333,7 +397,20 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/clear
-    pub(crate) fn clear(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn clear(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let M be the this value.
+        // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
+        {
+            let obj = this.as_object().unwrap_or_default();
+            let obj = obj.borrow();
+            obj.as_map_ref().ok_or_else(|| {
+                context.construct_type_error("Map.prototype.clear called with invalid value")
+            })?;
+        }
+        // 3. Let entries be the List that is M.[[MapData]].
+        // 4. For each Record { [[Key]], [[Value]] } p of entries, do
+        // a. Set p.[[Key]] to empty.
+        // b. Set p.[[Value]] to empty.
         this.set_data(ObjectData::map(OrderedMap::new()));
 
         Self::set_size(this, 0);
@@ -388,6 +465,12 @@ impl Map {
         }
 
         let callback_arg = &args[0];
+
+        if !callback_arg.is_function() {
+            let name = callback_arg.to_string(context)?;
+            return context.throw_type_error(format!("{} is not a function", name));
+        }
+
         let this_arg = args.get_or_undefined(1);
 
         let mut index = 0;
