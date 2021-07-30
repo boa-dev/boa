@@ -152,7 +152,7 @@ impl GcObject {
     /// [spec]: https://tc39.es/ecma262/#sec-definepropertyorthrow
     #[inline]
     pub fn define_property_or_throw<K, P>(
-        &mut self,
+        &self,
         key: K,
         desc: P,
         context: &mut Context,

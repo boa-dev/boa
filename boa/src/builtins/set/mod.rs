@@ -39,14 +39,12 @@ impl BuiltIn for Set {
     fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let get_species = FunctionBuilder::new(context, Self::get_species)
+        let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
             .constructable(false)
-            .callable(true)
             .build();
 
-        let size_getter = FunctionBuilder::new(context, Self::size_getter)
-            .callable(true)
+        let size_getter = FunctionBuilder::native(context, Self::size_getter)
             .constructable(false)
             .name("get size")
             .build();
@@ -55,10 +53,9 @@ impl BuiltIn for Set {
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
 
-        let values_function = FunctionBuilder::new(context, Self::values)
+        let values_function = FunctionBuilder::native(context, Self::values)
             .name("values")
             .length(0)
-            .callable(true)
             .constructable(false)
             .build();
 

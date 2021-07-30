@@ -97,10 +97,9 @@ impl BuiltIn for Symbol {
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
 
-        let get_description = FunctionBuilder::new(context, Self::get_description)
+        let get_description = FunctionBuilder::native(context, Self::get_description)
             .name("get description")
             .constructable(false)
-            .callable(true)
             .build();
 
         let symbol_object = ConstructorBuilder::with_standard_object(

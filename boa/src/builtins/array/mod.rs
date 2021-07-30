@@ -45,16 +45,14 @@ impl BuiltIn for Array {
 
         let symbol_iterator = WellKnownSymbols::iterator();
 
-        let get_species = FunctionBuilder::new(context, Self::get_species)
+        let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
             .constructable(false)
-            .callable(true)
             .build();
 
-        let values_function = FunctionBuilder::new(context, Self::values)
+        let values_function = FunctionBuilder::native(context, Self::values)
             .name("values")
             .length(0)
-            .callable(true)
             .constructable(false)
             .build();
 
@@ -166,7 +164,7 @@ impl Array {
                 // i. Let intLen be ! ToUint32(len).
                 let int_len = len.to_u32(context).unwrap();
                 // ii. If SameValueZero(intLen, len) is false, throw a RangeError exception.
-                if !Value::same_value_zero(&int_len.into(), &len) {
+                if !Value::same_value_zero(&int_len.into(), len) {
                     return Err(context.construct_range_error("invalid array length"));
                 }
                 int_len

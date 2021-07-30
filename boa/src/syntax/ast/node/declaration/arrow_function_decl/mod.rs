@@ -74,11 +74,10 @@ impl ArrowFunctionDecl {
 impl Executable for ArrowFunctionDecl {
     fn run(&self, context: &mut Context) -> Result<Value> {
         context.create_function(
+            "",
             self.params().to_vec(),
             self.body().to_vec(),
-            FunctionFlags::CALLABLE
-                | FunctionFlags::CONSTRUCTABLE
-                | FunctionFlags::LEXICAL_THIS_MODE,
+            FunctionFlags::CONSTRUCTABLE | FunctionFlags::LEXICAL_THIS_MODE,
         )
     }
 }

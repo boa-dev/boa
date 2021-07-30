@@ -289,13 +289,13 @@ impl<'a> Vm<'a> {
                 let value = self.pop();
                 let name = &self.code.names[index as usize];
 
-                self.context.initialize_binding(&name, value)?;
+                self.context.initialize_binding(name, value)?;
             }
             Opcode::GetName => {
                 let index = self.read::<u32>();
                 let name = &self.code.names[index as usize];
 
-                let value = self.context.get_binding_value(&name)?;
+                let value = self.context.get_binding_value(name)?;
                 self.push(value);
             }
             Opcode::SetName => {
@@ -303,16 +303,16 @@ impl<'a> Vm<'a> {
                 let value = self.pop();
                 let name = &self.code.names[index as usize];
 
-                if self.context.has_binding(&name) {
+                if self.context.has_binding(name) {
                     // Binding already exists
-                    self.context.set_mutable_binding(&name, value, true)?;
+                    self.context.set_mutable_binding(name, value, true)?;
                 } else {
                     self.context.create_mutable_binding(
                         name.to_string(),
                         true,
                         VariableScope::Function,
                     )?;
-                    self.context.initialize_binding(&name, value)?;
+                    self.context.initialize_binding(name, value)?;
                 }
             }
             Opcode::Jump => {

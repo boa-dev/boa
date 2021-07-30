@@ -46,16 +46,14 @@ impl BuiltIn for Map {
         let to_string_tag = WellKnownSymbols::to_string_tag();
         let iterator_symbol = WellKnownSymbols::iterator();
 
-        let get_species = FunctionBuilder::new(context, Self::get_species)
+        let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
             .constructable(false)
-            .callable(true)
             .build();
 
-        let entries_function = FunctionBuilder::new(context, Self::entries)
+        let entries_function = FunctionBuilder::native(context, Self::entries)
             .name("entries")
             .length(0)
-            .callable(true)
             .constructable(false)
             .build();
 

@@ -21,7 +21,7 @@ use crate::{
         },
         Parser,
     },
-    BoaProfiler, Executable, Result, Value,
+    BoaProfiler, Executable, JsString, Result, Value,
 };
 
 #[cfg(feature = "console")]
@@ -486,21 +486,24 @@ impl Context {
     }
 
     /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
-    pub(crate) fn create_function<P, B>(
+    pub(crate) fn create_function<N, P, B>(
         &mut self,
+        name: N,
         params: P,
         body: B,
         flags: FunctionFlags,
     ) -> Result<Value>
     where
+        N: Into<JsString>,
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
     {
+        let name = name.into();
         let function_prototype: Value =
             self.standard_objects().function_object().prototype().into();
 
         // Every new function has a prototype property pre-made
-        let proto = Value::new_object(self);
+        let prototype = self.construct_object();
 
         let params = params.into();
         let params_len = params.len();
@@ -511,30 +514,48 @@ impl Context {
             environment: self.get_current_environment().clone(),
         };
 
-        let new_func = Object::function(func, function_prototype);
-
-        let val = Value::from(new_func);
+        let function = GcObject::new(Object::function(func, function_prototype));
 
         // Set constructor field to the newly created Value (function object)
-        proto.set_field("constructor", val.clone(), false, self)?;
+        let constructor = DataDescriptor::new(
+            function.clone(),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
+        prototype.define_property_or_throw("constructor", constructor, self)?;
 
-        val.set_field(PROTOTYPE, proto, false, self)?;
-        val.set_field("length", Value::from(params_len), false, self)?;
+        let prototype = DataDescriptor::new(
+            prototype,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
+        );
+        function.define_property_or_throw(PROTOTYPE, prototype, self)?;
+        let length = DataDescriptor::new(
+            params_len,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
+        function.define_property_or_throw("length", length, self)?;
+        let name = DataDescriptor::new(
+            name,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
+        function.define_property_or_throw("name", name, self)?;
 
-        Ok(val)
+        Ok(function.into())
     }
 
-    /// Register a global function.
+    /// Register a global native function.
     ///
-    /// The function will be both `callable` and `constructable` (call with `new`).
+    /// This is more efficient that creating a closure function, since this does not allocate,
+    /// it is just a function pointer.
+    ///
+    /// The function will be both `constructable` (call with `new`).
     ///
     /// The function will be bound to the global object with `writable`, `non-enumerable`
     /// and `configurable` attributes. The same as when you create a function in JavaScript.
     ///
     /// # Note
     ///
-    /// If you want to make a function only `callable` or `constructable`, or wish to bind it differently
-    /// to the global object, you can create the function object with [`FunctionBuilder`](crate::object::FunctionBuilder).
+    /// If you want to make a function only `constructable`, or wish to bind it differently
+    /// to the global object, you can create the function object with [`FunctionBuilder`](crate::object::FunctionBuilder::native).
     /// And bind it to the global object with [`Context::register_global_property`](Context::register_global_property) method.
     #[inline]
     pub fn register_global_function(
@@ -543,10 +564,40 @@ impl Context {
         length: usize,
         body: NativeFunction,
     ) -> Result<()> {
-        let function = FunctionBuilder::new(self, body)
+        let function = FunctionBuilder::native(self, body)
             .name(name)
             .length(length)
-            .callable(true)
+            .constructable(true)
+            .build();
+
+        self.global_object().insert_property(
+            name,
+            function,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
+        Ok(())
+    }
+
+    /// Register a global closure function.
+    ///
+    /// The function will be both `constructable` (call with `new`).
+    ///
+    /// The function will be bound to the global object with `writable`, `non-enumerable`
+    /// and `configurable` attributes. The same as when you create a function in JavaScript.
+    ///
+    /// # Note
+    ///
+    /// If you want to make a function only `constructable`, or wish to bind it differently
+    /// to the global object, you can create the function object with [`FunctionBuilder`](crate::object::FunctionBuilder::closure).
+    /// And bind it to the global object with [`Context::register_global_property`](Context::register_global_property) method.
+    #[inline]
+    pub fn register_global_closure<F>(&mut self, name: &str, length: usize, body: F) -> Result<()>
+    where
+        F: Fn(&Value, &[Value], &mut Context) -> Result<Value> + 'static,
+    {
+        let function = FunctionBuilder::closure(self, body)
+            .name(name)
+            .length(length)
             .constructable(true)
             .build();
 
