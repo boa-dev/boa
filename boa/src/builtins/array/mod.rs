@@ -1577,7 +1577,7 @@ impl Array {
         for k in 0..actual_delete_count {
             // a. Let from be ! ToString(𝔽(actualStart + k)).
             // b. Let fromPresent be ? HasProperty(O, from).
-            let from_present = o.has_property(actual_start + k)?;
+            let from_present = o.has_property(actual_start + k, context)?;
             // c. If fromPresent is true, then
             if from_present {
                 // i. Let fromValue be ? Get(O, from).
@@ -1589,13 +1589,6 @@ impl Array {
         }
 
         // 14. Perform ? Set(A, "length", 𝔽(actualDeleteCount), true).
-        let acd = DataDescriptor::new(
-            Value::from(actual_delete_count),
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-        );
-
-        arr.set_property("length", acd);
-
         arr.set("length", actual_delete_count, true, context)?;
 
         // 15. Let itemCount be the number of elements in items.
