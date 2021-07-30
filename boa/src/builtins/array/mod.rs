@@ -1745,7 +1745,6 @@ impl Array {
 
         // 11. Let A be ? ArraySpeciesCreate(O, actualDeleteCount).
         let arr = Self::array_species_create(&o, actual_delete_count as u32, context)?;
-
         // 12. Let k be 0.
         // 13. Repeat, while k < actualDeleteCount,
         for k in 0..actual_delete_count {
