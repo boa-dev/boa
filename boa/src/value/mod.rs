@@ -429,32 +429,6 @@ impl Value {
         self.as_object().map(|x| x.remove(&key.into())).is_some()
     }
 
-    pub fn delete_property_or_throw<Key>(&self, key: Key, context: &mut Context) -> Result<Value>
-    where
-        Key: Into<PropertyKey>,
-    {
-        debug_assert!(self.is_object());
-        // debug_assert!(self.get_property(key).is_some());
-        if self.remove_property(key) {
-            Ok(Value::from(true))
-        } else {
-            context.throw_type_error("Unable to delete property")
-        }
-    }
-
-    pub fn delete_property_or_throw<Key>(&self, key: Key, context: &mut Context) -> Result<Value>
-    where
-        Key: Into<PropertyKey>,
-    {
-        debug_assert!(self.is_object());
-        // debug_assert!(self.get_property(key).is_some());
-        if self.remove_property(key) {
-            Ok(Value::from(true))
-        } else {
-            context.throw_type_error("Unable to delete property")
-        }
-    }
-
     /// Resolve the property in the object.
     ///
     /// A copy of the Property is returned.
