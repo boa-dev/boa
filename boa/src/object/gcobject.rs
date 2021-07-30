@@ -4,7 +4,9 @@
 
 use super::{NativeObject, Object, PROTOTYPE};
 use crate::{
-    builtins::function::{create_unmapped_arguments_object, Function, NativeFunction},
+    builtins::function::{
+        create_unmapped_arguments_object, ClosureFunction, Function, NativeFunction,
+    },
     context::StandardConstructor,
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
@@ -24,6 +26,7 @@ use std::{
     collections::HashMap,
     error::Error,
     fmt::{self, Debug, Display},
+    rc::Rc,
     result::Result as StdResult,
 };
 
@@ -44,6 +47,7 @@ pub struct GcObject(Gc<GcCell<Object>>);
 enum FunctionBody {
     BuiltInFunction(NativeFunction),
     BuiltInConstructor(NativeFunction),
+    Closure(Rc<ClosureFunction>),
     Ordinary(RcStatementList),
 }
 
@@ -149,9 +153,7 @@ impl GcObject {
                             FunctionBody::BuiltInFunction(function.0)
                         }
                     }
-                    Function::Closure { function, .. } => {
-                        return (function)(this_target, args, context);
-                    }
+                    Function::Closure { function, .. } => FunctionBody::Closure(function.clone()),
                     Function::Ordinary {
                         body,
                         params,
@@ -300,6 +302,7 @@ impl GcObject {
                 function(&Value::undefined(), args, context)
             }
             FunctionBody::BuiltInFunction(function) => function(this_target, args, context),
+            FunctionBody::Closure(function) => (function)(this_target, args, context),
             FunctionBody::Ordinary(body) => {
                 let result = body.run(context);
                 let this = context.get_this_binding();

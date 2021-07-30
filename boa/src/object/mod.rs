@@ -22,6 +22,7 @@ use std::{
     any::Any,
     fmt::{self, Debug, Display},
     ops::{Deref, DerefMut},
+    rc::Rc,
 };
 
 #[cfg(test)]
@@ -683,12 +684,12 @@ where
 pub struct FunctionBuilder<'context> {
     context: &'context mut Context,
     function: Option<Function>,
-    name: Option<String>,
+    name: JsString,
     length: usize,
 }
 
 impl<'context> FunctionBuilder<'context> {
-    /// Create a new `FunctionBuilder`
+    /// Create a new `FunctionBuilder` for creating a native function.
     #[inline]
     pub fn native(context: &'context mut Context, function: NativeFunction) -> Self {
         Self {
@@ -697,11 +698,12 @@ impl<'context> FunctionBuilder<'context> {
                 function: function.into(),
                 constructable: false,
             }),
-            name: None,
+            name: JsString::default(),
             length: 0,
         }
     }
 
+    /// Create a new `FunctionBuilder` for creating a closure function.
     #[inline]
     pub fn closure<F>(context: &'context mut Context, function: F) -> Self
     where
@@ -710,10 +712,10 @@ impl<'context> FunctionBuilder<'context> {
         Self {
             context,
             function: Some(Function::Closure {
-                function: Box::new(function),
+                function: Rc::new(function),
                 constructable: false,
             }),
-            name: None,
+            name: JsString::default(),
             length: 0,
         }
     }
@@ -726,7 +728,7 @@ impl<'context> FunctionBuilder<'context> {
     where
         N: AsRef<str>,
     {
-        self.name = Some(name.as_ref().into());
+        self.name = name.as_ref().into();
         self
     }
 
@@ -766,11 +768,7 @@ impl<'context> FunctionBuilder<'context> {
                 .into(),
         );
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        if let Some(name) = self.name.take() {
-            function.insert_property("name", name, attribute);
-        } else {
-            function.insert_property("name", "", attribute);
-        }
+        function.insert_property("name", self.name.clone(), attribute);
         function.insert_property("length", self.length, attribute);
 
         GcObject::new(function)
@@ -788,11 +786,7 @@ impl<'context> FunctionBuilder<'context> {
                 .into(),
         );
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        if let Some(name) = self.name.take() {
-            object.insert_property("name", name, attribute);
-        } else {
-            object.insert_property("name", "", attribute);
-        }
+        object.insert_property("name", self.name.clone(), attribute);
         object.insert_property("length", self.length, attribute);
     }
 }
@@ -879,7 +873,7 @@ pub struct ConstructorBuilder<'context> {
     constructor_function: NativeFunction,
     constructor_object: GcObject,
     prototype: GcObject,
-    name: Option<String>,
+    name: JsString,
     length: usize,
     callable: bool,
     constructable: bool,
@@ -910,7 +904,7 @@ impl<'context> ConstructorBuilder<'context> {
             constructor_object: GcObject::new(Object::default()),
             prototype: GcObject::new(Object::default()),
             length: 0,
-            name: None,
+            name: JsString::default(),
             callable: true,
             constructable: true,
             inherit: None,
@@ -929,7 +923,7 @@ impl<'context> ConstructorBuilder<'context> {
             constructor_object: object.constructor,
             prototype: object.prototype,
             length: 0,
-            name: None,
+            name: JsString::default(),
             callable: true,
             constructable: true,
             inherit: None,
@@ -1082,7 +1076,7 @@ impl<'context> ConstructorBuilder<'context> {
     where
         N: AsRef<str>,
     {
-        self.name = Some(name.as_ref().into());
+        self.name = name.as_ref().into();
         self
     }
 
@@ -1133,7 +1127,7 @@ impl<'context> ConstructorBuilder<'context> {
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
         let name = DataDescriptor::new(
-            self.name.take().unwrap_or_else(|| String::from("[object]")),
+            self.name.clone(),
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
 

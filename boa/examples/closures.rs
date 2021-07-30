@@ -1,19 +1,20 @@
-use boa::{Context, JsString};
+use boa::{Context, JsString, Value};
 
-fn main() {
+fn main() -> Result<(), Value> {
     let mut context = Context::new();
 
     let variable = JsString::new("I am a captured variable");
 
-    context
-        .register_global_closure("closure", 0, move |_, _, _| {
-            // This value is captured from main function.
-            Ok(variable.clone().into())
-        })
-        .unwrap();
+    // We register a global closure function that has the name 'closure' with length 0.
+    context.register_global_closure("closure", 0, move |_, _, _| {
+        // This value is captured from main function.
+        Ok(variable.clone().into())
+    })?;
 
     assert_eq!(
-        context.eval("closure()"),
-        Ok("I am an captured variable".into())
+        context.eval("closure()")?,
+        "I am a captured variable".into()
     );
+
+    Ok(())
 }

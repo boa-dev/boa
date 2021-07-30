@@ -542,17 +542,20 @@ impl Context {
         Ok(function.into())
     }
 
-    /// Register a global function.
+    /// Register a global native function.
     ///
-    /// The function will be both `callable` and `constructable` (call with `new`).
+    /// This is more efficient that creating a closure function, since this does not allocate,
+    /// it is just a function pointer.
+    ///
+    /// The function will be both `constructable` (call with `new`).
     ///
     /// The function will be bound to the global object with `writable`, `non-enumerable`
     /// and `configurable` attributes. The same as when you create a function in JavaScript.
     ///
     /// # Note
     ///
-    /// If you want to make a function only `callable` or `constructable`, or wish to bind it differently
-    /// to the global object, you can create the function object with [`FunctionBuilder`](crate::object::FunctionBuilder).
+    /// If you want to make a function only `constructable`, or wish to bind it differently
+    /// to the global object, you can create the function object with [`FunctionBuilder`](crate::object::FunctionBuilder::native).
     /// And bind it to the global object with [`Context::register_global_property`](Context::register_global_property) method.
     #[inline]
     pub fn register_global_function(
@@ -575,6 +578,18 @@ impl Context {
         Ok(())
     }
 
+    /// Register a global closure function.
+    ///
+    /// The function will be both `constructable` (call with `new`).
+    ///
+    /// The function will be bound to the global object with `writable`, `non-enumerable`
+    /// and `configurable` attributes. The same as when you create a function in JavaScript.
+    ///
+    /// # Note
+    ///
+    /// If you want to make a function only `constructable`, or wish to bind it differently
+    /// to the global object, you can create the function object with [`FunctionBuilder`](crate::object::FunctionBuilder::closure).
+    /// And bind it to the global object with [`Context::register_global_property`](Context::register_global_property) method.
     #[inline]
     pub fn register_global_closure<F>(&mut self, name: &str, length: usize, body: F) -> Result<()>
     where

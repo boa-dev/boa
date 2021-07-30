@@ -23,12 +23,16 @@ use crate::{
 };
 use bitflags::bitflags;
 use std::fmt::{self, Debug};
+use std::rc::Rc;
 
 #[cfg(test)]
 mod tests;
 
-/// _fn(this, arguments, context) -> ResultValue_ - The signature of a built-in function
+/// _fn(this, arguments, context) -> ResultValue_ - The signature of a native built-in function
 pub type NativeFunction = fn(&Value, &[Value], &mut Context) -> Result<Value>;
+
+/// _fn(this, arguments, context) -> ResultValue_ - The signature of a closure built-in function
+pub type ClosureFunction = dyn Fn(&Value, &[Value], &mut Context) -> Result<Value>;
 
 #[derive(Clone, Copy, Finalize)]
 pub struct BuiltInFunction(pub(crate) NativeFunction);
@@ -85,8 +89,7 @@ pub enum Function {
         constructable: bool,
     },
     Closure {
-        #[allow(clippy::type_complexity)]
-        function: Box<dyn Fn(&Value, &[Value], &mut Context) -> Result<Value>>,
+        function: Rc<ClosureFunction>,
         constructable: bool,
     },
     Ordinary {
