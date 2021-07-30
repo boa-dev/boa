@@ -1999,6 +1999,66 @@
 <span id="1999">1999</span>
 <span id="2000">2000</span>
 <span id="2001">2001</span>
+<span id="2002">2002</span>
+<span id="2003">2003</span>
+<span id="2004">2004</span>
+<span id="2005">2005</span>
+<span id="2006">2006</span>
+<span id="2007">2007</span>
+<span id="2008">2008</span>
+<span id="2009">2009</span>
+<span id="2010">2010</span>
+<span id="2011">2011</span>
+<span id="2012">2012</span>
+<span id="2013">2013</span>
+<span id="2014">2014</span>
+<span id="2015">2015</span>
+<span id="2016">2016</span>
+<span id="2017">2017</span>
+<span id="2018">2018</span>
+<span id="2019">2019</span>
+<span id="2020">2020</span>
+<span id="2021">2021</span>
+<span id="2022">2022</span>
+<span id="2023">2023</span>
+<span id="2024">2024</span>
+<span id="2025">2025</span>
+<span id="2026">2026</span>
+<span id="2027">2027</span>
+<span id="2028">2028</span>
+<span id="2029">2029</span>
+<span id="2030">2030</span>
+<span id="2031">2031</span>
+<span id="2032">2032</span>
+<span id="2033">2033</span>
+<span id="2034">2034</span>
+<span id="2035">2035</span>
+<span id="2036">2036</span>
+<span id="2037">2037</span>
+<span id="2038">2038</span>
+<span id="2039">2039</span>
+<span id="2040">2040</span>
+<span id="2041">2041</span>
+<span id="2042">2042</span>
+<span id="2043">2043</span>
+<span id="2044">2044</span>
+<span id="2045">2045</span>
+<span id="2046">2046</span>
+<span id="2047">2047</span>
+<span id="2048">2048</span>
+<span id="2049">2049</span>
+<span id="2050">2050</span>
+<span id="2051">2051</span>
+<span id="2052">2052</span>
+<span id="2053">2053</span>
+<span id="2054">2054</span>
+<span id="2055">2055</span>
+<span id="2056">2056</span>
+<span id="2057">2057</span>
+<span id="2058">2058</span>
+<span id="2059">2059</span>
+<span id="2060">2060</span>
+<span id="2061">2061</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -2286,6 +2346,30 @@
         <span class="prelude-val">Ok</span>(<span class="ident">array_obj_ptr</span>)
     }
 
+    <span class="doccomment">/// Utility function for concatenating array objects.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns a Boolean valued property that if `true` indicates that</span>
+    <span class="doccomment">/// an object should be flattened to its array elements</span>
+    <span class="doccomment">/// by `Array.prototype.concat`.</span>
+    <span class="kw">fn</span> <span class="ident">is_concat_spreadable</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. If Type(O) is not Object, return false.</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">this</span>.<span class="ident">is_object</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
+        }
+        <span class="comment">// 2. Let spreadable be ? Get(O, @@isConcatSpreadable).</span>
+        <span class="kw">let</span> <span class="ident">spreadable</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">WellKnownSymbols::is_concat_spreadable</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 3. If spreadable is not undefined, return ! ToBoolean(spreadable).</span>
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">spreadable</span>.<span class="ident">is_undefined</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">spreadable</span>.<span class="ident">to_boolean</span>());
+        }
+        <span class="comment">// 4. Return ? IsArray(O).</span>
+        <span class="kw">match</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
+            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">is_array</span>()),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>),
+        }
+    }
+
     <span class="doccomment">/// `get Array [ @@species ]`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The `Array [ @@species ]` accessor property returns the Array constructor.</span>
@@ -2461,30 +2545,66 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.concat</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/concat</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">concat</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="comment">// If concat is called with no arguments, it returns the original array</span>
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>());
-        }
-
-        <span class="comment">// Make a new array (using this object as the prototype basis for the new</span>
-        <span class="comment">// one)</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_values</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-
-        <span class="kw">let</span> <span class="ident">this_length</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">this_length</span> {
-            <span class="ident">new_values</span>.<span class="ident">push</span>(<span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">n</span>, <span class="ident">context</span>)<span class="question-mark">?</span>);
-        }
-
-        <span class="kw">for</span> <span class="ident">concat_array</span> <span class="kw">in</span> <span class="ident">args</span> {
-            <span class="kw">let</span> <span class="ident">concat_length</span> <span class="op">=</span> <span class="ident">concat_array</span>
-                .<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
-                .<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-            <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">concat_length</span> {
-                <span class="ident">new_values</span>.<span class="ident">push</span>(<span class="ident">concat_array</span>.<span class="ident">get_field</span>(<span class="ident">n</span>, <span class="ident">context</span>)<span class="question-mark">?</span>);
+        <span class="comment">// 1. Let O be ? ToObject(this value).</span>
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 2. Let A be ? ArraySpeciesCreate(O, 0).</span>
+        <span class="kw">let</span> <span class="ident">arr</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::array_species_create</span>(<span class="kw-2">&amp;</span><span class="ident">obj</span>, <span class="number">0</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 3. Let n be 0.</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="comment">// 4. Prepend O to items.</span>
+        <span class="comment">// 5. For each element E of items, do</span>
+        <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> [<span class="ident">Value::from</span>(<span class="ident">obj</span>)].<span class="ident">iter</span>().<span class="ident">chain</span>(<span class="ident">args</span>.<span class="ident">iter</span>()) {
+            <span class="comment">// a. Let spreadable be ? IsConcatSpreadable(E).</span>
+            <span class="kw">let</span> <span class="ident">spreadable</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::is_concat_spreadable</span>(<span class="kw-2">&amp;</span><span class="ident">item</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="comment">// b. If spreadable is true, then</span>
+            <span class="kw">if</span> <span class="ident">spreadable</span> {
+                <span class="comment">// item is guaranteed to be an object since is_concat_spreadable checks it,</span>
+                <span class="comment">// so we can call `.unwrap()`</span>
+                <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">as_object</span>().<span class="ident">unwrap</span>();
+                <span class="comment">// i. Let k be 0.</span>
+                <span class="comment">// ii. Let len be ? LengthOfArrayLike(E).</span>
+                <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+                <span class="comment">// iii. If n + len &gt; 2^53 - 1, throw a TypeError exception.</span>
+                <span class="kw">if</span> <span class="ident">n</span> <span class="op">+</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">usize</span> {
+                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+                        <span class="string">&quot;length + number of arguments exceeds the max safe integer limit&quot;</span>,
+                    );
+                }
+                <span class="comment">// iv. Repeat, while k &lt; len,</span>
+                <span class="kw">for</span> <span class="ident">k</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">len</span> {
+                    <span class="comment">// 1. Let P be ! ToString(𝔽(k)).</span>
+                    <span class="comment">// 2. Let exists be ? HasProperty(E, P).</span>
+                    <span class="kw">let</span> <span class="ident">exists</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">has_property</span>(<span class="ident">k</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="comment">// 3. If exists is true, then</span>
+                    <span class="kw">if</span> <span class="ident">exists</span> {
+                        <span class="comment">// a. Let subElement be ? Get(E, P).</span>
+                        <span class="kw">let</span> <span class="ident">sub_element</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">get</span>(<span class="ident">k</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                        <span class="comment">// b. Perform ? CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), subElement).</span>
+                        <span class="ident">arr</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">n</span>, <span class="ident">sub_element</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                    }
+                    <span class="comment">// 4. Set n to n + 1.</span>
+                    <span class="ident">n</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                    <span class="comment">// 5. Set k to k + 1.</span>
+                }
+            }
+            <span class="comment">// c. Else,</span>
+            <span class="kw">else</span> {
+                <span class="comment">// i. NOTE: E is added as a single item rather than spread.</span>
+                <span class="comment">// ii. If n ≥ 253 - 1, throw a TypeError exception.</span>
+                <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">usize</span> {
+                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;length exceeds the max safe integer limit&quot;</span>);
+                }
+                <span class="comment">// iii. Perform ? CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), E).</span>
+                <span class="ident">arr</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">n</span>, <span class="ident">item</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                <span class="comment">// iv. Set n to n + 1.</span>
+                <span class="ident">n</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>
             }
         }
+        <span class="comment">// 6. Perform ? Set(A, &quot;length&quot;, 𝔽(n), true).</span>
+        <span class="ident">arr</span>.<span class="ident">set</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">n</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="self">Self</span><span class="ident">::construct_array</span>(<span class="ident">this</span>, <span class="kw-2">&amp;</span><span class="ident">new_values</span>, <span class="ident">context</span>)
+        <span class="comment">// 7. Return A.</span>
+        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">arr</span>))
     }
 
     <span class="doccomment">/// `Array.prototype.push( ...items )`</span>
