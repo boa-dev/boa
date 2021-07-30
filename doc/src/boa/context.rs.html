@@ -1,5 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa/src/context.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>context.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" class="help-button">?</button>
-                <a id="settings-menu" href="../../settings.html"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa/src/context.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>context.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../boa/index.html'><div class='logo-container'><img src='https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -737,7 +736,58 @@
 <span id="736">736</span>
 <span id="737">737</span>
 <span id="738">738</span>
-</pre><div class="example-wrap"><pre class="rust ">
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+</pre><pre class="rust">
 <span class="doccomment">//! Javascript context.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -761,7 +811,7 @@
         },
         <span class="ident">Parser</span>,
     },
-    <span class="ident">BoaProfiler</span>, <span class="ident">Executable</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
+    <span class="ident">BoaProfiler</span>, <span class="ident">Executable</span>, <span class="ident">JsString</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
@@ -1226,21 +1276,24 @@
     }
 
     <span class="doccomment">/// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_function</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">B</span><span class="op">&gt;</span>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_function</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">P</span>, <span class="ident">B</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">name</span>: <span class="ident">N</span>,
         <span class="ident">params</span>: <span class="ident">P</span>,
         <span class="ident">body</span>: <span class="ident">B</span>,
         <span class="ident">flags</span>: <span class="ident">FunctionFlags</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>
     <span class="kw">where</span>
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
         <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">B</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">StatementList</span><span class="op">&gt;</span>,
     {
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">function_prototype</span>: <span class="ident">Value</span> <span class="op">=</span>
             <span class="self">self</span>.<span class="ident">standard_objects</span>().<span class="ident">function_object</span>().<span class="ident">prototype</span>().<span class="ident">into</span>();
 
         <span class="comment">// Every new function has a prototype property pre-made</span>
-        <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">Value::new_object</span>(<span class="self">self</span>);
+        <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">construct_object</span>();
 
         <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">params</span>.<span class="ident">into</span>();
         <span class="kw">let</span> <span class="ident">params_len</span> <span class="op">=</span> <span class="ident">params</span>.<span class="ident">len</span>();
@@ -1251,30 +1304,48 @@
             <span class="ident">environment</span>: <span class="self">self</span>.<span class="ident">get_current_environment</span>().<span class="ident">clone</span>(),
         };
 
-        <span class="kw">let</span> <span class="ident">new_func</span> <span class="op">=</span> <span class="ident">Object::function</span>(<span class="ident">func</span>, <span class="ident">function_prototype</span>);
-
-        <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">Value::from</span>(<span class="ident">new_func</span>);
+        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">GcObject::new</span>(<span class="ident">Object::function</span>(<span class="ident">func</span>, <span class="ident">function_prototype</span>));
 
         <span class="comment">// Set constructor field to the newly created Value (function object)</span>
-        <span class="ident">proto</span>.<span class="ident">set_field</span>(<span class="string">&quot;constructor&quot;</span>, <span class="ident">val</span>.<span class="ident">clone</span>(), <span class="bool-val">false</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">constructor</span> <span class="op">=</span> <span class="ident">DataDescriptor::new</span>(
+            <span class="ident">function</span>.<span class="ident">clone</span>(),
+            <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+        );
+        <span class="ident">prototype</span>.<span class="ident">define_property_or_throw</span>(<span class="string">&quot;constructor&quot;</span>, <span class="ident">constructor</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
 
-        <span class="ident">val</span>.<span class="ident">set_field</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">proto</span>, <span class="bool-val">false</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
-        <span class="ident">val</span>.<span class="ident">set_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">Value::from</span>(<span class="ident">params_len</span>), <span class="bool-val">false</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">DataDescriptor::new</span>(
+            <span class="ident">prototype</span>,
+            <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::PERMANENT</span>,
+        );
+        <span class="ident">function</span>.<span class="ident">define_property_or_throw</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">prototype</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">DataDescriptor::new</span>(
+            <span class="ident">params_len</span>,
+            <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+        );
+        <span class="ident">function</span>.<span class="ident">define_property_or_throw</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">DataDescriptor::new</span>(
+            <span class="ident">name</span>,
+            <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+        );
+        <span class="ident">function</span>.<span class="ident">define_property_or_throw</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">name</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">val</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">function</span>.<span class="ident">into</span>())
     }
 
-    <span class="doccomment">/// Register a global function.</span>
+    <span class="doccomment">/// Register a global native function.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The function will be both `callable` and `constructable` (call with `new`).</span>
+    <span class="doccomment">/// This is more efficient that creating a closure function, since this does not allocate,</span>
+    <span class="doccomment">/// it is just a function pointer.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The function will be both `constructable` (call with `new`).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The function will be bound to the global object with `writable`, `non-enumerable`</span>
     <span class="doccomment">/// and `configurable` attributes. The same as when you create a function in JavaScript.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Note</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// If you want to make a function only `callable` or `constructable`, or wish to bind it differently</span>
-    <span class="doccomment">/// to the global object, you can create the function object with [`FunctionBuilder`](crate::object::FunctionBuilder).</span>
+    <span class="doccomment">/// If you want to make a function only `constructable`, or wish to bind it differently</span>
+    <span class="doccomment">/// to the global object, you can create the function object with [`FunctionBuilder`](crate::object::FunctionBuilder::native).</span>
     <span class="doccomment">/// And bind it to the global object with [`Context::register_global_property`](Context::register_global_property) method.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_global_function</span>(
@@ -1283,10 +1354,40 @@
         <span class="ident">length</span>: <span class="ident">usize</span>,
         <span class="ident">body</span>: <span class="ident">NativeFunction</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">FunctionBuilder::new</span>(<span class="self">self</span>, <span class="ident">body</span>)
+        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="self">self</span>, <span class="ident">body</span>)
             .<span class="ident">name</span>(<span class="ident">name</span>)
             .<span class="ident">length</span>(<span class="ident">length</span>)
-            .<span class="ident">callable</span>(<span class="bool-val">true</span>)
+            .<span class="ident">constructable</span>(<span class="bool-val">true</span>)
+            .<span class="ident">build</span>();
+
+        <span class="self">self</span>.<span class="ident">global_object</span>().<span class="ident">insert_property</span>(
+            <span class="ident">name</span>,
+            <span class="ident">function</span>,
+            <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+        );
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Register a global closure function.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The function will be both `constructable` (call with `new`).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The function will be bound to the global object with `writable`, `non-enumerable`</span>
+    <span class="doccomment">/// and `configurable` attributes. The same as when you create a function in JavaScript.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Note</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If you want to make a function only `constructable`, or wish to bind it differently</span>
+    <span class="doccomment">/// to the global object, you can create the function object with [`FunctionBuilder`](crate::object::FunctionBuilder::closure).</span>
+    <span class="doccomment">/// And bind it to the global object with [`Context::register_global_property`](Context::register_global_property) method.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_global_closure</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">length</span>: <span class="ident">usize</span>, <span class="ident">body</span>: <span class="ident">F</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    {
+        <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">FunctionBuilder::closure</span>(<span class="self">self</span>, <span class="ident">body</span>)
+            .<span class="ident">name</span>(<span class="ident">name</span>)
+            .<span class="ident">length</span>(<span class="ident">length</span>)
             .<span class="ident">constructable</span>(<span class="bool-val">true</span>)
             .<span class="ident">build</span>();
 
@@ -1477,5 +1578,4 @@
     }
 }
 </pre></div>
-</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div>
-    <script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
+</section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa" data-search-index-js="../../search-index.js" data-search-js="../../search.js"></div><script src="../../main.js"></script><script src="../../source-script.js"></script><script src="../../source-files.js"></script></body></html>
