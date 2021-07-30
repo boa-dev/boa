@@ -1566,16 +1566,8 @@ impl Array {
         if len + insert_count - actual_delete_count > Number::MAX_SAFE_INTEGER as usize {
             return context.throw_type_error("Target splice exceeded max safe integer value");
         }
-
-        //temp until arrayspecies merges
-        if actual_delete_count >= u32::MAX as usize {
-            return context.throw_type_error("Target splice exceeded max safe integer value");
-        }
-        // -------------------------------
-
         // 11. Let A be ? ArraySpeciesCreate(O, actualDeleteCount).
         let arr = Self::array_species_create(&o, actual_delete_count as u32, context)?;
-
         // 12. Let k be 0.
         // 13. Repeat, while k < actualDeleteCount,
         for k in 0..actual_delete_count {
