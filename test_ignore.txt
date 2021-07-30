@@ -10,7 +10,6 @@ feature:json-modules
 //feature:class
 
 // These seem to run forever:
-arg-length-exceeding-integer-limit
 
 // These generate a stack overflow
 tco-call
