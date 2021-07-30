@@ -164,7 +164,7 @@ impl Array {
                 // i. Let intLen be ! ToUint32(len).
                 let int_len = len.to_u32(context).unwrap();
                 // ii. If SameValueZero(intLen, len) is false, throw a RangeError exception.
-                if !Value::same_value_zero(&int_len.into(), &len) {
+                if !Value::same_value_zero(&int_len.into(), len) {
                     return Err(context.construct_range_error("invalid array length"));
                 }
                 int_len
