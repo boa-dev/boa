@@ -305,12 +305,12 @@ impl Object {
         if !matches!(proto.get_type(), Type::Object | Type::Null) {
             return ctx.throw_type_error(format!(
                 "expected an object or null, got {}",
-                proto.get_type().as_str()
+                proto.type_of()
             ));
         }
 
         // 3. If Type(O) is not Object, return O.
-        if obj.get_type() != Type::Object {
+        if !obj.is_object() {
             return Ok(obj);
         }
 

@@ -140,7 +140,7 @@ impl Executable for BinOp {
                         if !y.is_object() {
                             return context.throw_type_error(format!(
                                 "right-hand side of 'in' should be an object, got {}",
-                                y.get_type().as_str()
+                                y.type_of()
                             ));
                         }
                         let key = x.to_property_key(context)?;
@@ -166,7 +166,7 @@ impl Executable for BinOp {
                         } else {
                             return context.throw_type_error(format!(
                                 "right-hand side of 'instanceof' should be an object, got {}",
-                                y.get_type().as_str()
+                                y.type_of()
                             ));
                         }
                     }

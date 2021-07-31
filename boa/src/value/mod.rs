@@ -973,6 +973,33 @@ impl Value {
         }
     }
 
+    /// `typeof` operator. Returns a string representing the type of the
+    /// given ECMA Value.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-typeof-operator
+    pub fn type_of(&self) -> JsString {
+        match *self {
+            Self::Rational(_) | Self::Integer(_) => "number",
+            Self::String(_) => "string",
+            Self::Boolean(_) => "boolean",
+            Self::Symbol(_) => "symbol",
+            Self::Null => "object",
+            Self::Undefined => "undefined",
+            Self::BigInt(_) => "bigint",
+            Self::Object(ref object) => {
+                if object.is_function() {
+                    "function"
+                } else {
+                    "object"
+                }
+            }
+        }
+        .into()
+    }
+
     /// Check if it is an array.
     ///
     /// More information:
