@@ -1077,7 +1077,7 @@ fn reduce() {
     );
     assert_eq!(
         result,
-        "\"Reduce was called on an empty array and with no initial value\""
+        "\"Array.prototype.reduce: called on an empty array and with no initial value\""
     );
 
     // Array with no defined elements
@@ -1096,7 +1096,7 @@ fn reduce() {
     );
     assert_eq!(
         result,
-        "\"Reduce was called on an empty array and with no initial value\""
+        "\"Array.prototype.reduce: called on an empty array and with no initial value\""
     );
 
     // No callback
@@ -1110,7 +1110,10 @@ fn reduce() {
         }
     "#,
     );
-    assert_eq!(result, "\"Reduce was called without a callback\"");
+    assert_eq!(
+        result,
+        "\"Array.prototype.reduce: callback function is not callable\""
+    );
 }
 
 #[test]
@@ -1199,7 +1202,7 @@ fn reduce_right() {
     );
     assert_eq!(
         result,
-        "\"reduceRight was called on an empty array and with no initial value\""
+        "\"Array.prototype.reduceRight: called on an empty array and with no initial value\""
     );
 
     // Array with no defined elements
@@ -1218,7 +1221,7 @@ fn reduce_right() {
     );
     assert_eq!(
         result,
-        "\"reduceRight was called on an empty array and with no initial value\""
+        "\"Array.prototype.reduceRight: called on an empty array and with no initial value\""
     );
 
     // No callback
@@ -1232,7 +1235,10 @@ fn reduce_right() {
         }
     "#,
     );
-    assert_eq!(result, "\"reduceRight was called without a callback\"");
+    assert_eq!(
+        result,
+        "\"Array.prototype.reduceRight: callback function is not callable\""
+    );
 }
 
 #[test]
