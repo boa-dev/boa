@@ -1216,14 +1216,13 @@ impl Array {
 
         // 3. If IsCallable(predicate) is false, throw a TypeError exception.
         let predicate = match args.get(0).and_then(Value::as_object) {
-            Some(callback) if callback.is_callable() => callback,
+            Some(predicate) if predicate.is_callable() => predicate,
             _ => {
-                return context
-                    .throw_type_error("Array.prototype.find: predicate function is not callable")
+                return context.throw_type_error("Array.prototype.find: predicate is not callable")
             }
         };
 
-        let this_arg = args.get(0).cloned().unwrap_or_default();
+        let this_arg = args.get(1).cloned().unwrap_or_default();
 
         // 4. Let k be 0.
         let mut k = 0;
@@ -1276,7 +1275,7 @@ impl Array {
             Some(predicate) if predicate.is_callable() => predicate,
             _ => {
                 return context
-                    .throw_type_error("Array.prototype.reduce: callback function is not callable")
+                    .throw_type_error("Array.prototype.reduce: predicate is not callable")
             }
         };
 
@@ -1665,13 +1664,13 @@ impl Array {
         let final_ = Self::get_relative_end(context, args.get(1), len)?;
 
         // 11. Let count be max(final - k, 0).
-        let count = max(final_ - k, 0);
+        let count = final_.saturating_sub(k);
 
         // 12. Let A be ? ArraySpeciesCreate(O, count).
         let a = Self::array_species_create(&o, count, context)?;
 
         // 13. Let n be 0.
-        let mut n = 0;
+        let mut n: u64 = 0;
         // 14. Repeat, while k < final,
         while k < final_ {
             // a. Let Pk be ! ToString(𝔽(k)).
