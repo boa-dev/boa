@@ -15,7 +15,7 @@ fn arguments_object() {
     eprintln!("{}", forward(&mut context, init));
 
     let return_val = forward_val(&mut context, "val").expect("value expected");
-    assert_eq!(return_val.is_integer(), true);
+    assert!(return_val.is_integer());
     assert_eq!(
         return_val
             .to_i32(&mut context)
@@ -35,7 +35,7 @@ fn self_mutating_function_when_calling() {
         "#;
     eprintln!("{}", forward(&mut context, func));
     let y = forward_val(&mut context, "x.y").expect("value expected");
-    assert_eq!(y.is_integer(), true);
+    assert!(y.is_integer());
     assert_eq!(
         y.to_i32(&mut context)
             .expect("Could not convert value to i32"),
@@ -54,7 +54,7 @@ fn self_mutating_function_when_constructing() {
         "#;
     eprintln!("{}", forward(&mut context, func));
     let y = forward_val(&mut context, "x.y").expect("value expected");
-    assert_eq!(y.is_integer(), true);
+    assert!(y.is_integer());
     assert_eq!(
         y.to_i32(&mut context)
             .expect("Could not convert value to i32"),

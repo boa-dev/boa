@@ -493,7 +493,7 @@ impl Array {
         // 5. For each element E of items, do
         for item in [Value::from(obj)].iter().chain(args.iter()) {
             // a. Let spreadable be ? IsConcatSpreadable(E).
-            let spreadable = Self::is_concat_spreadable(&item, context)?;
+            let spreadable = Self::is_concat_spreadable(item, context)?;
             // b. If spreadable is true, then
             if spreadable {
                 // item is guaranteed to be an object since is_concat_spreadable checks it,

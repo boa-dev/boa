@@ -13,7 +13,6 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
     html_favicon_url = "https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg"
 )]
 #![deny(
-    unused_qualifications,
     clippy::all,
     unused_qualifications,
     unused_import_braces,
@@ -43,8 +42,6 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 )]
 
 pub mod bigint;
-// builtins module has a lot of built-in functions that need unnecessary_wraps
-#[allow(clippy::unnecessary_wraps)]
 pub mod builtins;
 pub mod class;
 pub mod context;
@@ -57,8 +54,6 @@ pub mod property;
 pub mod realm;
 pub mod string;
 pub mod symbol;
-// syntax module has a lot of acronyms
-#[allow(clippy::upper_case_acronyms)]
 pub mod syntax;
 pub mod value;
 
