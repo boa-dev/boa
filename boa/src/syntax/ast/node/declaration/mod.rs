@@ -464,7 +464,7 @@ impl DeclarationPatternObject {
                     let mut rest_obj = context.construct_object();
 
                     // 3. Perform ? CopyDataProperties(restObj, value, excludedNames).
-                    rest_obj.copy_data_properties(&value, excluded_keys.clone(), context)?;
+                    rest_obj.copy_data_properties(value, excluded_keys.clone(), context)?;
 
                     // 4. If environment is undefined, return PutValue(lhs, restObj).
                     // 5. Return InitializeReferencedBinding(lhs, restObj).
