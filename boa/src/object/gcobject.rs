@@ -950,11 +950,11 @@ impl GcObject {
                     if let Some(enumerable) = desc.enumerable() {
                         if enumerable {
                             // 1. Let propValue be ? Get(from, nextKey).
-                            let prop_value = from.get(key.clone(), context)?;
+                            let prop_value = from.__get__(&key, from.clone().into(), context)?;
 
                             // 2. Perform ! CreateDataPropertyOrThrow(target, nextKey, propValue).
                             self.create_data_property_or_throw(key, prop_value, context)
-                                .expect("CreateDataPropertyOrThrow should not fail here");
+                                .expect("CreateDataPropertyOrThrow should never fail here");
                         }
                     }
                 }

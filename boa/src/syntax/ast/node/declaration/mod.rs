@@ -704,7 +704,7 @@ impl DeclarationPatternArray {
                     // 2. Let A be ! ArrayCreate(0).
                     // 3. Let n be 0.
                     let a = Array::array_create(0, None, context)
-                        .expect("Array creation with 0 length should never fail.");
+                        .expect("Array creation with 0 length should never fail");
 
                     // 4. Repeat,
                     loop {
@@ -736,7 +736,7 @@ impl DeclarationPatternArray {
                     // 1. Let A be ! ArrayCreate(0).
                     // 2. Let n be 0.
                     let a = Array::array_create(0, None, context)
-                        .expect("Array creation with 0 length should never fail.");
+                        .expect("Array creation with 0 length should never fail");
 
                     // 3. Repeat,
                     loop {
