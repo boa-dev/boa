@@ -99,43 +99,46 @@ impl RegExpStringIterator {
                 // i. Let match be ? RegExpExec(R, S).
                 let m = RegExp::abstract_exec(&iterator.matcher, iterator.string.clone(), context)?;
 
-                // ii. If match is null, return undefined.
-                if m.is_null() {
+                if let Some(m) = m {
+                    // iii. If global is false, then
+                    if !iterator.global {
+                        // 1. Perform ? Yield(match).
+                        // 2. Return undefined.
+                        iterator.completed = true;
+                        return Ok(create_iter_result_object(context, m.into(), false));
+                    }
+
+                    // iv. Let matchStr be ? ToString(? Get(match, "0")).
+                    let m_str = m.get("0", context)?.to_string(context)?;
+
+                    // v. If matchStr is the empty String, then
+                    if m_str.is_empty() {
+                        // 1. Let thisIndex be ℝ(? ToLength(? Get(R, "lastIndex"))).
+                        let this_index = iterator
+                            .matcher
+                            .get_field("lastIndex", context)?
+                            .to_length(context)?;
+
+                        // 2. Let nextIndex be ! AdvanceStringIndex(S, thisIndex, fullUnicode).
+                        let next_index = advance_string_index(
+                            iterator.string.clone(),
+                            this_index,
+                            iterator.unicode,
+                        );
+
+                        // 3. Perform ? Set(R, "lastIndex", 𝔽(nextIndex), true).
+                        iterator
+                            .matcher
+                            .set_field("lastIndex", next_index, true, context)?;
+                    }
+
+                    // vi. Perform ? Yield(match).
+                    Ok(create_iter_result_object(context, m.into(), false))
+                } else {
+                    // ii. If match is null, return undefined.
                     iterator.completed = true;
-                    return Ok(create_iter_result_object(context, Value::undefined(), true));
+                    Ok(create_iter_result_object(context, Value::undefined(), true))
                 }
-
-                // iii. If global is false, then
-                if !iterator.global {
-                    // 1. Perform ? Yield(match).
-                    // 2. Return undefined.
-                    iterator.completed = true;
-                    return Ok(create_iter_result_object(context, m, false));
-                }
-
-                // iv. Let matchStr be ? ToString(? Get(match, "0")).
-                let m_str = m.get_field("0", context)?.to_string(context)?;
-
-                // v. If matchStr is the empty String, then
-                if m_str.is_empty() {
-                    // 1. Let thisIndex be ℝ(? ToLength(? Get(R, "lastIndex"))).
-                    let this_index = iterator
-                        .matcher
-                        .get_field("lastIndex", context)?
-                        .to_length(context)?;
-
-                    // 2. Let nextIndex be ! AdvanceStringIndex(S, thisIndex, fullUnicode).
-                    let next_index =
-                        advance_string_index(iterator.string.clone(), this_index, iterator.unicode);
-
-                    // 3. Perform ? Set(R, "lastIndex", 𝔽(nextIndex), true).
-                    iterator
-                        .matcher
-                        .set_field("lastIndex", next_index, true, context)?;
-                }
-
-                // vi. Perform ? Yield(match).
-                Ok(create_iter_result_object(context, m, false))
             } else {
                 context.throw_type_error("`this` is not a RegExpStringIterator")
             }

@@ -192,10 +192,13 @@ impl RegExp {
 
         // 1. Let patternIsRegExp be ? IsRegExp(pattern).
         let pattern_is_regexp = if let Value::Object(obj) = &pattern {
-            let obj = obj.borrow();
-            obj.is_regexp()
+            if obj.is_regexp() {
+                Some(obj)
+            } else {
+                None
+            }
         } else {
-            false
+            None
         };
 
         // 2. If NewTarget is undefined, then
@@ -203,22 +206,22 @@ impl RegExp {
         if new_target.is_undefined() {
             // a. Let newTarget be the active function object.
             // b. If patternIsRegExp is true and flags is undefined, then
-            if pattern_is_regexp && flags.is_undefined() {
-                // i. Let patternConstructor be ? Get(pattern, "constructor").
-                let pattern_constructor = pattern.get_field("constructor", context)?;
-
-                // ii. If SameValue(newTarget, patternConstructor) is true, return pattern.
-                if Value::same_value(&new_target, &pattern_constructor) {
-                    return Ok(pattern);
+            if let Some(pattern) = pattern_is_regexp {
+                if flags.is_undefined() {
+                    // i. Let patternConstructor be ? Get(pattern, "constructor").
+                    let pattern_constructor = pattern.get("constructor", context)?;
+                    // ii. If SameValue(newTarget, patternConstructor) is true, return pattern.
+                    if Value::same_value(&new_target, &pattern_constructor) {
+                        return Ok(pattern.clone().into());
+                    }
                 }
             }
         }
 
         // 4. If Type(pattern) is Object and pattern has a [[RegExpMatcher]] internal slot, then
         // 6. Else,
-        let (p, f) = if pattern_is_regexp {
-            let o = pattern.as_object().unwrap();
-            let obj = o.borrow();
+        let (p, f) = if let Some(pattern) = pattern_is_regexp {
+            let obj = pattern.borrow();
             let regexp = obj.as_regexp().unwrap();
 
             // a. Let P be pattern.[[OriginalSource]].
@@ -686,7 +689,7 @@ impl RegExp {
         let m = Self::abstract_exec(this, arg_str, context)?;
 
         // 5. If match is not null, return true; else return false.
-        if !m.is_null() {
+        if m.is_some() {
             Ok(Value::Boolean(true))
         } else {
             Ok(Value::Boolean(false))
@@ -708,12 +711,11 @@ impl RegExp {
     pub(crate) fn exec(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // 1. Let R be the this value.
         // 2. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).
-        {
-            let obj = this.as_object().unwrap_or_default();
-            let obj = obj.borrow();
-            obj.as_regexp().ok_or_else(|| {
+        let obj = this.as_object().unwrap_or_default();
+        if !obj.is_regexp() {
+            return Err(
                 context.construct_type_error("RegExp.prototype.exec called with invalid value")
-            })?;
+            );
         }
 
         // 3. Let S be ? ToString(string).
@@ -724,7 +726,11 @@ impl RegExp {
             .to_string(context)?;
 
         // 4. Return ? RegExpBuiltinExec(R, S).
-        Self::abstract_builtin_exec(this, arg_str, context)
+        if let Some(v) = Self::abstract_builtin_exec(obj, arg_str, context)? {
+            Ok(v.into())
+        } else {
+            Ok(Value::null())
+        }
     }
 
     /// `22.2.5.2.1 RegExpExec ( R, S )`
@@ -737,7 +743,7 @@ impl RegExp {
         this: &Value,
         input: JsString,
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> Result<Option<GcObject>> {
         // 1. Assert: Type(R) is Object.
         let object = this
             .as_object()
@@ -754,21 +760,22 @@ impl RegExp {
 
             // b. If Type(result) is neither Object nor Null, throw a TypeError exception.
             if !result.is_object() && !result.is_null() {
-                return context.throw_type_error("regexp exec returned neither object nor null");
+                return Err(
+                    context.construct_type_error("regexp exec returned neither object nor null")
+                );
             }
 
             // c. Return result.
-            return Ok(result);
+            return Ok(result.as_object());
         }
 
         // 5. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).
-        object
-            .borrow()
-            .as_regexp()
-            .ok_or_else(|| context.construct_type_error("RegExpExec called with invalid value"))?;
+        if !object.is_regexp() {
+            return Err(context.construct_type_error("RegExpExec called with invalid value"));
+        }
 
         // 6. Return ? RegExpBuiltinExec(R, S).
-        Self::abstract_builtin_exec(this, input, context)
+        Self::abstract_builtin_exec(object, input, context)
     }
 
     /// `22.2.5.2.2 RegExpBuiltinExec ( R, S )`
@@ -778,19 +785,20 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexpbuiltinexec
     pub(crate) fn abstract_builtin_exec(
-        this: &Value,
+        this: GcObject,
         input: JsString,
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> Result<Option<GcObject>> {
         // 1. Assert: R is an initialized RegExp instance.
         let rx = {
-            let obj = this.as_object().unwrap_or_default();
-            let obj = obj.borrow();
-            obj.as_regexp()
-                .ok_or_else(|| {
+            let obj = this.borrow();
+            if let Some(rx) = obj.as_regexp() {
+                rx.clone()
+            } else {
+                return Err(
                     context.construct_type_error("RegExpBuiltinExec called with invalid value")
-                })?
-                .clone()
+                );
+            }
         };
 
         // 2. Assert: Type(S) is String.
@@ -799,10 +807,10 @@ impl RegExp {
         let length = input.encode_utf16().count();
 
         // 4. Let lastIndex be ℝ(? ToLength(? Get(R, "lastIndex"))).
-        let mut last_index = this.get_field("lastIndex", context)?.to_length(context)?;
+        let mut last_index = this.get("lastIndex", context)?.to_length(context)?;
 
         // 5. Let flags be R.[[OriginalFlags]].
-        let flags = rx.original_flags;
+        let flags = &rx.original_flags;
 
         // 6. If flags contains "g", let global be true; else let global be false.
         let global = flags.contains('g');
@@ -816,7 +824,7 @@ impl RegExp {
         }
 
         // 9. Let matcher be R.[[RegExpMatcher]].
-        let matcher = rx.matcher;
+        let matcher = &rx.matcher;
 
         // 10. If flags contains "u", let fullUnicode be true; else let fullUnicode be false.
         let unicode = flags.contains('u');
@@ -829,11 +837,11 @@ impl RegExp {
                 // i. If global is true or sticky is true, then
                 if global || sticky {
                     // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
-                    this.set_field("lastIndex", 0, true, context)?;
+                    this.set("lastIndex", 0, true, context)?;
                 }
 
                 // ii. Return null.
-                return Ok(Value::null());
+                return Ok(None);
             }
 
             // b. Let r be matcher(S, lastIndex).
@@ -843,8 +851,9 @@ impl RegExp {
             ) {
                 Ok(s) => s.len(),
                 Err(_) => {
-                    return context
-                        .throw_type_error("Failed to get byte index from utf16 encoded string")
+                    return Err(context.construct_type_error(
+                        "Failed to get byte index from utf16 encoded string",
+                    ))
                 }
             };
             let r = matcher.find_from(&input, last_byte_index).next();
@@ -855,10 +864,10 @@ impl RegExp {
                     // i. If sticky is true, then
                     if sticky {
                         // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
-                        this.set_field("lastIndex", 0, true, context)?;
+                        this.set("lastIndex", 0, true, context)?;
 
                         // 2. Return null.
-                        return Ok(Value::null());
+                        return Ok(None);
                     }
 
                     // ii. Set lastIndex to AdvanceStringIndex(S, lastIndex, fullUnicode).
@@ -872,10 +881,10 @@ impl RegExp {
                         // i. If sticky is true, then
                         if sticky {
                             // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
-                            this.set_field("lastIndex", 0, true, context)?;
+                            this.set("lastIndex", 0, true, context)?;
 
                             // 2. Return null.
-                            return Ok(Value::null());
+                            return Ok(None);
                         }
 
                         // ii. Set lastIndex to AdvanceStringIndex(S, lastIndex, fullUnicode).
@@ -904,7 +913,7 @@ impl RegExp {
         // 15. If global is true or sticky is true, then
         if global || sticky {
             // a. Perform ? Set(R, "lastIndex", 𝔽(e), true).
-            this.set_field("lastIndex", e, true, context)?;
+            this.set("lastIndex", e, true, context)?;
         }
 
         // 16. Let n be the number of elements in r's captures List. (This is the same value as 22.2.2.1's NcapturingParens.)
@@ -995,7 +1004,7 @@ impl RegExp {
         }
 
         // 28. Return A.
-        Ok(a.into())
+        Ok(Some(a))
     }
 
     /// `RegExp.prototype[ @@match ]( string )`
@@ -1011,10 +1020,13 @@ impl RegExp {
     pub(crate) fn r#match(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
-        if !this.is_object() {
-            return context
-                .throw_type_error("RegExp.prototype.match method called on incompatible value");
-        }
+        let rx = if let Some(rx) = this.as_object() {
+            rx
+        } else {
+            return Err(context.construct_type_error(
+                "RegExp.prototype.match method called on incompatible value",
+            ));
+        };
 
         // 3. Let S be ? ToString(string).
         let arg_str = args
@@ -1024,21 +1036,25 @@ impl RegExp {
             .to_string(context)?;
 
         // 4. Let global be ! ToBoolean(? Get(rx, "global")).
-        let global = this.get_field("global", context)?.to_boolean();
+        let global = rx.get("global", context)?.to_boolean();
 
         // 5. If global is false, then
         // 6. Else,
         if !global {
             // a. Return ? RegExpExec(rx, S).
-            Self::abstract_exec(this, arg_str, context)
+            if let Some(v) = Self::abstract_exec(&Value::from(rx), arg_str, context)? {
+                Ok(v.into())
+            } else {
+                Ok(Value::null())
+            }
         } else {
             // a. Assert: global is true.
 
             // b. Let fullUnicode be ! ToBoolean(? Get(rx, "unicode")).
-            let unicode = this.get_field("unicode", context)?.to_boolean();
+            let unicode = rx.get("unicode", context)?.to_boolean();
 
             // c. Perform ? Set(rx, "lastIndex", +0𝔽, true).
-            this.set_field("lastIndex", 0, true, context)?;
+            rx.set("lastIndex", 0, true, context)?;
 
             // d. Let A be ! ArrayCreate(0).
             let a = Array::array_create(0, None, context).unwrap();
@@ -1049,21 +1065,14 @@ impl RegExp {
             // f. Repeat,
             loop {
                 // i. Let result be ? RegExpExec(rx, S).
-                let result = Self::abstract_exec(this, arg_str.clone(), context)?;
+                let result =
+                    Self::abstract_exec(&Value::from(rx.clone()), arg_str.clone(), context)?;
 
                 // ii. If result is null, then
                 // iii. Else,
-                if result.is_null() {
-                    // 1. If n = 0, return null.
-                    // 2. Return A.
-                    if n == 0 {
-                        return Ok(Value::null());
-                    } else {
-                        return Ok(a.into());
-                    }
-                } else {
+                if let Some(result) = result {
                     // 1. Let matchStr be ? ToString(? Get(result, "0")).
-                    let match_str = result.get_field("0", context)?.to_string(context)?;
+                    let match_str = result.get("0", context)?.to_string(context)?;
 
                     // 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), matchStr).
                     a.create_data_property_or_throw(n, match_str.clone(), context)
@@ -1072,18 +1081,25 @@ impl RegExp {
                     // 3. If matchStr is the empty String, then
                     if match_str.is_empty() {
                         // a. Let thisIndex be ℝ(? ToLength(? Get(rx, "lastIndex"))).
-                        let this_index =
-                            this.get_field("lastIndex", context)?.to_length(context)?;
+                        let this_index = rx.get("lastIndex", context)?.to_length(context)?;
 
                         // b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
                         let next_index = advance_string_index(arg_str.clone(), this_index, unicode);
 
                         // c. Perform ? Set(rx, "lastIndex", 𝔽(nextIndex), true).
-                        this.set_field("lastIndex", Value::from(next_index), true, context)?;
+                        rx.set("lastIndex", Value::from(next_index), true, context)?;
                     }
 
                     // 4. Set n to n + 1.
                     n += 1;
+                } else {
+                    // 1. If n = 0, return null.
+                    // 2. Return A.
+                    if n == 0 {
+                        return Ok(Value::null());
+                    } else {
+                        return Ok(a.into());
+                    }
                 }
             }
         }
@@ -1192,11 +1208,13 @@ impl RegExp {
     pub(crate) fn replace(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
-        if !this.is_object() {
+        let rx = if let Some(rx) = this.as_object() {
+            rx
+        } else {
             return context.throw_type_error(
                 "RegExp.prototype[Symbol.replace] method called on incompatible value",
             );
-        }
+        };
 
         // 3. Let S be ? ToString(string).
         let arg_str = args
@@ -1219,16 +1237,16 @@ impl RegExp {
         }
 
         // 7. Let global be ! ToBoolean(? Get(rx, "global")).
-        let global = this.get_field("global", context)?.to_boolean();
+        let global = rx.get("global", context)?.to_boolean();
 
         // 8. If global is true, then
         let mut unicode = false;
         if global {
             // a. Let fullUnicode be ! ToBoolean(? Get(rx, "unicode")).
-            unicode = this.get_field("unicode", context)?.to_boolean();
+            unicode = rx.get("unicode", context)?.to_boolean();
 
             // b. Perform ? Set(rx, "lastIndex", +0𝔽, true).
-            this.set_field("lastIndex", 0, true, context)?;
+            rx.set("lastIndex", 0, true, context)?;
         }
 
         //  9. Let results be a new empty List.
@@ -1238,13 +1256,11 @@ impl RegExp {
         // 11. Repeat, while done is false,
         loop {
             // a. Let result be ? RegExpExec(rx, S).
-            let result = Self::abstract_exec(this, arg_str.clone(), context)?;
+            let result = Self::abstract_exec(&Value::from(rx.clone()), arg_str.clone(), context)?;
 
             // b. If result is null, set done to true.
             // c. Else,
-            if result.is_null() {
-                break;
-            } else {
+            if let Some(result) = result {
                 // i. Append result to the end of results.
                 results.push(result.clone());
 
@@ -1254,21 +1270,22 @@ impl RegExp {
                     break;
                 } else {
                     // 1. Let matchStr be ? ToString(? Get(result, "0")).
-                    let match_str = result.get_field("0", context)?.to_string(context)?;
+                    let match_str = result.get("0", context)?.to_string(context)?;
 
                     // 2. If matchStr is the empty String, then
                     if match_str.is_empty() {
                         // a. Let thisIndex be ℝ(? ToLength(? Get(rx, "lastIndex"))).
-                        let this_index =
-                            this.get_field("lastIndex", context)?.to_length(context)?;
+                        let this_index = rx.get("lastIndex", context)?.to_length(context)?;
 
                         // b. Let nextIndex be AdvanceStringIndex(S, thisIndex, fullUnicode).
                         let next_index = advance_string_index(arg_str.clone(), this_index, unicode);
 
                         // c. Perform ? Set(rx, "lastIndex", 𝔽(nextIndex), true).
-                        this.set_field("lastIndex", Value::from(next_index), true, context)?;
+                        rx.set("lastIndex", Value::from(next_index), true, context)?;
                     }
                 }
+            } else {
+                break;
             }
         }
 
@@ -1281,20 +1298,20 @@ impl RegExp {
         // 14. For each element result of results, do
         for result in results {
             // a. Let resultLength be ? LengthOfArrayLike(result).
-            let result_length = result.get_field("length", context)?.to_length(context)? as isize;
+            let result_length = result.length_of_array_like(context)? as isize;
 
             // b. Let nCaptures be max(resultLength - 1, 0).
             let n_captures = std::cmp::max(result_length - 1, 0);
 
             // c. Let matched be ? ToString(? Get(result, "0")).
-            let matched = result.get_field("0", context)?.to_string(context)?;
+            let matched = result.get("0", context)?.to_string(context)?;
 
             // d. Let matchLength be the number of code units in matched.
             let match_length = matched.encode_utf16().count();
 
             // e. Let position be ? ToIntegerOrInfinity(? Get(result, "index")).
             let position = result
-                .get_field("index", context)?
+                .get("index", context)?
                 .to_integer_or_infinity(context)?;
 
             // f. Set position to the result of clamping position between 0 and lengthS.
@@ -1320,7 +1337,7 @@ impl RegExp {
             // i. Repeat, while n ≤ nCaptures,
             for n in 1..=n_captures {
                 // i. Let capN be ? Get(result, ! ToString(𝔽(n))).
-                let mut cap_n = result.get_field(n.to_string(), context)?;
+                let mut cap_n = result.get(n.to_string(), context)?;
 
                 // ii. If capN is not undefined, then
                 if !cap_n.is_undefined() {
@@ -1335,7 +1352,7 @@ impl RegExp {
             }
 
             // j. Let namedCaptures be ? Get(result, "groups").
-            let mut named_captures = result.get_field("groups", context)?;
+            let mut named_captures = result.get("groups", context)?;
 
             // k. If functionalReplace is true, then
             // l. Else,
@@ -1429,11 +1446,13 @@ impl RegExp {
     pub(crate) fn search(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
-        if !this.is_object() {
-            return context.throw_type_error(
+        let rx = if let Some(rx) = this.as_object() {
+            rx
+        } else {
+            return Err(context.construct_type_error(
                 "RegExp.prototype[Symbol.search] method called on incompatible value",
-            );
-        }
+            ));
+        };
 
         // 3. Let S be ? ToString(string).
         let arg_str = args
@@ -1443,32 +1462,32 @@ impl RegExp {
             .to_string(context)?;
 
         // 4. Let previousLastIndex be ? Get(rx, "lastIndex").
-        let previous_last_index = this.get_field("lastIndex", context)?;
+        let previous_last_index = rx.get("lastIndex", context)?;
 
         // 5. If SameValue(previousLastIndex, +0𝔽) is false, then
         if !Value::same_value(&previous_last_index, &Value::from(0)) {
             // a. Perform ? Set(rx, "lastIndex", +0𝔽, true).
-            this.set_field("lastIndex", 0, true, context)?;
+            rx.set("lastIndex", 0, true, context)?;
         }
 
         // 6. Let result be ? RegExpExec(rx, S).
-        let result = Self::abstract_exec(this, arg_str, context)?;
+        let result = Self::abstract_exec(&Value::from(rx.clone()), arg_str, context)?;
 
         // 7. Let currentLastIndex be ? Get(rx, "lastIndex").
-        let current_last_index = this.get_field("lastIndex", context)?;
+        let current_last_index = rx.get("lastIndex", context)?;
 
         // 8. If SameValue(currentLastIndex, previousLastIndex) is false, then
         if !Value::same_value(&current_last_index, &previous_last_index) {
             // a. Perform ? Set(rx, "lastIndex", previousLastIndex, true).
-            this.set_field("lastIndex", previous_last_index, true, context)?;
+            rx.set("lastIndex", previous_last_index, true, context)?;
         }
 
         // 9. If result is null, return -1𝔽.
         // 10. Return ? Get(result, "index").
-        if result.is_null() {
-            Ok(Value::from(-1))
+        if let Some(result) = result {
+            result.get("index", context)
         } else {
-            result.get_field("index", context)
+            Ok(Value::from(-1))
         }
     }
 
@@ -1485,10 +1504,13 @@ impl RegExp {
     pub(crate) fn split(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
-        if !this.is_object() {
-            return context
-                .throw_type_error("RegExp.prototype.split method called on incompatible value");
-        }
+        let rx = if let Some(rx) = this.as_object() {
+            rx
+        } else {
+            return Err(context.construct_type_error(
+                "RegExp.prototype.split method called on incompatible value",
+            ));
+        };
 
         // 3. Let S be ? ToString(string).
         let arg_str = args
@@ -1498,13 +1520,11 @@ impl RegExp {
             .to_string(context)?;
 
         // 4. Let C be ? SpeciesConstructor(rx, %RegExp%).
-        let constructor = this
-            .as_object()
-            .unwrap_or_default()
-            .species_constructor(context.global_object().get(RegExp::NAME, context)?, context)?;
+        let constructor =
+            rx.species_constructor(context.global_object().get(RegExp::NAME, context)?, context)?;
 
         // 5. Let flags be ? ToString(? Get(rx, "flags")).
-        let flags = this.get_field("flags", context)?.to_string(context)?;
+        let flags = rx.get("flags", context)?.to_string(context)?;
 
         // 6. If flags contains "u", let unicodeMatching be true.
         // 7. Else, let unicodeMatching be false.
@@ -1550,7 +1570,7 @@ impl RegExp {
             let result = Self::abstract_exec(&splitter, arg_str.clone(), context)?;
 
             // b. If z is not null, return A.
-            if !result.is_null() {
+            if result.is_some() {
                 return Ok(a.into());
             }
 
@@ -1577,9 +1597,7 @@ impl RegExp {
 
             // c. If z is null, set q to AdvanceStringIndex(S, q, unicodeMatching).
             // d. Else,
-            if result.is_null() {
-                q = advance_string_index(arg_str.clone(), q, unicode);
-            } else {
+            if let Some(result) = result {
                 // i. Let e be ℝ(? ToLength(? Get(splitter, "lastIndex"))).
                 let mut e = splitter
                     .get_field("lastIndex", context)?
@@ -1618,8 +1636,7 @@ impl RegExp {
                     p = e;
 
                     // 6. Let numberOfCaptures be ? LengthOfArrayLike(z).
-                    let mut number_of_captures =
-                        result.get_field("length", context)?.to_length(context)?;
+                    let mut number_of_captures = result.length_of_array_like(context)? as isize;
 
                     // 7. Set numberOfCaptures to max(numberOfCaptures - 1, 0).
                     number_of_captures = if number_of_captures == 0 {
@@ -1632,7 +1649,7 @@ impl RegExp {
                     // 9. Repeat, while i ≤ numberOfCaptures,
                     for i in 1..=number_of_captures {
                         // a. Let nextCapture be ? Get(z, ! ToString(𝔽(i))).
-                        let next_capture = result.get_field(i.to_string(), context)?;
+                        let next_capture = result.get(i.to_string(), context)?;
 
                         // b. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), nextCapture).
                         a.create_data_property_or_throw(length_a, next_capture, context)
@@ -1650,6 +1667,8 @@ impl RegExp {
                     // 10. Set q to p.
                     q = p;
                 }
+            } else {
+                q = advance_string_index(arg_str.clone(), q, unicode);
             }
         }
 
