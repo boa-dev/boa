@@ -211,7 +211,7 @@ impl RegExp {
                     // i. Let patternConstructor be ? Get(pattern, "constructor").
                     let pattern_constructor = pattern.get("constructor", context)?;
                     // ii. If SameValue(newTarget, patternConstructor) is true, return pattern.
-                    if Value::same_value(&new_target, &pattern_constructor) {
+                    if Value::same_value(new_target, &pattern_constructor) {
                         return Ok(pattern.clone().into());
                     }
                 }
