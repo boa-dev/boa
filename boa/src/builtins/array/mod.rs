@@ -167,7 +167,7 @@ impl Array {
                 // i. Let intLen be ! ToUint32(len).
                 let int_len = len.to_u32(context).unwrap();
                 // ii. If SameValueZero(intLen, len) is false, throw a RangeError exception.
-                if !Value::same_value_zero(&int_len.into(), &len) {
+                if !Value::same_value_zero(&int_len.into(), len) {
                     return Err(context.construct_range_error("invalid array length"));
                 }
                 int_len
@@ -1623,7 +1623,7 @@ impl Array {
                 }
                 // c. Set k to len.
                 // d. Repeat, while k > (len - actualDeleteCount + itemCount),
-                for k in ((len - actual_delete_count + item_count) + 1..=len).rev() {
+                for k in ((len - actual_delete_count + item_count + 1)..=len).rev() {
                     // i. Perform ? DeletePropertyOrThrow(O, ! ToString(𝔽(k - 1))).
                     o.delete_property_or_throw(k - 1, context)?;
                     // ii. Set k to k - 1.
@@ -1674,7 +1674,12 @@ impl Array {
         }
 
         // 20. Perform ? Set(O, "length", 𝔽(len - actualDeleteCount + itemCount), true).
-        o.set("length", len - actual_delete_count + item_count, true, context)?;
+        o.set(
+            "length",
+            len - actual_delete_count + item_count,
+            true,
+            context,
+        )?;
 
         // 21. Return A.
         Ok(Value::from(arr))

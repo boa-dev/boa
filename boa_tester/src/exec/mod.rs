@@ -137,7 +137,7 @@ impl Test {
                 Outcome::Positive => {
                     // TODO: implement async and add `harness/doneprintHandle.js` to the includes.
 
-                    match self.set_up_env(&harness, strict) {
+                    match self.set_up_env(harness, strict) {
                         Ok(mut context) => {
                             let res = context.eval(&self.content.as_ref());
 
@@ -183,7 +183,7 @@ impl Test {
                     if let Err(e) = parse(&self.content.as_ref(), strict) {
                         (false, format!("Uncaught {}", e))
                     } else {
-                        match self.set_up_env(&harness, strict) {
+                        match self.set_up_env(harness, strict) {
                             Ok(mut context) => match context.eval(&self.content.as_ref()) {
                                 Ok(res) => (false, format!("{}", res.display())),
                                 Err(e) => {
