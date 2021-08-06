@@ -1,8 +1,52 @@
-use super::{Object, PropertyDescriptor, PropertyKey};
-use crate::{JsString, JsSymbol};
+use super::{PropertyDescriptor, PropertyKey};
+use crate::{
+    gc::{Finalize, Trace},
+    JsString, JsSymbol,
+};
+use rustc_hash::FxHashMap;
 use std::{collections::hash_map, iter::FusedIterator};
 
-impl Object {
+#[derive(Default, Debug, Trace, Finalize)]
+pub struct PropertyMap {
+    indexed_properties: FxHashMap<u32, PropertyDescriptor>,
+    /// Properties
+    string_properties: FxHashMap<JsString, PropertyDescriptor>,
+    /// Symbol Properties
+    symbol_properties: FxHashMap<JsSymbol, PropertyDescriptor>,
+}
+
+impl PropertyMap {
+    pub fn new() -> Self {
+        Self::default()
+    }
+    pub fn get(&self, key: &PropertyKey) -> Option<&PropertyDescriptor> {
+        match key {
+            PropertyKey::Index(index) => self.indexed_properties.get(index),
+            PropertyKey::String(string) => self.string_properties.get(string),
+            PropertyKey::Symbol(symbol) => self.symbol_properties.get(symbol),
+        }
+    }
+
+    pub fn insert(
+        &mut self,
+        key: PropertyKey,
+        property: PropertyDescriptor,
+    ) -> Option<PropertyDescriptor> {
+        match &key {
+            PropertyKey::Index(index) => self.indexed_properties.insert(*index, property),
+            PropertyKey::String(string) => self.string_properties.insert(string.clone(), property),
+            PropertyKey::Symbol(symbol) => self.symbol_properties.insert(symbol.clone(), property),
+        }
+    }
+
+    pub fn remove(&mut self, key: &PropertyKey) -> Option<PropertyDescriptor> {
+        match key {
+            PropertyKey::Index(index) => self.indexed_properties.remove(index),
+            PropertyKey::String(string) => self.string_properties.remove(string),
+            PropertyKey::Symbol(symbol) => self.symbol_properties.remove(symbol),
+        }
+    }
+
     /// An iterator visiting all key-value pairs in arbitrary order. The iterator element type is `(PropertyKey, &'a Property)`.
     ///
     /// This iterator does not recurse down the prototype chain.
@@ -102,6 +146,15 @@ impl Object {
     #[inline]
     pub fn string_property_values(&self) -> StringPropertyValues<'_> {
         StringPropertyValues(self.string_properties.values())
+    }
+
+    #[inline]
+    pub fn contains_key(&self, key: &PropertyKey) -> bool {
+        match key {
+            PropertyKey::Index(index) => self.indexed_properties.contains_key(index),
+            PropertyKey::String(string) => self.string_properties.contains_key(string),
+            PropertyKey::Symbol(symbol) => self.symbol_properties.contains_key(symbol),
+        }
     }
 }
 

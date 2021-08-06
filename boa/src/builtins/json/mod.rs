@@ -106,7 +106,7 @@ impl Json {
         let value = holder.get_field(key.clone(), context)?;
 
         if let Value::Object(ref object) = value {
-            let keys: Vec<_> = object.borrow().keys().collect();
+            let keys: Vec<_> = object.borrow().properties().keys().collect();
 
             for key in keys {
                 let v = Self::walk(reviver, context, &mut value.clone(), &key);
@@ -196,7 +196,7 @@ impl Json {
                 .as_object()
                 .map(|obj| {
                     let object_to_return = Value::object(Object::default());
-                    for key in obj.borrow().keys() {
+                    for key in obj.borrow().properties().keys() {
                         let val = obj.__get__(&key, obj.clone().into(), context)?;
                         let this_arg = object.clone();
                         object_to_return.set_property(
@@ -222,7 +222,7 @@ impl Json {
         } else if replacer_as_object.is_array() {
             let mut obj_to_return = serde_json::Map::new();
             let replacer_as_object = replacer_as_object.borrow();
-            let fields = replacer_as_object.keys().filter_map(|key| {
+            let fields = replacer_as_object.properties().keys().filter_map(|key| {
                 if key == "length" {
                     None
                 } else {

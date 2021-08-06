@@ -192,7 +192,7 @@ impl Object {
             .to_object(context)?;
         let descriptors = context.construct_object();
 
-        for key in object.borrow().keys() {
+        for key in object.borrow().properties().keys() {
             let descriptor = {
                 let desc = object
                     .__get_own_property__(&key)
