@@ -18,7 +18,7 @@ use crate::object::PROTOTYPE;
 use crate::property::DataDescriptor;
 use crate::{
     builtins::{string::string_iterator::StringIterator, Array, BuiltIn, RegExp},
-    object::{ConstructorBuilder, Object, ObjectData},
+    object::{ConstructorBuilder, ObjectData},
     property::Attribute,
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsString, Result, Value,
@@ -745,7 +745,7 @@ impl String {
                 position.unwrap(),
                 captures,
                 Value::undefined(),
-                replace_value.to_string(context)?.to_string(),
+                replace_value.to_string(context)?,
                 context,
             )?
         };
@@ -865,30 +865,34 @@ impl String {
     /// [regex]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
     pub(crate) fn r#match(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let object = this.require_object_coercible(context)?;
+        let o = this.require_object_coercible(context)?;
 
         // 2. If regexp is neither undefined nor null, then
         let regexp = args.get(0).cloned().unwrap_or_default();
         if !regexp.is_null_or_undefined() {
             // a. Let matcher be ? GetMethod(regexp, @@match).
             // b. If matcher is not undefined, then
-            if let Some(matcher) = regexp
-                .to_object(context)?
-                .get_method(context, WellKnownSymbols::match_())?
-            {
-                // i. Return ? Call(matcher, regexp, « O »).
-                return matcher.call(&regexp, &[this.clone()], context);
+            if let Some(obj) = regexp.as_object() {
+                if let Some(matcher) = obj.get_method(context, WellKnownSymbols::match_())? {
+                    // i. Return ? Call(matcher, regexp, « O »).
+                    return matcher.call(&regexp, &[o.clone()], context);
+                }
             }
         }
 
         // 3. Let S be ? ToString(O).
-        let arg_str = object.to_string(context)?;
+        let s = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, undefined).
-        let rx = RegExp::constructor(&Value::from(Object::default()), &[regexp], context)?;
+        let rx = RegExp::create(regexp, Value::undefined(), context)?;
 
         // 5. Return ? Invoke(rx, @@match, « S »).
-        RegExp::r#match(&rx, &[Value::from(arg_str)], context)
+        let obj = rx.as_object().expect("RegExpCreate must return Object");
+        if let Some(matcher) = obj.get_method(context, WellKnownSymbols::match_())? {
+            matcher.call(&rx, &[Value::from(s)], context)
+        } else {
+            context.throw_type_error("RegExp[Symbol.match] is undefined")
+        }
     }
 
     /// Abstract method `StringPad`.
@@ -1369,7 +1373,7 @@ impl String {
     /// [cg]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Groups_and_Ranges
     pub(crate) fn match_all(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let object = this.require_object_coercible(context)?;
+        let o = this.require_object_coercible(context)?;
 
         // 2. If regexp is neither undefined nor null, then
         let regexp = args.get(0).cloned().unwrap_or_default();
@@ -1393,28 +1397,27 @@ impl String {
 
             // c. Let matcher be ? GetMethod(regexp, @@matchAll).
             // d. If matcher is not undefined, then
-            if let Some(matcher) = regexp
-                .as_object()
-                .unwrap_or_default()
-                .get_method(context, WellKnownSymbols::match_all())?
-            {
-                // i. Return ? Call(matcher, regexp, « O »).
-                return matcher.call(&regexp, &[object.clone()], context);
+            if let Some(obj) = regexp.as_object() {
+                if let Some(matcher) = obj.get_method(context, WellKnownSymbols::match_all())? {
+                    // i. Return ? Call(matcher, regexp, « O »).
+                    return matcher.call(&regexp, &[o.clone()], context);
+                }
             }
         }
 
         // 3. Let S be ? ToString(O).
-        let arg_str = object.to_string(context)?;
+        let s = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, "g").
-        let rx = RegExp::constructor(
-            &Value::from(Object::default()),
-            &[regexp, Value::from("g")],
-            context,
-        )?;
+        let rx = RegExp::create(regexp, Value::from("g"), context)?;
 
         // 5. Return ? Invoke(rx, @@matchAll, « S »).
-        RegExp::match_all(&rx, &[Value::from(arg_str)], context)
+        let obj = rx.as_object().expect("RegExpCreate must return Object");
+        if let Some(matcher) = obj.get_method(context, WellKnownSymbols::match_all())? {
+            matcher.call(&rx, &[Value::from(s)], context)
+        } else {
+            context.throw_type_error("RegExp[Symbol.matchAll] is undefined")
+        }
     }
 
     /// `String.prototype.normalize( [ form ] )`
@@ -1463,36 +1466,33 @@ impl String {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search
     pub(crate) fn search(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let o = this.require_object_coercible(context)?;
 
         // 2. If regexp is neither undefined nor null, then
         let regexp = args.get(0).cloned().unwrap_or_default();
         if !regexp.is_null_or_undefined() {
             // a. Let searcher be ? GetMethod(regexp, @@search).
             // b. If searcher is not undefined, then
-            if let Some(searcher) = regexp
-                .to_object(context)?
-                .get_method(context, WellKnownSymbols::search())?
-            {
-                // i. Return ? Call(searcher, regexp, « O »).
-                return searcher.call(&regexp, &[this.clone()], context);
+            if let Some(obj) = regexp.as_object() {
+                if let Some(searcher) = obj.get_method(context, WellKnownSymbols::search())? {
+                    // i. Return ? Call(searcher, regexp, « O »).
+                    return searcher.call(&regexp, &[o.clone()], context);
+                }
             }
         }
 
         // 3. Let string be ? ToString(O).
-        let s = this.to_string(context)?;
+        let string = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, undefined).
-        let rx = RegExp::constructor(&Value::from(Object::default()), &[regexp], context)?;
+        let rx = RegExp::create(regexp, Value::undefined(), context)?;
 
         // 5. Return ? Invoke(rx, @@search, « string »).
-        if let Some(searcher) = rx
-            .to_object(context)?
-            .get_method(context, WellKnownSymbols::search())?
-        {
-            searcher.call(&rx, &[Value::from(s)], context)
+        let obj = rx.as_object().expect("RegExpCreate must return Object");
+        if let Some(matcher) = obj.get_method(context, WellKnownSymbols::search())? {
+            matcher.call(&rx, &[Value::from(string)], context)
         } else {
-            context.throw_type_error("regexp[Symbol.search] is not a function")
+            context.throw_type_error("RegExp[Symbol.search] is undefined")
         }
     }
 
@@ -1513,7 +1513,7 @@ pub(crate) fn get_substitution(
     position: usize,
     captures: Vec<Value>,
     named_captures: Value,
-    replacement: StdString,
+    replacement: JsString,
     context: &mut Context,
 ) -> Result<JsString> {
     // 1. Assert: Type(matched) is String.
@@ -1580,50 +1580,38 @@ pub(crate) fn get_substitution(
                 // $nn
                 (Some(second), Some(third)) if second_is_digit && third_is_digit => {
                     // The nnth element of captures, where nn is a two-digit decimal number in the range 01 to 99.
-                    // If nn ≤ m and the nnth element of captures is undefined, use the empty String instead.
-                    // If nn is 00 or nn > m, no replacement is done.
                     let tens = second.to_digit(10).unwrap() as usize;
                     let units = third.to_digit(10).unwrap() as usize;
                     let nn = 10 * tens + units;
-                    let capture = if let Some(v) = captures.get(nn - 1) {
-                        v.clone()
-                    } else {
-                        Value::undefined()
-                    };
 
-                    if nn <= m && capture.is_undefined() {
-                        result.push_str("")
-                    } else if nn == 0 || nn > m {
+                    // If nn ≤ m and the nnth element of captures is undefined, use the empty String instead.
+                    // If nn is 00 or nn > m, no replacement is done.
+                    if nn == 0 || nn > m {
                         result.push('$');
-                        result.push(first);
                         result.push(second);
-                    } else if let Some(s) = capture.as_string() {
-                        result.push_str(s);
-                        break;
+                        result.push(*third);
+                    } else if let Some(capture) = captures.get(nn - 1) {
+                        if let Some(s) = capture.as_string() {
+                            result.push_str(s);
+                        }
                     }
+
+                    chars.next();
                 }
                 // $n
-                (Some(first), second) if second_is_digit => {
+                (Some(second), _) if second_is_digit => {
                     // The nth element of captures, where n is a single digit in the range 1 to 9.
+                    let n = second.to_digit(10).unwrap() as usize;
+
                     // If n ≤ m and the nth element of captures is undefined, use the empty String instead.
                     // If n > m, no replacement is done.
-                    let n = first.to_digit(10).unwrap() as usize;
-                    let capture = if let Some(v) = captures.get(n - 1) {
-                        v.clone()
-                    } else {
-                        Value::undefined()
-                    };
-
-                    if n <= m && capture.is_undefined() {
-                        result.push_str("")
-                    } else if n > m {
+                    if n == 0 || n > m {
                         result.push('$');
-                        result.push(first);
-                        if let Some(second) = second {
-                            result.push(*second)
+                        result.push(second);
+                    } else if let Some(capture) = captures.get(n - 1) {
+                        if let Some(s) = capture.as_string() {
+                            result.push_str(s);
                         }
-                    } else if let Some(s) = capture.as_string() {
-                        result.push_str(s);
                     }
                 }
                 // $<
