@@ -871,12 +871,12 @@
         <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">proto</span>.<span class="ident">get_type</span>(), <span class="ident">Type::Object</span> <span class="op">|</span> <span class="ident">Type::Null</span>) {
             <span class="kw">return</span> <span class="ident">ctx</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
                 <span class="string">&quot;expected an object or null, got {}&quot;</span>,
-                <span class="ident">proto</span>.<span class="ident">get_type</span>().<span class="ident">as_str</span>()
+                <span class="ident">proto</span>.<span class="ident">type_of</span>()
             ));
         }
 
         <span class="comment">// 3. If Type(O) is not Object, return O.</span>
-        <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">get_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">Type::Object</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">obj</span>.<span class="ident">is_object</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">obj</span>);
         }
 

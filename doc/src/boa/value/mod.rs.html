@@ -1082,6 +1082,33 @@
 <span id="1082">1082</span>
 <span id="1083">1083</span>
 <span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
+<span id="1106">1106</span>
+<span id="1107">1107</span>
+<span id="1108">1108</span>
+<span id="1109">1109</span>
+<span id="1110">1110</span>
+<span id="1111">1111</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -2056,6 +2083,33 @@
                 <span class="prelude-val">Ok</span>(<span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">integer</span>))
             }
         }
+    }
+
+    <span class="doccomment">/// `typeof` operator. Returns a string representing the type of the</span>
+    <span class="doccomment">/// given ECMA Value.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">/// - [EcmaScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-typeof-operator</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">type_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsString</span> {
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+            <span class="self">Self</span><span class="ident">::Rational</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="self">Self</span><span class="ident">::Integer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;number&quot;</span>,
+            <span class="self">Self</span><span class="ident">::String</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;string&quot;</span>,
+            <span class="self">Self</span><span class="ident">::Boolean</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;boolean&quot;</span>,
+            <span class="self">Self</span><span class="ident">::Symbol</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;symbol&quot;</span>,
+            <span class="self">Self</span><span class="ident">::Null</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;object&quot;</span>,
+            <span class="self">Self</span><span class="ident">::Undefined</span> <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;undefined&quot;</span>,
+            <span class="self">Self</span><span class="ident">::BigInt</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="string">&quot;bigint&quot;</span>,
+            <span class="self">Self</span><span class="ident">::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_function</span>() {
+                    <span class="string">&quot;function&quot;</span>
+                } <span class="kw">else</span> {
+                    <span class="string">&quot;object&quot;</span>
+                }
+            }
+        }
+        .<span class="ident">into</span>()
     }
 
     <span class="doccomment">/// Check if it is an array.</span>

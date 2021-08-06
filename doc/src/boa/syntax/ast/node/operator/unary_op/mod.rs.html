@@ -251,7 +251,7 @@
                 <span class="op">|</span> <span class="ident">Node::UnaryOp</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::boolean</span>(<span class="bool-val">true</span>),
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="macro">format!</span>(<span class="string">&quot;wrong delete argument {}&quot;</span>, <span class="self">self</span>)),
             },
-            <span class="ident">op::UnaryOp::TypeOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::from</span>(<span class="self">self</span>.<span class="ident">target</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">get_type</span>().<span class="ident">as_str</span>()),
+            <span class="ident">op::UnaryOp::TypeOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::from</span>(<span class="self">self</span>.<span class="ident">target</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">type_of</span>()),
         })
     }
 }

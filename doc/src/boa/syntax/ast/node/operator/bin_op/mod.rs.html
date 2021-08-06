@@ -377,7 +377,7 @@
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">y</span>.<span class="ident">is_object</span>() {
                             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
                                 <span class="string">&quot;right-hand side of &#39;in&#39; should be an object, got {}&quot;</span>,
-                                <span class="ident">y</span>.<span class="ident">get_type</span>().<span class="ident">as_str</span>()
+                                <span class="ident">y</span>.<span class="ident">type_of</span>()
                             ));
                         }
                         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -403,7 +403,7 @@
                         } <span class="kw">else</span> {
                             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
                                 <span class="string">&quot;right-hand side of &#39;instanceof&#39; should be an object, got {}&quot;</span>,
-                                <span class="ident">y</span>.<span class="ident">get_type</span>().<span class="ident">as_str</span>()
+                                <span class="ident">y</span>.<span class="ident">type_of</span>()
                             ));
                         }
                     }
