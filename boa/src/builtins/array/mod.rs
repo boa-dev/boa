@@ -1531,11 +1531,13 @@ impl Array {
         // 7. If start is not present, then
         let insert_count = if args.get(0).is_none() || args.get(1).is_none() {
             // 7a. Let insertCount be 0.
+            // 8. Else if deleteCount is not present, then
+            // a. Let insertCount be 0.
             0
         // 9. Else,
         } else {
             // 9a. Let insertCount be the number of elements in items.
-            args.len()
+            args.len().saturating_sub(2)
         };
         let actual_delete_count = if args.get(0).is_none() {
             // 7b. Let actualDeleteCount be 0.
@@ -1599,7 +1601,7 @@ impl Array {
             ic if ic < actual_delete_count => {
                 //     a. Set k to actualStart.
                 //     b. Repeat, while k < (len - actualDeleteCount),
-                for k in actual_start..len - actual_delete_count {
+                for k in actual_start..(len - actual_delete_count) {
                     // i. Let from be ! ToString(𝔽(k + actualDeleteCount)).
                     let from = k + actual_delete_count;
                     // ii. Let to be ! ToString(𝔽(k + itemCount)).
