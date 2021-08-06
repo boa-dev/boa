@@ -4,7 +4,7 @@ use crate::{
     exec::{Executable, InterpreterState},
     gc::{empty_trace, Finalize, Trace},
     syntax::ast::node::Node,
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsValue, Result,
 };
 use std::{collections::HashSet, fmt, ops::Deref, rc::Rc};
 
@@ -92,12 +92,12 @@ impl StatementList {
 }
 
 impl Executable for StatementList {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<JsValue> {
         let _timer = BoaProfiler::global().start_event("StatementList", "exec");
 
         // https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation
         // The return value is uninitialized, which means it defaults to Value::Undefined
-        let mut obj = Value::default();
+        let mut obj = JsValue::default();
         context
             .executor()
             .set_current_state(InterpreterState::Executing);

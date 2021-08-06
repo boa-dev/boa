@@ -15,7 +15,7 @@ use crate::{
     context::StandardConstructor,
     gc::{Finalize, Trace},
     property::{Attribute, PropertyDescriptor, PropertyKey},
-    BoaProfiler, Context, JsBigInt, JsString, JsSymbol, Value,
+    BoaProfiler, Context, JsBigInt, JsString, JsSymbol, JsValue,
 };
 use std::{
     any::Any,
@@ -68,7 +68,7 @@ pub struct Object {
     pub data: ObjectData,
     properties: PropertyMap,
     /// Instance prototype `__proto__`.
-    prototype: Value,
+    prototype: JsValue,
     /// Whether it can have new properties added to it.
     extensible: bool,
 }
@@ -78,7 +78,7 @@ pub struct Object {
 pub enum ObjectData {
     Array,
     ArrayIterator(ArrayIterator),
-    Map(OrderedMap<Value>),
+    Map(OrderedMap<JsValue>),
     MapIterator(MapIterator),
     RegExp(Box<RegExp>),
     RegExpStringIterator(RegExpStringIterator),
@@ -86,7 +86,7 @@ pub enum ObjectData {
     Boolean(bool),
     ForInIterator(ForInIterator),
     Function(Function),
-    Set(OrderedSet<Value>),
+    Set(OrderedSet<JsValue>),
     SetIterator(SetIterator),
     String(JsString),
     StringIterator(StringIterator),
@@ -138,7 +138,7 @@ impl Default for Object {
         Self {
             data: ObjectData::Ordinary,
             properties: PropertyMap::default(),
-            prototype: Value::null(),
+            prototype: JsValue::null(),
             extensible: true,
         }
     }
@@ -152,7 +152,7 @@ impl Object {
 
     /// Return a new ObjectData struct, with `kind` set to Ordinary
     #[inline]
-    pub fn function(function: Function, prototype: Value) -> Self {
+    pub fn function(function: Function, prototype: JsValue) -> Self {
         let _timer = BoaProfiler::global().start_event("Object::Function", "object");
 
         Self {
@@ -171,7 +171,7 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-objectcreate
     // TODO: proto should be a &Value here
     #[inline]
-    pub fn create(proto: Value) -> Self {
+    pub fn create(proto: JsValue) -> Self {
         let mut obj = Self::new();
         obj.prototype = proto;
         obj
@@ -183,7 +183,7 @@ impl Object {
         Self {
             data: ObjectData::Boolean(value),
             properties: PropertyMap::default(),
-            prototype: Value::null(),
+            prototype: JsValue::null(),
             extensible: true,
         }
     }
@@ -194,7 +194,7 @@ impl Object {
         Self {
             data: ObjectData::Number(value),
             properties: PropertyMap::default(),
-            prototype: Value::null(),
+            prototype: JsValue::null(),
             extensible: true,
         }
     }
@@ -208,7 +208,7 @@ impl Object {
         Self {
             data: ObjectData::String(value.into()),
             properties: PropertyMap::default(),
-            prototype: Value::null(),
+            prototype: JsValue::null(),
             extensible: true,
         }
     }
@@ -219,7 +219,7 @@ impl Object {
         Self {
             data: ObjectData::BigInt(value),
             properties: PropertyMap::default(),
-            prototype: Value::null(),
+            prototype: JsValue::null(),
             extensible: true,
         }
     }
@@ -233,7 +233,7 @@ impl Object {
         Self {
             data: ObjectData::NativeObject(Box::new(value)),
             properties: PropertyMap::default(),
-            prototype: Value::null(),
+            prototype: JsValue::null(),
             extensible: true,
         }
     }
@@ -335,7 +335,7 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_map_ref(&self) -> Option<&OrderedMap<Value>> {
+    pub fn as_map_ref(&self) -> Option<&OrderedMap<JsValue>> {
         match self.data {
             ObjectData::Map(ref map) => Some(map),
             _ => None,
@@ -343,7 +343,7 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_map_mut(&mut self) -> Option<&mut OrderedMap<Value>> {
+    pub fn as_map_mut(&mut self) -> Option<&mut OrderedMap<JsValue>> {
         match &mut self.data {
             ObjectData::Map(map) => Some(map),
             _ => None,
@@ -364,7 +364,7 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_set_ref(&self) -> Option<&OrderedSet<Value>> {
+    pub fn as_set_ref(&self) -> Option<&OrderedSet<JsValue>> {
         match self.data {
             ObjectData::Set(ref set) => Some(set),
             _ => None,
@@ -372,7 +372,7 @@ impl Object {
     }
 
     #[inline]
-    pub fn as_set_mut(&mut self) -> Option<&mut OrderedSet<Value>> {
+    pub fn as_set_mut(&mut self) -> Option<&mut OrderedSet<JsValue>> {
         match &mut self.data {
             ObjectData::Set(set) => Some(set),
             _ => None,
@@ -506,7 +506,7 @@ impl Object {
     }
 
     #[inline]
-    pub fn prototype_instance(&self) -> &Value {
+    pub fn prototype_instance(&self) -> &JsValue {
         &self.prototype
     }
 
@@ -517,7 +517,7 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-invariants-of-the-essential-internal-methods
     #[inline]
     #[track_caller]
-    pub fn set_prototype_instance(&mut self, prototype: Value) -> bool {
+    pub fn set_prototype_instance(&mut self, prototype: JsValue) -> bool {
         assert!(prototype.is_null() || prototype.is_object());
         if self.extensible {
             self.prototype = prototype;
@@ -525,13 +525,13 @@ impl Object {
         } else {
             // If target is non-extensible, [[SetPrototypeOf]] must return false
             // unless V is the SameValue as the target's observed [[GetPrototypeOf]] value.
-            Value::same_value(&prototype, &self.prototype)
+            JsValue::same_value(&prototype, &self.prototype)
         }
     }
 
     /// Similar to `Value::new_object`, but you can pass a prototype to create from, plus a kind
     #[inline]
-    pub fn with_prototype(proto: Value, data: ObjectData) -> Object {
+    pub fn with_prototype(proto: JsValue, data: ObjectData) -> Object {
         let mut object = Object::new();
         object.data = data;
         object.set_prototype_instance(proto);
@@ -693,7 +693,7 @@ impl<'context> FunctionBuilder<'context> {
     #[inline]
     pub fn closure<F>(context: &'context mut Context, function: F) -> Self
     where
-        F: Fn(&Value, &[Value], &mut Context) -> Result<Value, Value> + 'static,
+        F: Fn(&JsValue, &[JsValue], &mut Context) -> Result<JsValue, JsValue> + 'static,
     {
         Self {
             context,
@@ -789,7 +789,7 @@ impl<'context> FunctionBuilder<'context> {
 /// # Examples
 ///
 /// ```
-/// # use boa::{Context, Value, object::ObjectInitializer, property::Attribute};
+/// # use boa::{Context, JsValue, object::ObjectInitializer, property::Attribute};
 /// let mut context = Context::new();
 /// let object = ObjectInitializer::new(&mut context)
 ///     .property(
@@ -802,7 +802,7 @@ impl<'context> FunctionBuilder<'context> {
 ///         1,
 ///         Attribute::all()
 ///     )
-///     .function(|_, _, _| Ok(Value::undefined()), "func", 0)
+///     .function(|_, _, _| Ok(JsValue::undefined()), "func", 0)
 ///     .build();
 /// ```
 ///
@@ -857,7 +857,7 @@ impl<'context> ObjectInitializer<'context> {
     pub fn property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
         K: Into<PropertyKey>,
-        V: Into<Value>,
+        V: Into<JsValue>,
     {
         let property = PropertyDescriptor::builder()
             .value(value)
@@ -885,7 +885,7 @@ pub struct ConstructorBuilder<'context> {
     length: usize,
     callable: bool,
     constructable: bool,
-    inherit: Option<Value>,
+    inherit: Option<JsValue>,
 }
 
 impl Debug for ConstructorBuilder<'_> {
@@ -996,7 +996,7 @@ impl<'context> ConstructorBuilder<'context> {
     pub fn property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
         K: Into<PropertyKey>,
-        V: Into<Value>,
+        V: Into<JsValue>,
     {
         let property = PropertyDescriptor::builder()
             .value(value)
@@ -1012,7 +1012,7 @@ impl<'context> ConstructorBuilder<'context> {
     pub fn static_property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
         K: Into<PropertyKey>,
-        V: Into<Value>,
+        V: Into<JsValue>,
     {
         let property = PropertyDescriptor::builder()
             .value(value)
@@ -1132,7 +1132,7 @@ impl<'context> ConstructorBuilder<'context> {
     ///
     /// Default is `Object.prototype`
     #[inline]
-    pub fn inherit(&mut self, prototype: Value) -> &mut Self {
+    pub fn inherit(&mut self, prototype: JsValue) -> &mut Self {
         assert!(prototype.is_object() || prototype.is_null());
         self.inherit = Some(prototype);
         self

@@ -69,7 +69,7 @@ pub(crate) use crate::{exec::Executable, profiler::BoaProfiler};
 // Export things to root level
 #[doc(inline)]
 pub use crate::{
-    bigint::JsBigInt, context::Context, string::JsString, symbol::JsSymbol, value::Value,
+    bigint::JsBigInt, context::Context, string::JsString, symbol::JsSymbol, value::JsValue,
 };
 
 use crate::syntax::{
@@ -79,7 +79,7 @@ use crate::syntax::{
 
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
 #[must_use]
-pub type Result<T> = StdResult<T, Value>;
+pub type Result<T> = StdResult<T, JsValue>;
 
 /// Parses the given source code.
 ///
@@ -122,7 +122,7 @@ pub(crate) fn forward<T: AsRef<[u8]>>(context: &mut Context, src: T) -> String {
 /// If the interpreter fails parsing an error value is returned instead (error object)
 #[allow(clippy::unit_arg, clippy::drop_copy)]
 #[cfg(test)]
-pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &mut Context, src: T) -> Result<Value> {
+pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &mut Context, src: T) -> Result<JsValue> {
     let main_timer = BoaProfiler::global().start_event("Main", "Main");
 
     let src_bytes: &[u8] = src.as_ref();

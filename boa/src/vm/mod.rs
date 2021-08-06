@@ -4,7 +4,7 @@
 
 use crate::{
     builtins::Array, environment::lexical_environment::VariableScope, symbol::WellKnownSymbols,
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsValue, Result,
 };
 
 mod code_block;
@@ -23,7 +23,7 @@ pub struct Vm<'a> {
     context: &'a mut Context,
     pc: usize,
     code: CodeBlock,
-    stack: Vec<Value>,
+    stack: Vec<JsValue>,
     stack_pointer: usize,
     is_trace: bool,
 }
@@ -48,7 +48,7 @@ impl<'a> Vm<'a> {
     #[inline]
     pub fn push<T>(&mut self, value: T)
     where
-        T: Into<Value>,
+        T: Into<JsValue>,
     {
         self.stack.push(value.into());
     }
@@ -60,7 +60,7 @@ impl<'a> Vm<'a> {
     /// If there is nothing to pop, then this will panic.
     #[inline]
     #[track_caller]
-    pub fn pop(&mut self) -> Value {
+    pub fn pop(&mut self) -> JsValue {
         self.stack.pop().unwrap()
     }
 
@@ -102,8 +102,8 @@ impl<'a> Vm<'a> {
                 self.push(first);
                 self.push(second);
             }
-            Opcode::PushUndefined => self.push(Value::undefined()),
-            Opcode::PushNull => self.push(Value::null()),
+            Opcode::PushUndefined => self.push(JsValue::undefined()),
+            Opcode::PushNull => self.push(JsValue::null()),
             Opcode::PushTrue => self.push(true),
             Opcode::PushFalse => self.push(false),
             Opcode::PushZero => self.push(0),
@@ -124,15 +124,15 @@ impl<'a> Vm<'a> {
                 let value = self.read::<f64>();
                 self.push(value);
             }
-            Opcode::PushNaN => self.push(Value::nan()),
-            Opcode::PushPositiveInfinity => self.push(Value::positive_inifnity()),
-            Opcode::PushNegativeInfinity => self.push(Value::negative_inifnity()),
+            Opcode::PushNaN => self.push(JsValue::nan()),
+            Opcode::PushPositiveInfinity => self.push(JsValue::positive_inifnity()),
+            Opcode::PushNegativeInfinity => self.push(JsValue::negative_inifnity()),
             Opcode::PushLiteral => {
                 let index = self.read::<u32>() as usize;
                 let value = self.code.literals[index].clone();
                 self.push(value)
             }
-            Opcode::PushEmptyObject => self.push(Value::new_object(self.context)),
+            Opcode::PushEmptyObject => self.push(JsValue::new_object(self.context)),
             Opcode::PushNewArray => {
                 let count = self.read::<u32>();
                 let mut elements = Vec::with_capacity(count as usize);
@@ -224,7 +224,7 @@ impl<'a> Vm<'a> {
             }
             Opcode::Void => {
                 let _ = self.pop();
-                self.push(Value::undefined());
+                self.push(JsValue::undefined());
             }
             Opcode::TypeOf => {
                 let value = self.pop();
@@ -445,7 +445,7 @@ impl<'a> Vm<'a> {
         Ok(())
     }
 
-    pub fn run(&mut self) -> Result<Value> {
+    pub fn run(&mut self) -> Result<JsValue> {
         let _timer = BoaProfiler::global().start_event("run", "vm");
 
         const COLUMN_WIDTH: usize = 24;
@@ -520,7 +520,7 @@ impl<'a> Vm<'a> {
         }
 
         if self.stack.is_empty() {
-            return Ok(Value::undefined());
+            return Ok(JsValue::undefined());
         }
 
         Ok(self.pop())

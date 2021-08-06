@@ -10,7 +10,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-globalthis
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis
 
-use crate::{builtins::BuiltIn, property::Attribute, BoaProfiler, Context, Value};
+use crate::{builtins::BuiltIn, property::Attribute, BoaProfiler, Context, JsValue};
 
 #[cfg(test)]
 mod tests;
@@ -25,7 +25,7 @@ impl BuiltIn for GlobalThis {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         (

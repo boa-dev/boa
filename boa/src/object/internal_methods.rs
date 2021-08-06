@@ -8,7 +8,7 @@
 use crate::{
     object::{GcObject, Object, ObjectData},
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
-    value::{Type, Value},
+    value::{JsValue, Type},
     BoaProfiler, Context, Result,
 };
 
@@ -106,7 +106,7 @@ impl GcObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-o-p
     #[inline]
-    pub fn get<K>(&self, key: K, context: &mut Context) -> Result<Value>
+    pub fn get<K>(&self, key: K, context: &mut Context) -> Result<JsValue>
     where
         K: Into<PropertyKey>,
     {
@@ -126,7 +126,7 @@ impl GcObject {
     pub fn set<K, V>(&self, key: K, value: V, throw: bool, context: &mut Context) -> Result<bool>
     where
         K: Into<PropertyKey>,
-        V: Into<Value>,
+        V: Into<JsValue>,
     {
         let key = key.into();
         // 1. Assert: Type(O) is Object.
@@ -188,7 +188,7 @@ impl GcObject {
     ) -> Result<bool>
     where
         K: Into<PropertyKey>,
-        V: Into<Value>,
+        V: Into<JsValue>,
     {
         // 1. Assert: Type(O) is Object.
         // 2. Assert: IsPropertyKey(P) is true.
@@ -216,7 +216,7 @@ impl GcObject {
     ) -> Result<bool>
     where
         K: Into<PropertyKey>,
-        V: Into<Value>,
+        V: Into<JsValue>,
     {
         let key = key.into();
         // 1. Assert: Type(O) is Object.
@@ -237,7 +237,7 @@ impl GcObject {
         let prop = self.__get_own_property__(key);
         if prop.is_none() {
             let parent = self.__get_prototype_of__();
-            return if let Value::Object(ref object) = parent {
+            return if let JsValue::Object(ref object) = parent {
                 object.__has_property__(key)
             } else {
                 false
@@ -286,16 +286,16 @@ impl GcObject {
     pub fn __get__(
         &self,
         key: &PropertyKey,
-        receiver: Value,
+        receiver: JsValue,
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> Result<JsValue> {
         match self.__get_own_property__(key) {
             None => {
                 // parent will either be null or an Object
                 if let Some(parent) = self.__get_prototype_of__().as_object() {
                     Ok(parent.__get__(key, receiver, context)?)
                 } else {
-                    Ok(Value::undefined())
+                    Ok(JsValue::undefined())
                 }
             }
             Some(ref desc) => match desc.kind() {
@@ -305,7 +305,7 @@ impl GcObject {
                 DescriptorKind::Accessor { get: Some(get), .. } if !get.is_undefined() => {
                     context.call(get, &receiver, &[])
                 }
-                _ => Ok(Value::undefined()),
+                _ => Ok(JsValue::undefined()),
             },
         }
     }
@@ -314,8 +314,8 @@ impl GcObject {
     pub fn __set__(
         &self,
         key: PropertyKey,
-        value: Value,
-        receiver: Value,
+        value: JsValue,
+        receiver: JsValue,
         context: &mut Context,
     ) -> Result<bool> {
         let _timer = BoaProfiler::global().start_event("Object::set", "object");
@@ -327,7 +327,7 @@ impl GcObject {
             return parent.__set__(key, value, receiver, context);
         } else {
             PropertyDescriptor::builder()
-                .value(Value::undefined())
+                .value(JsValue::undefined())
                 .writable(true)
                 .enumerable(true)
                 .configurable(true)
@@ -448,17 +448,17 @@ impl GcObject {
                 if matches!(desc.writable(), Some(true)) {
                     return false;
                 }
-                if matches!(desc.value(), Some(value) if !Value::same_value(value, current.expect_value()))
+                if matches!(desc.value(), Some(value) if !JsValue::same_value(value, current.expect_value()))
                 {
                     return false;
                 }
                 return true;
             }
         } else if !current.expect_configurable() {
-            if matches!(desc.set(), Some(set) if !Value::same_value(set, current.expect_set())) {
+            if matches!(desc.set(), Some(set) if !JsValue::same_value(set, current.expect_set())) {
                 return false;
             }
-            if matches!(desc.get(), Some(get) if !Value::same_value(get, current.expect_get())) {
+            if matches!(desc.get(), Some(get) if !JsValue::same_value(get, current.expect_get())) {
                 return false;
             }
             return true;
@@ -621,8 +621,10 @@ impl GcObject {
                 }
 
                 let result_str = string.encode_utf16().nth(pos).map(|utf16_val| {
-                    char::from_u32(u32::from(utf16_val))
-                        .map_or_else(|| Value::from(format!("\\u{:x}", utf16_val)), Value::from)
+                    char::from_u32(u32::from(utf16_val)).map_or_else(
+                        || JsValue::new(format!("\\u{:x}", utf16_val)),
+                        JsValue::from,
+                    )
                 })?;
 
                 let desc = PropertyDescriptor::builder()
@@ -690,7 +692,7 @@ impl GcObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.defineproperties
     #[inline]
-    pub fn define_properties(&mut self, props: Value, context: &mut Context) -> Result<()> {
+    pub fn define_properties(&mut self, props: JsValue, context: &mut Context) -> Result<()> {
         let props = &props.to_object(context)?;
         let keys = props.own_property_keys();
         let mut descriptors: Vec<(PropertyKey, PropertyDescriptor)> = Vec::new();
@@ -724,10 +726,10 @@ impl GcObject {
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-setprototypeof-v
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/setPrototypeOf
     #[inline]
-    pub fn __set_prototype_of__(&mut self, val: Value) -> bool {
+    pub fn __set_prototype_of__(&mut self, val: JsValue) -> bool {
         debug_assert!(val.is_object() || val.is_null());
         let current = self.__get_prototype_of__();
-        if Value::same_value(&current, &val) {
+        if JsValue::same_value(&current, &val) {
             return true;
         }
         if !self.__is_extensible__() {
@@ -738,7 +740,7 @@ impl GcObject {
         while !done {
             if p.is_null() {
                 done = true
-            } else if Value::same_value(&Value::from(self.clone()), &p) {
+            } else if JsValue::same_value(&JsValue::new(self.clone()), &p) {
                 return false;
             } else {
                 let prototype = p
@@ -762,7 +764,7 @@ impl GcObject {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/getPrototypeOf
     #[inline]
     #[track_caller]
-    pub fn __get_prototype_of__(&self) -> Value {
+    pub fn __get_prototype_of__(&self) -> JsValue {
         self.borrow().prototype.clone()
     }
 
@@ -837,7 +839,7 @@ impl GcObject {
         &self,
         element_types: &[Type],
         context: &mut Context,
-    ) -> Result<Vec<Value>> {
+    ) -> Result<Vec<JsValue>> {
         // 1. If elementTypes is not present, set elementTypes to « Undefined, Null, Boolean, String, Symbol, Number, BigInt, Object ».
         let types = if element_types.is_empty() {
             &[

@@ -3,7 +3,7 @@
 use crate::{
     builtins::Number,
     gc::{empty_trace, Finalize, Trace},
-    Context, Value,
+    Context, JsValue,
 };
 
 use std::{
@@ -162,7 +162,7 @@ impl JsBigInt {
     }
 
     #[inline]
-    pub fn pow(x: &Self, y: &Self, context: &mut Context) -> Result<Self, Value> {
+    pub fn pow(x: &Self, y: &Self, context: &mut Context) -> Result<Self, JsValue> {
         let y = if let Some(y) = y.inner.to_biguint() {
             y
         } else {
@@ -173,7 +173,7 @@ impl JsBigInt {
     }
 
     #[inline]
-    pub fn shift_right(x: &Self, y: &Self, context: &mut Context) -> Result<Self, Value> {
+    pub fn shift_right(x: &Self, y: &Self, context: &mut Context) -> Result<Self, JsValue> {
         if let Some(n) = y.inner.to_i32() {
             let inner = if n > 0 {
                 x.inner.as_ref().clone().shr(n as usize)
@@ -188,7 +188,7 @@ impl JsBigInt {
     }
 
     #[inline]
-    pub fn shift_left(x: &Self, y: &Self, context: &mut Context) -> Result<Self, Value> {
+    pub fn shift_left(x: &Self, y: &Self, context: &mut Context) -> Result<Self, JsValue> {
         if let Some(n) = y.inner.to_i32() {
             let inner = if n > 0 {
                 x.inner.as_ref().clone().shl(n as usize)

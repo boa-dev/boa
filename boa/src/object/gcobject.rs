@@ -16,7 +16,7 @@ use crate::{
     symbol::WellKnownSymbols,
     syntax::ast::node::RcStatementList,
     value::PreferredType,
-    Context, Executable, Result, Value,
+    Context, Executable, JsValue, Result,
 };
 use gc::{Finalize, Gc, GcCell, GcCellRef, GcCellRefMut, Trace};
 use serde_json::{map::Map, Value as JSONValue};
@@ -125,11 +125,11 @@ impl GcObject {
     #[track_caller]
     fn call_construct(
         &self,
-        this_target: &Value,
-        args: &[Value],
+        this_target: &JsValue,
+        args: &[JsValue],
         context: &mut Context,
         construct: bool,
-    ) -> Result<Value> {
+    ) -> Result<JsValue> {
         let this_function_object = self.clone();
         let mut has_parameter_expressions = false;
 
@@ -178,7 +178,7 @@ impl GcObject {
                                     .prototype()
                                     .into()
                             };
-                            Value::from(Object::create(proto))
+                            JsValue::new(Object::create(proto))
                         } else {
                             this_target.clone()
                         };
@@ -199,7 +199,7 @@ impl GcObject {
                             } else {
                                 BindingStatus::Uninitialized
                             },
-                            Value::undefined(),
+                            JsValue::undefined(),
                         );
 
                         let mut arguments_in_parameter_names = false;
@@ -249,7 +249,7 @@ impl GcObject {
                             }
 
                             let value = match args.get(i).cloned() {
-                                None | Some(Value::Undefined) => param
+                                None | Some(JsValue::Undefined) => param
                                     .init()
                                     .map(|init| init.run(context).ok())
                                     .flatten()
@@ -280,7 +280,7 @@ impl GcObject {
                                 } else {
                                     BindingStatus::Uninitialized
                                 },
-                                Value::undefined(),
+                                JsValue::undefined(),
                             );
                             context.push_environment(second_env);
                         }
@@ -298,7 +298,7 @@ impl GcObject {
                 function(this_target, args, context)
             }
             FunctionBody::BuiltInConstructor(function) => {
-                function(&Value::undefined(), args, context)
+                function(&JsValue::undefined(), args, context)
             }
             FunctionBody::BuiltInFunction(function) => function(this_target, args, context),
             FunctionBody::Closure(function) => (function)(this_target, args, context),
@@ -329,7 +329,7 @@ impl GcObject {
     // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-call-thisargument-argumentslist>
     #[track_caller]
     #[inline]
-    pub fn call(&self, this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub fn call(&self, this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
         self.call_construct(this, args, context, false)
     }
 
@@ -343,10 +343,10 @@ impl GcObject {
     #[inline]
     pub fn construct(
         &self,
-        args: &[Value],
-        new_target: &Value,
+        args: &[JsValue],
+        new_target: &JsValue,
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> Result<JsValue> {
         self.call_construct(new_target, args, context, true)
     }
 
@@ -372,7 +372,7 @@ impl GcObject {
         &self,
         context: &mut Context,
         hint: PreferredType,
-    ) -> Result<Value> {
+    ) -> Result<JsValue> {
         // 1. Assert: Type(O) is Object.
         //      Already is GcObject by type.
         // 2. Assert: Type(hint) is String and its value is either "string" or "number".
@@ -386,8 +386,8 @@ impl GcObject {
         if recursion_limiter.live {
             // we're in a recursive object, bail
             return Ok(match hint {
-                PreferredType::Number => Value::from(0),
-                PreferredType::String => Value::from(""),
+                PreferredType::Number => JsValue::new(0),
+                PreferredType::String => JsValue::new(""),
                 PreferredType::Default => unreachable!("checked type hint in step 2"),
             });
         }
@@ -403,10 +403,10 @@ impl GcObject {
         };
 
         // 5. For each name in methodNames in List order, do
-        let this = Value::from(self.clone());
+        let this = JsValue::new(self.clone());
         for name in &method_names {
             // a. Let method be ? Get(O, name).
-            let method: Value = this.get_field(*name, context)?;
+            let method: JsValue = this.get_field(*name, context)?;
             // b. If IsCallable(method) is true, then
             if method.is_function() {
                 // i. Let result be ? Call(method, O).
@@ -436,7 +436,7 @@ impl GcObject {
                 .collect();
             keys.sort_unstable();
             let mut arr: Vec<JSONValue> = Vec::with_capacity(keys.len());
-            let this = Value::from(self.clone());
+            let this = JsValue::new(self.clone());
             for key in keys {
                 let value = this.get_field(key, context)?;
                 if let Some(value) = value.to_json(context)? {
@@ -448,7 +448,7 @@ impl GcObject {
             Ok(Some(JSONValue::Array(arr)))
         } else {
             let mut new_obj = Map::new();
-            let this = Value::from(self.clone());
+            let this = JsValue::new(self.clone());
             let keys: Vec<PropertyKey> = self.borrow().properties.keys().collect();
             for k in keys {
                 let key = k.clone();
@@ -522,7 +522,7 @@ impl GcObject {
     /// Panics if the object is currently mutably borrowed.
     #[inline]
     #[track_caller]
-    pub fn prototype_instance(&self) -> Value {
+    pub fn prototype_instance(&self) -> JsValue {
         self.borrow().prototype_instance().clone()
     }
 
@@ -534,7 +534,7 @@ impl GcObject {
     /// or if th prototype is not an object or undefined.
     #[inline]
     #[track_caller]
-    pub fn set_prototype_instance(&self, prototype: Value) -> bool {
+    pub fn set_prototype_instance(&self, prototype: JsValue) -> bool {
         self.borrow_mut().set_prototype_instance(prototype)
     }
 
@@ -720,7 +720,7 @@ impl GcObject {
     pub(crate) fn ordinary_has_instance(
         &self,
         context: &mut Context,
-        value: &Value,
+        value: &JsValue,
     ) -> Result<bool> {
         // 1. If IsCallable(C) is false, return false.
         if !self.is_callable() {
@@ -771,9 +771,9 @@ impl GcObject {
     /// [spec]: https://tc39.es/ecma262/#sec-speciesconstructor
     pub(crate) fn species_constructor(
         &self,
-        default_constructor: Value,
+        default_constructor: JsValue,
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> Result<JsValue> {
         // 1. Assert: Type(O) is Object.
 
         // 2. Let C be ? Get(O, "constructor").

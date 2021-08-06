@@ -1,4 +1,4 @@
-use crate::{vm::Opcode, JsString, Value};
+use crate::{vm::Opcode, JsString, JsValue};
 
 use std::{convert::TryInto, fmt::Write, mem::size_of};
 
@@ -22,7 +22,7 @@ pub struct CodeBlock {
     pub(crate) code: Vec<u8>,
 
     /// Literals
-    pub(crate) literals: Vec<Value>,
+    pub(crate) literals: Vec<JsValue>,
 
     /// Variables names
     pub(crate) names: Vec<JsString>,

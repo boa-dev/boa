@@ -1,4 +1,4 @@
-use super::Value;
+use super::JsValue;
 
 /// Possible types of values as defined at <https://tc39.es/ecma262/#sec-typeof-operator>.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -13,7 +13,7 @@ pub enum Type {
     Object,
 }
 
-impl Value {
+impl JsValue {
     /// Get the type of a value
     ///
     /// This is the abstract operation Type(v), as described in

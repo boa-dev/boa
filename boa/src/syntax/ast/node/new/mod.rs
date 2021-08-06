@@ -3,7 +3,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{Call, Node},
-    value::Value,
+    value::JsValue,
     BoaProfiler, Context, Result,
 };
 use std::fmt;
@@ -48,7 +48,7 @@ impl New {
 }
 
 impl Executable for New {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<JsValue> {
         let _timer = BoaProfiler::global().start_event("New", "exec");
 
         let func_object = self.expr().run(context)?;
@@ -72,7 +72,9 @@ impl Executable for New {
         }
 
         match func_object {
-            Value::Object(ref object) => object.construct(&v_args, &object.clone().into(), context),
+            JsValue::Object(ref object) => {
+                object.construct(&v_args, &object.clone().into(), context)
+            }
             _ => context
                 .throw_type_error(format!("{} is not a constructor", self.expr().to_string(),)),
         }

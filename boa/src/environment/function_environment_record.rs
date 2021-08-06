@@ -18,7 +18,7 @@ use crate::{
     },
     gc::{empty_trace, Finalize, Trace},
     object::GcObject,
-    Context, Result, Value,
+    Context, JsValue, Result,
 };
 
 /// Different binding status for `this`.
@@ -42,7 +42,7 @@ unsafe impl Trace for BindingStatus {
 pub struct FunctionEnvironmentRecord {
     pub declarative_record: DeclarativeEnvironmentRecord,
     /// This is the this value used for this invocation of the function.
-    pub this_value: Value,
+    pub this_value: JsValue,
     /// If the value is "lexical", this is an ArrowFunction and does not have a local this value.
     pub this_binding_status: BindingStatus,
     /// The function object whose invocation caused this Environment Record to be created.
@@ -50,28 +50,28 @@ pub struct FunctionEnvironmentRecord {
     /// If the associated function has super property accesses and is not an ArrowFunction,
     /// `[[HomeObject]]` is the object that the function is bound to as a method.
     /// The default value for `[[HomeObject]]` is undefined.
-    pub home_object: Value,
+    pub home_object: JsValue,
     /// If this Environment Record was created by the `[[Construct]]` internal method,
     /// `[[NewTarget]]` is the value of the `[[Construct]]` newTarget parameter.
     /// Otherwise, its value is undefined.
-    pub new_target: Value,
+    pub new_target: JsValue,
 }
 
 impl FunctionEnvironmentRecord {
     pub fn new(
         f: GcObject,
-        this: Option<Value>,
+        this: Option<JsValue>,
         outer: Option<Environment>,
         binding_status: BindingStatus,
-        new_target: Value,
+        new_target: JsValue,
     ) -> FunctionEnvironmentRecord {
         let mut func_env = FunctionEnvironmentRecord {
             declarative_record: DeclarativeEnvironmentRecord::new(outer), // the outer environment will come from Environment set as a private property of F - https://tc39.es/ecma262/#sec-ecmascript-function-objects
             function: f,
             this_binding_status: binding_status,
-            home_object: Value::undefined(),
+            home_object: JsValue::undefined(),
             new_target,
-            this_value: Value::undefined(),
+            this_value: JsValue::undefined(),
         };
         // If a `this` value has been passed, bind it to the environment
         if let Some(v) = this {
@@ -80,7 +80,7 @@ impl FunctionEnvironmentRecord {
         func_env
     }
 
-    pub fn bind_this_value(&mut self, value: Value) -> Result<Value> {
+    pub fn bind_this_value(&mut self, value: JsValue) -> Result<JsValue> {
         match self.this_binding_status {
             // You can not bind an arrow function, their `this` value comes from the lexical scope above
             BindingStatus::Lexical => {
@@ -99,10 +99,10 @@ impl FunctionEnvironmentRecord {
         }
     }
 
-    pub fn get_super_base(&self) -> Value {
+    pub fn get_super_base(&self) -> JsValue {
         let home = &self.home_object;
         if home.is_undefined() {
-            Value::Undefined
+            JsValue::undefined()
         } else {
             assert!(home.is_object());
             home.as_object()
@@ -138,7 +138,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
             .create_immutable_binding(name, strict, context)
     }
 
-    fn initialize_binding(&self, name: &str, value: Value, context: &mut Context) -> Result<()> {
+    fn initialize_binding(&self, name: &str, value: JsValue, context: &mut Context) -> Result<()> {
         self.declarative_record
             .initialize_binding(name, value, context)
     }
@@ -146,7 +146,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
     fn set_mutable_binding(
         &self,
         name: &str,
-        value: Value,
+        value: JsValue,
         strict: bool,
         context: &mut Context,
     ) -> Result<()> {
@@ -154,7 +154,12 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
             .set_mutable_binding(name, value, strict, context)
     }
 
-    fn get_binding_value(&self, name: &str, strict: bool, context: &mut Context) -> Result<Value> {
+    fn get_binding_value(
+        &self,
+        name: &str,
+        strict: bool,
+        context: &mut Context,
+    ) -> Result<JsValue> {
         self.declarative_record
             .get_binding_value(name, strict, context)
     }
@@ -167,7 +172,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         !matches!(self.this_binding_status, BindingStatus::Lexical)
     }
 
-    fn get_this_binding(&self, context: &mut Context) -> Result<Value> {
+    fn get_this_binding(&self, context: &mut Context) -> Result<JsValue> {
         match self.this_binding_status {
             BindingStatus::Lexical => {
                 panic!("There is no this for a lexical function record");

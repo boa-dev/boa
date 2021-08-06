@@ -4,7 +4,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Identifier, Node},
-    Context, Result, Value,
+    Context, JsValue, Result,
 };
 use std::fmt;
 
@@ -90,7 +90,7 @@ pub enum DeclarationList {
 }
 
 impl Executable for DeclarationList {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<JsValue> {
         for decl in self.as_ref() {
             use DeclarationList::*;
             let val = match decl.init() {
@@ -98,7 +98,7 @@ impl Executable for DeclarationList {
                     return context.throw_syntax_error("missing = in const declaration")
                 }
                 Some(init) => init.run(context)?,
-                None => Value::undefined(),
+                None => JsValue::undefined(),
             };
 
             if self.is_var() && context.has_binding(decl.name()) {
@@ -129,7 +129,7 @@ impl Executable for DeclarationList {
             context.initialize_binding(decl.name(), val)?;
         }
 
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 }
 

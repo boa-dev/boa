@@ -1,4 +1,4 @@
-use crate::{forward, Context, Value};
+use crate::{forward, Context, JsValue};
 
 #[test]
 fn object_create_with_regular_object() {
@@ -218,7 +218,7 @@ fn get_own_property_descriptor_1_arg_returns_undefined() {
         let obj = {a: 2};
         Object.getOwnPropertyDescriptor(obj)
     "#;
-    assert_eq!(context.eval(code).unwrap(), Value::undefined());
+    assert_eq!(context.eval(code).unwrap(), JsValue::undefined());
 }
 
 #[test]
@@ -287,5 +287,5 @@ fn object_is_prototype_of() {
         Object.prototype.isPrototypeOf(String.prototype)
     "#;
 
-    assert_eq!(context.eval(init).unwrap(), Value::boolean(true));
+    assert_eq!(context.eval(init).unwrap(), JsValue::new(true));
 }

@@ -1,4 +1,4 @@
-use crate::{forward, forward_val, Context, Value};
+use crate::{forward, forward_val, Context, JsValue};
 
 /// Test the correct type is returned from call and construct
 #[allow(clippy::unwrap_used)]
@@ -58,7 +58,7 @@ fn instances_have_correct_proto_set() {
     let bool_instance = forward_val(&mut context, "boolInstance").expect("value expected");
     let bool_prototype = forward_val(&mut context, "boolProto").expect("value expected");
 
-    assert!(Value::same_value(
+    assert!(JsValue::same_value(
         &bool_instance.as_object().unwrap().prototype_instance(),
         &bool_prototype
     ));

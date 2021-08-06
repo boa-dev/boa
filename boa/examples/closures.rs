@@ -1,6 +1,6 @@
-use boa::{Context, JsString, Value};
+use boa::{Context, JsString, JsValue};
 
-fn main() -> Result<(), Value> {
+fn main() -> Result<(), JsValue> {
     let mut context = Context::new();
 
     let variable = JsString::new("I am a captured variable");

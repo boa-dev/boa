@@ -17,13 +17,13 @@ use crate::{
     object::{GcObject, ObjectData},
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, JsString, Result, Value,
+    BoaProfiler, Context, JsString, JsValue, Result,
 };
 
 // TODO: See todos in create_regexp_string_iterator and next.
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct RegExpStringIterator {
-    matcher: Value,
+    matcher: JsValue,
     string: JsString,
     global: bool,
     unicode: bool,
@@ -32,7 +32,7 @@ pub struct RegExpStringIterator {
 
 // TODO: See todos in create_regexp_string_iterator and next.
 impl RegExpStringIterator {
-    fn new(matcher: Value, string: JsString, global: bool, unicode: bool) -> Self {
+    fn new(matcher: JsValue, string: JsString, global: bool, unicode: bool) -> Self {
         Self {
             matcher,
             string,
@@ -49,12 +49,12 @@ impl RegExpStringIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createregexpstringiterator
     pub(crate) fn create_regexp_string_iterator(
-        matcher: &Value,
+        matcher: &JsValue,
         string: JsString,
         global: bool,
         unicode: bool,
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> Result<JsValue> {
         // TODO: Implement this with closures and generators.
         //       For now all values of the closure are stored in RegExpStringIterator and the actual closure execution is in `.next()`.
 
@@ -66,7 +66,7 @@ impl RegExpStringIterator {
         //    and fullUnicode and performs the following steps when called:
 
         // 5. Return ! CreateIteratorFromClosure(closure, "%RegExpStringIteratorPrototype%", %RegExpStringIteratorPrototype%).
-        let regexp_string_iterator = Value::new_object(context);
+        let regexp_string_iterator = JsValue::new_object(context);
         regexp_string_iterator.set_data(ObjectData::RegExpStringIterator(Self::new(
             matcher.clone(),
             string,
@@ -86,12 +86,16 @@ impl RegExpStringIterator {
         Ok(regexp_string_iterator)
     }
 
-    pub fn next(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        if let Value::Object(ref object) = this {
+    pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+        if let JsValue::Object(ref object) = this {
             let mut object = object.borrow_mut();
             if let Some(iterator) = object.as_regexp_string_iterator_mut() {
                 if iterator.completed {
-                    return Ok(create_iter_result_object(context, Value::undefined(), true));
+                    return Ok(create_iter_result_object(
+                        context,
+                        JsValue::undefined(),
+                        true,
+                    ));
                 }
 
                 // TODO: This is the code that should be created as a closure in create_regexp_string_iterator.
@@ -137,7 +141,11 @@ impl RegExpStringIterator {
                 } else {
                     // ii. If match is null, return undefined.
                     iterator.completed = true;
-                    Ok(create_iter_result_object(context, Value::undefined(), true))
+                    Ok(create_iter_result_object(
+                        context,
+                        JsValue::undefined(),
+                        true,
+                    ))
                 }
             } else {
                 context.throw_type_error("`this` is not a RegExpStringIterator")
@@ -153,7 +161,7 @@ impl RegExpStringIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
-    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: Value) -> GcObject {
+    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: JsValue) -> GcObject {
         let _timer = BoaProfiler::global().start_event("RegExp String Iterator", "init");
 
         // Create prototype

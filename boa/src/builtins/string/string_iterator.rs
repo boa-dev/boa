@@ -6,25 +6,25 @@ use crate::{
     object::{GcObject, ObjectData},
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsValue, Result,
 };
 
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct StringIterator {
-    string: Value,
+    string: JsValue,
     next_index: i32,
 }
 
 impl StringIterator {
-    fn new(string: Value) -> Self {
+    fn new(string: JsValue) -> Self {
         Self {
             string,
             next_index: 0,
         }
     }
 
-    pub fn create_string_iterator(context: &mut Context, string: Value) -> Result<Value> {
-        let string_iterator = Value::new_object(context);
+    pub fn create_string_iterator(context: &mut Context, string: JsValue) -> Result<JsValue> {
+        let string_iterator = JsValue::new_object(context);
         string_iterator.set_data(ObjectData::StringIterator(Self::new(string)));
         string_iterator
             .as_object()
@@ -33,19 +33,27 @@ impl StringIterator {
         Ok(string_iterator)
     }
 
-    pub fn next(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        if let Value::Object(ref object) = this {
+    pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+        if let JsValue::Object(ref object) = this {
             let mut object = object.borrow_mut();
             if let Some(string_iterator) = object.as_string_iterator_mut() {
                 if string_iterator.string.is_undefined() {
-                    return Ok(create_iter_result_object(context, Value::undefined(), true));
+                    return Ok(create_iter_result_object(
+                        context,
+                        JsValue::undefined(),
+                        true,
+                    ));
                 }
                 let native_string = string_iterator.string.to_string(context)?;
                 let len = native_string.encode_utf16().count() as i32;
                 let position = string_iterator.next_index;
                 if position >= len {
-                    string_iterator.string = Value::undefined();
-                    return Ok(create_iter_result_object(context, Value::undefined(), true));
+                    string_iterator.string = JsValue::undefined();
+                    return Ok(create_iter_result_object(
+                        context,
+                        JsValue::undefined(),
+                        true,
+                    ));
                 }
                 let (_, code_unit_count, _) =
                     code_point_at(native_string, position).expect("Invalid code point position");
@@ -70,7 +78,7 @@ impl StringIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
-    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: Value) -> GcObject {
+    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: JsValue) -> GcObject {
         let _timer = BoaProfiler::global().start_event("String Iterator", "init");
 
         // Create prototype

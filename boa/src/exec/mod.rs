@@ -3,11 +3,11 @@
 #[cfg(test)]
 mod tests;
 
-use crate::{Context, Result, Value};
+use crate::{Context, JsValue, Result};
 
 pub trait Executable {
     /// Runs this executable in the given context.
-    fn run(&self, context: &mut Context) -> Result<Value>;
+    fn run(&self, context: &mut Context) -> Result<JsValue>;
 }
 
 #[derive(Debug, Eq, PartialEq)]
