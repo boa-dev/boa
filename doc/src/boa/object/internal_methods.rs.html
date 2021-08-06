@@ -918,18 +918,6 @@
 <span id="918">918</span>
 <span id="919">919</span>
 <span id="920">920</span>
-<span id="921">921</span>
-<span id="922">922</span>
-<span id="923">923</span>
-<span id="924">924</span>
-<span id="925">925</span>
-<span id="926">926</span>
-<span id="927">927</span>
-<span id="928">928</span>
-<span id="929">929</span>
-<span id="930">930</span>
-<span id="931">931</span>
-<span id="932">932</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module defines the object internal methods.</span>
 <span class="doccomment">//!</span>
@@ -1459,11 +1447,16 @@
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
                 }
 
-                <span class="kw">let</span> <span class="ident">max_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">index_property_keys</span>().<span class="ident">max</span>().<span class="ident">copied</span>();
+                <span class="kw">let</span> <span class="ident">max_value</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">borrow</span>()
+                    .<span class="ident">properties</span>
+                    .<span class="ident">index_property_keys</span>()
+                    .<span class="ident">max</span>()
+                    .<span class="ident">copied</span>();
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">index</span>) <span class="op">=</span> <span class="ident">max_value</span> {
                     <span class="kw">while</span> <span class="ident">index</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">new_len</span> {
-                        <span class="kw">let</span> <span class="ident">contains_index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">indexed_properties</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">index</span>);
+                        <span class="kw">let</span> <span class="ident">contains_index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">properties</span>.<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">index</span>.<span class="ident">into</span>());
                         <span class="kw">if</span> <span class="ident">contains_index</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">__delete__</span>(<span class="kw-2">&amp;</span><span class="ident">index</span>.<span class="ident">into</span>()) {
                             <span class="ident">new_len_desc</span> <span class="op">=</span> <span class="ident">new_len_desc</span>.<span class="ident">value</span>(<span class="ident">index</span> <span class="op">+</span> <span class="number">1</span>);
                             <span class="kw">if</span> <span class="op">!</span><span class="ident">new_writable</span> {
@@ -1594,11 +1587,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ordinary_get_own_property</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">property</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">key</span> {
-            <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">object</span>.<span class="ident">indexed_properties</span>.<span class="ident">get</span>(<span class="ident">index</span>),
-            <span class="ident">PropertyKey::String</span>(<span class="kw-2">ref</span> <span class="ident">st</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">object</span>.<span class="ident">string_properties</span>.<span class="ident">get</span>(<span class="ident">st</span>),
-            <span class="ident">PropertyKey::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">object</span>.<span class="ident">symbol_properties</span>.<span class="ident">get</span>(<span class="ident">symbol</span>),
-        };
+        <span class="kw">let</span> <span class="ident">property</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">properties</span>.<span class="ident">get</span>(<span class="ident">key</span>);
 
         <span class="ident">property</span>.<span class="ident">cloned</span>()
     }
@@ -1612,7 +1601,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">own_property_keys</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">keys</span>().<span class="ident">collect</span>()
+        <span class="self">self</span>.<span class="ident">borrow</span>().<span class="ident">properties</span>.<span class="ident">keys</span>().<span class="ident">collect</span>()
     }
 
     <span class="doccomment">/// The abstract operation ObjectDefineProperties</span>
@@ -1828,26 +1817,13 @@
         <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
         <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="ident">property</span> <span class="op">=</span> <span class="ident">property</span>.<span class="ident">into</span>();
-        <span class="kw">match</span> <span class="ident">key</span>.<span class="ident">into</span>() {
-            <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">indexed_properties</span>.<span class="ident">insert</span>(<span class="ident">index</span>, <span class="ident">property</span>),
-            <span class="ident">PropertyKey::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">string_properties</span>.<span class="ident">insert</span>(<span class="ident">string</span>.<span class="ident">clone</span>(), <span class="ident">property</span>)
-            }
-            <span class="ident">PropertyKey::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                <span class="self">self</span>.<span class="ident">symbol_properties</span>.<span class="ident">insert</span>(<span class="ident">symbol</span>.<span class="ident">clone</span>(), <span class="ident">property</span>)
-            }
-        }
+        <span class="self">self</span>.<span class="ident">properties</span>.<span class="ident">insert</span>(<span class="ident">key</span>.<span class="ident">into</span>(), <span class="ident">property</span>.<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Helper function for property removal.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">key</span> {
-            <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">indexed_properties</span>.<span class="ident">remove</span>(<span class="ident">index</span>),
-            <span class="ident">PropertyKey::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">string_properties</span>.<span class="ident">remove</span>(<span class="ident">string</span>),
-            <span class="ident">PropertyKey::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">symbol_properties</span>.<span class="ident">remove</span>(<span class="ident">symbol</span>),
-        }
+        <span class="self">self</span>.<span class="ident">properties</span>.<span class="ident">remove</span>(<span class="ident">key</span>)
     }
 
     <span class="doccomment">/// Inserts a field in the object `properties` without checking if it&#39;s writable.</span>

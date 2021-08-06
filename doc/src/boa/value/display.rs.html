@@ -289,6 +289,7 @@
 <span id="289">289</span>
 <span id="290">290</span>
 <span id="291">291</span>
+<span id="292">292</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
@@ -365,6 +366,7 @@
     (<span class="kw">impl</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">v</span>
             .<span class="ident">borrow</span>()
+            .<span class="ident">properties</span>()
             .<span class="ident">iter</span>()
             .<span class="ident">map</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">f</span>)
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>()
