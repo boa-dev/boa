@@ -152,11 +152,6 @@
 <span id="152">152</span>
 <span id="153">153</span>
 <span id="154">154</span>
-<span id="155">155</span>
-<span id="156">156</span>
-<span id="157">157</span>
-<span id="158">158</span>
-<span id="159">159</span>
 </pre><pre class="rust">
 <span class="doccomment">/*!
 This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.
@@ -173,7 +168,6 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
     <span class="ident">html_favicon_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/jasonwilliams/boa/master/assets/logo.svg&quot;</span>
 )]</span>
 <span class="attribute">#![<span class="ident">deny</span>(
-    <span class="ident">unused_qualifications</span>,
     <span class="ident">clippy::all</span>,
     <span class="ident">unused_qualifications</span>,
     <span class="ident">unused_import_braces</span>,
@@ -203,8 +197,6 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 )]</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bigint</span>;
-<span class="comment">// builtins module has a lot of built-in functions that need unnecessary_wraps</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">builtins</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">class</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">context</span>;
@@ -217,8 +209,6 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">realm</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">string</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">symbol</span>;
-<span class="comment">// syntax module has a lot of acronyms</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::upper_case_acronyms</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">syntax</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">value</span>;
 
