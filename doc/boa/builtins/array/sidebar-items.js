@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["f64_to_isize",""],["f64_to_usize",""],["interror_to_value",""]],"mod":[["array_iterator",""]],"struct":[["Array","JavaScript `Array` built-in implementation."]]});
+initSidebarItems({"mod":[["array_iterator",""]],"struct":[["Array","JavaScript `Array` built-in implementation."]]});

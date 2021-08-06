@@ -212,6 +212,10 @@
 <span id="212">212</span>
 <span id="213">213</span>
 <span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
@@ -220,7 +224,6 @@
         <span class="ident">SetIterator</span>,
     },
     <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">ObjectInitializer</span>},
-    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
@@ -302,13 +305,18 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Generates an object supporting the IteratorResult interface.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_iter_result_object</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">value</span>: <span class="ident">Value</span>, <span class="ident">done</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-    <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">Value::new_object</span>(<span class="ident">context</span>);
-    <span class="comment">// TODO: Fix attributes of value and done</span>
-    <span class="kw">let</span> <span class="ident">value_property</span> <span class="op">=</span> <span class="ident">DataDescriptor::new</span>(<span class="ident">value</span>, <span class="ident">Attribute::all</span>());
-    <span class="kw">let</span> <span class="ident">done_property</span> <span class="op">=</span> <span class="ident">DataDescriptor::new</span>(<span class="ident">done</span>, <span class="ident">Attribute::all</span>());
-    <span class="ident">object</span>.<span class="ident">set_property</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">value_property</span>);
-    <span class="ident">object</span>.<span class="ident">set_property</span>(<span class="string">&quot;done&quot;</span>, <span class="ident">done_property</span>);
-    <span class="ident">object</span>
+    <span class="comment">// 1. Assert: Type(done) is Boolean.</span>
+    <span class="comment">// 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).</span>
+    <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
+
+    <span class="comment">// 3. Perform ! CreateDataPropertyOrThrow(obj, &quot;value&quot;, value).</span>
+    <span class="ident">obj</span>.<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">value</span>, <span class="ident">context</span>)
+        .<span class="ident">unwrap</span>();
+    <span class="comment">// 4. Perform ! CreateDataPropertyOrThrow(obj, &quot;done&quot;, done).</span>
+    <span class="ident">obj</span>.<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;done&quot;</span>, <span class="ident">done</span>, <span class="ident">context</span>)
+        .<span class="ident">unwrap</span>();
+    <span class="comment">// 5. Return obj.</span>
+    <span class="ident">obj</span>.<span class="ident">into</span>()
 }
 
 <span class="doccomment">/// Get an iterator record</span>

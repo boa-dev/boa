@@ -1051,6 +1051,27 @@
 <span id="1051">1051</span>
 <span id="1052">1052</span>
 <span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -1319,7 +1340,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// &lt;https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal&gt; would turn `extensible` to `false`</span>
     <span class="doccomment">/// &lt;https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze&gt; would also turn `extensible` to `false`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_extensible</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_extensible</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="bool-val">true</span>
     }
 
@@ -1476,7 +1497,7 @@
     <span class="doccomment">/// Removes a property from a Value object.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// It will return a boolean based on if the value was removed, if there was no value to remove false is returned.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_property</span><span class="op">&lt;</span><span class="ident">Key</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">Key</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">remove_property</span><span class="op">&lt;</span><span class="ident">Key</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">Key</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
     <span class="kw">where</span>
         <span class="ident">Key</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
     {
@@ -1486,7 +1507,7 @@
     <span class="doccomment">/// Resolve the property in the object.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A copy of the Property is returned.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_property</span><span class="op">&lt;</span><span class="ident">Key</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">Key</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_property</span><span class="op">&lt;</span><span class="ident">Key</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">Key</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">Key</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
     {
@@ -1507,7 +1528,7 @@
 
     <span class="doccomment">/// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn&#39;t exist</span>
     <span class="doccomment">/// get_field receives a Property from get_prop(). It should then return the `[[Get]]` result value if that&#39;s set, otherwise fall back to `[[Value]]`</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_field</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_field</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
     {
@@ -1522,7 +1543,7 @@
 
     <span class="doccomment">/// Check to see if the Value has the field, mainly used by environment records.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_field</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">has_field</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span>
     <span class="kw">where</span>
         <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
     {
@@ -1541,7 +1562,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-set-o-p-v-throw</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_field</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_field</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">key</span>: <span class="ident">K</span>,
         <span class="ident">value</span>: <span class="ident">V</span>,
@@ -1588,7 +1609,7 @@
 
     <span class="doccomment">/// Set the property in the value.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_property</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">property</span>: <span class="ident">P</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_property</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">property</span>: <span class="ident">P</span>)
     <span class="kw">where</span>
         <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
         <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
@@ -2014,6 +2035,27 @@
             } <span class="kw">else</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">integer</span>))
             }
+        }
+    }
+
+    <span class="doccomment">/// Check if it is an array.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isarray</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. If Type(argument) is not Object, return false.</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_object</span>() {
+            <span class="comment">// 2. If argument is an Array exotic object, return true.</span>
+            <span class="comment">//     a. If argument.[[ProxyHandler]] is null, throw a TypeError exception.</span>
+            <span class="comment">// 3. If argument is a Proxy exotic object, then</span>
+            <span class="comment">//     b. Let target be argument.[[ProxyTarget]].</span>
+            <span class="comment">//     c. Return ? IsArray(target).</span>
+            <span class="comment">// 4. Return false.</span>
+            <span class="prelude-val">Ok</span>(<span class="ident">object</span>.<span class="ident">is_array</span>())
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
         }
     }
 }

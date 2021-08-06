@@ -501,6 +501,16 @@
 <span id="501">501</span>
 <span id="502">502</span>
 <span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the Property Descriptor.</span>
 <span class="doccomment">//!</span>
@@ -948,6 +958,16 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="ident">value</span>) {
+            <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>)
+        } <span class="kw">else</span> {
+            <span class="ident">PropertyKey::String</span>(<span class="ident">JsString::from</span>(<span class="ident">value</span>.<span class="ident">to_string</span>()))
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">i64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="ident">value</span>) {
             <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>)
         } <span class="kw">else</span> {
