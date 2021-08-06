@@ -12,7 +12,7 @@ use crate::{
         Number,
     },
     object::{GcObject, Object, ObjectData},
-    property::{Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
+    property::{PropertyDescriptor, PropertyKey},
     symbol::{JsSymbol, WellKnownSymbols},
     BoaProfiler, Context, JsBigInt, JsString, Result,
 };
@@ -190,16 +190,21 @@ impl Value {
                 for (idx, json) in vs.into_iter().enumerate() {
                     new_obj.set_property(
                         idx.to_string(),
-                        DataDescriptor::new(
-                            Self::from_json(json, context),
-                            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
-                        ),
+                        PropertyDescriptor::builder()
+                            .value(Self::from_json(json, context))
+                            .writable(true)
+                            .enumerable(true)
+                            .configurable(true),
                     );
                 }
                 new_obj.set_property(
                     "length",
                     // TODO: Fix length attribute
-                    DataDescriptor::new(length, Attribute::all()),
+                    PropertyDescriptor::builder()
+                        .value(length)
+                        .writable(true)
+                        .enumerable(true)
+                        .configurable(true),
                 );
                 new_obj
             }
@@ -209,10 +214,11 @@ impl Value {
                     let value = Self::from_json(json, context);
                     new_obj.set_property(
                         key,
-                        DataDescriptor::new(
-                            value,
-                            Attribute::WRITABLE | Attribute::ENUMERABLE | Attribute::CONFIGURABLE,
-                        ),
+                        PropertyDescriptor::builder()
+                            .value(value)
+                            .writable(true)
+                            .enumerable(true)
+                            .configurable(true),
                     );
                 }
                 new_obj
@@ -704,9 +710,12 @@ impl Value {
                 ));
                 // Make sure the correct length is set on our new string object
                 object.insert_property(
-                    PropertyKey::String("length".into()),
-                    Value::from(string.encode_utf16().count()),
-                    Attribute::NON_ENUMERABLE,
+                    "length",
+                    PropertyDescriptor::builder()
+                        .value(string.encode_utf16().count())
+                        .writable(false)
+                        .enumerable(false)
+                        .configurable(false),
                 );
                 Ok(object)
             }
@@ -925,10 +934,11 @@ impl Value {
 
     #[inline]
     pub fn to_property_descriptor(&self, context: &mut Context) -> Result<PropertyDescriptor> {
-        if let Self::Object(ref object) = self {
-            object.to_property_descriptor(context)
-        } else {
-            Err(context.construct_type_error("Property description must be an object"))
+        // 1. If Type(Obj) is not Object, throw a TypeError exception.
+        match self {
+            Value::Object(ref obj) => obj.to_property_descriptor(context),
+            _ => Err(context
+                .construct_type_error("Cannot construct a property descriptor from a non-object")),
         }
     }
 

@@ -12,7 +12,7 @@ use crate::{
         function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
         lexical_environment::Environment,
     },
-    property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor, PropertyKey},
+    property::{PropertyDescriptor, PropertyKey},
     symbol::WellKnownSymbols,
     syntax::ast::node::RcStatementList,
     value::PreferredType,
@@ -456,114 +456,6 @@ impl GcObject {
         }
     }
 
-    /// Convert the object to a `PropertyDescriptor`
-    ///
-    /// # Panics
-    ///
-    /// Panics if the object is currently mutably borrowed.
-    pub fn to_property_descriptor(&self, context: &mut Context) -> Result<PropertyDescriptor> {
-        // 1. If Type(Obj) is not Object, throw a TypeError exception.
-        // 2. Let desc be a new Property Descriptor that initially has no fields.
-
-        let mut attribute = Attribute::empty();
-
-        // 3. Let hasEnumerable be ? HasProperty(Obj, "enumerable").
-        let has_enumerable = self.has_property("enumerable", context)?;
-        // 4. If hasEnumerable is true, then
-        //     a. Let enumerable be ! ToBoolean(? Get(Obj, "enumerable")).
-        //     b. Set desc.[[Enumerable]] to enumerable.
-        if has_enumerable && self.get("enumerable", context)?.to_boolean() {
-            attribute |= Attribute::ENUMERABLE;
-        }
-
-        // 5. Let hasConfigurable be ? HasProperty(Obj, "configurable").
-        let has_configurable = self.has_property("configurable", context)?;
-        // 6. If hasConfigurable is true, then
-        //     a. Let configurable be ! ToBoolean(? Get(Obj, "configurable")).
-        //     b. Set desc.[[Configurable]] to configurable.
-        if has_configurable && self.get("configurable", context)?.to_boolean() {
-            attribute |= Attribute::CONFIGURABLE;
-        }
-
-        let mut value = None;
-        // 7. Let hasValue be ? HasProperty(Obj, "value").
-        let has_value = self.has_property("value", context)?;
-        // 8. If hasValue is true, then
-        if has_value {
-            // a. Let value be ? Get(Obj, "value").
-            // b. Set desc.[[Value]] to value.
-            value = Some(self.get("value", context)?);
-        }
-
-        // 9. Let hasWritable be ? HasProperty(Obj, ).
-        let has_writable = self.has_property("writable", context)?;
-        // 10. If hasWritable is true, then
-        if has_writable {
-            // a. Let writable be ! ToBoolean(? Get(Obj, "writable")).
-            if self.get("writable", context)?.to_boolean() {
-                // b. Set desc.[[Writable]] to writable.
-                attribute |= Attribute::WRITABLE;
-            }
-        }
-
-        // 11. Let hasGet be ? HasProperty(Obj, "get").
-        let has_get = self.has_property("get", context)?;
-        // 12. If hasGet is true, then
-        let mut get = None;
-        if has_get {
-            // a. Let getter be ? Get(Obj, "get").
-            let getter = self.get("get", context)?;
-            // b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.
-            match getter {
-                Value::Object(ref object) if object.is_callable() => {
-                    // c. Set desc.[[Get]] to getter.
-                    get = Some(object.clone());
-                }
-                _ => {
-                    return Err(
-                        context.construct_type_error("Property descriptor getter must be callable")
-                    );
-                }
-            }
-        }
-
-        // 13. Let hasSet be ? HasProperty(Obj, "set").
-        let has_set = self.has_property("set", context)?;
-        // 14. If hasSet is true, then
-        let mut set = None;
-        if has_set {
-            // 14.a. Let setter be ? Get(Obj, "set").
-            let setter = self.get("set", context)?;
-            // 14.b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.
-            match setter {
-                Value::Object(ref object) if object.is_callable() => {
-                    // 14.c. Set desc.[[Set]] to setter.
-                    set = Some(object.clone());
-                }
-                _ => {
-                    return Err(
-                        context.construct_type_error("Property descriptor setter must be callable")
-                    );
-                }
-            };
-        }
-
-        // 15. If desc.[[Get]] is present or desc.[[Set]] is present, then
-        // 16. Return desc.
-        if get.is_some() || set.is_some() {
-            // 15.a. If desc.[[Value]] is present or desc.[[Writable]] is present, throw a TypeError exception.
-            if value.is_some() || has_writable {
-                return Err(context.construct_type_error("Invalid property descriptor. Cannot both specify accessors and a value or writable attribute"));
-            }
-
-            Ok(AccessorDescriptor::new(get, set, attribute).into())
-        } else if let Some(v) = value {
-            Ok(DataDescriptor::new(v, attribute).into())
-        } else {
-            Ok(DataDescriptor::new_without_value(attribute).into())
-        }
-    }
-
     /// Return `true` if it is a native object and the native type is `T`.
     ///
     /// # Panics
@@ -911,6 +803,95 @@ impl GcObject {
         } else {
             context.throw_type_error("property 'constructor' is not an object")
         }
+    }
+
+    pub fn to_property_descriptor(&self, context: &mut Context) -> Result<PropertyDescriptor> {
+        // 1 is implemented on the method `to_property_descriptor` of value
+
+        // 2. Let desc be a new Property Descriptor that initially has no fields.
+        let mut desc = PropertyDescriptor::builder();
+
+        // 3. Let hasEnumerable be ? HasProperty(Obj, "enumerable").
+        // 4. If hasEnumerable is true, then ...
+        if self.has_property("enumerable", context)? {
+            // a. Let enumerable be ! ToBoolean(? Get(Obj, "enumerable")).
+            // b. Set desc.[[Enumerable]] to enumerable.
+            desc = desc.enumerable(self.get("enumerable", context)?.to_boolean());
+        }
+
+        // 5. Let hasConfigurable be ? HasProperty(Obj, "configurable").
+        // 6. If hasConfigurable is true, then ...
+        if self.has_property("configurable", context)? {
+            // a. Let configurable be ! ToBoolean(? Get(Obj, "configurable")).
+            // b. Set desc.[[Configurable]] to configurable.
+            desc = desc.configurable(self.get("configurable", context)?.to_boolean());
+        }
+
+        // 7. Let hasValue be ? HasProperty(Obj, "value").
+        // 8. If hasValue is true, then ...
+        if self.has_property("value", context)? {
+            // a. Let value be ? Get(Obj, "value").
+            // b. Set desc.[[Value]] to value.
+            desc = desc.value(self.get("value", context)?);
+        }
+
+        // 9. Let hasWritable be ? HasProperty(Obj, ).
+        // 10. If hasWritable is true, then ...
+        if self.has_property("writable", context)? {
+            // a. Let writable be ! ToBoolean(? Get(Obj, "writable")).
+            // b. Set desc.[[Writable]] to writable.
+            desc = desc.writable(self.get("writable", context)?.to_boolean());
+        }
+
+        // 11. Let hasGet be ? HasProperty(Obj, "get").
+        // 12. If hasGet is true, then
+        let get = if self.has_property("get", context)? {
+            // a. Let getter be ? Get(Obj, "get").
+            let getter = self.get("get", context)?;
+            // b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.
+            // todo: extract IsCallable to be callable from Value
+            if !getter.is_undefined() && getter.as_object().map_or(true, |o| !o.is_callable()) {
+                return Err(
+                    context.construct_type_error("Property descriptor getter must be callable")
+                );
+            }
+            // c. Set desc.[[Get]] to getter.
+            Some(getter)
+        } else {
+            None
+        };
+
+        // 13. Let hasSet be ? HasProperty(Obj, "set").
+        // 14. If hasSet is true, then
+        let set = if self.has_property("set", context)? {
+            // 14.a. Let setter be ? Get(Obj, "set").
+            let setter = self.get("set", context)?;
+            // 14.b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.
+            // todo: extract IsCallable to be callable from Value
+            if !setter.is_undefined() && setter.as_object().map_or(true, |o| !o.is_callable()) {
+                return Err(
+                    context.construct_type_error("Property descriptor setter must be callable")
+                );
+            }
+            // 14.c. Set desc.[[Set]] to setter.
+            Some(setter)
+        } else {
+            None
+        };
+
+        // 15. If desc.[[Get]] is present or desc.[[Set]] is present, then ...
+        // a. If desc.[[Value]] is present or desc.[[Writable]] is present, throw a TypeError exception.
+        if get.as_ref().or_else(|| set.as_ref()).is_some() && desc.inner().is_data_descriptor() {
+            return Err(context.construct_type_error(
+                "Invalid property descriptor.\
+            Cannot both specify accessors and a value or writable attribute",
+            ));
+        }
+
+        desc = desc.maybe_get(get).maybe_set(set);
+
+        // 16. Return desc.
+        Ok(desc.build())
     }
 }
 

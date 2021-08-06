@@ -16,7 +16,6 @@ use crate::{
     gc::{Finalize, Trace},
     object::GcObject,
     property::PropertyDescriptor,
-    property::{Attribute, DataDescriptor},
     Context, Result, Value,
 };
 
@@ -65,11 +64,11 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         // TODO: could save time here and not bother generating a new undefined object,
         // only for it to be replace with the real value later. We could just add the name to a Vector instead
         let bindings = &self.bindings;
-        let mut prop = DataDescriptor::new(
-            Value::undefined(),
-            Attribute::WRITABLE | Attribute::ENUMERABLE,
-        );
-        prop.set_configurable(deletion);
+        let prop = PropertyDescriptor::builder()
+            .value(Value::undefined())
+            .writable(true)
+            .enumerable(true)
+            .configurable(deletion);
 
         bindings.set_property(name, prop);
         Ok(())
@@ -100,8 +99,10 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         _context: &mut Context,
     ) -> Result<()> {
         debug_assert!(value.is_object() || value.is_function());
-        let mut property = DataDescriptor::new(value, Attribute::ENUMERABLE);
-        property.set_configurable(strict);
+        let property = PropertyDescriptor::builder()
+            .value(value)
+            .enumerable(true)
+            .configurable(strict);
         self.bindings
             .as_object()
             .expect("binding object")
@@ -111,10 +112,13 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
 
     fn get_binding_value(&self, name: &str, strict: bool, context: &mut Context) -> Result<Value> {
         if self.bindings.has_field(name) {
-            match self.bindings.get_property(name) {
-                Some(PropertyDescriptor::Data(ref d)) => Ok(d.value()),
-                _ => Ok(Value::undefined()),
-            }
+            Ok(self
+                .bindings
+                .get_property(name)
+                .as_ref()
+                .and_then(|prop| prop.value())
+                .cloned()
+                .unwrap_or(Value::Undefined))
         } else if strict {
             context.throw_reference_error(format!("{} has no binding", name))
         } else {

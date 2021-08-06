@@ -2,8 +2,8 @@ use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object},
     gc::{Finalize, Trace},
     object::{GcObject, ObjectData},
+    property::PropertyDescriptor,
     property::PropertyKey,
-    property::{Attribute, DataDescriptor},
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsString, Result, Value,
 };
@@ -90,7 +90,7 @@ impl ForInIterator {
                                 object.__get_own_property__(&PropertyKey::from(r.clone()))
                             {
                                 iterator.visited_keys.insert(r.clone());
-                                if desc.enumerable() {
+                                if desc.expect_enumerable() {
                                     return Ok(create_iter_result_object(
                                         context,
                                         Value::from(r.to_string()),
@@ -134,10 +134,11 @@ impl ForInIterator {
         for_in_iterator.set_prototype_instance(iterator_prototype);
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
-        let to_string_tag_property = DataDescriptor::new(
-            "For In Iterator",
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        let to_string_tag_property = PropertyDescriptor::builder()
+            .value("For In Iterator")
+            .writable(false)
+            .enumerable(false)
+            .configurable(true);
         for_in_iterator.insert(to_string_tag, to_string_tag_property);
         for_in_iterator
     }

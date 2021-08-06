@@ -13,7 +13,7 @@
 use crate::{
     builtins::{self, BuiltIn},
     object::{Object, ObjectData, ObjectInitializer},
-    property::{Attribute, DataDescriptor},
+    property::{Attribute, PropertyDescriptor},
     symbol::WellKnownSymbols,
     BoaProfiler, Context, Result, Value,
 };
@@ -147,14 +147,14 @@ impl Reflect {
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
         let key = args.get(1).unwrap_or(&undefined).to_property_key(context)?;
-        let prop_desc = args
+        let prop_desc: Value = args
             .get(2)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("property descriptor must be an object"))?
-            .to_property_descriptor(context)?;
+            .into();
 
         target
-            .__define_own_property__(key, prop_desc, context)
+            .__define_own_property__(key, prop_desc.to_property_descriptor(context)?, context)
             .map(|b| b.into())
     }
 
@@ -305,10 +305,11 @@ impl Reflect {
             Object::with_prototype(array_prototype.into(), ObjectData::Array).into();
         result.set_property(
             "length",
-            DataDescriptor::new(
-                0,
-                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-            ),
+            PropertyDescriptor::builder()
+                .value(0)
+                .writable(true)
+                .enumerable(false)
+                .configurable(false),
         );
 
         let keys = target.own_property_keys();

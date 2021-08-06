@@ -49,10 +49,7 @@ macro_rules! print_obj_value {
     (props of $obj:expr, $display_fn:ident, $indent:expr, $encounters:expr, $print_internals:expr) => {
         print_obj_value!(impl $obj, |(key, val)| {
             if val.is_data_descriptor() {
-                let v = &val
-                    .as_data_descriptor()
-                    .unwrap()
-                    .value();
+                let v = &val.expect_value();
                 format!(
                     "{:>width$}: {}",
                     key,
@@ -60,8 +57,7 @@ macro_rules! print_obj_value {
                     width = $indent,
                 )
             } else {
-               let accessor = val.as_accessor_descriptor().unwrap();
-               let display = match (accessor.setter().is_some(), accessor.getter().is_some()) {
+               let display = match (val.set().is_some(), val.get().is_some()) {
                     (true, true) => "Getter & Setter",
                     (true, false) => "Setter",
                     (false, true) => "Getter",
@@ -106,9 +102,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                         // TODO: do this in a better way `unwrap`
                         .unwrap()
                         // FIXME: handle accessor descriptors
-                        .as_data_descriptor()
-                        .unwrap()
-                        .value()
+                        .expect_value()
                         .as_number()
                         .map(|n| n as i32)
                         .unwrap_or_default();
@@ -123,10 +117,11 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                                 // Introduce recursive call to stringify any objects
                                 // which are part of the Array
                                 log_string_from(
-                                    &v.__get_own_property__(&i.into())
+                                    v.__get_own_property__(&i.into())
+                                        .as_ref()
                                         // FIXME: handle accessor descriptors
-                                        .and_then(|p| p.as_data_descriptor().map(|d| d.value()))
-                                        .unwrap_or_default(),
+                                        .and_then(|p| p.value())
+                                        .unwrap_or(&Value::Undefined),
                                     print_internals,
                                     false,
                                 )
@@ -204,16 +199,18 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
             let name = v
                 .get_property("name")
                 .as_ref()
-                .and_then(|p| p.as_data_descriptor())
-                .map(|d| d.value())
-                .unwrap_or_else(Value::undefined);
+                .and_then(|d| d.value())
+                .unwrap_or(&Value::Undefined)
+                .display()
+                .to_string();
             let message = v
                 .get_property("message")
                 .as_ref()
-                .and_then(|p| p.as_data_descriptor())
-                .map(|d| d.value())
-                .unwrap_or_else(Value::undefined);
-            return format!("{}: {}", name.display(), message.display());
+                .and_then(|d| d.value())
+                .unwrap_or(&Value::Undefined)
+                .display()
+                .to_string();
+            return format!("{}: {}", name, message);
         }
     }
 

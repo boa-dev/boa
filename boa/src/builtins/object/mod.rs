@@ -18,9 +18,7 @@ use crate::{
     object::{
         ConstructorBuilder, Object as BuiltinObject, ObjectData, ObjectInitializer, PROTOTYPE,
     },
-    property::Attribute,
-    property::DataDescriptor,
-    property::PropertyDescriptor,
+    property::{Attribute, DescriptorKind, PropertyDescriptor},
     symbol::WellKnownSymbols,
     value::{Type, Value},
     BoaProfiler, Context, Result,
@@ -205,7 +203,11 @@ impl Object {
             if !descriptor.is_undefined() {
                 descriptors.borrow_mut().insert(
                     key,
-                    PropertyDescriptor::from(DataDescriptor::new(descriptor, Attribute::all())),
+                    PropertyDescriptor::builder()
+                        .value(descriptor)
+                        .writable(true)
+                        .enumerable(true)
+                        .configurable(true),
                 );
             }
         }
@@ -221,37 +223,35 @@ impl Object {
     fn from_property_descriptor(desc: PropertyDescriptor, context: &mut Context) -> Value {
         let mut descriptor = ObjectInitializer::new(context);
 
-        if let PropertyDescriptor::Data(data_desc) = &desc {
-            descriptor.property("value", data_desc.value(), Attribute::all());
+        // TODO: use CreateDataPropertyOrThrow
+
+        match desc.kind() {
+            DescriptorKind::Data { value, writable } => {
+                if let Some(value) = value {
+                    descriptor.property("value", value.clone(), Attribute::all());
+                }
+                if let Some(writable) = writable {
+                    descriptor.property("writable", *writable, Attribute::all());
+                }
+            }
+            DescriptorKind::Accessor { get, set } => {
+                if let Some(get) = get {
+                    descriptor.property("get", get.clone(), Attribute::all());
+                }
+                if let Some(set) = set {
+                    descriptor.property("set", set.clone(), Attribute::all());
+                }
+            }
+            _ => {}
         }
 
-        if let PropertyDescriptor::Accessor(accessor_desc) = &desc {
-            if let Some(setter) = accessor_desc.setter() {
-                descriptor.property("set", Value::Object(setter.to_owned()), Attribute::all());
-            }
-            if let Some(getter) = accessor_desc.getter() {
-                descriptor.property("get", Value::Object(getter.to_owned()), Attribute::all());
-            }
+        if let Some(enumerable) = desc.enumerable() {
+            descriptor.property("enumerable", enumerable, Attribute::all());
         }
 
-        let writable = if let PropertyDescriptor::Data(data_desc) = &desc {
-            data_desc.writable()
-        } else {
-            false
-        };
-
-        descriptor
-            .property("writable", Value::from(writable), Attribute::all())
-            .property(
-                "enumerable",
-                Value::from(desc.enumerable()),
-                Attribute::all(),
-            )
-            .property(
-                "configurable",
-                Value::from(desc.configurable()),
-                Attribute::all(),
-            );
+        if let Some(configurable) = desc.configurable() {
+            descriptor.property("configurable", configurable, Attribute::all());
+        }
 
         descriptor.build().into()
     }
@@ -363,11 +363,11 @@ impl Object {
         if let Some(object) = object.as_object() {
             let key = args
                 .get(1)
-                .unwrap_or(&Value::undefined())
+                .unwrap_or(&Value::Undefined)
                 .to_property_key(context)?;
             let desc = args
                 .get(2)
-                .unwrap_or(&Value::undefined())
+                .unwrap_or(&Value::Undefined)
                 .to_property_descriptor(context)?;
 
             object.define_property_or_throw(key, desc, context)?;
@@ -548,7 +548,7 @@ impl Object {
                     // 3.a.iii.1. Let desc be ? from.[[GetOwnProperty]](nextKey).
                     if let Some(desc) = from.__get_own_property__(&key) {
                         // 3.a.iii.2. If desc is not undefined and desc.[[Enumerable]] is true, then
-                        if desc.enumerable() {
+                        if desc.expect_enumerable() {
                             // 3.a.iii.2.a. Let propValue be ? Get(from, nextKey).
                             let property = from.get(key.clone(), context)?;
                             // 3.a.iii.2.b. Perform ? Set(to, nextKey, propValue, true).

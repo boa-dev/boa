@@ -9,7 +9,7 @@ use crate::{
     class::{Class, ClassBuilder},
     exec::Interpreter,
     object::{FunctionBuilder, GcObject, Object, PROTOTYPE},
-    property::{Attribute, DataDescriptor, PropertyKey},
+    property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     syntax::{
         ast::{
@@ -223,7 +223,7 @@ impl StandardObjects {
 /// ## Execute Function of Script File
 ///
 /// ```rust
-/// use boa::{Context, object::ObjectInitializer, property::Attribute};
+/// use boa::{Context, object::ObjectInitializer, property::{Attribute, PropertyDescriptor}};
 ///
 /// let script = r#"
 /// function test(arg1) {
@@ -243,7 +243,11 @@ impl StandardObjects {
 /// let arg = ObjectInitializer::new(&mut context)
 ///     .property("x", 12, Attribute::READONLY)
 ///     .build();
-/// context.register_global_property("arg", arg, Attribute::all());
+/// context.register_global_property(
+///     "arg",
+///     arg,
+///     Attribute::all()
+/// );
 ///
 /// let value = context.eval("test(arg)").unwrap();
 ///
@@ -517,26 +521,32 @@ impl Context {
         let function = GcObject::new(Object::function(func, function_prototype));
 
         // Set constructor field to the newly created Value (function object)
-        let constructor = DataDescriptor::new(
-            function.clone(),
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        let constructor = PropertyDescriptor::builder()
+            .value(function.clone())
+            .writable(true)
+            .enumerable(false)
+            .configurable(true);
         prototype.define_property_or_throw("constructor", constructor, self)?;
 
-        let prototype = DataDescriptor::new(
-            prototype,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::PERMANENT,
-        );
+        let prototype = PropertyDescriptor::builder()
+            .value(prototype)
+            .writable(true)
+            .enumerable(false)
+            .configurable(false);
         function.define_property_or_throw(PROTOTYPE, prototype, self)?;
-        let length = DataDescriptor::new(
-            params_len,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+
+        let length = PropertyDescriptor::builder()
+            .value(params_len)
+            .writable(false)
+            .enumerable(false)
+            .configurable(true);
         function.define_property_or_throw("length", length, self)?;
-        let name = DataDescriptor::new(
-            name,
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+
+        let name = PropertyDescriptor::builder()
+            .value(name)
+            .writable(false)
+            .enumerable(false)
+            .configurable(true);
         function.define_property_or_throw("name", name, self)?;
 
         Ok(function.into())
@@ -572,8 +582,11 @@ impl Context {
 
         self.global_object().insert_property(
             name,
-            function,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            PropertyDescriptor::builder()
+                .value(function)
+                .writable(true)
+                .enumerable(false)
+                .configurable(true),
         );
         Ok(())
     }
@@ -603,8 +616,11 @@ impl Context {
 
         self.global_object().insert_property(
             name,
-            function,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            PropertyDescriptor::builder()
+                .value(function)
+                .writable(true)
+                .enumerable(false)
+                .configurable(true),
         );
         Ok(())
     }
@@ -664,7 +680,11 @@ impl Context {
         T::init(&mut class_builder)?;
 
         let class = class_builder.build();
-        let property = DataDescriptor::new(class, T::ATTRIBUTE);
+        let property = PropertyDescriptor::builder()
+            .value(class)
+            .writable(T::ATTRIBUTES.writable())
+            .enumerable(T::ATTRIBUTES.enumerable())
+            .configurable(T::ATTRIBUTES.configurable());
         self.global_object().insert(T::NAME, property);
         Ok(())
     }
@@ -673,17 +693,33 @@ impl Context {
     ///
     /// # Example
     /// ```
-    /// use boa::{Context, property::Attribute, object::ObjectInitializer};
+    /// use boa::{Context, property::{Attribute, PropertyDescriptor}, object::ObjectInitializer};
     ///
     /// let mut context = Context::new();
     ///
-    /// context.register_global_property("myPrimitiveProperty", 10, Attribute::all());
+    /// context.register_global_property(
+    ///     "myPrimitiveProperty",
+    ///     10,
+    ///     Attribute::all()
+    /// );
     ///
     /// let object = ObjectInitializer::new(&mut context)
-    ///    .property("x", 0, Attribute::all())
-    ///    .property("y", 1, Attribute::all())
+    ///    .property(
+    ///         "x",
+    ///         0,
+    ///         Attribute::all()
+    ///     )
+    ///     .property(
+    ///         "y",
+    ///         1,
+    ///         Attribute::all()
+    ///     )
     ///    .build();
-    /// context.register_global_property("myObjectProperty", object, Attribute::all());
+    /// context.register_global_property(
+    ///     "myObjectProperty",
+    ///     object,
+    ///     Attribute::all()
+    /// );
     /// ```
     #[inline]
     pub fn register_global_property<K, V>(&mut self, key: K, value: V, attribute: Attribute)
@@ -691,8 +727,14 @@ impl Context {
         K: Into<PropertyKey>,
         V: Into<Value>,
     {
-        let property = DataDescriptor::new(value, attribute);
-        self.global_object().insert(key, property);
+        self.global_object().insert(
+            key,
+            PropertyDescriptor::builder()
+                .value(value)
+                .writable(attribute.writable())
+                .enumerable(attribute.enumerable())
+                .configurable(attribute.configurable()),
+        );
     }
 
     /// Evaluates the given code.

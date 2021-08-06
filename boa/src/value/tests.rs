@@ -269,7 +269,7 @@ fn string_length_is_not_enumerable() {
     let length_desc = object
         .__get_own_property__(&PropertyKey::from("length"))
         .unwrap();
-    assert!(!length_desc.enumerable());
+    assert!(!length_desc.expect_enumerable());
 }
 
 #[test]
@@ -283,9 +283,7 @@ fn string_length_is_in_utf16_codeunits() {
         .unwrap();
     assert_eq!(
         length_desc
-            .as_data_descriptor()
-            .unwrap()
-            .value()
+            .expect_value()
             .to_integer_or_infinity(&mut context)
             .unwrap(),
         IntegerOrInfinity::Integer(2)

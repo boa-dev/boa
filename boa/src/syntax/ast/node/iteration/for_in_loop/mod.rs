@@ -92,7 +92,9 @@ impl Executable for ForInLoop {
         let for_in_iterator = ForInIterator::create_for_in_iterator(context, Value::from(object));
         let next_function = for_in_iterator
             .get_property("next")
-            .map(|p| p.as_data_descriptor().unwrap().value())
+            .as_ref()
+            .map(|p| p.expect_value())
+            .cloned()
             .ok_or_else(|| context.construct_type_error("Could not find property `next`"))?;
         let iterator = IteratorRecord::new(for_in_iterator, next_function);
 
