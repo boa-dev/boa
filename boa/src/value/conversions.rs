@@ -121,6 +121,17 @@ impl From<u64> for Value {
     }
 }
 
+impl From<i64> for Value {
+    #[inline]
+    fn from(value: i64) -> Value {
+        if let Ok(value) = i32::try_from(value) {
+            Value::integer(value)
+        } else {
+            Value::rational(value as f64)
+        }
+    }
+}
+
 impl From<bool> for Value {
     #[inline]
     fn from(value: bool) -> Self {

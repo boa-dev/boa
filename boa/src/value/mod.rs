@@ -265,7 +265,7 @@ impl Value {
     ///
     /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal> would turn `extensible` to `false`
     /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze> would also turn `extensible` to `false`
-    pub fn is_extensible(&self) -> bool {
+    pub(crate) fn is_extensible(&self) -> bool {
         true
     }
 
@@ -422,7 +422,7 @@ impl Value {
     /// Removes a property from a Value object.
     ///
     /// It will return a boolean based on if the value was removed, if there was no value to remove false is returned.
-    pub fn remove_property<Key>(&self, key: Key) -> bool
+    pub(crate) fn remove_property<Key>(&self, key: Key) -> bool
     where
         Key: Into<PropertyKey>,
     {
@@ -432,7 +432,7 @@ impl Value {
     /// Resolve the property in the object.
     ///
     /// A copy of the Property is returned.
-    pub fn get_property<Key>(&self, key: Key) -> Option<PropertyDescriptor>
+    pub(crate) fn get_property<Key>(&self, key: Key) -> Option<PropertyDescriptor>
     where
         Key: Into<PropertyKey>,
     {
@@ -453,7 +453,7 @@ impl Value {
 
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     /// get_field receives a Property from get_prop(). It should then return the `[[Get]]` result value if that's set, otherwise fall back to `[[Value]]`
-    pub fn get_field<K>(&self, key: K, context: &mut Context) -> Result<Self>
+    pub(crate) fn get_field<K>(&self, key: K, context: &mut Context) -> Result<Self>
     where
         K: Into<PropertyKey>,
     {
@@ -468,7 +468,7 @@ impl Value {
 
     /// Check to see if the Value has the field, mainly used by environment records.
     #[inline]
-    pub fn has_field<K>(&self, key: K) -> bool
+    pub(crate) fn has_field<K>(&self, key: K) -> bool
     where
         K: Into<PropertyKey>,
     {
@@ -487,7 +487,7 @@ impl Value {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set-o-p-v-throw
     #[inline]
-    pub fn set_field<K, V>(
+    pub(crate) fn set_field<K, V>(
         &self,
         key: K,
         value: V,
@@ -534,7 +534,7 @@ impl Value {
 
     /// Set the property in the value.
     #[inline]
-    pub fn set_property<K, P>(&self, key: K, property: P)
+    pub(crate) fn set_property<K, P>(&self, key: K, property: P)
     where
         K: Into<PropertyKey>,
         P: Into<PropertyDescriptor>,
@@ -960,6 +960,27 @@ impl Value {
             } else {
                 Ok(IntegerOrInfinity::Integer(integer))
             }
+        }
+    }
+
+    /// Check if it is an array.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-isarray
+    pub(crate) fn is_array(&self, _context: &mut Context) -> Result<bool> {
+        // 1. If Type(argument) is not Object, return false.
+        if let Some(object) = self.as_object() {
+            // 2. If argument is an Array exotic object, return true.
+            //     a. If argument.[[ProxyHandler]] is null, throw a TypeError exception.
+            // 3. If argument is a Proxy exotic object, then
+            //     b. Let target be argument.[[ProxyTarget]].
+            //     c. Return ? IsArray(target).
+            // 4. Return false.
+            Ok(object.is_array())
+        } else {
+            Ok(false)
         }
     }
 }

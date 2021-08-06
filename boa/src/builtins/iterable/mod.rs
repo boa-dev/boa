@@ -5,7 +5,6 @@ use crate::{
         SetIterator,
     },
     object::{GcObject, ObjectInitializer},
-    property::{Attribute, DataDescriptor},
     symbol::WellKnownSymbols,
     BoaProfiler, Context, Result, Value,
 };
@@ -87,13 +86,18 @@ impl IteratorPrototypes {
 ///
 /// Generates an object supporting the IteratorResult interface.
 pub fn create_iter_result_object(context: &mut Context, value: Value, done: bool) -> Value {
-    let object = Value::new_object(context);
-    // TODO: Fix attributes of value and done
-    let value_property = DataDescriptor::new(value, Attribute::all());
-    let done_property = DataDescriptor::new(done, Attribute::all());
-    object.set_property("value", value_property);
-    object.set_property("done", done_property);
-    object
+    // 1. Assert: Type(done) is Boolean.
+    // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
+    let obj = context.construct_object();
+
+    // 3. Perform ! CreateDataPropertyOrThrow(obj, "value", value).
+    obj.create_data_property_or_throw("value", value, context)
+        .unwrap();
+    // 4. Perform ! CreateDataPropertyOrThrow(obj, "done", done).
+    obj.create_data_property_or_throw("done", done, context)
+        .unwrap();
+    // 5. Return obj.
+    obj.into()
 }
 
 /// Get an iterator record

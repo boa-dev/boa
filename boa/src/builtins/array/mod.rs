@@ -23,11 +23,7 @@ use crate::{
     value::{IntegerOrInfinity, Value},
     BoaProfiler, Context, JsString, Result,
 };
-use num_traits::*;
-use std::{
-    cmp::{max, min},
-    convert::{TryFrom, TryInto},
-};
+use std::cmp::{max, min};
 
 /// JavaScript `Array` built-in implementation.
 #[derive(Debug, Clone, Copy)]
@@ -493,7 +489,7 @@ impl Array {
         // 5. For each element E of items, do
         for item in [Value::from(obj)].iter().chain(args.iter()) {
             // a. Let spreadable be ? IsConcatSpreadable(E).
-            let spreadable = Self::is_concat_spreadable(&item, context)?;
+            let spreadable = Self::is_concat_spreadable(item, context)?;
             // b. If spreadable is true, then
             if spreadable {
                 // item is guaranteed to be an object since is_concat_spreadable checks it,
@@ -528,7 +524,7 @@ impl Array {
             // c. Else,
             else {
                 // i. NOTE: E is added as a single item rather than spread.
-                // ii. If n ≥ 253 - 1, throw a TypeError exception.
+                // ii. If n ≥ 2^53 - 1, throw a TypeError exception.
                 if n >= Number::MAX_SAFE_INTEGER as usize {
                     return context.throw_type_error("length exceeds the max safe integer limit");
                 }
@@ -974,6 +970,8 @@ impl Array {
             return context.throw_type_error("Array.prototype.every: callback is not callable");
         };
 
+        let this_arg = args.get(1).cloned().unwrap_or_default();
+
         // 4. Let k be 0.
         // 5. Repeat, while k < len,
         for k in 0..len {
@@ -985,7 +983,6 @@ impl Array {
                 // i. Let kValue be ? Get(O, Pk).
                 let k_value = o.get(k, context)?;
                 // ii. Let testResult be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).
-                let this_arg = args.get(1).cloned().unwrap_or_default();
                 let test_result = callback
                     .call(&this_arg, &[k_value, k.into(), o.clone().into()], context)?
                     .to_boolean();
@@ -1013,54 +1010,43 @@ impl Array {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
     pub(crate) fn map(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // 1. Let O be ? ToObject(this value).
-        let this_val = args.get(1).cloned().unwrap_or_else(Value::undefined);
-        let obj = this.to_object(context)?;
+        let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
-        let len = this.get_field("length", context)?.to_length(context)?;
+        let len = o.length_of_array_like(context)?;
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = args.get(0).cloned().unwrap_or_else(Value::undefined);
+        let callback = args.get(0).cloned().unwrap_or_default();
         if !callback.is_function() {
-            return context.throw_type_error("Callbackfn is not callable");
+            return context.throw_type_error("Array.prototype.map: Callbackfn is not callable");
         }
+
         // 4. Let A be ? ArraySpeciesCreate(O, len).
-        let arr = Self::array_species_create(&obj, len, context)?;
+        let a = Self::array_species_create(&o, len, context)?;
+
+        let this_arg = args.get(1).cloned().unwrap_or_default();
+
         // 5. Let k be 0.
         // 6. Repeat, while k < len,
         for k in 0..len {
             // a. Let Pk be ! ToString(𝔽(k)).
             // b. Let k_present be ? HasProperty(O, Pk).
-            let k_present = this.has_field(k);
+            let k_present = o.has_property(k, context)?;
             // c. If k_present is true, then
             if k_present {
                 // i. Let kValue be ? Get(O, Pk).
-                let k_value = this.get_field(k, context)?;
-                let args = [k_value, Value::from(k), this.into()];
+                let k_value = o.get(k, context)?;
                 // ii. Let mappedValue be ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).
-                let value = context.call(&callback, &this_val, &args)?;
+                let mapped_value =
+                    context.call(&callback, &this_arg, &[k_value, k.into(), this.into()])?;
                 // iii. Perform ? CreateDataPropertyOrThrow(A, Pk, mappedValue).
-                arr.ordinary_define_own_property(
-                    k.into(),
-                    DataDescriptor::new(value, Attribute::all()).into(),
-                );
+                a.create_data_property_or_throw(k, mapped_value, context)?;
             }
             // d. Set k to k + 1.
         }
         // 7. Return A.
-        Ok(Value::from(arr))
+        Ok(a.into())
     }
 
     /// `Array.prototype.indexOf( searchElement[, fromIndex ] )`
-    ///
-    ///
-    /// indexOf compares searchElement to the elements of the array, in ascending order,
-    /// using the Strict Equality Comparison algorithm, and if found at one or more indices,
-    /// returns the smallest such index; otherwise, -1 is returned.
-    ///
-    /// The optional second argument fromIndex defaults to 0 (i.e. the whole array is searched).
-    /// If it is greater than or equal to the length of the array, -1 is returned,
-    /// i.e. the array will not be searched. If it is negative, it is used as the offset
-    /// from the end of the array to compute fromIndex. If the computed index is less than 0,
-    /// the whole array will be searched.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1069,41 +1055,67 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.indexof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
     pub(crate) fn index_of(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        // If no arguments, return -1. Not described in spec, but is what chrome does.
-        if args.is_empty() {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)? as i64;
+
+        // 3. If len is 0, return -1𝔽.
+        if len == 0 {
             return Ok(Value::from(-1));
         }
 
-        let search_element = args[0].clone();
-        let len = this.get_field("length", context)?.to_length(context)?;
-
-        let mut idx = match args.get(1) {
-            Some(from_idx_ptr) => {
-                let from_idx = from_idx_ptr.to_number(context)?;
-
-                if !from_idx.is_finite() {
-                    return Ok(Value::from(-1));
-                } else if from_idx < 0.0 {
-                    let k =
-                        isize::try_from(len).map_err(interror_to_value)? + f64_to_isize(from_idx)?;
-                    usize::try_from(max(0, k)).map_err(interror_to_value)?
-                } else {
-                    f64_to_usize(from_idx)?
-                }
-            }
-            None => 0,
+        // 4. Let n be ? ToIntegerOrInfinity(fromIndex).
+        let n = args
+            .get(1)
+            .cloned()
+            .unwrap_or_default()
+            .to_integer_or_infinity(context)?;
+        // 5. Assert: If fromIndex is undefined, then n is 0.
+        let n = match n {
+            // 6. If n is +∞, return -1𝔽.
+            IntegerOrInfinity::PositiveInfinity => return Ok(Value::from(-1)),
+            // 7. Else if n is -∞, set n to 0.
+            IntegerOrInfinity::NegativeInfinity => 0,
+            IntegerOrInfinity::Integer(value) => value,
         };
 
-        while idx < len {
-            let check_element = this.get_field(idx, context)?.clone();
-
-            if check_element.strict_equals(&search_element) {
-                return Ok(Value::from(idx));
+        // 8. If n ≥ 0, then
+        let mut k;
+        if n >= 0 {
+            // a. Let k be n.
+            k = n
+        // 9. Else,
+        } else {
+            // a. Let k be len + n.
+            k = len + n;
+            // b. If k < 0, set k to 0.
+            if k < 0 {
+                k = 0;
             }
+        };
 
-            idx += 1;
+        let search_element = args.get(0).cloned().unwrap_or_default();
+
+        // 10. Repeat, while k < len,
+        while k < len {
+            // a. Let kPresent be ? HasProperty(O, ! ToString(𝔽(k))).
+            let k_present = o.has_property(k, context)?;
+            // b. If kPresent is true, then
+            if k_present {
+                // i. Let elementK be ? Get(O, ! ToString(𝔽(k))).
+                let element_k = o.get(k, context)?;
+                // ii. Let same be IsStrictlyEqual(searchElement, elementK).
+                // iii. If same is true, return 𝔽(k).
+                if search_element.strict_equals(&element_k) {
+                    return Ok(Value::from(k));
+                }
+            }
+            // c. Set k to k + 1.
+            k += 1;
         }
-
+        // 11. Return -1𝔽.
         Ok(Value::from(-1))
     }
 
@@ -1130,43 +1142,56 @@ impl Array {
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        // If no arguments, return -1. Not described in spec, but is what chrome does.
-        if args.is_empty() {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)? as i64;
+
+        // 3. If len is 0, return -1𝔽.
+        if len == 0 {
             return Ok(Value::from(-1));
         }
 
-        let search_element = args[0].clone();
-        let len: isize = this
-            .get_field("length", context)?
-            .to_length(context)?
-            .try_into()
-            .map_err(interror_to_value)?;
-
-        let mut idx = match args.get(1) {
-            Some(from_idx_ptr) => {
-                let from_idx = from_idx_ptr.to_integer(context)?;
-
-                if !from_idx.is_finite() {
-                    return Ok(Value::from(-1));
-                } else if from_idx < 0.0 {
-                    len + f64_to_isize(from_idx)?
-                } else {
-                    min(f64_to_isize(from_idx)?, len - 1)
-                }
-            }
-            None => len - 1,
+        // 4. If fromIndex is present, let n be ? ToIntegerOrInfinity(fromIndex); else let n be len - 1.
+        let n = if let Some(from_index) = args.get(1) {
+            from_index.to_integer_or_infinity(context)?
+        } else {
+            IntegerOrInfinity::Integer(len - 1)
         };
 
-        while idx >= 0 {
-            let check_element = this.get_field(idx, context)?.clone();
+        let mut k = match n {
+            // 5. If n is -∞, return -1𝔽.
+            IntegerOrInfinity::NegativeInfinity => return Ok(Value::from(-1)),
+            // 6. If n ≥ 0, then
+            //     a. Let k be min(n, len - 1).
+            IntegerOrInfinity::Integer(n) if n >= 0 => min(n, len - 1),
+            IntegerOrInfinity::PositiveInfinity => len - 1,
+            // 7. Else,
+            //     a. Let k be len + n.
+            IntegerOrInfinity::Integer(n) => len + n,
+        };
 
-            if check_element.strict_equals(&search_element) {
-                return Ok(Value::from(i32::try_from(idx).map_err(interror_to_value)?));
+        let search_element = args.get(0).cloned().unwrap_or_default();
+
+        // 8. Repeat, while k ≥ 0,
+        while k >= 0 {
+            // a. Let kPresent be ? HasProperty(O, ! ToString(𝔽(k))).
+            let k_present = o.has_property(k, context)?;
+            // b. If kPresent is true, then
+            if k_present {
+                // i. Let elementK be ? Get(O, ! ToString(𝔽(k))).
+                let element_k = o.get(k, context)?;
+                // ii. Let same be IsStrictlyEqual(searchElement, elementK).
+                // iii. If same is true, return 𝔽(k).
+                if Value::strict_equals(&search_element, &element_k) {
+                    return Ok(Value::from(k));
+                }
             }
-
-            idx -= 1;
+            // c. Set k to k - 1.
+            k -= 1;
         }
-
+        // 9. Return -1𝔽.
         Ok(Value::from(-1))
     }
 
@@ -1183,22 +1208,46 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.find
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
     pub(crate) fn find(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        if args.is_empty() {
-            return Err(Value::from(
-                "missing callback when calling function Array.prototype.find",
-            ));
-        }
-        let callback = &args[0];
-        let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
-        let len = this.get_field("length", context)?.to_length(context)?;
-        for i in 0..len {
-            let element = this.get_field(i, context)?;
-            let arguments = [element.clone(), Value::from(i), this.clone()];
-            let result = context.call(callback, &this_arg, &arguments)?;
-            if result.to_boolean() {
-                return Ok(element);
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
+
+        // 3. If IsCallable(predicate) is false, throw a TypeError exception.
+        let predicate = match args.get(0).and_then(Value::as_object) {
+            Some(predicate) if predicate.is_callable() => predicate,
+            _ => {
+                return context.throw_type_error("Array.prototype.find: predicate is not callable")
             }
+        };
+
+        let this_arg = args.get(1).cloned().unwrap_or_default();
+
+        // 4. Let k be 0.
+        let mut k = 0;
+        // 5. Repeat, while k < len,
+        while k < len {
+            // a. Let Pk be ! ToString(𝔽(k)).
+            let pk = k;
+            // b. Let kValue be ? Get(O, Pk).
+            let k_value = o.get(pk, context)?;
+            // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
+            let test_result = predicate
+                .call(
+                    &this_arg,
+                    &[k_value.clone(), k.into(), o.clone().into()],
+                    context,
+                )?
+                .to_boolean();
+            // d. If testResult is true, return kValue.
+            if test_result {
+                return Ok(k_value);
+            }
+            // e. Set k to k + 1.
+            k += 1;
         }
+        // 6. Return undefined.
         Ok(Value::undefined())
     }
 
@@ -1215,31 +1264,44 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.findindex
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex
     pub(crate) fn find_index(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        if args.is_empty() {
-            return Err(Value::from(
-                "Missing argument for Array.prototype.findIndex",
-            ));
-        }
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
 
-        let predicate_arg = args.get(0).expect("Could not get `predicate` argument.");
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
 
-        let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
-
-        let length = this.get_field("length", context)?.to_length(context)?;
-
-        for i in 0..length {
-            let element = this.get_field(i, context)?;
-            let arguments = [element, Value::from(i), this.clone()];
-
-            let result = context.call(predicate_arg, &this_arg, &arguments)?;
-
-            if result.to_boolean() {
-                let result = i32::try_from(i).map_err(interror_to_value)?;
-                return Ok(Value::integer(result));
+        // 3. If IsCallable(predicate) is false, throw a TypeError exception.
+        let predicate = match args.get(0).and_then(Value::as_object) {
+            Some(predicate) if predicate.is_callable() => predicate,
+            _ => {
+                return context
+                    .throw_type_error("Array.prototype.reduce: predicate is not callable")
             }
-        }
+        };
 
-        Ok(Value::integer(-1))
+        let this_arg = args.get(1).cloned().unwrap_or_default();
+
+        // 4. Let k be 0.
+        let mut k = 0;
+        // 5. Repeat, while k < len,
+        while k < len {
+            // a. Let Pk be ! ToString(𝔽(k)).
+            let pk = k;
+            // b. Let kValue be ? Get(O, Pk).
+            let k_value = o.get(pk, context)?;
+            // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
+            let test_result = predicate
+                .call(&this_arg, &[k_value, k.into(), o.clone().into()], context)?
+                .to_boolean();
+            // d. If testResult is true, return 𝔽(k).
+            if test_result {
+                return Ok(Value::from(k));
+            }
+            // e. Set k to k + 1.
+            k += 1;
+        }
+        // 6. Return -1𝔽.
+        Ok(Value::from(-1))
     }
 
     /// `Array.prototype.flat( [depth] )`
@@ -1255,43 +1317,41 @@ impl Array {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat
     pub(crate) fn flat(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // 1. Let O be ToObject(this value)
-        let this: Value = this.to_object(context)?.into();
+        let o = this.to_object(context)?;
 
         // 2. Let sourceLen be LengthOfArrayLike(O)
-        let source_len = this.get_field("length", context)?.to_length(context)? as u32;
+        let source_len = o.length_of_array_like(context)?;
 
         // 3. Let depthNum be 1
-        let depth = args.get(0);
-        let default_depth = Value::Integer(1);
+        let mut depth_num = 1;
 
         // 4. If depth is not undefined, then set depthNum to IntegerOrInfinity(depth)
-        // 4.a. Set depthNum to ToIntegerOrInfinity(depth)
-        // 4.b. If depthNum < 0, set depthNum to 0
-        let depth_num = match depth
-            .unwrap_or(&default_depth)
-            .to_integer_or_infinity(context)?
-        {
-            IntegerOrInfinity::Integer(i) if i < 0 => IntegerOrInfinity::Integer(0),
-            num => num,
+        if let Some(depth) = args.get(0) {
+            // a. Set depthNum to ? ToIntegerOrInfinity(depth).
+            // b. If depthNum < 0, set depthNum to 0.
+            match depth.to_integer_or_infinity(context)? {
+                IntegerOrInfinity::Integer(value) if value >= 0 => depth_num = value as u64,
+                IntegerOrInfinity::PositiveInfinity => depth_num = u64::MAX,
+                _ => depth_num = 0,
+            }
         };
 
         // 5. Let A be ArraySpeciesCreate(O, 0)
-        let new_array = Self::new_array(context);
+        let a = Self::array_species_create(&o, 0, context)?;
 
-        // 6. Perform FlattenIntoArray(A, O, sourceLen, 0, depthNum)
-        let len = Self::flatten_into_array(
-            context,
-            &new_array,
-            &this,
-            source_len,
+        // 6. Perform ? FlattenIntoArray(A, O, sourceLen, 0, depthNum)
+        Self::flatten_into_array(
+            &a,
+            &o,
+            source_len as u64,
             0,
             depth_num,
+            None,
             &Value::undefined(),
-            &Value::undefined(),
+            context,
         )?;
-        new_array.set_field("length", len.to_length(context)?, false, context)?;
 
-        Ok(new_array)
+        Ok(a.into())
     }
 
     /// `Array.prototype.flatMap( callback, [ thisArg ] )`
@@ -1309,37 +1369,34 @@ impl Array {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap
     pub(crate) fn flat_map(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
         // 1. Let O be ToObject(this value)
-        let o: Value = this.to_object(context)?.into();
+        let o = this.to_object(context)?;
 
         // 2. Let sourceLen be LengthOfArrayLike(O)
-        let source_len = this.get_field("length", context)?.to_length(context)? as u32;
+        let source_len = o.length_of_array_like(context)?;
 
-        // 3. If IsCallable(mapperFunction) is false, throw a TypeError exception
-        let mapper_function = args.get(0).cloned().unwrap_or_else(Value::undefined);
+        // 3. If ! IsCallable(mapperFunction) is false, throw a TypeError exception.
+        let mapper_function = args.get(0).cloned().unwrap_or_default();
         if !mapper_function.is_function() {
             return context.throw_type_error("flatMap mapper function is not callable");
         }
-        let this_arg = args.get(1).cloned().unwrap_or(o);
 
-        // 4. Let A be ArraySpeciesCreate(O, 0)
-        let new_array = Self::new_array(context);
+        // 4. Let A be ? ArraySpeciesCreate(O, 0).
+        let a = Self::array_species_create(&o, 0, context)?;
 
-        // 5. Perform FlattenIntoArray(A, O, sourceLen, 0, 1, mapperFunction, thisArg)
-        let depth = Value::Integer(1).to_integer_or_infinity(context)?;
-        let len = Self::flatten_into_array(
-            context,
-            &new_array,
-            this,
-            source_len,
+        // 5. Perform ? FlattenIntoArray(A, O, sourceLen, 0, 1, mapperFunction, thisArg).
+        Self::flatten_into_array(
+            &a,
+            &o,
+            source_len as u64,
             0,
-            depth,
-            &mapper_function,
-            &this_arg,
+            1,
+            Some(mapper_function.as_object().unwrap()),
+            &args.get(1).cloned().unwrap_or_default(),
+            context,
         )?;
-        new_array.set_field("length", len.to_length(context)?, false, context)?;
 
         // 6. Return A
-        Ok(new_array)
+        Ok(a.into())
     }
 
     /// Abstract method `FlattenIntoArray`.
@@ -1350,20 +1407,17 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-flattenintoarray
     #[allow(clippy::too_many_arguments)]
     fn flatten_into_array(
-        context: &mut Context,
-        target: &Value,
-        source: &Value,
-        source_len: u32,
-        start: u32,
-        depth: IntegerOrInfinity,
-        mapper_function: &Value,
+        target: &GcObject,
+        source: &GcObject,
+        source_len: u64,
+        start: u64,
+        depth: u64,
+        mapper_function: Option<GcObject>,
         this_arg: &Value,
-    ) -> Result<Value> {
+        context: &mut Context,
+    ) -> Result<u64> {
         // 1. Assert target is Object
-        debug_assert!(target.is_object());
-
         // 2. Assert source is Object
-        debug_assert!(source.is_object());
 
         // 3. Assert if mapper_function is present, then:
         // - IsCallable(mapper_function) is true
@@ -1379,85 +1433,83 @@ impl Array {
         // 6. Repeat, while R(sourceIndex) < sourceLen
         while source_index < source_len {
             // a. Let P be ToString(sourceIndex)
-            // b. Let exists be HasProperty(source, P)
+            let p = source_index;
+
+            // b. Let exists be ? HasProperty(source, P).
+            let exists = source.has_property(p, context)?;
             // c. If exists is true, then
-            if source.has_field(source_index) {
+            if exists {
                 // i. Let element be Get(source, P)
-                let mut element = source.get_field(source_index, context)?;
+                let mut element = source.get(p, context)?;
 
                 // ii. If mapperFunction is present, then
-                if !mapper_function.is_undefined() {
-                    // 1. Set element to Call(mapperFunction, thisArg, <<element, sourceIndex, source>>)
-                    let args = [element, Value::from(source_index), target.clone()];
-                    element = context.call(mapper_function, this_arg, &args)?;
+                if let Some(ref mapper_function) = mapper_function {
+                    // 1. Set element to ? Call(mapperFunction, thisArg, <<element, sourceIndex, source>>)
+                    element = mapper_function.call(
+                        this_arg,
+                        &[element, source_index.into(), source.clone().into()],
+                        context,
+                    )?;
                 }
-                let element_as_object = element.as_object();
 
                 // iii. Let shouldFlatten be false
                 let mut should_flatten = false;
 
                 // iv. If depth > 0, then
-                let depth_is_positive = match depth {
-                    IntegerOrInfinity::PositiveInfinity => true,
-                    IntegerOrInfinity::NegativeInfinity => false,
-                    IntegerOrInfinity::Integer(i) => i > 0,
-                };
-                if depth_is_positive {
-                    // 1. Set shouldFlatten is IsArray(element)
-                    should_flatten = match element_as_object {
-                        Some(obj) => obj.is_array(),
-                        _ => false,
-                    };
+                if depth > 0 {
+                    // 1. Set shouldFlatten to ? IsArray(element).
+                    should_flatten = element.is_array(context)?;
                 }
+
                 // v. If shouldFlatten is true
                 if should_flatten {
+                    // For `should_flatten` to be true, element must be an object.
+                    let element = element.as_object().unwrap();
+
                     // 1. If depth is +Infinity let newDepth be +Infinity
+                    let new_depth = if depth == u64::MAX {
+                        u64::MAX
                     // 2. Else, let newDepth be depth - 1
-                    let new_depth = match depth {
-                        IntegerOrInfinity::PositiveInfinity => IntegerOrInfinity::PositiveInfinity,
-                        IntegerOrInfinity::Integer(d) => IntegerOrInfinity::Integer(d - 1),
-                        IntegerOrInfinity::NegativeInfinity => IntegerOrInfinity::NegativeInfinity,
+                    } else {
+                        depth - 1
                     };
 
-                    // 3. Let elementLen be LengthOfArrayLike(element)
-                    let element_len =
-                        element.get_field("length", context)?.to_length(context)? as u32;
+                    // 3. Let elementLen be ? LengthOfArrayLike(element)
+                    let element_len = element.length_of_array_like(context)?;
 
-                    // 4. Set targetIndex to FlattenIntoArray(target, element, elementLen, targetIndex, newDepth)
+                    // 4. Set targetIndex to ? FlattenIntoArray(target, element, elementLen, targetIndex, newDepth)
                     target_index = Self::flatten_into_array(
-                        context,
                         target,
                         &element,
-                        element_len,
+                        element_len as u64,
                         target_index,
                         new_depth,
+                        None,
                         &Value::undefined(),
-                        &Value::undefined(),
-                    )?
-                    .to_u32(context)?;
+                        context,
+                    )?;
 
                 // vi. Else
                 } else {
                     // 1. If targetIndex >= 2^53 - 1, throw a TypeError exception
-                    if target_index.to_f64().ok_or(0)? >= Number::MAX_SAFE_INTEGER {
-                        return context
-                            .throw_type_error("Target index exceeded max safe integer value");
+                    if target_index >= Number::MAX_SAFE_INTEGER as u64 {
+                        return Err(context
+                            .construct_type_error("Target index exceeded max safe integer value"));
                     }
 
-                    // 2. Perform CreateDataPropertyOrThrow(target, targetIndex, element)
-                    target
-                        .set_property(target_index, DataDescriptor::new(element, Attribute::all()));
+                    // 2. Perform ? CreateDataPropertyOrThrow(target, targetIndex, element)
+                    target.create_data_property_or_throw(target_index, element, context)?;
 
                     // 3. Set targetIndex to targetIndex + 1
-                    target_index = target_index.saturating_add(1);
+                    target_index += 1;
                 }
             }
             // d. Set sourceIndex to sourceIndex + 1
-            source_index = source_index.saturating_add(1);
+            source_index += 1;
         }
 
         // 7. Return targetIndex
-        Ok(Value::Integer(target_index.try_into().unwrap_or(0)))
+        Ok(target_index)
     }
 
     /// `Array.prototype.fill( value[, start[, end]] )`
@@ -1472,18 +1524,37 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.fill
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fill
     pub(crate) fn fill(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let len = this.get_field("length", context)?.to_length(context)?;
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
 
-        let default_value = Value::undefined();
-        let value = args.get(0).unwrap_or(&default_value);
-        let start = Self::get_relative_start(context, args.get(1), len)?;
-        let fin = Self::get_relative_end(context, args.get(2), len)?;
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
 
-        for i in start..fin {
-            this.set_property(i, DataDescriptor::new(value.clone(), Attribute::all()));
+        // 3. Let relativeStart be ? ToIntegerOrInfinity(start).
+        // 4. If relativeStart is -∞, let k be 0.
+        // 5. Else if relativeStart < 0, let k be max(len + relativeStart, 0).
+        // 6. Else, let k be min(relativeStart, len).
+        let mut k = Self::get_relative_start(context, args.get(1), len)?;
+
+        // 7. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).
+        // 8. If relativeEnd is -∞, let final be 0.
+        // 9. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
+        // 10. Else, let final be min(relativeEnd, len).
+        let final_ = Self::get_relative_end(context, args.get(2), len)?;
+
+        let value = args.get(0).cloned().unwrap_or_default();
+
+        // 11. Repeat, while k < final,
+        while k < final_ {
+            // a. Let Pk be ! ToString(𝔽(k)).
+            let pk = k;
+            // b. Perform ? Set(O, Pk, value, true).
+            o.set(pk, value.clone(), true, context)?;
+            // c. Set k to k + 1.
+            k += 1;
         }
-
-        Ok(this.clone())
+        // 12. Return O.
+        Ok(o.into())
     }
 
     /// `Array.prototype.includes( valueToFind [, fromIndex] )`
@@ -1501,35 +1572,61 @@ impl Array {
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        let search_element = args.get(0).cloned().unwrap_or_else(Value::undefined);
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
 
-        let from_index = args.get(1).cloned().unwrap_or_else(|| Value::from(0));
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)? as i64;
 
-        let length = this.get_field("length", context)?.to_length(context)?;
-
-        if length == 0 {
+        // 3. If len is 0, return false.
+        if len == 0 {
             return Ok(Value::from(false));
         }
 
-        let n = match from_index.to_integer_or_infinity(context)? {
-            IntegerOrInfinity::NegativeInfinity => 0,
+        // 4. Let n be ? ToIntegerOrInfinity(fromIndex).
+        let n = args
+            .get(1)
+            .cloned()
+            .unwrap_or_default()
+            .to_integer_or_infinity(context)?;
+        // 5. Assert: If fromIndex is undefined, then n is 0.
+        // 6. If n is +∞, return false.
+        // 7. Else if n is -∞, set n to 0.
+        let n = match n {
             IntegerOrInfinity::PositiveInfinity => return Ok(Value::from(false)),
-            IntegerOrInfinity::Integer(i) => i,
+            IntegerOrInfinity::NegativeInfinity => 0,
+            IntegerOrInfinity::Integer(value) => value,
         };
 
-        let k = match n {
-            num if num >= 0 => num as usize,    // if n>=0 -> k=n
-            num if -num as usize > length => 0, // if n<0 -> k= max(length + n, 0)
-            _ => length - (-n as usize), // this is `length + n` but is necessary for typing reasons
-        };
-
-        for idx in k..length {
-            let check_element = this.get_field(idx, context)?.clone();
-
-            if Value::same_value_zero(&check_element, &search_element) {
-                return Ok(Value::from(true));
+        // 8. If n ≥ 0, then
+        let mut k;
+        if n >= 0 {
+            // a. Let k be n.
+            k = n
+        // 9. Else,
+        } else {
+            // a. Let k be len + n.
+            k = len + n;
+            // b. If k < 0, set k to 0.
+            if k < 0 {
+                k = 0;
             }
         }
+
+        let search_element = args.get(0).cloned().unwrap_or_default();
+
+        // 10. Repeat, while k < len,
+        while k < len {
+            // a. Let elementK be ? Get(O, ! ToString(𝔽(k))).
+            let element_k = o.get(k, context)?;
+            // b. If SameValueZero(searchElement, elementK) is true, return true.
+            if Value::same_value_zero(&search_element, &element_k) {
+                return Ok(Value::from(true));
+            }
+            // c. Set k to k + 1.
+            k += 1;
+        }
+        // 11. Return false.
         Ok(Value::from(false))
     }
 
@@ -1548,26 +1645,56 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.slice
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice
     pub(crate) fn slice(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let new_array = Self::new_array(context);
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
 
-        let len = this.get_field("length", context)?.to_length(context)?;
-        let from = Self::get_relative_start(context, args.get(0), len)?;
-        let to = Self::get_relative_end(context, args.get(1), len)?;
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
 
-        let span = max(to.saturating_sub(from), 0);
-        if span > 2usize.pow(32) - 1 {
-            return context.throw_range_error("Invalid array length");
+        // 3. Let relativeStart be ? ToIntegerOrInfinity(start).
+        // 4. If relativeStart is -∞, let k be 0.
+        // 5. Else if relativeStart < 0, let k be max(len + relativeStart, 0).
+        // 6. Else, let k be min(relativeStart, len).
+        let mut k = Self::get_relative_start(context, args.get(0), len)?;
+
+        // 7. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).
+        // 8. If relativeEnd is -∞, let final be 0.
+        // 9. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
+        // 10. Else, let final be min(relativeEnd, len).
+        let final_ = Self::get_relative_end(context, args.get(1), len)?;
+
+        // 11. Let count be max(final - k, 0).
+        let count = final_.saturating_sub(k);
+
+        // 12. Let A be ? ArraySpeciesCreate(O, count).
+        let a = Self::array_species_create(&o, count, context)?;
+
+        // 13. Let n be 0.
+        let mut n: u64 = 0;
+        // 14. Repeat, while k < final,
+        while k < final_ {
+            // a. Let Pk be ! ToString(𝔽(k)).
+            let pk = k;
+            // b. Let kPresent be ? HasProperty(O, Pk).
+            let k_present = o.has_property(pk, context)?;
+            // c. If kPresent is true, then
+            if k_present {
+                // i. Let kValue be ? Get(O, Pk).
+                let k_value = o.get(pk, context)?;
+                // ii. Perform ? CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), kValue).
+                a.create_data_property_or_throw(n, k_value, context)?;
+            }
+            // d. Set k to k + 1.
+            k += 1;
+            // e. Set n to n + 1.
+            n += 1;
         }
-        let mut new_array_len: i32 = 0;
-        for i in from..from.saturating_add(span) {
-            new_array.set_property(
-                new_array_len,
-                DataDescriptor::new(this.get_field(i, context)?, Attribute::all()),
-            );
-            new_array_len = new_array_len.saturating_add(1);
-        }
-        new_array.set_field("length", Value::from(new_array_len), true, context)?;
-        Ok(new_array)
+
+        // 15. Perform ? Set(A, "length", 𝔽(n), true).
+        a.set("length", n, true, context)?;
+
+        // 16. Return A.
+        Ok(a.into())
     }
 
     /// `Array.prototype.filter( callback, [ thisArg ] )`
@@ -1697,9 +1824,6 @@ impl Array {
 
     /// `Array.prototype.reduce( callbackFn [ , initialValue ] )`
     ///
-    /// The reduce method traverses left to right starting from the first defined value in the array,
-    /// accumulating a value using a given callback function. It returns the accumulated value.
-    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
@@ -1707,57 +1831,85 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.reduce
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
     pub(crate) fn reduce(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let this: Value = this.to_object(context)?.into();
-        let callback = match args.get(0) {
-            Some(value) if value.is_function() => value,
-            _ => return context.throw_type_error("Reduce was called without a callback"),
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
+
+        // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
+        let callback = match args.get(0).and_then(Value::as_object) {
+            Some(callback) if callback.is_callable() => callback,
+            _ => {
+                return context
+                    .throw_type_error("Array.prototype.reduce: callback function is not callable")
+            }
         };
-        let initial_value = args.get(1).cloned().unwrap_or_else(Value::undefined);
-        let mut length = this.get_field("length", context)?.to_length(context)?;
-        if length == 0 && initial_value.is_undefined() {
-            return context
-                .throw_type_error("Reduce was called on an empty array and with no initial value");
+
+        // 4. If len = 0 and initialValue is not present, throw a TypeError exception.
+        if len == 0 && args.get(1).is_none() {
+            return context.throw_type_error(
+                "Array.prototype.reduce: called on an empty array and with no initial value",
+            );
         }
+
+        // 5. Let k be 0.
         let mut k = 0;
-        let mut accumulator = if initial_value.is_undefined() {
+        // 6. Let accumulator be undefined.
+        let mut accumulator = Value::undefined();
+
+        // 7. If initialValue is present, then
+        if let Some(initial_value) = args.get(1) {
+            // a. Set accumulator to initialValue.
+            accumulator = initial_value.clone();
+        // 8. Else,
+        } else {
+            // a. Let kPresent be false.
             let mut k_present = false;
-            while k < length {
-                if this.has_field(k) {
-                    k_present = true;
-                    break;
+            // b. Repeat, while kPresent is false and k < len,
+            while !k_present && k < len {
+                // i. Let Pk be ! ToString(𝔽(k)).
+                let pk = k;
+                // ii. Set kPresent to ? HasProperty(O, Pk).
+                k_present = o.has_property(pk, context)?;
+                // iii. If kPresent is true, then
+                if k_present {
+                    // 1. Set accumulator to ? Get(O, Pk).
+                    accumulator = o.get(pk, context)?;
                 }
+                // iv. Set k to k + 1.
                 k += 1;
             }
+            // c. If kPresent is false, throw a TypeError exception.
             if !k_present {
                 return context.throw_type_error(
-                    "Reduce was called on an empty array and with no initial value",
+                    "Array.prototype.reduce: called on an empty array and with no initial value",
                 );
             }
-            let result = this.get_field(k, context)?;
-            k += 1;
-            result
-        } else {
-            initial_value
-        };
-        while k < length {
-            if this.has_field(k) {
-                let arguments = [
-                    accumulator,
-                    this.get_field(k, context)?,
-                    Value::from(k),
-                    this.clone(),
-                ];
-                accumulator = context.call(callback, &Value::undefined(), &arguments)?;
-                /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
-                It may also be necessary to do this since shortening the array length does not
-                delete array elements. See: https://github.com/boa-dev/boa/issues/557 */
-                length = min(
-                    length,
-                    this.get_field("length", context)?.to_length(context)?,
-                );
+        }
+
+        // 9. Repeat, while k < len,
+        while k < len {
+            // a. Let Pk be ! ToString(𝔽(k)).
+            let pk = k;
+            // b. Let kPresent be ? HasProperty(O, Pk).
+            let k_present = o.has_property(pk, context)?;
+            // c. If kPresent is true, then
+            if k_present {
+                // i. Let kValue be ? Get(O, Pk).
+                let k_value = o.get(pk, context)?;
+                // ii. Set accumulator to ? Call(callbackfn, undefined, « accumulator, kValue, 𝔽(k), O »).
+                accumulator = callback.call(
+                    &Value::undefined(),
+                    &[accumulator, k_value, k.into(), o.clone().into()],
+                    context,
+                )?;
             }
+            // d. Set k to k + 1.
             k += 1;
         }
+
+        // 10. Return accumulator.
         Ok(accumulator)
     }
 
@@ -1777,81 +1929,85 @@ impl Array {
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        let this: Value = this.to_object(context)?.into();
-        let callback = match args.get(0) {
-            Some(value) if value.is_function() => value,
-            _ => return context.throw_type_error("reduceRight was called without a callback"),
-        };
-        let initial_value = args.get(1).cloned().unwrap_or_else(Value::undefined);
-        let mut length = this.get_field("length", context)?.to_length(context)?;
-        if length == 0 {
-            return if initial_value.is_undefined() {
-                context.throw_type_error(
-                    "reduceRight was called on an empty array and with no initial value",
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
+
+        // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
+        let callback = match args.get(0).and_then(Value::as_object) {
+            Some(callback) if callback.is_callable() => callback,
+            _ => {
+                return context.throw_type_error(
+                    "Array.prototype.reduceRight: callback function is not callable",
                 )
-            } else {
-                // early return to prevent usize subtraction errors
-                Ok(initial_value)
-            };
+            }
+        };
+
+        // 4. If len is 0 and initialValue is not present, throw a TypeError exception.
+        if len == 0 && args.get(1).is_none() {
+            return context.throw_type_error(
+                "Array.prototype.reduceRight: called on an empty array and with no initial value",
+            );
         }
-        let mut k = length - 1;
-        let mut accumulator = if initial_value.is_undefined() {
+
+        // 5. Let k be len - 1.
+        let mut k = len as i64 - 1;
+        // 6. Let accumulator be undefined.
+        let mut accumulator = Value::undefined();
+        // 7. If initialValue is present, then
+        if let Some(initial_value) = args.get(1) {
+            // a. Set accumulator to initialValue.
+            accumulator = initial_value.clone();
+        // 8. Else,
+        } else {
+            // a. Let kPresent be false.
             let mut k_present = false;
-            loop {
-                if this.has_field(k) {
-                    k_present = true;
-                    break;
+            // b. Repeat, while kPresent is false and k ≥ 0,
+            while !k_present && k >= 0 {
+                // i. Let Pk be ! ToString(𝔽(k)).
+                let pk = k;
+                // ii. Set kPresent to ? HasProperty(O, Pk).
+                k_present = o.has_property(pk, context)?;
+                // iii. If kPresent is true, then
+                if k_present {
+                    // 1. Set accumulator to ? Get(O, Pk).
+                    accumulator = o.get(pk, context)?;
                 }
-                // check must be done at the end to prevent usize subtraction error
-                if k == 0 {
-                    break;
-                }
+                // iv. Set k to k - 1.
                 k -= 1;
             }
+            // c. If kPresent is false, throw a TypeError exception.
             if !k_present {
                 return context.throw_type_error(
-                    "reduceRight was called on an empty array and with no initial value",
+                    "Array.prototype.reduceRight: called on an empty array and with no initial value",
                 );
             }
-            let result = this.get_field(k, context)?;
-            k = k.overflowing_sub(1).0;
-            result
-        } else {
-            initial_value
-        };
-        // usize::MAX is bigger than the maximum array size so we can use it check for integer undeflow
-        while k != usize::MAX {
-            if this.has_field(k) {
-                let arguments = [
-                    accumulator,
-                    this.get_field(k, context)?,
-                    Value::from(k),
-                    this.clone(),
-                ];
-                accumulator = context.call(callback, &Value::undefined(), &arguments)?;
-                /* We keep track of possibly shortened length in order to prevent unnecessary iteration.
-                It may also be necessary to do this since shortening the array length does not
-                delete array elements. See: https://github.com/boa-dev/boa/issues/557 */
-                length = min(
-                    length,
-                    this.get_field("length", context)?.to_length(context)?,
-                );
-
-                // move k to the last defined element if necessary or return if the length was set to 0
-                if k >= length {
-                    if length == 0 {
-                        return Ok(accumulator);
-                    } else {
-                        k = length - 1;
-                        continue;
-                    }
-                }
-            }
-            if k == 0 {
-                break;
-            }
-            k = k.overflowing_sub(1).0;
         }
+
+        // 9. Repeat, while k ≥ 0,
+        while k >= 0 {
+            // a. Let Pk be ! ToString(𝔽(k)).
+            let pk = k;
+            // b. Let kPresent be ? HasProperty(O, Pk).
+            let k_present = o.has_property(pk, context)?;
+            // c. If kPresent is true, then
+            if k_present {
+                // i. Let kValue be ? Get(O, Pk).
+                let k_value = o.get(pk, context)?;
+                // ii. Set accumulator to ? Call(callbackfn, undefined, « accumulator, kValue, 𝔽(k), O »).
+                accumulator = callback.call(
+                    &Value::undefined(),
+                    &[accumulator.clone(), k_value, k.into(), o.clone().into()],
+                    context,
+                )?;
+            }
+            // d. Set k to k - 1.
+            k -= 1;
+        }
+
+        // 10. Return accumulator.
         Ok(accumulator)
     }
 
@@ -1871,53 +2027,79 @@ impl Array {
         args: &[Value],
         context: &mut Context,
     ) -> Result<Value> {
-        enum Direction {
-            Forward,
-            Backward,
-        }
-        let this: Value = this.to_object(context)?.into();
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
 
-        let length = this.get_field("length", context)?.to_length(context)?;
+        // 2. Let len be ? LengthOfArrayLike(O).
+        let len = o.length_of_array_like(context)?;
 
-        let mut to = Self::get_relative_start(context, args.get(0), length)?;
-        let mut from = Self::get_relative_start(context, args.get(1), length)?;
-        let finale = Self::get_relative_end(context, args.get(2), length)?;
+        // 3. Let relativeTarget be ? ToIntegerOrInfinity(target).
+        // 4. If relativeTarget is -∞, let to be 0.
+        // 5. Else if relativeTarget < 0, let to be max(len + relativeTarget, 0).
+        // 6. Else, let to be min(relativeTarget, len).
+        let mut to = Self::get_relative_start(context, args.get(0), len)? as i64;
 
-        // saturating sub accounts for the case from > finale, which would cause an overflow
-        // can skip the check for length - to, because we assert to <= length in get_relative_start
-        let count = (finale.saturating_sub(from)).min(length - to);
+        // 7. Let relativeStart be ? ToIntegerOrInfinity(start).
+        // 8. If relativeStart is -∞, let from be 0.
+        // 9. Else if relativeStart < 0, let from be max(len + relativeStart, 0).
+        // 10. Else, let from be min(relativeStart, len).
+        let mut from = Self::get_relative_start(context, args.get(1), len)? as i64;
 
+        // 11. If end is undefined, let relativeEnd be len; else let relativeEnd be ? ToIntegerOrInfinity(end).
+        // 12. If relativeEnd is -∞, let final be 0.
+        // 13. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
+        // 14. Else, let final be min(relativeEnd, len).
+        let final_ = Self::get_relative_end(context, args.get(2), len)? as i64;
+
+        // 15. Let count be min(final - from, len - to).
+        let mut count = min(final_ - from, len as i64 - to);
+
+        // 16. If from < to and to < from + count, then
         let direction = if from < to && to < from + count {
-            from += count - 1;
-            to += count - 1;
-            Direction::Backward
+            // b. Set from to from + count - 1.
+            from = from + count - 1;
+            // c. Set to to to + count - 1.
+            to = to + count - 1;
+
+            // a. Let direction be -1.
+            -1
+        // 17. Else,
         } else {
-            Direction::Forward
+            // a. Let direction be 1.
+            1
         };
 
-        // the original spec uses a while-loop from count to 1,
-        // but count is not used inside the loop, so we can safely replace it
-        // with a for-loop from 0 to count - 1
-        for _ in 0..count {
-            if this.has_field(from) {
-                let val = this.get_field(from, context)?;
-                this.set_field(to, val, true, context)?;
-            } else {
-                this.remove_property(to);
-            }
-            match direction {
-                Direction::Forward => {
-                    from += 1;
-                    to += 1;
-                }
-                Direction::Backward => {
-                    from -= 1;
-                    to -= 1;
-                }
-            }
-        }
+        // 18. Repeat, while count > 0,
+        while count > 0 {
+            // a. Let fromKey be ! ToString(𝔽(from)).
+            let from_key = from;
 
-        Ok(this)
+            // b. Let toKey be ! ToString(𝔽(to)).
+            let to_key = to;
+
+            // c. Let fromPresent be ? HasProperty(O, fromKey).
+            let from_present = o.has_property(from_key, context)?;
+            // d. If fromPresent is true, then
+            if from_present {
+                // i. Let fromVal be ? Get(O, fromKey).
+                let from_val = o.get(from_key, context)?;
+                // ii. Perform ? Set(O, toKey, fromVal, true).
+                o.set(to_key, from_val, true, context)?;
+            // e. Else,
+            } else {
+                // i. Assert: fromPresent is false.
+                // ii. Perform ? DeletePropertyOrThrow(O, toKey).
+                o.delete_property_or_throw(to_key, context)?;
+            }
+            // f. Set from to from + direction.
+            from += direction;
+            // g. Set to to to + direction.
+            to += direction;
+            // h. Set count to count - 1.
+            count -= 1;
+        }
+        // 19. Return O.
+        Ok(o.into())
     }
 
     /// `Array.prototype.values( )`
@@ -1980,24 +2162,19 @@ impl Array {
         arg: Option<&Value>,
         len: usize,
     ) -> Result<usize> {
-        let default_value = Value::undefined();
         // 1. Let relativeStart be ? ToIntegerOrInfinity(start).
         let relative_start = arg
-            .unwrap_or(&default_value)
+            .cloned()
+            .unwrap_or_default()
             .to_integer_or_infinity(context)?;
         match relative_start {
             // 2. If relativeStart is -∞, let k be 0.
             IntegerOrInfinity::NegativeInfinity => Ok(0),
             // 3. Else if relativeStart < 0, let k be max(len + relativeStart, 0).
-            IntegerOrInfinity::Integer(i) if i < 0 => Self::offset(len as u64, i)
-                .try_into()
-                .map_err(interror_to_value),
-            // 4. Else, let k be min(relativeStart, len).
+            IntegerOrInfinity::Integer(i) if i < 0 => Ok(max(len as i64 + i, 0) as usize),
             // Both `as` casts are safe as both variables are non-negative
-            IntegerOrInfinity::Integer(i) => (i as u64)
-                .min(len as u64)
-                .try_into()
-                .map_err(interror_to_value),
+            // 4. Else, let k be min(relativeStart, len).
+            IntegerOrInfinity::Integer(i) => Ok(min(i, len as i64) as usize),
 
             // Special case - postive infinity. `len` is always smaller than +inf, thus from (4)
             IntegerOrInfinity::PositiveInfinity => Ok(len),
@@ -2022,40 +2199,14 @@ impl Array {
                 // 2. If relativeEnd is -∞, let final be 0.
                 IntegerOrInfinity::NegativeInfinity => Ok(0),
                 // 3. Else if relativeEnd < 0, let final be max(len + relativeEnd, 0).
-                IntegerOrInfinity::Integer(i) if i < 0 => Self::offset(len as u64, i)
-                    .try_into()
-                    .map_err(interror_to_value),
+                IntegerOrInfinity::Integer(i) if i < 0 => Ok(max(len as i64 + i, 0) as usize),
                 // 4. Else, let final be min(relativeEnd, len).
                 // Both `as` casts are safe as both variables are non-negative
-                IntegerOrInfinity::Integer(i) => (i as u64)
-                    .min(len as u64)
-                    .try_into()
-                    .map_err(interror_to_value),
+                IntegerOrInfinity::Integer(i) => Ok(min(i, len as i64) as usize),
 
                 // Special case - postive infinity. `len` is always smaller than +inf, thus from (4)
                 IntegerOrInfinity::PositiveInfinity => Ok(len),
             }
         }
     }
-
-    fn offset(len: u64, i: i64) -> u64 {
-        // `Number::MIN_SAFE_INTEGER > i64::MIN` so this should always hold
-        debug_assert!(i < 0 && i != i64::MIN);
-        // `i.staurating_neg()` will always be less than `u64::MAX`
-        len.saturating_sub(i.saturating_neg() as u64)
-    }
-}
-
-fn f64_to_isize(v: f64) -> Result<isize> {
-    v.to_isize()
-        .ok_or_else(|| Value::string("cannot convert f64 to isize - out of range"))
-}
-
-fn f64_to_usize(v: f64) -> Result<usize> {
-    v.to_usize()
-        .ok_or_else(|| Value::string("cannot convert f64 to usize - out of range"))
-}
-
-fn interror_to_value(err: std::num::TryFromIntError) -> Value {
-    Value::string(format!("{}", err))
 }
