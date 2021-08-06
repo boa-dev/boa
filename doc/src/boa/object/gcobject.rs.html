@@ -1027,25 +1027,6 @@
 <span id="1027">1027</span>
 <span id="1028">1028</span>
 <span id="1029">1029</span>
-<span id="1030">1030</span>
-<span id="1031">1031</span>
-<span id="1032">1032</span>
-<span id="1033">1033</span>
-<span id="1034">1034</span>
-<span id="1035">1035</span>
-<span id="1036">1036</span>
-<span id="1037">1037</span>
-<span id="1038">1038</span>
-<span id="1039">1039</span>
-<span id="1040">1040</span>
-<span id="1041">1041</span>
-<span id="1042">1042</span>
-<span id="1043">1043</span>
-<span id="1044">1044</span>
-<span id="1045">1045</span>
-<span id="1046">1046</span>
-<span id="1047">1047</span>
-<span id="1048">1048</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the `GcObject` structure.</span>
 <span class="doccomment">//!</span>
@@ -1061,7 +1042,7 @@
         <span class="ident">function_environment_record</span>::{<span class="ident">BindingStatus</span>, <span class="ident">FunctionEnvironmentRecord</span>},
         <span class="ident">lexical_environment::Environment</span>,
     },
-    <span class="ident">property</span>::{<span class="ident">AccessorDescriptor</span>, <span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
+    <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">syntax::ast::node::RcStatementList</span>,
     <span class="ident">value::PreferredType</span>,
@@ -1505,114 +1486,6 @@
         }
     }
 
-    <span class="doccomment">/// Convert the object to a `PropertyDescriptor`</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_property_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. If Type(Obj) is not Object, throw a TypeError exception.</span>
-        <span class="comment">// 2. Let desc be a new Property Descriptor that initially has no fields.</span>
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">Attribute::empty</span>();
-
-        <span class="comment">// 3. Let hasEnumerable be ? HasProperty(Obj, &quot;enumerable&quot;).</span>
-        <span class="kw">let</span> <span class="ident">has_enumerable</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="string">&quot;enumerable&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="comment">// 4. If hasEnumerable is true, then</span>
-        <span class="comment">//     a. Let enumerable be ! ToBoolean(? Get(Obj, &quot;enumerable&quot;)).</span>
-        <span class="comment">//     b. Set desc.[[Enumerable]] to enumerable.</span>
-        <span class="kw">if</span> <span class="ident">has_enumerable</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;enumerable&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
-            <span class="ident">attribute</span> <span class="op">|</span><span class="op">=</span> <span class="ident">Attribute::ENUMERABLE</span>;
-        }
-
-        <span class="comment">// 5. Let hasConfigurable be ? HasProperty(Obj, &quot;configurable&quot;).</span>
-        <span class="kw">let</span> <span class="ident">has_configurable</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="string">&quot;configurable&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="comment">// 6. If hasConfigurable is true, then</span>
-        <span class="comment">//     a. Let configurable be ! ToBoolean(? Get(Obj, &quot;configurable&quot;)).</span>
-        <span class="comment">//     b. Set desc.[[Configurable]] to configurable.</span>
-        <span class="kw">if</span> <span class="ident">has_configurable</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;configurable&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
-            <span class="ident">attribute</span> <span class="op">|</span><span class="op">=</span> <span class="ident">Attribute::CONFIGURABLE</span>;
-        }
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="comment">// 7. Let hasValue be ? HasProperty(Obj, &quot;value&quot;).</span>
-        <span class="kw">let</span> <span class="ident">has_value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="comment">// 8. If hasValue is true, then</span>
-        <span class="kw">if</span> <span class="ident">has_value</span> {
-            <span class="comment">// a. Let value be ? Get(Obj, &quot;value&quot;).</span>
-            <span class="comment">// b. Set desc.[[Value]] to value.</span>
-            <span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>);
-        }
-
-        <span class="comment">// 9. Let hasWritable be ? HasProperty(Obj, ).</span>
-        <span class="kw">let</span> <span class="ident">has_writable</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="string">&quot;writable&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="comment">// 10. If hasWritable is true, then</span>
-        <span class="kw">if</span> <span class="ident">has_writable</span> {
-            <span class="comment">// a. Let writable be ! ToBoolean(? Get(Obj, &quot;writable&quot;)).</span>
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;writable&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
-                <span class="comment">// b. Set desc.[[Writable]] to writable.</span>
-                <span class="ident">attribute</span> <span class="op">|</span><span class="op">=</span> <span class="ident">Attribute::WRITABLE</span>;
-            }
-        }
-
-        <span class="comment">// 11. Let hasGet be ? HasProperty(Obj, &quot;get&quot;).</span>
-        <span class="kw">let</span> <span class="ident">has_get</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="string">&quot;get&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="comment">// 12. If hasGet is true, then</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">get</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">if</span> <span class="ident">has_get</span> {
-            <span class="comment">// a. Let getter be ? Get(Obj, &quot;get&quot;).</span>
-            <span class="kw">let</span> <span class="ident">getter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;get&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-            <span class="comment">// b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.</span>
-            <span class="kw">match</span> <span class="ident">getter</span> {
-                <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="comment">// c. Set desc.[[Get]] to getter.</span>
-                    <span class="ident">get</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>.<span class="ident">clone</span>());
-                }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(
-                        <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Property descriptor getter must be callable&quot;</span>)
-                    );
-                }
-            }
-        }
-
-        <span class="comment">// 13. Let hasSet be ? HasProperty(Obj, &quot;set&quot;).</span>
-        <span class="kw">let</span> <span class="ident">has_set</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="string">&quot;set&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="comment">// 14. If hasSet is true, then</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">if</span> <span class="ident">has_set</span> {
-            <span class="comment">// 14.a. Let setter be ? Get(Obj, &quot;set&quot;).</span>
-            <span class="kw">let</span> <span class="ident">setter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;set&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-            <span class="comment">// 14.b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.</span>
-            <span class="kw">match</span> <span class="ident">setter</span> {
-                <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="comment">// 14.c. Set desc.[[Set]] to setter.</span>
-                    <span class="ident">set</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>.<span class="ident">clone</span>());
-                }
-                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(
-                        <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Property descriptor setter must be callable&quot;</span>)
-                    );
-                }
-            };
-        }
-
-        <span class="comment">// 15. If desc.[[Get]] is present or desc.[[Set]] is present, then</span>
-        <span class="comment">// 16. Return desc.</span>
-        <span class="kw">if</span> <span class="ident">get</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">set</span>.<span class="ident">is_some</span>() {
-            <span class="comment">// 15.a. If desc.[[Value]] is present or desc.[[Writable]] is present, throw a TypeError exception.</span>
-            <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">has_writable</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Invalid property descriptor. Cannot both specify accessors and a value or writable attribute&quot;</span>));
-            }
-
-            <span class="prelude-val">Ok</span>(<span class="ident">AccessorDescriptor::new</span>(<span class="ident">get</span>, <span class="ident">set</span>, <span class="ident">attribute</span>).<span class="ident">into</span>())
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">value</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">DataDescriptor::new</span>(<span class="ident">v</span>, <span class="ident">attribute</span>).<span class="ident">into</span>())
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">DataDescriptor::new_without_value</span>(<span class="ident">attribute</span>).<span class="ident">into</span>())
-        }
-    }
-
     <span class="doccomment">/// Return `true` if it is a native object and the native type is `T`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Panics</span>
@@ -1960,6 +1833,95 @@
         } <span class="kw">else</span> {
             <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;property &#39;constructor&#39; is not an object&quot;</span>)
         }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_property_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span> {
+        <span class="comment">// 1 is implemented on the method `to_property_descriptor` of value</span>
+
+        <span class="comment">// 2. Let desc be a new Property Descriptor that initially has no fields.</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>();
+
+        <span class="comment">// 3. Let hasEnumerable be ? HasProperty(Obj, &quot;enumerable&quot;).</span>
+        <span class="comment">// 4. If hasEnumerable is true, then ...</span>
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="string">&quot;enumerable&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
+            <span class="comment">// a. Let enumerable be ! ToBoolean(? Get(Obj, &quot;enumerable&quot;)).</span>
+            <span class="comment">// b. Set desc.[[Enumerable]] to enumerable.</span>
+            <span class="ident">desc</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">enumerable</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;enumerable&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>());
+        }
+
+        <span class="comment">// 5. Let hasConfigurable be ? HasProperty(Obj, &quot;configurable&quot;).</span>
+        <span class="comment">// 6. If hasConfigurable is true, then ...</span>
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="string">&quot;configurable&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
+            <span class="comment">// a. Let configurable be ! ToBoolean(? Get(Obj, &quot;configurable&quot;)).</span>
+            <span class="comment">// b. Set desc.[[Configurable]] to configurable.</span>
+            <span class="ident">desc</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">configurable</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;configurable&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>());
+        }
+
+        <span class="comment">// 7. Let hasValue be ? HasProperty(Obj, &quot;value&quot;).</span>
+        <span class="comment">// 8. If hasValue is true, then ...</span>
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
+            <span class="comment">// a. Let value be ? Get(Obj, &quot;value&quot;).</span>
+            <span class="comment">// b. Set desc.[[Value]] to value.</span>
+            <span class="ident">desc</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>);
+        }
+
+        <span class="comment">// 9. Let hasWritable be ? HasProperty(Obj, ).</span>
+        <span class="comment">// 10. If hasWritable is true, then ...</span>
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="string">&quot;writable&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
+            <span class="comment">// a. Let writable be ! ToBoolean(? Get(Obj, &quot;writable&quot;)).</span>
+            <span class="comment">// b. Set desc.[[Writable]] to writable.</span>
+            <span class="ident">desc</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">writable</span>(<span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;writable&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>());
+        }
+
+        <span class="comment">// 11. Let hasGet be ? HasProperty(Obj, &quot;get&quot;).</span>
+        <span class="comment">// 12. If hasGet is true, then</span>
+        <span class="kw">let</span> <span class="ident">get</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="string">&quot;get&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
+            <span class="comment">// a. Let getter be ? Get(Obj, &quot;get&quot;).</span>
+            <span class="kw">let</span> <span class="ident">getter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;get&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="comment">// b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.</span>
+            <span class="comment">// todo: extract IsCallable to be callable from Value</span>
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">getter</span>.<span class="ident">is_undefined</span>() <span class="op">&amp;&amp;</span> <span class="ident">getter</span>.<span class="ident">as_object</span>().<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="op">!</span><span class="ident">o</span>.<span class="ident">is_callable</span>()) {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(
+                    <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Property descriptor getter must be callable&quot;</span>)
+                );
+            }
+            <span class="comment">// c. Set desc.[[Get]] to getter.</span>
+            <span class="prelude-val">Some</span>(<span class="ident">getter</span>)
+        } <span class="kw">else</span> {
+            <span class="prelude-val">None</span>
+        };
+
+        <span class="comment">// 13. Let hasSet be ? HasProperty(Obj, &quot;set&quot;).</span>
+        <span class="comment">// 14. If hasSet is true, then</span>
+        <span class="kw">let</span> <span class="ident">set</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="string">&quot;set&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
+            <span class="comment">// 14.a. Let setter be ? Get(Obj, &quot;set&quot;).</span>
+            <span class="kw">let</span> <span class="ident">setter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="string">&quot;set&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="comment">// 14.b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.</span>
+            <span class="comment">// todo: extract IsCallable to be callable from Value</span>
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">setter</span>.<span class="ident">is_undefined</span>() <span class="op">&amp;&amp;</span> <span class="ident">setter</span>.<span class="ident">as_object</span>().<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="op">!</span><span class="ident">o</span>.<span class="ident">is_callable</span>()) {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(
+                    <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Property descriptor setter must be callable&quot;</span>)
+                );
+            }
+            <span class="comment">// 14.c. Set desc.[[Set]] to setter.</span>
+            <span class="prelude-val">Some</span>(<span class="ident">setter</span>)
+        } <span class="kw">else</span> {
+            <span class="prelude-val">None</span>
+        };
+
+        <span class="comment">// 15. If desc.[[Get]] is present or desc.[[Set]] is present, then ...</span>
+        <span class="comment">// a. If desc.[[Value]] is present or desc.[[Writable]] is present, throw a TypeError exception.</span>
+        <span class="kw">if</span> <span class="ident">get</span>.<span class="ident">as_ref</span>().<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">set</span>.<span class="ident">as_ref</span>()).<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">desc</span>.<span class="ident">inner</span>().<span class="ident">is_data_descriptor</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(
+                <span class="string">&quot;Invalid property descriptor.\
+            Cannot both specify accessors and a value or writable attribute&quot;</span>,
+            ));
+        }
+
+        <span class="ident">desc</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">maybe_get</span>(<span class="ident">get</span>).<span class="ident">maybe_set</span>(<span class="ident">set</span>);
+
+        <span class="comment">// 16. Return desc.</span>
+        <span class="prelude-val">Ok</span>(<span class="ident">desc</span>.<span class="ident">build</span>())
     }
 }
 

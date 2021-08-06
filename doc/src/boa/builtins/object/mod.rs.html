@@ -584,9 +584,7 @@
     <span class="ident">object</span>::{
         <span class="ident">ConstructorBuilder</span>, <span class="ident">Object</span> <span class="kw">as</span> <span class="ident">BuiltinObject</span>, <span class="ident">ObjectData</span>, <span class="ident">ObjectInitializer</span>, <span class="ident">PROTOTYPE</span>,
     },
-    <span class="ident">property::Attribute</span>,
-    <span class="ident">property::DataDescriptor</span>,
-    <span class="ident">property::PropertyDescriptor</span>,
+    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DescriptorKind</span>, <span class="ident">PropertyDescriptor</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">value</span>::{<span class="ident">Type</span>, <span class="ident">Value</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>,
@@ -771,7 +769,11 @@
             <span class="kw">if</span> <span class="op">!</span><span class="ident">descriptor</span>.<span class="ident">is_undefined</span>() {
                 <span class="ident">descriptors</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(
                     <span class="ident">key</span>,
-                    <span class="ident">PropertyDescriptor::from</span>(<span class="ident">DataDescriptor::new</span>(<span class="ident">descriptor</span>, <span class="ident">Attribute::all</span>())),
+                    <span class="ident">PropertyDescriptor::builder</span>()
+                        .<span class="ident">value</span>(<span class="ident">descriptor</span>)
+                        .<span class="ident">writable</span>(<span class="bool-val">true</span>)
+                        .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
+                        .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
                 );
             }
         }
@@ -787,37 +789,35 @@
     <span class="kw">fn</span> <span class="ident">from_property_descriptor</span>(<span class="ident">desc</span>: <span class="ident">PropertyDescriptor</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">descriptor</span> <span class="op">=</span> <span class="ident">ObjectInitializer::new</span>(<span class="ident">context</span>);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PropertyDescriptor::Data</span>(<span class="ident">data_desc</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">desc</span> {
-            <span class="ident">descriptor</span>.<span class="ident">property</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">data_desc</span>.<span class="ident">value</span>(), <span class="ident">Attribute::all</span>());
+        <span class="comment">// TODO: use CreateDataPropertyOrThrow</span>
+
+        <span class="kw">match</span> <span class="ident">desc</span>.<span class="ident">kind</span>() {
+            <span class="ident">DescriptorKind::Data</span> { <span class="ident">value</span>, <span class="ident">writable</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">value</span> {
+                    <span class="ident">descriptor</span>.<span class="ident">property</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">Attribute::all</span>());
+                }
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">writable</span>) <span class="op">=</span> <span class="ident">writable</span> {
+                    <span class="ident">descriptor</span>.<span class="ident">property</span>(<span class="string">&quot;writable&quot;</span>, <span class="kw-2">*</span><span class="ident">writable</span>, <span class="ident">Attribute::all</span>());
+                }
+            }
+            <span class="ident">DescriptorKind::Accessor</span> { <span class="ident">get</span>, <span class="ident">set</span> } <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">get</span>) <span class="op">=</span> <span class="ident">get</span> {
+                    <span class="ident">descriptor</span>.<span class="ident">property</span>(<span class="string">&quot;get&quot;</span>, <span class="ident">get</span>.<span class="ident">clone</span>(), <span class="ident">Attribute::all</span>());
+                }
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">set</span>) <span class="op">=</span> <span class="ident">set</span> {
+                    <span class="ident">descriptor</span>.<span class="ident">property</span>(<span class="string">&quot;set&quot;</span>, <span class="ident">set</span>.<span class="ident">clone</span>(), <span class="ident">Attribute::all</span>());
+                }
+            }
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {}
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PropertyDescriptor::Accessor</span>(<span class="ident">accessor_desc</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">desc</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">setter</span>) <span class="op">=</span> <span class="ident">accessor_desc</span>.<span class="ident">setter</span>() {
-                <span class="ident">descriptor</span>.<span class="ident">property</span>(<span class="string">&quot;set&quot;</span>, <span class="ident">Value::Object</span>(<span class="ident">setter</span>.<span class="ident">to_owned</span>()), <span class="ident">Attribute::all</span>());
-            }
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">getter</span>) <span class="op">=</span> <span class="ident">accessor_desc</span>.<span class="ident">getter</span>() {
-                <span class="ident">descriptor</span>.<span class="ident">property</span>(<span class="string">&quot;get&quot;</span>, <span class="ident">Value::Object</span>(<span class="ident">getter</span>.<span class="ident">to_owned</span>()), <span class="ident">Attribute::all</span>());
-            }
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">enumerable</span>) <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">enumerable</span>() {
+            <span class="ident">descriptor</span>.<span class="ident">property</span>(<span class="string">&quot;enumerable&quot;</span>, <span class="ident">enumerable</span>, <span class="ident">Attribute::all</span>());
         }
 
-        <span class="kw">let</span> <span class="ident">writable</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PropertyDescriptor::Data</span>(<span class="ident">data_desc</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">desc</span> {
-            <span class="ident">data_desc</span>.<span class="ident">writable</span>()
-        } <span class="kw">else</span> {
-            <span class="bool-val">false</span>
-        };
-
-        <span class="ident">descriptor</span>
-            .<span class="ident">property</span>(<span class="string">&quot;writable&quot;</span>, <span class="ident">Value::from</span>(<span class="ident">writable</span>), <span class="ident">Attribute::all</span>())
-            .<span class="ident">property</span>(
-                <span class="string">&quot;enumerable&quot;</span>,
-                <span class="ident">Value::from</span>(<span class="ident">desc</span>.<span class="ident">enumerable</span>()),
-                <span class="ident">Attribute::all</span>(),
-            )
-            .<span class="ident">property</span>(
-                <span class="string">&quot;configurable&quot;</span>,
-                <span class="ident">Value::from</span>(<span class="ident">desc</span>.<span class="ident">configurable</span>()),
-                <span class="ident">Attribute::all</span>(),
-            );
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">configurable</span>) <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">configurable</span>() {
+            <span class="ident">descriptor</span>.<span class="ident">property</span>(<span class="string">&quot;configurable&quot;</span>, <span class="ident">configurable</span>, <span class="ident">Attribute::all</span>());
+        }
 
         <span class="ident">descriptor</span>.<span class="ident">build</span>().<span class="ident">into</span>()
     }
@@ -929,11 +929,11 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_object</span>() {
             <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>
                 .<span class="ident">get</span>(<span class="number">1</span>)
-                .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">Value::undefined</span>())
+                .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">Value::Undefined</span>)
                 .<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">args</span>
                 .<span class="ident">get</span>(<span class="number">2</span>)
-                .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">Value::undefined</span>())
+                .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">Value::Undefined</span>)
                 .<span class="ident">to_property_descriptor</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="ident">object</span>.<span class="ident">define_property_or_throw</span>(<span class="ident">key</span>, <span class="ident">desc</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -1114,7 +1114,7 @@
                     <span class="comment">// 3.a.iii.1. Let desc be ? from.[[GetOwnProperty]](nextKey).</span>
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">desc</span>) <span class="op">=</span> <span class="ident">from</span>.<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>) {
                         <span class="comment">// 3.a.iii.2. If desc is not undefined and desc.[[Enumerable]] is true, then</span>
-                        <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">enumerable</span>() {
+                        <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">expect_enumerable</span>() {
                             <span class="comment">// 3.a.iii.2.a. Let propValue be ? Get(from, nextKey).</span>
                             <span class="kw">let</span> <span class="ident">property</span> <span class="op">=</span> <span class="ident">from</span>.<span class="ident">get</span>(<span class="ident">key</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
                             <span class="comment">// 3.a.iii.2.b. Perform ? Set(to, nextKey, propValue, true).</span>

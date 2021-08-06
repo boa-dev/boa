@@ -1072,6 +1072,16 @@
 <span id="1072">1072</span>
 <span id="1073">1073</span>
 <span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
@@ -1087,7 +1097,7 @@
         <span class="ident">Number</span>,
     },
     <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>},
-    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
+    <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">symbol</span>::{<span class="ident">JsSymbol</span>, <span class="ident">WellKnownSymbols</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsString</span>, <span class="prelude-ty">Result</span>,
 };
@@ -1265,16 +1275,21 @@
                 <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">json</span>) <span class="kw">in</span> <span class="ident">vs</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
                     <span class="ident">new_obj</span>.<span class="ident">set_property</span>(
                         <span class="ident">idx</span>.<span class="ident">to_string</span>(),
-                        <span class="ident">DataDescriptor::new</span>(
-                            <span class="self">Self</span><span class="ident">::from_json</span>(<span class="ident">json</span>, <span class="ident">context</span>),
-                            <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
-                        ),
+                        <span class="ident">PropertyDescriptor::builder</span>()
+                            .<span class="ident">value</span>(<span class="self">Self</span><span class="ident">::from_json</span>(<span class="ident">json</span>, <span class="ident">context</span>))
+                            .<span class="ident">writable</span>(<span class="bool-val">true</span>)
+                            .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
+                            .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
                     );
                 }
                 <span class="ident">new_obj</span>.<span class="ident">set_property</span>(
                     <span class="string">&quot;length&quot;</span>,
                     <span class="comment">// TODO: Fix length attribute</span>
-                    <span class="ident">DataDescriptor::new</span>(<span class="ident">length</span>, <span class="ident">Attribute::all</span>()),
+                    <span class="ident">PropertyDescriptor::builder</span>()
+                        .<span class="ident">value</span>(<span class="ident">length</span>)
+                        .<span class="ident">writable</span>(<span class="bool-val">true</span>)
+                        .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
+                        .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
                 );
                 <span class="ident">new_obj</span>
             }
@@ -1284,10 +1299,11 @@
                     <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::from_json</span>(<span class="ident">json</span>, <span class="ident">context</span>);
                     <span class="ident">new_obj</span>.<span class="ident">set_property</span>(
                         <span class="ident">key</span>,
-                        <span class="ident">DataDescriptor::new</span>(
-                            <span class="ident">value</span>,
-                            <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
-                        ),
+                        <span class="ident">PropertyDescriptor::builder</span>()
+                            .<span class="ident">value</span>(<span class="ident">value</span>)
+                            .<span class="ident">writable</span>(<span class="bool-val">true</span>)
+                            .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
+                            .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
                     );
                 }
                 <span class="ident">new_obj</span>
@@ -1779,9 +1795,12 @@
                 ));
                 <span class="comment">// Make sure the correct length is set on our new string object</span>
                 <span class="ident">object</span>.<span class="ident">insert_property</span>(
-                    <span class="ident">PropertyKey::String</span>(<span class="string">&quot;length&quot;</span>.<span class="ident">into</span>()),
-                    <span class="ident">Value::from</span>(<span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>()),
-                    <span class="ident">Attribute::NON_ENUMERABLE</span>,
+                    <span class="string">&quot;length&quot;</span>,
+                    <span class="ident">PropertyDescriptor::builder</span>()
+                        .<span class="ident">value</span>(<span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>())
+                        .<span class="ident">writable</span>(<span class="bool-val">false</span>)
+                        .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
+                        .<span class="ident">configurable</span>(<span class="bool-val">false</span>),
                 );
                 <span class="prelude-val">Ok</span>(<span class="ident">object</span>)
             }
@@ -2000,10 +2019,11 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_property_descriptor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="self">Self</span><span class="ident">::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span> <span class="self">self</span> {
-            <span class="ident">object</span>.<span class="ident">to_property_descriptor</span>(<span class="ident">context</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Property description must be an object&quot;</span>))
+        <span class="comment">// 1. If Type(Obj) is not Object, throw a TypeError exception.</span>
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>.<span class="ident">to_property_descriptor</span>(<span class="ident">context</span>),
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>
+                .<span class="ident">construct_type_error</span>(<span class="string">&quot;Cannot construct a property descriptor from a non-object&quot;</span>)),
         }
     }
 

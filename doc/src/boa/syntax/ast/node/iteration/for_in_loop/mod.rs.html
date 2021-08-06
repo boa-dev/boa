@@ -213,6 +213,8 @@
 <span id="213">213</span>
 <span id="214">214</span>
 <span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">iterable::IteratorRecord</span>, <span class="ident">ForInIterator</span>},
@@ -308,7 +310,9 @@
         <span class="kw">let</span> <span class="ident">for_in_iterator</span> <span class="op">=</span> <span class="ident">ForInIterator::create_for_in_iterator</span>(<span class="ident">context</span>, <span class="ident">Value::from</span>(<span class="ident">object</span>));
         <span class="kw">let</span> <span class="ident">next_function</span> <span class="op">=</span> <span class="ident">for_in_iterator</span>
             .<span class="ident">get_property</span>(<span class="string">&quot;next&quot;</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">as_data_descriptor</span>().<span class="ident">unwrap</span>().<span class="ident">value</span>())
+            .<span class="ident">as_ref</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">expect_value</span>())
+            .<span class="ident">cloned</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Could not find property `next`&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <span class="ident">IteratorRecord::new</span>(<span class="ident">for_in_iterator</span>, <span class="ident">next_function</span>);
 

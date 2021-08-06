@@ -2210,6 +2210,33 @@
 <span id="2210">2210</span>
 <span id="2211">2211</span>
 <span id="2212">2212</span>
+<span id="2213">2213</span>
+<span id="2214">2214</span>
+<span id="2215">2215</span>
+<span id="2216">2216</span>
+<span id="2217">2217</span>
+<span id="2218">2218</span>
+<span id="2219">2219</span>
+<span id="2220">2220</span>
+<span id="2221">2221</span>
+<span id="2222">2222</span>
+<span id="2223">2223</span>
+<span id="2224">2224</span>
+<span id="2225">2225</span>
+<span id="2226">2226</span>
+<span id="2227">2227</span>
+<span id="2228">2228</span>
+<span id="2229">2229</span>
+<span id="2230">2230</span>
+<span id="2231">2231</span>
+<span id="2232">2232</span>
+<span id="2233">2233</span>
+<span id="2234">2234</span>
+<span id="2235">2235</span>
+<span id="2236">2236</span>
+<span id="2237">2237</span>
+<span id="2238">2238</span>
+<span id="2239">2239</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -2231,7 +2258,7 @@
     <span class="ident">builtins::BuiltIn</span>,
     <span class="ident">builtins::Number</span>,
     <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>, <span class="ident">GcObject</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
-    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>},
+    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">value</span>::{<span class="ident">IntegerOrInfinity</span>, <span class="ident">Value</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsString</span>, <span class="prelude-ty">Result</span>,
@@ -2438,11 +2465,16 @@
         <span class="ident">array</span>.<span class="ident">borrow_mut</span>().<span class="ident">data</span> <span class="op">=</span> <span class="ident">ObjectData::Array</span>;
 
         <span class="comment">// 6. Perform ! OrdinaryDefineOwnProperty(A, &quot;length&quot;, PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).</span>
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">DataDescriptor::new</span>(
-            <span class="ident">length</span> <span class="kw">as</span> <span class="ident">f64</span>,
-            <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::PERMANENT</span>,
+
+        <span class="ident">array</span>.<span class="ident">ordinary_define_own_property</span>(
+            <span class="string">&quot;length&quot;</span>.<span class="ident">into</span>(),
+            <span class="ident">PropertyDescriptor::builder</span>()
+                .<span class="ident">value</span>(<span class="ident">length</span> <span class="kw">as</span> <span class="ident">f64</span>)
+                .<span class="ident">writable</span>(<span class="bool-val">true</span>)
+                .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
+                .<span class="ident">configurable</span>(<span class="bool-val">false</span>)
+                .<span class="ident">build</span>(),
         );
-        <span class="ident">array</span>.<span class="ident">ordinary_define_own_property</span>(<span class="string">&quot;length&quot;</span>.<span class="ident">into</span>(), <span class="ident">length</span>.<span class="ident">into</span>());
 
         <span class="prelude-val">Ok</span>(<span class="ident">array</span>)
     }
@@ -2455,11 +2487,15 @@
             .<span class="ident">as_object</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;&#39;array&#39; should be an object&quot;</span>)
             .<span class="ident">set_prototype_instance</span>(<span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">array_object</span>().<span class="ident">prototype</span>().<span class="ident">into</span>());
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">DataDescriptor::new</span>(
-            <span class="ident">Value::from</span>(<span class="number">0</span>),
-            <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::PERMANENT</span>,
+        <span class="ident">array</span>.<span class="ident">set_property</span>(
+            <span class="string">&quot;length&quot;</span>,
+            <span class="ident">PropertyDescriptor::builder</span>()
+                .<span class="ident">value</span>(<span class="number">0</span>)
+                .<span class="ident">writable</span>(<span class="bool-val">true</span>)
+                .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
+                .<span class="ident">configurable</span>(<span class="bool-val">false</span>)
+                .<span class="ident">build</span>(),
         );
-        <span class="ident">array</span>.<span class="ident">set_property</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length</span>);
         <span class="ident">array</span>
     }
 
@@ -2481,14 +2517,25 @@
         }
 
         <span class="comment">// Create length</span>
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">DataDescriptor::new</span>(
-            <span class="ident">array_contents</span>.<span class="ident">len</span>(),
-            <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::PERMANENT</span>,
+        <span class="ident">array_obj_ptr</span>.<span class="ident">set_property</span>(
+            <span class="string">&quot;length&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="ident">PropertyDescriptor::builder</span>()
+                .<span class="ident">value</span>(<span class="ident">array_contents</span>.<span class="ident">len</span>())
+                .<span class="ident">writable</span>(<span class="bool-val">true</span>)
+                .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
+                .<span class="ident">configurable</span>(<span class="bool-val">false</span>)
+                .<span class="ident">build</span>(),
         );
-        <span class="ident">array_obj_ptr</span>.<span class="ident">set_property</span>(<span class="string">&quot;length&quot;</span>.<span class="ident">to_string</span>(), <span class="ident">length</span>);
 
         <span class="kw">for</span> (<span class="ident">n</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">array_contents</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="ident">array_obj_ptr</span>.<span class="ident">set_property</span>(<span class="ident">n</span>, <span class="ident">DataDescriptor::new</span>(<span class="ident">value</span>, <span class="ident">Attribute::all</span>()));
+            <span class="ident">array_obj_ptr</span>.<span class="ident">set_property</span>(
+                <span class="ident">n</span>,
+                <span class="ident">PropertyDescriptor::builder</span>()
+                    .<span class="ident">value</span>(<span class="ident">value</span>)
+                    .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
+                    .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
+                    .<span class="ident">writable</span>(<span class="bool-val">true</span>),
+            );
         }
         <span class="prelude-val">Ok</span>(<span class="ident">array_obj_ptr</span>)
     }
@@ -2602,7 +2649,14 @@
 
         <span class="kw">for</span> (<span class="ident">n</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">add_values</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="kw">let</span> <span class="ident">new_index</span> <span class="op">=</span> <span class="ident">orig_length</span>.<span class="ident">wrapping_add</span>(<span class="ident">n</span>);
-            <span class="ident">array_ptr</span>.<span class="ident">set_property</span>(<span class="ident">new_index</span>, <span class="ident">DataDescriptor::new</span>(<span class="ident">value</span>, <span class="ident">Attribute::all</span>()));
+            <span class="ident">array_ptr</span>.<span class="ident">set_property</span>(
+                <span class="ident">new_index</span>,
+                <span class="ident">PropertyDescriptor::builder</span>()
+                    .<span class="ident">value</span>(<span class="ident">value</span>)
+                    .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
+                    .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
+                    .<span class="ident">writable</span>(<span class="bool-val">true</span>),
+            );
         }
 
         <span class="ident">array_ptr</span>.<span class="ident">set_field</span>(

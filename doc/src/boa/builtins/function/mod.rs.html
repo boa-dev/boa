@@ -368,6 +368,14 @@
 <span id="368">368</span>
 <span id="369">369</span>
 <span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
@@ -388,7 +396,7 @@
     <span class="ident">environment::lexical_environment::Environment</span>,
     <span class="ident">gc</span>::{<span class="ident">custom_trace</span>, <span class="ident">empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>, <span class="ident">GcObject</span>, <span class="ident">Object</span>, <span class="ident">ObjectData</span>},
-    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>},
+    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>},
     <span class="ident">syntax::ast::node</span>::{<span class="ident">FormalParameter</span>, <span class="ident">RcStatementList</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
 };
@@ -552,19 +560,21 @@
     <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">arguments_list</span>.<span class="ident">len</span>();
     <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">GcObject::new</span>(<span class="ident">Object::default</span>());
     <span class="comment">// Set length</span>
-    <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">DataDescriptor::new</span>(
-        <span class="ident">len</span>,
-        <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
-    );
+    <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()
+        .<span class="ident">value</span>(<span class="ident">len</span>)
+        .<span class="ident">writable</span>(<span class="bool-val">true</span>)
+        .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
+        .<span class="ident">configurable</span>(<span class="bool-val">true</span>);
     <span class="comment">// Define length as a property</span>
     <span class="ident">obj</span>.<span class="ident">ordinary_define_own_property</span>(<span class="string">&quot;length&quot;</span>.<span class="ident">into</span>(), <span class="ident">length</span>.<span class="ident">into</span>());
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">while</span> <span class="ident">index</span> <span class="op">&lt;</span> <span class="ident">len</span> {
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">arguments_list</span>.<span class="ident">get</span>(<span class="ident">index</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not get argument&quot;</span>);
-        <span class="kw">let</span> <span class="ident">prop</span> <span class="op">=</span> <span class="ident">DataDescriptor::new</span>(
-            <span class="ident">val</span>.<span class="ident">clone</span>(),
-            <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
-        );
+        <span class="kw">let</span> <span class="ident">prop</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()
+            .<span class="ident">value</span>(<span class="ident">val</span>.<span class="ident">clone</span>())
+            .<span class="ident">writable</span>(<span class="bool-val">true</span>)
+            .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
+            .<span class="ident">configurable</span>(<span class="bool-val">true</span>);
 
         <span class="ident">obj</span>.<span class="ident">insert</span>(<span class="ident">index</span>, <span class="ident">prop</span>);
         <span class="ident">index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -614,14 +624,20 @@
             .<span class="ident">prototype</span>()
             .<span class="ident">into</span>(),
     );
-    <span class="kw">let</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>;
-    <span class="ident">function</span>.<span class="ident">insert_property</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length</span>, <span class="ident">attribute</span>);
-    <span class="ident">function</span>.<span class="ident">insert_property</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">name</span>.<span class="ident">as_str</span>(), <span class="ident">attribute</span>);
+    <span class="kw">let</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()
+        .<span class="ident">writable</span>(<span class="bool-val">false</span>)
+        .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
+        .<span class="ident">configurable</span>(<span class="bool-val">true</span>);
+    <span class="ident">function</span>.<span class="ident">insert_property</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">attribute</span>.<span class="ident">clone</span>().<span class="ident">value</span>(<span class="ident">length</span>));
+    <span class="ident">function</span>.<span class="ident">insert_property</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">attribute</span>.<span class="ident">value</span>(<span class="ident">name</span>.<span class="ident">as_str</span>()));
 
     <span class="ident">parent</span>.<span class="ident">clone</span>().<span class="ident">insert_property</span>(
         <span class="ident">name</span>,
-        <span class="ident">function</span>,
-        <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+        <span class="ident">PropertyDescriptor::builder</span>()
+            .<span class="ident">value</span>(<span class="ident">function</span>)
+            .<span class="ident">writable</span>(<span class="bool-val">true</span>)
+            .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
+            .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
     );
 }
 

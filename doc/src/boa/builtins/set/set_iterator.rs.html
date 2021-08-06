@@ -152,6 +152,7 @@
 <span id="152">152</span>
 <span id="153">153</span>
 <span id="154">154</span>
+<span id="155">155</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::make_builtin_fn</span>,
@@ -159,7 +160,7 @@
     <span class="ident">builtins::Array</span>,
     <span class="ident">builtins::Value</span>,
     <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">ObjectData</span>},
-    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">DataDescriptor</span>},
+    <span class="ident">property::PropertyDescriptor</span>,
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>,
 };
@@ -299,10 +300,11 @@
         <span class="ident">set_iterator</span>.<span class="ident">set_prototype_instance</span>(<span class="ident">iterator_prototype</span>);
 
         <span class="kw">let</span> <span class="ident">to_string_tag</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::to_string_tag</span>();
-        <span class="kw">let</span> <span class="ident">to_string_tag_property</span> <span class="op">=</span> <span class="ident">DataDescriptor::new</span>(
-            <span class="string">&quot;Set Iterator&quot;</span>,
-            <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
-        );
+        <span class="kw">let</span> <span class="ident">to_string_tag_property</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()
+            .<span class="ident">value</span>(<span class="string">&quot;Set Iterator&quot;</span>)
+            .<span class="ident">writable</span>(<span class="bool-val">false</span>)
+            .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
+            .<span class="ident">configurable</span>(<span class="bool-val">true</span>);
         <span class="ident">set_iterator</span>.<span class="ident">insert</span>(<span class="ident">to_string_tag</span>, <span class="ident">to_string_tag_property</span>);
         <span class="ident">set_iterator</span>
     }
