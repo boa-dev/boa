@@ -188,7 +188,7 @@ impl<'a> Vm<'a> {
                 if !rhs.is_object() {
                     return Err(self.context.construct_type_error(format!(
                         "right-hand side of 'in' should be an object, got {}",
-                        rhs.get_type().as_str()
+                        rhs.type_of()
                     )));
                 }
                 let key = lhs.to_property_key(self.context)?;
@@ -216,7 +216,7 @@ impl<'a> Vm<'a> {
                 } else {
                     return Err(self.context.construct_type_error(format!(
                         "right-hand side of 'instanceof' should be an object, got {}",
-                        y.get_type().as_str()
+                        y.type_of()
                     )));
                 };
 
@@ -228,7 +228,7 @@ impl<'a> Vm<'a> {
             }
             Opcode::TypeOf => {
                 let value = self.pop();
-                self.push(value.get_type().as_str());
+                self.push(value.type_of());
             }
             Opcode::Pos => {
                 let value = self.pop();

@@ -1,7 +1,7 @@
 //! Template literal node.
 
 use super::Node;
-use crate::{builtins::Array, exec::Executable, value::Type, BoaProfiler, Context, Result, Value};
+use crate::{builtins::Array, exec::Executable, BoaProfiler, Context, Result, Value};
 use gc::{Finalize, Trace};
 
 #[cfg(feature = "deser")]
@@ -112,7 +112,7 @@ impl Executable for TaggedTemplate {
         let (this, func) = match *self.tag {
             Node::GetConstField(ref get_const_field) => {
                 let mut obj = get_const_field.obj().run(context)?;
-                if obj.get_type() != Type::Object {
+                if !obj.is_object() {
                     obj = Value::Object(obj.to_object(context)?);
                 }
                 (

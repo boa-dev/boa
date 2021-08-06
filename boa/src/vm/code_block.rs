@@ -189,13 +189,7 @@ impl std::fmt::Display for CodeBlock {
         f.write_str("Literals:\n")?;
         if !self.literals.is_empty() {
             for (i, value) in self.literals.iter().enumerate() {
-                writeln!(
-                    f,
-                    "    {:04}: <{}> {}",
-                    i,
-                    value.get_type().as_str(),
-                    value.display()
-                )?;
+                writeln!(f, "    {:04}: <{}> {}", i, value.type_of(), value.display())?;
             }
         } else {
             writeln!(f, "    <empty>")?;

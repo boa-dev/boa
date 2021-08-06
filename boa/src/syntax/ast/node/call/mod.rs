@@ -4,7 +4,7 @@ use crate::{
     exec::InterpreterState,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Node},
-    value::{Type, Value},
+    value::Value,
     BoaProfiler, Context, Result,
 };
 use std::fmt;
@@ -66,7 +66,7 @@ impl Executable for Call {
         let (this, func) = match self.expr() {
             Node::GetConstField(ref get_const_field) => {
                 let mut obj = get_const_field.obj().run(context)?;
-                if obj.get_type() != Type::Object {
+                if !obj.is_object() {
                     obj = Value::Object(obj.to_object(context)?);
                 }
                 (
@@ -76,7 +76,7 @@ impl Executable for Call {
             }
             Node::GetField(ref get_field) => {
                 let mut obj = get_field.obj().run(context)?;
-                if obj.get_type() != Type::Object {
+                if !obj.is_object() {
                     obj = Value::Object(obj.to_object(context)?);
                 }
                 let field = get_field.field().run(context)?;
