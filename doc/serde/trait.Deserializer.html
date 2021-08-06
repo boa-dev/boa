@@ -209,7 +209,7 @@ many others.</p>
 not benefit from taking ownership of buffered data owned by the
 <code>Deserializer</code>.</p>
 <p>If the <code>Visitor</code> would benefit from taking ownership of <code>String</code> data,
-indiciate this to the <code>Deserializer</code> by using <code>deserialize_string</code>
+indicate this to the <code>Deserializer</code> by using <code>deserialize_string</code>
 instead.</p>
 </div></details><details class="rustdoc-toggle" open><summary><div id="tymethod.deserialize_string" class="method has-srclink"><h4 class="code-header">fn <a href="#tymethod.deserialize_string" class="fnname">deserialize_string</a>&lt;V&gt;(self, visitor: V) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.54.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;V::<a class="type" href="de/trait.Visitor.html#associatedtype.Value" title="type serde::de::Visitor::Value">Value</a>, Self::<a class="type" href="trait.Deserializer.html#associatedtype.Error" title="type serde::Deserializer::Error">Error</a>&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;V: <a class="trait" href="de/trait.Visitor.html" title="trait serde::de::Visitor">Visitor</a>&lt;'de&gt;,&nbsp;</span></h4><a class="srclink" href="../src/serde/de/mod.rs.html#1023-1025" title="goto source code">[src]</a></div></summary><div class="docblock"><p>Hint that the <code>Deserialize</code> type is expecting a string value and would
 benefit from taking ownership of buffered data owned by the
