@@ -107,8 +107,8 @@ fn construct_and_call() {
     let hello = forward_val(&mut context, "hello").unwrap();
     let world = forward_val(&mut context, "world").unwrap();
 
-    assert_eq!(hello.is_object(), true);
-    assert_eq!(world.is_string(), true);
+    assert!(hello.is_object());
+    assert!(world.is_string());
 }
 
 #[test]

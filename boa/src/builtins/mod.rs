@@ -1,5 +1,8 @@
 //! Builtins live here, such as Object, String, Math, etc.
 
+// builtins module has a lot of built-in functions that need unnecessary_wraps
+#![allow(clippy::unnecessary_wraps)]
+
 pub mod array;
 pub mod bigint;
 pub mod boolean;

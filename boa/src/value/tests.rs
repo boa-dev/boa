@@ -10,15 +10,15 @@ use std::hash::{Hash, Hasher};
 fn is_object() {
     let context = Context::new();
     let val = Value::new_object(&context);
-    assert_eq!(val.is_object(), true);
+    assert!(val.is_object());
 }
 
 #[test]
 fn string_to_value() {
     let s = String::from("Hello");
     let v = Value::from(s);
-    assert_eq!(v.is_string(), true);
-    assert_eq!(v.is_null(), false);
+    assert!(v.is_string());
+    assert!(!v.is_null());
 }
 
 #[test]
@@ -46,19 +46,19 @@ fn get_set_field() {
 
 #[test]
 fn integer_is_true() {
-    assert_eq!(Value::from(1).to_boolean(), true);
-    assert_eq!(Value::from(0).to_boolean(), false);
-    assert_eq!(Value::from(-1).to_boolean(), true);
+    assert!(Value::from(1).to_boolean());
+    assert!(!Value::from(0).to_boolean());
+    assert!(Value::from(-1).to_boolean());
 }
 
 #[test]
 fn number_is_true() {
-    assert_eq!(Value::from(1.0).to_boolean(), true);
-    assert_eq!(Value::from(0.1).to_boolean(), true);
-    assert_eq!(Value::from(0.0).to_boolean(), false);
-    assert_eq!(Value::from(-0.0).to_boolean(), false);
-    assert_eq!(Value::from(-1.0).to_boolean(), true);
-    assert_eq!(Value::nan().to_boolean(), false);
+    assert!(Value::from(1.0).to_boolean());
+    assert!(Value::from(0.1).to_boolean());
+    assert!(!Value::from(0.0).to_boolean());
+    assert!(!Value::from(-0.0).to_boolean());
+    assert!(Value::from(-1.0).to_boolean());
+    assert!(!Value::nan().to_boolean());
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
@@ -757,6 +757,8 @@ mod cyclic_conversions {
 }
 
 mod abstract_relational_comparison {
+    #![allow(clippy::bool_assert_comparison)]
+
     use super::*;
     macro_rules! check_comparison {
         ($context:ident, $string:expr => $expect:expr) => {
