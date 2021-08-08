@@ -160,7 +160,7 @@ where
             if self.is_const {
                 if self.const_init_required {
                     let init_is_some = match &decl {
-                        Declaration::Identifier(_, init) if init.is_some() => true,
+                        Declaration::Identifier { init, .. } if init.is_some() => true,
                         Declaration::Pattern(p) if p.init().is_some() => true,
                         _ => false,
                     };

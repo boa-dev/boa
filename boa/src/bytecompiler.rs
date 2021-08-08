@@ -589,7 +589,7 @@ impl ByteCompiler {
             Node::VarDeclList(list) => {
                 for decl in list.as_ref() {
                     match decl {
-                        Declaration::Identifier(ident, _) => {
+                        Declaration::Identifier { ident, .. } => {
                             let index = self.get_or_insert_name(ident.as_ref());
                             self.emit(Opcode::DefVar, &[index]);
 
@@ -615,7 +615,7 @@ impl ByteCompiler {
             Node::LetDeclList(list) => {
                 for decl in list.as_ref() {
                     match decl {
-                        Declaration::Identifier(ident, _) => {
+                        Declaration::Identifier { ident, .. } => {
                             let index = self.get_or_insert_name(ident.as_ref());
                             self.emit(Opcode::DefLet, &[index]);
 
@@ -641,7 +641,7 @@ impl ByteCompiler {
             Node::ConstDeclList(list) => {
                 for decl in list.as_ref() {
                     match decl {
-                        Declaration::Identifier(ident, _) => {
+                        Declaration::Identifier { ident, .. } => {
                             let index = self.get_or_insert_name(ident.as_ref());
                             self.emit(Opcode::DefConst, &[index]);
 

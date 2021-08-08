@@ -131,7 +131,7 @@ impl Executable for ForInLoop {
                         }
 
                         match &var {
-                            Declaration::Identifier(ident, _) => {
+                            Declaration::Identifier { ident, .. } => {
                                 if context.has_binding(ident.as_ref()) {
                                     context.set_mutable_binding(
                                         ident.as_ref(),
@@ -176,7 +176,7 @@ impl Executable for ForInLoop {
                         }
 
                         match &var {
-                            Declaration::Identifier(ident, _) => {
+                            Declaration::Identifier { ident, .. } => {
                                 context.create_mutable_binding(
                                     ident.to_string(),
                                     false,
@@ -209,7 +209,7 @@ impl Executable for ForInLoop {
                         }
 
                         match &var {
-                            Declaration::Identifier(ident, _) => {
+                            Declaration::Identifier { ident, .. } => {
                                 context.create_immutable_binding(
                                     ident.to_string(),
                                     false,

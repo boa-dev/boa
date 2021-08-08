@@ -60,7 +60,7 @@ impl StatementList {
                     // It is a Syntax Error if the LexicallyDeclaredNames of StatementList contains any duplicate entries.
                     // https://tc39.es/ecma262/#sec-block-static-semantics-early-errors
                     match decl {
-                        Declaration::Identifier(ident, _) => {
+                        Declaration::Identifier { ident, .. } => {
                             if !set.insert(ident.as_ref()) {
                                 unreachable!("Redeclaration of {}", ident.as_ref());
                             }
@@ -95,7 +95,7 @@ impl StatementList {
             if let Node::VarDeclList(decl_list) = stmt {
                 for decl in decl_list.as_ref() {
                     match decl {
-                        Declaration::Identifier(ident, _) => {
+                        Declaration::Identifier { ident, .. } => {
                             set.insert(ident.as_ref());
                         }
                         Declaration::Pattern(p) => {

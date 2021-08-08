@@ -316,7 +316,7 @@ where
                             // if name in VarDeclaredNames or can't be added to
                             // LexicallyDeclaredNames, raise an error
                             match decl {
-                                node::Declaration::Identifier(ident, _) => {
+                                node::Declaration::Identifier { ident, .. } => {
                                     if var_declared_names.contains(ident.as_ref())
                                         || !lexically_declared_names.insert(ident.as_ref())
                                     {
@@ -355,7 +355,7 @@ where
                     Node::VarDeclList(decl_list) => {
                         for decl in decl_list.as_ref() {
                             match decl {
-                                node::Declaration::Identifier(ident, _) => {
+                                node::Declaration::Identifier { ident, .. } => {
                                     // if name in LexicallyDeclaredNames, raise an error
                                     if lexically_declared_names.contains(ident.as_ref()) {
                                         return Err(ParseError::lex(LexError::Syntax(
@@ -663,7 +663,7 @@ where
                                                 .parse(cursor)?;
                                                 patterns.push(
                                                     BindingPatternTypeObject::BindingPattern {
-                                                        property_name,
+                                                        ident: property_name,
                                                         pattern: DeclarationPattern::Object(
                                                             DeclarationPatternObject::new(
                                                                 bindings, None,
@@ -676,7 +676,7 @@ where
                                             _ => {
                                                 patterns.push(
                                                     BindingPatternTypeObject::BindingPattern {
-                                                        property_name,
+                                                        ident: property_name,
                                                         pattern: DeclarationPattern::Object(
                                                             DeclarationPatternObject::new(
                                                                 bindings, None,
@@ -708,7 +708,7 @@ where
                                                 .parse(cursor)?;
                                                 patterns.push(
                                                     BindingPatternTypeObject::BindingPattern {
-                                                        property_name,
+                                                        ident: property_name,
                                                         pattern: DeclarationPattern::Array(
                                                             DeclarationPatternArray::new(
                                                                 bindings, None,
@@ -721,7 +721,7 @@ where
                                             _ => {
                                                 patterns.push(
                                                     BindingPatternTypeObject::BindingPattern {
-                                                        property_name,
+                                                        ident: property_name,
                                                         pattern: DeclarationPattern::Array(
                                                             DeclarationPatternArray::new(
                                                                 bindings, None,
@@ -796,12 +796,12 @@ where
         if let Some(rest) = rest_property_name {
             if patterns.is_empty() {
                 Ok(vec![BindingPatternTypeObject::RestProperty {
-                    property_name: rest,
+                    ident: rest,
                     excluded_keys: property_names,
                 }])
             } else {
                 patterns.push(BindingPatternTypeObject::RestProperty {
-                    property_name: rest,
+                    ident: rest,
                     excluded_keys: property_names,
                 });
                 Ok(patterns)

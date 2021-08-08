@@ -923,7 +923,9 @@ impl GcObject {
         }
 
         // 4. Let from be ! ToObject(source).
-        let from = source.to_object(context)?;
+        let from = source
+            .to_object(context)
+            .expect("function ToObject should never complete abruptly here");
 
         // 5. Let keys be ? from.[[OwnPropertyKeys]]().
         // 6. For each element nextKey of keys, do
@@ -937,7 +939,8 @@ impl GcObject {
                 // i. If SameValue(e, nextKey) is true, then
                 if *e == key {
                     // 1. Set excluded to true.
-                    excluded = true
+                    excluded = true;
+                    break;
                 }
             }
             // c. If excluded is false, then
@@ -954,7 +957,9 @@ impl GcObject {
 
                             // 2. Perform ! CreateDataPropertyOrThrow(target, nextKey, propValue).
                             self.create_data_property_or_throw(key, prop_value, context)
-                                .expect("CreateDataPropertyOrThrow should never fail here");
+                                .expect(
+                                    "CreateDataPropertyOrThrow should never complete abruptly here",
+                                );
                         }
                     }
                 }

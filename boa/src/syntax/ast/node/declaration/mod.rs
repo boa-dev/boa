@@ -103,33 +103,33 @@ impl Executable for DeclarationList {
             };
 
             match &decl {
-                Declaration::Identifier(name, init) => {
-                    if self.is_var() && context.has_binding(name.as_ref()) {
+                Declaration::Identifier { ident, init } => {
+                    if self.is_var() && context.has_binding(ident.as_ref()) {
                         if init.is_some() {
-                            context.set_mutable_binding(name.as_ref(), val, true)?;
+                            context.set_mutable_binding(ident.as_ref(), val, true)?;
                         }
                         continue;
                     }
 
                     match &self {
                         Const(_) => context.create_immutable_binding(
-                            name.to_string(),
+                            ident.to_string(),
                             false,
                             VariableScope::Block,
                         )?,
                         Let(_) => context.create_mutable_binding(
-                            name.to_string(),
+                            ident.to_string(),
                             false,
                             VariableScope::Block,
                         )?,
                         Var(_) => context.create_mutable_binding(
-                            name.to_string(),
+                            ident.to_string(),
                             false,
                             VariableScope::Function,
                         )?,
                     }
 
-                    context.initialize_binding(name.as_ref(), val)?;
+                    context.initialize_binding(ident.as_ref(), val)?;
                 }
                 Declaration::Pattern(p) => {
                     for (ident, value) in p.run(None, context)? {
@@ -223,18 +223,32 @@ impl From<Declaration> for Box<[Declaration]> {
     }
 }
 
-/// Individual declaration.
+/// Declaration represents either an individual binding or a binding pattern.
+///
+/// For `let` and `const` declarations this type represents a [LexicalBinding][spec1]
+///
+/// For `var` declarations this type represents a [VariableDeclaration][spec2]
+///
+/// More information:
+///  - [ECMAScript reference: 14.3 Declarations and the Variable Statement][spec3]
+///
+/// [spec1]: https://tc39.es/ecma262/#prod-LexicalBinding
+/// [spec2]: https://tc39.es/ecma262/#prod-VariableDeclaration
+/// [spec3]:  https://tc39.es/ecma262/#sec-declarations-and-the-variable-statement
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum Declaration {
-    Identifier(Identifier, Option<Node>),
+    Identifier {
+        ident: Identifier,
+        init: Option<Node>,
+    },
     Pattern(DeclarationPattern),
 }
 
 impl fmt::Display for Declaration {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self {
-            Self::Identifier(ident, init) => {
+            Self::Identifier { ident, init } => {
                 fmt::Display::fmt(&ident, f)?;
                 if let Some(ref init) = &init {
                     write!(f, " = {}", init)?;
@@ -250,15 +264,20 @@ impl fmt::Display for Declaration {
 
 impl Declaration {
     /// Creates a new variable declaration with a BindingIdentifier.
-    pub(in crate::syntax) fn new_with_identifier<N, I>(name: N, init: I) -> Self
+    #[inline]
+    pub(in crate::syntax) fn new_with_identifier<N, I>(ident: N, init: I) -> Self
     where
         N: Into<Identifier>,
         I: Into<Option<Node>>,
     {
-        Self::Identifier(name.into(), init.into())
+        Self::Identifier {
+            ident: ident.into(),
+            init: init.into(),
+        }
     }
 
     /// Creates a new variable declaration with an ObjectBindingPattern.
+    #[inline]
     pub(in crate::syntax) fn new_with_object_pattern<I>(
         bindings: Vec<BindingPatternTypeObject>,
         init: I,
@@ -273,6 +292,7 @@ impl Declaration {
     }
 
     /// Creates a new variable declaration with an ArrayBindingPattern.
+    #[inline]
     pub(in crate::syntax) fn new_with_array_pattern<I>(
         bindings: Vec<BindingPatternTypeArray>,
         init: I,
@@ -286,15 +306,24 @@ impl Declaration {
         )))
     }
 
-    /// Gets the initialization node for the variable, if any.
+    /// Gets the initialization node for the declaration, if any.
+    #[inline]
     pub(crate) fn init(&self) -> Option<&Node> {
         match &self {
-            Self::Identifier(_, init) => init.as_ref(),
+            Self::Identifier { init, .. } => init.as_ref(),
             Self::Pattern(pattern) => pattern.init(),
         }
     }
 }
 
+/// DeclarationPattern represents an object or array binding pattern.
+///
+/// This enum mostly wraps the functionality of the specific binding pattern types.
+///
+/// More information:
+///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingPattern][spec1]
+///
+/// [spec1]: https://tc39.es/ecma262/#prod-BindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum DeclarationPattern {
@@ -317,6 +346,11 @@ impl fmt::Display for DeclarationPattern {
 }
 
 impl DeclarationPattern {
+    /// Initialize the values of an object/array binding pattern.
+    ///
+    /// This function only calls the specific initialization function for either the object or the array binding pattern.
+    /// For specific documentation and references to the ECMAScript spec, look at the called initialization functions.
+    #[inline]
     pub(in crate::syntax) fn run(
         &self,
         init: Option<JsValue>,
@@ -328,6 +362,10 @@ impl DeclarationPattern {
         }
     }
 
+    /// Gets the list of identifiers declared by the binding pattern.
+    ///
+    /// A single binding pattern may declare 0 to n identifiers.
+    #[inline]
     pub fn idents(&self) -> Vec<&str> {
         match &self {
             DeclarationPattern::Object(pattern) => pattern.idents(),
@@ -335,6 +373,8 @@ impl DeclarationPattern {
         }
     }
 
+    /// Gets the initialization node for the binding pattern, if any.
+    #[inline]
     pub fn init(&self) -> Option<&Node> {
         match &self {
             DeclarationPattern::Object(pattern) => pattern.init(),
@@ -343,6 +383,14 @@ impl DeclarationPattern {
     }
 }
 
+/// DeclarationPatternObject represents an object binding pattern.
+///
+/// This struct holds a list of bindings, and an optional initializer for the binding pattern.
+///
+/// More information:
+///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - ObjectBindingPattern][spec1]
+///
+/// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct DeclarationPatternObject {
@@ -369,6 +417,8 @@ impl fmt::Display for DeclarationPatternObject {
 }
 
 impl DeclarationPatternObject {
+    /// Create a new object binding pattern.
+    #[inline]
     pub(in crate::syntax) fn new(
         bindings: Vec<BindingPatternTypeObject>,
         init: Option<Node>,
@@ -376,6 +426,8 @@ impl DeclarationPatternObject {
         Self { bindings, init }
     }
 
+    /// Gets the initialization node for the object binding pattern, if any.
+    #[inline]
     pub(in crate::syntax) fn init(&self) -> Option<&Node> {
         self.init.as_ref()
     }
@@ -455,7 +507,7 @@ impl DeclarationPatternObject {
                 }
                 //  BindingRestProperty : ... BindingIdentifier
                 RestProperty {
-                    property_name,
+                    ident,
                     excluded_keys,
                 } => {
                     // 1. Let lhs be ? ResolveBinding(StringValue of BindingIdentifier, environment).
@@ -468,16 +520,16 @@ impl DeclarationPatternObject {
 
                     // 4. If environment is undefined, return PutValue(lhs, restObj).
                     // 5. Return InitializeReferencedBinding(lhs, restObj).
-                    results.push((property_name.clone(), rest_obj.into()));
+                    results.push((ident.clone(), rest_obj.into()));
                 }
                 //  BindingElement : BindingPattern Initializer[opt]
                 BindingPattern {
-                    property_name,
+                    ident,
                     pattern,
                     default_init,
                 } => {
                     // 1. Let v be ? GetV(value, propertyName).
-                    let mut v = value.get_field(property_name.as_ref(), context)?;
+                    let mut v = value.get_field(ident.as_ref(), context)?;
 
                     // 2. If Initializer is present and v is undefined, then
                     if let Some(init) = default_init {
@@ -497,6 +549,8 @@ impl DeclarationPatternObject {
         Ok(results)
     }
 
+    /// Gets the list of identifiers declared by the object binding pattern.
+    #[inline]
     pub(in crate::syntax) fn idents(&self) -> Vec<&str> {
         let mut idents = Vec::new();
 
@@ -513,13 +567,13 @@ impl DeclarationPatternObject {
                     idents.push(ident.as_ref());
                 }
                 RestProperty {
-                    property_name,
+                    ident: property_name,
                     excluded_keys: _,
                 } => {
                     idents.push(property_name.as_ref());
                 }
                 BindingPattern {
-                    property_name: _,
+                    ident: _,
                     pattern,
                     default_init: _,
                 } => {
@@ -534,6 +588,14 @@ impl DeclarationPatternObject {
     }
 }
 
+/// DeclarationPatternArray represents an array binding pattern.
+///
+/// This struct holds a list of bindings, and an optional initializer for the binding pattern.
+///
+/// More information:
+///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - ArrayBindingPattern][spec1]
+///
+/// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct DeclarationPatternArray {
@@ -563,6 +625,8 @@ impl fmt::Display for DeclarationPatternArray {
 }
 
 impl DeclarationPatternArray {
+    /// Create a new array binding pattern.
+    #[inline]
     pub(in crate::syntax) fn new(
         bindings: Vec<BindingPatternTypeArray>,
         init: Option<Node>,
@@ -570,6 +634,8 @@ impl DeclarationPatternArray {
         Self { bindings, init }
     }
 
+    /// Gets the initialization node for the array binding pattern, if any.
+    #[inline]
     pub(in crate::syntax) fn init(&self) -> Option<&Node> {
         self.init.as_ref()
     }
@@ -770,6 +836,8 @@ impl DeclarationPatternArray {
         Ok(result)
     }
 
+    /// Gets the list of identifiers declared by the array binding pattern.
+    #[inline]
     pub(in crate::syntax) fn idents(&self) -> Vec<&str> {
         let mut idents = Vec::new();
 
@@ -797,21 +865,60 @@ impl DeclarationPatternArray {
     }
 }
 
+/// BindingPatternTypeObject represents the different types of bindings that an object binding pattern may contain.
+///
+/// More information:
+///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - ObjectBindingPattern][spec1]
+///
+/// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum BindingPatternTypeObject {
+    /// Empty represents an empty object binding pattern e.g. `{ }`.
     Empty,
+
+    /// SingleName represents one of the following properties:
+    ///
+    /// - `SingleNameBinding` with an identifier and an optional default initializer.
+    /// - `BindingProperty` with an property name and a `SingleNameBinding` as  the `BindingElement`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - SingleNameBinding][spec1]
+    ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingProperty][spec2]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#prod-SingleNameBinding
+    /// [spec2]: https://tc39.es/ecma262/#prod-BindingProperty
     SingleName {
         ident: Box<str>,
         property_name: Box<str>,
         default_init: Option<Node>,
     },
+
+    /// RestProperty represents a `BindingRestProperty` with an identifier.
+    ///
+    /// It also includes a list of the property keys that should be excluded from the rest,
+    /// because they where already assigned.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingRestProperty][spec1]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#prod-BindingRestProperty
     RestProperty {
-        property_name: Box<str>,
+        ident: Box<str>,
         excluded_keys: Vec<Box<str>>,
     },
+
+    /// BindingPattern represents a `BindingProperty` with a `BindingPattern` as the `BindingElement`.
+    ///
+    /// Additionally to the identifier of the new property and the nested binding pattern,
+    /// this may also include an optional default initializer.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingProperty][spec1]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#prod-BindingProperty
     BindingPattern {
-        property_name: Box<str>,
+        ident: Box<str>,
         pattern: DeclarationPattern,
         default_init: Option<Node>,
     },
@@ -836,13 +943,13 @@ impl fmt::Display for BindingPatternTypeObject {
                 }
             }
             BindingPatternTypeObject::RestProperty {
-                property_name,
+                ident: property_name,
                 excluded_keys: _,
             } => {
                 write!(f, " ... {}", property_name)?;
             }
             BindingPatternTypeObject::BindingPattern {
-                property_name,
+                ident: property_name,
                 pattern,
                 default_init,
             } => {
@@ -856,24 +963,73 @@ impl fmt::Display for BindingPatternTypeObject {
     }
 }
 
+/// BindingPatternTypeArray represents the different types of bindings that an array binding pattern may contain.
+///
+/// More information:
+///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - ArrayBindingPattern][spec1]
+///
+/// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum BindingPatternTypeArray {
+    /// Empty represents an empty array binding pattern e.g. `[ ]`.
+    ///
+    /// This may occur because the `Elision` and `BindingRestElement` in the first type of
+    /// array binding pattern are both optional.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - ArrayBindingPattern][spec1]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
     Empty,
+
+    /// Elision represents the elision of an item in the array binding pattern.
+    ///
+    /// An `Elision` may occur at multiple points in the pattern and may be multiple elisions.
+    /// This variant strictly represents one elision. If there are multiple, this should be used multiple times.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 13.2.4 Array Initializer - Elision][spec1]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#prod-Elision
     Elision,
+
+    /// SingleName represents a `SingleNameBinding` with an identifier and an optional default initializer.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - SingleNameBinding][spec1]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#prod-SingleNameBinding
     SingleName {
         ident: Box<str>,
         default_init: Option<Node>,
     },
-    BindingPattern {
-        pattern: DeclarationPattern,
-    },
-    SingleNameRest {
-        ident: Box<str>,
-    },
-    BindingPatternRest {
-        pattern: DeclarationPattern,
-    },
+
+    /// BindingPattern represents a `BindingPattern` in a `BindingElement` of an array binding pattern.
+    ///
+    /// The pattern and the optional default initializer are both stored in the DeclarationPattern.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingElement][spec1]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#prod-BindingElement
+    BindingPattern { pattern: DeclarationPattern },
+
+    /// SingleNameRest represents a `BindingIdentifier` in a `BindingRestElement` of an array binding pattern.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingRestElement][spec1]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#prod-BindingRestElement
+    SingleNameRest { ident: Box<str> },
+
+    /// SingleNameRest represents a `BindingPattern` in a `BindingRestElement` of an array binding pattern.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingRestElement][spec1]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#prod-BindingRestElement
+    BindingPatternRest { pattern: DeclarationPattern },
 }
 
 impl fmt::Display for BindingPatternTypeArray {
