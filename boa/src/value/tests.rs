@@ -64,55 +64,48 @@ fn number_is_true() {
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
 #[test]
 fn abstract_equality_comparison() {
-    check_output(None, &[
-        ("undefined == undefined", "true"),
-        ("null == null", "true"),
-        ("true == true", "true"),
-        ("false == false", "true"),
-        ("'foo' == 'foo'", "true"),
-        ("0 == 0", "true"),
-        ("+0 == -0", "true"),
-        ("+0 == 0", "true"),
-        ("-0 == 0", "true"),
-        ("0 == false", "true"),
-        ("'' == false", "true"),
-        ("'' == 0", "true"),
-        ("'17' == 17", "true"),
-        ("[1,2] == '1,2'", "true"),
-        ("new String('foo') == 'foo'", "true"),
-        ("null == undefined", "true"),
-        ("undefined == null", "true"),
-        ("null == false", "false"),
-        ("[] == ![]", "true"),
-        
-        (
-            "a = { foo: 'bar' }; b = { foo: 'bar'}; a == b",
-            "false",
-        ),
-        (
-            "new String('foo') == new String('foo')",
-            "false",
-        ),
-        ("0 == null", "false"),
-
-        ("0 == '-0'", "true"),
-        ("0 == '+0'", "true"),
-        ("'+0' == 0", "true"),
-        ("'-0' == 0", "true"),
-
-        ("0 == NaN", "false"),
-        ("'foo' == NaN", "false"),
-        ("NaN == NaN", "false"),
-
-        (
-            "Number.POSITIVE_INFINITY === Number.POSITIVE_INFINITY",
-            "true",
-        ),
-        (
-            "Number.NEGAVIVE_INFINITY === Number.NEGAVIVE_INFINITY",
-            "true",
-        ),
-    ]);
+    check_output(
+        None,
+        &[
+            ("undefined == undefined", "true"),
+            ("null == null", "true"),
+            ("true == true", "true"),
+            ("false == false", "true"),
+            ("'foo' == 'foo'", "true"),
+            ("0 == 0", "true"),
+            ("+0 == -0", "true"),
+            ("+0 == 0", "true"),
+            ("-0 == 0", "true"),
+            ("0 == false", "true"),
+            ("'' == false", "true"),
+            ("'' == 0", "true"),
+            ("'17' == 17", "true"),
+            ("[1,2] == '1,2'", "true"),
+            ("new String('foo') == 'foo'", "true"),
+            ("null == undefined", "true"),
+            ("undefined == null", "true"),
+            ("null == false", "false"),
+            ("[] == ![]", "true"),
+            ("a = { foo: 'bar' }; b = { foo: 'bar'}; a == b", "false"),
+            ("new String('foo') == new String('foo')", "false"),
+            ("0 == null", "false"),
+            ("0 == '-0'", "true"),
+            ("0 == '+0'", "true"),
+            ("'+0' == 0", "true"),
+            ("'-0' == 0", "true"),
+            ("0 == NaN", "false"),
+            ("'foo' == NaN", "false"),
+            ("NaN == NaN", "false"),
+            (
+                "Number.POSITIVE_INFINITY === Number.POSITIVE_INFINITY",
+                "true",
+            ),
+            (
+                "Number.NEGAVIVE_INFINITY === Number.NEGAVIVE_INFINITY",
+                "true",
+            ),
+        ],
+    );
 }
 
 /// Helper function to get the hash of a `Value`.
@@ -605,10 +598,7 @@ fn test_accessors() {
             let a = { get b() { return "c" }, set b(value) { arr = arr.concat([value]) }} ;
             a.b = "a";
         "#;
-    check_output(Some(src), &[
-        ("a.b", r#""c""#),
-        ("arr", r#"[ "a" ]"#),
-    ]);
+    check_output(Some(src), &[("a.b", r#""c""#), ("arr", r#"[ "a" ]"#)]);
 }
 
 #[test]

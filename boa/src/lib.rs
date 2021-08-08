@@ -166,6 +166,12 @@ pub(crate) fn check_output(maybe_init: Option<&str>, cases: &[(&str, &str)]) {
     }
 
     for (i, (case, expected)) in cases.iter().enumerate() {
-        assert_eq!(&forward(&mut context, case), expected, "Test case {} ('{}')", i + 1, case);
+        assert_eq!(
+            &forward(&mut context, case),
+            expected,
+            "Test case {} ('{}')",
+            i + 1,
+            case
+        );
     }
 }
