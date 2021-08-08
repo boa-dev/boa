@@ -152,3 +152,20 @@ pub(crate) fn exec<T: AsRef<[u8]>>(src: T) -> String {
         Err(error) => error.display().to_string(),
     }
 }
+
+/// Create a clean Context, optinally call `forward` if init script was provided,
+/// call `forward` for each of provided test cases and assert output from `forward`
+/// matches expected string.
+#[cfg(test)]
+#[track_caller]
+pub(crate) fn check_output(maybe_init: Option<&str>, cases: &[(&str, &str)]) {
+    let mut context = Context::new();
+
+    if let Some(init) = maybe_init {
+        forward(&mut context, init);
+    }
+
+    for (i, (case, expected)) in cases.iter().enumerate() {
+        assert_eq!(&forward(&mut context, case), expected, "Test case {} ('{}')", i + 1, case);
+    }
+}
