@@ -620,12 +620,10 @@ impl GcObject {
                     return None;
                 }
 
-                let result_str = string.encode_utf16().nth(pos).map(|utf16_val| {
-                    char::from_u32(u32::from(utf16_val)).map_or_else(
-                        || JsValue::new(format!("\\u{:x}", utf16_val)),
-                        JsValue::from,
-                    )
-                })?;
+                let result_str = string
+                    .encode_utf16()
+                    .nth(pos)
+                    .map(|utf16_val| JsValue::from(String::from_utf16_lossy(&[utf16_val])))?;
 
                 let desc = PropertyDescriptor::builder()
                     .value(result_str)
