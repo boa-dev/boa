@@ -1171,7 +1171,10 @@ impl RegExp {
         let flags = this.get_field("flags", context)?.to_string(context)?;
 
         // 6. Let matcher be ? Construct(C, « R, flags »).
-        let matcher = RegExp::constructor(&c, &[this.clone(), flags.clone().into()], context)?;
+        let matcher = c
+            .as_object()
+            .expect("SpeciesConstructor returned non Object")
+            .construct(&[this.clone(), flags.clone().into()], &c, context)?;
 
         // 7. Let lastIndex be ? ToLength(? Get(R, "lastIndex")).
         let last_index = this.get_field("lastIndex", context)?.to_length(context)?;
@@ -1539,8 +1542,10 @@ impl RegExp {
         };
 
         // 10. Let splitter be ? Construct(C, « rx, newFlags »).
-        let splitter =
-            RegExp::constructor(&constructor, &[this.clone(), new_flags.into()], context)?;
+        let splitter = constructor
+            .as_object()
+            .expect("SpeciesConstructor returned non Object")
+            .construct(&[Value::from(rx), new_flags.into()], &constructor, context)?;
 
         // 11. Let A be ! ArrayCreate(0).
         let a = Array::array_create(0, None, context).unwrap();
