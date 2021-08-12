@@ -358,6 +358,30 @@ impl Context {
         self.realm.global_object.clone()
     }
 
+    /// Constructs a `Error` with the specified message.
+    #[inline]
+    pub fn construct_error<M>(&mut self, message: M) -> JsValue
+    where
+        M: Into<Box<str>>,
+    {
+        // Runs a `new RangeError(message)`.
+        New::from(Call::new(
+            Identifier::from("Error"),
+            vec![Const::from(message.into()).into()],
+        ))
+        .run(self)
+        .expect("Into<String> used as message")
+    }
+
+    /// Throws a `Error` with the specified message.
+    #[inline]
+    pub fn throw_error<M>(&mut self, message: M) -> Result<JsValue>
+    where
+        M: Into<Box<str>>,
+    {
+        Err(self.construct_error(message))
+    }
+
     /// Constructs a `RangeError` with the specified message.
     #[inline]
     pub fn construct_range_error<M>(&mut self, message: M) -> JsValue
