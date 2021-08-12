@@ -394,7 +394,7 @@ impl JsValue {
                 Err(_) => f64::NAN,
             }),
             Self::Rational(num) => Self::new(-num),
-            Self::Integer(num) => Self::new(-f64::from(num)),
+            Self::Integer(num) => Self::new(-num),
             Self::Boolean(true) => Self::new(1),
             Self::Boolean(false) | Self::Null => Self::new(0),
             Self::BigInt(ref x) => Self::new(JsBigInt::neg(x)),
