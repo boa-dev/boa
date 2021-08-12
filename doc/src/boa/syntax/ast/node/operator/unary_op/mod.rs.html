@@ -137,7 +137,7 @@
     <span class="ident">exec::Executable</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">syntax::ast</span>::{<span class="ident">node::Node</span>, <span class="ident">op</span>},
-    <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
+    <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsValue</span>, <span class="prelude-ty">Result</span>,
 };
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
 
@@ -185,10 +185,10 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">UnaryOp</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="self">self</span>.<span class="ident">op</span>() {
             <span class="ident">op::UnaryOp::Minus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">target</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">neg</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
-            <span class="ident">op::UnaryOp::Plus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::from</span>(<span class="self">self</span>.<span class="ident">target</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>),
+            <span class="ident">op::UnaryOp::Plus</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsValue::new</span>(<span class="self">self</span>.<span class="ident">target</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>),
             <span class="ident">op::UnaryOp::IncrementPost</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">target</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">clone</span>();
@@ -216,16 +216,16 @@
                 <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">target</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">old_v</span> <span class="op">=</span> <span class="ident">expr</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="kw">match</span> <span class="ident">old_v</span> {
-                    <span class="ident">Numeric::Number</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::from</span>(<span class="ident">Number::not</span>(<span class="ident">x</span>)),
-                    <span class="ident">Numeric::BigInt</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::from</span>(<span class="ident">JsBigInt::not</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)),
+                    <span class="ident">Numeric::Number</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsValue::new</span>(<span class="ident">Number::not</span>(<span class="ident">x</span>)),
+                    <span class="ident">Numeric::BigInt</span>(<span class="ident">x</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsValue::new</span>(<span class="ident">JsBigInt::not</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>)),
                 }
             }
             <span class="ident">op::UnaryOp::Void</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="self">self</span>.<span class="ident">target</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-                <span class="ident">Value::undefined</span>()
+                <span class="ident">JsValue::undefined</span>()
             }
             <span class="ident">op::UnaryOp::Delete</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">target</span>() {
-                <span class="ident">Node::GetConstField</span>(<span class="kw-2">ref</span> <span class="ident">get_const_field</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::boolean</span>(
+                <span class="ident">Node::GetConstField</span>(<span class="kw-2">ref</span> <span class="ident">get_const_field</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsValue::new</span>(
                     <span class="ident">get_const_field</span>
                         .<span class="ident">obj</span>()
                         .<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
@@ -238,9 +238,9 @@
                     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">obj</span>
                         .<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
                         .<span class="ident">__delete__</span>(<span class="kw-2">&amp;</span><span class="ident">field</span>.<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::boolean</span>(<span class="ident">res</span>));
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">res</span>));
                 }
-                <span class="ident">Node::Identifier</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::boolean</span>(<span class="bool-val">false</span>),
+                <span class="ident">Node::Identifier</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsValue::new</span>(<span class="bool-val">false</span>),
                 <span class="ident">Node::ArrayDecl</span>(<span class="kw">_</span>)
                 <span class="op">|</span> <span class="ident">Node::Block</span>(<span class="kw">_</span>)
                 <span class="op">|</span> <span class="ident">Node::Const</span>(<span class="kw">_</span>)
@@ -248,10 +248,10 @@
                 <span class="op">|</span> <span class="ident">Node::FunctionExpr</span>(<span class="kw">_</span>)
                 <span class="op">|</span> <span class="ident">Node::New</span>(<span class="kw">_</span>)
                 <span class="op">|</span> <span class="ident">Node::Object</span>(<span class="kw">_</span>)
-                <span class="op">|</span> <span class="ident">Node::UnaryOp</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::boolean</span>(<span class="bool-val">true</span>),
+                <span class="op">|</span> <span class="ident">Node::UnaryOp</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsValue::new</span>(<span class="bool-val">true</span>),
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="macro">format!</span>(<span class="string">&quot;wrong delete argument {}&quot;</span>, <span class="self">self</span>)),
             },
-            <span class="ident">op::UnaryOp::TypeOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Value::from</span>(<span class="self">self</span>.<span class="ident">target</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">type_of</span>()),
+            <span class="ident">op::UnaryOp::TypeOf</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsValue::new</span>(<span class="self">self</span>.<span class="ident">target</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">type_of</span>()),
         })
     }
 }

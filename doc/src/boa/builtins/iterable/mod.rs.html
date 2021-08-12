@@ -216,6 +216,10 @@
 <span id="216">216</span>
 <span id="217">217</span>
 <span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
@@ -225,7 +229,7 @@
     },
     <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">ObjectInitializer</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
+    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsValue</span>, <span class="prelude-ty">Result</span>,
 };
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
@@ -304,7 +308,7 @@
 <span class="doccomment">/// CreateIterResultObject( value, done )</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Generates an object supporting the IteratorResult interface.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_iter_result_object</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">value</span>: <span class="ident">Value</span>, <span class="ident">done</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_iter_result_object</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">value</span>: <span class="ident">JsValue</span>, <span class="ident">done</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
     <span class="comment">// 1. Assert: Type(done) is Boolean.</span>
     <span class="comment">// 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).</span>
     <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
@@ -320,7 +324,7 @@
 }
 
 <span class="doccomment">/// Get an iterator record</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_iterator</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">iterable</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IteratorRecord</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_iterator</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">iterable</span>: <span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IteratorRecord</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">iterator_function</span> <span class="op">=</span> <span class="ident">iterable</span>.<span class="ident">get_field</span>(<span class="ident">WellKnownSymbols::iterator</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">iterator_function</span>.<span class="ident">is_null_or_undefined</span>() {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Not an iterable&quot;</span>));
@@ -355,12 +359,12 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IteratorRecord</span> {
-    <span class="ident">iterator_object</span>: <span class="ident">Value</span>,
-    <span class="ident">next_function</span>: <span class="ident">Value</span>,
+    <span class="ident">iterator_object</span>: <span class="ident">JsValue</span>,
+    <span class="ident">next_function</span>: <span class="ident">JsValue</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">IteratorRecord</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">iterator_object</span>: <span class="ident">Value</span>, <span class="ident">next_function</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">iterator_object</span>: <span class="ident">JsValue</span>, <span class="ident">next_function</span>: <span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">iterator_object</span>,
             <span class="ident">next_function</span>,
@@ -387,7 +391,11 @@
     <span class="doccomment">///  - [ECMA reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">///  [spec]: https://tc39.es/ecma262/#sec-iteratorclose</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">completion</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">close</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">completion</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iterator_object</span>.<span class="ident">get_field</span>(<span class="string">&quot;return&quot;</span>, <span class="ident">context</span>);
 
         <span class="comment">// 5</span>
@@ -418,12 +426,12 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IteratorResult</span> {
-    <span class="ident">value</span>: <span class="ident">Value</span>,
+    <span class="ident">value</span>: <span class="ident">JsValue</span>,
     <span class="ident">done</span>: <span class="ident">bool</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">IteratorResult</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">Value</span>, <span class="ident">done</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">JsValue</span>, <span class="ident">done</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> { <span class="ident">value</span>, <span class="ident">done</span> }
     }
 
@@ -431,7 +439,7 @@
         <span class="self">self</span>.<span class="ident">done</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">value</span>(<span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
         <span class="self">self</span>.<span class="ident">value</span>
     }
 }

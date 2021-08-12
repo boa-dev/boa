@@ -91,7 +91,7 @@
     <span class="ident">exec::Executable</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">syntax::ast::node::Node</span>,
-    <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
+    <span class="ident">Context</span>, <span class="ident">JsValue</span>, <span class="prelude-ty">Result</span>,
 };
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
 
@@ -149,7 +149,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">ConditionalOp</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="self">self</span>.<span class="ident">cond</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
             <span class="self">self</span>.<span class="ident">if_true</span>().<span class="ident">run</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
         } <span class="kw">else</span> {

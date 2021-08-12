@@ -128,7 +128,7 @@
     <span class="ident">exec::Executable</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
     <span class="ident">syntax::ast::node</span>::{<span class="ident">join_nodes</span>, <span class="ident">FormalParameter</span>, <span class="ident">Node</span>, <span class="ident">StatementList</span>},
-    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
+    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsValue</span>, <span class="prelude-ty">Result</span>,
 };
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
 
@@ -210,7 +210,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">FunctionDecl</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;FunctionDecl&quot;</span>, <span class="string">&quot;exec&quot;</span>);
         <span class="kw">let</span> <span class="ident">val</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">create_function</span>(
             <span class="self">self</span>.<span class="ident">name</span>(),
@@ -230,7 +230,7 @@
 
             <span class="ident">context</span>.<span class="ident">initialize_binding</span>(<span class="self">self</span>.<span class="ident">name</span>(), <span class="ident">val</span>)<span class="question-mark">?</span>;
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::undefined</span>())
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
     }
 }
 

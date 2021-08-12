@@ -1101,6 +1101,42 @@
 <span id="1101">1101</span>
 <span id="1102">1102</span>
 <span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
+<span id="1106">1106</span>
+<span id="1107">1107</span>
+<span id="1108">1108</span>
+<span id="1109">1109</span>
+<span id="1110">1110</span>
+<span id="1111">1111</span>
+<span id="1112">1112</span>
+<span id="1113">1113</span>
+<span id="1114">1114</span>
+<span id="1115">1115</span>
+<span id="1116">1116</span>
+<span id="1117">1117</span>
+<span id="1118">1118</span>
+<span id="1119">1119</span>
+<span id="1120">1120</span>
+<span id="1121">1121</span>
+<span id="1122">1122</span>
+<span id="1123">1123</span>
+<span id="1124">1124</span>
+<span id="1125">1125</span>
+<span id="1126">1126</span>
+<span id="1127">1127</span>
+<span id="1128">1128</span>
+<span id="1129">1129</span>
+<span id="1130">1130</span>
+<span id="1131">1131</span>
+<span id="1132">1132</span>
+<span id="1133">1133</span>
+<span id="1134">1134</span>
+<span id="1135">1135</span>
+<span id="1136">1136</span>
+<span id="1137">1137</span>
+<span id="1138">1138</span>
+<span id="1139">1139</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
@@ -1123,7 +1159,7 @@
     <span class="ident">builtins::BuiltIn</span>,
     <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
     <span class="ident">property::Attribute</span>,
-    <span class="ident">value</span>::{<span class="ident">AbstractRelation</span>, <span class="ident">IntegerOrInfinity</span>, <span class="ident">Value</span>},
+    <span class="ident">value</span>::{<span class="ident">AbstractRelation</span>, <span class="ident">IntegerOrInfinity</span>, <span class="ident">JsValue</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>,
 };
 <span class="kw">use</span> <span class="ident">num_traits</span>::{<span class="ident">float::FloatCore</span>, <span class="ident">Num</span>};
@@ -1154,7 +1190,7 @@
         <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">Value</span>, <span class="ident">Attribute</span>) {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">JsValue</span>, <span class="ident">Attribute</span>) {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="self">Self</span><span class="ident">::NAME</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::PERMANENT</span>;
@@ -1259,16 +1295,16 @@
 
     <span class="doccomment">/// `Number( value )`</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">constructor</span>(
-        <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>.<span class="ident">to_numeric_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0.0</span>,
         };
         <span class="kw">if</span> <span class="ident">new_target</span>.<span class="ident">is_undefined</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">data</span>));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">data</span>));
         }
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">new_target</span>
             .<span class="ident">as_object</span>()
@@ -1279,7 +1315,7 @@
             })
             .<span class="ident">transpose</span>()<span class="question-mark">?</span>
             .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">object_object</span>().<span class="ident">prototype</span>());
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">Value::new_object</span>(<span class="ident">context</span>);
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">JsValue::new_object</span>(<span class="ident">context</span>);
         <span class="ident">this</span>.<span class="ident">as_object</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;this should be an object&quot;</span>)
             .<span class="ident">set_prototype_instance</span>(<span class="ident">prototype</span>.<span class="ident">into</span>());
@@ -1297,11 +1333,11 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-thisnumbervalue</span>
-    <span class="kw">fn</span> <span class="ident">this_number_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">this_number_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">value</span> {
-            <span class="ident">Value::Integer</span>(<span class="ident">integer</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">f64::from</span>(<span class="ident">integer</span>)),
-            <span class="ident">Value::Rational</span>(<span class="ident">rational</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">rational</span>),
-            <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">JsValue::Integer</span>(<span class="ident">integer</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">f64::from</span>(<span class="ident">integer</span>)),
+            <span class="ident">JsValue::Rational</span>(<span class="ident">rational</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">rational</span>),
+            <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">number</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">as_number</span>() {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">number</span>);
                 }
@@ -1333,13 +1369,13 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toExponential</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_exponential</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::this_number_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">this_str_num</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::num_to_exponential</span>(<span class="ident">this_num</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">this_str_num</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_str_num</span>))
     }
 
     <span class="doccomment">/// `Number.prototype.toFixed( [digits] )`</span>
@@ -1353,7 +1389,11 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tofixed</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_fixed</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_fixed</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::this_number_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">precision</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">n</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span> {
@@ -1363,7 +1403,7 @@
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
         };
         <span class="kw">let</span> <span class="ident">this_fixed_num</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:.*}&quot;</span>, <span class="ident">precision</span>, <span class="ident">this_num</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">this_fixed_num</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_fixed_num</span>))
     }
 
     <span class="doccomment">/// `Number.prototype.toLocaleString( [locales [, options]] )`</span>
@@ -1381,13 +1421,13 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_locale_string</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::this_number_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">this_str_num</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">this_num</span>);
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">this_str_num</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_str_num</span>))
     }
 
     <span class="doccomment">/// flt_str_to_exp - used in to_precision</span>
@@ -1488,16 +1528,16 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toPrecision</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_precision</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">precision</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
 
         <span class="comment">// 1 &amp; 6</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::this_number_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 2</span>
-        <span class="kw">if</span> <span class="ident">precision</span> <span class="op">=</span><span class="op">=</span> <span class="ident">Value::undefined</span>() {
+        <span class="kw">if</span> <span class="ident">precision</span> <span class="op">=</span><span class="op">=</span> <span class="ident">JsValue::undefined</span>() {
             <span class="kw">return</span> <span class="self">Self</span><span class="ident">::to_string</span>(<span class="ident">this</span>, <span class="kw-2">&amp;</span>[], <span class="ident">context</span>);
         }
 
@@ -1571,14 +1611,14 @@
                 <span class="comment">// iv, v</span>
                 <span class="ident">suffix</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">exponent</span>.<span class="ident">to_string</span>());
 
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">prefix</span> <span class="op">+</span> <span class="kw-2">&amp;</span><span class="ident">suffix</span>));
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">prefix</span> <span class="op">+</span> <span class="kw-2">&amp;</span><span class="ident">suffix</span>));
             }
         }
 
         <span class="comment">// 11</span>
         <span class="kw">let</span> <span class="ident">e_inc</span> <span class="op">=</span> <span class="ident">exponent</span> <span class="op">+</span> <span class="number">1</span>;
         <span class="kw">if</span> <span class="ident">e_inc</span> <span class="op">=</span><span class="op">=</span> <span class="ident">precision_i32</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">prefix</span> <span class="op">+</span> <span class="kw-2">&amp;</span><span class="ident">suffix</span>));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">prefix</span> <span class="op">+</span> <span class="kw-2">&amp;</span><span class="ident">suffix</span>));
         }
 
         <span class="comment">// 12</span>
@@ -1592,7 +1632,7 @@
         }
 
         <span class="comment">// 14</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">prefix</span> <span class="op">+</span> <span class="kw-2">&amp;</span><span class="ident">suffix</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">prefix</span> <span class="op">+</span> <span class="kw-2">&amp;</span><span class="ident">suffix</span>))
     }
 
     <span class="comment">// https://golang.org/src/math/nextafter.go</span>
@@ -1734,7 +1774,11 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tostring</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let x be ? thisNumberValue(this value).</span>
         <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::this_number_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -1754,17 +1798,17 @@
 
         <span class="comment">// 5. If radixNumber = 10, return ! ToString(x).</span>
         <span class="kw">if</span> <span class="ident">radix</span> <span class="op">=</span><span class="op">=</span> <span class="number">10</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="self">Self</span><span class="ident">::to_native_string</span>(<span class="ident">x</span>)));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="self">Self</span><span class="ident">::to_native_string</span>(<span class="ident">x</span>)));
         }
 
         <span class="kw">if</span> <span class="ident">x</span> <span class="op">=</span><span class="op">=</span> <span class="op">-</span><span class="number">0.</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="string">&quot;0&quot;</span>));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="string">&quot;0&quot;</span>));
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_nan</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="string">&quot;NaN&quot;</span>));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="string">&quot;NaN&quot;</span>));
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_infinite</span>() <span class="op">&amp;&amp;</span> <span class="ident">x</span>.<span class="ident">is_sign_positive</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="string">&quot;Infinity&quot;</span>));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="string">&quot;Infinity&quot;</span>));
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_infinite</span>() <span class="op">&amp;&amp;</span> <span class="ident">x</span>.<span class="ident">is_sign_negative</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="string">&quot;-Infinity&quot;</span>));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="string">&quot;-Infinity&quot;</span>));
         }
 
         <span class="comment">// This is a Optimization from the v8 source code to print values that can fit in a single character</span>
@@ -1776,7 +1820,7 @@
         <span class="comment">// }</span>
 
         <span class="comment">// 6. Return the String representation of this Number value using the radix specified by radixNumber.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="self">Self</span><span class="ident">::to_native_string_radix</span>(<span class="ident">x</span>, <span class="ident">radix</span>)))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="self">Self</span><span class="ident">::to_native_string_radix</span>(<span class="ident">x</span>, <span class="ident">radix</span>)))
     }
 
     <span class="doccomment">/// `Number.prototype.toString()`</span>
@@ -1789,8 +1833,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.valueof</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/valueOf</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="self">Self</span><span class="ident">::this_number_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>))
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value_of</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="self">Self</span><span class="ident">::this_number_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>))
     }
 
     <span class="doccomment">/// Builtin javascript &#39;parseInt(str, radix)&#39; function.</span>
@@ -1807,7 +1855,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_int</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_int</span>(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">Some</span>(<span class="ident">val</span>), <span class="ident">radix</span>) <span class="op">=</span> (<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>), <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>)) {
             <span class="comment">// 1. Let inputString be ? ToString(string).</span>
             <span class="kw">let</span> <span class="ident">input_string</span> <span class="op">=</span> <span class="ident">val</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -1842,7 +1894,7 @@
             <span class="kw">if</span> <span class="ident">var_r</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
                 <span class="comment">//     a. If R &lt; 2 or R &gt; 36, return NaN.</span>
                 <span class="kw">if</span> <span class="op">!</span>(<span class="number">2</span>..<span class="op">=</span><span class="number">36</span>).<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">var_r</span>) {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::nan</span>());
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::nan</span>());
                 }
 
                 <span class="comment">//     b. If R ≠ 16, set stripPrefix to false.</span>
@@ -1881,7 +1933,7 @@
 
             <span class="comment">// 13. If Z is empty, return NaN.</span>
             <span class="kw">if</span> <span class="ident">var_z</span>.<span class="ident">is_empty</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::nan</span>());
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::nan</span>());
             }
 
             <span class="comment">// 14. Let mathInt be the integer value that is represented by Z in radix-R notation, using the</span>
@@ -1900,17 +1952,17 @@
             <span class="comment">//     b. Return +0𝔽.</span>
             <span class="kw">if</span> <span class="ident">math_int</span> <span class="op">=</span><span class="op">=</span> <span class="number">0_f64</span> {
                 <span class="kw">if</span> <span class="ident">sign</span> <span class="op">=</span><span class="op">=</span> <span class="op">-</span><span class="number">1</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::rational</span>(<span class="op">-</span><span class="number">0_f64</span>));
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="op">-</span><span class="number">0_f64</span>));
                 } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::rational</span>(<span class="number">0_f64</span>));
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="number">0_f64</span>));
                 }
             }
 
             <span class="comment">// 16. Return 𝔽(sign × mathInt).</span>
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::rational</span>(<span class="ident">f64::from</span>(<span class="ident">sign</span>) <span class="op">*</span> <span class="ident">math_int</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">f64::from</span>(<span class="ident">sign</span>) <span class="op">*</span> <span class="ident">math_int</span>))
         } <span class="kw">else</span> {
             <span class="comment">// Not enough arguments to parseInt.</span>
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::nan</span>())
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::nan</span>())
         }
     }
 
@@ -1929,7 +1981,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-parsefloat-string</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_float</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_float</span>(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
             <span class="kw">let</span> <span class="ident">input_string</span> <span class="op">=</span> <span class="ident">val</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">input_string</span>.<span class="ident">trim_start_matches</span>(<span class="ident">is_trimmable_whitespace</span>);
@@ -1937,29 +1993,29 @@
 
             <span class="comment">// TODO: write our own lexer to match syntax StrDecimalLiteral</span>
             <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">starts_with</span>(<span class="string">&quot;Infinity&quot;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">starts_with</span>(<span class="string">&quot;+Infinity&quot;</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">f64::INFINITY</span>))
+                <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">f64::INFINITY</span>))
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">starts_with</span>(<span class="string">&quot;-Infinity&quot;</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">f64::NEG_INFINITY</span>))
+                <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">f64::NEG_INFINITY</span>))
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">s_prefix_lower</span>.<span class="ident">starts_with</span>(<span class="string">&quot;inf&quot;</span>)
                 <span class="op">|</span><span class="op">|</span> <span class="ident">s_prefix_lower</span>.<span class="ident">starts_with</span>(<span class="string">&quot;+inf&quot;</span>)
                 <span class="op">|</span><span class="op">|</span> <span class="ident">s_prefix_lower</span>.<span class="ident">starts_with</span>(<span class="string">&quot;-inf&quot;</span>)
             {
                 <span class="comment">// Prevent fast_float from parsing &quot;inf&quot;, &quot;+inf&quot; as Infinity and &quot;-inf&quot; as -Infinity</span>
-                <span class="prelude-val">Ok</span>(<span class="ident">Value::nan</span>())
+                <span class="prelude-val">Ok</span>(<span class="ident">JsValue::nan</span>())
             } <span class="kw">else</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">fast_float::parse_partial</span>::<span class="op">&lt;</span><span class="ident">f64</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">s</span>)
                     .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">f</span>, <span class="ident">len</span>)<span class="op">|</span> {
                         <span class="kw">if</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                            <span class="ident">Value::rational</span>(<span class="ident">f</span>)
+                            <span class="ident">JsValue::new</span>(<span class="ident">f</span>)
                         } <span class="kw">else</span> {
-                            <span class="ident">Value::nan</span>()
+                            <span class="ident">JsValue::nan</span>()
                         }
                     })
-                    .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Value::nan</span>()))
+                    .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JsValue::nan</span>()))
             }
         } <span class="kw">else</span> {
             <span class="comment">// Not enough arguments to parseFloat.</span>
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::nan</span>())
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::nan</span>())
         }
     }
 
@@ -1978,10 +2034,10 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isfinite-number</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/isFinite</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">global_is_finite</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
             <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<span class="ident">number</span>.<span class="ident">is_finite</span>().<span class="ident">into</span>())
@@ -2004,7 +2060,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isnan-number</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/isNaN</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">global_is_nan</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">global_is_nan</span>(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
             <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<span class="ident">number</span>.<span class="ident">is_nan</span>().<span class="ident">into</span>())
@@ -2027,11 +2087,15 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.isfinite</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isFinite</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">number_is_finite</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">number_is_finite</span>(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
             <span class="kw">match</span> <span class="ident">val</span> {
-                <span class="ident">Value::Integer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-                <span class="ident">Value::Rational</span>(<span class="ident">number</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">number</span>.<span class="ident">is_finite</span>(),
+                <span class="ident">JsValue::Integer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+                <span class="ident">JsValue::Rational</span>(<span class="ident">number</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">number</span>.<span class="ident">is_finite</span>(),
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
             }
         } <span class="kw">else</span> {
@@ -2050,10 +2114,10 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.isinteger</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isInteger</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">number_is_integer</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="self">Self</span><span class="ident">::is_integer</span>).<span class="ident">into</span>())
     }
 
@@ -2071,11 +2135,15 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isnan-number</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isNaN</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">number_is_nan</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">number_is_nan</span>(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
             <span class="kw">match</span> <span class="ident">val</span> {
-                <span class="ident">Value::Integer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
-                <span class="ident">Value::Rational</span>(<span class="ident">number</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">number</span>.<span class="ident">is_nan</span>(),
+                <span class="ident">JsValue::Integer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+                <span class="ident">JsValue::Rational</span>(<span class="ident">number</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">number</span>.<span class="ident">is_nan</span>(),
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
             }
         } <span class="kw">else</span> {
@@ -2097,10 +2165,14 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isnan-number</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isNaN</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_safe_integer</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">Value::Integer</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="prelude-val">Some</span>(<span class="ident">Value::Rational</span>(<span class="ident">number</span>)) <span class="kw">if</span> <span class="self">Self</span><span class="ident">::is_float_integer</span>(<span class="kw-2">*</span><span class="ident">number</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_safe_integer</span>(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">_ctx</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">JsValue::Integer</span>(<span class="kw">_</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">JsValue::Rational</span>(<span class="ident">number</span>)) <span class="kw">if</span> <span class="self">Self</span><span class="ident">::is_float_integer</span>(<span class="kw-2">*</span><span class="ident">number</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="ident">number</span>.<span class="ident">abs</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">Number::MAX_SAFE_INTEGER</span>
             }
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
@@ -2114,10 +2186,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isinteger</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_integer</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_integer</span>(<span class="ident">val</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="ident">val</span> {
-            <span class="ident">Value::Integer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
-            <span class="ident">Value::Rational</span>(<span class="ident">number</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Number::is_float_integer</span>(<span class="kw-2">*</span><span class="ident">number</span>),
+            <span class="ident">JsValue::Integer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+            <span class="ident">JsValue::Rational</span>(<span class="ident">number</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Number::is_float_integer</span>(<span class="kw-2">*</span><span class="ident">number</span>),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }
     }

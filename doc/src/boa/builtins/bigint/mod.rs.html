@@ -217,6 +217,22 @@
 <span id="217">217</span>
 <span id="218">218</span>
 <span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `BigInt` object.</span>
 <span class="doccomment">//!</span>
@@ -237,7 +253,7 @@
     <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property::Attribute</span>,
     <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
+    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsValue</span>, <span class="prelude-ty">Result</span>,
 };
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -253,7 +269,7 @@
         <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">Value</span>, <span class="ident">Attribute</span>) {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">JsValue</span>, <span class="ident">Attribute</span>) {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="self">Self</span><span class="ident">::NAME</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">to_string_tag</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::to_string_tag</span>();
@@ -296,12 +312,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-bigint-objects</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt</span>
-    <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>.<span class="ident">to_bigint</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
             <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">JsBigInt::zero</span>(),
         };
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">data</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">data</span>))
     }
 
     <span class="doccomment">/// The abstract operation thisBigIntValue takes argument value.</span>
@@ -315,15 +331,15 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-thisbigintvalue</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">this_bigint_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsBigInt</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">this_bigint_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsBigInt</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">value</span> {
             <span class="comment">// 1. If Type(value) is BigInt, return value.</span>
-            <span class="ident">Value::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">bigint</span>.<span class="ident">clone</span>()),
+            <span class="ident">JsValue::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">bigint</span>.<span class="ident">clone</span>()),
 
             <span class="comment">// 2. If Type(value) is Object and value has a [[BigIntData]] internal slot, then</span>
             <span class="comment">//    a. Assert: Type(value.[[BigIntData]]) is BigInt.</span>
             <span class="comment">//    b. Return value.[[BigIntData]].</span>
-            <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ObjectData::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">data</span> {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">bigint</span>.<span class="ident">clone</span>());
                 }
@@ -346,7 +362,11 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-bigint.prototype.tostring</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/toString</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">radix</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">args</span>.<span class="ident">is_empty</span>() {
             <span class="ident">args</span>[<span class="number">0</span>].<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
         } <span class="kw">else</span> {
@@ -356,7 +376,7 @@
             <span class="kw">return</span> <span class="ident">context</span>
                 .<span class="ident">throw_range_error</span>(<span class="string">&quot;radix must be an integer at least 2 and no greater than 36&quot;</span>);
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(
             <span class="self">Self</span><span class="ident">::this_bigint_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_string_radix</span>(<span class="ident">radix</span> <span class="kw">as</span> <span class="ident">u32</span>),
         ))
     }
@@ -371,8 +391,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-bigint.prototype.valueof</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/valueOf</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="self">Self</span><span class="ident">::this_bigint_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>))
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value_of</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="self">Self</span><span class="ident">::this_bigint_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>))
     }
 
     <span class="doccomment">/// `BigInt.asIntN()`</span>
@@ -382,18 +406,22 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-bigint.asintn</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asIntN</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_int_n</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_int_n</span>(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">modulo</span>, <span class="ident">bits</span>) <span class="op">=</span> <span class="self">Self</span><span class="ident">::calculate_as_uint_n</span>(<span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="ident">bits</span> <span class="op">&gt;</span> <span class="number">0</span>
             <span class="op">&amp;&amp;</span> <span class="ident">modulo</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">JsBigInt::pow</span>(<span class="kw-2">&amp;</span><span class="ident">JsBigInt::new</span>(<span class="number">2</span>), <span class="kw-2">&amp;</span><span class="ident">JsBigInt::new</span>(<span class="ident">bits</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">-</span> <span class="number">1</span>), <span class="ident">context</span>)<span class="question-mark">?</span>
         {
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">JsBigInt::sub</span>(
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">JsBigInt::sub</span>(
                 <span class="kw-2">&amp;</span><span class="ident">modulo</span>,
                 <span class="kw-2">&amp;</span><span class="ident">JsBigInt::pow</span>(<span class="kw-2">&amp;</span><span class="ident">JsBigInt::new</span>(<span class="number">2</span>), <span class="kw-2">&amp;</span><span class="ident">JsBigInt::new</span>(<span class="ident">bits</span> <span class="kw">as</span> <span class="ident">i64</span>), <span class="ident">context</span>)<span class="question-mark">?</span>,
             )))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">modulo</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">modulo</span>))
         }
     }
 
@@ -404,10 +432,14 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-bigint.asuintn</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asUintN</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_uint_n</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">as_uint_n</span>(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">modulo</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="self">Self</span><span class="ident">::calculate_as_uint_n</span>(<span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">modulo</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">modulo</span>))
     }
 
     <span class="doccomment">/// Helper function to wrap the value of a `BigInt` to an unsigned integer.</span>
@@ -415,10 +447,10 @@
     <span class="doccomment">/// This function expects the same arguments as `as_uint_n` and wraps the value of a `BigInt`.</span>
     <span class="doccomment">/// Additionally to the wrapped unsigned value it returns the converted `bits` argument, so it</span>
     <span class="doccomment">/// can be reused from the `as_int_n` method.</span>
-    <span class="kw">fn</span> <span class="ident">calculate_as_uint_n</span>(<span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">JsBigInt</span>, <span class="ident">u32</span>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">calculate_as_uint_n</span>(<span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">JsBigInt</span>, <span class="ident">u32</span>)<span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">std::convert::TryFrom</span>;
 
-        <span class="kw">let</span> <span class="ident">undefined_value</span> <span class="op">=</span> <span class="ident">Value::undefined</span>();
+        <span class="kw">let</span> <span class="ident">undefined_value</span> <span class="op">=</span> <span class="ident">JsValue::undefined</span>();
 
         <span class="kw">let</span> <span class="ident">bits_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">undefined_value</span>);
         <span class="kw">let</span> <span class="ident">bigint_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">undefined_value</span>);

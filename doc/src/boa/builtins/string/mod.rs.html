@@ -1708,6 +1708,104 @@
 <span id="1708">1708</span>
 <span id="1709">1709</span>
 <span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
+<span id="1724">1724</span>
+<span id="1725">1725</span>
+<span id="1726">1726</span>
+<span id="1727">1727</span>
+<span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
+<span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
+<span id="1745">1745</span>
+<span id="1746">1746</span>
+<span id="1747">1747</span>
+<span id="1748">1748</span>
+<span id="1749">1749</span>
+<span id="1750">1750</span>
+<span id="1751">1751</span>
+<span id="1752">1752</span>
+<span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
+<span id="1758">1758</span>
+<span id="1759">1759</span>
+<span id="1760">1760</span>
+<span id="1761">1761</span>
+<span id="1762">1762</span>
+<span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
+<span id="1767">1767</span>
+<span id="1768">1768</span>
+<span id="1769">1769</span>
+<span id="1770">1770</span>
+<span id="1771">1771</span>
+<span id="1772">1772</span>
+<span id="1773">1773</span>
+<span id="1774">1774</span>
+<span id="1775">1775</span>
+<span id="1776">1776</span>
+<span id="1777">1777</span>
+<span id="1778">1778</span>
+<span id="1779">1779</span>
+<span id="1780">1780</span>
+<span id="1781">1781</span>
+<span id="1782">1782</span>
+<span id="1783">1783</span>
+<span id="1784">1784</span>
+<span id="1785">1785</span>
+<span id="1786">1786</span>
+<span id="1787">1787</span>
+<span id="1788">1788</span>
+<span id="1789">1789</span>
+<span id="1790">1790</span>
+<span id="1791">1791</span>
+<span id="1792">1792</span>
+<span id="1793">1793</span>
+<span id="1794">1794</span>
+<span id="1795">1795</span>
+<span id="1796">1796</span>
+<span id="1797">1797</span>
+<span id="1798">1798</span>
+<span id="1799">1799</span>
+<span id="1800">1800</span>
+<span id="1801">1801</span>
+<span id="1802">1802</span>
+<span id="1803">1803</span>
+<span id="1804">1804</span>
+<span id="1805">1805</span>
+<span id="1806">1806</span>
+<span id="1807">1807</span>
+<span id="1808">1808</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
@@ -1731,7 +1829,7 @@
     <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsString</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
+    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>, <span class="prelude-ty">Result</span>,
 };
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">char</span>::{<span class="ident">decode_utf16</span>, <span class="ident">from_u32</span>},
@@ -1801,7 +1899,7 @@
         <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">Value</span>, <span class="ident">Attribute</span>) {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">JsValue</span>, <span class="ident">Attribute</span>) {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="self">Self</span><span class="ident">::NAME</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">symbol_iterator</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::iterator</span>();
@@ -1866,10 +1964,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-string-constructor-string-value&gt;</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">constructor</span>(
-        <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// This value is used by console.log and other routines to match Object type</span>
         <span class="comment">// to its Javascript Identifier (global constructor method name)</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
@@ -1895,7 +1993,7 @@
             })
             .<span class="ident">transpose</span>()<span class="question-mark">?</span>
             .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">object_object</span>().<span class="ident">prototype</span>());
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">Value::new_object</span>(<span class="ident">context</span>);
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">JsValue::new_object</span>(<span class="ident">context</span>);
 
         <span class="ident">this</span>.<span class="ident">as_object</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;this should be an object&quot;</span>)
@@ -1915,10 +2013,10 @@
         <span class="prelude-val">Ok</span>(<span class="ident">this</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">this_string_value</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">this_string_value</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">this</span> {
-            <span class="ident">Value::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">clone</span>()),
-            <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> {
+            <span class="ident">JsValue::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">clone</span>()),
+            <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>();
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">string</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_string</span>() {
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">string</span>);
@@ -1933,9 +2031,13 @@
     <span class="doccomment">/// Get the string value to a primitive string</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// Get String from String Object and send it back as a new value</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="self">Self</span><span class="ident">::this_string_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="self">Self</span><span class="ident">::this_string_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>))
     }
 
     <span class="doccomment">/// `String.prototype.charAt( index )`</span>
@@ -1954,14 +2056,18 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.charat</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/charAt</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">char_at</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">char_at</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">cloned</span>()
-            .<span class="ident">unwrap_or_else</span>(<span class="ident">Value::undefined</span>)
+            .<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>)
             .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>;
 
         <span class="comment">// Fast path returning empty string when pos is obviously out of range</span>
@@ -1974,7 +2080,7 @@
         <span class="comment">// Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of</span>
         <span class="comment">// bytes is an O(1) operation.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">utf16_val</span>) <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">encode_utf16</span>().<span class="ident">nth</span>(<span class="ident">pos</span> <span class="kw">as</span> <span class="ident">usize</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">from_u32</span>(<span class="ident">utf16_val</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">unwrap</span>()))
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">from_u32</span>(<span class="ident">utf16_val</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">unwrap</span>()))
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="string">&quot;&quot;</span>.<span class="ident">into</span>())
         }
@@ -1991,7 +2097,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/proposal-relative-indexing-method/#sec-string.prototype.at</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/at</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">at</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">at</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
@@ -2007,11 +2113,11 @@
         };
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">utf16_val</span>) <span class="op">=</span> <span class="ident">s</span>.<span class="ident">encode_utf16</span>().<span class="ident">nth</span>(<span class="ident">k</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(
                 <span class="ident">from_u32</span>(<span class="ident">u32::from</span>(<span class="ident">utf16_val</span>)).<span class="ident">expect</span>(<span class="string">&quot;invalid utf-16 character&quot;</span>),
             ))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::undefined</span>())
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
         }
     }
 
@@ -2030,28 +2136,28 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.codepointat</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/codePointAt</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">code_point_at</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">cloned</span>()
-            .<span class="ident">unwrap_or_else</span>(<span class="ident">Value::undefined</span>)
+            .<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>)
             .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>;
 
         <span class="comment">// Fast path returning undefined when pos is obviously out of range</span>
         <span class="kw">if</span> <span class="ident">pos</span> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">pos</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i32</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::undefined</span>());
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>());
         }
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">code_point</span>, <span class="kw">_</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="ident">code_point_at</span>(<span class="ident">primitive_val</span>, <span class="ident">pos</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">code_point</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">code_point</span>))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::undefined</span>())
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
         }
     }
 
@@ -2070,31 +2176,31 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.charcodeat</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/charCodeAt</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">char_code_at</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">cloned</span>()
-            .<span class="ident">unwrap_or_else</span>(<span class="ident">Value::undefined</span>)
+            .<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>)
             .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>;
 
         <span class="comment">// Fast path returning NaN when pos is obviously out of range</span>
         <span class="kw">if</span> <span class="ident">pos</span> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">pos</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i32</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::nan</span>());
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::nan</span>());
         }
 
         <span class="comment">// Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points</span>
         <span class="comment">// Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.</span>
         <span class="comment">// If there is no element at that index, the result is NaN</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">utf16_val</span>) <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">encode_utf16</span>().<span class="ident">nth</span>(<span class="ident">pos</span> <span class="kw">as</span> <span class="ident">usize</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">f64::from</span>(<span class="ident">utf16_val</span>)))
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">f64::from</span>(<span class="ident">utf16_val</span>)))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::nan</span>())
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::nan</span>())
         }
     }
 
@@ -2112,7 +2218,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.concat</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/concat</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">concat</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">concat</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>();
 
@@ -2120,7 +2230,7 @@
             <span class="ident">string</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">string</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">string</span>))
     }
 
     <span class="doccomment">/// `String.prototype.repeat( count )`</span>
@@ -2134,7 +2244,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.repeat</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/repeat</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">repeat</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">repeat</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -2168,7 +2282,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.slice</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/slice</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">slice</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">slice</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -2180,12 +2298,12 @@
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">cloned</span>()
-            .<span class="ident">unwrap_or_else</span>(<span class="ident">Value::undefined</span>)
+            .<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>)
             .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>;
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">1</span>)
             .<span class="ident">cloned</span>()
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Value::integer</span>(<span class="ident">length</span>))
+            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsValue::new</span>(<span class="ident">length</span>))
             .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>;
 
         <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">start</span> <span class="op">&lt;</span> <span class="number">0</span> {
@@ -2206,7 +2324,7 @@
             .<span class="ident">skip</span>(<span class="ident">from</span> <span class="kw">as</span> <span class="ident">usize</span>)
             .<span class="ident">take</span>(<span class="ident">span</span> <span class="kw">as</span> <span class="ident">usize</span>)
             .<span class="ident">collect</span>();
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">new_str</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">new_str</span>))
     }
 
     <span class="doccomment">/// `String.prototype.startWith( searchString[, position] )`</span>
@@ -2220,15 +2338,15 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.startswith</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">starts_with</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value::undefined</span>);
+        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
 
         <span class="kw">if</span> <span class="self">Self</span><span class="ident">::is_regexp_object</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>) {
             <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
@@ -2254,11 +2372,13 @@
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">start</span>.<span class="ident">wrapping_add</span>(<span class="ident">search_length</span>);
 
         <span class="kw">if</span> <span class="ident">end</span> <span class="op">&gt;</span> <span class="ident">length</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="bool-val">false</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="bool-val">false</span>))
         } <span class="kw">else</span> {
             <span class="comment">// Only use the part of the string from &quot;start&quot;</span>
             <span class="kw">let</span> <span class="ident">this_string</span>: <span class="ident">StdString</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">skip</span>(<span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">collect</span>();
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">this_string</span>.<span class="ident">starts_with</span>(<span class="ident">search_string</span>.<span class="ident">as_str</span>())))
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(
+                <span class="ident">this_string</span>.<span class="ident">starts_with</span>(<span class="ident">search_string</span>.<span class="ident">as_str</span>()),
+            ))
         }
     }
 
@@ -2272,12 +2392,16 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.endswith</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ends_with</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ends_with</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value::undefined</span>);
+        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
 
         <span class="kw">if</span> <span class="self">Self</span><span class="ident">::is_regexp_object</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>) {
             <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
@@ -2304,11 +2428,11 @@
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">end</span>.<span class="ident">wrapping_sub</span>(<span class="ident">search_length</span>);
 
         <span class="kw">if</span> <span class="ident">start</span> <span class="op">&lt;</span> <span class="number">0</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="bool-val">false</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="bool-val">false</span>))
         } <span class="kw">else</span> {
             <span class="comment">// Only use the part of the string up to &quot;end&quot;</span>
             <span class="kw">let</span> <span class="ident">this_string</span>: <span class="ident">StdString</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">take</span>(<span class="ident">end</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">collect</span>();
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">this_string</span>.<span class="ident">ends_with</span>(<span class="ident">search_string</span>.<span class="ident">as_str</span>())))
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_string</span>.<span class="ident">ends_with</span>(<span class="ident">search_string</span>.<span class="ident">as_str</span>())))
         }
     }
 
@@ -2322,12 +2446,16 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.includes</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/includes</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">includes</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">includes</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value::undefined</span>);
+        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
 
         <span class="kw">if</span> <span class="self">Self</span><span class="ident">::is_regexp_object</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>) {
             <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
@@ -2353,12 +2481,12 @@
         <span class="comment">// Take the string from &quot;this&quot; and use only the part of it after &quot;start&quot;</span>
         <span class="kw">let</span> <span class="ident">this_string</span>: <span class="ident">StdString</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">skip</span>(<span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">collect</span>();
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">this_string</span>.<span class="ident">contains</span>(<span class="ident">search_string</span>.<span class="ident">as_str</span>())))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_string</span>.<span class="ident">contains</span>(<span class="ident">search_string</span>.<span class="ident">as_str</span>())))
     }
 
-    <span class="kw">fn</span> <span class="ident">is_regexp_object</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">is_regexp_object</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">is_regexp</span>(),
+            <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">is_regexp</span>(),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
         }
     }
@@ -2378,7 +2506,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.replace</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">replace</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">replace</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
         <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -2438,7 +2570,7 @@
             <span class="ident">context</span>
                 .<span class="ident">call</span>(
                     <span class="kw-2">&amp;</span><span class="ident">replace_value</span>,
-                    <span class="kw-2">&amp;</span><span class="ident">Value::Undefined</span>,
+                    <span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(),
                     <span class="kw-2">&amp;</span>[
                         <span class="ident">search_str</span>.<span class="ident">into</span>(),
                         <span class="ident">position</span>.<span class="ident">unwrap</span>().<span class="ident">into</span>(),
@@ -2457,7 +2589,7 @@
                 <span class="ident">this_str</span>.<span class="ident">to_string</span>(),
                 <span class="ident">position</span>.<span class="ident">unwrap</span>(),
                 <span class="ident">captures</span>,
-                <span class="ident">Value::undefined</span>(),
+                <span class="ident">JsValue::undefined</span>(),
                 <span class="ident">replace_value</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
                 <span class="ident">context</span>,
             )<span class="question-mark">?</span>
@@ -2488,14 +2620,18 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.indexof</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/indexOf</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">index_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">index_of</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">cloned</span>()
-            .<span class="ident">unwrap_or_else</span>(<span class="ident">Value::undefined</span>)
+            .<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>)
             .<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
@@ -2515,7 +2651,7 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="op">-</span><span class="number">1</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="op">-</span><span class="number">1</span>))
     }
 
     <span class="doccomment">/// `String.prototype.lastIndexOf( searchValue[, fromIndex] )`</span>
@@ -2532,17 +2668,17 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.lastindexof</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/lastIndexOf</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">last_index_of</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">cloned</span>()
-            .<span class="ident">unwrap_or_else</span>(<span class="ident">Value::undefined</span>)
+            .<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>)
             .<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
@@ -2562,7 +2698,7 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="op">-</span><span class="number">1</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="op">-</span><span class="number">1</span>))
     }
 
     <span class="doccomment">/// `String.prototype.match( regexp )`</span>
@@ -2576,7 +2712,11 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.match</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match</span>
     <span class="doccomment">/// [regex]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">r#match</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">r#match</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -2597,12 +2737,12 @@
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let rx be ? RegExpCreate(regexp, undefined).</span>
-        <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">RegExp::create</span>(<span class="ident">regexp</span>, <span class="ident">Value::undefined</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">RegExp::create</span>(<span class="ident">regexp</span>, <span class="ident">JsValue::undefined</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Return ? Invoke(rx, @@match, « S »).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">as_object</span>().<span class="ident">expect</span>(<span class="string">&quot;RegExpCreate must return Object&quot;</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matcher</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">get_method</span>(<span class="ident">context</span>, <span class="ident">WellKnownSymbols::match_</span>())<span class="question-mark">?</span> {
-            <span class="ident">matcher</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">rx</span>, <span class="kw-2">&amp;</span>[<span class="ident">Value::from</span>(<span class="ident">s</span>)], <span class="ident">context</span>)
+            <span class="ident">matcher</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">rx</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue::new</span>(<span class="ident">s</span>)], <span class="ident">context</span>)
         } <span class="kw">else</span> {
             <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;RegExp[Symbol.match] is undefined&quot;</span>)
         }
@@ -2617,17 +2757,17 @@
         <span class="ident">max_length</span>: <span class="ident">i32</span>,
         <span class="ident">fill_string</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
         <span class="ident">at_start</span>: <span class="ident">bool</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
         <span class="kw">let</span> <span class="ident">primitive_length</span> <span class="op">=</span> <span class="ident">primitive</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i32</span>;
 
         <span class="kw">if</span> <span class="ident">max_length</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">primitive_length</span> {
-            <span class="kw">return</span> <span class="ident">Value::from</span>(<span class="ident">primitive</span>);
+            <span class="kw">return</span> <span class="ident">JsValue::new</span>(<span class="ident">primitive</span>);
         }
 
         <span class="kw">let</span> <span class="ident">filler</span> <span class="op">=</span> <span class="ident">fill_string</span>.<span class="ident">as_deref</span>().<span class="ident">unwrap_or</span>(<span class="string">&quot; &quot;</span>);
 
         <span class="kw">if</span> <span class="ident">filler</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="ident">Value::from</span>(<span class="ident">primitive</span>);
+            <span class="kw">return</span> <span class="ident">JsValue::new</span>(<span class="ident">primitive</span>);
         }
 
         <span class="kw">let</span> <span class="ident">fill_len</span> <span class="op">=</span> <span class="ident">max_length</span>.<span class="ident">wrapping_sub</span>(<span class="ident">primitive_length</span>);
@@ -2640,9 +2780,9 @@
         <span class="kw">let</span> <span class="ident">concat_fill_str</span>: <span class="ident">StdString</span> <span class="op">=</span> <span class="ident">fill_str</span>.<span class="ident">chars</span>().<span class="ident">take</span>(<span class="ident">fill_len</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">collect</span>();
 
         <span class="kw">if</span> <span class="ident">at_start</span> {
-            <span class="ident">Value::from</span>(<span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="ident">concat_fill_str</span>, <span class="kw-2">&amp;</span><span class="ident">primitive</span>))
+            <span class="ident">JsValue::new</span>(<span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="ident">concat_fill_str</span>, <span class="kw-2">&amp;</span><span class="ident">primitive</span>))
         } <span class="kw">else</span> {
-            <span class="ident">Value::from</span>(<span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="ident">primitive</span>, <span class="kw-2">&amp;</span><span class="ident">concat_fill_str</span>))
+            <span class="ident">JsValue::new</span>(<span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="ident">primitive</span>, <span class="kw-2">&amp;</span><span class="ident">concat_fill_str</span>))
         }
     }
 
@@ -2658,10 +2798,14 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.padend</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padEnd</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pad_end</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pad_end</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value::from</span>(<span class="string">&quot;padEnd requires maxLength argument&quot;</span>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsValue::new</span>(<span class="string">&quot;padEnd requires maxLength argument&quot;</span>));
         }
         <span class="kw">let</span> <span class="ident">max_length</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
@@ -2685,10 +2829,14 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.padstart</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pad_start</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pad_start</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Value::from</span>(<span class="string">&quot;padStart requires maxLength argument&quot;</span>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsValue::new</span>(<span class="string">&quot;padStart requires maxLength argument&quot;</span>));
         }
         <span class="kw">let</span> <span class="ident">max_length</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
@@ -2712,10 +2860,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trim</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">trim</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">trim</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">string</span>.<span class="ident">trim_matches</span>(<span class="ident">is_trimmable_whitespace</span>)))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">string</span>.<span class="ident">trim_matches</span>(<span class="ident">is_trimmable_whitespace</span>)))
     }
 
     <span class="doccomment">/// `String.prototype.trimStart()`</span>
@@ -2730,9 +2878,13 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimstart</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimStart</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">trim_start</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">trim_start</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(
             <span class="ident">string</span>.<span class="ident">trim_start_matches</span>(<span class="ident">is_trimmable_whitespace</span>),
         ))
     }
@@ -2749,10 +2901,14 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trimend</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trimEnd</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">trim_end</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">trim_end</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(
             <span class="ident">string</span>.<span class="ident">trim_end_matches</span>(<span class="ident">is_trimmable_whitespace</span>),
         ))
     }
@@ -2768,13 +2924,17 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.tolowercase</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toLowerCase</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_lowercase</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_lowercase</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">this_str</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// The Rust String is mapped to uppercase using the builtin .to_lowercase().</span>
         <span class="comment">// There might be corner cases where it does not behave exactly like Javascript expects</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">this_str</span>.<span class="ident">to_lowercase</span>()))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_str</span>.<span class="ident">to_lowercase</span>()))
     }
 
     <span class="doccomment">/// `String.prototype.toUpperCase()`</span>
@@ -2790,13 +2950,17 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.toUppercase</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/toUpperCase</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_uppercase</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_uppercase</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">this_str</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// The Rust String is mapped to uppercase using the builtin .to_uppercase().</span>
         <span class="comment">// There might be corner cases where it does not behave exactly like Javascript expects</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">this_str</span>.<span class="ident">to_uppercase</span>()))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_str</span>.<span class="ident">to_uppercase</span>()))
     }
 
     <span class="doccomment">/// `String.prototype.substring( indexStart[, indexEnd] )`</span>
@@ -2809,7 +2973,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.substring</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substring</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">substring</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">substring</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -2846,7 +3014,7 @@
                 .<span class="ident">take</span>(<span class="ident">to</span>.<span class="ident">wrapping_sub</span>(<span class="ident">from</span>)),
         )
         .<span class="ident">collect</span>();
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">extracted_string</span>.<span class="ident">expect</span>(<span class="string">&quot;Invalid string&quot;</span>)))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">extracted_string</span>.<span class="ident">expect</span>(<span class="string">&quot;Invalid string&quot;</span>)))
     }
 
     <span class="doccomment">/// `String.prototype.substr( start[, length] )`</span>
@@ -2860,7 +3028,11 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.substr</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/substr</span>
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-string.prototype.substr&gt;</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">substr</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">substr</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
         <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -2894,7 +3066,7 @@
         <span class="comment">// If length is negative we return an empty string</span>
         <span class="comment">// otherwise we extract the part of the string from start and is length code units long</span>
         <span class="kw">if</span> <span class="ident">result_length</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="string">&quot;&quot;</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="string">&quot;&quot;</span>))
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">extracted_string</span>: <span class="ident">StdString</span> <span class="op">=</span> <span class="ident">primitive_val</span>
                 .<span class="ident">chars</span>()
@@ -2902,7 +3074,7 @@
                 .<span class="ident">take</span>(<span class="ident">result_length</span> <span class="kw">as</span> <span class="ident">usize</span>)
                 .<span class="ident">collect</span>();
 
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">extracted_string</span>))
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">extracted_string</span>))
         }
     }
 
@@ -2917,7 +3089,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.split</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/split</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">split</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">split</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -3067,7 +3243,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.value_of</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/valueOf</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value_of</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// Use the to_string method because it is specified to do the same thing in this case</span>
         <span class="self">Self</span><span class="ident">::to_string</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>)
     }
@@ -3084,7 +3264,11 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/matchAll</span>
     <span class="doccomment">/// [regex]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions</span>
     <span class="doccomment">/// [cg]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Groups_and_Ranges</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">match_all</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">match_all</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -3122,12 +3306,12 @@
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let rx be ? RegExpCreate(regexp, &quot;g&quot;).</span>
-        <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">RegExp::create</span>(<span class="ident">regexp</span>, <span class="ident">Value::from</span>(<span class="string">&quot;g&quot;</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">RegExp::create</span>(<span class="ident">regexp</span>, <span class="ident">JsValue::new</span>(<span class="string">&quot;g&quot;</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Return ? Invoke(rx, @@matchAll, « S »).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">as_object</span>().<span class="ident">expect</span>(<span class="string">&quot;RegExpCreate must return Object&quot;</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matcher</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">get_method</span>(<span class="ident">context</span>, <span class="ident">WellKnownSymbols::match_all</span>())<span class="question-mark">?</span> {
-            <span class="ident">matcher</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">rx</span>, <span class="kw-2">&amp;</span>[<span class="ident">Value::from</span>(<span class="ident">s</span>)], <span class="ident">context</span>)
+            <span class="ident">matcher</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">rx</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue::new</span>(<span class="ident">s</span>)], <span class="ident">context</span>)
         } <span class="kw">else</span> {
             <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;RegExp[Symbol.matchAll] is undefined&quot;</span>)
         }
@@ -3143,7 +3327,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.normalize</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">normalize</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">normalize</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
@@ -3158,10 +3346,10 @@
         };
 
         <span class="kw">match</span> <span class="ident">f</span> {
-            <span class="string">&quot;NFC&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">s</span>.<span class="ident">nfc</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">StdString</span><span class="op">&gt;</span>())),
-            <span class="string">&quot;NFD&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">s</span>.<span class="ident">nfd</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">StdString</span><span class="op">&gt;</span>())),
-            <span class="string">&quot;NFKC&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">s</span>.<span class="ident">nfkc</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">StdString</span><span class="op">&gt;</span>())),
-            <span class="string">&quot;NFKD&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">s</span>.<span class="ident">nfkd</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">StdString</span><span class="op">&gt;</span>())),
+            <span class="string">&quot;NFC&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">s</span>.<span class="ident">nfc</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">StdString</span><span class="op">&gt;</span>())),
+            <span class="string">&quot;NFD&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">s</span>.<span class="ident">nfd</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">StdString</span><span class="op">&gt;</span>())),
+            <span class="string">&quot;NFKC&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">s</span>.<span class="ident">nfkc</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">StdString</span><span class="op">&gt;</span>())),
+            <span class="string">&quot;NFKD&quot;</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">s</span>.<span class="ident">nfkd</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">StdString</span><span class="op">&gt;</span>())),
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">context</span>
                 .<span class="ident">throw_range_error</span>(<span class="string">&quot;The normalization form should be one of NFC, NFD, NFKC, NFKD.&quot;</span>),
         }
@@ -3177,7 +3365,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.search</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/search</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">search</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">search</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -3198,18 +3390,22 @@
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let rx be ? RegExpCreate(regexp, undefined).</span>
-        <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">RegExp::create</span>(<span class="ident">regexp</span>, <span class="ident">Value::undefined</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">RegExp::create</span>(<span class="ident">regexp</span>, <span class="ident">JsValue::undefined</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Return ? Invoke(rx, @@search, « string »).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">as_object</span>().<span class="ident">expect</span>(<span class="string">&quot;RegExpCreate must return Object&quot;</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">matcher</span>) <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">get_method</span>(<span class="ident">context</span>, <span class="ident">WellKnownSymbols::search</span>())<span class="question-mark">?</span> {
-            <span class="ident">matcher</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">rx</span>, <span class="kw-2">&amp;</span>[<span class="ident">Value::from</span>(<span class="ident">string</span>)], <span class="ident">context</span>)
+            <span class="ident">matcher</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">rx</span>, <span class="kw-2">&amp;</span>[<span class="ident">JsValue::new</span>(<span class="ident">string</span>)], <span class="ident">context</span>)
         } <span class="kw">else</span> {
             <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;RegExp[Symbol.search] is undefined&quot;</span>)
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">iterator</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">iterator</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="ident">StringIterator::create_string_iterator</span>(<span class="ident">context</span>, <span class="ident">this</span>.<span class="ident">clone</span>())
     }
 }
@@ -3224,8 +3420,8 @@
     <span class="ident">matched</span>: <span class="ident">StdString</span>,
     <span class="ident">str</span>: <span class="ident">StdString</span>,
     <span class="ident">position</span>: <span class="ident">usize</span>,
-    <span class="ident">captures</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>,
-    <span class="ident">named_captures</span>: <span class="ident">Value</span>,
+    <span class="ident">captures</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
+    <span class="ident">named_captures</span>: <span class="ident">JsValue</span>,
     <span class="ident">replacement</span>: <span class="ident">JsString</span>,
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
 ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {

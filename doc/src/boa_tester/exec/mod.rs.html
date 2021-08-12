@@ -324,7 +324,7 @@
     <span class="ident">Harness</span>, <span class="ident">Outcome</span>, <span class="ident">Phase</span>, <span class="ident">SuiteResult</span>, <span class="ident">Test</span>, <span class="ident">TestFlags</span>, <span class="ident">TestOutcomeResult</span>, <span class="ident">TestResult</span>,
     <span class="ident">TestSuite</span>, <span class="ident">IGNORED</span>,
 };
-<span class="kw">use</span> <span class="ident">boa</span>::{<span class="ident">parse</span>, <span class="ident">Context</span>, <span class="ident">Value</span>};
+<span class="kw">use</span> <span class="ident">boa</span>::{<span class="ident">parse</span>, <span class="ident">Context</span>, <span class="ident">JsValue</span>};
 <span class="kw">use</span> <span class="ident">colored::Colorize</span>;
 <span class="kw">use</span> <span class="ident">rayon::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">std::panic</span>;
@@ -630,7 +630,7 @@
 }
 
 <span class="doccomment">/// `print()` function required by the test262 suite.</span>
-<span class="kw">fn</span> <span class="ident">test262_print</span>(<span class="ident">_this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">_context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">boa::Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">test262_print</span>(<span class="ident">_this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">_context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">boa::Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
     <span class="macro">todo!</span>(<span class="string">&quot;print() function&quot;</span>);
 }
 </pre></div>

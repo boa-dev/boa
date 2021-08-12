@@ -2237,6 +2237,54 @@
 <span id="2237">2237</span>
 <span id="2238">2238</span>
 <span id="2239">2239</span>
+<span id="2240">2240</span>
+<span id="2241">2241</span>
+<span id="2242">2242</span>
+<span id="2243">2243</span>
+<span id="2244">2244</span>
+<span id="2245">2245</span>
+<span id="2246">2246</span>
+<span id="2247">2247</span>
+<span id="2248">2248</span>
+<span id="2249">2249</span>
+<span id="2250">2250</span>
+<span id="2251">2251</span>
+<span id="2252">2252</span>
+<span id="2253">2253</span>
+<span id="2254">2254</span>
+<span id="2255">2255</span>
+<span id="2256">2256</span>
+<span id="2257">2257</span>
+<span id="2258">2258</span>
+<span id="2259">2259</span>
+<span id="2260">2260</span>
+<span id="2261">2261</span>
+<span id="2262">2262</span>
+<span id="2263">2263</span>
+<span id="2264">2264</span>
+<span id="2265">2265</span>
+<span id="2266">2266</span>
+<span id="2267">2267</span>
+<span id="2268">2268</span>
+<span id="2269">2269</span>
+<span id="2270">2270</span>
+<span id="2271">2271</span>
+<span id="2272">2272</span>
+<span id="2273">2273</span>
+<span id="2274">2274</span>
+<span id="2275">2275</span>
+<span id="2276">2276</span>
+<span id="2277">2277</span>
+<span id="2278">2278</span>
+<span id="2279">2279</span>
+<span id="2280">2280</span>
+<span id="2281">2281</span>
+<span id="2282">2282</span>
+<span id="2283">2283</span>
+<span id="2284">2284</span>
+<span id="2285">2285</span>
+<span id="2286">2286</span>
+<span id="2287">2287</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
@@ -2260,7 +2308,7 @@
     <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>, <span class="ident">GcObject</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">value</span>::{<span class="ident">IntegerOrInfinity</span>, <span class="ident">Value</span>},
+    <span class="ident">value</span>::{<span class="ident">IntegerOrInfinity</span>, <span class="ident">JsValue</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsString</span>, <span class="prelude-ty">Result</span>,
 };
 <span class="kw">use</span> <span class="ident">std::cmp</span>::{<span class="ident">max</span>, <span class="ident">min</span>};
@@ -2276,7 +2324,7 @@
         <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">Value</span>, <span class="ident">Attribute</span>) {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">JsValue</span>, <span class="ident">Attribute</span>) {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="self">Self</span><span class="ident">::NAME</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">symbol_iterator</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::iterator</span>();
@@ -2359,7 +2407,11 @@
 <span class="kw">impl</span> <span class="ident">Array</span> {
     <span class="kw">const</span> <span class="ident">LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
 
-    <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">constructor</span>(
+        <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.</span>
         <span class="comment">// 2. Let proto be ? GetPrototypeFromConstructor(newTarget, &quot;%Array.prototype%&quot;).</span>
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">new_target</span>
@@ -2400,7 +2452,7 @@
                 <span class="comment">// i. Let intLen be ! ToUint32(len).</span>
                 <span class="kw">let</span> <span class="ident">int_len</span> <span class="op">=</span> <span class="ident">len</span>.<span class="ident">to_u32</span>(<span class="ident">context</span>).<span class="ident">unwrap</span>();
                 <span class="comment">// ii. If SameValueZero(intLen, len) is false, throw a RangeError exception.</span>
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">Value::same_value_zero</span>(<span class="kw-2">&amp;</span><span class="ident">int_len</span>.<span class="ident">into</span>(), <span class="ident">len</span>) {
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">JsValue::same_value_zero</span>(<span class="kw-2">&amp;</span><span class="ident">int_len</span>.<span class="ident">into</span>(), <span class="ident">len</span>) {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="string">&quot;invalid array length&quot;</span>));
                 }
                 <span class="ident">int_len</span>
@@ -2480,8 +2532,8 @@
     }
 
     <span class="doccomment">/// Creates a new `Array` instance.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_array</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Value</span> {
-        <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">Value::new_object</span>(<span class="ident">context</span>);
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_array</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsValue</span> {
+        <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">JsValue::new_object</span>(<span class="ident">context</span>);
         <span class="ident">array</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData::Array</span>);
         <span class="ident">array</span>
             .<span class="ident">as_object</span>()
@@ -2504,10 +2556,10 @@
     <span class="doccomment">/// `array_obj` can be any array with prototype already set (it will be wiped and</span>
     <span class="doccomment">/// recreated from `array_contents`)</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">construct_array</span>(
-        <span class="ident">array_obj</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-        <span class="ident">array_contents</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">array_obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">array_contents</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">array_obj_ptr</span> <span class="op">=</span> <span class="ident">array_obj</span>.<span class="ident">clone</span>();
 
         <span class="comment">// Wipe existing contents of the array object</span>
@@ -2545,7 +2597,7 @@
     <span class="doccomment">/// Returns a Boolean valued property that if `true` indicates that</span>
     <span class="doccomment">/// an object should be flattened to its array elements</span>
     <span class="doccomment">/// by `Array.prototype.concat`.</span>
-    <span class="kw">fn</span> <span class="ident">is_concat_spreadable</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">is_concat_spreadable</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If Type(O) is not Object, return false.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">this</span>.<span class="ident">is_object</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
@@ -2574,7 +2626,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-array-@@species</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/@@species</span>
-    <span class="kw">fn</span> <span class="ident">get_species</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_species</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Return the this value.</span>
         <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
     }
@@ -2609,7 +2661,7 @@
             <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">get</span>(<span class="ident">WellKnownSymbols::species</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// 5.b. If C is null, set C to undefined.</span>
             <span class="kw">if</span> <span class="ident">c</span>.<span class="ident">is_null_or_undefined</span>() {
-                <span class="ident">Value::undefined</span>()
+                <span class="ident">JsValue::undefined</span>()
             } <span class="kw">else</span> {
                 <span class="ident">c</span>
             }
@@ -2629,7 +2681,7 @@
             }
             <span class="comment">// 8. Return ? Construct(C, « 𝔽(length) »).</span>
             <span class="prelude-val">Ok</span>(
-                <span class="ident">c</span>.<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">Value::from</span>(<span class="ident">length</span>)], <span class="kw-2">&amp;</span><span class="ident">c</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
+                <span class="ident">c</span>.<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">JsValue::new</span>(<span class="ident">length</span>)], <span class="kw-2">&amp;</span><span class="ident">c</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
                     .<span class="ident">as_object</span>()
                     .<span class="ident">unwrap</span>(),
             )
@@ -2641,10 +2693,10 @@
     <span class="doccomment">/// Utility function which takes an existing array object and puts additional</span>
     <span class="doccomment">/// values on the end, correctly rewriting the length</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_to_array_object</span>(
-        <span class="ident">array_ptr</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-        <span class="ident">add_values</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">array_ptr</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">add_values</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">orig_length</span> <span class="op">=</span> <span class="ident">array_ptr</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">for</span> (<span class="ident">n</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">add_values</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
@@ -2661,7 +2713,7 @@
 
         <span class="ident">array_ptr</span>.<span class="ident">set_field</span>(
             <span class="string">&quot;length&quot;</span>,
-            <span class="ident">Value::from</span>(<span class="ident">orig_length</span>.<span class="ident">wrapping_add</span>(<span class="ident">add_values</span>.<span class="ident">len</span>())),
+            <span class="ident">JsValue::new</span>(<span class="ident">orig_length</span>.<span class="ident">wrapping_add</span>(<span class="ident">add_values</span>.<span class="ident">len</span>())),
             <span class="bool-val">false</span>,
             <span class="ident">context</span>,
         )<span class="question-mark">?</span>;
@@ -2680,10 +2732,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.isarray</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_array</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_array</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">as_object</span>()) {
-            <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">is_array</span>())),
-            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="bool-val">false</span>)),
+            <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">is_array</span>())),
+            <span class="prelude-val">None</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="bool-val">false</span>)),
         }
     }
 
@@ -2698,7 +2750,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.of</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/of</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let len be the number of elements in items.</span>
         <span class="comment">// 2. Let lenNumber be 𝔽(len).</span>
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">len</span>();
@@ -2745,7 +2797,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.concat</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/concat</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">concat</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">concat</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 2. Let A be ? ArraySpeciesCreate(O, 0).</span>
@@ -2754,7 +2810,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="comment">// 4. Prepend O to items.</span>
         <span class="comment">// 5. For each element E of items, do</span>
-        <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> [<span class="ident">Value::from</span>(<span class="ident">obj</span>)].<span class="ident">iter</span>().<span class="ident">chain</span>(<span class="ident">args</span>.<span class="ident">iter</span>()) {
+        <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> [<span class="ident">JsValue::new</span>(<span class="ident">obj</span>)].<span class="ident">iter</span>().<span class="ident">chain</span>(<span class="ident">args</span>.<span class="ident">iter</span>()) {
             <span class="comment">// a. Let spreadable be ? IsConcatSpreadable(E).</span>
             <span class="kw">let</span> <span class="ident">spreadable</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::is_concat_spreadable</span>(<span class="ident">item</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// b. If spreadable is true, then</span>
@@ -2805,7 +2861,7 @@
         <span class="ident">arr</span>.<span class="ident">set</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">n</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 7. Return A.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">arr</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">arr</span>))
     }
 
     <span class="doccomment">/// `Array.prototype.push( ...items )`</span>
@@ -2820,7 +2876,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.push</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).</span>
@@ -2856,7 +2912,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.pop</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/pop</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pop</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pop</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).</span>
@@ -2866,7 +2922,7 @@
             <span class="comment">// a. Perform ? Set(O, &quot;length&quot;, +0𝔽, true).</span>
             <span class="ident">o</span>.<span class="ident">set</span>(<span class="string">&quot;length&quot;</span>, <span class="number">0</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// b. Return undefined.</span>
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::undefined</span>())
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
         <span class="comment">// 4. Else,</span>
         } <span class="kw">else</span> {
             <span class="comment">// a. Assert: len &gt; 0.</span>
@@ -2895,7 +2951,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.foreach</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">for_each</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">for_each</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).</span>
@@ -2903,7 +2963,7 @@
         <span class="comment">// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">arg</span>) <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">and_then</span>(<span class="ident">Value::as_object</span>)
+            .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
             .<span class="ident">filter</span>(<span class="ident">GcObject::is_callable</span>)
         {
             <span class="ident">arg</span>
@@ -2922,13 +2982,13 @@
                 <span class="comment">// i. Let kValue be ? Get(O, Pk).</span>
                 <span class="kw">let</span> <span class="ident">k_value</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="ident">pk</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="comment">// ii. Perform ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).</span>
-                <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value::undefined</span>);
+                <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
                 <span class="ident">callback</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">this_arg</span>, <span class="kw-2">&amp;</span>[<span class="ident">k_value</span>, <span class="ident">k</span>.<span class="ident">into</span>(), <span class="ident">o</span>.<span class="ident">clone</span>().<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>;
             }
             <span class="comment">// d. Set k to k + 1.</span>
         }
         <span class="comment">// 6. Return undefined.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::undefined</span>())
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
     }
 
     <span class="doccomment">/// `Array.prototype.join( separator )`</span>
@@ -2943,7 +3003,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.join</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/join</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">join</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">join</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).</span>
@@ -2994,7 +3054,11 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.tostring</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/toString</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let array be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 2. Let func be ? Get(array, &quot;join&quot;).</span>
@@ -3020,7 +3084,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.reverse</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::else_if_without_else</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">reverse</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">reverse</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).</span>
@@ -3038,7 +3102,7 @@
             <span class="comment">// d. Let lowerExists be ? HasProperty(O, lowerP).</span>
             <span class="kw">let</span> <span class="ident">lower_exists</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">has_property</span>(<span class="ident">lower</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// e. If lowerExists is true, then</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lower_value</span> <span class="op">=</span> <span class="ident">Value::undefined</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lower_value</span> <span class="op">=</span> <span class="ident">JsValue::undefined</span>();
             <span class="kw">if</span> <span class="ident">lower_exists</span> {
                 <span class="comment">// i. Let lowerValue be ? Get(O, lowerP).</span>
                 <span class="ident">lower_value</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="ident">lower</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -3046,7 +3110,7 @@
             <span class="comment">// f. Let upperExists be ? HasProperty(O, upperP).</span>
             <span class="kw">let</span> <span class="ident">upper_exists</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">has_property</span>(<span class="ident">upper</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// g. If upperExists is true, then</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">upper_value</span> <span class="op">=</span> <span class="ident">Value::undefined</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">upper_value</span> <span class="op">=</span> <span class="ident">JsValue::undefined</span>();
             <span class="kw">if</span> <span class="ident">upper_exists</span> {
                 <span class="comment">// i. Let upperValue be ? Get(O, upperP).</span>
                 <span class="ident">upper_value</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="ident">upper</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -3097,7 +3161,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.shift</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/shift</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">shift</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">shift</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).</span>
@@ -3107,7 +3171,7 @@
             <span class="comment">// a. Perform ? Set(O, &quot;length&quot;, +0𝔽, true).</span>
             <span class="ident">o</span>.<span class="ident">set</span>(<span class="string">&quot;length&quot;</span>, <span class="number">0</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// b. Return undefined.</span>
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::undefined</span>());
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>());
         }
         <span class="comment">// 4. Let first be ? Get(O, &quot;0&quot;).</span>
         <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="number">0</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -3154,7 +3218,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.unshift</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/unshift</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">unshift</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">unshift</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).</span>
@@ -3221,7 +3289,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.every</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">every</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">every</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).</span>
@@ -3229,7 +3301,7 @@
         <span class="comment">// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">arg</span>) <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">and_then</span>(<span class="ident">Value::as_object</span>)
+            .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
             .<span class="ident">filter</span>(<span class="ident">GcObject::is_callable</span>)
         {
             <span class="ident">arg</span>
@@ -3255,13 +3327,13 @@
                     .<span class="ident">to_boolean</span>();
                 <span class="comment">// iii. If testResult is false, return false.</span>
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">test_result</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="bool-val">false</span>));
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="bool-val">false</span>));
                 }
             }
             <span class="comment">// d. Set k to k + 1.</span>
         }
         <span class="comment">// 6. Return true.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="bool-val">true</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="bool-val">true</span>))
     }
 
     <span class="doccomment">/// `Array.prototype.map( callback, [ thisArg ] )`</span>
@@ -3275,7 +3347,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.map</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">map</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">map</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).</span>
@@ -3321,7 +3393,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.indexof</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">index_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">index_of</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -3330,7 +3406,7 @@
 
         <span class="comment">// 3. If len is 0, return -1𝔽.</span>
         <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="op">-</span><span class="number">1</span>));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="op">-</span><span class="number">1</span>));
         }
 
         <span class="comment">// 4. Let n be ? ToIntegerOrInfinity(fromIndex).</span>
@@ -3342,7 +3418,7 @@
         <span class="comment">// 5. Assert: If fromIndex is undefined, then n is 0.</span>
         <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">n</span> {
             <span class="comment">// 6. If n is +∞, return -1𝔽.</span>
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="op">-</span><span class="number">1</span>)),
+            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="op">-</span><span class="number">1</span>)),
             <span class="comment">// 7. Else if n is -∞, set n to 0.</span>
             <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
             <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>,
@@ -3376,14 +3452,14 @@
                 <span class="comment">// ii. Let same be IsStrictlyEqual(searchElement, elementK).</span>
                 <span class="comment">// iii. If same is true, return 𝔽(k).</span>
                 <span class="kw">if</span> <span class="ident">search_element</span>.<span class="ident">strict_equals</span>(<span class="kw-2">&amp;</span><span class="ident">element_k</span>) {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">k</span>));
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">k</span>));
                 }
             }
             <span class="comment">// c. Set k to k + 1.</span>
             <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
         <span class="comment">// 11. Return -1𝔽.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="op">-</span><span class="number">1</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="op">-</span><span class="number">1</span>))
     }
 
     <span class="doccomment">/// `Array.prototype.lastIndexOf( searchElement[, fromIndex ] )`</span>
@@ -3405,10 +3481,10 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.lastindexof</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/lastIndexOf</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">last_index_of</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -3417,7 +3493,7 @@
 
         <span class="comment">// 3. If len is 0, return -1𝔽.</span>
         <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="op">-</span><span class="number">1</span>));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="op">-</span><span class="number">1</span>));
         }
 
         <span class="comment">// 4. If fromIndex is present, let n be ? ToIntegerOrInfinity(fromIndex); else let n be len - 1.</span>
@@ -3429,7 +3505,7 @@
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">n</span> {
             <span class="comment">// 5. If n is -∞, return -1𝔽.</span>
-            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="op">-</span><span class="number">1</span>)),
+            <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="op">-</span><span class="number">1</span>)),
             <span class="comment">// 6. If n ≥ 0, then</span>
             <span class="comment">//     a. Let k be min(n, len - 1).</span>
             <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">n</span>) <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">min</span>(<span class="ident">n</span>, <span class="ident">len</span> <span class="op">-</span> <span class="number">1</span>),
@@ -3451,15 +3527,15 @@
                 <span class="kw">let</span> <span class="ident">element_k</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="ident">k</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="comment">// ii. Let same be IsStrictlyEqual(searchElement, elementK).</span>
                 <span class="comment">// iii. If same is true, return 𝔽(k).</span>
-                <span class="kw">if</span> <span class="ident">Value::strict_equals</span>(<span class="kw-2">&amp;</span><span class="ident">search_element</span>, <span class="kw-2">&amp;</span><span class="ident">element_k</span>) {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">k</span>));
+                <span class="kw">if</span> <span class="ident">JsValue::strict_equals</span>(<span class="kw-2">&amp;</span><span class="ident">search_element</span>, <span class="kw-2">&amp;</span><span class="ident">element_k</span>) {
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">k</span>));
                 }
             }
             <span class="comment">// c. Set k to k - 1.</span>
             <span class="ident">k</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
         }
         <span class="comment">// 9. Return -1𝔽.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="op">-</span><span class="number">1</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="op">-</span><span class="number">1</span>))
     }
 
     <span class="doccomment">/// `Array.prototype.find( callback, [thisArg] )`</span>
@@ -3474,7 +3550,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.find</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">find</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">find</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -3482,7 +3558,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If IsCallable(predicate) is false, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">and_then</span>(<span class="ident">Value::as_object</span>) {
+        <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">predicate</span>) <span class="kw">if</span> <span class="ident">predicate</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">predicate</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Array.prototype.find: predicate is not callable&quot;</span>)
@@ -3515,7 +3591,7 @@
             <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
         <span class="comment">// 6. Return undefined.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::undefined</span>())
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
     }
 
     <span class="doccomment">/// `Array.prototype.findIndex( predicate [ , thisArg ] )`</span>
@@ -3530,7 +3606,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.findindex</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">find_index</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">find_index</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -3538,7 +3618,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If IsCallable(predicate) is false, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">and_then</span>(<span class="ident">Value::as_object</span>) {
+        <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">predicate</span>) <span class="kw">if</span> <span class="ident">predicate</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">predicate</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">return</span> <span class="ident">context</span>
@@ -3562,13 +3642,13 @@
                 .<span class="ident">to_boolean</span>();
             <span class="comment">// d. If testResult is true, return 𝔽(k).</span>
             <span class="kw">if</span> <span class="ident">test_result</span> {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">k</span>));
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">k</span>));
             }
             <span class="comment">// e. Set k to k + 1.</span>
             <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
         <span class="comment">// 6. Return -1𝔽.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="op">-</span><span class="number">1</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="op">-</span><span class="number">1</span>))
     }
 
     <span class="doccomment">/// `Array.prototype.flat( [depth] )`</span>
@@ -3582,7 +3662,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.flat</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">flat</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">flat</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ToObject(this value)</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -3614,7 +3694,7 @@
             <span class="number">0</span>,
             <span class="ident">depth_num</span>,
             <span class="prelude-val">None</span>,
-            <span class="kw-2">&amp;</span><span class="ident">Value::undefined</span>(),
+            <span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(),
             <span class="ident">context</span>,
         )<span class="question-mark">?</span>;
 
@@ -3634,7 +3714,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.flatMap</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">flat_map</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">flat_map</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ToObject(this value)</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -3680,7 +3764,7 @@
         <span class="ident">start</span>: <span class="ident">u64</span>,
         <span class="ident">depth</span>: <span class="ident">u64</span>,
         <span class="ident">mapper_function</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">GcObject</span><span class="op">&gt;</span>,
-        <span class="ident">this_arg</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
+        <span class="ident">this_arg</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Assert target is Object</span>
@@ -3752,7 +3836,7 @@
                         <span class="ident">target_index</span>,
                         <span class="ident">new_depth</span>,
                         <span class="prelude-val">None</span>,
-                        <span class="kw-2">&amp;</span><span class="ident">Value::undefined</span>(),
+                        <span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(),
                         <span class="ident">context</span>,
                     )<span class="question-mark">?</span>;
 
@@ -3790,7 +3874,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.fill</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fill</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">fill</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">fill</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -3835,10 +3919,10 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.includes</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">includes_value</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -3847,7 +3931,7 @@
 
         <span class="comment">// 3. If len is 0, return false.</span>
         <span class="kw">if</span> <span class="ident">len</span> <span class="op">=</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="bool-val">false</span>));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="bool-val">false</span>));
         }
 
         <span class="comment">// 4. Let n be ? ToIntegerOrInfinity(fromIndex).</span>
@@ -3860,7 +3944,7 @@
         <span class="comment">// 6. If n is +∞, return false.</span>
         <span class="comment">// 7. Else if n is -∞, set n to 0.</span>
         <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">n</span> {
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="bool-val">false</span>)),
+            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="bool-val">false</span>)),
             <span class="ident">IntegerOrInfinity::NegativeInfinity</span> <span class="op">=</span><span class="op">&gt;</span> <span class="number">0</span>,
             <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">value</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">value</span>,
         };
@@ -3887,14 +3971,14 @@
             <span class="comment">// a. Let elementK be ? Get(O, ! ToString(𝔽(k))).</span>
             <span class="kw">let</span> <span class="ident">element_k</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="ident">k</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// b. If SameValueZero(searchElement, elementK) is true, return true.</span>
-            <span class="kw">if</span> <span class="ident">Value::same_value_zero</span>(<span class="kw-2">&amp;</span><span class="ident">search_element</span>, <span class="kw-2">&amp;</span><span class="ident">element_k</span>) {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="bool-val">true</span>));
+            <span class="kw">if</span> <span class="ident">JsValue::same_value_zero</span>(<span class="kw-2">&amp;</span><span class="ident">search_element</span>, <span class="kw-2">&amp;</span><span class="ident">element_k</span>) {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="bool-val">true</span>));
             }
             <span class="comment">// c. Set k to k + 1.</span>
             <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
         <span class="comment">// 11. Return false.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="bool-val">false</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="bool-val">false</span>))
     }
 
     <span class="doccomment">/// `Array.prototype.slice( [begin[, end]] )`</span>
@@ -3911,7 +3995,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.slice</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">slice</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">slice</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -3975,7 +4063,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.filter</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">filter</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">filter</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -3992,7 +4084,7 @@
                     <span class="string">&quot;missing argument 0 when calling function Array.prototype.filter&quot;</span>,
                 )
             })<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">this_val</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Value::undefined</span>);
+        <span class="kw">let</span> <span class="ident">this_val</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">callback</span>.<span class="ident">is_callable</span>() {
             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;the callback must be callable&quot;</span>);
@@ -4013,7 +4105,7 @@
                 <span class="comment">// i. Let kValue be ? Get(O, Pk).</span>
                 <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="ident">idx</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
-                <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> [<span class="ident">element</span>.<span class="ident">clone</span>(), <span class="ident">Value::from</span>(<span class="ident">idx</span>), <span class="ident">Value::from</span>(<span class="ident">o</span>.<span class="ident">clone</span>())];
+                <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> [<span class="ident">element</span>.<span class="ident">clone</span>(), <span class="ident">JsValue::new</span>(<span class="ident">idx</span>), <span class="ident">JsValue::new</span>(<span class="ident">o</span>.<span class="ident">clone</span>())];
 
                 <span class="comment">// ii. Let selected be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).</span>
                 <span class="kw">let</span> <span class="ident">selected</span> <span class="op">=</span> <span class="ident">callback</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">this_val</span>, <span class="kw-2">&amp;</span><span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>();
@@ -4047,7 +4139,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.some</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/some</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">some</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">some</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).</span>
@@ -4055,7 +4147,7 @@
         <span class="comment">// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">arg</span>) <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">and_then</span>(<span class="ident">Value::as_object</span>)
+            .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
             .<span class="ident">filter</span>(<span class="ident">GcObject::is_callable</span>)
         {
             <span class="ident">arg</span>
@@ -4080,13 +4172,13 @@
                     .<span class="ident">to_boolean</span>();
                 <span class="comment">// iii. If testResult is true, return true.</span>
                 <span class="kw">if</span> <span class="ident">test_result</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="bool-val">true</span>));
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="bool-val">true</span>));
                 }
             }
             <span class="comment">// d. Set k to k + 1.</span>
         }
         <span class="comment">// 6. Return false.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="bool-val">false</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="bool-val">false</span>))
     }
 
     <span class="doccomment">/// `Array.prototype.reduce( callbackFn [ , initialValue ] )`</span>
@@ -4097,7 +4189,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.reduce</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">reduce</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">reduce</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -4105,7 +4201,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">and_then</span>(<span class="ident">Value::as_object</span>) {
+        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">callback</span>) <span class="kw">if</span> <span class="ident">callback</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">callback</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">return</span> <span class="ident">context</span>
@@ -4123,7 +4219,7 @@
         <span class="comment">// 5. Let k be 0.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="comment">// 6. Let accumulator be undefined.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">accumulator</span> <span class="op">=</span> <span class="ident">Value::undefined</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">accumulator</span> <span class="op">=</span> <span class="ident">JsValue::undefined</span>();
 
         <span class="comment">// 7. If initialValue is present, then</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">initial_value</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
@@ -4167,7 +4263,7 @@
                 <span class="kw">let</span> <span class="ident">k_value</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="ident">pk</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="comment">// ii. Set accumulator to ? Call(callbackfn, undefined, « accumulator, kValue, 𝔽(k), O »).</span>
                 <span class="ident">accumulator</span> <span class="op">=</span> <span class="ident">callback</span>.<span class="ident">call</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">Value::undefined</span>(),
+                    <span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(),
                     <span class="kw-2">&amp;</span>[<span class="ident">accumulator</span>, <span class="ident">k_value</span>, <span class="ident">k</span>.<span class="ident">into</span>(), <span class="ident">o</span>.<span class="ident">clone</span>().<span class="ident">into</span>()],
                     <span class="ident">context</span>,
                 )<span class="question-mark">?</span>;
@@ -4192,10 +4288,10 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.reduceright</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduceRight</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">reduce_right</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -4203,7 +4299,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">and_then</span>(<span class="ident">Value::as_object</span>) {
+        <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>) {
             <span class="prelude-val">Some</span>(<span class="ident">callback</span>) <span class="kw">if</span> <span class="ident">callback</span>.<span class="ident">is_callable</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="ident">callback</span>,
             <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
@@ -4222,7 +4318,7 @@
         <span class="comment">// 5. Let k be len - 1.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k</span> <span class="op">=</span> <span class="ident">len</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">-</span> <span class="number">1</span>;
         <span class="comment">// 6. Let accumulator be undefined.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">accumulator</span> <span class="op">=</span> <span class="ident">Value::undefined</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">accumulator</span> <span class="op">=</span> <span class="ident">JsValue::undefined</span>();
         <span class="comment">// 7. If initialValue is present, then</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">initial_value</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
             <span class="comment">// a. Set accumulator to initialValue.</span>
@@ -4265,7 +4361,7 @@
                 <span class="kw">let</span> <span class="ident">k_value</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="ident">pk</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="comment">// ii. Set accumulator to ? Call(callbackfn, undefined, « accumulator, kValue, 𝔽(k), O »).</span>
                 <span class="ident">accumulator</span> <span class="op">=</span> <span class="ident">callback</span>.<span class="ident">call</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">Value::undefined</span>(),
+                    <span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(),
                     <span class="kw-2">&amp;</span>[<span class="ident">accumulator</span>.<span class="ident">clone</span>(), <span class="ident">k_value</span>, <span class="ident">k</span>.<span class="ident">into</span>(), <span class="ident">o</span>.<span class="ident">clone</span>().<span class="ident">into</span>()],
                     <span class="ident">context</span>,
                 )<span class="question-mark">?</span>;
@@ -4290,10 +4386,10 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.copywithin</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/copyWithin</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">copy_within</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>],
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -4379,7 +4475,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">values</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">values</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">ArrayIterator::create_array_iterator</span>(
             <span class="ident">context</span>,
             <span class="ident">this</span>.<span class="ident">clone</span>(),
@@ -4397,7 +4493,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">keys</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">keys</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">ArrayIterator::create_array_iterator</span>(
             <span class="ident">context</span>,
             <span class="ident">this</span>.<span class="ident">clone</span>(),
@@ -4415,7 +4511,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">entries</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">entries</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">ArrayIterator::create_array_iterator</span>(
             <span class="ident">context</span>,
             <span class="ident">this</span>.<span class="ident">clone</span>(),
@@ -4426,7 +4522,7 @@
     <span class="doccomment">/// Represents the algorithm to calculate `relativeStart` (or `k`) in array functions.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_relative_start</span>(
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-        <span class="ident">arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Value</span><span class="op">&gt;</span>,
+        <span class="ident">arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
         <span class="ident">len</span>: <span class="ident">usize</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let relativeStart be ? ToIntegerOrInfinity(start).</span>
@@ -4451,10 +4547,10 @@
     <span class="doccomment">/// Represents the algorithm to calculate `relativeEnd` (or `final`) in array functions.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_relative_end</span>(
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-        <span class="ident">arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Value</span><span class="op">&gt;</span>,
+        <span class="ident">arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
         <span class="ident">len</span>: <span class="ident">usize</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">default_value</span> <span class="op">=</span> <span class="ident">Value::undefined</span>();
+        <span class="kw">let</span> <span class="ident">default_value</span> <span class="op">=</span> <span class="ident">JsValue::undefined</span>();
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">default_value</span>);
         <span class="comment">// 1. If end is undefined, let relativeEnd be len [and return it]</span>
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_undefined</span>() {

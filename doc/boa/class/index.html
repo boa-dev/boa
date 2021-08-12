@@ -18,7 +18,7 @@
     <span class="kw">const</span> <span class="ident">LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
 
     <span class="comment">// This is what is called when we do `new Animal()`</span>
-    <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="ident">_this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="ident">_this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="comment">// This is equivalent to `String(arg)`.</span>
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>().<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -43,7 +43,7 @@
                     }
                 }
             }
-            <span class="prelude-val">Ok</span>(<span class="ident">Value::undefined</span>())
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
         });
 
         <span class="prelude-val">Ok</span>(())

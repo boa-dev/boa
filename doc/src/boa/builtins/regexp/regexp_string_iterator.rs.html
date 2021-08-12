@@ -171,6 +171,14 @@
 <span id="171">171</span>
 <span id="172">172</span>
 <span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `RegExp String Iterator` object.</span>
 <span class="doccomment">//!</span>
@@ -191,13 +199,13 @@
     <span class="ident">object</span>::{<span class="ident">GcObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property::PropertyDescriptor</span>,
     <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsString</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
+    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>, <span class="prelude-ty">Result</span>,
 };
 
 <span class="comment">// TODO: See todos in create_regexp_string_iterator and next.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RegExpStringIterator</span> {
-    <span class="ident">matcher</span>: <span class="ident">Value</span>,
+    <span class="ident">matcher</span>: <span class="ident">JsValue</span>,
     <span class="ident">string</span>: <span class="ident">JsString</span>,
     <span class="ident">global</span>: <span class="ident">bool</span>,
     <span class="ident">unicode</span>: <span class="ident">bool</span>,
@@ -206,7 +214,7 @@
 
 <span class="comment">// TODO: See todos in create_regexp_string_iterator and next.</span>
 <span class="kw">impl</span> <span class="ident">RegExpStringIterator</span> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">matcher</span>: <span class="ident">Value</span>, <span class="ident">string</span>: <span class="ident">JsString</span>, <span class="ident">global</span>: <span class="ident">bool</span>, <span class="ident">unicode</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">matcher</span>: <span class="ident">JsValue</span>, <span class="ident">string</span>: <span class="ident">JsString</span>, <span class="ident">global</span>: <span class="ident">bool</span>, <span class="ident">unicode</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">matcher</span>,
             <span class="ident">string</span>,
@@ -223,12 +231,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-createregexpstringiterator</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_regexp_string_iterator</span>(
-        <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>,
+        <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">string</span>: <span class="ident">JsString</span>,
         <span class="ident">global</span>: <span class="ident">bool</span>,
         <span class="ident">unicode</span>: <span class="ident">bool</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>,
-    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    ) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// TODO: Implement this with closures and generators.</span>
         <span class="comment">//       For now all values of the closure are stored in RegExpStringIterator and the actual closure execution is in `.next()`.</span>
 
@@ -240,7 +248,7 @@
         <span class="comment">//    and fullUnicode and performs the following steps when called:</span>
 
         <span class="comment">// 5. Return ! CreateIteratorFromClosure(closure, &quot;%RegExpStringIteratorPrototype%&quot;, %RegExpStringIteratorPrototype%).</span>
-        <span class="kw">let</span> <span class="ident">regexp_string_iterator</span> <span class="op">=</span> <span class="ident">Value::new_object</span>(<span class="ident">context</span>);
+        <span class="kw">let</span> <span class="ident">regexp_string_iterator</span> <span class="op">=</span> <span class="ident">JsValue::new_object</span>(<span class="ident">context</span>);
         <span class="ident">regexp_string_iterator</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData::RegExpStringIterator</span>(<span class="self">Self</span><span class="ident">::new</span>(
             <span class="ident">matcher</span>.<span class="ident">clone</span>(),
             <span class="ident">string</span>,
@@ -260,12 +268,16 @@
         <span class="prelude-val">Ok</span>(<span class="ident">regexp_string_iterator</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Value</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">Value</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow_mut</span>();
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">iterator</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_regexp_string_iterator_mut</span>() {
                 <span class="kw">if</span> <span class="ident">iterator</span>.<span class="ident">completed</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(<span class="ident">context</span>, <span class="ident">Value::undefined</span>(), <span class="bool-val">true</span>));
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(
+                        <span class="ident">context</span>,
+                        <span class="ident">JsValue::undefined</span>(),
+                        <span class="bool-val">true</span>,
+                    ));
                 }
 
                 <span class="comment">// TODO: This is the code that should be created as a closure in create_regexp_string_iterator.</span>
@@ -311,7 +323,11 @@
                 } <span class="kw">else</span> {
                     <span class="comment">// ii. If match is null, return undefined.</span>
                     <span class="ident">iterator</span>.<span class="ident">completed</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                    <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(<span class="ident">context</span>, <span class="ident">Value::undefined</span>(), <span class="bool-val">true</span>))
+                    <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(
+                        <span class="ident">context</span>,
+                        <span class="ident">JsValue::undefined</span>(),
+                        <span class="bool-val">true</span>,
+                    ))
                 }
             } <span class="kw">else</span> {
                 <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;`this` is not a RegExpStringIterator&quot;</span>)
@@ -327,7 +343,7 @@
     <span class="doccomment">///  - [ECMA reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_prototype</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">iterator_prototype</span>: <span class="ident">Value</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_prototype</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">iterator_prototype</span>: <span class="ident">JsValue</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GcObject</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;RegExp String Iterator&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="comment">// Create prototype</span>

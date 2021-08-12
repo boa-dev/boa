@@ -691,7 +691,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">exec::Executable</span>,
     <span class="ident">gc</span>::{<span class="ident">empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>},
-    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="prelude-ty">Result</span>, <span class="ident">Value</span>,
+    <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsValue</span>, <span class="prelude-ty">Result</span>,
 };
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cmp::Ordering</span>,
@@ -948,23 +948,23 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Executable</span> <span class="kw">for</span> <span class="ident">Node</span> {
-    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">run</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Executable&quot;</span>, <span class="string">&quot;exec&quot;</span>);
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident">Node::AsyncFunctionDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">decl</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node::AsyncFunctionExpr</span>(<span class="kw-2">ref</span> <span class="ident">function_expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">function_expr</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node::AwaitExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">expr</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node::Call</span>(<span class="kw-2">ref</span> <span class="ident">call</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">call</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node::Const</span>(<span class="ident">Const::Null</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::null</span>()),
-            <span class="ident">Node::Const</span>(<span class="ident">Const::Num</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::rational</span>(<span class="ident">num</span>)),
-            <span class="ident">Node::Const</span>(<span class="ident">Const::Int</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::integer</span>(<span class="ident">num</span>)),
-            <span class="ident">Node::Const</span>(<span class="ident">Const::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::from</span>(<span class="ident">num</span>.<span class="ident">clone</span>())),
-            <span class="ident">Node::Const</span>(<span class="ident">Const::Undefined</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::Undefined</span>),
+            <span class="ident">Node::Const</span>(<span class="ident">Const::Null</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::null</span>()),
+            <span class="ident">Node::Const</span>(<span class="ident">Const::Num</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">num</span>)),
+            <span class="ident">Node::Const</span>(<span class="ident">Const::Int</span>(<span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">num</span>)),
+            <span class="ident">Node::Const</span>(<span class="ident">Const::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">num</span>.<span class="ident">clone</span>())),
+            <span class="ident">Node::Const</span>(<span class="ident">Const::Undefined</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>()),
             <span class="comment">// we can&#39;t move String from Const into value, because const is a garbage collected value</span>
             <span class="comment">// Which means Drop() get&#39;s called on Const, but str will be gone at that point.</span>
             <span class="comment">// Do Const values need to be garbage collected? We no longer need them once we&#39;ve generated Values</span>
-            <span class="ident">Node::Const</span>(<span class="ident">Const::String</span>(<span class="kw-2">ref</span> <span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::string</span>(<span class="ident">value</span>.<span class="ident">to_string</span>())),
-            <span class="ident">Node::Const</span>(<span class="ident">Const::Bool</span>(<span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::boolean</span>(<span class="ident">value</span>)),
+            <span class="ident">Node::Const</span>(<span class="ident">Const::String</span>(<span class="kw-2">ref</span> <span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">value</span>.<span class="ident">to_string</span>())),
+            <span class="ident">Node::Const</span>(<span class="ident">Const::Bool</span>(<span class="ident">value</span>)) <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">value</span>)),
             <span class="ident">Node::Block</span>(<span class="kw-2">ref</span> <span class="ident">block</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">block</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node::Identifier</span>(<span class="kw-2">ref</span> <span class="ident">identifier</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">identifier</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node::GetConstField</span>(<span class="kw-2">ref</span> <span class="ident">get_const_field_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">get_const_field_node</span>.<span class="ident">run</span>(<span class="ident">context</span>),
@@ -1003,7 +1003,7 @@
             <span class="ident">Node::Try</span>(<span class="kw-2">ref</span> <span class="ident">try_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">try_node</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node::Break</span>(<span class="kw-2">ref</span> <span class="ident">break_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">break_node</span>.<span class="ident">run</span>(<span class="ident">context</span>),
             <span class="ident">Node::Continue</span>(<span class="kw-2">ref</span> <span class="ident">continue_node</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">continue_node</span>.<span class="ident">run</span>(<span class="ident">context</span>),
-            <span class="ident">Node::Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">Value::Undefined</span>),
+            <span class="ident">Node::Empty</span> <span class="op">=</span><span class="op">&gt;</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>()),
         }
     }
 }
