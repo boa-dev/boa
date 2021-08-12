@@ -6,7 +6,7 @@ use crate::{
         node::Node,
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
     },
-    Context, Result, Value,
+    Context, JsValue, Result,
 };
 use std::fmt;
 
@@ -58,7 +58,7 @@ impl BinOp {
     }
 
     /// Runs the assignment operators.
-    fn run_assign(op: AssignOp, x: Value, y: &Node, context: &mut Context) -> Result<Value> {
+    fn run_assign(op: AssignOp, x: JsValue, y: &Node, context: &mut Context) -> Result<JsValue> {
         match op {
             AssignOp::Add => x.add(&y.run(context)?, context),
             AssignOp::Sub => x.sub(&y.run(context)?, context),
@@ -98,7 +98,7 @@ impl BinOp {
 }
 
 impl Executable for BinOp {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<JsValue> {
         match self.op() {
             op::BinOp::Num(op) => {
                 let x = self.lhs().run(context)?;
@@ -127,7 +127,7 @@ impl Executable for BinOp {
             op::BinOp::Comp(op) => {
                 let x = self.lhs().run(context)?;
                 let y = self.rhs().run(context)?;
-                Ok(Value::from(match op {
+                Ok(JsValue::new(match op {
                     CompOp::Equal => x.equals(&y, context)?,
                     CompOp::NotEqual => !x.equals(&y, context)?,
                     CompOp::StrictEqual => x.strict_equals(&y),
@@ -213,7 +213,7 @@ impl Executable for BinOp {
                     v_r_a.set_field(get_const_field.field(), value.clone(), false, context)?;
                     Ok(value)
                 }
-                _ => Ok(Value::undefined()),
+                _ => Ok(JsValue::undefined()),
             },
             op::BinOp::Comma => {
                 self.lhs().run(context)?;

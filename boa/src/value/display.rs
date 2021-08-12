@@ -3,7 +3,7 @@ use super::*;
 /// This object is used for displaying a `Value`.
 #[derive(Debug, Clone, Copy)]
 pub struct ValueDisplay<'value> {
-    pub(super) value: &'value Value,
+    pub(super) value: &'value JsValue,
 }
 
 /// A helper macro for printing objects
@@ -80,10 +80,10 @@ macro_rules! print_obj_value {
     };
 }
 
-pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: bool) -> String {
+pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children: bool) -> String {
     match x {
         // We don't want to print private (compiler) or prototype properties
-        Value::Object(ref v) => {
+        JsValue::Object(ref v) => {
             // Can use the private "type" field of an Object to match on
             // which type of Object it represents for special printing
             match v.borrow().data {
@@ -122,7 +122,7 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                                         .as_ref()
                                         // FIXME: handle accessor descriptors
                                         .and_then(|p| p.value())
-                                        .unwrap_or(&Value::Undefined),
+                                        .unwrap_or(&JsValue::Undefined),
                                     print_internals,
                                     false,
                                 )
@@ -177,13 +177,13 @@ pub(crate) fn log_string_from(x: &Value, print_internals: bool, print_children: 
                 _ => display_obj(x, print_internals),
             }
         }
-        Value::Symbol(ref symbol) => symbol.to_string(),
+        JsValue::Symbol(ref symbol) => symbol.to_string(),
         _ => format!("{}", x.display()),
     }
 }
 
 /// A helper function for specifically printing object values
-pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
+pub(crate) fn display_obj(v: &JsValue, print_internals: bool) -> String {
     // A simple helper for getting the address of a value
     // TODO: Find a more general place for this, as it can be used in other situations as well
     fn address_of<T>(t: &T) -> usize {
@@ -195,20 +195,20 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
     // in-memory address in this set
     let mut encounters = HashSet::new();
 
-    if let Value::Object(object) = v {
+    if let JsValue::Object(object) = v {
         if object.borrow().is_error() {
             let name = v
                 .get_property("name")
                 .as_ref()
                 .and_then(|d| d.value())
-                .unwrap_or(&Value::Undefined)
+                .unwrap_or(&JsValue::Undefined)
                 .display()
                 .to_string();
             let message = v
                 .get_property("message")
                 .as_ref()
                 .and_then(|d| d.value())
-                .unwrap_or(&Value::Undefined)
+                .unwrap_or(&JsValue::Undefined)
                 .display()
                 .to_string();
             return format!("{}: {}", name, message);
@@ -216,12 +216,12 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
     }
 
     fn display_obj_internal(
-        data: &Value,
+        data: &JsValue,
         encounters: &mut HashSet<usize>,
         indent: usize,
         print_internals: bool,
     ) -> String {
-        if let Value::Object(ref v) = *data {
+        if let JsValue::Object(ref v) = *data {
             // The in-memory address of the current object
             let addr = address_of(v.as_ref());
 
@@ -261,18 +261,18 @@ pub(crate) fn display_obj(v: &Value, print_internals: bool) -> String {
 impl Display for ValueDisplay<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.value {
-            Value::Null => write!(f, "null"),
-            Value::Undefined => write!(f, "undefined"),
-            Value::Boolean(v) => write!(f, "{}", v),
-            Value::Symbol(ref symbol) => match symbol.description() {
+            JsValue::Null => write!(f, "null"),
+            JsValue::Undefined => write!(f, "undefined"),
+            JsValue::Boolean(v) => write!(f, "{}", v),
+            JsValue::Symbol(ref symbol) => match symbol.description() {
                 Some(description) => write!(f, "Symbol({})", description),
                 None => write!(f, "Symbol()"),
             },
-            Value::String(ref v) => write!(f, "\"{}\"", v),
-            Value::Rational(v) => format_rational(*v, f),
-            Value::Object(_) => write!(f, "{}", log_string_from(self.value, true, true)),
-            Value::Integer(v) => write!(f, "{}", v),
-            Value::BigInt(ref num) => write!(f, "{}n", num),
+            JsValue::String(ref v) => write!(f, "\"{}\"", v),
+            JsValue::Rational(v) => format_rational(*v, f),
+            JsValue::Object(_) => write!(f, "{}", log_string_from(self.value, true, true)),
+            JsValue::Integer(v) => write!(f, "{}", v),
+            JsValue::BigInt(ref num) => write!(f, "{}n", num),
         }
     }
 }

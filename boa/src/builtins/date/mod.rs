@@ -6,7 +6,7 @@ use crate::{
     gc::{empty_trace, Finalize, Trace},
     object::{ConstructorBuilder, ObjectData, PROTOTYPE},
     property::Attribute,
-    value::{PreferredType, Value},
+    value::{JsValue, PreferredType},
     BoaProfiler, Context, Result,
 };
 use chrono::{prelude::*, Duration, LocalResult};
@@ -45,14 +45,14 @@ fn ignore_ambiguity<T>(result: LocalResult<T>) -> Option<T> {
 
 macro_rules! getter_method {
     ($name:ident) => {{
-        fn get_value(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-            Ok(Value::from(this_time_value(this, context)?.$name()))
+        fn get_value(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+            Ok(JsValue::new(this_time_value(this, context)?.$name()))
         }
         get_value
     }};
     (Self::$name:ident) => {{
-        fn get_value(_: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
-            Ok(Value::from(Date::$name()))
+        fn get_value(_: &JsValue, _: &[JsValue], _: &mut Context) -> Result<JsValue> {
+            Ok(JsValue::new(Date::$name()))
         }
         get_value
     }};
@@ -60,7 +60,7 @@ macro_rules! getter_method {
 
 macro_rules! setter_method {
     ($name:ident($($e:expr),* $(,)?)) => {{
-        fn set_value(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+        fn set_value(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
             let mut result = this_time_value(this, context)?;
             result.$name(
                 $(
@@ -82,7 +82,7 @@ macro_rules! setter_method {
             );
 
             this.set_data(ObjectData::Date(result));
-            Ok(Value::from(result.get_time()))
+            Ok(JsValue::new(result.get_time()))
         }
         set_value
     }};
@@ -119,7 +119,7 @@ impl BuiltIn for Date {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let date_object = ConstructorBuilder::new(context, Self::constructor)
@@ -366,10 +366,10 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
     pub(crate) fn constructor(
-        new_target: &Value,
-        args: &[Value],
+        new_target: &JsValue,
+        args: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> Result<JsValue> {
         if new_target.is_undefined() {
             Ok(Self::make_date_string())
         } else {
@@ -405,8 +405,8 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
-    pub(crate) fn make_date_string() -> Value {
-        Value::from(Local::now().to_rfc3339())
+    pub(crate) fn make_date_string() -> JsValue {
+        JsValue::new(Local::now().to_rfc3339())
     }
 
     /// `Date()`
@@ -419,7 +419,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
-    pub(crate) fn make_date_now(this: &Value) -> Value {
+    pub(crate) fn make_date_now(this: &JsValue) -> JsValue {
         let date = Date::default();
         this.set_data(ObjectData::Date(date));
         this.clone()
@@ -436,15 +436,15 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
     pub(crate) fn make_date_single(
-        this: &Value,
-        args: &[Value],
+        this: &JsValue,
+        args: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> Result<JsValue> {
         let value = &args[0];
         let tv = match this_time_value(value, context) {
             Ok(dt) => dt.0,
             _ => match value.to_primitive(context, PreferredType::Default)? {
-                Value::String(ref str) => match chrono::DateTime::parse_from_rfc3339(str) {
+                JsValue::String(ref str) => match chrono::DateTime::parse_from_rfc3339(str) {
                     Ok(dt) => Some(dt.naive_utc()),
                     _ => None,
                 },
@@ -474,10 +474,10 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
     pub(crate) fn make_date_multiple(
-        this: &Value,
-        args: &[Value],
+        this: &JsValue,
+        args: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> Result<JsValue> {
         let year = args[0].to_number(context)?;
         let month = args[1].to_number(context)?;
         let day = args
@@ -1313,8 +1313,8 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.now
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
-    pub(crate) fn now(_: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
-        Ok(Value::from(Utc::now().timestamp_millis() as f64))
+    pub(crate) fn now(_: &JsValue, _: &[JsValue], _: &mut Context) -> Result<JsValue> {
+        Ok(JsValue::new(Utc::now().timestamp_millis() as f64))
     }
 
     /// `Date.parse()`
@@ -1329,17 +1329,17 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse
-    pub(crate) fn parse(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn parse(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
         // This method is implementation-defined and discouraged, so we just require the same format as the string
         // constructor.
 
         if args.is_empty() {
-            return Ok(Value::number(f64::NAN));
+            return Ok(JsValue::nan());
         }
 
         match DateTime::parse_from_rfc3339(&args[0].to_string(context)?) {
-            Ok(v) => Ok(Value::number(v.naive_utc().timestamp_millis() as f64)),
-            _ => Ok(Value::number(f64::NAN)),
+            Ok(v) => Ok(JsValue::new(v.naive_utc().timestamp_millis() as f64)),
+            _ => Ok(JsValue::new(f64::NAN)),
         }
     }
 
@@ -1353,7 +1353,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.utc
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/UTC
-    pub(crate) fn utc(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn utc(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
         let year = args
             .get(0)
             .map_or(Ok(f64::NAN), |value| value.to_number(context))?;
@@ -1377,7 +1377,7 @@ impl Date {
             .map_or(Ok(0f64), |value| value.to_number(context))?;
 
         if !check_normal_opt!(year, month, day, hour, min, sec, milli) {
-            return Ok(Value::number(f64::NAN));
+            return Ok(JsValue::nan());
         }
 
         let year = year as i32;
@@ -1397,7 +1397,7 @@ impl Date {
         NaiveDate::from_ymd_opt(year, month + 1, day)
             .and_then(|f| f.and_hms_milli_opt(hour, min, sec, milli))
             .and_then(|f| Self::time_clip(f.timestamp_millis() as f64))
-            .map_or(Ok(Value::number(f64::NAN)), |time| Ok(Value::number(time)))
+            .map_or(Ok(JsValue::nan()), |time| Ok(JsValue::new(time)))
     }
 }
 
@@ -1414,8 +1414,8 @@ impl Date {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-thistimevalue
 #[inline]
-pub fn this_time_value(value: &Value, context: &mut Context) -> Result<Date> {
-    if let Value::Object(ref object) = value {
+pub fn this_time_value(value: &JsValue, context: &mut Context) -> Result<Date> {
+    if let JsValue::Object(ref object) = value {
         if let ObjectData::Date(ref date) = object.borrow().data {
             return Ok(*date);
         }

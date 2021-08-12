@@ -12,7 +12,7 @@ use crate::{
     },
     gc::{Finalize, Trace},
     object::GcObject,
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsValue, Result,
 };
 use gc::{Gc, GcCell};
 use rustc_hash::FxHashMap;
@@ -24,7 +24,7 @@ use rustc_hash::FxHashMap;
 /// From this point onwards, a binding is referring to one of these structures.
 #[derive(Trace, Finalize, Debug, Clone)]
 pub struct DeclarativeEnvironmentRecordBinding {
-    pub value: Option<Value>,
+    pub value: Option<JsValue>,
     pub can_delete: bool,
     pub mutable: bool,
     pub strict: bool,
@@ -104,7 +104,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         Ok(())
     }
 
-    fn initialize_binding(&self, name: &str, value: Value, _context: &mut Context) -> Result<()> {
+    fn initialize_binding(&self, name: &str, value: JsValue, _context: &mut Context) -> Result<()> {
         if let Some(ref mut record) = self.env_rec.borrow_mut().get_mut(name) {
             if record.value.is_none() {
                 record.value = Some(value);
@@ -118,7 +118,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
     fn set_mutable_binding(
         &self,
         name: &str,
-        value: Value,
+        value: JsValue,
         mut strict: bool,
         context: &mut Context,
     ) -> Result<()> {
@@ -159,7 +159,12 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         Ok(())
     }
 
-    fn get_binding_value(&self, name: &str, _strict: bool, context: &mut Context) -> Result<Value> {
+    fn get_binding_value(
+        &self,
+        name: &str,
+        _strict: bool,
+        context: &mut Context,
+    ) -> Result<JsValue> {
         if let Some(binding) = self.env_rec.borrow().get(name) {
             if let Some(ref val) = binding.value {
                 Ok(val.clone())
@@ -189,8 +194,8 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         false
     }
 
-    fn get_this_binding(&self, _context: &mut Context) -> Result<Value> {
-        Ok(Value::undefined())
+    fn get_this_binding(&self, _context: &mut Context) -> Result<JsValue> {
+        Ok(JsValue::undefined())
     }
 
     fn has_super_binding(&self) -> bool {

@@ -1,22 +1,20 @@
 use super::*;
 use crate::builtins::number::{f64_to_int32, f64_to_uint32, Number};
 
-impl Value {
+impl JsValue {
     #[inline]
-    pub fn add(&self, other: &Self, context: &mut Context) -> Result<Value> {
+    pub fn add(&self, other: &Self, context: &mut Context) -> Result<JsValue> {
         Ok(match (self, other) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::rational(f64::from(*x) + f64::from(*y)),
-            (Self::Rational(x), Self::Rational(y)) => Self::rational(x + y),
-            (Self::Integer(x), Self::Rational(y)) => Self::rational(f64::from(*x) + y),
-            (Self::Rational(x), Self::Integer(y)) => Self::rational(x + f64::from(*y)),
+            (Self::Integer(x), Self::Integer(y)) => Self::new(f64::from(*x) + f64::from(*y)),
+            (Self::Rational(x), Self::Rational(y)) => Self::new(x + y),
+            (Self::Integer(x), Self::Rational(y)) => Self::new(f64::from(*x) + y),
+            (Self::Rational(x), Self::Integer(y)) => Self::new(x + f64::from(*y)),
 
             (Self::String(ref x), Self::String(ref y)) => Self::from(JsString::concat(x, y)),
             (Self::String(ref x), y) => Self::from(JsString::concat(x, y.to_string(context)?)),
             (x, Self::String(ref y)) => Self::from(JsString::concat(x.to_string(context)?, y)),
-            (Self::BigInt(ref n1), Self::BigInt(ref n2)) => {
-                Self::bigint(n1.as_inner().clone() + n2.as_inner().clone())
-            }
+            (Self::BigInt(ref x), Self::BigInt(ref y)) => Self::new(JsBigInt::add(x, y)),
 
             // Slow path:
             (_, _) => match (
@@ -30,9 +28,9 @@ impl Value {
                     Self::from(JsString::concat(x.to_string(context)?, y))
                 }
                 (x, y) => match (x.to_numeric(context)?, y.to_numeric(context)?) {
-                    (Numeric::Number(x), Numeric::Number(y)) => Self::rational(x + y),
-                    (Numeric::BigInt(ref n1), Numeric::BigInt(ref n2)) => {
-                        Self::bigint(n1.as_inner().clone() + n2.as_inner().clone())
+                    (Numeric::Number(x), Numeric::Number(y)) => Self::new(x + y),
+                    (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => {
+                        Self::new(JsBigInt::add(x, y))
                     }
                     (_, _) => {
                         return context.throw_type_error(
@@ -45,24 +43,20 @@ impl Value {
     }
 
     #[inline]
-    pub fn sub(&self, other: &Self, context: &mut Context) -> Result<Value> {
+    pub fn sub(&self, other: &Self, context: &mut Context) -> Result<JsValue> {
         Ok(match (self, other) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::rational(f64::from(*x) - f64::from(*y)),
-            (Self::Rational(x), Self::Rational(y)) => Self::rational(x - y),
-            (Self::Integer(x), Self::Rational(y)) => Self::rational(f64::from(*x) - y),
-            (Self::Rational(x), Self::Integer(y)) => Self::rational(x - f64::from(*y)),
+            (Self::Integer(x), Self::Integer(y)) => Self::new(f64::from(*x) - f64::from(*y)),
+            (Self::Rational(x), Self::Rational(y)) => Self::new(x - y),
+            (Self::Integer(x), Self::Rational(y)) => Self::new(f64::from(*x) - y),
+            (Self::Rational(x), Self::Integer(y)) => Self::new(x - f64::from(*y)),
 
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                Self::bigint(a.as_inner().clone() - b.as_inner().clone())
-            }
+            (Self::BigInt(ref x), Self::BigInt(ref y)) => Self::new(JsBigInt::sub(x, y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
-                (Numeric::Number(a), Numeric::Number(b)) => Self::rational(a - b),
-                (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
-                    Self::bigint(a.as_inner().clone() - b.as_inner().clone())
-                }
+                (Numeric::Number(a), Numeric::Number(b)) => Self::new(a - b),
+                (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => Self::new(JsBigInt::sub(x, y)),
                 (_, _) => {
                     return context.throw_type_error(
                         "cannot mix BigInt and other types, use explicit conversions",
@@ -73,24 +67,20 @@ impl Value {
     }
 
     #[inline]
-    pub fn mul(&self, other: &Self, context: &mut Context) -> Result<Value> {
+    pub fn mul(&self, other: &Self, context: &mut Context) -> Result<JsValue> {
         Ok(match (self, other) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::rational(f64::from(*x) * f64::from(*y)),
-            (Self::Rational(x), Self::Rational(y)) => Self::rational(x * y),
-            (Self::Integer(x), Self::Rational(y)) => Self::rational(f64::from(*x) * y),
-            (Self::Rational(x), Self::Integer(y)) => Self::rational(x * f64::from(*y)),
+            (Self::Integer(x), Self::Integer(y)) => Self::new(f64::from(*x) * f64::from(*y)),
+            (Self::Rational(x), Self::Rational(y)) => Self::new(x * y),
+            (Self::Integer(x), Self::Rational(y)) => Self::new(f64::from(*x) * y),
+            (Self::Rational(x), Self::Integer(y)) => Self::new(x * f64::from(*y)),
 
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                Self::bigint(a.as_inner().clone() * b.as_inner().clone())
-            }
+            (Self::BigInt(ref x), Self::BigInt(ref y)) => Self::new(JsBigInt::mul(x, y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
-                (Numeric::Number(a), Numeric::Number(b)) => Self::rational(a * b),
-                (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
-                    Self::bigint(a.as_inner().clone() * b.as_inner().clone())
-                }
+                (Numeric::Number(a), Numeric::Number(b)) => Self::new(a * b),
+                (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => Self::new(JsBigInt::mul(x, y)),
                 (_, _) => {
                     return context.throw_type_error(
                         "cannot mix BigInt and other types, use explicit conversions",
@@ -101,29 +91,29 @@ impl Value {
     }
 
     #[inline]
-    pub fn div(&self, other: &Self, context: &mut Context) -> Result<Value> {
+    pub fn div(&self, other: &Self, context: &mut Context) -> Result<JsValue> {
         Ok(match (self, other) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::rational(f64::from(*x) / f64::from(*y)),
-            (Self::Rational(x), Self::Rational(y)) => Self::rational(x / y),
-            (Self::Integer(x), Self::Rational(y)) => Self::rational(f64::from(*x) / y),
-            (Self::Rational(x), Self::Integer(y)) => Self::rational(x / f64::from(*y)),
+            (Self::Integer(x), Self::Integer(y)) => Self::new(f64::from(*x) / f64::from(*y)),
+            (Self::Rational(x), Self::Rational(y)) => Self::new(x / y),
+            (Self::Integer(x), Self::Rational(y)) => Self::new(f64::from(*x) / y),
+            (Self::Rational(x), Self::Integer(y)) => Self::new(x / f64::from(*y)),
 
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                if b.is_zero() {
+            (Self::BigInt(ref x), Self::BigInt(ref y)) => {
+                if y.is_zero() {
                     return context.throw_range_error("BigInt division by zero");
                 }
-                Self::bigint(a.as_inner().clone() / b.as_inner().clone())
+                Self::new(JsBigInt::div(x, y))
             }
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
-                (Numeric::Number(a), Numeric::Number(b)) => Self::rational(a / b),
-                (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
-                    if b.is_zero() {
+                (Numeric::Number(a), Numeric::Number(b)) => Self::new(a / b),
+                (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => {
+                    if y.is_zero() {
                         return context.throw_range_error("BigInt division by zero");
                     }
-                    Self::bigint(a.as_inner().clone() / b.as_inner().clone())
+                    Self::new(JsBigInt::div(x, y))
                 }
                 (_, _) => {
                     return context.throw_type_error(
@@ -135,32 +125,35 @@ impl Value {
     }
 
     #[inline]
-    pub fn rem(&self, other: &Self, context: &mut Context) -> Result<Value> {
+    pub fn rem(&self, other: &Self, context: &mut Context) -> Result<JsValue> {
         Ok(match (self, other) {
             // Fast path:
             (Self::Integer(x), Self::Integer(y)) => {
                 if *y == 0 {
                     Self::nan()
                 } else {
-                    Self::integer(x % *y)
+                    Self::new(x % *y)
                 }
             }
-            (Self::Rational(x), Self::Rational(y)) => Self::rational(x % y),
-            (Self::Integer(x), Self::Rational(y)) => Self::rational(f64::from(*x) % y),
-            (Self::Rational(x), Self::Integer(y)) => Self::rational(x % f64::from(*y)),
+            (Self::Rational(x), Self::Rational(y)) => Self::new(x % y),
+            (Self::Integer(x), Self::Rational(y)) => Self::new(f64::from(*x) % y),
+            (Self::Rational(x), Self::Integer(y)) => Self::new(x % f64::from(*y)),
 
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                if b.is_zero() {
+            (Self::BigInt(ref x), Self::BigInt(ref y)) => {
+                if y.is_zero() {
                     return context.throw_range_error("BigInt division by zero");
                 }
-                Self::bigint(a.as_inner().clone() % b.as_inner().clone())
+                Self::new(JsBigInt::rem(x, y))
             }
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
-                (Numeric::Number(a), Numeric::Number(b)) => Self::rational(a % b),
-                (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
-                    Self::bigint(a.as_inner().clone() % b.as_inner().clone())
+                (Numeric::Number(a), Numeric::Number(b)) => Self::new(a % b),
+                (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => {
+                    if y.is_zero() {
+                        return context.throw_range_error("BigInt division by zero");
+                    }
+                    Self::new(JsBigInt::rem(x, y))
                 }
                 (_, _) => {
                     return context.throw_type_error(
@@ -172,23 +165,21 @@ impl Value {
     }
 
     #[inline]
-    pub fn pow(&self, other: &Self, context: &mut Context) -> Result<Value> {
+    pub fn pow(&self, other: &Self, context: &mut Context) -> Result<JsValue> {
         Ok(match (self, other) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::rational(f64::from(*x).powi(*y)),
-            (Self::Rational(x), Self::Rational(y)) => Self::rational(x.powf(*y)),
-            (Self::Integer(x), Self::Rational(y)) => Self::rational(f64::from(*x).powf(*y)),
-            (Self::Rational(x), Self::Integer(y)) => Self::rational(x.powi(*y)),
+            (Self::Integer(x), Self::Integer(y)) => Self::new(f64::from(*x).powi(*y)),
+            (Self::Rational(x), Self::Rational(y)) => Self::new(x.powf(*y)),
+            (Self::Integer(x), Self::Rational(y)) => Self::new(f64::from(*x).powf(*y)),
+            (Self::Rational(x), Self::Integer(y)) => Self::new(x.powi(*y)),
 
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                Self::bigint(JsBigInt::pow(a, b, context)?)
-            }
+            (Self::BigInt(ref a), Self::BigInt(ref b)) => Self::new(JsBigInt::pow(a, b, context)?),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
-                (Numeric::Number(a), Numeric::Number(b)) => Self::rational(a.powf(b)),
+                (Numeric::Number(a), Numeric::Number(b)) => Self::new(a.powf(b)),
                 (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
-                    Self::bigint(JsBigInt::pow(a, b, context)?)
+                    Self::new(JsBigInt::pow(a, b, context)?)
                 }
                 (_, _) => {
                     return context.throw_type_error(
@@ -200,127 +191,25 @@ impl Value {
     }
 
     #[inline]
-    pub fn bitand(&self, other: &Self, context: &mut Context) -> Result<Value> {
+    pub fn bitand(&self, other: &Self, context: &mut Context) -> Result<JsValue> {
         Ok(match (self, other) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::integer(x & y),
+            (Self::Integer(x), Self::Integer(y)) => Self::new(x & y),
             (Self::Rational(x), Self::Rational(y)) => {
-                Self::integer(f64_to_int32(*x) & f64_to_int32(*y))
+                Self::new(f64_to_int32(*x) & f64_to_int32(*y))
             }
-            (Self::Integer(x), Self::Rational(y)) => Self::integer(x & f64_to_int32(*y)),
-            (Self::Rational(x), Self::Integer(y)) => Self::integer(f64_to_int32(*x) & y),
+            (Self::Integer(x), Self::Rational(y)) => Self::new(x & f64_to_int32(*y)),
+            (Self::Rational(x), Self::Integer(y)) => Self::new(f64_to_int32(*x) & y),
 
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                Self::bigint(a.as_inner().clone() & b.as_inner().clone())
-            }
+            (Self::BigInt(ref x), Self::BigInt(ref y)) => Self::new(JsBigInt::bitand(x, y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(a), Numeric::Number(b)) => {
-                    Self::integer(f64_to_int32(a) & f64_to_int32(b))
-                }
-                (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
-                    Self::bigint(a.as_inner().clone() & b.as_inner().clone())
-                }
-                (_, _) => {
-                    return context.throw_type_error(
-                        "cannot mix BigInt and other types, use explicit conversions",
-                    );
-                }
-            },
-        })
-    }
-
-    #[inline]
-    pub fn bitor(&self, other: &Self, context: &mut Context) -> Result<Value> {
-        Ok(match (self, other) {
-            // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::integer(x | y),
-            (Self::Rational(x), Self::Rational(y)) => {
-                Self::integer(f64_to_int32(*x) | f64_to_int32(*y))
-            }
-            (Self::Integer(x), Self::Rational(y)) => Self::integer(x | f64_to_int32(*y)),
-            (Self::Rational(x), Self::Integer(y)) => Self::integer(f64_to_int32(*x) | y),
-
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                Self::bigint(a.as_inner().clone() | b.as_inner().clone())
-            }
-
-            // Slow path:
-            (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
-                (Numeric::Number(a), Numeric::Number(b)) => {
-                    Self::integer(f64_to_int32(a) | f64_to_int32(b))
-                }
-                (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
-                    Self::bigint(a.as_inner().clone() | b.as_inner().clone())
-                }
-                (_, _) => {
-                    return context.throw_type_error(
-                        "cannot mix BigInt and other types, use explicit conversions",
-                    );
-                }
-            },
-        })
-    }
-
-    #[inline]
-    pub fn bitxor(&self, other: &Self, context: &mut Context) -> Result<Value> {
-        Ok(match (self, other) {
-            // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::integer(x ^ y),
-            (Self::Rational(x), Self::Rational(y)) => {
-                Self::integer(f64_to_int32(*x) ^ f64_to_int32(*y))
-            }
-            (Self::Integer(x), Self::Rational(y)) => Self::integer(x ^ f64_to_int32(*y)),
-            (Self::Rational(x), Self::Integer(y)) => Self::integer(f64_to_int32(*x) ^ y),
-
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                Self::bigint(a.as_inner().clone() ^ b.as_inner().clone())
-            }
-
-            // Slow path:
-            (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
-                (Numeric::Number(a), Numeric::Number(b)) => {
-                    Self::integer(f64_to_int32(a) ^ f64_to_int32(b))
-                }
-                (Numeric::BigInt(ref a), Numeric::BigInt(ref b)) => {
-                    Self::bigint(a.as_inner().clone() ^ b.as_inner().clone())
-                }
-                (_, _) => {
-                    return context.throw_type_error(
-                        "cannot mix BigInt and other types, use explicit conversions",
-                    );
-                }
-            },
-        })
-    }
-
-    #[inline]
-    pub fn shl(&self, other: &Self, context: &mut Context) -> Result<Value> {
-        Ok(match (self, other) {
-            // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::integer(x.wrapping_shl(*y as u32)),
-            (Self::Rational(x), Self::Rational(y)) => {
-                Self::integer(f64_to_int32(*x).wrapping_shl(f64_to_uint32(*y)))
-            }
-            (Self::Integer(x), Self::Rational(y)) => {
-                Self::integer(x.wrapping_shl(f64_to_uint32(*y)))
-            }
-            (Self::Rational(x), Self::Integer(y)) => {
-                Self::integer(f64_to_int32(*x).wrapping_shl(*y as u32))
-            }
-
-            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                Self::bigint(JsBigInt::shift_left(a, b, context)?)
-            }
-
-            // Slow path:
-            (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
-                (Numeric::Number(x), Numeric::Number(y)) => {
-                    Self::integer(f64_to_int32(x).wrapping_shl(f64_to_uint32(y)))
+                    Self::new(f64_to_int32(a) & f64_to_int32(b))
                 }
                 (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => {
-                    Self::bigint(JsBigInt::shift_left(x, y, context)?)
+                    Self::new(JsBigInt::bitand(x, y))
                 }
                 (_, _) => {
                     return context.throw_type_error(
@@ -332,31 +221,89 @@ impl Value {
     }
 
     #[inline]
-    pub fn shr(&self, other: &Self, context: &mut Context) -> Result<Value> {
+    pub fn bitor(&self, other: &Self, context: &mut Context) -> Result<JsValue> {
         Ok(match (self, other) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::integer(x.wrapping_shr(*y as u32)),
+            (Self::Integer(x), Self::Integer(y)) => Self::new(x | y),
             (Self::Rational(x), Self::Rational(y)) => {
-                Self::integer(f64_to_int32(*x).wrapping_shr(f64_to_uint32(*y)))
+                Self::new(f64_to_int32(*x) | f64_to_int32(*y))
             }
-            (Self::Integer(x), Self::Rational(y)) => {
-                Self::integer(x.wrapping_shr(f64_to_uint32(*y)))
+            (Self::Integer(x), Self::Rational(y)) => Self::new(x | f64_to_int32(*y)),
+            (Self::Rational(x), Self::Integer(y)) => Self::new(f64_to_int32(*x) | y),
+
+            (Self::BigInt(ref x), Self::BigInt(ref y)) => Self::new(JsBigInt::bitor(x, y)),
+
+            // Slow path:
+            (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
+                (Numeric::Number(a), Numeric::Number(b)) => {
+                    Self::new(f64_to_int32(a) | f64_to_int32(b))
+                }
+                (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => {
+                    Self::new(JsBigInt::bitor(x, y))
+                }
+                (_, _) => {
+                    return context.throw_type_error(
+                        "cannot mix BigInt and other types, use explicit conversions",
+                    );
+                }
+            },
+        })
+    }
+
+    #[inline]
+    pub fn bitxor(&self, other: &Self, context: &mut Context) -> Result<JsValue> {
+        Ok(match (self, other) {
+            // Fast path:
+            (Self::Integer(x), Self::Integer(y)) => Self::new(x ^ y),
+            (Self::Rational(x), Self::Rational(y)) => {
+                Self::new(f64_to_int32(*x) ^ f64_to_int32(*y))
             }
+            (Self::Integer(x), Self::Rational(y)) => Self::new(x ^ f64_to_int32(*y)),
+            (Self::Rational(x), Self::Integer(y)) => Self::new(f64_to_int32(*x) ^ y),
+
+            (Self::BigInt(ref x), Self::BigInt(ref y)) => Self::new(JsBigInt::bitxor(x, y)),
+
+            // Slow path:
+            (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
+                (Numeric::Number(a), Numeric::Number(b)) => {
+                    Self::new(f64_to_int32(a) ^ f64_to_int32(b))
+                }
+                (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => {
+                    Self::new(JsBigInt::bitxor(x, y))
+                }
+                (_, _) => {
+                    return context.throw_type_error(
+                        "cannot mix BigInt and other types, use explicit conversions",
+                    );
+                }
+            },
+        })
+    }
+
+    #[inline]
+    pub fn shl(&self, other: &Self, context: &mut Context) -> Result<JsValue> {
+        Ok(match (self, other) {
+            // Fast path:
+            (Self::Integer(x), Self::Integer(y)) => Self::new(x.wrapping_shl(*y as u32)),
+            (Self::Rational(x), Self::Rational(y)) => {
+                Self::new(f64_to_int32(*x).wrapping_shl(f64_to_uint32(*y)))
+            }
+            (Self::Integer(x), Self::Rational(y)) => Self::new(x.wrapping_shl(f64_to_uint32(*y))),
             (Self::Rational(x), Self::Integer(y)) => {
-                Self::integer(f64_to_int32(*x).wrapping_shr(*y as u32))
+                Self::new(f64_to_int32(*x).wrapping_shl(*y as u32))
             }
 
             (Self::BigInt(ref a), Self::BigInt(ref b)) => {
-                Self::bigint(JsBigInt::shift_right(a, b, context)?)
+                Self::new(JsBigInt::shift_left(a, b, context)?)
             }
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(x), Numeric::Number(y)) => {
-                    Self::integer(f64_to_int32(x).wrapping_shr(f64_to_uint32(y)))
+                    Self::new(f64_to_int32(x).wrapping_shl(f64_to_uint32(y)))
                 }
                 (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => {
-                    Self::bigint(JsBigInt::shift_right(x, y, context)?)
+                    Self::new(JsBigInt::shift_left(x, y, context)?)
                 }
                 (_, _) => {
                     return context.throw_type_error(
@@ -368,26 +315,58 @@ impl Value {
     }
 
     #[inline]
-    pub fn ushr(&self, other: &Self, context: &mut Context) -> Result<Value> {
+    pub fn shr(&self, other: &Self, context: &mut Context) -> Result<JsValue> {
         Ok(match (self, other) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => {
-                Self::rational((*x as u32).wrapping_shr(*y as u32))
-            }
+            (Self::Integer(x), Self::Integer(y)) => Self::new(x.wrapping_shr(*y as u32)),
             (Self::Rational(x), Self::Rational(y)) => {
-                Self::rational(f64_to_uint32(*x).wrapping_shr(f64_to_uint32(*y)))
+                Self::new(f64_to_int32(*x).wrapping_shr(f64_to_uint32(*y)))
             }
-            (Self::Integer(x), Self::Rational(y)) => {
-                Self::rational((*x as u32).wrapping_shr(f64_to_uint32(*y)))
-            }
+            (Self::Integer(x), Self::Rational(y)) => Self::new(x.wrapping_shr(f64_to_uint32(*y))),
             (Self::Rational(x), Self::Integer(y)) => {
-                Self::rational(f64_to_uint32(*x).wrapping_shr(*y as u32))
+                Self::new(f64_to_int32(*x).wrapping_shr(*y as u32))
+            }
+
+            (Self::BigInt(ref a), Self::BigInt(ref b)) => {
+                Self::new(JsBigInt::shift_right(a, b, context)?)
             }
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
                 (Numeric::Number(x), Numeric::Number(y)) => {
-                    Self::rational(f64_to_uint32(x).wrapping_shr(f64_to_uint32(y)))
+                    Self::new(f64_to_int32(x).wrapping_shr(f64_to_uint32(y)))
+                }
+                (Numeric::BigInt(ref x), Numeric::BigInt(ref y)) => {
+                    Self::new(JsBigInt::shift_right(x, y, context)?)
+                }
+                (_, _) => {
+                    return context.throw_type_error(
+                        "cannot mix BigInt and other types, use explicit conversions",
+                    );
+                }
+            },
+        })
+    }
+
+    #[inline]
+    pub fn ushr(&self, other: &Self, context: &mut Context) -> Result<JsValue> {
+        Ok(match (self, other) {
+            // Fast path:
+            (Self::Integer(x), Self::Integer(y)) => Self::new((*x as u32).wrapping_shr(*y as u32)),
+            (Self::Rational(x), Self::Rational(y)) => {
+                Self::new(f64_to_uint32(*x).wrapping_shr(f64_to_uint32(*y)))
+            }
+            (Self::Integer(x), Self::Rational(y)) => {
+                Self::new((*x as u32).wrapping_shr(f64_to_uint32(*y)))
+            }
+            (Self::Rational(x), Self::Integer(y)) => {
+                Self::new(f64_to_uint32(*x).wrapping_shr(*y as u32))
+            }
+
+            // Slow path:
+            (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
+                (Numeric::Number(x), Numeric::Number(y)) => {
+                    Self::new(f64_to_uint32(x).wrapping_shr(f64_to_uint32(y)))
                 }
                 (Numeric::BigInt(_), Numeric::BigInt(_)) => {
                     return context
@@ -403,22 +382,22 @@ impl Value {
     }
 
     #[inline]
-    pub fn neg(&self, context: &mut Context) -> Result<Value> {
+    pub fn neg(&self, context: &mut Context) -> Result<JsValue> {
         Ok(match *self {
-            Self::Symbol(_) | Self::Undefined => Self::rational(f64::NAN),
-            Self::Object(_) => Self::rational(match self.to_numeric_number(context) {
+            Self::Symbol(_) | Self::Undefined => Self::new(f64::NAN),
+            Self::Object(_) => Self::new(match self.to_numeric_number(context) {
                 Ok(num) => -num,
                 Err(_) => f64::NAN,
             }),
-            Self::String(ref str) => Self::rational(match f64::from_str(str) {
+            Self::String(ref str) => Self::new(match f64::from_str(str) {
                 Ok(num) => -num,
                 Err(_) => f64::NAN,
             }),
-            Self::Rational(num) => Self::rational(-num),
-            Self::Integer(num) => Self::rational(-f64::from(num)),
-            Self::Boolean(true) => Self::integer(1),
-            Self::Boolean(false) | Self::Null => Self::integer(0),
-            Self::BigInt(ref num) => Self::bigint(-num.as_inner().clone()),
+            Self::Rational(num) => Self::new(-num),
+            Self::Integer(num) => Self::new(-f64::from(num)),
+            Self::Boolean(true) => Self::new(1),
+            Self::Boolean(false) | Self::Null => Self::new(0),
+            Self::BigInt(ref x) => Self::new(JsBigInt::neg(x)),
         })
     }
 

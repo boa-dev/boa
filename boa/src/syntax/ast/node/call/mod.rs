@@ -4,8 +4,7 @@ use crate::{
     exec::InterpreterState,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Node},
-    value::Value,
-    BoaProfiler, Context, Result,
+    BoaProfiler, Context, JsValue, Result,
 };
 use std::fmt;
 
@@ -61,13 +60,13 @@ impl Call {
 }
 
 impl Executable for Call {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<JsValue> {
         let _timer = BoaProfiler::global().start_event("Call", "exec");
         let (this, func) = match self.expr() {
             Node::GetConstField(ref get_const_field) => {
                 let mut obj = get_const_field.obj().run(context)?;
                 if !obj.is_object() {
-                    obj = Value::Object(obj.to_object(context)?);
+                    obj = JsValue::Object(obj.to_object(context)?);
                 }
                 (
                     obj.clone(),
@@ -77,7 +76,7 @@ impl Executable for Call {
             Node::GetField(ref get_field) => {
                 let mut obj = get_field.obj().run(context)?;
                 if !obj.is_object() {
-                    obj = Value::Object(obj.to_object(context)?);
+                    obj = JsValue::Object(obj.to_object(context)?);
                 }
                 let field = get_field.field().run(context)?;
                 (

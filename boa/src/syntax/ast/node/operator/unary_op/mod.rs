@@ -2,7 +2,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::{node::Node, op},
-    Context, JsBigInt, Result, Value,
+    Context, JsBigInt, JsValue, Result,
 };
 use std::fmt;
 
@@ -50,10 +50,10 @@ impl UnaryOp {
 }
 
 impl Executable for UnaryOp {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<JsValue> {
         Ok(match self.op() {
             op::UnaryOp::Minus => self.target().run(context)?.neg(context)?,
-            op::UnaryOp::Plus => Value::from(self.target().run(context)?.to_number(context)?),
+            op::UnaryOp::Plus => JsValue::new(self.target().run(context)?.to_number(context)?),
             op::UnaryOp::IncrementPost => {
                 let x = self.target().run(context)?;
                 let ret = x.clone();
@@ -81,16 +81,16 @@ impl Executable for UnaryOp {
                 let expr = self.target().run(context)?;
                 let old_v = expr.to_numeric(context)?;
                 match old_v {
-                    Numeric::Number(x) => Value::from(Number::not(x)),
-                    Numeric::BigInt(x) => Value::from(JsBigInt::not(&x)),
+                    Numeric::Number(x) => JsValue::new(Number::not(x)),
+                    Numeric::BigInt(x) => JsValue::new(JsBigInt::not(&x)),
                 }
             }
             op::UnaryOp::Void => {
                 self.target().run(context)?;
-                Value::undefined()
+                JsValue::undefined()
             }
             op::UnaryOp::Delete => match *self.target() {
-                Node::GetConstField(ref get_const_field) => Value::boolean(
+                Node::GetConstField(ref get_const_field) => JsValue::new(
                     get_const_field
                         .obj()
                         .run(context)?
@@ -103,9 +103,9 @@ impl Executable for UnaryOp {
                     let res = obj
                         .to_object(context)?
                         .__delete__(&field.to_property_key(context)?);
-                    return Ok(Value::boolean(res));
+                    return Ok(JsValue::new(res));
                 }
-                Node::Identifier(_) => Value::boolean(false),
+                Node::Identifier(_) => JsValue::new(false),
                 Node::ArrayDecl(_)
                 | Node::Block(_)
                 | Node::Const(_)
@@ -113,10 +113,10 @@ impl Executable for UnaryOp {
                 | Node::FunctionExpr(_)
                 | Node::New(_)
                 | Node::Object(_)
-                | Node::UnaryOp(_) => Value::boolean(true),
+                | Node::UnaryOp(_) => JsValue::new(true),
                 _ => return context.throw_syntax_error(format!("wrong delete argument {}", self)),
             },
-            op::UnaryOp::TypeOf => Value::from(self.target().run(context)?.type_of()),
+            op::UnaryOp::TypeOf => JsValue::new(self.target().run(context)?.type_of()),
         })
     }
 }

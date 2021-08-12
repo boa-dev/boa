@@ -50,7 +50,7 @@ use super::Const;
 use crate::{
     exec::Executable,
     gc::{empty_trace, Finalize, Trace},
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsValue, Result,
 };
 use std::{
     cmp::Ordering,
@@ -307,23 +307,23 @@ impl Node {
 }
 
 impl Executable for Node {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<JsValue> {
         let _timer = BoaProfiler::global().start_event("Executable", "exec");
         match *self {
             Node::AsyncFunctionDecl(ref decl) => decl.run(context),
             Node::AsyncFunctionExpr(ref function_expr) => function_expr.run(context),
             Node::AwaitExpr(ref expr) => expr.run(context),
             Node::Call(ref call) => call.run(context),
-            Node::Const(Const::Null) => Ok(Value::null()),
-            Node::Const(Const::Num(num)) => Ok(Value::rational(num)),
-            Node::Const(Const::Int(num)) => Ok(Value::integer(num)),
-            Node::Const(Const::BigInt(ref num)) => Ok(Value::from(num.clone())),
-            Node::Const(Const::Undefined) => Ok(Value::Undefined),
+            Node::Const(Const::Null) => Ok(JsValue::null()),
+            Node::Const(Const::Num(num)) => Ok(JsValue::new(num)),
+            Node::Const(Const::Int(num)) => Ok(JsValue::new(num)),
+            Node::Const(Const::BigInt(ref num)) => Ok(JsValue::new(num.clone())),
+            Node::Const(Const::Undefined) => Ok(JsValue::undefined()),
             // we can't move String from Const into value, because const is a garbage collected value
             // Which means Drop() get's called on Const, but str will be gone at that point.
             // Do Const values need to be garbage collected? We no longer need them once we've generated Values
-            Node::Const(Const::String(ref value)) => Ok(Value::string(value.to_string())),
-            Node::Const(Const::Bool(value)) => Ok(Value::boolean(value)),
+            Node::Const(Const::String(ref value)) => Ok(JsValue::new(value.to_string())),
+            Node::Const(Const::Bool(value)) => Ok(JsValue::new(value)),
             Node::Block(ref block) => block.run(context),
             Node::Identifier(ref identifier) => identifier.run(context),
             Node::GetConstField(ref get_const_field_node) => get_const_field_node.run(context),
@@ -362,7 +362,7 @@ impl Executable for Node {
             Node::Try(ref try_node) => try_node.run(context),
             Node::Break(ref break_node) => break_node.run(context),
             Node::Continue(ref continue_node) => continue_node.run(context),
-            Node::Empty => Ok(Value::Undefined),
+            Node::Empty => Ok(JsValue::undefined()),
         }
     }
 }

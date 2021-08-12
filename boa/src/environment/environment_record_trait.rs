@@ -13,7 +13,7 @@ use crate::{environment::lexical_environment::VariableScope, object::GcObject};
 use crate::{
     environment::lexical_environment::{Environment, EnvironmentType},
     gc::{Finalize, Trace},
-    Context, Result, Value,
+    Context, JsValue, Result,
 };
 use std::fmt::Debug;
 
@@ -55,7 +55,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// Set the value of an already existing but uninitialized binding in an Environment Record.
     /// The String value N is the text of the bound name.
     /// V is the value for the binding and is a value of any ECMAScript language type.
-    fn initialize_binding(&self, name: &str, value: Value, context: &mut Context) -> Result<()>;
+    fn initialize_binding(&self, name: &str, value: JsValue, context: &mut Context) -> Result<()>;
 
     /// Set the value of an already existing mutable binding in an Environment Record.
     /// The String value `name` is the text of the bound name.
@@ -64,7 +64,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     fn set_mutable_binding(
         &self,
         name: &str,
-        value: Value,
+        value: JsValue,
         strict: bool,
         context: &mut Context,
     ) -> Result<()>;
@@ -73,7 +73,8 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     /// The String value N is the text of the bound name.
     /// S is used to identify references originating in strict mode code or that
     /// otherwise require strict mode reference semantics.
-    fn get_binding_value(&self, name: &str, strict: bool, context: &mut Context) -> Result<Value>;
+    fn get_binding_value(&self, name: &str, strict: bool, context: &mut Context)
+        -> Result<JsValue>;
 
     /// Delete a binding from an Environment Record.
     /// The String value name is the text of the bound name.
@@ -86,7 +87,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     fn has_this_binding(&self) -> bool;
 
     /// Return the `this` binding from the environment
-    fn get_this_binding(&self, context: &mut Context) -> Result<Value>;
+    fn get_this_binding(&self, context: &mut Context) -> Result<JsValue>;
 
     /// Determine if an Environment Record establishes a super method binding.
     /// Return true if it does and false if it does not.
@@ -109,13 +110,13 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     fn get_environment_type(&self) -> EnvironmentType;
 
     /// Return the `this` binding from the environment or try to get it from outer environments
-    fn recursive_get_this_binding(&self, context: &mut Context) -> Result<Value> {
+    fn recursive_get_this_binding(&self, context: &mut Context) -> Result<JsValue> {
         if self.has_this_binding() {
             self.get_this_binding(context)
         } else {
             match self.get_outer_environment_ref() {
                 Some(outer) => outer.recursive_get_this_binding(context),
-                None => Ok(Value::Undefined),
+                None => Ok(JsValue::undefined()),
             }
         }
     }
@@ -158,7 +159,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     fn recursive_set_mutable_binding(
         &self,
         name: &str,
-        value: Value,
+        value: JsValue,
         strict: bool,
         context: &mut Context,
     ) -> Result<()> {
@@ -175,7 +176,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     fn recursive_initialize_binding(
         &self,
         name: &str,
-        value: Value,
+        value: JsValue,
         context: &mut Context,
     ) -> Result<()> {
         if self.has_binding(name) {
@@ -197,7 +198,7 @@ pub trait EnvironmentRecordTrait: Debug + Trace + Finalize {
     }
 
     /// Retrieve binding from current or any outer environment
-    fn recursive_get_binding_value(&self, name: &str, context: &mut Context) -> Result<Value> {
+    fn recursive_get_binding_value(&self, name: &str, context: &mut Context) -> Result<JsValue> {
         if self.has_binding(name) {
             self.get_binding_value(name, false, context)
         } else {

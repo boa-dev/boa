@@ -54,7 +54,7 @@ pub(crate) use self::{
 };
 use crate::{
     property::{Attribute, PropertyDescriptor},
-    Context, Value,
+    Context, JsValue,
 };
 
 pub(crate) trait BuiltIn {
@@ -62,7 +62,7 @@ pub(crate) trait BuiltIn {
     const NAME: &'static str;
 
     fn attribute() -> Attribute;
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute);
+    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute);
 }
 
 /// Initializes builtin objects and functions

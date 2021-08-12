@@ -4,7 +4,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsValue, Result,
 };
 use std::fmt;
 
@@ -86,7 +86,7 @@ impl FunctionDecl {
 }
 
 impl Executable for FunctionDecl {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<JsValue> {
         let _timer = BoaProfiler::global().start_event("FunctionDecl", "exec");
         let val = context.create_function(
             self.name(),
@@ -106,7 +106,7 @@ impl Executable for FunctionDecl {
 
             context.initialize_binding(self.name(), val)?;
         }
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 }
 

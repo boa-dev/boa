@@ -6,7 +6,7 @@ use crate::{
     },
     object::{GcObject, ObjectInitializer},
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsValue, Result,
 };
 
 #[derive(Debug, Default)]
@@ -85,7 +85,7 @@ impl IteratorPrototypes {
 /// CreateIterResultObject( value, done )
 ///
 /// Generates an object supporting the IteratorResult interface.
-pub fn create_iter_result_object(context: &mut Context, value: Value, done: bool) -> Value {
+pub fn create_iter_result_object(context: &mut Context, value: JsValue, done: bool) -> JsValue {
     // 1. Assert: Type(done) is Boolean.
     // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
     let obj = context.construct_object();
@@ -101,7 +101,7 @@ pub fn create_iter_result_object(context: &mut Context, value: Value, done: bool
 }
 
 /// Get an iterator record
-pub fn get_iterator(context: &mut Context, iterable: Value) -> Result<IteratorRecord> {
+pub fn get_iterator(context: &mut Context, iterable: JsValue) -> Result<IteratorRecord> {
     let iterator_function = iterable.get_field(WellKnownSymbols::iterator(), context)?;
     if iterator_function.is_null_or_undefined() {
         return Err(context.construct_type_error("Not an iterable"));
@@ -136,12 +136,12 @@ fn create_iterator_prototype(context: &mut Context) -> GcObject {
 
 #[derive(Debug)]
 pub struct IteratorRecord {
-    iterator_object: Value,
-    next_function: Value,
+    iterator_object: JsValue,
+    next_function: JsValue,
 }
 
 impl IteratorRecord {
-    pub fn new(iterator_object: Value, next_function: Value) -> Self {
+    pub fn new(iterator_object: JsValue, next_function: JsValue) -> Self {
         Self {
             iterator_object,
             next_function,
@@ -168,7 +168,11 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     ///  [spec]: https://tc39.es/ecma262/#sec-iteratorclose
-    pub(crate) fn close(&self, completion: Result<Value>, context: &mut Context) -> Result<Value> {
+    pub(crate) fn close(
+        &self,
+        completion: Result<JsValue>,
+        context: &mut Context,
+    ) -> Result<JsValue> {
         let mut inner_result = self.iterator_object.get_field("return", context);
 
         // 5
@@ -199,12 +203,12 @@ impl IteratorRecord {
 
 #[derive(Debug)]
 pub struct IteratorResult {
-    value: Value,
+    value: JsValue,
     done: bool,
 }
 
 impl IteratorResult {
-    fn new(value: Value, done: bool) -> Self {
+    fn new(value: JsValue, done: bool) -> Self {
         Self { value, done }
     }
 
@@ -212,7 +216,7 @@ impl IteratorResult {
         self.done
     }
 
-    pub fn value(self) -> Value {
+    pub fn value(self) -> JsValue {
         self.value
     }
 }

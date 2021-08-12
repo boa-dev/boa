@@ -3,7 +3,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    Context, Result, Value,
+    Context, JsValue, Result,
 };
 use std::fmt;
 
@@ -72,7 +72,7 @@ impl ArrowFunctionDecl {
 }
 
 impl Executable for ArrowFunctionDecl {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<JsValue> {
         context.create_function(
             "",
             self.params().to_vec(),

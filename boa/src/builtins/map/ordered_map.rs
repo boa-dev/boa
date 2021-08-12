@@ -1,7 +1,7 @@
 use crate::{
     gc::{custom_trace, Finalize, Trace},
     object::GcObject,
-    Value,
+    JsValue,
 };
 use indexmap::{Equivalent, IndexMap};
 use std::{
@@ -12,7 +12,7 @@ use std::{
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 enum MapKey {
-    Key(Value),
+    Key(JsValue),
     Empty(usize), // Necessary to ensure empty keys are still unique.
 }
 
@@ -27,7 +27,7 @@ impl Hash for MapKey {
     }
 }
 
-impl Equivalent<MapKey> for Value {
+impl Equivalent<MapKey> for JsValue {
     fn equivalent(&self, key: &MapKey) -> bool {
         match key {
             MapKey::Key(v) => v == self,
@@ -116,7 +116,7 @@ impl<V> OrderedMap<V> {
     /// inserted, last in order, and `None` is returned.
     ///
     /// Computes in **O(1)** time (amortized average).
-    pub fn insert(&mut self, key: Value, value: V) -> Option<V> {
+    pub fn insert(&mut self, key: JsValue, value: V) -> Option<V> {
         self.map.insert(MapKey::Key(key), Some(value)).flatten()
     }
 
@@ -130,7 +130,7 @@ impl<V> OrderedMap<V> {
     /// Return `None` if `key` is not in map.
     ///
     /// Computes in **O(n)** time (average).
-    pub fn remove(&mut self, key: &Value) -> Option<V> {
+    pub fn remove(&mut self, key: &JsValue) -> Option<V> {
         if self.lock == 0 {
             self.map.shift_remove(key).flatten()
         } else if self.map.contains_key(key) {
@@ -146,14 +146,14 @@ impl<V> OrderedMap<V> {
     /// else `None`.
     ///
     /// Computes in **O(1)** time (average).
-    pub fn get(&self, key: &Value) -> Option<&V> {
+    pub fn get(&self, key: &JsValue) -> Option<&V> {
         self.map.get(key).map(Option::as_ref).flatten()
     }
 
     /// Get a key-value pair by index
     /// Valid indices are 0 <= index < self.full_len()
     /// Computes in O(1) time.
-    pub fn get_index(&self, index: usize) -> Option<(&Value, &V)> {
+    pub fn get_index(&self, index: usize) -> Option<(&JsValue, &V)> {
         if let (MapKey::Key(key), Some(value)) = self.map.get_index(index)? {
             Some((key, value))
         } else {
@@ -162,7 +162,7 @@ impl<V> OrderedMap<V> {
     }
 
     /// Return an iterator over the key-value pairs of the map, in their order
-    pub fn iter(&self) -> impl Iterator<Item = (&Value, &V)> {
+    pub fn iter(&self) -> impl Iterator<Item = (&JsValue, &V)> {
         self.map.iter().filter_map(|o| {
             if let (MapKey::Key(key), Some(value)) = o {
                 Some((key, value))
@@ -175,7 +175,7 @@ impl<V> OrderedMap<V> {
     /// Return `true` if an equivalent to `key` exists in the map.
     ///
     /// Computes in **O(1)** time (average).
-    pub fn contains_key(&self, key: &Value) -> bool {
+    pub fn contains_key(&self, key: &JsValue) -> bool {
         self.map.contains_key(key)
     }
 

@@ -20,7 +20,7 @@ use crate::{
     object::{ConstructorBuilder, FunctionBuilder, GcObject, ObjectData, PROTOTYPE},
     property::{Attribute, PropertyDescriptor},
     symbol::WellKnownSymbols,
-    value::{IntegerOrInfinity, Value},
+    value::{IntegerOrInfinity, JsValue},
     BoaProfiler, Context, JsString, Result,
 };
 use std::cmp::{max, min};
@@ -36,7 +36,7 @@ impl BuiltIn for Array {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let symbol_iterator = WellKnownSymbols::iterator();
@@ -119,7 +119,11 @@ impl BuiltIn for Array {
 impl Array {
     const LENGTH: usize = 1;
 
-    fn constructor(new_target: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    fn constructor(
+        new_target: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> Result<JsValue> {
         // If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         // 2. Let proto be ? GetPrototypeFromConstructor(newTarget, "%Array.prototype%").
         let prototype = new_target
@@ -160,7 +164,7 @@ impl Array {
                 // i. Let intLen be ! ToUint32(len).
                 let int_len = len.to_u32(context).unwrap();
                 // ii. If SameValueZero(intLen, len) is false, throw a RangeError exception.
-                if !Value::same_value_zero(&int_len.into(), len) {
+                if !JsValue::same_value_zero(&int_len.into(), len) {
                     return Err(context.construct_range_error("invalid array length"));
                 }
                 int_len
@@ -240,8 +244,8 @@ impl Array {
     }
 
     /// Creates a new `Array` instance.
-    pub(crate) fn new_array(context: &Context) -> Value {
-        let array = Value::new_object(context);
+    pub(crate) fn new_array(context: &Context) -> JsValue {
+        let array = JsValue::new_object(context);
         array.set_data(ObjectData::Array);
         array
             .as_object()
@@ -264,10 +268,10 @@ impl Array {
     /// `array_obj` can be any array with prototype already set (it will be wiped and
     /// recreated from `array_contents`)
     pub(crate) fn construct_array(
-        array_obj: &Value,
-        array_contents: &[Value],
+        array_obj: &JsValue,
+        array_contents: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> Result<JsValue> {
         let array_obj_ptr = array_obj.clone();
 
         // Wipe existing contents of the array object
@@ -305,7 +309,7 @@ impl Array {
     /// Returns a Boolean valued property that if `true` indicates that
     /// an object should be flattened to its array elements
     /// by `Array.prototype.concat`.
-    fn is_concat_spreadable(this: &Value, context: &mut Context) -> Result<bool> {
+    fn is_concat_spreadable(this: &JsValue, context: &mut Context) -> Result<bool> {
         // 1. If Type(O) is not Object, return false.
         if !this.is_object() {
             return Ok(false);
@@ -334,7 +338,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-array-@@species
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/@@species
-    fn get_species(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> Result<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
     }
@@ -369,7 +373,7 @@ impl Array {
             let c = c.get(WellKnownSymbols::species(), context)?;
             // 5.b. If C is null, set C to undefined.
             if c.is_null_or_undefined() {
-                Value::undefined()
+                JsValue::undefined()
             } else {
                 c
             }
@@ -389,7 +393,7 @@ impl Array {
             }
             // 8. Return ? Construct(C, « 𝔽(length) »).
             Ok(
-                c.construct(&[Value::from(length)], &c.clone().into(), context)?
+                c.construct(&[JsValue::new(length)], &c.clone().into(), context)?
                     .as_object()
                     .unwrap(),
             )
@@ -401,10 +405,10 @@ impl Array {
     /// Utility function which takes an existing array object and puts additional
     /// values on the end, correctly rewriting the length
     pub(crate) fn add_to_array_object(
-        array_ptr: &Value,
-        add_values: &[Value],
+        array_ptr: &JsValue,
+        add_values: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> Result<JsValue> {
         let orig_length = array_ptr.get_field("length", context)?.to_length(context)?;
 
         for (n, value) in add_values.iter().enumerate() {
@@ -421,7 +425,7 @@ impl Array {
 
         array_ptr.set_field(
             "length",
-            Value::from(orig_length.wrapping_add(add_values.len())),
+            JsValue::new(orig_length.wrapping_add(add_values.len())),
             false,
             context,
         )?;
@@ -440,10 +444,10 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.isarray
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray
-    pub(crate) fn is_array(_: &Value, args: &[Value], _: &mut Context) -> Result<Value> {
+    pub(crate) fn is_array(_: &JsValue, args: &[JsValue], _: &mut Context) -> Result<JsValue> {
         match args.get(0).and_then(|x| x.as_object()) {
-            Some(object) => Ok(Value::from(object.borrow().is_array())),
-            None => Ok(Value::from(false)),
+            Some(object) => Ok(JsValue::new(object.borrow().is_array())),
+            None => Ok(JsValue::new(false)),
         }
     }
 
@@ -458,7 +462,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.of
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/of
-    pub(crate) fn of(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn of(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
         // 1. Let len be the number of elements in items.
         // 2. Let lenNumber be 𝔽(len).
         let len = args.len();
@@ -505,7 +509,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.concat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/concat
-    pub(crate) fn concat(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn concat(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let obj = this.to_object(context)?;
         // 2. Let A be ? ArraySpeciesCreate(O, 0).
@@ -514,7 +522,7 @@ impl Array {
         let mut n = 0;
         // 4. Prepend O to items.
         // 5. For each element E of items, do
-        for item in [Value::from(obj)].iter().chain(args.iter()) {
+        for item in [JsValue::new(obj)].iter().chain(args.iter()) {
             // a. Let spreadable be ? IsConcatSpreadable(E).
             let spreadable = Self::is_concat_spreadable(item, context)?;
             // b. If spreadable is true, then
@@ -565,7 +573,7 @@ impl Array {
         arr.set("length", n, true, context)?;
 
         // 7. Return A.
-        Ok(Value::from(arr))
+        Ok(JsValue::new(arr))
     }
 
     /// `Array.prototype.push( ...items )`
@@ -580,7 +588,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.push
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push
-    pub(crate) fn push(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn push(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -616,7 +624,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.pop
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/pop
-    pub(crate) fn pop(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn pop(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -626,7 +634,7 @@ impl Array {
             // a. Perform ? Set(O, "length", +0𝔽, true).
             o.set("length", 0, true, context)?;
             // b. Return undefined.
-            Ok(Value::undefined())
+            Ok(JsValue::undefined())
         // 4. Else,
         } else {
             // a. Assert: len > 0.
@@ -655,7 +663,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.foreach
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
-    pub(crate) fn for_each(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn for_each(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -663,7 +675,7 @@ impl Array {
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback = if let Some(arg) = args
             .get(0)
-            .and_then(Value::as_object)
+            .and_then(JsValue::as_object)
             .filter(GcObject::is_callable)
         {
             arg
@@ -682,13 +694,13 @@ impl Array {
                 // i. Let kValue be ? Get(O, Pk).
                 let k_value = o.get(pk, context)?;
                 // ii. Perform ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).
-                let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
+                let this_arg = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
                 callback.call(&this_arg, &[k_value, k.into(), o.clone().into()], context)?;
             }
             // d. Set k to k + 1.
         }
         // 6. Return undefined.
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 
     /// `Array.prototype.join( separator )`
@@ -703,7 +715,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.join
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/join
-    pub(crate) fn join(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn join(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -754,7 +766,11 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn to_string(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> Result<JsValue> {
         // 1. Let array be ? ToObject(this value).
         let array = this.to_object(context)?;
         // 2. Let func be ? Get(array, "join").
@@ -780,7 +796,7 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.reverse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse
     #[allow(clippy::else_if_without_else)]
-    pub(crate) fn reverse(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn reverse(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -798,7 +814,7 @@ impl Array {
             // d. Let lowerExists be ? HasProperty(O, lowerP).
             let lower_exists = o.has_property(lower, context)?;
             // e. If lowerExists is true, then
-            let mut lower_value = Value::undefined();
+            let mut lower_value = JsValue::undefined();
             if lower_exists {
                 // i. Let lowerValue be ? Get(O, lowerP).
                 lower_value = o.get(lower, context)?;
@@ -806,7 +822,7 @@ impl Array {
             // f. Let upperExists be ? HasProperty(O, upperP).
             let upper_exists = o.has_property(upper, context)?;
             // g. If upperExists is true, then
-            let mut upper_value = Value::undefined();
+            let mut upper_value = JsValue::undefined();
             if upper_exists {
                 // i. Let upperValue be ? Get(O, upperP).
                 upper_value = o.get(upper, context)?;
@@ -857,7 +873,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.shift
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/shift
-    pub(crate) fn shift(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn shift(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -867,7 +883,7 @@ impl Array {
             // a. Perform ? Set(O, "length", +0𝔽, true).
             o.set("length", 0, true, context)?;
             // b. Return undefined.
-            return Ok(Value::undefined());
+            return Ok(JsValue::undefined());
         }
         // 4. Let first be ? Get(O, "0").
         let first = o.get(0, context)?;
@@ -914,7 +930,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.unshift
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/unshift
-    pub(crate) fn unshift(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn unshift(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -981,7 +1001,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.every
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/every
-    pub(crate) fn every(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn every(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -989,7 +1013,7 @@ impl Array {
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback = if let Some(arg) = args
             .get(0)
-            .and_then(Value::as_object)
+            .and_then(JsValue::as_object)
             .filter(GcObject::is_callable)
         {
             arg
@@ -1015,13 +1039,13 @@ impl Array {
                     .to_boolean();
                 // iii. If testResult is false, return false.
                 if !test_result {
-                    return Ok(Value::from(false));
+                    return Ok(JsValue::new(false));
                 }
             }
             // d. Set k to k + 1.
         }
         // 6. Return true.
-        Ok(Value::from(true))
+        Ok(JsValue::new(true))
     }
 
     /// `Array.prototype.map( callback, [ thisArg ] )`
@@ -1035,7 +1059,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.map
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
-    pub(crate) fn map(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn map(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -1081,7 +1105,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.indexof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
-    pub(crate) fn index_of(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn index_of(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1090,7 +1118,7 @@ impl Array {
 
         // 3. If len is 0, return -1𝔽.
         if len == 0 {
-            return Ok(Value::from(-1));
+            return Ok(JsValue::new(-1));
         }
 
         // 4. Let n be ? ToIntegerOrInfinity(fromIndex).
@@ -1102,7 +1130,7 @@ impl Array {
         // 5. Assert: If fromIndex is undefined, then n is 0.
         let n = match n {
             // 6. If n is +∞, return -1𝔽.
-            IntegerOrInfinity::PositiveInfinity => return Ok(Value::from(-1)),
+            IntegerOrInfinity::PositiveInfinity => return Ok(JsValue::new(-1)),
             // 7. Else if n is -∞, set n to 0.
             IntegerOrInfinity::NegativeInfinity => 0,
             IntegerOrInfinity::Integer(value) => value,
@@ -1136,14 +1164,14 @@ impl Array {
                 // ii. Let same be IsStrictlyEqual(searchElement, elementK).
                 // iii. If same is true, return 𝔽(k).
                 if search_element.strict_equals(&element_k) {
-                    return Ok(Value::from(k));
+                    return Ok(JsValue::new(k));
                 }
             }
             // c. Set k to k + 1.
             k += 1;
         }
         // 11. Return -1𝔽.
-        Ok(Value::from(-1))
+        Ok(JsValue::new(-1))
     }
 
     /// `Array.prototype.lastIndexOf( searchElement[, fromIndex ] )`
@@ -1165,10 +1193,10 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.lastindexof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/lastIndexOf
     pub(crate) fn last_index_of(
-        this: &Value,
-        args: &[Value],
+        this: &JsValue,
+        args: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1177,7 +1205,7 @@ impl Array {
 
         // 3. If len is 0, return -1𝔽.
         if len == 0 {
-            return Ok(Value::from(-1));
+            return Ok(JsValue::new(-1));
         }
 
         // 4. If fromIndex is present, let n be ? ToIntegerOrInfinity(fromIndex); else let n be len - 1.
@@ -1189,7 +1217,7 @@ impl Array {
 
         let mut k = match n {
             // 5. If n is -∞, return -1𝔽.
-            IntegerOrInfinity::NegativeInfinity => return Ok(Value::from(-1)),
+            IntegerOrInfinity::NegativeInfinity => return Ok(JsValue::new(-1)),
             // 6. If n ≥ 0, then
             //     a. Let k be min(n, len - 1).
             IntegerOrInfinity::Integer(n) if n >= 0 => min(n, len - 1),
@@ -1211,15 +1239,15 @@ impl Array {
                 let element_k = o.get(k, context)?;
                 // ii. Let same be IsStrictlyEqual(searchElement, elementK).
                 // iii. If same is true, return 𝔽(k).
-                if Value::strict_equals(&search_element, &element_k) {
-                    return Ok(Value::from(k));
+                if JsValue::strict_equals(&search_element, &element_k) {
+                    return Ok(JsValue::new(k));
                 }
             }
             // c. Set k to k - 1.
             k -= 1;
         }
         // 9. Return -1𝔽.
-        Ok(Value::from(-1))
+        Ok(JsValue::new(-1))
     }
 
     /// `Array.prototype.find( callback, [thisArg] )`
@@ -1234,7 +1262,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.find
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
-    pub(crate) fn find(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn find(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1242,7 +1270,7 @@ impl Array {
         let len = o.length_of_array_like(context)?;
 
         // 3. If IsCallable(predicate) is false, throw a TypeError exception.
-        let predicate = match args.get(0).and_then(Value::as_object) {
+        let predicate = match args.get(0).and_then(JsValue::as_object) {
             Some(predicate) if predicate.is_callable() => predicate,
             _ => {
                 return context.throw_type_error("Array.prototype.find: predicate is not callable")
@@ -1275,7 +1303,7 @@ impl Array {
             k += 1;
         }
         // 6. Return undefined.
-        Ok(Value::undefined())
+        Ok(JsValue::undefined())
     }
 
     /// `Array.prototype.findIndex( predicate [ , thisArg ] )`
@@ -1290,7 +1318,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.findindex
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/findIndex
-    pub(crate) fn find_index(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn find_index(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1298,7 +1330,7 @@ impl Array {
         let len = o.length_of_array_like(context)?;
 
         // 3. If IsCallable(predicate) is false, throw a TypeError exception.
-        let predicate = match args.get(0).and_then(Value::as_object) {
+        let predicate = match args.get(0).and_then(JsValue::as_object) {
             Some(predicate) if predicate.is_callable() => predicate,
             _ => {
                 return context
@@ -1322,13 +1354,13 @@ impl Array {
                 .to_boolean();
             // d. If testResult is true, return 𝔽(k).
             if test_result {
-                return Ok(Value::from(k));
+                return Ok(JsValue::new(k));
             }
             // e. Set k to k + 1.
             k += 1;
         }
         // 6. Return -1𝔽.
-        Ok(Value::from(-1))
+        Ok(JsValue::new(-1))
     }
 
     /// `Array.prototype.flat( [depth] )`
@@ -1342,7 +1374,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.flat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat
-    pub(crate) fn flat(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn flat(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
         // 1. Let O be ToObject(this value)
         let o = this.to_object(context)?;
 
@@ -1374,7 +1406,7 @@ impl Array {
             0,
             depth_num,
             None,
-            &Value::undefined(),
+            &JsValue::undefined(),
             context,
         )?;
 
@@ -1394,7 +1426,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.flatMap
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap
-    pub(crate) fn flat_map(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn flat_map(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> Result<JsValue> {
         // 1. Let O be ToObject(this value)
         let o = this.to_object(context)?;
 
@@ -1440,7 +1476,7 @@ impl Array {
         start: u64,
         depth: u64,
         mapper_function: Option<GcObject>,
-        this_arg: &Value,
+        this_arg: &JsValue,
         context: &mut Context,
     ) -> Result<u64> {
         // 1. Assert target is Object
@@ -1512,7 +1548,7 @@ impl Array {
                         target_index,
                         new_depth,
                         None,
-                        &Value::undefined(),
+                        &JsValue::undefined(),
                         context,
                     )?;
 
@@ -1550,7 +1586,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.fill
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fill
-    pub(crate) fn fill(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn fill(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1595,10 +1631,10 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.includes
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes
     pub(crate) fn includes_value(
-        this: &Value,
-        args: &[Value],
+        this: &JsValue,
+        args: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1607,7 +1643,7 @@ impl Array {
 
         // 3. If len is 0, return false.
         if len == 0 {
-            return Ok(Value::from(false));
+            return Ok(JsValue::new(false));
         }
 
         // 4. Let n be ? ToIntegerOrInfinity(fromIndex).
@@ -1620,7 +1656,7 @@ impl Array {
         // 6. If n is +∞, return false.
         // 7. Else if n is -∞, set n to 0.
         let n = match n {
-            IntegerOrInfinity::PositiveInfinity => return Ok(Value::from(false)),
+            IntegerOrInfinity::PositiveInfinity => return Ok(JsValue::new(false)),
             IntegerOrInfinity::NegativeInfinity => 0,
             IntegerOrInfinity::Integer(value) => value,
         };
@@ -1647,14 +1683,14 @@ impl Array {
             // a. Let elementK be ? Get(O, ! ToString(𝔽(k))).
             let element_k = o.get(k, context)?;
             // b. If SameValueZero(searchElement, elementK) is true, return true.
-            if Value::same_value_zero(&search_element, &element_k) {
-                return Ok(Value::from(true));
+            if JsValue::same_value_zero(&search_element, &element_k) {
+                return Ok(JsValue::new(true));
             }
             // c. Set k to k + 1.
             k += 1;
         }
         // 11. Return false.
-        Ok(Value::from(false))
+        Ok(JsValue::new(false))
     }
 
     /// `Array.prototype.slice( [begin[, end]] )`
@@ -1671,7 +1707,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.slice
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice
-    pub(crate) fn slice(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn slice(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1735,7 +1775,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.filter
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter
-    pub(crate) fn filter(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn filter(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1752,7 +1796,7 @@ impl Array {
                     "missing argument 0 when calling function Array.prototype.filter",
                 )
             })?;
-        let this_val = args.get(1).cloned().unwrap_or_else(Value::undefined);
+        let this_val = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
 
         if !callback.is_callable() {
             return context.throw_type_error("the callback must be callable");
@@ -1773,7 +1817,7 @@ impl Array {
                 // i. Let kValue be ? Get(O, Pk).
                 let element = o.get(idx, context)?;
 
-                let args = [element.clone(), Value::from(idx), Value::from(o.clone())];
+                let args = [element.clone(), JsValue::new(idx), JsValue::new(o.clone())];
 
                 // ii. Let selected be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).
                 let selected = callback.call(&this_val, &args, context)?.to_boolean();
@@ -1807,7 +1851,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.some
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/some
-    pub(crate) fn some(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn some(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -1815,7 +1859,7 @@ impl Array {
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback = if let Some(arg) = args
             .get(0)
-            .and_then(Value::as_object)
+            .and_then(JsValue::as_object)
             .filter(GcObject::is_callable)
         {
             arg
@@ -1840,13 +1884,13 @@ impl Array {
                     .to_boolean();
                 // iii. If testResult is true, return true.
                 if test_result {
-                    return Ok(Value::from(true));
+                    return Ok(JsValue::new(true));
                 }
             }
             // d. Set k to k + 1.
         }
         // 6. Return false.
-        Ok(Value::from(false))
+        Ok(JsValue::new(false))
     }
 
     /// `Array.prototype.reduce( callbackFn [ , initialValue ] )`
@@ -1857,7 +1901,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.reduce
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce
-    pub(crate) fn reduce(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn reduce(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1865,7 +1913,7 @@ impl Array {
         let len = o.length_of_array_like(context)?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = match args.get(0).and_then(Value::as_object) {
+        let callback = match args.get(0).and_then(JsValue::as_object) {
             Some(callback) if callback.is_callable() => callback,
             _ => {
                 return context
@@ -1883,7 +1931,7 @@ impl Array {
         // 5. Let k be 0.
         let mut k = 0;
         // 6. Let accumulator be undefined.
-        let mut accumulator = Value::undefined();
+        let mut accumulator = JsValue::undefined();
 
         // 7. If initialValue is present, then
         if let Some(initial_value) = args.get(1) {
@@ -1927,7 +1975,7 @@ impl Array {
                 let k_value = o.get(pk, context)?;
                 // ii. Set accumulator to ? Call(callbackfn, undefined, « accumulator, kValue, 𝔽(k), O »).
                 accumulator = callback.call(
-                    &Value::undefined(),
+                    &JsValue::undefined(),
                     &[accumulator, k_value, k.into(), o.clone().into()],
                     context,
                 )?;
@@ -1952,10 +2000,10 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.reduceright
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduceRight
     pub(crate) fn reduce_right(
-        this: &Value,
-        args: &[Value],
+        this: &JsValue,
+        args: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1963,7 +2011,7 @@ impl Array {
         let len = o.length_of_array_like(context)?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = match args.get(0).and_then(Value::as_object) {
+        let callback = match args.get(0).and_then(JsValue::as_object) {
             Some(callback) if callback.is_callable() => callback,
             _ => {
                 return context.throw_type_error(
@@ -1982,7 +2030,7 @@ impl Array {
         // 5. Let k be len - 1.
         let mut k = len as i64 - 1;
         // 6. Let accumulator be undefined.
-        let mut accumulator = Value::undefined();
+        let mut accumulator = JsValue::undefined();
         // 7. If initialValue is present, then
         if let Some(initial_value) = args.get(1) {
             // a. Set accumulator to initialValue.
@@ -2025,7 +2073,7 @@ impl Array {
                 let k_value = o.get(pk, context)?;
                 // ii. Set accumulator to ? Call(callbackfn, undefined, « accumulator, kValue, 𝔽(k), O »).
                 accumulator = callback.call(
-                    &Value::undefined(),
+                    &JsValue::undefined(),
                     &[accumulator.clone(), k_value, k.into(), o.clone().into()],
                     context,
                 )?;
@@ -2050,10 +2098,10 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.copywithin
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/copyWithin
     pub(crate) fn copy_within(
-        this: &Value,
-        args: &[Value],
+        this: &JsValue,
+        args: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> Result<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -2139,7 +2187,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
-    pub(crate) fn values(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn values(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
         Ok(ArrayIterator::create_array_iterator(
             context,
             this.clone(),
@@ -2157,7 +2205,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
-    pub(crate) fn keys(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn keys(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
         Ok(ArrayIterator::create_array_iterator(
             context,
             this.clone(),
@@ -2175,7 +2223,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
-    pub(crate) fn entries(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn entries(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
         Ok(ArrayIterator::create_array_iterator(
             context,
             this.clone(),
@@ -2186,7 +2234,7 @@ impl Array {
     /// Represents the algorithm to calculate `relativeStart` (or `k`) in array functions.
     pub(super) fn get_relative_start(
         context: &mut Context,
-        arg: Option<&Value>,
+        arg: Option<&JsValue>,
         len: usize,
     ) -> Result<usize> {
         // 1. Let relativeStart be ? ToIntegerOrInfinity(start).
@@ -2211,10 +2259,10 @@ impl Array {
     /// Represents the algorithm to calculate `relativeEnd` (or `final`) in array functions.
     pub(super) fn get_relative_end(
         context: &mut Context,
-        arg: Option<&Value>,
+        arg: Option<&JsValue>,
         len: usize,
     ) -> Result<usize> {
-        let default_value = Value::undefined();
+        let default_value = JsValue::undefined();
         let value = arg.unwrap_or(&default_value);
         // 1. If end is undefined, let relativeEnd be len [and return it]
         if value.is_undefined() {

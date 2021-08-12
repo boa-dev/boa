@@ -1,6 +1,6 @@
 use super::Array;
 use crate::builtins::Number;
-use crate::{forward, Context, Value};
+use crate::{forward, Context, JsValue};
 
 #[test]
 fn is_array() {
@@ -13,58 +13,58 @@ fn is_array() {
     context.eval(init).unwrap();
     assert_eq!(
         context.eval("Array.isArray(empty)").unwrap(),
-        Value::Boolean(true)
+        JsValue::new(true)
     );
     assert_eq!(
         context.eval("Array.isArray(new_arr)").unwrap(),
-        Value::Boolean(true)
+        JsValue::new(true)
     );
     assert_eq!(
         context.eval("Array.isArray(many)").unwrap(),
-        Value::Boolean(true)
+        JsValue::new(true)
     );
     assert_eq!(
         context.eval("Array.isArray([1, 2, 3])").unwrap(),
-        Value::Boolean(true)
+        JsValue::new(true)
     );
     assert_eq!(
         context.eval("Array.isArray([])").unwrap(),
-        Value::Boolean(true)
+        JsValue::new(true)
     );
     assert_eq!(
         context.eval("Array.isArray({})").unwrap(),
-        Value::Boolean(false)
+        JsValue::new(false)
     );
     // assert_eq!(context.eval("Array.isArray(new Array)"), "true");
     assert_eq!(
         context.eval("Array.isArray()").unwrap(),
-        Value::Boolean(false)
+        JsValue::new(false)
     );
     assert_eq!(
         context
             .eval("Array.isArray({ constructor: Array })")
             .unwrap(),
-        Value::Boolean(false)
+        JsValue::new(false)
     );
     assert_eq!(
         context
             .eval("Array.isArray({ push: Array.prototype.push, concat: Array.prototype.concat })")
             .unwrap(),
-        Value::Boolean(false)
+        JsValue::new(false)
     );
     assert_eq!(
         context.eval("Array.isArray(17)").unwrap(),
-        Value::Boolean(false)
+        JsValue::new(false)
     );
     assert_eq!(
         context
             .eval("Array.isArray({ __proto__: Array.prototype })")
             .unwrap(),
-        Value::Boolean(false)
+        JsValue::new(false)
     );
     assert_eq!(
         context.eval("Array.isArray({ length: 0 })").unwrap(),
-        Value::Boolean(false)
+        JsValue::new(false)
     );
 }
 
@@ -109,12 +109,12 @@ fn of() {
         .unwrap();
     assert_eq!(
         context.eval("a instanceof Date").unwrap(),
-        Value::from(true)
+        JsValue::new(true)
     );
-    assert_eq!(context.eval("a[0]").unwrap(), Value::from("a"));
-    assert_eq!(context.eval("a[1]").unwrap(), Value::undefined());
-    assert_eq!(context.eval("a[2]").unwrap(), Value::from(3));
-    assert_eq!(context.eval("a.length").unwrap(), Value::from(3));
+    assert_eq!(context.eval("a[0]").unwrap(), JsValue::new("a"));
+    assert_eq!(context.eval("a[1]").unwrap(), JsValue::undefined());
+    assert_eq!(context.eval("a[2]").unwrap(), JsValue::new(3));
+    assert_eq!(context.eval("a.length").unwrap(), JsValue::new(3));
 }
 
 #[ignore]
@@ -1424,47 +1424,47 @@ fn get_relative_start() {
 
     assert_eq!(Array::get_relative_start(&mut context, None, 10), Ok(0));
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&Value::undefined()), 10),
+        Array::get_relative_start(&mut context, Some(&JsValue::undefined()), 10),
         Ok(0)
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&Value::from(f64::NEG_INFINITY)), 10),
+        Array::get_relative_start(&mut context, Some(&JsValue::new(f64::NEG_INFINITY)), 10),
         Ok(0)
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&Value::from(f64::INFINITY)), 10),
+        Array::get_relative_start(&mut context, Some(&JsValue::new(f64::INFINITY)), 10),
         Ok(10)
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&Value::from(-1)), 10),
+        Array::get_relative_start(&mut context, Some(&JsValue::new(-1)), 10),
         Ok(9)
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&Value::from(1)), 10),
+        Array::get_relative_start(&mut context, Some(&JsValue::new(1)), 10),
         Ok(1)
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&Value::from(-11)), 10),
+        Array::get_relative_start(&mut context, Some(&JsValue::new(-11)), 10),
         Ok(0)
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&Value::from(11)), 10),
+        Array::get_relative_start(&mut context, Some(&JsValue::new(11)), 10),
         Ok(10)
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&Value::from(f64::MIN)), 10),
+        Array::get_relative_start(&mut context, Some(&JsValue::new(f64::MIN)), 10),
         Ok(0)
     );
     assert_eq!(
         Array::get_relative_start(
             &mut context,
-            Some(&Value::from(Number::MIN_SAFE_INTEGER)),
+            Some(&JsValue::new(Number::MIN_SAFE_INTEGER)),
             10
         ),
         Ok(0)
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&Value::from(f64::MAX)), 10),
+        Array::get_relative_start(&mut context, Some(&JsValue::new(f64::MAX)), 10),
         Ok(10)
     );
 
@@ -1472,7 +1472,7 @@ fn get_relative_start() {
     assert_eq!(
         Array::get_relative_start(
             &mut context,
-            Some(&Value::from(Number::MAX_SAFE_INTEGER)),
+            Some(&JsValue::new(Number::MAX_SAFE_INTEGER)),
             10
         ),
         Ok(10)
@@ -1485,47 +1485,47 @@ fn get_relative_end() {
 
     assert_eq!(Array::get_relative_end(&mut context, None, 10), Ok(10));
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&Value::undefined()), 10),
+        Array::get_relative_end(&mut context, Some(&JsValue::undefined()), 10),
         Ok(10)
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&Value::from(f64::NEG_INFINITY)), 10),
+        Array::get_relative_end(&mut context, Some(&JsValue::new(f64::NEG_INFINITY)), 10),
         Ok(0)
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&Value::from(f64::INFINITY)), 10),
+        Array::get_relative_end(&mut context, Some(&JsValue::new(f64::INFINITY)), 10),
         Ok(10)
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&Value::from(-1)), 10),
+        Array::get_relative_end(&mut context, Some(&JsValue::new(-1)), 10),
         Ok(9)
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&Value::from(1)), 10),
+        Array::get_relative_end(&mut context, Some(&JsValue::new(1)), 10),
         Ok(1)
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&Value::from(-11)), 10),
+        Array::get_relative_end(&mut context, Some(&JsValue::new(-11)), 10),
         Ok(0)
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&Value::from(11)), 10),
+        Array::get_relative_end(&mut context, Some(&JsValue::new(11)), 10),
         Ok(10)
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&Value::from(f64::MIN)), 10),
+        Array::get_relative_end(&mut context, Some(&JsValue::new(f64::MIN)), 10),
         Ok(0)
     );
     assert_eq!(
         Array::get_relative_end(
             &mut context,
-            Some(&Value::from(Number::MIN_SAFE_INTEGER)),
+            Some(&JsValue::new(Number::MIN_SAFE_INTEGER)),
             10
         ),
         Ok(0)
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&Value::from(f64::MAX)), 10),
+        Array::get_relative_end(&mut context, Some(&JsValue::new(f64::MAX)), 10),
         Ok(10)
     );
 
@@ -1533,7 +1533,7 @@ fn get_relative_end() {
     assert_eq!(
         Array::get_relative_end(
             &mut context,
-            Some(&Value::from(Number::MAX_SAFE_INTEGER)),
+            Some(&JsValue::new(Number::MAX_SAFE_INTEGER)),
             10
         ),
         Ok(10)

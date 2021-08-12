@@ -1,5 +1,5 @@
 use crate::{
-    builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, Value},
+    builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
     gc::{Finalize, Trace},
     object::{GcObject, ObjectData},
     property::PropertyDescriptor,
@@ -22,7 +22,7 @@ pub enum ArrayIterationKind {
 /// [spec]: https://tc39.es/ecma262/#sec-array-iterator-objects
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct ArrayIterator {
-    array: Value,
+    array: JsValue,
     next_index: u32,
     kind: ArrayIterationKind,
 }
@@ -30,7 +30,7 @@ pub struct ArrayIterator {
 impl ArrayIterator {
     pub(crate) const NAME: &'static str = "ArrayIterator";
 
-    fn new(array: Value, kind: ArrayIterationKind) -> Self {
+    fn new(array: JsValue, kind: ArrayIterationKind) -> Self {
         ArrayIterator {
             array,
             kind,
@@ -48,10 +48,10 @@ impl ArrayIterator {
     /// [spec]: https://tc39.es/ecma262/#sec-createarrayiterator
     pub(crate) fn create_array_iterator(
         context: &Context,
-        array: Value,
+        array: JsValue,
         kind: ArrayIterationKind,
-    ) -> Value {
-        let array_iterator = Value::new_object(context);
+    ) -> JsValue {
+        let array_iterator = JsValue::new_object(context);
         array_iterator.set_data(ObjectData::ArrayIterator(Self::new(array, kind)));
         array_iterator
             .as_object()
@@ -68,13 +68,17 @@ impl ArrayIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
-    pub(crate) fn next(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        if let Value::Object(ref object) = this {
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+        if let JsValue::Object(ref object) = this {
             let mut object = object.borrow_mut();
             if let Some(array_iterator) = object.as_array_iterator_mut() {
                 let index = array_iterator.next_index;
                 if array_iterator.array.is_undefined() {
-                    return Ok(create_iter_result_object(context, Value::undefined(), true));
+                    return Ok(create_iter_result_object(
+                        context,
+                        JsValue::undefined(),
+                        true,
+                    ));
                 }
                 let len = array_iterator
                     .array
@@ -83,8 +87,12 @@ impl ArrayIterator {
                     .ok_or_else(|| context.construct_type_error("Not an array"))?
                     as u32;
                 if array_iterator.next_index >= len {
-                    array_iterator.array = Value::undefined();
-                    return Ok(create_iter_result_object(context, Value::undefined(), true));
+                    array_iterator.array = JsValue::undefined();
+                    return Ok(create_iter_result_object(
+                        context,
+                        JsValue::undefined(),
+                        true,
+                    ));
                 }
                 array_iterator.next_index = index + 1;
                 match array_iterator.kind {
@@ -98,7 +106,7 @@ impl ArrayIterator {
                     ArrayIterationKind::KeyAndValue => {
                         let element_value = array_iterator.array.get_field(index, context)?;
                         let result = Array::constructor(
-                            &Value::new_object(context),
+                            &JsValue::new_object(context),
                             &[index.into(), element_value],
                             context,
                         )?;
@@ -119,7 +127,7 @@ impl ArrayIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
-    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: Value) -> GcObject {
+    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: JsValue) -> GcObject {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype

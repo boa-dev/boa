@@ -20,7 +20,7 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey},
     symbol::WellKnownSymbols,
     value::IntegerOrInfinity,
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsValue, Result,
 };
 use serde::Serialize;
 use serde_json::{self, ser::PrettyFormatter, Serializer, Value as JSONValue};
@@ -39,7 +39,7 @@ impl BuiltIn for Json {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
@@ -68,19 +68,19 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
-    pub(crate) fn parse(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn parse(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
         let arg = args
             .get(0)
             .cloned()
-            .unwrap_or_else(Value::undefined)
+            .unwrap_or_else(JsValue::undefined)
             .to_string(context)?;
 
         match serde_json::from_str::<JSONValue>(&arg) {
             Ok(json) => {
-                let j = Value::from_json(json, context);
+                let j = JsValue::from_json(json, context);
                 match args.get(1) {
                     Some(reviver) if reviver.is_function() => {
-                        let mut holder = Value::object(Object::default());
+                        let mut holder: JsValue = context.construct_object().into();
                         holder.set_field("", j, true, context)?;
                         Self::walk(reviver, context, &mut holder, &PropertyKey::from(""))
                     }
@@ -98,14 +98,14 @@ impl Json {
     ///
     /// [polyfill]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
     fn walk(
-        reviver: &Value,
+        reviver: &JsValue,
         context: &mut Context,
-        holder: &mut Value,
+        holder: &mut JsValue,
         key: &PropertyKey,
-    ) -> Result<Value> {
+    ) -> Result<JsValue> {
         let value = holder.get_field(key.clone(), context)?;
 
-        if let Value::Object(ref object) = value {
+        if let JsValue::Object(ref object) = value {
             let keys: Vec<_> = object.borrow().properties().keys().collect();
 
             for key in keys {
@@ -140,18 +140,22 @@ impl Json {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-json.stringify
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
-    pub(crate) fn stringify(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn stringify(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> Result<JsValue> {
         let object = match args.get(0) {
-            None => return Ok(Value::undefined()),
+            None => return Ok(JsValue::undefined()),
             Some(obj) => obj,
         };
         const SPACE_INDENT: &str = "          ";
         let gap = if let Some(space) = args.get(2) {
             let space = if let Some(space_obj) = space.as_object() {
                 if let Some(space) = space_obj.borrow().as_number() {
-                    Value::from(space)
+                    JsValue::new(space)
                 } else if let Some(space) = space_obj.borrow().as_string() {
-                    Value::from(space)
+                    JsValue::new(space)
                 } else {
                     space.clone()
                 }
@@ -165,14 +169,14 @@ impl Json {
                     IntegerOrInfinity::Integer(i) if i < 1 => 0,
                     IntegerOrInfinity::Integer(i) => std::cmp::min(i, 10) as usize,
                 };
-                Value::from(&SPACE_INDENT[..space_mv])
+                JsValue::new(&SPACE_INDENT[..space_mv])
             } else if let Some(string) = space.as_string() {
-                Value::from(&string[..std::cmp::min(string.len(), 10)])
+                JsValue::new(&string[..std::cmp::min(string.len(), 10)])
             } else {
-                Value::from("")
+                JsValue::new("")
             }
         } else {
-            Value::from("")
+            JsValue::new("")
         };
 
         let gap = &gap.to_string(context)?;
@@ -181,9 +185,9 @@ impl Json {
             Some(replacer) if replacer.is_object() => replacer,
             _ => {
                 if let Some(value) = object.to_json(context)? {
-                    return Ok(Value::from(json_to_pretty_string(&value, gap)));
+                    return Ok(JsValue::new(json_to_pretty_string(&value, gap)));
                 } else {
-                    return Ok(Value::undefined());
+                    return Ok(JsValue::undefined());
                 }
             }
         };
@@ -195,7 +199,7 @@ impl Json {
             object
                 .as_object()
                 .map(|obj| {
-                    let object_to_return = Value::object(Object::default());
+                    let object_to_return = JsValue::new(Object::default());
                     for key in obj.borrow().properties().keys() {
                         let val = obj.__get__(&key, obj.clone().into(), context)?;
                         let this_arg = object.clone();
@@ -205,7 +209,7 @@ impl Json {
                                 .value(context.call(
                                     replacer,
                                     &this_arg,
-                                    &[Value::from(key.clone()), val.clone()],
+                                    &[JsValue::new(key.clone()), val.clone()],
                                 )?)
                                 .writable(true)
                                 .enumerable(true)
@@ -213,12 +217,12 @@ impl Json {
                         )
                     }
                     if let Some(value) = object_to_return.to_json(context)? {
-                        Ok(Value::from(json_to_pretty_string(&value, gap)))
+                        Ok(JsValue::new(json_to_pretty_string(&value, gap)))
                     } else {
-                        Ok(Value::undefined())
+                        Ok(JsValue::undefined())
                     }
                 })
-                .ok_or_else(Value::undefined)?
+                .ok_or_else(JsValue::undefined)?
         } else if replacer_as_object.is_array() {
             let mut obj_to_return = serde_json::Map::new();
             let replacer_as_object = replacer_as_object.borrow();
@@ -245,14 +249,14 @@ impl Json {
                     }
                 }
             }
-            Ok(Value::from(json_to_pretty_string(
+            Ok(JsValue::new(json_to_pretty_string(
                 &JSONValue::Object(obj_to_return),
                 gap,
             )))
         } else if let Some(value) = object.to_json(context)? {
-            Ok(Value::from(json_to_pretty_string(&value, gap)))
+            Ok(JsValue::new(json_to_pretty_string(&value, gap)))
         } else {
-            Ok(Value::undefined())
+            Ok(JsValue::undefined())
         }
     }
 }
