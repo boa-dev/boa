@@ -364,7 +364,7 @@ impl Context {
     where
         M: Into<Box<str>>,
     {
-        // Runs a `new RangeError(message)`.
+        // Runs a `new Error(message)`.
         New::from(Call::new(
             Identifier::from("Error"),
             vec![Const::from(message.into()).into()],
