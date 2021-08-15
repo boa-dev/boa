@@ -17,9 +17,9 @@ impl JsValue {
     /// Get the type of a value
     ///
     /// This is the abstract operation Type(v), as described in
-    /// <https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-ecmascript-language-types>
-    /// so it treats `Type::Function` objects and `Type::Object` objects as `Type::Object`.
-    /// If you instead need to call the `typeof` operator, check [`Value::type_of`]
+    /// <https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-ecmascript-language-types>.
+    ///
+    /// Check [JsValue::type_of] if you need to call the `typeof` operator.
     pub fn get_type(&self) -> Type {
         match *self {
             Self::Rational(_) | Self::Integer(_) => Type::Number,
