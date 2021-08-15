@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libgit2-sys-0.12.21+1.1.0/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libgit2-sys-0.12.22+1.1.0/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../libgit2_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
@@ -4035,6 +4035,36 @@
 <span id="4033">4033</span>
 <span id="4034">4034</span>
 <span id="4035">4035</span>
+<span id="4036">4036</span>
+<span id="4037">4037</span>
+<span id="4038">4038</span>
+<span id="4039">4039</span>
+<span id="4040">4040</span>
+<span id="4041">4041</span>
+<span id="4042">4042</span>
+<span id="4043">4043</span>
+<span id="4044">4044</span>
+<span id="4045">4045</span>
+<span id="4046">4046</span>
+<span id="4047">4047</span>
+<span id="4048">4048</span>
+<span id="4049">4049</span>
+<span id="4050">4050</span>
+<span id="4051">4051</span>
+<span id="4052">4052</span>
+<span id="4053">4053</span>
+<span id="4054">4054</span>
+<span id="4055">4055</span>
+<span id="4056">4056</span>
+<span id="4057">4057</span>
+<span id="4058">4058</span>
+<span id="4059">4059</span>
+<span id="4060">4060</span>
+<span id="4061">4061</span>
+<span id="4062">4062</span>
+<span id="4063">4063</span>
+<span id="4064">4064</span>
+<span id="4065">4065</span>
 </pre><pre class="rust">
 <span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/libgit2-sys/0.12&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">non_camel_case_types</span>, <span class="ident">unused_extern_crates</span>)]</span>
@@ -5930,6 +5960,33 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">git_repository_mergehead_foreach_cb</span> <span class="op">=</span>
     <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">oid</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_oid</span>, <span class="ident">payload</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span><span class="op">&gt;</span>;
 
+<span class="macro">git_enum!</span> {
+    <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">git_trace_level_t</span> {
+        <span class="comment">/* No tracing will be performed. */</span>
+        <span class="ident">GIT_TRACE_NONE</span> <span class="op">=</span> <span class="number">0</span>,
+
+        <span class="comment">/* Severe errors that may impact the program&#39;s execution */</span>
+        <span class="ident">GIT_TRACE_FATAL</span> <span class="op">=</span> <span class="number">1</span>,
+
+        <span class="comment">/* Errors that do not impact the program&#39;s execution */</span>
+        <span class="ident">GIT_TRACE_ERROR</span> <span class="op">=</span> <span class="number">2</span>,
+
+        <span class="comment">/* Warnings that suggest abnormal data */</span>
+        <span class="ident">GIT_TRACE_WARN</span> <span class="op">=</span> <span class="number">3</span>,
+
+        <span class="comment">/* Informational messages about program execution */</span>
+        <span class="ident">GIT_TRACE_INFO</span> <span class="op">=</span> <span class="number">4</span>,
+
+        <span class="comment">/* Detailed data that allows for debugging */</span>
+        <span class="ident">GIT_TRACE_DEBUG</span> <span class="op">=</span> <span class="number">5</span>,
+
+        <span class="comment">/* Exceptionally detailed debugging data */</span>
+        <span class="ident">GIT_TRACE_TRACE</span> <span class="op">=</span> <span class="number">6</span>,
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">git_trace_cb</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">level</span>: <span class="ident">git_trace_level_t</span>, <span class="ident">msg</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>)<span class="op">&gt;</span>;
+
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="comment">// threads</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_libgit2_init</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
@@ -6778,6 +6835,7 @@
         <span class="ident">force</span>: <span class="ident">c_int</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_branch_name</span>(<span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>, <span class="ident">branch</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">git_reference</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_branch_name_is_valid</span>(<span class="ident">valid</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_int</span>, <span class="ident">name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_branch_remote_name</span>(
         <span class="ident">out</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_buf</span>,
         <span class="ident">repo</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">git_repository</span>,
@@ -8023,6 +8081,8 @@
         <span class="ident">replace_name</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
         <span class="ident">replace_email</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">git_trace_set</span>(<span class="ident">level</span>: <span class="ident">git_trace_level_t</span>, <span class="ident">cb</span>: <span class="ident">git_trace_cb</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>() {
