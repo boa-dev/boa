@@ -24,6 +24,8 @@ use crate::{
     BoaProfiler, Context, Result,
 };
 
+use super::Array;
+
 pub mod for_in_iterator;
 #[cfg(test)]
 mod tests;
@@ -61,6 +63,7 @@ impl BuiltIn for Object {
         .static_method(Self::define_properties, "defineProperties", 2)
         .static_method(Self::assign, "assign", 2)
         .static_method(Self::is, "is", 2)
+        .static_method(Self::keys, "keys", 1)
         .static_method(
             Self::get_own_property_descriptor,
             "getOwnPropertyDescriptor",
@@ -581,5 +584,39 @@ impl Object {
 
         // 4. Return to.
         Ok(to.into())
+    }
+
+    /// `Object.keys( target )`
+    ///
+    /// This method returns an array of a given object's own enumerable
+    /// property names, iterated in the same order that a normal loop would.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.keys
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
+    pub fn keys(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+        //
+        //
+        // 1. Let obj be ? ToObject(target).
+        let obj = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_object(context)?;
+
+        // 2. Let nameList be ? EnumerableOwnPropertyNames(obj, key).
+        let name_list = obj.enumerable_own_property_names(true, false, context)?;
+
+        // 3. Return CreateArrayFromList(nameList).
+        // TODO: Implement https://tc39.es/ecma262/#sec-createarrayfromlist
+        let result = Array::array_create(name_list.len(), None, context)?;
+        for (index, name) in name_list.iter().enumerate() {
+            result.set(index, name, false, context)?;
+        }
+
+        Ok(JsValue::Object(result))
     }
 }
