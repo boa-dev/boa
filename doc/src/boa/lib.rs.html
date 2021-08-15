@@ -152,6 +152,13 @@
 <span id="152">152</span>
 <span id="153">153</span>
 <span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
 </pre><pre class="rust">
 <span class="doccomment">/*!
 This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it has support for some of the language.
@@ -216,6 +223,13 @@ This is an experimental Javascript lexer, parser and compiler written in Rust. C
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bytecompiler</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;vm&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">vm</span>;
+
+<span class="doccomment">/// A convenience module that re-exports the most commonly-used Boa APIs</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">prelude</span> {
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="kw">crate</span>::{
+        <span class="ident">object::GcObject</span> <span class="kw">as</span> <span class="ident">JsObject</span>, <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">JsResult</span>,
+    };
+}
 
 <span class="kw">use</span> <span class="ident">std::result::Result</span> <span class="kw">as</span> <span class="ident">StdResult</span>;
 
