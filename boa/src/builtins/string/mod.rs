@@ -131,6 +131,7 @@ impl BuiltIn for String {
         .method(Self::value_of, "valueOf", 0)
         .method(Self::match_all, "matchAll", 1)
         .method(Self::replace, "replace", 2)
+        .method(Self::replace_all, "replaceAll", 2)
         .method(Self::iterator, (symbol_iterator, "[Symbol.iterator]"), 0)
         .method(Self::search, "search", 1)
         .method(Self::at, "at", 1)
@@ -744,15 +745,17 @@ impl String {
         let search_length = search_str.len();
 
         // 8. Let position be ! StringIndexOf(string, searchString, 0).
-        let position = this_str.find(search_str.as_str());
-
         // 9. If position is -1, return string.
-        if position.is_none() {
+        let position = if let Some(p) = this_str.index_of(&search_str, 0) {
+            p
+        } else {
             return Ok(this_str.into());
-        }
+        };
 
         // 10. Let preserved be the substring of string from 0 to position.
-        let preserved = this_str.get(..position.unwrap());
+        let preserved = StdString::from_utf16_lossy(
+            &this_str.encode_utf16().take(position).collect::<Vec<u16>>(),
+        );
 
         // 11. If functionalReplace is true, then
         // 12. Else,
@@ -762,11 +765,7 @@ impl String {
                 .call(
                     &replace_value,
                     &JsValue::undefined(),
-                    &[
-                        search_str.into(),
-                        position.unwrap().into(),
-                        this_str.clone().into(),
-                    ],
+                    &[search_str.into(), position.into(), this_str.clone().into()],
                 )?
                 .to_string(context)?
         } else {
@@ -778,7 +777,7 @@ impl String {
             get_substitution(
                 search_str.to_string(),
                 this_str.to_string(),
-                position.unwrap(),
+                position,
                 captures,
                 JsValue::undefined(),
                 replace_value.to_string(context)?,
@@ -789,13 +788,187 @@ impl String {
         // 13. Return the string-concatenation of preserved, replacement, and the substring of string from position + searchLength.
         Ok(format!(
             "{}{}{}",
-            preserved.unwrap_or_default(),
+            preserved,
             replacement,
-            this_str
-                .get((position.unwrap() + search_length)..)
-                .unwrap_or_default()
+            StdString::from_utf16_lossy(
+                &this_str
+                    .encode_utf16()
+                    .skip(position + search_length)
+                    .collect::<Vec<u16>>()
+            )
         )
         .into())
+    }
+
+    /// `22.1.3.18 String.prototype.replaceAll ( searchValue, replaceValue )`
+    ///
+    /// The replaceAll() method returns a new string with all matches of a pattern replaced by a replacement.
+    ///
+    /// The pattern can be a string or a RegExp, and the replacement can be a string or a function to be called for each match.
+    ///
+    /// The original string is left unchanged.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.replaceall
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace
+    pub(crate) fn replace_all(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> Result<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
+        let o = this.require_object_coercible(context)?;
+
+        let search_value = args.get(0).cloned().unwrap_or_default();
+        let replace_value = args.get(1).cloned().unwrap_or_default();
+
+        // 2. If searchValue is neither undefined nor null, then
+        if !search_value.is_null_or_undefined() {
+            // a. Let isRegExp be ? IsRegExp(searchValue).
+            if let Some(obj) = search_value.as_object() {
+                // b. If isRegExp is true, then
+                if obj.is_regexp() {
+                    // i. Let flags be ? Get(searchValue, "flags").
+                    let flags = obj.get("flags", context)?;
+
+                    // ii. Perform ? RequireObjectCoercible(flags).
+                    flags.require_object_coercible(context)?;
+
+                    // iii. If ? ToString(flags) does not contain "g", throw a TypeError exception.
+                    if !flags.to_string(context)?.contains('g') {
+                        return context.throw_type_error(
+                            "String.prototype.replaceAll called with a non-global RegExp argument",
+                        );
+                    }
+                }
+            }
+
+            // c. Let replacer be ? GetMethod(searchValue, @@replace).
+            let replacer = search_value
+                .as_object()
+                .unwrap_or_default()
+                .get_method(context, WellKnownSymbols::replace())?;
+
+            // d. If replacer is not undefined, then
+            if let Some(replacer) = replacer {
+                // i. Return ? Call(replacer, searchValue, « O, replaceValue »).
+                return context.call(&replacer.into(), &search_value, &[o.into(), replace_value]);
+            }
+        }
+
+        // 3. Let string be ? ToString(O).
+        let string = o.to_string(context)?;
+
+        // 4. Let searchString be ? ToString(searchValue).
+        let search_string = search_value.to_string(context)?;
+
+        // 5. Let functionalReplace be IsCallable(replaceValue).
+        let functional_replace = replace_value.is_function();
+
+        // 6. If functionalReplace is false, then
+        let replace_value_string = if !functional_replace {
+            // a. Set replaceValue to ? ToString(replaceValue).
+            replace_value.to_string(context)?
+        } else {
+            JsString::new("")
+        };
+
+        // 7. Let searchLength be the length of searchString.
+        let search_length = search_string.encode_utf16().count();
+
+        // 8. Let advanceBy be max(1, searchLength).
+        let advance_by = max(1, search_length);
+
+        // 9. Let matchPositions be a new empty List.
+        let mut match_positions = Vec::new();
+
+        // 10. Let position be ! StringIndexOf(string, searchString, 0).
+        let mut position = string.index_of(&search_string, 0);
+
+        // 11. Repeat, while position is not -1,
+        while let Some(p) = position {
+            // a. Append position to the end of matchPositions.
+            match_positions.push(p);
+
+            // b. Set position to ! StringIndexOf(string, searchString, position + advanceBy).
+            position = string.index_of(&search_string, p + advance_by);
+        }
+
+        // 12. Let endOfLastMatch be 0.
+        let mut end_of_last_match = 0;
+
+        // 13. Let result be the empty String.
+        let mut result = JsString::new("");
+
+        // 14. For each element p of matchPositions, do
+        for p in match_positions {
+            // a. Let preserved be the substring of string from endOfLastMatch to p.
+            let preserved = StdString::from_utf16_lossy(
+                &string
+                    .clone()
+                    .encode_utf16()
+                    .skip(end_of_last_match)
+                    .take(p - end_of_last_match)
+                    .collect::<Vec<u16>>(),
+            );
+
+            // b. If functionalReplace is true, then
+            // c. Else,
+            let replacement = if functional_replace {
+                // i. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(p), string »)).
+                context
+                    .call(
+                        &replace_value,
+                        &JsValue::undefined(),
+                        &[
+                            search_string.clone().into(),
+                            p.into(),
+                            string.clone().into(),
+                        ],
+                    )?
+                    .to_string(context)?
+            } else {
+                // i. Assert: Type(replaceValue) is String.
+                // ii. Let captures be a new empty List.
+                // iii. Let replacement be ! GetSubstitution(searchString, string, p, captures, undefined, replaceValue).
+                get_substitution(
+                    search_string.to_string(),
+                    string.to_string(),
+                    p,
+                    Vec::new(),
+                    JsValue::undefined(),
+                    replace_value_string.clone(),
+                    context,
+                )
+                .expect("GetSubstitution should never fail here.")
+            };
+            // d. Set result to the string-concatenation of result, preserved, and replacement.
+            result = JsString::new(format!("{}{}{}", result.as_str(), &preserved, &replacement));
+
+            // e. Set endOfLastMatch to p + searchLength.
+            end_of_last_match = p + search_length;
+        }
+
+        // 15. If endOfLastMatch < the length of string, then
+        if end_of_last_match < string.encode_utf16().count() {
+            // a. Set result to the string-concatenation of result and the substring of string from endOfLastMatch.
+            result = JsString::new(format!(
+                "{}{}",
+                result.as_str(),
+                &StdString::from_utf16_lossy(
+                    &string
+                        .encode_utf16()
+                        .skip(end_of_last_match)
+                        .collect::<Vec<u16>>()
+                )
+            ));
+        }
+
+        // 16. Return result.
+        Ok(result.into())
     }
 
     /// `String.prototype.indexOf( searchValue[, fromIndex] )`
@@ -1619,12 +1792,12 @@ pub(crate) fn get_substitution(
     // 1. Assert: Type(matched) is String.
 
     // 2. Let matchLength be the number of code units in matched.
-    let match_length = matched.chars().count();
+    let match_length = matched.encode_utf16().count();
 
     // 3. Assert: Type(str) is String.
 
     // 4. Let stringLength be the number of code units in str.
-    let str_length = str.chars().count();
+    let str_length = str.encode_utf16().count();
 
     // 5. Assert: position ≤ stringLength.
     // 6. Assert: captures is a possibly empty List of Strings.
@@ -1665,16 +1838,18 @@ pub(crate) fn get_substitution(
                 // $`
                 (Some('`'), _) => {
                     // The replacement is the substring of str from 0 to position.
-                    result.push_str(&str[..position]);
+                    result.push_str(&StdString::from_utf16_lossy(
+                        &str.encode_utf16().take(position).collect::<Vec<u16>>(),
+                    ));
                 }
                 // $'
                 (Some('\''), _) => {
                     // If tailPos ≥ stringLength, the replacement is the empty String.
                     // Otherwise the replacement is the substring of str from tailPos.
-                    if tail_pos >= str_length {
-                        result.push_str("");
-                    } else {
-                        result.push_str(&str[tail_pos..]);
+                    if tail_pos < str_length {
+                        result.push_str(&StdString::from_utf16_lossy(
+                            &str.encode_utf16().skip(tail_pos).collect::<Vec<u16>>(),
+                        ));
                     }
                 }
                 // $nn
