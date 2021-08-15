@@ -855,7 +855,7 @@ impl String {
             // d. If replacer is not undefined, then
             if let Some(replacer) = replacer {
                 // i. Return ? Call(replacer, searchValue, « O, replaceValue »).
-                return context.call(&replacer.into(), &search_value, &[o.into(), replace_value]);
+                return replacer.call(&search_value, &[o.into(), replace_value], context);
             }
         }
 
