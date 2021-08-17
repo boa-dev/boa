@@ -53,9 +53,9 @@
     <span class="doccomment">/// Get the type of a value</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is the abstract operation Type(v), as described in</span>
-    <span class="doccomment">/// &lt;https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-ecmascript-language-types&gt;</span>
-    <span class="doccomment">/// so it treats `Type::Function` objects and `Type::Object` objects as `Type::Object`.</span>
-    <span class="doccomment">/// If you instead need to call the `typeof` operator, check [`Value::type_of`]</span>
+    <span class="doccomment">/// &lt;https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-ecmascript-language-types&gt;.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Check [JsValue::type_of] if you need to call the `typeof` operator.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Type</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="self">Self</span><span class="ident">::Rational</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="self">Self</span><span class="ident">::Integer</span>(<span class="kw">_</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Type::Number</span>,
