@@ -446,6 +446,56 @@
 <span id="446">446</span>
 <span id="447">447</span>
 <span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::gc</span>::{<span class="ident">empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -634,6 +684,56 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ptr_eq</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="ident">x</span>.<span class="ident">inner</span> <span class="op">=</span><span class="op">=</span> <span class="ident">y</span>.<span class="ident">inner</span>
+    }
+
+    <span class="doccomment">/// `6.1.4.1 StringIndexOf ( string, searchValue, fromIndex )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note: Instead of returning an isize with `-1` as the &quot;not found&quot; value,</span>
+    <span class="doccomment">/// We make use of the type system and return Option&lt;usize&gt; with None as the &quot;not found&quot; value.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-stringindexof</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">index_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">search_value</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">from_index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Assert: Type(string) is String.</span>
+        <span class="comment">// 2. Assert: Type(searchValue) is String.</span>
+        <span class="comment">// 3. Assert: fromIndex is a non-negative integer.</span>
+
+        <span class="comment">// 4. Let len be the length of string.</span>
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+
+        <span class="comment">// 5. If searchValue is the empty String and fromIndex ≤ len, return fromIndex.</span>
+        <span class="kw">if</span> <span class="ident">search_value</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="ident">from_index</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span> {
+            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">from_index</span>);
+        }
+
+        <span class="comment">// 6. Let searchLen be the length of searchValue.</span>
+        <span class="kw">let</span> <span class="ident">search_len</span> <span class="op">=</span> <span class="ident">search_value</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+
+        <span class="comment">// 7. For each integer i starting with fromIndex such that i ≤ len - searchLen, in ascending order, do</span>
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">from_index</span>..<span class="op">=</span><span class="ident">len</span> {
+            <span class="kw">if</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">isize</span> <span class="op">&gt;</span> (<span class="ident">len</span> <span class="kw">as</span> <span class="ident">isize</span> <span class="op">-</span> <span class="ident">search_len</span> <span class="kw">as</span> <span class="ident">isize</span>) {
+                <span class="kw">break</span>;
+            }
+
+            <span class="comment">// a. Let candidate be the substring of string from i to i + searchLen.</span>
+            <span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">String::from_utf16_lossy</span>(
+                <span class="kw-2">&amp;</span><span class="self">self</span>
+                    .<span class="ident">encode_utf16</span>()
+                    .<span class="ident">skip</span>(<span class="ident">i</span>)
+                    .<span class="ident">take</span>(<span class="ident">search_len</span>)
+                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+            );
+
+            <span class="comment">// b. If candidate is the same sequence of code units as searchValue, return i.</span>
+            <span class="kw">if</span> <span class="ident">candidate</span> <span class="op">=</span><span class="op">=</span> <span class="ident">search_value</span>.<span class="ident">as_str</span>() {
+                <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>);
+            }
+        }
+
+        <span class="comment">// 8. Return -1.</span>
+        <span class="prelude-val">None</span>
     }
 }
 
