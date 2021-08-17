@@ -179,7 +179,7 @@ impl Number {
         this.as_object()
             .expect("this should be an object")
             .set_prototype_instance(prototype.into());
-        this.set_data(ObjectData::Number(data));
+        this.set_data(ObjectData::number(data));
 
         Ok(this)
     }

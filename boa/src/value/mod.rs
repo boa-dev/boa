@@ -131,7 +131,7 @@ impl JsValue {
             JSONValue::Array(vs) => {
                 let array_prototype = context.standard_objects().array_object().prototype();
                 let new_obj: JsValue =
-                    Object::with_prototype(array_prototype.into(), ObjectData::Array).into();
+                    Object::with_prototype(array_prototype.into(), ObjectData::array()).into();
                 let length = vs.len();
                 for (idx, json) in vs.into_iter().enumerate() {
                     new_obj.set_property(
@@ -357,7 +357,8 @@ impl JsValue {
         let _timer = BoaProfiler::global().start_event("Value::get_property", "value");
         match self {
             Self::Object(ref object) => {
-                let property = object.__get_own_property__(&key);
+                // TODO: had to skip `__get_own_properties__` since we don't have context here
+                let property = object.borrow().properties().get(&key).cloned();
                 if property.is_some() {
                     return property;
                 }
@@ -390,8 +391,9 @@ impl JsValue {
         K: Into<PropertyKey>,
     {
         let _timer = BoaProfiler::global().start_event("Value::has_field", "value");
+        // todo: call `__has_property__` instead of directly getting from object
         self.as_object()
-            .map(|object| object.__has_property__(&key.into()))
+            .map(|object| object.borrow().properties().contains_key(&key.into()))
             .unwrap_or(false)
     }
 
@@ -597,21 +599,21 @@ impl JsValue {
                 let prototype = context.standard_objects().boolean_object().prototype();
                 Ok(JsObject::new(Object::with_prototype(
                     prototype.into(),
-                    ObjectData::Boolean(*boolean),
+                    ObjectData::boolean(*boolean),
                 )))
             }
             JsValue::Integer(integer) => {
                 let prototype = context.standard_objects().number_object().prototype();
                 Ok(JsObject::new(Object::with_prototype(
                     prototype.into(),
-                    ObjectData::Number(f64::from(*integer)),
+                    ObjectData::number(f64::from(*integer)),
                 )))
             }
             JsValue::Rational(rational) => {
                 let prototype = context.standard_objects().number_object().prototype();
                 Ok(JsObject::new(Object::with_prototype(
                     prototype.into(),
-                    ObjectData::Number(*rational),
+                    ObjectData::number(*rational),
                 )))
             }
             JsValue::String(ref string) => {
@@ -619,7 +621,7 @@ impl JsValue {
 
                 let object = JsObject::new(Object::with_prototype(
                     prototype.into(),
-                    ObjectData::String(string.clone()),
+                    ObjectData::string(string.clone()),
                 ));
                 // Make sure the correct length is set on our new string object
                 object.insert_property(
@@ -636,14 +638,14 @@ impl JsValue {
                 let prototype = context.standard_objects().symbol_object().prototype();
                 Ok(JsObject::new(Object::with_prototype(
                     prototype.into(),
-                    ObjectData::Symbol(symbol.clone()),
+                    ObjectData::symbol(symbol.clone()),
                 )))
             }
             JsValue::BigInt(ref bigint) => {
                 let prototype = context.standard_objects().bigint_object().prototype();
                 Ok(JsObject::new(Object::with_prototype(
                     prototype.into(),
-                    ObjectData::BigInt(bigint.clone()),
+                    ObjectData::big_int(bigint.clone()),
                 )))
             }
             JsValue::Object(jsobject) => Ok(jsobject.clone()),

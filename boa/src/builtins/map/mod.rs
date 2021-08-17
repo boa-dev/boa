@@ -167,7 +167,7 @@ impl Map {
 
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
-        this.set_data(ObjectData::Map(data));
+        this.set_data(ObjectData::map(data));
 
         Ok(this)
     }
@@ -339,7 +339,7 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/clear
     pub(crate) fn clear(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
-        this.set_data(ObjectData::Map(OrderedMap::new()));
+        this.set_data(ObjectData::map(OrderedMap::new()));
 
         Self::set_size(this, 0);
 

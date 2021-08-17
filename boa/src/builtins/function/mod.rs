@@ -177,7 +177,10 @@ impl Function {
 /// Arguments.
 ///
 /// <https://tc39.es/ecma262/#sec-createunmappedargumentsobject>
-pub fn create_unmapped_arguments_object(arguments_list: &[JsValue]) -> JsValue {
+pub fn create_unmapped_arguments_object(
+    arguments_list: &[JsValue],
+    context: &mut Context,
+) -> JsResult<JsValue> {
     let len = arguments_list.len();
     let obj = JsObject::new(Object::default());
     // Set length
@@ -187,7 +190,12 @@ pub fn create_unmapped_arguments_object(arguments_list: &[JsValue]) -> JsValue {
         .enumerable(false)
         .configurable(true);
     // Define length as a property
-    obj.ordinary_define_own_property("length".into(), length.into());
+    crate::object::internal_methods::ordinary_define_own_property(
+        &obj,
+        "length".into(),
+        length.into(),
+        context,
+    )?;
     let mut index: usize = 0;
     while index < len {
         let val = arguments_list.get(index).expect("Could not get argument");
@@ -201,7 +209,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[JsValue]) -> JsValue {
         index += 1;
     }
 
-    JsValue::new(obj)
+    Ok(JsValue::new(obj))
 }
 
 /// Creates a new member function of a `Object` or `prototype`.
@@ -288,7 +296,7 @@ impl BuiltInFunctionObject {
             .expect("this should be an object")
             .set_prototype_instance(prototype.into());
 
-        this.set_data(ObjectData::Function(Function::Native {
+        this.set_data(ObjectData::function(Function::Native {
             function: BuiltInFunction(|_, _, _| Ok(JsValue::undefined())),
             constructable: true,
         }));

@@ -137,7 +137,7 @@ impl Set {
 
         let set = JsValue::new(obj);
         // 3
-        set.set_data(ObjectData::Set(OrderedSet::default()));
+        set.set_data(ObjectData::set(OrderedSet::default()));
 
         let iterable = args.get(0).cloned().unwrap_or_default();
         // 4
@@ -237,7 +237,7 @@ impl Set {
     pub(crate) fn clear(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if let Some(object) = this.as_object() {
             if object.borrow().is_set() {
-                this.set_data(ObjectData::Set(OrderedSet::new()));
+                this.set_data(ObjectData::set(OrderedSet::new()));
                 Ok(JsValue::undefined())
             } else {
                 context.throw_type_error("'this' is not a Set")

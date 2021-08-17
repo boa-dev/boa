@@ -227,11 +227,12 @@ impl Array {
         array.set_prototype_instance(prototype.into());
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
-        array.borrow_mut().data = ObjectData::Array;
+        array.borrow_mut().data = ObjectData::array();
 
         // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
 
-        array.ordinary_define_own_property(
+        crate::object::internal_methods::ordinary_define_own_property(
+            &array,
             "length".into(),
             PropertyDescriptor::builder()
                 .value(length)
@@ -239,7 +240,8 @@ impl Array {
                 .enumerable(false)
                 .configurable(false)
                 .build(),
-        );
+            context,
+        )?;
 
         Ok(array)
     }
@@ -274,7 +276,7 @@ impl Array {
     /// Creates a new `Array` instance.
     pub(crate) fn new_array(context: &Context) -> JsValue {
         let array = JsValue::new_object(context);
-        array.set_data(ObjectData::Array);
+        array.set_data(ObjectData::array());
         array
             .as_object()
             .expect("'array' should be an object")

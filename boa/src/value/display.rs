@@ -1,3 +1,5 @@
+use crate::object::ObjectKind;
+
 use super::*;
 
 /// This object is used for displaying a `Value`.
@@ -86,20 +88,22 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
         JsValue::Object(ref v) => {
             // Can use the private "type" field of an Object to match on
             // which type of Object it represents for special printing
-            match v.borrow().data {
-                ObjectData::String(ref string) => format!("String {{ \"{}\" }}", string),
-                ObjectData::Boolean(boolean) => format!("Boolean {{ {} }}", boolean),
-                ObjectData::Number(rational) => {
-                    if rational.is_sign_negative() && rational == 0.0 {
+            match v.borrow().kind() {
+                ObjectKind::String(ref string) => format!("String {{ \"{}\" }}", string),
+                ObjectKind::Boolean(boolean) => format!("Boolean {{ {} }}", boolean),
+                ObjectKind::Number(rational) => {
+                    if rational.is_sign_negative() && *rational == 0.0 {
                         "Number { -0 }".to_string()
                     } else {
                         let mut buffer = ryu_js::Buffer::new();
-                        format!("Number {{ {} }}", buffer.format(rational))
+                        format!("Number {{ {} }}", buffer.format(*rational))
                     }
                 }
-                ObjectData::Array => {
+                ObjectKind::Array => {
                     let len = v
-                        .__get_own_property__(&PropertyKey::from("length"))
+                        .borrow()
+                        .properties()
+                        .get(&PropertyKey::from("length"))
                         // TODO: do this in a better way `unwrap`
                         .unwrap()
                         // FIXME: handle accessor descriptors
@@ -118,8 +122,9 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                                 // Introduce recursive call to stringify any objects
                                 // which are part of the Array
                                 log_string_from(
-                                    v.__get_own_property__(&i.into())
-                                        .as_ref()
+                                    v.borrow()
+                                        .properties()
+                                        .get(&i.into())
                                         // FIXME: handle accessor descriptors
                                         .and_then(|p| p.value())
                                         .unwrap_or(&JsValue::Undefined),
@@ -135,7 +140,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                         format!("Array({})", len)
                     }
                 }
-                ObjectData::Map(ref map) => {
+                ObjectKind::Map(ref map) => {
                     let size = map.len();
                     if size == 0 {
                         return String::from("Map(0)");
@@ -156,7 +161,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                         format!("Map({})", size)
                     }
                 }
-                ObjectData::Set(ref set) => {
+                ObjectKind::Set(ref set) => {
                     let size = set.size();
 
                     if size == 0 {

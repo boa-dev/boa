@@ -80,7 +80,7 @@ impl UriError {
 
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
-        this.set_data(ObjectData::Error);
+        this.set_data(ObjectData::error());
         Ok(this)
     }
 }

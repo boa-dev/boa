@@ -14,7 +14,7 @@ pub mod string_iterator;
 mod tests;
 
 use crate::builtins::Symbol;
-use crate::object::PROTOTYPE;
+use crate::object::{JsObject, PROTOTYPE};
 use crate::{
     builtins::{string::string_iterator::StringIterator, Array, BuiltIn, RegExp},
     object::{ConstructorBuilder, ObjectData},
@@ -176,6 +176,8 @@ impl String {
         if new_target.is_undefined() {
             return Ok(string.into());
         }
+
+        // todo: extract `GetPrototypeFromConstructor` function
         let prototype = new_target
             .as_object()
             .and_then(|obj| {
@@ -185,24 +187,28 @@ impl String {
             })
             .transpose()?
             .unwrap_or_else(|| context.standard_objects().object_object().prototype());
-        let this = JsValue::new_object(context);
+        Ok(Self::string_create(string, prototype, context).into())
+    }
 
-        this.as_object()
-            .expect("this should be an object")
-            .set_prototype_instance(prototype.into());
+    fn string_create(value: JsString, prototype: JsObject, context: &mut Context) -> JsObject {
+        let s = context.construct_object();
 
-        this.set_property(
+        s.set_prototype_instance(prototype.into());
+
+        s.define_property_or_throw(
             "length",
             PropertyDescriptor::builder()
-                .value(string.encode_utf16().count())
+                .value(value.encode_utf16().count())
                 .writable(false)
                 .enumerable(false)
                 .configurable(false),
-        );
+            context,
+        )
+        .expect("length definition for a new string must not fail");
 
-        this.set_data(ObjectData::String(string));
+        s.borrow_mut().data = ObjectData::string(value);
 
-        Ok(this)
+        s
     }
 
     fn this_string_value(this: &JsValue, context: &mut Context) -> JsResult<JsString> {

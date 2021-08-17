@@ -28,11 +28,12 @@ use std::{
 mod tests;
 
 mod gcobject;
-mod internal_methods;
+pub(crate) mod internal_methods;
 mod property_map;
 
 use crate::builtins::object::for_in_iterator::ForInIterator;
 pub use gcobject::{JsObject, RecursionLimiter, Ref, RefMut};
+use internal_methods::InternalObjectMethods;
 pub use property_map::*;
 
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
@@ -74,8 +75,15 @@ pub struct Object {
 }
 
 /// Defines the different types of objects.
+#[derive(Trace, Finalize)]
+pub struct ObjectData {
+    kind: ObjectKind,
+    #[unsafe_ignore_trace]
+    internal_methods: InternalObjectMethods,
+}
+
 #[derive(Debug, Trace, Finalize)]
-pub enum ObjectData {
+pub enum ObjectKind {
     Array,
     ArrayIterator(ArrayIterator),
     Map(OrderedMap<JsValue>),
@@ -99,7 +107,144 @@ pub enum ObjectData {
     NativeObject(Box<dyn NativeObject>),
 }
 
-impl Display for ObjectData {
+impl ObjectData {
+    pub fn array() -> Self {
+        Self {
+            kind: ObjectKind::Array,
+            internal_methods: InternalObjectMethods {
+                __define_own_property__: internal_methods::array::array_define_own_property,
+                ..Default::default()
+            },
+        }
+    }
+
+    pub fn array_iterator(array_iterator: ArrayIterator) -> Self {
+        Self {
+            kind: ObjectKind::ArrayIterator(array_iterator),
+            internal_methods: InternalObjectMethods::default(),
+        }
+    }
+    pub fn map(map: OrderedMap<JsValue>) -> Self {
+        Self {
+            kind: ObjectKind::Map(map),
+            internal_methods: InternalObjectMethods::default(),
+        }
+    }
+    pub fn map_iterator(map_iterator: MapIterator) -> Self {
+        Self {
+            kind: ObjectKind::MapIterator(map_iterator),
+            internal_methods: InternalObjectMethods::default(),
+        }
+    }
+    pub fn reg_exp(reg_exp: Box<RegExp>) -> Self {
+        Self {
+            kind: ObjectKind::RegExp(reg_exp),
+            internal_methods: InternalObjectMethods::default(),
+        }
+    }
+    pub fn reg_exp_string_iterator(reg_exp_string_iterator: RegExpStringIterator) -> Self {
+        Self {
+            kind: ObjectKind::RegExpStringIterator(reg_exp_string_iterator),
+            internal_methods: InternalObjectMethods::default(),
+        }
+    }
+    pub fn big_int(big_int: JsBigInt) -> Self {
+        Self {
+            kind: ObjectKind::BigInt(big_int),
+            internal_methods: InternalObjectMethods::default(),
+        }
+    }
+    pub fn boolean(boolean: bool) -> Self {
+        Self {
+            kind: ObjectKind::Boolean(boolean),
+            internal_methods: InternalObjectMethods::default(),
+        }
+    }
+    pub fn for_in_iterator(for_in_iterator: ForInIterator) -> Self {
+        Self {
+            kind: ObjectKind::ForInIterator(for_in_iterator),
+            internal_methods: InternalObjectMethods::default(),
+        }
+    }
+    pub fn function(function: Function) -> Self {
+        Self {
+            kind: ObjectKind::Function(function),
+            internal_methods: InternalObjectMethods::default(),
+        }
+    }
+    pub fn set(set: OrderedSet<JsValue>) -> Self {
+        Self {
+            kind: ObjectKind::Set(set),
+            internal_methods: InternalObjectMethods::default(),
+        }
+    }
+    pub fn set_iterator(set_iterator: SetIterator) -> Self {
+        Self {
+            kind: ObjectKind::SetIterator(set_iterator),
+            internal_methods: InternalObjectMethods::default(),
+        }
+    }
+    pub fn string(string: JsString) -> Self {
+        Self {
+            kind: ObjectKind::String(string),
+            // todo: override remaining string methods
+            internal_methods: InternalObjectMethods {
+                __get_own_property__: internal_methods::string::string_exotic_get_own_property,
+                ..Default::default()
+            },
+        }
+    }
+    pub fn string_iterator(string_iterator: StringIterator) -> Self {
+        Self {
+            kind: ObjectKind::StringIterator(string_iterator),
+            internal_methods: InternalObjectMethods::default(),
+        }
+    }
+    pub fn number(number: f64) -> Self {
+        Self {
+            kind: ObjectKind::Number(number),
+            internal_methods: InternalObjectMethods::default(),
+        }
+    }
+    pub fn symbol(symbol: JsSymbol) -> Self {
+        Self {
+            kind: ObjectKind::Symbol(symbol),
+            internal_methods: InternalObjectMethods::default(),
+        }
+    }
+    pub fn error() -> Self {
+        Self {
+            kind: ObjectKind::Error,
+            internal_methods: InternalObjectMethods::default(),
+        }
+    }
+    pub fn ordinary() -> Self {
+        Self {
+            kind: ObjectKind::Ordinary,
+            internal_methods: InternalObjectMethods::default(),
+        }
+    }
+    pub fn date(date: Date) -> Self {
+        Self {
+            kind: ObjectKind::Date(date),
+            internal_methods: InternalObjectMethods::default(),
+        }
+    }
+    pub fn global() -> Self {
+        Self {
+            kind: ObjectKind::Global,
+            internal_methods: InternalObjectMethods::default(),
+        }
+    }
+    pub fn native_object(native_object: Box<dyn NativeObject>) -> Self {
+        Self {
+            kind: ObjectKind::NativeObject(native_object),
+            internal_methods: InternalObjectMethods::default(),
+        }
+    }
+}
+
+impl Display for ObjectKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -131,12 +276,21 @@ impl Display for ObjectData {
     }
 }
 
+impl Debug for ObjectData {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ObjectData")
+            .field("kind", &self.kind)
+            .field("internal_methods", &"internal_methods")
+            .finish()
+    }
+}
+
 impl Default for Object {
     /// Return a new ObjectData struct, with `kind` set to Ordinary
     #[inline]
     fn default() -> Self {
         Self {
-            data: ObjectData::Ordinary,
+            data: ObjectData::ordinary(),
             properties: PropertyMap::default(),
             prototype: JsValue::null(),
             extensible: true,
@@ -156,7 +310,7 @@ impl Object {
         let _timer = BoaProfiler::global().start_event("Object::Function", "object");
 
         Self {
-            data: ObjectData::Function(function),
+            data: ObjectData::function(function),
             properties: PropertyMap::default(),
             prototype,
             extensible: true,
@@ -181,7 +335,7 @@ impl Object {
     #[inline]
     pub fn boolean(value: bool) -> Self {
         Self {
-            data: ObjectData::Boolean(value),
+            data: ObjectData::boolean(value),
             properties: PropertyMap::default(),
             prototype: JsValue::null(),
             extensible: true,
@@ -192,7 +346,7 @@ impl Object {
     #[inline]
     pub fn number(value: f64) -> Self {
         Self {
-            data: ObjectData::Number(value),
+            data: ObjectData::number(value),
             properties: PropertyMap::default(),
             prototype: JsValue::null(),
             extensible: true,
@@ -206,7 +360,7 @@ impl Object {
         S: Into<JsString>,
     {
         Self {
-            data: ObjectData::String(value.into()),
+            data: ObjectData::string(value.into()),
             properties: PropertyMap::default(),
             prototype: JsValue::null(),
             extensible: true,
@@ -217,7 +371,7 @@ impl Object {
     #[inline]
     pub fn bigint(value: JsBigInt) -> Self {
         Self {
-            data: ObjectData::BigInt(value),
+            data: ObjectData::big_int(value),
             properties: PropertyMap::default(),
             prototype: JsValue::null(),
             extensible: true,
@@ -231,11 +385,16 @@ impl Object {
         T: NativeObject,
     {
         Self {
-            data: ObjectData::NativeObject(Box::new(value)),
+            data: ObjectData::native_object(Box::new(value)),
             properties: PropertyMap::default(),
             prototype: JsValue::null(),
             extensible: true,
         }
+    }
+
+    #[inline]
+    pub fn kind(&self) -> &ObjectKind {
+        &self.data.kind
     }
 
     /// It determines if Object is a callable function with a `[[Call]]` internal method.
@@ -248,7 +407,13 @@ impl Object {
     // todo: functions are not the only objects that are callable.
     // todo: e.g. https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-call-thisargument-argumentslist
     pub fn is_callable(&self) -> bool {
-        matches!(self.data, ObjectData::Function(_))
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Function(_),
+                ..
+            }
+        )
     }
 
     /// It determines if Object is a function object with a `[[Construct]]` internal method.
@@ -261,19 +426,28 @@ impl Object {
     // todo: functions are not the only objects that are constructable.
     // todo: e.g. https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-construct-argumentslist-newtarget
     pub fn is_constructable(&self) -> bool {
-        matches!(self.data, ObjectData::Function(ref f) if f.is_constructable())
+        matches!(self.data, ObjectData{kind: ObjectKind::Function(ref f), ..} if f.is_constructable())
     }
 
     /// Checks if it an `Array` object.
     #[inline]
     pub fn is_array(&self) -> bool {
-        matches!(self.data, ObjectData::Array)
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Array,
+                ..
+            }
+        )
     }
 
     #[inline]
     pub fn as_array(&self) -> Option<()> {
         match self.data {
-            ObjectData::Array => Some(()),
+            ObjectData {
+                kind: ObjectKind::Array,
+                ..
+            } => Some(()),
             _ => None,
         }
     }
@@ -281,13 +455,22 @@ impl Object {
     /// Checks if it is an `ArrayIterator` object.
     #[inline]
     pub fn is_array_iterator(&self) -> bool {
-        matches!(self.data, ObjectData::ArrayIterator(_))
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::ArrayIterator(_),
+                ..
+            }
+        )
     }
 
     #[inline]
     pub fn as_array_iterator(&self) -> Option<&ArrayIterator> {
         match self.data {
-            ObjectData::ArrayIterator(ref iter) => Some(iter),
+            ObjectData {
+                kind: ObjectKind::ArrayIterator(ref iter),
+                ..
+            } => Some(iter),
             _ => None,
         }
     }
@@ -295,7 +478,10 @@ impl Object {
     #[inline]
     pub fn as_array_iterator_mut(&mut self) -> Option<&mut ArrayIterator> {
         match &mut self.data {
-            ObjectData::ArrayIterator(iter) => Some(iter),
+            ObjectData {
+                kind: ObjectKind::ArrayIterator(iter),
+                ..
+            } => Some(iter),
             _ => None,
         }
     }
@@ -303,7 +489,10 @@ impl Object {
     #[inline]
     pub fn as_string_iterator_mut(&mut self) -> Option<&mut StringIterator> {
         match &mut self.data {
-            ObjectData::StringIterator(iter) => Some(iter),
+            ObjectData {
+                kind: ObjectKind::StringIterator(iter),
+                ..
+            } => Some(iter),
             _ => None,
         }
     }
@@ -311,7 +500,10 @@ impl Object {
     #[inline]
     pub fn as_regexp_string_iterator_mut(&mut self) -> Option<&mut RegExpStringIterator> {
         match &mut self.data {
-            ObjectData::RegExpStringIterator(iter) => Some(iter),
+            ObjectData {
+                kind: ObjectKind::RegExpStringIterator(iter),
+                ..
+            } => Some(iter),
             _ => None,
         }
     }
@@ -319,7 +511,10 @@ impl Object {
     #[inline]
     pub fn as_for_in_iterator(&self) -> Option<&ForInIterator> {
         match &self.data {
-            ObjectData::ForInIterator(iter) => Some(iter),
+            ObjectData {
+                kind: ObjectKind::ForInIterator(iter),
+                ..
+            } => Some(iter),
             _ => None,
         }
     }
@@ -327,7 +522,10 @@ impl Object {
     #[inline]
     pub fn as_for_in_iterator_mut(&mut self) -> Option<&mut ForInIterator> {
         match &mut self.data {
-            ObjectData::ForInIterator(iter) => Some(iter),
+            ObjectData {
+                kind: ObjectKind::ForInIterator(iter),
+                ..
+            } => Some(iter),
             _ => None,
         }
     }
@@ -335,13 +533,22 @@ impl Object {
     /// Checks if it is a `Map` object.pub
     #[inline]
     pub fn is_map(&self) -> bool {
-        matches!(self.data, ObjectData::Map(_))
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Map(_),
+                ..
+            }
+        )
     }
 
     #[inline]
     pub fn as_map_ref(&self) -> Option<&OrderedMap<JsValue>> {
         match self.data {
-            ObjectData::Map(ref map) => Some(map),
+            ObjectData {
+                kind: ObjectKind::Map(ref map),
+                ..
+            } => Some(map),
             _ => None,
         }
     }
@@ -349,7 +556,10 @@ impl Object {
     #[inline]
     pub fn as_map_mut(&mut self) -> Option<&mut OrderedMap<JsValue>> {
         match &mut self.data {
-            ObjectData::Map(map) => Some(map),
+            ObjectData {
+                kind: ObjectKind::Map(map),
+                ..
+            } => Some(map),
             _ => None,
         }
     }
@@ -357,20 +567,32 @@ impl Object {
     #[inline]
     pub fn as_map_iterator_mut(&mut self) -> Option<&mut MapIterator> {
         match &mut self.data {
-            ObjectData::MapIterator(iter) => Some(iter),
+            ObjectData {
+                kind: ObjectKind::MapIterator(iter),
+                ..
+            } => Some(iter),
             _ => None,
         }
     }
 
     #[inline]
     pub fn is_set(&self) -> bool {
-        matches!(self.data, ObjectData::Set(_))
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Set(_),
+                ..
+            }
+        )
     }
 
     #[inline]
     pub fn as_set_ref(&self) -> Option<&OrderedSet<JsValue>> {
         match self.data {
-            ObjectData::Set(ref set) => Some(set),
+            ObjectData {
+                kind: ObjectKind::Set(ref set),
+                ..
+            } => Some(set),
             _ => None,
         }
     }
@@ -378,7 +600,10 @@ impl Object {
     #[inline]
     pub fn as_set_mut(&mut self) -> Option<&mut OrderedSet<JsValue>> {
         match &mut self.data {
-            ObjectData::Set(set) => Some(set),
+            ObjectData {
+                kind: ObjectKind::Set(set),
+                ..
+            } => Some(set),
             _ => None,
         }
     }
@@ -386,7 +611,10 @@ impl Object {
     #[inline]
     pub fn as_set_iterator_mut(&mut self) -> Option<&mut SetIterator> {
         match &mut self.data {
-            ObjectData::SetIterator(iter) => Some(iter),
+            ObjectData {
+                kind: ObjectKind::SetIterator(iter),
+                ..
+            } => Some(iter),
             _ => None,
         }
     }
@@ -394,13 +622,22 @@ impl Object {
     /// Checks if it a `String` object.
     #[inline]
     pub fn is_string(&self) -> bool {
-        matches!(self.data, ObjectData::String(_))
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::String(_),
+                ..
+            }
+        )
     }
 
     #[inline]
     pub fn as_string(&self) -> Option<JsString> {
         match self.data {
-            ObjectData::String(ref string) => Some(string.clone()),
+            ObjectData {
+                kind: ObjectKind::String(ref string),
+                ..
+            } => Some(string.clone()),
             _ => None,
         }
     }
@@ -408,13 +645,22 @@ impl Object {
     /// Checks if it a `Function` object.
     #[inline]
     pub fn is_function(&self) -> bool {
-        matches!(self.data, ObjectData::Function(_))
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Function(_),
+                ..
+            }
+        )
     }
 
     #[inline]
     pub fn as_function(&self) -> Option<&Function> {
         match self.data {
-            ObjectData::Function(ref function) => Some(function),
+            ObjectData {
+                kind: ObjectKind::Function(ref function),
+                ..
+            } => Some(function),
             _ => None,
         }
     }
@@ -422,13 +668,22 @@ impl Object {
     /// Checks if it a Symbol object.
     #[inline]
     pub fn is_symbol(&self) -> bool {
-        matches!(self.data, ObjectData::Symbol(_))
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Symbol(_),
+                ..
+            }
+        )
     }
 
     #[inline]
     pub fn as_symbol(&self) -> Option<JsSymbol> {
         match self.data {
-            ObjectData::Symbol(ref symbol) => Some(symbol.clone()),
+            ObjectData {
+                kind: ObjectKind::Symbol(ref symbol),
+                ..
+            } => Some(symbol.clone()),
             _ => None,
         }
     }
@@ -436,13 +691,22 @@ impl Object {
     /// Checks if it an Error object.
     #[inline]
     pub fn is_error(&self) -> bool {
-        matches!(self.data, ObjectData::Error)
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Error,
+                ..
+            }
+        )
     }
 
     #[inline]
     pub fn as_error(&self) -> Option<()> {
         match self.data {
-            ObjectData::Error => Some(()),
+            ObjectData {
+                kind: ObjectKind::Error,
+                ..
+            } => Some(()),
             _ => None,
         }
     }
@@ -450,13 +714,22 @@ impl Object {
     /// Checks if it a Boolean object.
     #[inline]
     pub fn is_boolean(&self) -> bool {
-        matches!(self.data, ObjectData::Boolean(_))
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Boolean(_),
+                ..
+            }
+        )
     }
 
     #[inline]
     pub fn as_boolean(&self) -> Option<bool> {
         match self.data {
-            ObjectData::Boolean(boolean) => Some(boolean),
+            ObjectData {
+                kind: ObjectKind::Boolean(boolean),
+                ..
+            } => Some(boolean),
             _ => None,
         }
     }
@@ -464,13 +737,22 @@ impl Object {
     /// Checks if it a `Number` object.
     #[inline]
     pub fn is_number(&self) -> bool {
-        matches!(self.data, ObjectData::Number(_))
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Number(_),
+                ..
+            }
+        )
     }
 
     #[inline]
     pub fn as_number(&self) -> Option<f64> {
         match self.data {
-            ObjectData::Number(number) => Some(number),
+            ObjectData {
+                kind: ObjectKind::Number(number),
+                ..
+            } => Some(number),
             _ => None,
         }
     }
@@ -478,13 +760,43 @@ impl Object {
     /// Checks if it a `BigInt` object.
     #[inline]
     pub fn is_bigint(&self) -> bool {
-        matches!(self.data, ObjectData::BigInt(_))
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::BigInt(_),
+                ..
+            }
+        )
     }
 
     #[inline]
     pub fn as_bigint(&self) -> Option<&JsBigInt> {
         match self.data {
-            ObjectData::BigInt(ref bigint) => Some(bigint),
+            ObjectData {
+                kind: ObjectKind::BigInt(ref bigint),
+                ..
+            } => Some(bigint),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn is_date(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Date(_),
+                ..
+            }
+        )
+    }
+
+    pub fn as_date(&self) -> Option<&Date> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Date(ref date),
+                ..
+            } => Some(date),
             _ => None,
         }
     }
@@ -492,13 +804,22 @@ impl Object {
     /// Checks if it a `RegExp` object.
     #[inline]
     pub fn is_regexp(&self) -> bool {
-        matches!(self.data, ObjectData::RegExp(_))
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::RegExp(_),
+                ..
+            }
+        )
     }
 
     #[inline]
     pub fn as_regexp(&self) -> Option<&RegExp> {
         match self.data {
-            ObjectData::RegExp(ref regexp) => Some(regexp),
+            ObjectData {
+                kind: ObjectKind::RegExp(ref regexp),
+                ..
+            } => Some(regexp),
             _ => None,
         }
     }
@@ -506,7 +827,13 @@ impl Object {
     /// Checks if it an ordinary object.
     #[inline]
     pub fn is_ordinary(&self) -> bool {
-        matches!(self.data, ObjectData::Ordinary)
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Ordinary,
+                ..
+            }
+        )
     }
 
     #[inline]
@@ -545,13 +872,22 @@ impl Object {
     /// Returns `true` if it holds an Rust type that implements `NativeObject`.
     #[inline]
     pub fn is_native_object(&self) -> bool {
-        matches!(self.data, ObjectData::NativeObject(_))
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::NativeObject(_),
+                ..
+            }
+        )
     }
 
     #[inline]
     pub fn as_native_object(&self) -> Option<&dyn NativeObject> {
         match self.data {
-            ObjectData::NativeObject(ref object) => Some(object.as_ref()),
+            ObjectData {
+                kind: ObjectKind::NativeObject(ref object),
+                ..
+            } => Some(object.as_ref()),
             _ => None,
         }
     }
@@ -563,7 +899,10 @@ impl Object {
         T: NativeObject,
     {
         match self.data {
-            ObjectData::NativeObject(ref object) => object.deref().as_any().is::<T>(),
+            ObjectData {
+                kind: ObjectKind::NativeObject(ref object),
+                ..
+            } => object.deref().as_any().is::<T>(),
             _ => false,
         }
     }
@@ -576,7 +915,10 @@ impl Object {
         T: NativeObject,
     {
         match self.data {
-            ObjectData::NativeObject(ref object) => object.deref().as_any().downcast_ref::<T>(),
+            ObjectData {
+                kind: ObjectKind::NativeObject(ref object),
+                ..
+            } => object.deref().as_any().downcast_ref::<T>(),
             _ => None,
         }
     }
@@ -589,9 +931,10 @@ impl Object {
         T: NativeObject,
     {
         match self.data {
-            ObjectData::NativeObject(ref mut object) => {
-                object.deref_mut().as_mut_any().downcast_mut::<T>()
-            }
+            ObjectData {
+                kind: ObjectKind::NativeObject(ref mut object),
+                ..
+            } => object.deref_mut().as_mut_any().downcast_mut::<T>(),
             _ => None,
         }
     }
@@ -770,7 +1113,7 @@ impl<'context> FunctionBuilder<'context> {
     /// Initializes the `Function.prototype` function object.
     pub(crate) fn build_function_prototype(&mut self, object: &JsObject) {
         let mut object = object.borrow_mut();
-        object.data = ObjectData::Function(self.function.take().unwrap());
+        object.data = ObjectData::function(self.function.take().unwrap());
         object.set_prototype_instance(
             self.context
                 .standard_objects()
@@ -1169,7 +1512,7 @@ impl<'context> ConstructorBuilder<'context> {
 
         {
             let mut constructor = self.constructor_object.borrow_mut();
-            constructor.data = ObjectData::Function(function);
+            constructor.data = ObjectData::function(function);
             constructor.insert("length", length);
             constructor.insert("name", name);
 

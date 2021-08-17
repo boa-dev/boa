@@ -12,11 +12,13 @@
 
 use crate::{
     builtins::{self, BuiltIn},
-    object::{Object, ObjectData, ObjectInitializer},
-    property::{Attribute, PropertyDescriptor},
+    object::ObjectInitializer,
+    property::Attribute,
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsResult, JsValue,
 };
+
+use super::Array;
 
 #[cfg(test)]
 mod tests;
@@ -182,7 +184,7 @@ impl Reflect {
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
         let key = args.get(1).unwrap_or(&undefined).to_property_key(context)?;
 
-        Ok(target.__delete__(&key).into())
+        Ok(target.__delete__(&key, context)?.into())
     }
 
     /// Gets a property of an object.
@@ -252,7 +254,7 @@ impl Reflect {
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
-        Ok(target.__get_prototype_of__())
+        target.__get_prototype_of__(context)
     }
 
     /// Returns `true` if the object has the property, `false` otherwise.
@@ -272,7 +274,7 @@ impl Reflect {
             .get(1)
             .unwrap_or(&JsValue::undefined())
             .to_property_key(context)?;
-        Ok(target.__has_property__(&key).into())
+        Ok(target.__has_property__(&key, context)?.into())
     }
 
     /// Returns `true` if the object is extensible, `false` otherwise.
@@ -292,7 +294,7 @@ impl Reflect {
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
-        Ok(target.__is_extensible__().into())
+        Ok(target.__is_extensible__(context)?.into())
     }
 
     /// Returns an array of object own property keys.
@@ -312,24 +314,14 @@ impl Reflect {
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
-        let array_prototype = context.standard_objects().array_object().prototype();
-        let result: JsValue =
-            Object::with_prototype(array_prototype.into(), ObjectData::Array).into();
-        result.set_property(
-            "length",
-            PropertyDescriptor::builder()
-                .value(0)
-                .writable(true)
-                .enumerable(false)
-                .configurable(false),
-        );
 
-        let keys = target.own_property_keys();
-        for (i, k) in keys.iter().enumerate() {
-            result.set_field(i, k, true, context)?;
-        }
+        let keys: Vec<JsValue> = target
+            .own_property_keys()
+            .into_iter()
+            .map(|key| key.into())
+            .collect();
 
-        Ok(result)
+        Ok(Array::create_array_from_list(keys, context).into())
     }
 
     /// Prevents new properties from ever being added to an object.
@@ -350,7 +342,7 @@ impl Reflect {
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
 
-        Ok(target.__prevent_extensions__().into())
+        Ok(target.__prevent_extensions__(context)?.into())
     }
 
     /// Sets a property of an object.
@@ -401,6 +393,6 @@ impl Reflect {
         if !proto.is_null() && !proto.is_object() {
             return context.throw_type_error("proto must be an object or null");
         }
-        Ok(target.__set_prototype_of__(proto.clone()).into())
+        Ok(target.__set_prototype_of__(proto.clone(), context)?.into())
     }
 }

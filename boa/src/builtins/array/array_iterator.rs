@@ -45,7 +45,7 @@ impl ArrayIterator {
         kind: PropertyNameKind,
     ) -> JsValue {
         let array_iterator = JsValue::new_object(context);
-        array_iterator.set_data(ObjectData::ArrayIterator(Self::new(array, kind)));
+        array_iterator.set_data(ObjectData::array_iterator(Self::new(array, kind)));
         array_iterator
             .as_object()
             .expect("array iterator object")

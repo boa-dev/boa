@@ -224,7 +224,7 @@ impl JsObject {
                                     && !body.function_declared_names().contains("arguments")))
                         {
                             // Add arguments object
-                            let arguments_obj = create_unmapped_arguments_object(args);
+                            let arguments_obj = create_unmapped_arguments_object(args, context)?;
                             local_env.create_mutable_binding(
                                 "arguments".to_string(),
                                 false,
@@ -720,14 +720,14 @@ impl JsObject {
                 // 6. Repeat,
                 //      a. Set O to ? O.[[GetPrototypeOf]]().
                 //      b. If O is null, return false.
-                let mut object = object.__get_prototype_of__();
+                let mut object = object.__get_prototype_of__(context)?;
                 while let Some(object_prototype) = object.as_object() {
                     //     c. If SameValue(P, O) is true, return true.
                     if JsObject::equals(&prototype, &object_prototype) {
                         return Ok(true);
                     }
                     // a. Set O to ? O.[[GetPrototypeOf]]().
-                    object = object_prototype.__get_prototype_of__();
+                    object = object_prototype.__get_prototype_of__(context)?;
                 }
 
                 Ok(false)
@@ -929,7 +929,7 @@ impl JsObject {
             // c. If excluded is false, then
             if !excluded {
                 // i. Let desc be ? from.[[GetOwnProperty]](nextKey).
-                let desc = from.__get_own_property__(&key);
+                let desc = from.__get_own_property__(&key, context)?;
 
                 // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
                 if let Some(desc) = desc {

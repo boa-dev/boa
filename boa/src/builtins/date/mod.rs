@@ -386,7 +386,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
     pub(crate) fn make_date_now(this: &JsValue) -> JsValue {
         let date = Date::default();
-        this.set_data(ObjectData::Date(date));
+        this.set_data(ObjectData::date(date));
         this.clone()
     }
 
@@ -428,7 +428,7 @@ impl Date {
 
         let tv = tv.filter(|time| Self::time_clip(time.timestamp_millis() as f64).is_some());
         let date = Date(tv);
-        this.set_data(ObjectData::Date(date));
+        this.set_data(ObjectData::date(date));
         Ok(this.clone())
     }
 
@@ -468,7 +468,7 @@ impl Date {
         // If any of the args are infinity or NaN, return an invalid date.
         if !check_normal_opt!(year, month, day, hour, min, sec, milli) {
             let date = Date(None);
-            this.set_data(ObjectData::Date(date));
+            this.set_data(ObjectData::date(date));
             return Ok(this.clone());
         }
 
@@ -494,7 +494,7 @@ impl Date {
             Some(milli),
         );
 
-        this.set_data(ObjectData::Date(date));
+        this.set_data(ObjectData::date(date));
 
         Ok(this.clone())
     }
@@ -872,7 +872,7 @@ impl Date {
         let u = t.get_time();
 
         // 5. Set the [[DateValue]] internal slot of this Date object to u.
-        this.set_data(ObjectData::Date(t));
+        this.set_data(ObjectData::date(t));
 
         // 6. Return u.
         Ok(u.into())
@@ -933,7 +933,7 @@ impl Date {
         let u = t.get_time();
 
         // 8. Set the [[DateValue]] internal slot of this Date object to u.
-        this.set_data(ObjectData::Date(t));
+        this.set_data(ObjectData::date(t));
 
         // 9. Return u.
         Ok(u.into())
@@ -990,7 +990,7 @@ impl Date {
         let u = t.get_time();
 
         // 8. Set the [[DateValue]] internal slot of this Date object to u.
-        this.set_data(ObjectData::Date(t));
+        this.set_data(ObjectData::date(t));
 
         // 9. Return u.
         Ok(u.into())
@@ -1028,7 +1028,7 @@ impl Date {
         let u = t.get_time();
 
         // 5. Set the [[DateValue]] internal slot of this Date object to u.
-        this.set_data(ObjectData::Date(t));
+        this.set_data(ObjectData::date(t));
 
         // 6. Return u.
         Ok(u.into())
@@ -1080,7 +1080,7 @@ impl Date {
         let u = t.get_time();
 
         // 7. Set the [[DateValue]] internal slot of this Date object to u.
-        this.set_data(ObjectData::Date(t));
+        this.set_data(ObjectData::date(t));
 
         // 8. Return u.
         Ok(u.into())
@@ -1121,7 +1121,7 @@ impl Date {
         let u = t.get_time();
 
         // 6. Set the [[DateValue]] internal slot of this Date object to u.
-        this.set_data(ObjectData::Date(t));
+        this.set_data(ObjectData::date(t));
 
         // 7. Return u.
         Ok(u.into())
@@ -1166,7 +1166,7 @@ impl Date {
         let u = t.get_time();
 
         // 6. Set the [[DateValue]] internal slot of this Date object to u.
-        this.set_data(ObjectData::Date(t));
+        this.set_data(ObjectData::date(t));
 
         // 7. Return u.
         Ok(u.into())
@@ -1204,7 +1204,7 @@ impl Date {
         // 4. If y is NaN, then
         if y.is_nan() {
             // a. Set the [[DateValue]] internal slot of this Date object to NaN.
-            this.set_data(ObjectData::Date(Date(None)));
+            this.set_data(ObjectData::date(Date(None)));
 
             // b. Return NaN.
             return Ok(JsValue::nan());
@@ -1222,7 +1222,7 @@ impl Date {
         t.set_components(false, Some(y), None, None, None, None, None, None);
 
         // 10. Set the [[DateValue]] internal slot of this Date object to TimeClip(date).
-        this.set_data(ObjectData::Date(t));
+        this.set_data(ObjectData::date(t));
 
         // 11. Return the value of the [[DateValue]] internal slot of this Date object.
         Ok(t.get_time().into())
@@ -1260,7 +1260,7 @@ impl Date {
         let v = t.get_time();
 
         // 4. Set the [[DateValue]] internal slot of this Date object to v.
-        this.set_data(ObjectData::Date(t));
+        this.set_data(ObjectData::date(t));
 
         // 5. Return v.
         Ok(v.into())
@@ -1298,7 +1298,7 @@ impl Date {
         let v = t.get_time();
 
         // 5. Set the [[DateValue]] internal slot of this Date object to v.
-        this.set_data(ObjectData::Date(t));
+        this.set_data(ObjectData::date(t));
 
         // 6. Return v.
         Ok(v.into())
@@ -1359,7 +1359,7 @@ impl Date {
         let v = t.get_time();
 
         // 8. Set the [[DateValue]] internal slot of this Date object to v.
-        this.set_data(ObjectData::Date(t));
+        this.set_data(ObjectData::date(t));
 
         // 9. Return v.
         Ok(v.into())
@@ -1420,7 +1420,7 @@ impl Date {
         let v = t.get_time();
 
         // 8. Set the [[DateValue]] internal slot of this Date object to v.
-        this.set_data(ObjectData::Date(t));
+        this.set_data(ObjectData::date(t));
 
         // 9. Return v.
         Ok(v.into())
@@ -1458,7 +1458,7 @@ impl Date {
         let v = t.get_time();
 
         // 5. Set the [[DateValue]] internal slot of this Date object to v.
-        this.set_data(ObjectData::Date(t));
+        this.set_data(ObjectData::date(t));
 
         // 6. Return v.
         Ok(v.into())
@@ -1514,7 +1514,7 @@ impl Date {
         let v = t.get_time();
 
         // 9. Set the [[DateValue]] internal slot of this Date object to v.
-        this.set_data(ObjectData::Date(t));
+        this.set_data(ObjectData::date(t));
 
         // 10. Return v.
         Ok(v.into())
@@ -1561,7 +1561,7 @@ impl Date {
         let v = t.get_time();
 
         // 7. Set the [[DateValue]] internal slot of this Date object to v.
-        this.set_data(ObjectData::Date(t));
+        this.set_data(ObjectData::date(t));
 
         // 8. Return v.
         Ok(v.into())
@@ -1608,7 +1608,7 @@ impl Date {
         let v = t.get_time();
 
         // 7. Set the [[DateValue]] internal slot of this Date object to v.
-        this.set_data(ObjectData::Date(t));
+        this.set_data(ObjectData::date(t));
 
         // 8. Return v.
         Ok(v.into())
@@ -1928,7 +1928,7 @@ impl Date {
 #[inline]
 pub fn this_time_value(value: &JsValue, context: &mut Context) -> JsResult<Date> {
     if let JsValue::Object(ref object) = value {
-        if let ObjectData::Date(ref date) = object.borrow().data {
+        if let Some(date) = object.borrow().as_date() {
             return Ok(*date);
         }
     }

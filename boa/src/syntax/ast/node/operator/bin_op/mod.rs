@@ -144,7 +144,7 @@ impl Executable for BinOp {
                             ));
                         }
                         let key = x.to_property_key(context)?;
-                        context.has_property(&y, &key)
+                        context.has_property(&y, &key)?
                     }
                     CompOp::InstanceOf => {
                         if let Some(object) = y.as_object() {

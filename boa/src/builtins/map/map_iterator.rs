@@ -50,7 +50,7 @@ impl MapIterator {
         kind: PropertyNameKind,
     ) -> JsResult<JsValue> {
         let map_iterator = JsValue::new_object(context);
-        map_iterator.set_data(ObjectData::MapIterator(Self::new(map, kind, context)?));
+        map_iterator.set_data(ObjectData::map_iterator(Self::new(map, kind, context)?));
         map_iterator
             .as_object()
             .expect("map iterator object")

@@ -49,7 +49,7 @@ impl SetIterator {
         kind: PropertyNameKind,
     ) -> JsValue {
         let set_iterator = JsValue::new_object(context);
-        set_iterator.set_data(ObjectData::SetIterator(Self::new(set, kind)));
+        set_iterator.set_data(ObjectData::set_iterator(Self::new(set, kind)));
         set_iterator
             .as_object()
             .expect("set iterator object")

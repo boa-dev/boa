@@ -47,7 +47,7 @@ impl ForInIterator {
     /// [spec]: https://tc39.es/ecma262/#sec-createforiniterator
     pub(crate) fn create_for_in_iterator(context: &Context, object: JsValue) -> JsValue {
         let for_in_iterator = JsValue::new_object(context);
-        for_in_iterator.set_data(ObjectData::ForInIterator(Self::new(object)));
+        for_in_iterator.set_data(ObjectData::for_in_iterator(Self::new(object)));
         for_in_iterator
             .as_object()
             .expect("for in iterator object")
@@ -86,8 +86,8 @@ impl ForInIterator {
                     }
                     while let Some(r) = iterator.remaining_keys.pop_front() {
                         if !iterator.visited_keys.contains(&r) {
-                            if let Some(desc) =
-                                object.__get_own_property__(&PropertyKey::from(r.clone()))
+                            if let Some(desc) = object
+                                .__get_own_property__(&PropertyKey::from(r.clone()), context)?
                             {
                                 iterator.visited_keys.insert(r.clone());
                                 if desc.expect_enumerable() {

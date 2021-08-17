@@ -16,7 +16,8 @@
 use crate::{
     builtins::BuiltIn,
     object::{
-        ConstructorBuilder, Object as BuiltinObject, ObjectData, ObjectInitializer, PROTOTYPE,
+        ConstructorBuilder, Object as BuiltinObject, ObjectData, ObjectInitializer, ObjectKind,
+        PROTOTYPE,
     },
     property::{Attribute, DescriptorKind, PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -134,7 +135,7 @@ impl Object {
         let obj = match prototype {
             JsValue::Object(_) | JsValue::Null => JsValue::new(BuiltinObject::with_prototype(
                 prototype,
-                ObjectData::Ordinary,
+                ObjectData::ordinary(),
             )),
             _ => {
                 return context.throw_type_error(format!(
@@ -173,7 +174,7 @@ impl Object {
         if let Some(key) = args.get(1) {
             let key = key.to_property_key(context)?;
 
-            if let Some(desc) = object.__get_own_property__(&key) {
+            if let Some(desc) = object.__get_own_property__(&key, context)? {
                 return Ok(Self::from_property_descriptor(desc, context));
             }
         }
@@ -205,7 +206,7 @@ impl Object {
         for key in object.borrow().properties().keys() {
             let descriptor = {
                 let desc = object
-                    .__get_own_property__(&key)
+                    .__get_own_property__(&key, context)?
                     .expect("Expected property to be on object.");
                 Self::from_property_descriptor(desc, context)
             };
@@ -328,7 +329,7 @@ impl Object {
         let status = obj
             .as_object()
             .expect("obj was not an object")
-            .__set_prototype_of__(proto);
+            .__set_prototype_of__(proto, ctx)?;
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
@@ -471,16 +472,16 @@ impl Object {
         // 14. Else, let builtinTag be "Object".
         let builtin_tag = {
             let o = o.borrow();
-            match &o.data {
-                ObjectData::Array => "Array",
+            match o.kind() {
+                ObjectKind::Array => "Array",
                 // TODO: Arguments Exotic Objects are currently not supported
-                ObjectData::Function(_) => "Function",
-                ObjectData::Error => "Error",
-                ObjectData::Boolean(_) => "Boolean",
-                ObjectData::Number(_) => "Number",
-                ObjectData::String(_) => "String",
-                ObjectData::Date(_) => "Date",
-                ObjectData::RegExp(_) => "RegExp",
+                ObjectKind::Function(_) => "Function",
+                ObjectKind::Error => "Error",
+                ObjectKind::Boolean(_) => "Boolean",
+                ObjectKind::Number(_) => "Number",
+                ObjectKind::String(_) => "String",
+                ObjectKind::Date(_) => "Date",
+                ObjectKind::RegExp(_) => "RegExp",
                 _ => "Object",
             }
         };
@@ -542,7 +543,9 @@ impl Object {
         };
 
         let key = key.to_property_key(context)?;
-        let own_property = this.to_object(context)?.__get_own_property__(&key);
+        let own_property = this
+            .to_object(context)?
+            .__get_own_property__(&key, context)?;
 
         Ok(own_property.map_or(JsValue::new(false), |own_prop| {
             JsValue::new(own_prop.enumerable())
@@ -584,7 +587,7 @@ impl Object {
                 // 3.a.iii. For each element nextKey of keys, do
                 for key in keys {
                     // 3.a.iii.1. Let desc be ? from.[[GetOwnProperty]](nextKey).
-                    if let Some(desc) = from.__get_own_property__(&key) {
+                    if let Some(desc) = from.__get_own_property__(&key, context)? {
                         // 3.a.iii.2. If desc is not undefined and desc.[[Enumerable]] is true, then
                         if desc.expect_enumerable() {
                             // 3.a.iii.2.a. Let propValue be ? Get(from, nextKey).

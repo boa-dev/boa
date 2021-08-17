@@ -13,12 +13,8 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
 
 use crate::{
-    builtins::BuiltIn,
-    object::{ConstructorBuilder, ObjectData},
-    property::Attribute,
-    symbol::WellKnownSymbols,
-    value::IntegerOrInfinity,
-    BoaProfiler, Context, JsBigInt, JsResult, JsValue,
+    builtins::BuiltIn, object::ConstructorBuilder, property::Attribute, symbol::WellKnownSymbols,
+    value::IntegerOrInfinity, BoaProfiler, Context, JsBigInt, JsResult, JsValue,
 };
 #[cfg(test)]
 mod tests;
@@ -105,7 +101,7 @@ impl BigInt {
             //    a. Assert: Type(value.[[BigIntData]]) is BigInt.
             //    b. Return value.[[BigIntData]].
             JsValue::Object(ref object) => {
-                if let ObjectData::BigInt(ref bigint) = object.borrow().data {
+                if let Some(bigint) = object.borrow().as_bigint() {
                     return Ok(bigint.clone());
                 }
             }

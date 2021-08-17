@@ -81,7 +81,7 @@ impl Boolean {
             .as_object()
             .expect("this should be an object")
             .set_prototype_instance(prototype.into());
-        boolean.set_data(ObjectData::Boolean(data));
+        boolean.set_data(ObjectData::boolean(data));
 
         Ok(boolean)
     }
