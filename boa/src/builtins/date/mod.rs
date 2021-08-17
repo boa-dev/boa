@@ -450,9 +450,13 @@ impl Date {
                 },
                 tv => {
                     let tv = tv.to_number(context)?;
-                    let secs = (tv / 1_000f64) as i64;
-                    let nsecs = ((tv % 1_000f64) * 1_000_000f64) as u32;
-                    NaiveDateTime::from_timestamp_opt(secs, nsecs)
+                    if tv.is_nan() {
+                        None
+                    } else {
+                        let secs = (tv / 1_000f64) as i64;
+                        let nsecs = ((tv % 1_000f64) * 1_000_000f64) as u32;
+                        NaiveDateTime::from_timestamp_opt(secs, nsecs)
+                    }
                 }
             },
         };
