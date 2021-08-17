@@ -8,7 +8,6 @@ mod tests;
 use crate::{
     builtins::{
         number::{f64_to_int32, f64_to_uint32},
-        string::is_trimmable_whitespace,
         Number,
     },
     object::{JsObject, Object, ObjectData},
@@ -779,30 +778,7 @@ impl JsValue {
             JsValue::Null => Ok(0.0),
             JsValue::Undefined => Ok(f64::NAN),
             JsValue::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
-            JsValue::String(ref string) => {
-                let string = string.trim_matches(is_trimmable_whitespace);
-
-                // TODO: write our own lexer to match syntax StrDecimalLiteral
-                match string {
-                    "" => Ok(0.0),
-                    "Infinity" | "+Infinity" => Ok(f64::INFINITY),
-                    "-Infinity" => Ok(f64::NEG_INFINITY),
-                    _ if matches!(
-                        string
-                            .chars()
-                            .take(4)
-                            .collect::<String>()
-                            .to_ascii_lowercase()
-                            .as_str(),
-                        "inf" | "+inf" | "-inf" | "nan" | "+nan" | "-nan"
-                    ) =>
-                    {
-                        // Prevent fast_float from parsing "inf", "+inf" as Infinity and "-inf" as -Infinity
-                        Ok(f64::NAN)
-                    }
-                    _ => Ok(fast_float::parse(string).unwrap_or(f64::NAN)),
-                }
-            }
+            JsValue::String(ref string) => Ok(string.string_to_number()),
             JsValue::Rational(number) => Ok(number),
             JsValue::Integer(integer) => Ok(f64::from(integer)),
             JsValue::Symbol(_) => {

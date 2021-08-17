@@ -187,9 +187,11 @@ impl ObjectData {
     pub fn string(string: JsString) -> Self {
         Self {
             kind: ObjectKind::String(string),
-            // todo: override remaining string methods
             internal_methods: InternalObjectMethods {
                 __get_own_property__: internal_methods::string::string_exotic_get_own_property,
+                __define_own_property__:
+                    internal_methods::string::string_exotic_define_own_property,
+                __own_property_keys__: internal_methods::string::string_exotic_own_property_keys,
                 ..Default::default()
             },
         }

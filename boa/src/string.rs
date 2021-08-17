@@ -1,4 +1,7 @@
-use crate::gc::{empty_trace, Finalize, Trace};
+use crate::{
+    builtins::string::is_trimmable_whitespace,
+    gc::{empty_trace, Finalize, Trace},
+};
 use std::{
     alloc::{alloc, dealloc, Layout},
     borrow::Borrow,
@@ -235,6 +238,43 @@ impl JsString {
 
         // 8. Return -1.
         None
+    }
+
+    pub(crate) fn string_to_number(&self) -> f64 {
+        let string = self.trim_matches(is_trimmable_whitespace);
+
+        // TODO: write our own lexer to match syntax StrDecimalLiteral
+        match string {
+            "" => 0.0,
+            "Infinity" | "+Infinity" => f64::INFINITY,
+            "-Infinity" => f64::NEG_INFINITY,
+            _ if matches!(
+                string
+                    .chars()
+                    .take(4)
+                    .collect::<String>()
+                    .to_ascii_lowercase()
+                    .as_str(),
+                "inf" | "+inf" | "-inf" | "nan" | "+nan" | "-nan"
+            ) =>
+            {
+                // Prevent fast_float from parsing "inf", "+inf" as Infinity and "-inf" as -Infinity
+                f64::NAN
+            }
+            _ => fast_float::parse(string).unwrap_or(f64::NAN),
+        }
+    }
+
+    pub(crate) fn canonical_numeric_index_string(&self) -> Option<f64> {
+        if self == "-0" {
+            return Some(-0.0);
+        }
+        let n = self.string_to_number();
+        if self != n.to_string().as_str() {
+            None
+        } else {
+            Some(n)
+        }
     }
 }
 

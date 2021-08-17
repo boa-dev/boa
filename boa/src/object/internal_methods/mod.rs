@@ -733,81 +733,14 @@ pub(crate) fn ordinary_define_own_property(
     desc: PropertyDescriptor,
     context: &mut Context,
 ) -> JsResult<bool> {
+    let current = obj.__get_own_property__(&key, context)?;
     let extensible = obj.__is_extensible__(context)?;
-
-    let mut current = if let Some(own) = obj.__get_own_property__(&key, context)? {
-        own
-    } else {
-        if !extensible {
-            return Ok(false);
-        }
-
-        obj.borrow_mut().properties.insert(
-            key,
-            if desc.is_generic_descriptor() || desc.is_data_descriptor() {
-                desc.into_data_defaulted()
-            } else {
-                desc.into_accessor_defaulted()
-            },
-        );
-
-        return Ok(true);
-    };
-
-    // 3
-    if desc.is_empty() {
-        return Ok(true);
-    }
-
-    // 4
-    if !current.expect_configurable() {
-        if matches!(desc.configurable(), Some(true)) {
-            return Ok(false);
-        }
-
-        if matches!(desc.enumerable(), Some(desc_enum) if desc_enum != current.expect_enumerable())
-        {
-            return Ok(false);
-        }
-    }
-
-    // 5
-    if desc.is_generic_descriptor() {
-        // no further validation required
-    } else if current.is_data_descriptor() != desc.is_data_descriptor() {
-        if !current.expect_configurable() {
-            return Ok(false);
-        }
-        if current.is_data_descriptor() {
-            current = current.into_accessor_defaulted();
-        } else {
-            current = current.into_data_defaulted();
-        }
-    } else if current.is_data_descriptor() && desc.is_data_descriptor() {
-        if !current.expect_configurable() && !current.expect_writable() {
-            if matches!(desc.writable(), Some(true)) {
-                return Ok(false);
-            }
-            if matches!(desc.value(), Some(value) if !JsValue::same_value(value, current.expect_value()))
-            {
-                return Ok(false);
-            }
-            return Ok(true);
-        }
-    } else if !current.expect_configurable() {
-        if matches!(desc.set(), Some(set) if !JsValue::same_value(set, current.expect_set())) {
-            return Ok(false);
-        }
-        if matches!(desc.get(), Some(get) if !JsValue::same_value(get, current.expect_get())) {
-            return Ok(false);
-        }
-        return Ok(true);
-    }
-
-    current.fill_with(desc);
-    obj.borrow_mut().properties.insert(key, current);
-
-    Ok(true)
+    Ok(validate_and_apply_property_descriptor(
+        Some((obj, key)),
+        extensible,
+        desc,
+        current,
+    ))
 }
 
 // Check if object has property.
@@ -965,7 +898,115 @@ pub(crate) fn ordinary_own_property_keys(
     obj: &JsObject,
     _context: &mut Context,
 ) -> JsResult<Vec<PropertyKey>> {
+    // todo: sort keys or ensure in some way that indexed properties are sorted... or maybe it's not necessary?
     Ok(obj.borrow().properties.keys().collect())
+}
+
+/// Abstract operation `IsCompatiblePropertyDescriptor `
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-iscompatiblepropertydescriptor
+#[inline]
+pub(crate) fn is_compatible_property_descriptor(
+    extensible: bool,
+    desc: PropertyDescriptor,
+    current: PropertyDescriptor,
+) -> bool {
+    validate_and_apply_property_descriptor(None, extensible, desc, Some(current))
+}
+
+/// Abstract operation `ValidateAndApplyPropertyDescriptor`
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-validateandapplypropertydescriptor
+#[inline]
+pub(crate) fn validate_and_apply_property_descriptor(
+    obj_and_key: Option<(&GcObject, PropertyKey)>,
+    extensible: bool,
+    desc: PropertyDescriptor,
+    current: Option<PropertyDescriptor>,
+) -> bool {
+    let mut current = if let Some(own) = current {
+        own
+    } else {
+        if !extensible {
+            return false;
+        }
+
+        if let Some((obj, key)) = obj_and_key {
+            obj.borrow_mut().properties.insert(
+                key,
+                if desc.is_generic_descriptor() || desc.is_data_descriptor() {
+                    desc.into_data_defaulted()
+                } else {
+                    desc.into_accessor_defaulted()
+                },
+            );
+        }
+
+        return true;
+    };
+
+    // 3
+    if desc.is_empty() {
+        return true;
+    }
+
+    // 4
+    if !current.expect_configurable() {
+        if matches!(desc.configurable(), Some(true)) {
+            return false;
+        }
+
+        if matches!(desc.enumerable(), Some(desc_enum) if desc_enum != current.expect_enumerable())
+        {
+            return false;
+        }
+    }
+
+    // 5
+    if desc.is_generic_descriptor() {
+        // no further validation required
+    } else if current.is_data_descriptor() != desc.is_data_descriptor() {
+        if !current.expect_configurable() {
+            return false;
+        }
+        if current.is_data_descriptor() {
+            current = current.into_accessor_defaulted();
+        } else {
+            current = current.into_data_defaulted();
+        }
+    } else if current.is_data_descriptor() && desc.is_data_descriptor() {
+        if !current.expect_configurable() && !current.expect_writable() {
+            if matches!(desc.writable(), Some(true)) {
+                return false;
+            }
+            if matches!(desc.value(), Some(value) if !JsValue::same_value(value, current.expect_value()))
+            {
+                return false;
+            }
+            return true;
+        }
+    } else if !current.expect_configurable() {
+        if matches!(desc.set(), Some(set) if !JsValue::same_value(set, current.expect_set())) {
+            return false;
+        }
+        if matches!(desc.get(), Some(get) if !JsValue::same_value(get, current.expect_get())) {
+            return false;
+        }
+        return true;
+    }
+
+    if let Some((obj, key)) = obj_and_key {
+        current.fill_with(desc);
+        obj.borrow_mut().properties.insert(key, current);
+    }
+
+    true
 }
 
 impl Object {
