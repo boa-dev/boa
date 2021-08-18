@@ -482,7 +482,7 @@ impl Date {
         args: &[JsValue],
         context: &mut Context,
     ) -> Result<JsValue> {
-        let year = args[0].to_number(context)?;
+        let mut year = args[0].to_number(context)?;
         let month = args[1].to_number(context)?;
         let day = args
             .get(2)
@@ -507,28 +507,30 @@ impl Date {
             return Ok(this.clone());
         }
 
-        let year = year as i32;
-        let month = month as u32;
-        let day = day as u32;
-        let hour = hour as u32;
-        let min = min as u32;
-        let sec = sec as u32;
-        let milli = milli as u32;
+        if (0.0..=99.0).contains(&year) {
+            year += 1900.0
+        }
 
-        let year = if (0..=99).contains(&year) {
-            1900 + year
-        } else {
-            year
-        };
+        let mut date = Self(
+            NaiveDateTime::from_timestamp_opt(0, 0)
+                .and_then(|local| ignore_ambiguity(Local.from_local_datetime(&local)))
+                .map(|local| local.naive_utc())
+                .filter(|time| Self::time_clip(time.timestamp_millis() as f64).is_some()),
+        );
 
-        let final_date = NaiveDate::from_ymd_opt(year, month + 1, day)
-            .and_then(|naive_date| naive_date.and_hms_milli_opt(hour, min, sec, milli))
-            .and_then(|local| ignore_ambiguity(Local.from_local_datetime(&local)))
-            .map(|local| local.naive_utc())
-            .filter(|time| Self::time_clip(time.timestamp_millis() as f64).is_some());
+        date.set_components(
+            false,
+            Some(year),
+            Some(month),
+            Some(day),
+            Some(hour),
+            Some(min),
+            Some(sec),
+            Some(milli),
+        );
 
-        let date = Date(final_date);
         this.set_data(ObjectData::Date(date));
+
         Ok(this.clone())
     }
 
