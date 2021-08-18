@@ -59,6 +59,7 @@ jobs:
           comment="${comment//'%'/'%25'}"
           comment="${comment//$'\n'/'%0A'}"
           comment="${comment//$'\r'/'%0D'}"
+          echo $comment
           echo "::set-output name=comment::$comment"
 
       - name: Get the PR number
