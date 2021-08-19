@@ -18,7 +18,7 @@ use crate::{
     object::{
         ConstructorBuilder, Object as BuiltinObject, ObjectData, ObjectInitializer, PROTOTYPE,
     },
-    property::{Attribute, DescriptorKind, PropertyDescriptor},
+    property::{Attribute, DescriptorKind, PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::{JsValue, Type},
     BoaProfiler, Context, Result,
@@ -608,7 +608,7 @@ impl Object {
             .to_object(context)?;
 
         // 2. Let nameList be ? EnumerableOwnPropertyNames(obj, key).
-        let name_list = obj.enumerable_own_property_names(true, false, context)?;
+        let name_list = obj.enumerable_own_property_names(PropertyNameKind::Key, context)?;
 
         // 3. Return CreateArrayFromList(nameList).
         // TODO: Implement https://tc39.es/ecma262/#sec-createarrayfromlist

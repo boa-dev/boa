@@ -7,7 +7,7 @@
 
 use crate::{
     object::{GcObject, Object, ObjectData},
-    property::{DescriptorKind, PropertyDescriptor, PropertyKey},
+    property::{DescriptorKind, PropertyDescriptor, PropertyKey, PropertyNameKind},
     value::{JsValue, Type},
     BoaProfiler, Context, Result,
 };
@@ -889,8 +889,7 @@ impl GcObject {
     /// [spec]: https://tc39.es/ecma262/#sec-enumerableownpropertynames
     pub(crate) fn enumerable_own_property_names(
         &self,
-        kind_key: bool,
-        kind_value: bool,
+        kind: PropertyNameKind,
         context: &mut Context,
     ) -> Result<Vec<JsValue>> {
         // 1. Assert: Type(O) is Object.
@@ -909,7 +908,7 @@ impl GcObject {
                 if let Some(desc) = desc {
                     if desc.expect_enumerable() {
                         // 1. If kind is key, append key to properties.
-                        if kind_key && kind_value == false {
+                        if let PropertyNameKind::Key = kind {
                             properties.push(JsValue::String(key_str.clone()))
                         }
                         // 2. Else,
@@ -917,7 +916,7 @@ impl GcObject {
                             // a. Let value be ? Get(O, key).
                             let value = self.get(key.clone(), context)?;
                             // b. If kind is value, append value to properties.
-                            if kind_value && kind_key == false {
+                            if let PropertyNameKind::Value = kind {
                                 properties.push(value)
                             }
                             // c. Else,

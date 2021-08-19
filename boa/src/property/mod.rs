@@ -662,3 +662,10 @@ impl PartialEq<&str> for PropertyKey {
         }
     }
 }
+
+#[derive(Debug, Clone, Copy)]
+pub enum PropertyNameKind {
+    Key,
+    Value,
+    KeyValue,
+}
