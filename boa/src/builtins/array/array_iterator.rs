@@ -105,12 +105,9 @@ impl ArrayIterator {
                     }
                     ArrayIterationKind::KeyAndValue => {
                         let element_value = array_iterator.array.get_field(index, context)?;
-                        let result = Array::constructor(
-                            &JsValue::new_object(context),
-                            &[index.into(), element_value],
-                            context,
-                        )?;
-                        Ok(create_iter_result_object(context, result, false))
+                        let result =
+                            Array::create_array_from_list([index.into(), element_value], context);
+                        Ok(create_iter_result_object(context, result.into(), false))
                     }
                 }
             } else {

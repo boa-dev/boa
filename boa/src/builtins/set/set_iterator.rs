@@ -104,13 +104,14 @@ impl SetIterator {
                                         ));
                                     }
                                     SetIterationKind::KeyAndValue => {
-                                        let result = Array::construct_array(
-                                            &Array::new_array(context),
-                                            &[value.clone(), value.clone()],
+                                        let result = Array::create_array_from_list(
+                                            [value.clone(), value.clone()],
                                             context,
-                                        )?;
+                                        );
                                         return Ok(create_iter_result_object(
-                                            context, result, false,
+                                            context,
+                                            result.into(),
+                                            false,
                                         ));
                                     }
                                 }

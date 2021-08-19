@@ -233,7 +233,7 @@ impl Array {
         array.ordinary_define_own_property(
             "length".into(),
             PropertyDescriptor::builder()
-                .value(length as f64)
+                .value(length)
                 .writable(true)
                 .enumerable(false)
                 .configurable(false)
@@ -288,47 +288,6 @@ impl Array {
                 .build(),
         );
         array
-    }
-
-    /// Utility function for creating array objects.
-    ///
-    /// `array_obj` can be any array with prototype already set (it will be wiped and
-    /// recreated from `array_contents`)
-    pub(crate) fn construct_array(
-        array_obj: &JsValue,
-        array_contents: &[JsValue],
-        context: &mut Context,
-    ) -> Result<JsValue> {
-        let array_obj_ptr = array_obj.clone();
-
-        // Wipe existing contents of the array object
-        let orig_length = array_obj.get_field("length", context)?.to_length(context)?;
-        for n in 0..orig_length {
-            array_obj_ptr.remove_property(n);
-        }
-
-        // Create length
-        array_obj_ptr.set_property(
-            "length".to_string(),
-            PropertyDescriptor::builder()
-                .value(array_contents.len())
-                .writable(true)
-                .enumerable(false)
-                .configurable(false)
-                .build(),
-        );
-
-        for (n, value) in array_contents.iter().enumerate() {
-            array_obj_ptr.set_property(
-                n,
-                PropertyDescriptor::builder()
-                    .value(value)
-                    .configurable(true)
-                    .enumerable(true)
-                    .writable(true),
-            );
-        }
-        Ok(array_obj_ptr)
     }
 
     /// Utility function for concatenating array objects.
