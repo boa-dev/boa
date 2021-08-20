@@ -1422,6 +1422,17 @@
 <span id="1422">1422</span>
 <span id="1423">1423</span>
 <span id="1424">1424</span>
+<span id="1425">1425</span>
+<span id="1426">1426</span>
+<span id="1427">1427</span>
+<span id="1428">1428</span>
+<span id="1429">1429</span>
+<span id="1430">1430</span>
+<span id="1431">1431</span>
+<span id="1432">1432</span>
+<span id="1433">1433</span>
+<span id="1434">1434</span>
+<span id="1435">1435</span>
 </pre><pre class="rust">
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -1875,9 +1886,13 @@
                 },
                 <span class="ident">tv</span> <span class="op">=</span><span class="op">&gt;</span> {
                     <span class="kw">let</span> <span class="ident">tv</span> <span class="op">=</span> <span class="ident">tv</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">secs</span> <span class="op">=</span> (<span class="ident">tv</span> <span class="op">/</span> <span class="number">1_000f64</span>) <span class="kw">as</span> <span class="ident">i64</span>;
-                    <span class="kw">let</span> <span class="ident">nsecs</span> <span class="op">=</span> ((<span class="ident">tv</span> <span class="op">%</span> <span class="number">1_000f64</span>) <span class="op">*</span> <span class="number">1_000_000f64</span>) <span class="kw">as</span> <span class="ident">u32</span>;
-                    <span class="ident">NaiveDateTime::from_timestamp_opt</span>(<span class="ident">secs</span>, <span class="ident">nsecs</span>)
+                    <span class="kw">if</span> <span class="ident">tv</span>.<span class="ident">is_nan</span>() {
+                        <span class="prelude-val">None</span>
+                    } <span class="kw">else</span> {
+                        <span class="kw">let</span> <span class="ident">secs</span> <span class="op">=</span> (<span class="ident">tv</span> <span class="op">/</span> <span class="number">1_000f64</span>) <span class="kw">as</span> <span class="ident">i64</span>;
+                        <span class="kw">let</span> <span class="ident">nsecs</span> <span class="op">=</span> ((<span class="ident">tv</span> <span class="op">%</span> <span class="number">1_000f64</span>) <span class="op">*</span> <span class="number">1_000_000f64</span>) <span class="kw">as</span> <span class="ident">u32</span>;
+                        <span class="ident">NaiveDateTime::from_timestamp_opt</span>(<span class="ident">secs</span>, <span class="ident">nsecs</span>)
+                    }
                 }
             },
         };
@@ -2271,6 +2286,13 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setFullYear</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_full_year</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">year</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>, <span class="ident">month</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>, <span class="ident">day</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>) {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">year</span>) <span class="op">=</span> <span class="ident">year</span> {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">is_none</span>() {
+                <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">NaiveDateTime::from_timestamp_opt</span>(<span class="number">0</span>, <span class="number">0</span>)
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">local</span><span class="op">|</span> <span class="ident">ignore_ambiguity</span>(<span class="ident">Local</span>.<span class="ident">from_local_datetime</span>(<span class="kw-2">&amp;</span><span class="ident">local</span>)))
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">local</span><span class="op">|</span> <span class="ident">local</span>.<span class="ident">naive_utc</span>())
+                    .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">time</span><span class="op">|</span> <span class="self">Self</span><span class="ident">::time_clip</span>(<span class="ident">time</span>.<span class="ident">timestamp_millis</span>() <span class="kw">as</span> <span class="ident">f64</span>).<span class="ident">is_some</span>());
+            }
+
             <span class="self">self</span>.<span class="ident">set_components</span>(<span class="bool-val">false</span>, <span class="prelude-val">Some</span>(<span class="ident">year</span>), <span class="ident">month</span>, <span class="ident">day</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="prelude-val">None</span>
