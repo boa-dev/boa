@@ -6,8 +6,9 @@ use crate::{
     gc::{empty_trace, Finalize, Trace},
     object::{ConstructorBuilder, ObjectData, PROTOTYPE},
     property::Attribute,
+    symbol::WellKnownSymbols,
     value::{JsValue, PreferredType},
-    BoaProfiler, Context, Result,
+    BoaProfiler, Context, JsString, Result,
 };
 use chrono::{prelude::*, Duration, LocalResult};
 use std::fmt::Display;
@@ -105,11 +106,7 @@ impl BuiltIn for Date {
             .method(getter_method!(get_seconds), "getSeconds", 0)
             .method(getter_method!(get_time), "getTime", 0)
             .method(getter_method!(get_year), "getYear", 0)
-            .method(
-                getter_method!(Self::get_timezone_offset),
-                "getTimezoneOffset",
-                0,
-            )
+            .method(Self::get_timezone_offset, "getTimezoneOffset", 0)
             .method(getter_method!(get_utc_date), "getUTCDate", 0)
             .method(getter_method!(get_utc_day), "getUTCDay", 0)
             .method(getter_method!(get_utc_full_year), "getUTCFullYear", 0)
@@ -138,15 +135,20 @@ impl BuiltIn for Date {
             .method(Self::set_utc_minutes, "setUTCMinutes", 3)
             .method(Self::set_utc_month, "setUTCMonth", 2)
             .method(Self::set_utc_seconds, "setUTCSeconds", 2)
-            .method(getter_method!(to_date_string), "toDateString", 0)
+            .method(Self::to_date_string, "toDateString", 0)
             .method(getter_method!(to_gmt_string), "toGMTString", 0)
-            .method(getter_method!(to_iso_string), "toISOString", 0)
-            .method(getter_method!(to_json), "toJSON", 0)
+            .method(Self::to_iso_string, "toISOString", 0)
+            .method(Self::to_json, "toJSON", 1)
             // Locale strings
-            .method(getter_method!(to_string), "toString", 0)
-            .method(getter_method!(to_time_string), "toTimeString", 0)
+            .method(Self::to_string, "toString", 0)
+            .method(Self::to_time_string, "toTimeString", 0)
             .method(getter_method!(to_utc_string), "toUTCString", 0)
             .method(getter_method!(value_of), "valueOf", 0)
+            .method(
+                Self::to_primitive,
+                (WellKnownSymbols::to_primitive(), "[Symbol.toPrimitive]"),
+                1,
+            )
             .static_method(Self::now, "now", 0)
             .static_method(Self::parse, "parse", 1)
             .static_method(Self::utc, "UTC", 7)
@@ -160,7 +162,7 @@ impl Date {
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 7;
 
-    /// Check if the time (number of miliseconds) is in the expected range.
+    /// Check if the time (number of milliseconds) is in the expected range.
     /// Returns None if the time is not in the range, otherwise returns the time itself in option.
     ///
     /// More information:
@@ -179,6 +181,7 @@ impl Date {
     /// Converts the `Date` to a local `DateTime`.
     ///
     /// If the `Date` is invalid (i.e. NAN), this function will return `None`.
+    #[inline]
     pub fn to_local(self) -> Option<DateTime<Local>> {
         self.0
             .map(|utc| Local::now().timezone().from_utc_datetime(&utc))
@@ -496,6 +499,54 @@ impl Date {
         Ok(this.clone())
     }
 
+    /// `Date.prototype[@@toPrimitive]`
+    ///
+    /// The [@@toPrimitive]() method converts a Date object to a primitive value.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype-@@toprimitive
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/@@toPrimitive
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_primitive(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> Result<JsValue> {
+        // 1. Let O be the this value.
+        // 2. If Type(O) is not Object, throw a TypeError exception.
+        let o = if let Some(o) = this.as_object() {
+            o
+        } else {
+            return context.throw_type_error("Date.prototype[@@toPrimitive] called on non object");
+        };
+
+        let hint = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_string(context)?;
+
+        let try_first = match hint.as_str() {
+            // 3. If hint is "string" or "default", then
+            // a. Let tryFirst be string.
+            "string" | "default" => PreferredType::String,
+            // 4. Else if hint is "number", then
+            // a. Let tryFirst be number.
+            "number" => PreferredType::Number,
+            // 5. Else, throw a TypeError exception.
+            _ => {
+                return context
+                    .throw_type_error("Date.prototype[@@toPrimitive] called with invalid hint")
+            }
+        };
+
+        // 6. Return ? OrdinaryToPrimitive(O, tryFirst).
+        o.ordinary_to_primitive(context, try_first)
+    }
+
     /// `Date.prototype.getDate()`
     ///
     /// The `getDate()` method returns the day of the month for the specified date according to local time.
@@ -658,9 +709,23 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.gettimezoneoffset
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset
     #[inline]
-    pub fn get_timezone_offset() -> f64 {
-        let offset_seconds = chrono::Local::now().offset().local_minus_utc() as f64;
-        offset_seconds / 60f64
+    pub fn get_timezone_offset(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> Result<JsValue> {
+        // 1. Let t be ? thisTimeValue(this value).
+        let t = this_time_value(this, context)?;
+
+        // 2. If t is NaN, return NaN.
+        if t.0.is_none() {
+            return Ok(JsValue::nan());
+        }
+
+        // 3. Return (t - LocalTime(t)) / msPerMinute.
+        Ok(JsValue::Rational(
+            -Local::now().offset().local_minus_utc() as f64 / 60f64,
+        ))
     }
 
     /// `Date.prototype.getUTCDate()`
@@ -1555,10 +1620,20 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.todatestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toDateString
-    pub fn to_date_string(self) -> String {
-        self.to_local()
-            .map(|date_time| date_time.format("%a %b %d %Y").to_string())
-            .unwrap_or_else(|| "Invalid Date".to_string())
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_date_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+        // 1. Let O be this Date object.
+        // 2. Let tv be ? thisTimeValue(O).
+        let tv = this_time_value(this, context)?;
+
+        // 3. If tv is NaN, return "Invalid Date".
+        // 4. Let t be LocalTime(tv).
+        // 5. Return DateString(t).
+        if let Some(t) = tv.0 {
+            Ok(t.format("%a %b %d %Y").to_string().into())
+        } else {
+            Ok(JsString::from("Invalid Date").into())
+        }
     }
 
     /// `Date.prototype.toGMTString()`
@@ -1587,11 +1662,18 @@ impl Date {
     /// [iso8601]: http://en.wikipedia.org/wiki/ISO_8601
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.toisostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
-    pub fn to_iso_string(self) -> String {
-        self.to_utc()
-            // RFC 3389 uses +0.00 for UTC, where JS expects Z, so we can't use the built-in chrono function.
-            .map(|f| f.format("%Y-%m-%dT%H:%M:%S.%3fZ").to_string())
-            .unwrap_or_else(|| "Invalid Date".to_string())
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_iso_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+        if let Some(t) = this_time_value(this, context)?.0 {
+            Ok(Utc::now()
+                .timezone()
+                .from_utc_datetime(&t)
+                .format("%Y-%m-%dT%H:%M:%S.%3fZ")
+                .to_string()
+                .into())
+        } else {
+            context.throw_range_error("Invalid time value")
+        }
     }
 
     /// `Date.prototype.toJSON()`
@@ -1604,8 +1686,55 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.tojson
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toJSON
-    pub fn to_json(self) -> String {
-        self.to_iso_string()
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_json(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Let tv be ? ToPrimitive(O, number).
+        let tv = this.to_primitive(context, PreferredType::Number)?;
+
+        // 3. If Type(tv) is Number and tv is not finite, return null.
+        if let Some(number) = tv.as_number() {
+            if !number.is_finite() {
+                return Ok(JsValue::null());
+            }
+        }
+
+        // 4. Return ? Invoke(O, "toISOString").
+        if let Some(to_iso_string) = o.get_method(context, "toISOString")? {
+            to_iso_string.call(this, &[], context)
+        } else {
+            context.throw_type_error("toISOString in undefined")
+        }
+    }
+
+    /// `Date.prototype.toString()`
+    ///
+    /// The toString() method returns a string representing the specified Date object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.tostring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toString
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+        // 1. Let tv be ? thisTimeValue(this value).
+        let tv = this_time_value(this, context)?;
+
+        // 2. Return ToDateString(tv).
+        if let Some(t) = tv.0 {
+            Ok(Local::now()
+                .timezone()
+                .from_utc_datetime(&t)
+                .format("%a %b %d %Y %H:%M:%S GMT%z")
+                .to_string()
+                .into())
+        } else {
+            Ok(JsString::from("Invalid Date").into())
+        }
     }
 
     /// `Date.prototype.toTimeString()`
@@ -1619,10 +1748,25 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.totimestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toTimeString
-    pub fn to_time_string(self) -> String {
-        self.to_local()
-            .map(|date_time| date_time.format("%H:%M:%S GMT%:z").to_string())
-            .unwrap_or_else(|| "Invalid Date".to_string())
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_time_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+        // 1. Let O be this Date object.
+        // 2. Let tv be ? thisTimeValue(O).
+        let tv = this_time_value(this, context)?;
+
+        // 3. If tv is NaN, return "Invalid Date".
+        // 4. Let t be LocalTime(tv).
+        // 5. Return the string-concatenation of TimeString(t) and TimeZoneString(tv).
+        if let Some(t) = tv.0 {
+            Ok(Local::now()
+                .timezone()
+                .from_utc_datetime(&t)
+                .format("%H:%M:%S GMT%z")
+                .to_string()
+                .into())
+        } else {
+            Ok(JsString::from("Invalid Date").into())
+        }
     }
 
     /// `Date.prototype.toUTCString()`
@@ -1711,7 +1855,7 @@ impl Date {
             .map_or(Ok(f64::NAN), |value| value.to_number(context))?;
         let month = args
             .get(1)
-            .map_or(Ok(1f64), |value| value.to_number(context))?;
+            .map_or(Ok(0f64), |value| value.to_number(context))?;
         let day = args
             .get(2)
             .map_or(Ok(1f64), |value| value.to_number(context))?;
