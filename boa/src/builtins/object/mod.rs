@@ -638,7 +638,7 @@ impl Object {
             obj.enumerable_own_property_names(PropertyNameKind::KeyAndValue, context)?;
 
         // 3. Return CreateArrayFromList(nameList).
-        let result = Array::create_array_from_list(name_list.into_iter(), context);
+        let result = Array::create_array_from_list(name_list, context);
 
         Ok(result.into())
     }
