@@ -924,7 +924,7 @@ impl GcObject {
                             else {
                                 // i. Assert: kind is key+value.
                                 // ii. Let entry be ! CreateArrayFromList(« key, value »).
-                                let key_val = JsValue::String(key_str.clone());
+                                let key_val = key_str.clone().into();
                                 let entry =
                                     Array::create_array_from_list([key_val, value], context);
 
