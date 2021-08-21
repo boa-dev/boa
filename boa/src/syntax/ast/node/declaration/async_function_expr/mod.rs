@@ -3,7 +3,7 @@
 use crate::{
     exec::Executable,
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    Context, Result, Value,
+    Context, JsValue, Result,
 };
 use gc::{Finalize, Trace};
 use std::fmt;
@@ -81,9 +81,9 @@ impl AsyncFunctionExpr {
 }
 
 impl Executable for AsyncFunctionExpr {
-    fn run(&self, _: &mut Context) -> Result<Value> {
+    fn run(&self, _: &mut Context) -> Result<JsValue> {
         // TODO: Implement AsyncFunctionExpr
-        Ok(Value::Undefined)
+        Ok(JsValue::undefined())
     }
 }
 

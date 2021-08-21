@@ -1,60 +1,36 @@
 use super::*;
 use std::convert::TryFrom;
 
-impl From<&Value> for Value {
+impl From<&JsValue> for JsValue {
     #[inline]
-    fn from(value: &Value) -> Self {
+    fn from(value: &JsValue) -> Self {
         value.clone()
     }
 }
 
-impl From<String> for Value {
+impl<T> From<T> for JsValue
+where
+    T: Into<JsString>,
+{
     #[inline]
-    fn from(value: String) -> Self {
+    fn from(value: T) -> Self {
         let _timer = BoaProfiler::global().start_event("From<String>", "value");
-        Self::string(value)
+
+        Self::String(value.into())
     }
 }
 
-impl From<Box<str>> for Value {
-    #[inline]
-    fn from(value: Box<str>) -> Self {
-        Self::string(String::from(value))
-    }
-}
-
-impl From<&str> for Value {
-    #[inline]
-    fn from(value: &str) -> Value {
-        Value::string(value)
-    }
-}
-
-impl From<&Box<str>> for Value {
-    #[inline]
-    fn from(value: &Box<str>) -> Self {
-        Self::string(value.as_ref())
-    }
-}
-
-impl From<char> for Value {
+impl From<char> for JsValue {
     #[inline]
     fn from(value: char) -> Self {
-        Value::string(value.to_string())
+        JsValue::new(value.to_string())
     }
 }
 
-impl From<JsString> for Value {
-    #[inline]
-    fn from(value: JsString) -> Self {
-        Value::String(value)
-    }
-}
-
-impl From<JsSymbol> for Value {
+impl From<JsSymbol> for JsValue {
     #[inline]
     fn from(value: JsSymbol) -> Self {
-        Value::Symbol(value)
+        JsValue::Symbol(value)
     }
 }
 
@@ -67,81 +43,86 @@ impl Display for TryFromCharError {
     }
 }
 
-impl From<f64> for Value {
+impl From<f64> for JsValue {
+    #[allow(clippy::float_cmp)]
     #[inline]
     fn from(value: f64) -> Self {
-        Self::rational(value)
+        // if value as i32 as f64 == value {
+        //     JsValue::Integer(value as i32)
+        // } else {
+        JsValue::Rational(value)
+        // }
     }
 }
 
-impl From<u32> for Value {
+impl From<u32> for JsValue {
     #[inline]
-    fn from(value: u32) -> Value {
+    fn from(value: u32) -> JsValue {
         if let Ok(integer) = i32::try_from(value) {
-            Value::integer(integer)
+            JsValue::Integer(integer)
         } else {
-            Value::rational(value)
+            JsValue::Rational(value.into())
         }
     }
 }
 
-impl From<i32> for Value {
+impl From<i32> for JsValue {
     #[inline]
-    fn from(value: i32) -> Value {
-        Value::integer(value)
+    fn from(value: i32) -> JsValue {
+        JsValue::Integer(value)
     }
 }
 
-impl From<JsBigInt> for Value {
+impl From<JsBigInt> for JsValue {
     #[inline]
     fn from(value: JsBigInt) -> Self {
-        Value::BigInt(value)
+        JsValue::BigInt(value)
     }
 }
 
-impl From<usize> for Value {
+impl From<usize> for JsValue {
     #[inline]
-    fn from(value: usize) -> Value {
+    fn from(value: usize) -> JsValue {
         if let Ok(value) = i32::try_from(value) {
-            Value::integer(value)
+            JsValue::Integer(value)
         } else {
-            Value::rational(value as f64)
+            JsValue::Rational(value as f64)
         }
     }
 }
 
-impl From<u64> for Value {
+impl From<u64> for JsValue {
     #[inline]
-    fn from(value: u64) -> Value {
+    fn from(value: u64) -> JsValue {
         if let Ok(value) = i32::try_from(value) {
-            Value::integer(value)
+            JsValue::Integer(value)
         } else {
-            Value::rational(value as f64)
+            JsValue::Rational(value as f64)
         }
     }
 }
 
-impl From<i64> for Value {
+impl From<i64> for JsValue {
     #[inline]
-    fn from(value: i64) -> Value {
+    fn from(value: i64) -> JsValue {
         if let Ok(value) = i32::try_from(value) {
-            Value::integer(value)
+            JsValue::Integer(value)
         } else {
-            Value::rational(value as f64)
+            JsValue::Rational(value as f64)
         }
     }
 }
 
-impl From<bool> for Value {
+impl From<bool> for JsValue {
     #[inline]
     fn from(value: bool) -> Self {
-        Value::boolean(value)
+        JsValue::Boolean(value)
     }
 }
 
-impl<T> From<&[T]> for Value
+impl<T> From<&[T]> for JsValue
 where
-    T: Clone + Into<Value>,
+    T: Clone + Into<JsValue>,
 {
     fn from(value: &[T]) -> Self {
         let mut array = Object::default();
@@ -159,9 +140,9 @@ where
     }
 }
 
-impl<T> From<Vec<T>> for Value
+impl<T> From<Vec<T>> for JsValue
 where
-    T: Into<Value>,
+    T: Into<JsValue>,
 {
     fn from(value: Vec<T>) -> Self {
         let mut array = Object::default();
@@ -175,22 +156,23 @@ where
                     .configurable(true),
             );
         }
-        Value::from(array)
+        JsValue::new(array)
     }
 }
 
-impl From<Object> for Value {
+impl From<Object> for JsValue {
+    #[inline]
     fn from(object: Object) -> Self {
         let _timer = BoaProfiler::global().start_event("From<Object>", "value");
-        Value::object(object)
+        JsValue::Object(GcObject::new(object))
     }
 }
 
-impl From<GcObject> for Value {
+impl From<GcObject> for JsValue {
     #[inline]
     fn from(object: GcObject) -> Self {
         let _timer = BoaProfiler::global().start_event("From<GcObject>", "value");
-        Value::Object(object)
+        JsValue::Object(object)
     }
 }
 
@@ -204,22 +186,22 @@ impl Display for TryFromObjectError {
     }
 }
 
-impl From<()> for Value {
+impl From<()> for JsValue {
     #[inline]
     fn from(_: ()) -> Self {
-        Value::null()
+        JsValue::null()
     }
 }
 
-impl<T> From<Option<T>> for Value
+impl<T> From<Option<T>> for JsValue
 where
-    T: Into<Value>,
+    T: Into<JsValue>,
 {
     #[inline]
     fn from(value: Option<T>) -> Self {
         match value {
             Some(value) => value.into(),
-            None => Value::null(),
+            None => JsValue::null(),
         }
     }
 }

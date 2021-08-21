@@ -9,21 +9,21 @@ use std::hash::{Hash, Hasher};
 #[test]
 fn is_object() {
     let context = Context::new();
-    let val = Value::new_object(&context);
+    let val = JsValue::new_object(&context);
     assert!(val.is_object());
 }
 
 #[test]
 fn string_to_value() {
     let s = String::from("Hello");
-    let v = Value::from(s);
+    let v = JsValue::new(s);
     assert!(v.is_string());
     assert!(!v.is_null());
 }
 
 #[test]
 fn undefined() {
-    let u = Value::Undefined;
+    let u = JsValue::undefined();
     assert_eq!(u.get_type(), Type::Undefined);
     assert_eq!(u.display().to_string(), "undefined");
 }
@@ -31,9 +31,9 @@ fn undefined() {
 #[test]
 fn get_set_field() {
     let mut context = Context::new();
-    let obj = Value::new_object(&context);
+    let obj = JsValue::new_object(&context);
     // Create string and convert it to a Value
-    let s = Value::from("bar");
+    let s = JsValue::new("bar");
     obj.set_field("foo", s, false, &mut context).unwrap();
     assert_eq!(
         obj.get_field("foo", &mut context)
@@ -46,19 +46,19 @@ fn get_set_field() {
 
 #[test]
 fn integer_is_true() {
-    assert!(Value::from(1).to_boolean());
-    assert!(!Value::from(0).to_boolean());
-    assert!(Value::from(-1).to_boolean());
+    assert!(JsValue::new(1).to_boolean());
+    assert!(!JsValue::new(0).to_boolean());
+    assert!(JsValue::new(-1).to_boolean());
 }
 
 #[test]
 fn number_is_true() {
-    assert!(Value::from(1.0).to_boolean());
-    assert!(Value::from(0.1).to_boolean());
-    assert!(!Value::from(0.0).to_boolean());
-    assert!(!Value::from(-0.0).to_boolean());
-    assert!(Value::from(-1.0).to_boolean());
-    assert!(!Value::nan().to_boolean());
+    assert!(JsValue::new(1.0).to_boolean());
+    assert!(JsValue::new(0.1).to_boolean());
+    assert!(!JsValue::new(0.0).to_boolean());
+    assert!(!JsValue::new(-0.0).to_boolean());
+    assert!(JsValue::new(-1.0).to_boolean());
+    assert!(!JsValue::nan().to_boolean());
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
@@ -106,7 +106,7 @@ fn abstract_equality_comparison() {
 }
 
 /// Helper function to get the hash of a `Value`.
-fn hash_value(value: &Value) -> u64 {
+fn hash_value(value: &JsValue) -> u64 {
     let mut hasher = DefaultHasher::new();
     value.hash(&mut hasher);
     hasher.finish()
@@ -114,11 +114,11 @@ fn hash_value(value: &Value) -> u64 {
 
 #[test]
 fn hash_undefined() {
-    let value1 = Value::undefined();
+    let value1 = JsValue::undefined();
     let value_clone = value1.clone();
     assert_eq!(value1, value_clone);
 
-    let value2 = Value::undefined();
+    let value2 = JsValue::undefined();
     assert_eq!(value1, value2);
 
     assert_eq!(hash_value(&value1), hash_value(&value_clone));
@@ -128,25 +128,25 @@ fn hash_undefined() {
 #[test]
 #[allow(clippy::eq_op)]
 fn hash_rational() {
-    let value1 = Value::rational(1.0);
-    let value2 = Value::rational(1.0);
+    let value1 = JsValue::new(1.0);
+    let value2 = JsValue::new(1.0);
     assert_eq!(value1, value2);
     assert_eq!(hash_value(&value1), hash_value(&value2));
 
-    let nan = Value::nan();
+    let nan = JsValue::nan();
     assert_eq!(nan, nan);
     assert_eq!(hash_value(&nan), hash_value(&nan));
-    assert_ne!(hash_value(&nan), hash_value(&Value::rational(1.0)));
+    assert_ne!(hash_value(&nan), hash_value(&JsValue::new(1.0)));
 }
 
 #[test]
 #[allow(clippy::eq_op)]
 fn hash_object() {
-    let object1 = Value::object(Object::default());
+    let object1 = JsValue::new(Object::default());
     assert_eq!(object1, object1);
     assert_eq!(object1, object1.clone());
 
-    let object2 = Value::object(Object::default());
+    let object2 = JsValue::new(Object::default());
     assert_ne!(object1, object2);
 
     assert_eq!(hash_value(&object1), hash_value(&object1.clone()));
@@ -211,7 +211,7 @@ fn get_types() {
 
 #[test]
 fn to_string() {
-    let f64_to_str = |f| Value::Rational(f).display().to_string();
+    let f64_to_str = |f| JsValue::new(f).display().to_string();
 
     assert_eq!(f64_to_str(f64::NAN), "NaN");
     assert_eq!(f64_to_str(0.0), "0");
@@ -247,7 +247,7 @@ fn to_string() {
 fn string_length_is_not_enumerable() {
     let mut context = Context::new();
 
-    let object = Value::from("foo").to_object(&mut context).unwrap();
+    let object = JsValue::new("foo").to_object(&mut context).unwrap();
     let length_desc = object
         .__get_own_property__(&PropertyKey::from("length"))
         .unwrap();
@@ -259,7 +259,7 @@ fn string_length_is_in_utf16_codeunits() {
     let mut context = Context::new();
 
     // 😀 is one Unicode code point, but 2 UTF-16 code units
-    let object = Value::from("😀").to_object(&mut context).unwrap();
+    let object = JsValue::new("😀").to_object(&mut context).unwrap();
     let length_desc = object
         .__get_own_property__(&PropertyKey::from("length"))
         .unwrap();
@@ -428,7 +428,7 @@ fn assign_pow_number_and_string() {
 #[test]
 fn display_string() {
     let s = String::from("Hello");
-    let v = Value::from(s);
+    let v = JsValue::new(s);
     assert_eq!(v.display().to_string(), "\"Hello\"");
 }
 
@@ -545,45 +545,45 @@ fn to_integer_or_infinity() {
     let mut context = Context::new();
 
     assert_eq!(
-        Value::undefined().to_integer_or_infinity(&mut context),
+        JsValue::undefined().to_integer_or_infinity(&mut context),
         Ok(IntegerOrInfinity::Integer(0))
     );
     assert_eq!(
-        Value::nan().to_integer_or_infinity(&mut context),
+        JsValue::nan().to_integer_or_infinity(&mut context),
         Ok(IntegerOrInfinity::Integer(0))
     );
     assert_eq!(
-        Value::from(0.0).to_integer_or_infinity(&mut context),
+        JsValue::new(0.0).to_integer_or_infinity(&mut context),
         Ok(IntegerOrInfinity::Integer(0))
     );
     assert_eq!(
-        Value::from(-0.0).to_integer_or_infinity(&mut context),
+        JsValue::new(-0.0).to_integer_or_infinity(&mut context),
         Ok(IntegerOrInfinity::Integer(0))
     );
 
     assert_eq!(
-        Value::from(f64::INFINITY).to_integer_or_infinity(&mut context),
+        JsValue::new(f64::INFINITY).to_integer_or_infinity(&mut context),
         Ok(IntegerOrInfinity::PositiveInfinity)
     );
     assert_eq!(
-        Value::from(f64::NEG_INFINITY).to_integer_or_infinity(&mut context),
+        JsValue::new(f64::NEG_INFINITY).to_integer_or_infinity(&mut context),
         Ok(IntegerOrInfinity::NegativeInfinity)
     );
 
     assert_eq!(
-        Value::from(10).to_integer_or_infinity(&mut context),
+        JsValue::new(10).to_integer_or_infinity(&mut context),
         Ok(IntegerOrInfinity::Integer(10))
     );
     assert_eq!(
-        Value::from(11.0).to_integer_or_infinity(&mut context),
+        JsValue::new(11.0).to_integer_or_infinity(&mut context),
         Ok(IntegerOrInfinity::Integer(11))
     );
     assert_eq!(
-        Value::from("12").to_integer_or_infinity(&mut context),
+        JsValue::new("12").to_integer_or_infinity(&mut context),
         Ok(IntegerOrInfinity::Integer(12))
     );
     assert_eq!(
-        Value::from(true).to_integer_or_infinity(&mut context),
+        JsValue::new(true).to_integer_or_infinity(&mut context),
         Ok(IntegerOrInfinity::Integer(1))
     );
 }
@@ -693,7 +693,7 @@ mod cyclic_conversions {
 
         let value = forward_val(&mut context, src).unwrap();
         // There isn't an as_boolean function for some reason?
-        assert_eq!(value, Value::Boolean(true));
+        assert_eq!(value, JsValue::new(true));
     }
 
     #[test]

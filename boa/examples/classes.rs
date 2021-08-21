@@ -2,7 +2,7 @@ use boa::{
     class::{Class, ClassBuilder},
     gc::{Finalize, Trace},
     property::Attribute,
-    Context, Result, Value,
+    Context, JsValue, Result,
 };
 
 // We create a new struct that is going to represent a person.
@@ -26,7 +26,7 @@ struct Person {
 // or any function that matches that signature.
 impl Person {
     /// This function says hello
-    fn say_hello(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    fn say_hello(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
         // We check if this is an object.
         if let Some(object) = this.as_object() {
             // If it is we downcast the type to type `Person`.
@@ -37,7 +37,7 @@ impl Person {
                     person.name,
                     person.age // Here we can access the native rust fields of Person struct.
                 );
-                return Ok(Value::undefined());
+                return Ok(JsValue::undefined());
             }
         }
         // If `this` was not an object or the type was not an native object `Person`,
@@ -57,7 +57,7 @@ impl Class for Person {
     const LENGTH: usize = 2;
 
     // This is what is called when we do `new Person()`
-    fn constructor(_this: &Value, args: &[Value], context: &mut Context) -> Result<Self> {
+    fn constructor(_this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<Self> {
         // We get the first argument. If it is unavailable we get `undefined`. And, then call `to_string()`.
         //
         // This is equivalent to `String(arg)`.

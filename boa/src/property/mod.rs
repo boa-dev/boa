@@ -16,7 +16,7 @@
 
 use crate::{
     gc::{Finalize, Trace},
-    JsString, JsSymbol, Value,
+    JsString, JsSymbol, JsValue,
 };
 use std::{convert::TryFrom, fmt};
 
@@ -55,12 +55,12 @@ pub struct PropertyDescriptor {
 #[derive(Debug, Clone, Trace, Finalize)]
 pub enum DescriptorKind {
     Data {
-        value: Option<Value>,
+        value: Option<JsValue>,
         writable: Option<bool>,
     },
     Accessor {
-        get: Option<Value>,
-        set: Option<Value>,
+        get: Option<JsValue>,
+        set: Option<JsValue>,
     },
     Generic,
 }
@@ -129,7 +129,7 @@ impl PropertyDescriptor {
     }
 
     #[inline]
-    pub fn value(&self) -> Option<&Value> {
+    pub fn value(&self) -> Option<&JsValue> {
         match &self.kind {
             DescriptorKind::Data { value, .. } => value.as_ref(),
             _ => None,
@@ -137,7 +137,7 @@ impl PropertyDescriptor {
     }
 
     #[inline]
-    pub fn get(&self) -> Option<&Value> {
+    pub fn get(&self) -> Option<&JsValue> {
         match &self.kind {
             DescriptorKind::Accessor { get, .. } => get.as_ref(),
             _ => None,
@@ -145,7 +145,7 @@ impl PropertyDescriptor {
     }
 
     #[inline]
-    pub fn set(&self) -> Option<&Value> {
+    pub fn set(&self) -> Option<&JsValue> {
         match &self.kind {
             DescriptorKind::Accessor { set, .. } => set.as_ref(),
             _ => None,
@@ -180,7 +180,7 @@ impl PropertyDescriptor {
     }
 
     #[inline]
-    pub fn expect_value(&self) -> &Value {
+    pub fn expect_value(&self) -> &JsValue {
         if let Some(value) = self.value() {
             value
         } else {
@@ -189,7 +189,7 @@ impl PropertyDescriptor {
     }
 
     #[inline]
-    pub fn expect_get(&self) -> &Value {
+    pub fn expect_get(&self) -> &JsValue {
         if let Some(get) = self.get() {
             get
         } else {
@@ -198,7 +198,7 @@ impl PropertyDescriptor {
     }
 
     #[inline]
-    pub fn expect_set(&self) -> &Value {
+    pub fn expect_set(&self) -> &JsValue {
         if let Some(set) = self.set() {
             set
         } else {
@@ -298,7 +298,7 @@ impl PropertyDescriptorBuilder {
         Self::default()
     }
 
-    pub fn value<V: Into<Value>>(mut self, value: V) -> Self {
+    pub fn value<V: Into<JsValue>>(mut self, value: V) -> Self {
         match self.inner.kind {
             DescriptorKind::Data {
                 value: ref mut v, ..
@@ -331,7 +331,7 @@ impl PropertyDescriptorBuilder {
         self
     }
 
-    pub fn get<V: Into<Value>>(mut self, get: V) -> Self {
+    pub fn get<V: Into<JsValue>>(mut self, get: V) -> Self {
         match self.inner.kind {
             DescriptorKind::Accessor { get: ref mut g, .. } => *g = Some(get.into()),
             // TODO: maybe panic when trying to convert data to accessor?
@@ -345,7 +345,7 @@ impl PropertyDescriptorBuilder {
         self
     }
 
-    pub fn set<V: Into<Value>>(mut self, set: V) -> Self {
+    pub fn set<V: Into<JsValue>>(mut self, set: V) -> Self {
         match self.inner.kind {
             DescriptorKind::Accessor { set: ref mut s, .. } => *s = Some(set.into()),
             // TODO: maybe panic when trying to convert data to accessor?
@@ -373,7 +373,7 @@ impl PropertyDescriptorBuilder {
         self
     }
 
-    pub fn maybe_value<V: Into<Value>>(mut self, value: Option<V>) -> Self {
+    pub fn maybe_value<V: Into<JsValue>>(mut self, value: Option<V>) -> Self {
         if let Some(value) = value {
             self = self.value(value);
         }
@@ -387,14 +387,14 @@ impl PropertyDescriptorBuilder {
         self
     }
 
-    pub fn maybe_get<V: Into<Value>>(mut self, get: Option<V>) -> Self {
+    pub fn maybe_get<V: Into<JsValue>>(mut self, get: Option<V>) -> Self {
         if let Some(get) = get {
             self = self.get(get);
         }
         self
     }
 
-    pub fn maybe_set<V: Into<Value>>(mut self, set: Option<V>) -> Self {
+    pub fn maybe_set<V: Into<JsValue>>(mut self, set: Option<V>) -> Self {
         if let Some(set) = set {
             self = self.set(set);
         }
@@ -414,7 +414,7 @@ impl PropertyDescriptorBuilder {
         match self.inner.kind {
             DescriptorKind::Generic => {
                 self.inner.kind = DescriptorKind::Data {
-                    value: Some(Value::undefined()),
+                    value: Some(JsValue::undefined()),
                     writable: Some(false),
                 }
             }
@@ -423,7 +423,7 @@ impl PropertyDescriptorBuilder {
                 ref mut writable,
             } => {
                 if value.is_none() {
-                    *value = Some(Value::undefined())
+                    *value = Some(JsValue::undefined())
                 }
                 if writable.is_none() {
                     *writable = Some(false)
@@ -434,10 +434,10 @@ impl PropertyDescriptorBuilder {
                 ref mut get,
             } => {
                 if set.is_none() {
-                    *set = Some(Value::undefined())
+                    *set = Some(JsValue::undefined())
                 }
                 if get.is_none() {
-                    *get = Some(Value::undefined())
+                    *get = Some(JsValue::undefined())
                 }
             }
         }
@@ -541,34 +541,34 @@ impl fmt::Display for PropertyKey {
     }
 }
 
-impl From<&PropertyKey> for Value {
+impl From<&PropertyKey> for JsValue {
     #[inline]
-    fn from(property_key: &PropertyKey) -> Value {
+    fn from(property_key: &PropertyKey) -> JsValue {
         match property_key {
             PropertyKey::String(ref string) => string.clone().into(),
             PropertyKey::Symbol(ref symbol) => symbol.clone().into(),
             PropertyKey::Index(index) => {
                 if let Ok(integer) = i32::try_from(*index) {
-                    Value::integer(integer)
+                    JsValue::new(integer)
                 } else {
-                    Value::number(*index)
+                    JsValue::new(*index)
                 }
             }
         }
     }
 }
 
-impl From<PropertyKey> for Value {
+impl From<PropertyKey> for JsValue {
     #[inline]
-    fn from(property_key: PropertyKey) -> Value {
+    fn from(property_key: PropertyKey) -> JsValue {
         match property_key {
             PropertyKey::String(ref string) => string.clone().into(),
             PropertyKey::Symbol(ref symbol) => symbol.clone().into(),
             PropertyKey::Index(index) => {
                 if let Ok(integer) = i32::try_from(index) {
-                    Value::integer(integer)
+                    JsValue::new(integer)
                 } else {
-                    Value::number(index)
+                    JsValue::new(index)
                 }
             }
         }

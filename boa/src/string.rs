@@ -186,6 +186,56 @@ impl JsString {
     pub fn ptr_eq(x: &Self, y: &Self) -> bool {
         x.inner == y.inner
     }
+
+    /// `6.1.4.1 StringIndexOf ( string, searchValue, fromIndex )`
+    ///
+    /// Note: Instead of returning an isize with `-1` as the "not found" value,
+    /// We make use of the type system and return Option<usize> with None as the "not found" value.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-stringindexof
+    pub(crate) fn index_of(&self, search_value: &Self, from_index: usize) -> Option<usize> {
+        // 1. Assert: Type(string) is String.
+        // 2. Assert: Type(searchValue) is String.
+        // 3. Assert: fromIndex is a non-negative integer.
+
+        // 4. Let len be the length of string.
+        let len = self.encode_utf16().count();
+
+        // 5. If searchValue is the empty String and fromIndex ≤ len, return fromIndex.
+        if search_value.is_empty() && from_index <= len {
+            return Some(from_index);
+        }
+
+        // 6. Let searchLen be the length of searchValue.
+        let search_len = search_value.encode_utf16().count();
+
+        // 7. For each integer i starting with fromIndex such that i ≤ len - searchLen, in ascending order, do
+        for i in from_index..=len {
+            if i as isize > (len as isize - search_len as isize) {
+                break;
+            }
+
+            // a. Let candidate be the substring of string from i to i + searchLen.
+            let candidate = String::from_utf16_lossy(
+                &self
+                    .encode_utf16()
+                    .skip(i)
+                    .take(search_len)
+                    .collect::<Vec<u16>>(),
+            );
+
+            // b. If candidate is the same sequence of code units as searchValue, return i.
+            if candidate == search_value.as_str() {
+                return Some(i);
+            }
+        }
+
+        // 8. Return -1.
+        None
+    }
 }
 
 impl Finalize for JsString {}

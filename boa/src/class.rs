@@ -6,7 +6,7 @@
 //!#    property::Attribute,
 //!#    class::{Class, ClassBuilder},
 //!#    gc::{Finalize, Trace},
-//!#    Context, Result, Value,
+//!#    Context, Result, JsValue,
 //!# };
 //!#
 //! // This does not have to be an enum it can also be a struct.
@@ -25,7 +25,7 @@
 //!     const LENGTH: usize = 1;
 //!
 //!     // This is what is called when we do `new Animal()`
-//!     fn constructor(_this: &Value, args: &[Value], context: &mut Context) -> Result<Self> {
+//!     fn constructor(_this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<Self> {
 //!         // This is equivalent to `String(arg)`.
 //!         let kind = args.get(0).cloned().unwrap_or_default().to_string(context)?;
 //!
@@ -50,7 +50,7 @@
 //!                     }
 //!                 }
 //!             }
-//!             Ok(Value::undefined())
+//!             Ok(JsValue::undefined())
 //!         });
 //!
 //!         Ok(())
@@ -64,7 +64,7 @@ use crate::{
     builtins::function::NativeFunction,
     object::{ConstructorBuilder, GcObject, NativeObject, ObjectData},
     property::{Attribute, PropertyDescriptor, PropertyKey},
-    Context, Result, Value,
+    Context, JsValue, Result,
 };
 
 /// Native class.
@@ -77,7 +77,7 @@ pub trait Class: NativeObject + Sized {
     const ATTRIBUTES: Attribute = Attribute::all();
 
     /// The constructor of the class.
-    fn constructor(this: &Value, args: &[Value], context: &mut Context) -> Result<Self>;
+    fn constructor(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<Self>;
 
     /// Initializes the internals and the methods of the class.
     fn init(class: &mut ClassBuilder<'_>) -> Result<()>;
@@ -88,13 +88,13 @@ pub trait Class: NativeObject + Sized {
 /// This is automatically implemented, when a type implements `Class`.
 pub trait ClassConstructor: Class {
     /// The raw constructor that mathces the `NativeFunction` signature.
-    fn raw_constructor(this: &Value, args: &[Value], context: &mut Context) -> Result<Value>
+    fn raw_constructor(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue>
     where
         Self: Sized;
 }
 
 impl<T: Class> ClassConstructor for T {
-    fn raw_constructor(this: &Value, args: &[Value], context: &mut Context) -> Result<Value>
+    fn raw_constructor(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue>
     where
         Self: Sized,
     {
@@ -163,7 +163,7 @@ impl<'context> ClassBuilder<'context> {
     pub fn property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
         K: Into<PropertyKey>,
-        V: Into<Value>,
+        V: Into<JsValue>,
     {
         self.builder.property(key, value, attribute);
         self
@@ -176,7 +176,7 @@ impl<'context> ClassBuilder<'context> {
     pub fn static_property<K, V>(&mut self, key: K, value: V, attribute: Attribute) -> &mut Self
     where
         K: Into<PropertyKey>,
-        V: Into<Value>,
+        V: Into<JsValue>,
     {
         self.builder.static_property(key, value, attribute);
         self

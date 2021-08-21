@@ -21,7 +21,7 @@ use crate::{
         },
         Parser,
     },
-    BoaProfiler, Executable, JsString, Result, Value,
+    BoaProfiler, Executable, JsString, JsValue, Result,
 };
 
 #[cfg(feature = "console")]
@@ -334,15 +334,20 @@ impl Context {
     /// Construct an empty object.
     #[inline]
     pub fn construct_object(&self) -> GcObject {
-        let object_prototype: Value = self.standard_objects().object_object().prototype().into();
+        let object_prototype: JsValue = self.standard_objects().object_object().prototype().into();
         GcObject::new(Object::create(object_prototype))
     }
 
     /// <https://tc39.es/ecma262/#sec-call>
     #[inline]
-    pub(crate) fn call(&mut self, f: &Value, this: &Value, args: &[Value]) -> Result<Value> {
+    pub(crate) fn call(
+        &mut self,
+        f: &JsValue,
+        this: &JsValue,
+        args: &[JsValue],
+    ) -> Result<JsValue> {
         match *f {
-            Value::Object(ref object) => object.call(this, args, self),
+            JsValue::Object(ref object) => object.call(this, args, self),
             _ => self.throw_type_error("not a function"),
         }
     }
@@ -353,9 +358,33 @@ impl Context {
         self.realm.global_object.clone()
     }
 
+    /// Constructs a `Error` with the specified message.
+    #[inline]
+    pub fn construct_error<M>(&mut self, message: M) -> JsValue
+    where
+        M: Into<Box<str>>,
+    {
+        // Runs a `new Error(message)`.
+        New::from(Call::new(
+            Identifier::from("Error"),
+            vec![Const::from(message.into()).into()],
+        ))
+        .run(self)
+        .expect("Into<String> used as message")
+    }
+
+    /// Throws a `Error` with the specified message.
+    #[inline]
+    pub fn throw_error<M>(&mut self, message: M) -> Result<JsValue>
+    where
+        M: Into<Box<str>>,
+    {
+        Err(self.construct_error(message))
+    }
+
     /// Constructs a `RangeError` with the specified message.
     #[inline]
-    pub fn construct_range_error<M>(&mut self, message: M) -> Value
+    pub fn construct_range_error<M>(&mut self, message: M) -> JsValue
     where
         M: Into<Box<str>>,
     {
@@ -370,7 +399,7 @@ impl Context {
 
     /// Throws a `RangeError` with the specified message.
     #[inline]
-    pub fn throw_range_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn throw_range_error<M>(&mut self, message: M) -> Result<JsValue>
     where
         M: Into<Box<str>>,
     {
@@ -379,7 +408,7 @@ impl Context {
 
     /// Constructs a `TypeError` with the specified message.
     #[inline]
-    pub fn construct_type_error<M>(&mut self, message: M) -> Value
+    pub fn construct_type_error<M>(&mut self, message: M) -> JsValue
     where
         M: Into<Box<str>>,
     {
@@ -394,7 +423,7 @@ impl Context {
 
     /// Throws a `TypeError` with the specified message.
     #[inline]
-    pub fn throw_type_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn throw_type_error<M>(&mut self, message: M) -> Result<JsValue>
     where
         M: Into<Box<str>>,
     {
@@ -403,7 +432,7 @@ impl Context {
 
     /// Constructs a `ReferenceError` with the specified message.
     #[inline]
-    pub fn construct_reference_error<M>(&mut self, message: M) -> Value
+    pub fn construct_reference_error<M>(&mut self, message: M) -> JsValue
     where
         M: Into<Box<str>>,
     {
@@ -417,7 +446,7 @@ impl Context {
 
     /// Throws a `ReferenceError` with the specified message.
     #[inline]
-    pub fn throw_reference_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn throw_reference_error<M>(&mut self, message: M) -> Result<JsValue>
     where
         M: Into<Box<str>>,
     {
@@ -426,7 +455,7 @@ impl Context {
 
     /// Constructs a `SyntaxError` with the specified message.
     #[inline]
-    pub fn construct_syntax_error<M>(&mut self, message: M) -> Value
+    pub fn construct_syntax_error<M>(&mut self, message: M) -> JsValue
     where
         M: Into<Box<str>>,
     {
@@ -440,7 +469,7 @@ impl Context {
 
     /// Throws a `SyntaxError` with the specified message.
     #[inline]
-    pub fn throw_syntax_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn throw_syntax_error<M>(&mut self, message: M) -> Result<JsValue>
     where
         M: Into<Box<str>>,
     {
@@ -448,7 +477,7 @@ impl Context {
     }
 
     /// Constructs a `EvalError` with the specified message.
-    pub fn construct_eval_error<M>(&mut self, message: M) -> Value
+    pub fn construct_eval_error<M>(&mut self, message: M) -> JsValue
     where
         M: Into<Box<str>>,
     {
@@ -461,7 +490,7 @@ impl Context {
     }
 
     /// Constructs a `URIError` with the specified message.
-    pub fn construct_uri_error<M>(&mut self, message: M) -> Value
+    pub fn construct_uri_error<M>(&mut self, message: M) -> JsValue
     where
         M: Into<Box<str>>,
     {
@@ -474,7 +503,7 @@ impl Context {
     }
 
     /// Throws a `EvalError` with the specified message.
-    pub fn throw_eval_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn throw_eval_error<M>(&mut self, message: M) -> Result<JsValue>
     where
         M: Into<Box<str>>,
     {
@@ -482,7 +511,7 @@ impl Context {
     }
 
     /// Throws a `URIError` with the specified message.
-    pub fn throw_uri_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn throw_uri_error<M>(&mut self, message: M) -> Result<JsValue>
     where
         M: Into<Box<str>>,
     {
@@ -496,14 +525,14 @@ impl Context {
         params: P,
         body: B,
         flags: FunctionFlags,
-    ) -> Result<Value>
+    ) -> Result<JsValue>
     where
         N: Into<JsString>,
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
     {
         let name = name.into();
-        let function_prototype: Value =
+        let function_prototype: JsValue =
             self.standard_objects().function_object().prototype().into();
 
         // Every new function has a prototype property pre-made
@@ -606,7 +635,7 @@ impl Context {
     #[inline]
     pub fn register_global_closure<F>(&mut self, name: &str, length: usize, body: F) -> Result<()>
     where
-        F: Fn(&Value, &[Value], &mut Context) -> Result<Value> + 'static,
+        F: Fn(&JsValue, &[JsValue], &mut Context) -> Result<JsValue> + 'static,
     {
         let function = FunctionBuilder::closure(self, body)
             .name(name)
@@ -627,7 +656,7 @@ impl Context {
 
     /// <https://tc39.es/ecma262/#sec-hasproperty>
     #[inline]
-    pub(crate) fn has_property(&self, obj: &Value, key: &PropertyKey) -> bool {
+    pub(crate) fn has_property(&self, obj: &JsValue, key: &PropertyKey) -> bool {
         if let Some(obj) = obj.as_object() {
             obj.__has_property__(key)
         } else {
@@ -636,7 +665,7 @@ impl Context {
     }
 
     #[inline]
-    pub(crate) fn set_value(&mut self, node: &Node, value: Value) -> Result<Value> {
+    pub(crate) fn set_value(&mut self, node: &Node, value: JsValue) -> Result<JsValue> {
         match node {
             Node::Identifier(ref name) => {
                 self.set_mutable_binding(name.as_ref(), value.clone(), true)?;
@@ -725,7 +754,7 @@ impl Context {
     pub fn register_global_property<K, V>(&mut self, key: K, value: V, attribute: Attribute)
     where
         K: Into<PropertyKey>,
-        V: Into<Value>,
+        V: Into<JsValue>,
     {
         self.global_object().insert(
             key,
@@ -752,7 +781,7 @@ impl Context {
     #[cfg(not(feature = "vm"))]
     #[allow(clippy::unit_arg, clippy::drop_copy)]
     #[inline]
-    pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> Result<Value> {
+    pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> Result<JsValue> {
         let main_timer = BoaProfiler::global().start_event("Main", "Main");
         let src_bytes: &[u8] = src.as_ref();
 
@@ -786,7 +815,7 @@ impl Context {
     /// ```
     #[cfg(feature = "vm")]
     #[allow(clippy::unit_arg, clippy::drop_copy)]
-    pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> Result<Value> {
+    pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> Result<JsValue> {
         let main_timer = BoaProfiler::global().start_event("Main", "Main");
         let src_bytes: &[u8] = src.as_ref();
 

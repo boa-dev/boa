@@ -19,7 +19,7 @@ use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, ObjectData, PROTOTYPE},
     property::Attribute,
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsValue, Result,
 };
 
 /// JavaScript `TypeError` implementation.
@@ -33,7 +33,7 @@ impl BuiltIn for TypeError {
         Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
     }
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &mut Context) -> (&'static str, JsValue, Attribute) {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let error_prototype = context.standard_objects().error_object().prototype();
@@ -60,10 +60,10 @@ impl TypeError {
 
     /// Create a new error object.
     pub(crate) fn constructor(
-        new_target: &Value,
-        args: &[Value],
+        new_target: &JsValue,
+        args: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> Result<JsValue> {
         let prototype = new_target
             .as_object()
             .and_then(|obj| {
@@ -75,7 +75,7 @@ impl TypeError {
             .unwrap_or_else(|| context.standard_objects().error_object().prototype());
         let obj = context.construct_object();
         obj.set_prototype_instance(prototype.into());
-        let this = Value::from(obj);
+        let this = JsValue::new(obj);
         if let Some(message) = args.get(0) {
             if !message.is_undefined() {
                 this.set_field("message", message.to_string(context)?, false, context)?;

@@ -1,5 +1,5 @@
 use crate::{
-    builtins::Number, check_output, exec, forward, forward_val, Context, TestAction, Value,
+    builtins::Number, check_output, exec, forward, forward_val, Context, JsValue, TestAction,
 };
 
 #[test]
@@ -895,19 +895,19 @@ fn function_decl_hoisting() {
 fn to_bigint() {
     let mut context = Context::new();
 
-    assert!(Value::null().to_bigint(&mut context).is_err());
-    assert!(Value::undefined().to_bigint(&mut context).is_err());
-    assert!(Value::integer(55).to_bigint(&mut context).is_ok());
-    assert!(Value::rational(10.0).to_bigint(&mut context).is_ok());
-    assert!(Value::string("100").to_bigint(&mut context).is_ok());
+    assert!(JsValue::null().to_bigint(&mut context).is_err());
+    assert!(JsValue::undefined().to_bigint(&mut context).is_err());
+    assert!(JsValue::new(55).to_bigint(&mut context).is_ok());
+    assert!(JsValue::new(10.0).to_bigint(&mut context).is_ok());
+    assert!(JsValue::new("100").to_bigint(&mut context).is_ok());
 }
 
 #[test]
 fn to_index() {
     let mut context = Context::new();
 
-    assert_eq!(Value::undefined().to_index(&mut context).unwrap(), 0);
-    assert!(Value::integer(-1).to_index(&mut context).is_err());
+    assert_eq!(JsValue::undefined().to_index(&mut context).unwrap(), 0);
+    assert!(JsValue::new(-1).to_index(&mut context).is_err());
 }
 
 #[test]
@@ -915,34 +915,34 @@ fn to_integer() {
     let mut context = Context::new();
 
     assert!(Number::equal(
-        Value::number(f64::NAN).to_integer(&mut context).unwrap(),
+        JsValue::nan().to_integer(&mut context).unwrap(),
         0.0
     ));
     assert!(Number::equal(
-        Value::number(f64::NEG_INFINITY)
+        JsValue::new(f64::NEG_INFINITY)
             .to_integer(&mut context)
             .unwrap(),
         f64::NEG_INFINITY
     ));
     assert!(Number::equal(
-        Value::number(f64::INFINITY)
+        JsValue::new(f64::INFINITY)
             .to_integer(&mut context)
             .unwrap(),
         f64::INFINITY
     ));
     assert!(Number::equal(
-        Value::number(0.0).to_integer(&mut context).unwrap(),
+        JsValue::new(0.0).to_integer(&mut context).unwrap(),
         0.0
     ));
-    let number = Value::number(-0.0).to_integer(&mut context).unwrap();
+    let number = JsValue::new(-0.0).to_integer(&mut context).unwrap();
     assert!(!number.is_sign_negative());
     assert!(Number::equal(number, 0.0));
     assert!(Number::equal(
-        Value::number(20.9).to_integer(&mut context).unwrap(),
+        JsValue::new(20.9).to_integer(&mut context).unwrap(),
         20.0
     ));
     assert!(Number::equal(
-        Value::number(-20.9).to_integer(&mut context).unwrap(),
+        JsValue::new(-20.9).to_integer(&mut context).unwrap(),
         -20.0
     ));
 }
@@ -951,31 +951,29 @@ fn to_integer() {
 fn to_length() {
     let mut context = Context::new();
 
-    assert_eq!(Value::number(f64::NAN).to_length(&mut context).unwrap(), 0);
+    assert_eq!(JsValue::new(f64::NAN).to_length(&mut context).unwrap(), 0);
     assert_eq!(
-        Value::number(f64::NEG_INFINITY)
+        JsValue::new(f64::NEG_INFINITY)
             .to_length(&mut context)
             .unwrap(),
         0
     );
     assert_eq!(
-        Value::number(f64::INFINITY)
-            .to_length(&mut context)
-            .unwrap(),
+        JsValue::new(f64::INFINITY).to_length(&mut context).unwrap(),
         Number::MAX_SAFE_INTEGER as usize
     );
-    assert_eq!(Value::number(0.0).to_length(&mut context).unwrap(), 0);
-    assert_eq!(Value::number(-0.0).to_length(&mut context).unwrap(), 0);
-    assert_eq!(Value::number(20.9).to_length(&mut context).unwrap(), 20);
-    assert_eq!(Value::number(-20.9).to_length(&mut context).unwrap(), 0);
+    assert_eq!(JsValue::new(0.0).to_length(&mut context).unwrap(), 0);
+    assert_eq!(JsValue::new(-0.0).to_length(&mut context).unwrap(), 0);
+    assert_eq!(JsValue::new(20.9).to_length(&mut context).unwrap(), 20);
+    assert_eq!(JsValue::new(-20.9).to_length(&mut context).unwrap(), 0);
     assert_eq!(
-        Value::number(100000000000.0)
+        JsValue::new(100000000000.0)
             .to_length(&mut context)
             .unwrap() as u64,
         100000000000
     );
     assert_eq!(
-        Value::number(4010101101.0).to_length(&mut context).unwrap(),
+        JsValue::new(4010101101.0).to_length(&mut context).unwrap(),
         4010101101
     );
 }
@@ -986,7 +984,7 @@ fn to_int32() {
 
     macro_rules! check_to_int32 {
         ($from:expr => $to:expr) => {
-            assert_eq!(Value::from($from).to_i32(&mut context).unwrap(), $to);
+            assert_eq!(JsValue::new($from).to_i32(&mut context).unwrap(), $to);
         };
     }
 
@@ -1097,15 +1095,15 @@ fn to_int32() {
 fn to_string() {
     let mut context = Context::new();
 
-    assert_eq!(Value::null().to_string(&mut context).unwrap(), "null");
+    assert_eq!(JsValue::null().to_string(&mut context).unwrap(), "null");
     assert_eq!(
-        Value::undefined().to_string(&mut context).unwrap(),
+        JsValue::undefined().to_string(&mut context).unwrap(),
         "undefined"
     );
-    assert_eq!(Value::integer(55).to_string(&mut context).unwrap(), "55");
-    assert_eq!(Value::rational(55.0).to_string(&mut context).unwrap(), "55");
+    assert_eq!(JsValue::new(55).to_string(&mut context).unwrap(), "55");
+    assert_eq!(JsValue::new(55.0).to_string(&mut context).unwrap(), "55");
     assert_eq!(
-        Value::string("hello").to_string(&mut context).unwrap(),
+        JsValue::new("hello").to_string(&mut context).unwrap(),
         "hello"
     );
 }
@@ -1128,11 +1126,11 @@ fn calling_function_with_unspecified_arguments() {
 fn to_object() {
     let mut context = Context::new();
 
-    assert!(Value::undefined()
+    assert!(JsValue::undefined()
         .to_object(&mut context)
         .unwrap_err()
         .is_object());
-    assert!(Value::null()
+    assert!(JsValue::null()
         .to_object(&mut context)
         .unwrap_err()
         .is_object());

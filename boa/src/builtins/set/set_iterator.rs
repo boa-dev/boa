@@ -2,7 +2,7 @@ use crate::{
     builtins::function::make_builtin_fn,
     builtins::iterable::create_iter_result_object,
     builtins::Array,
-    builtins::Value,
+    builtins::JsValue,
     object::{GcObject, ObjectData},
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
@@ -24,7 +24,7 @@ pub enum SetIterationKind {
 /// [spec]: https://tc39.es/ecma262/#sec-set-iterator-objects
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct SetIterator {
-    iterated_set: Value,
+    iterated_set: JsValue,
     next_index: usize,
     iteration_kind: SetIterationKind,
 }
@@ -33,7 +33,7 @@ impl SetIterator {
     pub(crate) const NAME: &'static str = "SetIterator";
 
     /// Constructs a new `SetIterator`, that will iterate over `set`, starting at index 0
-    fn new(set: Value, kind: SetIterationKind) -> Self {
+    fn new(set: JsValue, kind: SetIterationKind) -> Self {
         SetIterator {
             iterated_set: set,
             next_index: 0,
@@ -51,10 +51,10 @@ impl SetIterator {
     /// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-createsetiterator
     pub(crate) fn create_set_iterator(
         context: &Context,
-        set: Value,
+        set: JsValue,
         kind: SetIterationKind,
-    ) -> Value {
-        let set_iterator = Value::new_object(context);
+    ) -> JsValue {
+        let set_iterator = JsValue::new_object(context);
         set_iterator.set_data(ObjectData::SetIterator(Self::new(set, kind)));
         set_iterator
             .as_object()
@@ -71,8 +71,8 @@ impl SetIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%setiteratorprototype%.next
-    pub(crate) fn next(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        if let Value::Object(ref object) = this {
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+        if let JsValue::Object(ref object) = this {
             let mut object = object.borrow_mut();
             if let Some(set_iterator) = object.as_set_iterator_mut() {
                 let m = &set_iterator.iterated_set;
@@ -80,10 +80,14 @@ impl SetIterator {
                 let item_kind = &set_iterator.iteration_kind;
 
                 if set_iterator.iterated_set.is_undefined() {
-                    return Ok(create_iter_result_object(context, Value::undefined(), true));
+                    return Ok(create_iter_result_object(
+                        context,
+                        JsValue::undefined(),
+                        true,
+                    ));
                 }
 
-                if let Value::Object(ref object) = m {
+                if let JsValue::Object(ref object) = m {
                     if let Some(entries) = object.borrow().as_set_ref() {
                         let num_entries = entries.size();
                         while index < num_entries {
@@ -100,13 +104,14 @@ impl SetIterator {
                                         ));
                                     }
                                     SetIterationKind::KeyAndValue => {
-                                        let result = Array::construct_array(
-                                            &Array::new_array(context),
-                                            &[value.clone(), value.clone()],
+                                        let result = Array::create_array_from_list(
+                                            [value.clone(), value.clone()],
                                             context,
-                                        )?;
+                                        );
                                         return Ok(create_iter_result_object(
-                                            context, result, false,
+                                            context,
+                                            result.into(),
+                                            false,
                                         ));
                                     }
                                 }
@@ -119,8 +124,12 @@ impl SetIterator {
                     return Err(context.construct_type_error("'this' is not a Set"));
                 }
 
-                set_iterator.iterated_set = Value::undefined();
-                Ok(create_iter_result_object(context, Value::undefined(), true))
+                set_iterator.iterated_set = JsValue::undefined();
+                Ok(create_iter_result_object(
+                    context,
+                    JsValue::undefined(),
+                    true,
+                ))
             } else {
                 context.throw_type_error("`this` is not an SetIterator")
             }
@@ -135,7 +144,7 @@ impl SetIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%setiteratorprototype%-object
-    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: Value) -> GcObject {
+    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: JsValue) -> GcObject {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype

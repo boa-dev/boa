@@ -5,7 +5,7 @@ use crate::{
         Const, Node,
     },
     vm::{CodeBlock, Opcode},
-    JsBigInt, JsString, Value,
+    JsBigInt, JsString, JsValue,
 };
 use std::collections::HashMap;
 
@@ -72,8 +72,8 @@ impl ByteCompiler {
         }
 
         let value = match liternal.clone() {
-            Literal::String(value) => Value::from(value),
-            Literal::BigInt(value) => Value::from(value),
+            Literal::String(value) => JsValue::new(value),
+            Literal::BigInt(value) => JsValue::new(value),
         };
 
         let index = self.code_block.literals.len() as u32;

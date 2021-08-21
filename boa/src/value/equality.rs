@@ -1,7 +1,7 @@
 use super::*;
 use crate::{builtins::Number, Context};
 
-impl Value {
+impl JsValue {
     /// Strict equality comparison.
     ///
     /// This method is executed when doing strict equality comparisons with the `===` operator.
@@ -80,10 +80,10 @@ impl Value {
             },
 
             // 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.
-            (Self::Boolean(x), _) => return other.equals(&Value::from(*x as i32), context),
+            (Self::Boolean(x), _) => return other.equals(&JsValue::new(*x as i32), context),
 
             // 9. If Type(y) is Boolean, return the result of the comparison x == ! ToNumber(y).
-            (_, Self::Boolean(y)) => return self.equals(&Value::from(*y as i32), context),
+            (_, Self::Boolean(y)) => return self.equals(&JsValue::new(*y as i32), context),
 
             // 10. If Type(x) is either String, Number, BigInt, or Symbol and Type(y) is Object, return the result
             // of the comparison x == ? ToPrimitive(y).
@@ -119,7 +119,7 @@ impl Value {
     ///  - [ECMAScript][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-samevalue
-    pub fn same_value(x: &Value, y: &Value) -> bool {
+    pub fn same_value(x: &JsValue, y: &JsValue) -> bool {
         // 1. If Type(x) is different from Type(y), return false.
         if x.get_type() != y.get_type() {
             return false;
@@ -128,11 +128,11 @@ impl Value {
         match (x, y) {
             // 2. If Type(x) is Number or BigInt, then
             //    a. Return ! Type(x)::SameValue(x, y).
-            (Value::BigInt(x), Value::BigInt(y)) => JsBigInt::same_value(x, y),
-            (Value::Rational(x), Value::Rational(y)) => Number::same_value(*x, *y),
-            (Value::Rational(x), Value::Integer(y)) => Number::same_value(*x, f64::from(*y)),
-            (Value::Integer(x), Value::Rational(y)) => Number::same_value(f64::from(*x), *y),
-            (Value::Integer(x), Value::Integer(y)) => x == y,
+            (JsValue::BigInt(x), JsValue::BigInt(y)) => JsBigInt::same_value(x, y),
+            (JsValue::Rational(x), JsValue::Rational(y)) => Number::same_value(*x, *y),
+            (JsValue::Rational(x), JsValue::Integer(y)) => Number::same_value(*x, f64::from(*y)),
+            (JsValue::Integer(x), JsValue::Rational(y)) => Number::same_value(f64::from(*x), *y),
+            (JsValue::Integer(x), JsValue::Integer(y)) => x == y,
 
             // 3. Return ! SameValueNonNumeric(x, y).
             (_, _) => Self::same_value_non_numeric(x, y),
@@ -148,7 +148,7 @@ impl Value {
     ///  - [ECMAScript][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-samevaluezero
-    pub fn same_value_zero(x: &Value, y: &Value) -> bool {
+    pub fn same_value_zero(x: &JsValue, y: &JsValue) -> bool {
         if x.get_type() != y.get_type() {
             return false;
         }
@@ -156,26 +156,30 @@ impl Value {
         match (x, y) {
             // 2. If Type(x) is Number or BigInt, then
             //    a. Return ! Type(x)::SameValueZero(x, y).
-            (Value::BigInt(x), Value::BigInt(y)) => JsBigInt::same_value_zero(x, y),
+            (JsValue::BigInt(x), JsValue::BigInt(y)) => JsBigInt::same_value_zero(x, y),
 
-            (Value::Rational(x), Value::Rational(y)) => Number::same_value_zero(*x, *y),
-            (Value::Rational(x), Value::Integer(y)) => Number::same_value_zero(*x, f64::from(*y)),
-            (Value::Integer(x), Value::Rational(y)) => Number::same_value_zero(f64::from(*x), *y),
-            (Value::Integer(x), Value::Integer(y)) => x == y,
+            (JsValue::Rational(x), JsValue::Rational(y)) => Number::same_value_zero(*x, *y),
+            (JsValue::Rational(x), JsValue::Integer(y)) => {
+                Number::same_value_zero(*x, f64::from(*y))
+            }
+            (JsValue::Integer(x), JsValue::Rational(y)) => {
+                Number::same_value_zero(f64::from(*x), *y)
+            }
+            (JsValue::Integer(x), JsValue::Integer(y)) => x == y,
 
             // 3. Return ! SameValueNonNumeric(x, y).
             (_, _) => Self::same_value_non_numeric(x, y),
         }
     }
 
-    fn same_value_non_numeric(x: &Value, y: &Value) -> bool {
+    fn same_value_non_numeric(x: &JsValue, y: &JsValue) -> bool {
         debug_assert!(x.get_type() == y.get_type());
         match (x, y) {
-            (Value::Null, Value::Null) | (Value::Undefined, Value::Undefined) => true,
-            (Value::String(ref x), Value::String(ref y)) => x == y,
-            (Value::Boolean(x), Value::Boolean(y)) => x == y,
-            (Value::Object(ref x), Value::Object(ref y)) => GcObject::equals(x, y),
-            (Value::Symbol(ref x), Value::Symbol(ref y)) => x == y,
+            (JsValue::Null, JsValue::Null) | (JsValue::Undefined, JsValue::Undefined) => true,
+            (JsValue::String(ref x), JsValue::String(ref y)) => x == y,
+            (JsValue::Boolean(x), JsValue::Boolean(y)) => x == y,
+            (JsValue::Object(ref x), JsValue::Object(ref y)) => GcObject::equals(x, y),
+            (JsValue::Symbol(ref x), JsValue::Symbol(ref y)) => x == y,
             _ => false,
         }
     }

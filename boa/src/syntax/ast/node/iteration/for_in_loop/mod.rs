@@ -7,7 +7,7 @@ use crate::{
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsValue, Result,
 };
 use std::fmt;
 
@@ -80,16 +80,16 @@ impl From<ForInLoop> for Node {
 }
 
 impl Executable for ForInLoop {
-    fn run(&self, context: &mut Context) -> Result<Value> {
+    fn run(&self, context: &mut Context) -> Result<JsValue> {
         let _timer = BoaProfiler::global().start_event("ForIn", "exec");
         let object = self.expr().run(context)?;
-        let mut result = Value::undefined();
+        let mut result = JsValue::undefined();
 
         if object.is_null_or_undefined() {
             return Ok(result);
         }
         let object = object.to_object(context)?;
-        let for_in_iterator = ForInIterator::create_for_in_iterator(context, Value::from(object));
+        let for_in_iterator = ForInIterator::create_for_in_iterator(context, JsValue::new(object));
         let next_function = for_in_iterator
             .get_property("next")
             .as_ref()
