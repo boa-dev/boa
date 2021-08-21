@@ -21,7 +21,7 @@ use crate::{
     property::{Attribute, PropertyDescriptor},
     symbol::WellKnownSymbols,
     value::{IntegerOrInfinity, JsValue},
-    BoaProfiler, Context, JsString, Result,
+    BoaProfiler, Context, JsResult, JsString,
 };
 use std::cmp::{max, min};
 
@@ -123,7 +123,7 @@ impl Array {
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         // 2. Let proto be ? GetPrototypeFromConstructor(newTarget, "%Array.prototype%").
         let prototype = new_target
@@ -207,7 +207,7 @@ impl Array {
         length: usize,
         prototype: Option<GcObject>,
         context: &mut Context,
-    ) -> Result<GcObject> {
+    ) -> JsResult<GcObject> {
         // 1. If length > 2^32 - 1, throw a RangeError exception.
         if length > 2usize.pow(32) - 1 {
             return Err(context.construct_range_error("array exceeded max size"));
@@ -295,7 +295,7 @@ impl Array {
     /// Returns a Boolean valued property that if `true` indicates that
     /// an object should be flattened to its array elements
     /// by `Array.prototype.concat`.
-    fn is_concat_spreadable(this: &JsValue, context: &mut Context) -> Result<bool> {
+    fn is_concat_spreadable(this: &JsValue, context: &mut Context) -> JsResult<bool> {
         // 1. If Type(O) is not Object, return false.
         if !this.is_object() {
             return Ok(false);
@@ -324,7 +324,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-array-@@species
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/@@species
-    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> Result<JsValue> {
+    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
     }
@@ -337,7 +337,7 @@ impl Array {
         original_array: &GcObject,
         length: usize,
         context: &mut Context,
-    ) -> Result<GcObject> {
+    ) -> JsResult<GcObject> {
         // 1. Let isArray be ? IsArray(originalArray).
         // 2. If isArray is false, return ? ArrayCreate(length).
         if !original_array.is_array() {
@@ -394,7 +394,7 @@ impl Array {
         array_ptr: &JsValue,
         add_values: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let orig_length = array_ptr.get_field("length", context)?.to_length(context)?;
 
         for (n, value) in add_values.iter().enumerate() {
@@ -430,7 +430,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.isarray
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray
-    pub(crate) fn is_array(_: &JsValue, args: &[JsValue], _: &mut Context) -> Result<JsValue> {
+    pub(crate) fn is_array(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         match args.get(0).and_then(|x| x.as_object()) {
             Some(object) => Ok(JsValue::new(object.borrow().is_array())),
             None => Ok(JsValue::new(false)),
@@ -448,7 +448,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.of
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/of
-    pub(crate) fn of(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn of(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let len be the number of elements in items.
         // 2. Let lenNumber be 𝔽(len).
         let len = args.len();
@@ -499,7 +499,7 @@ impl Array {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let obj = this.to_object(context)?;
         // 2. Let A be ? ArraySpeciesCreate(O, 0).
@@ -574,7 +574,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.push
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push
-    pub(crate) fn push(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn push(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -610,7 +614,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.pop
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/pop
-    pub(crate) fn pop(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn pop(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -653,7 +657,7 @@ impl Array {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -701,7 +705,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.join
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/join
-    pub(crate) fn join(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn join(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -756,7 +764,7 @@ impl Array {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let array be ? ToObject(this value).
         let array = this.to_object(context)?;
         // 2. Let func be ? Get(array, "join").
@@ -782,7 +790,11 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.reverse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reverse
     #[allow(clippy::else_if_without_else)]
-    pub(crate) fn reverse(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn reverse(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -859,7 +871,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.shift
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/shift
-    pub(crate) fn shift(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn shift(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -920,7 +932,7 @@ impl Array {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -991,7 +1003,7 @@ impl Array {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -1045,7 +1057,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.map
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
-    pub(crate) fn map(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn map(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -1095,7 +1111,7 @@ impl Array {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1182,7 +1198,7 @@ impl Array {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1248,7 +1264,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.find
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
-    pub(crate) fn find(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn find(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1308,7 +1328,7 @@ impl Array {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1360,7 +1380,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.flat
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat
-    pub(crate) fn flat(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn flat(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let O be ToObject(this value)
         let o = this.to_object(context)?;
 
@@ -1416,7 +1440,7 @@ impl Array {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ToObject(this value)
         let o = this.to_object(context)?;
 
@@ -1464,7 +1488,7 @@ impl Array {
         mapper_function: Option<GcObject>,
         this_arg: &JsValue,
         context: &mut Context,
-    ) -> Result<u64> {
+    ) -> JsResult<u64> {
         // 1. Assert target is Object
         // 2. Assert source is Object
 
@@ -1572,7 +1596,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.fill
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/fill
-    pub(crate) fn fill(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn fill(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1620,7 +1648,7 @@ impl Array {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1697,7 +1725,7 @@ impl Array {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1765,7 +1793,7 @@ impl Array {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1837,7 +1865,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.some
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/some
-    pub(crate) fn some(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn some(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
         // 2. Let len be ? LengthOfArrayLike(O).
@@ -1891,7 +1923,7 @@ impl Array {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1989,7 +2021,7 @@ impl Array {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -2087,7 +2119,7 @@ impl Array {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -2173,7 +2205,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
-    pub(crate) fn values(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn values(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         Ok(ArrayIterator::create_array_iterator(
             context,
             this.clone(),
@@ -2191,7 +2227,7 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
-    pub(crate) fn keys(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn keys(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(ArrayIterator::create_array_iterator(
             context,
             this.clone(),
@@ -2209,7 +2245,11 @@ impl Array {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/values
-    pub(crate) fn entries(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn entries(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         Ok(ArrayIterator::create_array_iterator(
             context,
             this.clone(),
@@ -2222,7 +2262,7 @@ impl Array {
         context: &mut Context,
         arg: Option<&JsValue>,
         len: usize,
-    ) -> Result<usize> {
+    ) -> JsResult<usize> {
         // 1. Let relativeStart be ? ToIntegerOrInfinity(start).
         let relative_start = arg
             .cloned()
@@ -2247,7 +2287,7 @@ impl Array {
         context: &mut Context,
         arg: Option<&JsValue>,
         len: usize,
-    ) -> Result<usize> {
+    ) -> JsResult<usize> {
         let default_value = JsValue::undefined();
         let value = arg.unwrap_or(&default_value);
         // 1. If end is undefined, let relativeEnd be len [and return it]

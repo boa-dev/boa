@@ -19,7 +19,7 @@ use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, ObjectData, PROTOTYPE},
     property::Attribute,
-    BoaProfiler, Context, JsValue, Result,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 
 /// JavaScript `TypeError` implementation.
@@ -63,7 +63,7 @@ impl TypeError {
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let prototype = new_target
             .as_object()
             .and_then(|obj| {

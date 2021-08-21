@@ -17,7 +17,7 @@ use crate::{
     object::{GcObject, ObjectData},
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, JsString, JsValue, Result,
+    BoaProfiler, Context, JsResult, JsString, JsValue,
 };
 
 // TODO: See todos in create_regexp_string_iterator and next.
@@ -54,7 +54,7 @@ impl RegExpStringIterator {
         global: bool,
         unicode: bool,
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // TODO: Implement this with closures and generators.
         //       For now all values of the closure are stored in RegExpStringIterator and the actual closure execution is in `.next()`.
 
@@ -86,7 +86,7 @@ impl RegExpStringIterator {
         Ok(regexp_string_iterator)
     }
 
-    pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if let JsValue::Object(ref object) = this {
             let mut object = object.borrow_mut();
             if let Some(iterator) = object.as_regexp_string_iterator_mut() {

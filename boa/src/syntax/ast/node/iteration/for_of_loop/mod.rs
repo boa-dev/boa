@@ -7,7 +7,7 @@ use crate::{
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    BoaProfiler, Context, JsValue, Result,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -80,7 +80,7 @@ impl From<ForOfLoop> for Node {
 }
 
 impl Executable for ForOfLoop {
-    fn run(&self, context: &mut Context) -> Result<JsValue> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("ForOf", "exec");
         let iterable = self.iterable().run(context)?;
         let iterator = get_iterator(context, iterable)?;

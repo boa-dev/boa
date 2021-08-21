@@ -6,7 +6,7 @@ use crate::{
         node::Node,
         op::{self, AssignOp, BitOp, CompOp, LogOp, NumOp},
     },
-    Context, JsValue, Result,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -58,7 +58,7 @@ impl BinOp {
     }
 
     /// Runs the assignment operators.
-    fn run_assign(op: AssignOp, x: JsValue, y: &Node, context: &mut Context) -> Result<JsValue> {
+    fn run_assign(op: AssignOp, x: JsValue, y: &Node, context: &mut Context) -> JsResult<JsValue> {
         match op {
             AssignOp::Add => x.add(&y.run(context)?, context),
             AssignOp::Sub => x.sub(&y.run(context)?, context),
@@ -98,7 +98,7 @@ impl BinOp {
 }
 
 impl Executable for BinOp {
-    fn run(&self, context: &mut Context) -> Result<JsValue> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         match self.op() {
             op::BinOp::Num(op) => {
                 let x = self.lhs().run(context)?;

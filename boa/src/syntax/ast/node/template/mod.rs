@@ -1,7 +1,7 @@
 //! Template literal node.
 
 use super::Node;
-use crate::{builtins::Array, exec::Executable, BoaProfiler, Context, JsValue, Result};
+use crate::{builtins::Array, exec::Executable, BoaProfiler, Context, JsResult, JsValue};
 use gc::{Finalize, Trace};
 
 #[cfg(feature = "deser")]
@@ -32,7 +32,7 @@ impl TemplateLit {
 }
 
 impl Executable for TemplateLit {
-    fn run(&self, context: &mut Context) -> Result<JsValue> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("TemplateLiteral", "exec");
         let mut result = String::new();
 
@@ -90,7 +90,7 @@ impl TaggedTemplate {
 }
 
 impl Executable for TaggedTemplate {
-    fn run(&self, context: &mut Context) -> Result<JsValue> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("TaggedTemplate", "exec");
 
         let template_object = Array::new_array(context);

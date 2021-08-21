@@ -4,7 +4,7 @@ use crate::{
     exec::{Executable, InterpreterState},
     gc::{empty_trace, Finalize, Trace},
     syntax::ast::node::Node,
-    BoaProfiler, Context, JsValue, Result,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::{collections::HashSet, fmt, ops::Deref, rc::Rc};
 
@@ -92,7 +92,7 @@ impl StatementList {
 }
 
 impl Executable for StatementList {
-    fn run(&self, context: &mut Context) -> Result<JsValue> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("StatementList", "exec");
 
         // https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation

@@ -6,7 +6,7 @@ use crate::{
     },
     object::{GcObject, ObjectInitializer},
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, JsValue, Result,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 
 #[derive(Debug, Default)]
@@ -101,7 +101,7 @@ pub fn create_iter_result_object(context: &mut Context, value: JsValue, done: bo
 }
 
 /// Get an iterator record
-pub fn get_iterator(context: &mut Context, iterable: JsValue) -> Result<IteratorRecord> {
+pub fn get_iterator(context: &mut Context, iterable: JsValue) -> JsResult<IteratorRecord> {
     let iterator_function = iterable.get_field(WellKnownSymbols::iterator(), context)?;
     if iterator_function.is_null_or_undefined() {
         return Err(context.construct_type_error("Not an iterable"));
@@ -154,7 +154,7 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratornext
-    pub(crate) fn next(&self, context: &mut Context) -> Result<IteratorResult> {
+    pub(crate) fn next(&self, context: &mut Context) -> JsResult<IteratorResult> {
         let next = context.call(&self.next_function, &self.iterator_object, &[])?;
         let done = next.get_field("done", context)?.to_boolean();
 
@@ -170,9 +170,9 @@ impl IteratorRecord {
     ///  [spec]: https://tc39.es/ecma262/#sec-iteratorclose
     pub(crate) fn close(
         &self,
-        completion: Result<JsValue>,
+        completion: JsResult<JsValue>,
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let mut inner_result = self.iterator_object.get_field("return", context);
 
         // 5

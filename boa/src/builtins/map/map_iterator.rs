@@ -3,7 +3,7 @@ use crate::{
     object::{GcObject, ObjectData},
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, Result,
+    BoaProfiler, Context, JsResult,
 };
 use gc::{Finalize, Trace};
 
@@ -34,7 +34,7 @@ impl MapIterator {
     pub(crate) const NAME: &'static str = "MapIterator";
 
     /// Constructs a new `MapIterator`, that will iterate over `map`, starting at index 0
-    fn new(map: JsValue, kind: MapIterationKind, context: &mut Context) -> Result<Self> {
+    fn new(map: JsValue, kind: MapIterationKind, context: &mut Context) -> JsResult<Self> {
         let lock = Map::lock(&map, context)?;
         Ok(MapIterator {
             iterated_map: map,
@@ -56,7 +56,7 @@ impl MapIterator {
         context: &mut Context,
         map: JsValue,
         kind: MapIterationKind,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let map_iterator = JsValue::new_object(context);
         map_iterator.set_data(ObjectData::MapIterator(Self::new(map, kind, context)?));
         map_iterator
@@ -74,7 +74,7 @@ impl MapIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%.next
-    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if let JsValue::Object(ref object) = this {
             let mut object = object.borrow_mut();
             if let Some(map_iterator) = object.as_map_iterator_mut() {

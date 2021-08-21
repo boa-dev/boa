@@ -18,7 +18,7 @@ use crate::{
     property::Attribute,
     symbol::WellKnownSymbols,
     value::{IntegerOrInfinity, JsValue},
-    BoaProfiler, Context, JsString, Result,
+    BoaProfiler, Context, JsResult, JsString,
 };
 use regexp_string_iterator::RegExpStringIterator;
 use regress::Regex;
@@ -186,7 +186,7 @@ impl RegExp {
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let pattern = args.get(0).cloned().unwrap_or_else(JsValue::undefined);
         let flags = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
 
@@ -254,7 +254,7 @@ impl RegExp {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexpalloc
-    fn alloc(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    fn alloc(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let proto = if let Some(obj) = this.as_object() {
             obj.get(PROTOTYPE, context)?
         } else {
@@ -274,7 +274,7 @@ impl RegExp {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexpinitialize
-    fn initialize(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    fn initialize(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let pattern = args.get(0).cloned().unwrap_or_else(JsValue::undefined);
         let flags = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
 
@@ -373,7 +373,7 @@ impl RegExp {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexpcreate
-    pub(crate) fn create(p: JsValue, f: JsValue, context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn create(p: JsValue, f: JsValue, context: &mut Context) -> JsResult<JsValue> {
         // 1. Let obj be ? RegExpAlloc(%RegExp%).
         let obj = RegExp::alloc(
             &context.global_object().get(RegExp::NAME, context)?,
@@ -395,13 +395,13 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-regexp-@@species
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@species
-    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> Result<JsValue> {
+    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
     }
 
     #[inline]
-    fn regexp_has_flag(this: &JsValue, flag: char, context: &mut Context) -> Result<JsValue> {
+    fn regexp_has_flag(this: &JsValue, flag: char, context: &mut Context) -> JsResult<JsValue> {
         if let Some(object) = this.as_object() {
             if let Some(regexp) = object.borrow().as_regexp() {
                 return Ok(JsValue::new(match flag {
@@ -453,7 +453,7 @@ impl RegExp {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         Self::regexp_has_flag(this, 'g', context)
     }
 
@@ -471,7 +471,7 @@ impl RegExp {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         Self::regexp_has_flag(this, 'i', context)
     }
 
@@ -489,7 +489,7 @@ impl RegExp {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         Self::regexp_has_flag(this, 'm', context)
     }
 
@@ -507,7 +507,7 @@ impl RegExp {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         Self::regexp_has_flag(this, 's', context)
     }
 
@@ -526,7 +526,7 @@ impl RegExp {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         Self::regexp_has_flag(this, 'u', context)
     }
 
@@ -545,7 +545,7 @@ impl RegExp {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         Self::regexp_has_flag(this, 'y', context)
     }
 
@@ -564,7 +564,7 @@ impl RegExp {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let R be the this value.
         // 2. If Type(R) is not Object, throw a TypeError exception.
         if let Some(object) = this.as_object() {
@@ -626,7 +626,7 @@ impl RegExp {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let R be the this value.
         // 2. If Type(R) is not Object, throw a TypeError exception.
         if let Some(object) = this.as_object() {
@@ -667,7 +667,7 @@ impl RegExp {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-escaperegexppattern
-    fn escape_pattern(src: &str, _flags: &str) -> Result<JsValue> {
+    fn escape_pattern(src: &str, _flags: &str) -> JsResult<JsValue> {
         if src.is_empty() {
             Ok(JsValue::new("(?:)"))
         } else {
@@ -698,7 +698,11 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.test
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test
-    pub(crate) fn test(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn test(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let R be the this value.
         // 2. If Type(R) is not Object, throw a TypeError exception.
         if !this.is_object() {
@@ -736,7 +740,11 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.exec
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec
-    pub(crate) fn exec(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn exec(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let R be the this value.
         // 2. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).
         let obj = this.as_object().unwrap_or_default();
@@ -771,7 +779,7 @@ impl RegExp {
         this: &JsValue,
         input: JsString,
         context: &mut Context,
-    ) -> Result<Option<GcObject>> {
+    ) -> JsResult<Option<GcObject>> {
         // 1. Assert: Type(R) is Object.
         let object = this
             .as_object()
@@ -816,7 +824,7 @@ impl RegExp {
         this: GcObject,
         input: JsString,
         context: &mut Context,
-    ) -> Result<Option<GcObject>> {
+    ) -> JsResult<Option<GcObject>> {
         // 1. Assert: R is an initialized RegExp instance.
         let rx = {
             let obj = this.borrow();
@@ -1049,7 +1057,7 @@ impl RegExp {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
         let rx = if let Some(rx) = this.as_object() {
@@ -1152,7 +1160,7 @@ impl RegExp {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let (body, flags) = if let Some(object) = this.as_object() {
             let object = object.borrow();
             let regex = object.as_regexp().ok_or_else(|| {
@@ -1185,7 +1193,7 @@ impl RegExp {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let R be the this value.
         // 2. If Type(R) is not Object, throw a TypeError exception.
         if !this.is_object() {
@@ -1252,7 +1260,7 @@ impl RegExp {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
         let rx = if let Some(rx) = this.as_object() {
@@ -1495,7 +1503,7 @@ impl RegExp {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
         let rx = if let Some(rx) = this.as_object() {
@@ -1557,7 +1565,7 @@ impl RegExp {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
         let rx = if let Some(rx) = this.as_object() {

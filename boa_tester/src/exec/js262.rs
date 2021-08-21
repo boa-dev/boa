@@ -2,7 +2,7 @@ use boa::{
     exec::Executable,
     object::{GcObject, ObjectInitializer},
     property::Attribute,
-    Context, JsValue, Result,
+    Context, JsValue, JsResult,
 };
 
 /// Initializes the object in the context.
@@ -25,7 +25,7 @@ pub(super) fn init(context: &mut Context) -> GcObject {
 ///
 /// Creates a new ECMAScript Realm, defines this API on the new realm's global object, and
 /// returns the `$262` property of the new realm's global object.
-fn create_realm(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> Result<JsValue> {
+fn create_realm(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
     // eprintln!("called $262.createRealm()");
 
     let mut context = Context::new();
@@ -40,14 +40,14 @@ fn create_realm(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> Resul
 ///
 /// Implements the `DetachArrayBuffer` abstract operation.
 #[allow(dead_code)]
-fn detach_array_buffer(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> Result<JsValue> {
+fn detach_array_buffer(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
     todo!()
 }
 
 /// The `$262.evalScript()` function.
 ///
 /// Accepts a string value as its first argument and executes it as an ECMAScript script.
-fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
     // eprintln!("called $262.evalScript()");
 
     if let Some(source_text) = args.get(0).and_then(|val| val.as_string()) {
@@ -67,6 +67,6 @@ fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context) -> Resu
 /// Must throw an exception if no capability exists. This is necessary for testing the
 /// semantics of any feature that relies on garbage collection, e.g. the `WeakRef` API.
 #[allow(dead_code)]
-fn gc(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> Result<JsValue> {
+fn gc(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
     todo!()
 }

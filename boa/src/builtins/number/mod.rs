@@ -20,7 +20,7 @@ use crate::{
     object::{ConstructorBuilder, ObjectData, PROTOTYPE},
     property::Attribute,
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
-    BoaProfiler, Context, Result,
+    BoaProfiler, Context, JsResult,
 };
 use num_traits::{float::FloatCore, Num};
 
@@ -158,7 +158,7 @@ impl Number {
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let data = match args.get(0) {
             Some(value) => value.to_numeric_number(context)?,
             None => 0.0,
@@ -184,7 +184,7 @@ impl Number {
         Ok(this)
     }
 
-    /// This function returns a `Result` of the number `Value`.
+    /// This function returns a `JsResult` of the number `Value`.
     ///
     /// If the `Value` is a `Number` primitive of `Number` object the number is returned.
     /// Otherwise an `TypeError` is thrown.
@@ -193,7 +193,7 @@ impl Number {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisnumbervalue
-    fn this_number_value(value: &JsValue, context: &mut Context) -> Result<f64> {
+    fn this_number_value(value: &JsValue, context: &mut Context) -> JsResult<f64> {
         match *value {
             JsValue::Integer(integer) => return Ok(f64::from(integer)),
             JsValue::Rational(rational) => return Ok(rational),
@@ -232,7 +232,7 @@ impl Number {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let this_num = Self::this_number_value(this, context)?;
         let this_str_num = Self::num_to_exponential(this_num);
         Ok(JsValue::new(this_str_num))
@@ -253,7 +253,7 @@ impl Number {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let this_num = Self::this_number_value(this, context)?;
         let precision = match args.get(0) {
             Some(n) => match n.to_integer(context)? as i32 {
@@ -284,7 +284,7 @@ impl Number {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let this_num = Self::this_number_value(this, context)?;
         let this_str_num = format!("{}", this_num);
         Ok(JsValue::new(this_str_num))
@@ -391,7 +391,7 @@ impl Number {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let precision = args.get(0).cloned().unwrap_or_default();
 
         // 1 & 6
@@ -638,7 +638,7 @@ impl Number {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let x be ? thisNumberValue(this value).
         let x = Self::this_number_value(this, context)?;
 
@@ -697,7 +697,7 @@ impl Number {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         Ok(JsValue::new(Self::this_number_value(this, context)?))
     }
 
@@ -719,7 +719,7 @@ impl Number {
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         if let (Some(val), radix) = (args.get(0), args.get(1)) {
             // 1. Let inputString be ? ToString(string).
             let input_string = val.to_string(context)?;
@@ -845,7 +845,7 @@ impl Number {
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         if let Some(val) = args.get(0) {
             let input_string = val.to_string(context)?;
             let s = input_string.trim_start_matches(is_trimmable_whitespace);
@@ -897,7 +897,7 @@ impl Number {
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         if let Some(value) = args.get(0) {
             let number = value.to_number(context)?;
             Ok(number.is_finite().into())
@@ -924,7 +924,7 @@ impl Number {
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         if let Some(value) = args.get(0) {
             let number = value.to_number(context)?;
             Ok(number.is_nan().into())
@@ -951,7 +951,7 @@ impl Number {
         _: &JsValue,
         args: &[JsValue],
         _ctx: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         Ok(JsValue::new(if let Some(val) = args.get(0) {
             match val {
                 JsValue::Integer(_) => true,
@@ -977,7 +977,7 @@ impl Number {
         _: &JsValue,
         args: &[JsValue],
         _ctx: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         Ok(args.get(0).map_or(false, Self::is_integer).into())
     }
 
@@ -999,7 +999,7 @@ impl Number {
         _: &JsValue,
         args: &[JsValue],
         _ctx: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         Ok(JsValue::new(if let Some(val) = args.get(0) {
             match val {
                 JsValue::Integer(_) => false,
@@ -1029,7 +1029,7 @@ impl Number {
         _: &JsValue,
         args: &[JsValue],
         _ctx: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         Ok(JsValue::new(match args.get(0) {
             Some(JsValue::Integer(_)) => true,
             Some(JsValue::Rational(number)) if Self::is_float_integer(*number) => {

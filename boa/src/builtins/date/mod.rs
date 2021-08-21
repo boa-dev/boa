@@ -7,7 +7,7 @@ use crate::{
     object::{ConstructorBuilder, ObjectData, PROTOTYPE},
     property::Attribute,
     value::{JsValue, PreferredType},
-    BoaProfiler, Context, Result,
+    BoaProfiler, Context, JsResult,
 };
 use chrono::{prelude::*, Duration, LocalResult};
 use std::fmt::Display;
@@ -45,13 +45,13 @@ fn ignore_ambiguity<T>(result: LocalResult<T>) -> Option<T> {
 
 macro_rules! getter_method {
     ($name:ident) => {{
-        fn get_value(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+        fn get_value(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
             Ok(JsValue::new(this_time_value(this, context)?.$name()))
         }
         get_value
     }};
     (Self::$name:ident) => {{
-        fn get_value(_: &JsValue, _: &[JsValue], _: &mut Context) -> Result<JsValue> {
+        fn get_value(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
             Ok(JsValue::new(Date::$name()))
         }
         get_value
@@ -60,7 +60,7 @@ macro_rules! getter_method {
 
 macro_rules! setter_method {
     ($name:ident($($e:expr),* $(,)?)) => {{
-        fn set_value(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+        fn set_value(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
             let mut result = this_time_value(this, context)?;
             result.$name(
                 $(
@@ -369,7 +369,7 @@ impl Date {
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         if new_target.is_undefined() {
             Ok(Self::make_date_string())
         } else {
@@ -439,7 +439,7 @@ impl Date {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let value = &args[0];
         let tv = match this_time_value(value, context) {
             Ok(dt) => dt.0,
@@ -481,7 +481,7 @@ impl Date {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let year = args[0].to_number(context)?;
         let month = args[1].to_number(context)?;
         let day = args
@@ -1324,7 +1324,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.now
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
-    pub(crate) fn now(_: &JsValue, _: &[JsValue], _: &mut Context) -> Result<JsValue> {
+    pub(crate) fn now(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Ok(JsValue::new(Utc::now().timestamp_millis() as f64))
     }
 
@@ -1340,7 +1340,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse
-    pub(crate) fn parse(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn parse(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // This method is implementation-defined and discouraged, so we just require the same format as the string
         // constructor.
 
@@ -1364,7 +1364,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.utc
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/UTC
-    pub(crate) fn utc(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn utc(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let year = args
             .get(0)
             .map_or(Ok(f64::NAN), |value| value.to_number(context))?;
@@ -1425,7 +1425,7 @@ impl Date {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-thistimevalue
 #[inline]
-pub fn this_time_value(value: &JsValue, context: &mut Context) -> Result<Date> {
+pub fn this_time_value(value: &JsValue, context: &mut Context) -> JsResult<Date> {
     if let JsValue::Object(ref object) = value {
         if let ObjectData::Date(ref date) = object.borrow().data {
             return Ok(*date);

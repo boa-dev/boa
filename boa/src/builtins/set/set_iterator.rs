@@ -6,7 +6,7 @@ use crate::{
     object::{GcObject, ObjectData},
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, Result,
+    BoaProfiler, Context, JsResult,
 };
 use gc::{Finalize, Trace};
 
@@ -71,7 +71,7 @@ impl SetIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%setiteratorprototype%.next
-    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if let JsValue::Object(ref object) = this {
             let mut object = object.borrow_mut();
             if let Some(set_iterator) = object.as_set_iterator_mut() {

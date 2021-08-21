@@ -4,7 +4,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Identifier, Node},
-    Context, JsValue, Result,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -90,7 +90,7 @@ pub enum DeclarationList {
 }
 
 impl Executable for DeclarationList {
-    fn run(&self, context: &mut Context) -> Result<JsValue> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         for decl in self.as_ref() {
             use DeclarationList::*;
             let val = match decl.init() {

@@ -20,7 +20,7 @@ use crate::{
     object::{ConstructorBuilder, ObjectData},
     property::{Attribute, PropertyDescriptor},
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, JsString, JsValue, Result,
+    BoaProfiler, Context, JsResult, JsString, JsValue,
 };
 use std::{
     char::{decode_utf16, from_u32},
@@ -159,7 +159,7 @@ impl String {
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
         let string = match args.get(0) {
@@ -205,7 +205,7 @@ impl String {
         Ok(this)
     }
 
-    fn this_string_value(this: &JsValue, context: &mut Context) -> Result<JsString> {
+    fn this_string_value(this: &JsValue, context: &mut Context) -> JsResult<JsString> {
         match this {
             JsValue::String(ref string) => return Ok(string.clone()),
             JsValue::Object(ref object) => {
@@ -227,7 +227,7 @@ impl String {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // Get String from String Object and send it back as a new value
         Ok(JsValue::new(Self::this_string_value(this, context)?))
     }
@@ -252,7 +252,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(context)?;
@@ -289,7 +289,7 @@ impl String {
     ///
     /// [spec]: https://tc39.es/proposal-relative-indexing-method/#sec-string.prototype.at
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/at
-    pub(crate) fn at(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn at(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let this = this.require_object_coercible(context)?;
         let s = this.to_string(context)?;
         let len = s.encode_utf16().count();
@@ -331,7 +331,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(context)?;
@@ -371,7 +371,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(context)?;
@@ -414,7 +414,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let object = this.require_object_coercible(context)?;
         let mut string = object.to_string(context)?.to_string();
 
@@ -440,7 +440,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let object = this.require_object_coercible(context)?;
         let string = object.to_string(context)?;
 
@@ -478,7 +478,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(context)?;
@@ -533,7 +533,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(context)?;
@@ -588,7 +588,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(context)?;
@@ -642,7 +642,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(context)?;
@@ -702,7 +702,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         this.require_object_coercible(context)?;
 
@@ -818,7 +818,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible(context)?;
 
@@ -988,7 +988,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let this = this.require_object_coercible(context)?;
         let string = this.to_string(context)?;
 
@@ -1035,7 +1035,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let this = this.require_object_coercible(context)?;
         let string = this.to_string(context)?;
 
@@ -1080,7 +1080,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible(context)?;
 
@@ -1166,7 +1166,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let primitive = this.to_string(context)?;
         if args.is_empty() {
             return Err(JsValue::new("padEnd requires maxLength argument"));
@@ -1197,7 +1197,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let primitive = this.to_string(context)?;
         if args.is_empty() {
             return Err(JsValue::new("padStart requires maxLength argument"));
@@ -1224,7 +1224,7 @@ impl String {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trim
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim
-    pub(crate) fn trim(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn trim(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let this = this.require_object_coercible(context)?;
         let string = this.to_string(context)?;
         Ok(JsValue::new(string.trim_matches(is_trimmable_whitespace)))
@@ -1246,7 +1246,7 @@ impl String {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let string = this.to_string(context)?;
         Ok(JsValue::new(
             string.trim_start_matches(is_trimmable_whitespace),
@@ -1269,7 +1269,7 @@ impl String {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let this = this.require_object_coercible(context)?;
         let string = this.to_string(context)?;
         Ok(JsValue::new(
@@ -1292,7 +1292,7 @@ impl String {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
         let this_str = this.to_string(context)?;
@@ -1318,7 +1318,7 @@ impl String {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
         let this_str = this.to_string(context)?;
@@ -1341,7 +1341,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(context)?;
@@ -1371,7 +1371,7 @@ impl String {
         let to = max(final_start, final_end) as usize;
         // Extract the part of the string contained between the start index and the end index
         // where start is guaranteed to be smaller or equals to end
-        let extracted_string: std::result::Result<StdString, _> = decode_utf16(
+        let extracted_string: Result<StdString, _> = decode_utf16(
             primitive_val
                 .encode_utf16()
                 .skip(from)
@@ -1396,7 +1396,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // First we get it the actual string a private field stored on the object only the context has access to.
         // Then we convert it into a Rust String by wrapping it in from_value
         let primitive_val = this.to_string(context)?;
@@ -1457,7 +1457,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
 
@@ -1611,7 +1611,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // Use the to_string method because it is specified to do the same thing in this case
         Self::to_string(this, args, context)
     }
@@ -1632,7 +1632,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible(context)?;
 
@@ -1695,7 +1695,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let this = this.require_object_coercible(context)?;
         let s = this.to_string(context)?;
         let form = args.get(0).cloned().unwrap_or_default();
@@ -1733,7 +1733,7 @@ impl String {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let o = this.require_object_coercible(context)?;
 
@@ -1769,7 +1769,7 @@ impl String {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         StringIterator::create_string_iterator(context, this.clone())
     }
 }
@@ -1788,7 +1788,7 @@ pub(crate) fn get_substitution(
     named_captures: JsValue,
     replacement: JsString,
     context: &mut Context,
-) -> Result<JsString> {
+) -> JsResult<JsString> {
     // 1. Assert: Type(matched) is String.
 
     // 2. Let matchLength be the number of code units in matched.

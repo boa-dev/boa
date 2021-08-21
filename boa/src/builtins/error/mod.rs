@@ -15,7 +15,7 @@ use crate::{
     object::{ConstructorBuilder, ObjectData, PROTOTYPE},
     profiler::BoaProfiler,
     property::Attribute,
-    Context, JsValue, Result,
+    Context, JsResult, JsValue,
 };
 
 pub(crate) mod eval;
@@ -77,7 +77,7 @@ impl Error {
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let prototype = new_target
             .as_object()
             .and_then(|obj| {
@@ -117,7 +117,7 @@ impl Error {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         if !this.is_object() {
             return context.throw_type_error("'this' is not an Object");
         }

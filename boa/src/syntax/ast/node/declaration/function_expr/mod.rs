@@ -3,7 +3,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    Context, JsValue, Result,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -98,7 +98,7 @@ impl FunctionExpr {
 }
 
 impl Executable for FunctionExpr {
-    fn run(&self, context: &mut Context) -> Result<JsValue> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let val = context.create_function(
             self.name().unwrap_or(""),
             self.parameters().to_vec(),

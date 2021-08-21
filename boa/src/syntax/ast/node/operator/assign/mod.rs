@@ -3,7 +3,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    BoaProfiler, Context, JsValue, Result,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -53,7 +53,7 @@ impl Assign {
 }
 
 impl Executable for Assign {
-    fn run(&self, context: &mut Context) -> Result<JsValue> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("Assign", "exec");
         let val = self.rhs().run(context)?;
         match self.lhs() {

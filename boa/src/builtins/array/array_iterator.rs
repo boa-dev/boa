@@ -4,7 +4,7 @@ use crate::{
     object::{GcObject, ObjectData},
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, Result,
+    BoaProfiler, Context, JsResult,
 };
 
 #[derive(Debug, Clone, Finalize, Trace)]
@@ -68,7 +68,7 @@ impl ArrayIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
-    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if let JsValue::Object(ref object) = this {
             let mut object = object.borrow_mut();
             if let Some(array_iterator) = object.as_array_iterator_mut() {
