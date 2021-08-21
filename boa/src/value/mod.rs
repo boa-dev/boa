@@ -11,7 +11,7 @@ use crate::{
         string::is_trimmable_whitespace,
         Number,
     },
-    object::{GcObject, Object, ObjectData},
+    object::{JsObject, Object, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
     symbol::{JsSymbol, WellKnownSymbols},
     BoaProfiler, Context, JsBigInt, JsString, Result,
@@ -57,7 +57,7 @@ pub enum JsValue {
     /// `BigInt` - holds any arbitrary large signed integer.
     BigInt(JsBigInt),
     /// `Object` - An object, such as `Math`, represented by a binary tree of string keys to Javascript values.
-    Object(GcObject),
+    Object(JsObject),
     /// `Symbol` - A Symbol Primitive type.
     Symbol(JsSymbol),
 }
@@ -228,7 +228,7 @@ impl JsValue {
     }
 
     #[inline]
-    pub fn as_object(&self) -> Option<GcObject> {
+    pub fn as_object(&self) -> Option<JsObject> {
         match *self {
             Self::Object(ref o) => Some(o.clone()),
             _ => None,
@@ -623,28 +623,28 @@ impl JsValue {
     /// This function is equivalent to `Object(value)` in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-toobject>
-    pub fn to_object(&self, context: &mut Context) -> Result<GcObject> {
+    pub fn to_object(&self, context: &mut Context) -> Result<JsObject> {
         match self {
             JsValue::Undefined | JsValue::Null => {
                 Err(context.construct_type_error("cannot convert 'null' or 'undefined' to object"))
             }
             JsValue::Boolean(boolean) => {
                 let prototype = context.standard_objects().boolean_object().prototype();
-                Ok(GcObject::new(Object::with_prototype(
+                Ok(JsObject::new(Object::with_prototype(
                     prototype.into(),
                     ObjectData::Boolean(*boolean),
                 )))
             }
             JsValue::Integer(integer) => {
                 let prototype = context.standard_objects().number_object().prototype();
-                Ok(GcObject::new(Object::with_prototype(
+                Ok(JsObject::new(Object::with_prototype(
                     prototype.into(),
                     ObjectData::Number(f64::from(*integer)),
                 )))
             }
             JsValue::Rational(rational) => {
                 let prototype = context.standard_objects().number_object().prototype();
-                Ok(GcObject::new(Object::with_prototype(
+                Ok(JsObject::new(Object::with_prototype(
                     prototype.into(),
                     ObjectData::Number(*rational),
                 )))
@@ -652,7 +652,7 @@ impl JsValue {
             JsValue::String(ref string) => {
                 let prototype = context.standard_objects().string_object().prototype();
 
-                let object = GcObject::new(Object::with_prototype(
+                let object = JsObject::new(Object::with_prototype(
                     prototype.into(),
                     ObjectData::String(string.clone()),
                 ));
@@ -669,19 +669,19 @@ impl JsValue {
             }
             JsValue::Symbol(ref symbol) => {
                 let prototype = context.standard_objects().symbol_object().prototype();
-                Ok(GcObject::new(Object::with_prototype(
+                Ok(JsObject::new(Object::with_prototype(
                     prototype.into(),
                     ObjectData::Symbol(symbol.clone()),
                 )))
             }
             JsValue::BigInt(ref bigint) => {
                 let prototype = context.standard_objects().bigint_object().prototype();
-                Ok(GcObject::new(Object::with_prototype(
+                Ok(JsObject::new(Object::with_prototype(
                     prototype.into(),
                     ObjectData::BigInt(bigint.clone()),
                 )))
             }
-            JsValue::Object(gcobject) => Ok(gcobject.clone()),
+            JsValue::Object(jsobject) => Ok(jsobject.clone()),
         }
     }
 

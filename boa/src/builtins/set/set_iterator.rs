@@ -3,7 +3,7 @@ use crate::{
     builtins::iterable::create_iter_result_object,
     builtins::Array,
     builtins::JsValue,
-    object::{GcObject, ObjectData},
+    object::{JsObject, ObjectData},
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
     BoaProfiler, Context, Result,
@@ -144,7 +144,7 @@ impl SetIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%setiteratorprototype%-object
-    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: JsValue) -> GcObject {
+    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: JsValue) -> JsObject {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype

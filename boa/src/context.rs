@@ -8,7 +8,7 @@ use crate::{
     },
     class::{Class, ClassBuilder},
     exec::Interpreter,
-    object::{FunctionBuilder, GcObject, Object, PROTOTYPE},
+    object::{FunctionBuilder, JsObject, Object, PROTOTYPE},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     syntax::{
@@ -33,15 +33,15 @@ use crate::vm::Vm;
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
 #[derive(Debug, Clone)]
 pub struct StandardConstructor {
-    pub(crate) constructor: GcObject,
-    pub(crate) prototype: GcObject,
+    pub(crate) constructor: JsObject,
+    pub(crate) prototype: JsObject,
 }
 
 impl Default for StandardConstructor {
     fn default() -> Self {
         Self {
-            constructor: GcObject::new(Object::default()),
-            prototype: GcObject::new(Object::default()),
+            constructor: JsObject::new(Object::default()),
+            prototype: JsObject::new(Object::default()),
         }
     }
 }
@@ -50,8 +50,8 @@ impl StandardConstructor {
     /// Build a constructor with a defined prototype.
     fn with_prototype(prototype: Object) -> Self {
         Self {
-            constructor: GcObject::new(Object::default()),
-            prototype: GcObject::new(prototype),
+            constructor: JsObject::new(Object::default()),
+            prototype: JsObject::new(prototype),
         }
     }
 
@@ -59,7 +59,7 @@ impl StandardConstructor {
     ///
     /// This is the same as `Object`, `Array`, etc.
     #[inline]
-    pub fn constructor(&self) -> GcObject {
+    pub fn constructor(&self) -> JsObject {
         self.constructor.clone()
     }
 
@@ -67,7 +67,7 @@ impl StandardConstructor {
     ///
     /// This is the same as `Object.prototype`, `Array.prototype`, etc
     #[inline]
-    pub fn prototype(&self) -> GcObject {
+    pub fn prototype(&self) -> JsObject {
         self.prototype.clone()
     }
 }
@@ -333,9 +333,9 @@ impl Context {
 
     /// Construct an empty object.
     #[inline]
-    pub fn construct_object(&self) -> GcObject {
+    pub fn construct_object(&self) -> JsObject {
         let object_prototype: JsValue = self.standard_objects().object_object().prototype().into();
-        GcObject::new(Object::create(object_prototype))
+        JsObject::new(Object::create(object_prototype))
     }
 
     /// <https://tc39.es/ecma262/#sec-call>
@@ -354,7 +354,7 @@ impl Context {
 
     /// Return the global object.
     #[inline]
-    pub fn global_object(&self) -> GcObject {
+    pub fn global_object(&self) -> JsObject {
         self.realm.global_object.clone()
     }
 
@@ -547,7 +547,7 @@ impl Context {
             environment: self.get_current_environment().clone(),
         };
 
-        let function = GcObject::new(Object::function(func, function_prototype));
+        let function = JsObject::new(Object::function(func, function_prototype));
 
         // Set constructor field to the newly created Value (function object)
         let constructor = PropertyDescriptor::builder()

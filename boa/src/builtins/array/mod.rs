@@ -17,7 +17,7 @@ use crate::{
     builtins::array::array_iterator::{ArrayIterationKind, ArrayIterator},
     builtins::BuiltIn,
     builtins::Number,
-    object::{ConstructorBuilder, FunctionBuilder, GcObject, ObjectData, PROTOTYPE},
+    object::{ConstructorBuilder, FunctionBuilder, JsObject, ObjectData, PROTOTYPE},
     property::{Attribute, PropertyDescriptor},
     symbol::WellKnownSymbols,
     value::{IntegerOrInfinity, JsValue},
@@ -205,9 +205,9 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-arraycreate
     pub(crate) fn array_create(
         length: usize,
-        prototype: Option<GcObject>,
+        prototype: Option<JsObject>,
         context: &mut Context,
-    ) -> Result<GcObject> {
+    ) -> Result<JsObject> {
         // 1. If length > 2^32 - 1, throw a RangeError exception.
         if length > 2usize.pow(32) - 1 {
             return Err(context.construct_range_error("array exceeded max size"));
@@ -249,7 +249,7 @@ impl Array {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createarrayfromlist
-    pub(crate) fn create_array_from_list<I>(elements: I, context: &mut Context) -> GcObject
+    pub(crate) fn create_array_from_list<I>(elements: I, context: &mut Context) -> JsObject
     where
         I: IntoIterator<Item = JsValue>,
     {
@@ -334,10 +334,10 @@ impl Array {
     ///
     /// see: <https://tc39.es/ecma262/#sec-arrayspeciescreate>
     pub(crate) fn array_species_create(
-        original_array: &GcObject,
+        original_array: &JsObject,
         length: usize,
         context: &mut Context,
-    ) -> Result<GcObject> {
+    ) -> Result<JsObject> {
         // 1. Let isArray be ? IsArray(originalArray).
         // 2. If isArray is false, return ? ArrayCreate(length).
         if !original_array.is_array() {
@@ -662,7 +662,7 @@ impl Array {
         let callback = if let Some(arg) = args
             .get(0)
             .and_then(JsValue::as_object)
-            .filter(GcObject::is_callable)
+            .filter(JsObject::is_callable)
         {
             arg
         } else {
@@ -763,7 +763,7 @@ impl Array {
         let func = array.get("join", context)?;
         // 3. If IsCallable(func) is false, set func to the intrinsic function %Object.prototype.toString%.
         // 4. Return ? Call(func, array).
-        if let Some(func) = func.as_object().filter(GcObject::is_callable) {
+        if let Some(func) = func.as_object().filter(JsObject::is_callable) {
             func.call(&array.into(), &[], context)
         } else {
             crate::builtins::object::Object::to_string(&array.into(), &[], context)
@@ -1000,7 +1000,7 @@ impl Array {
         let callback = if let Some(arg) = args
             .get(0)
             .and_then(JsValue::as_object)
-            .filter(GcObject::is_callable)
+            .filter(JsObject::is_callable)
         {
             arg
         } else {
@@ -1456,12 +1456,12 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-flattenintoarray
     #[allow(clippy::too_many_arguments)]
     fn flatten_into_array(
-        target: &GcObject,
-        source: &GcObject,
+        target: &JsObject,
+        source: &JsObject,
         source_len: u64,
         start: u64,
         depth: u64,
-        mapper_function: Option<GcObject>,
+        mapper_function: Option<JsObject>,
         this_arg: &JsValue,
         context: &mut Context,
     ) -> Result<u64> {
@@ -1846,7 +1846,7 @@ impl Array {
         let callback = if let Some(arg) = args
             .get(0)
             .and_then(JsValue::as_object)
-            .filter(GcObject::is_callable)
+            .filter(JsObject::is_callable)
         {
             arg
         } else {

@@ -4,20 +4,20 @@ use crate::{
         string::string_iterator::StringIterator, ArrayIterator, ForInIterator, MapIterator,
         SetIterator,
     },
-    object::{GcObject, ObjectInitializer},
+    object::{JsObject, ObjectInitializer},
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsValue, Result,
 };
 
 #[derive(Debug, Default)]
 pub struct IteratorPrototypes {
-    iterator_prototype: GcObject,
-    array_iterator: GcObject,
-    set_iterator: GcObject,
-    string_iterator: GcObject,
-    regexp_string_iterator: GcObject,
-    map_iterator: GcObject,
-    for_in_iterator: GcObject,
+    iterator_prototype: JsObject,
+    array_iterator: JsObject,
+    set_iterator: JsObject,
+    string_iterator: JsObject,
+    regexp_string_iterator: JsObject,
+    map_iterator: JsObject,
+    for_in_iterator: JsObject,
 }
 
 impl IteratorPrototypes {
@@ -47,37 +47,37 @@ impl IteratorPrototypes {
     }
 
     #[inline]
-    pub fn array_iterator(&self) -> GcObject {
+    pub fn array_iterator(&self) -> JsObject {
         self.array_iterator.clone()
     }
 
     #[inline]
-    pub fn iterator_prototype(&self) -> GcObject {
+    pub fn iterator_prototype(&self) -> JsObject {
         self.iterator_prototype.clone()
     }
 
     #[inline]
-    pub fn set_iterator(&self) -> GcObject {
+    pub fn set_iterator(&self) -> JsObject {
         self.set_iterator.clone()
     }
 
     #[inline]
-    pub fn string_iterator(&self) -> GcObject {
+    pub fn string_iterator(&self) -> JsObject {
         self.string_iterator.clone()
     }
 
     #[inline]
-    pub fn regexp_string_iterator(&self) -> GcObject {
+    pub fn regexp_string_iterator(&self) -> JsObject {
         self.regexp_string_iterator.clone()
     }
 
     #[inline]
-    pub fn map_iterator(&self) -> GcObject {
+    pub fn map_iterator(&self) -> JsObject {
         self.map_iterator.clone()
     }
 
     #[inline]
-    pub fn for_in_iterator(&self) -> GcObject {
+    pub fn for_in_iterator(&self) -> JsObject {
         self.for_in_iterator.clone()
     }
 }
@@ -120,7 +120,7 @@ pub fn get_iterator(context: &mut Context, iterable: JsValue) -> Result<Iterator
 ///  - [ECMA reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object
-fn create_iterator_prototype(context: &mut Context) -> GcObject {
+fn create_iterator_prototype(context: &mut Context) -> JsObject {
     let _timer = BoaProfiler::global().start_event("Iterator Prototype", "init");
 
     let symbol_iterator = WellKnownSymbols::iterator();

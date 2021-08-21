@@ -6,13 +6,13 @@
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
 use crate::{
-    object::{GcObject, Object, ObjectData},
+    object::{JsObject, Object, ObjectData},
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
     value::{JsValue, Type},
     BoaProfiler, Context, Result,
 };
 
-impl GcObject {
+impl JsObject {
     /// Check if object has property.
     ///
     /// More information:
@@ -821,7 +821,7 @@ impl GcObject {
         self.borrow().is_constructable()
     }
 
-    /// Returns true if the GcObject is the global for a Realm
+    /// Returns true if the JsObject is the global for a Realm
     pub fn is_global(&self) -> bool {
         matches!(self.borrow().data, ObjectData::Global)
     }

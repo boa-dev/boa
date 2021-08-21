@@ -178,7 +178,7 @@ impl JsValue {
             (JsValue::Null, JsValue::Null) | (JsValue::Undefined, JsValue::Undefined) => true,
             (JsValue::String(ref x), JsValue::String(ref y)) => x == y,
             (JsValue::Boolean(x), JsValue::Boolean(y)) => x == y,
-            (JsValue::Object(ref x), JsValue::Object(ref y)) => GcObject::equals(x, y),
+            (JsValue::Object(ref x), JsValue::Object(ref y)) => JsObject::equals(x, y),
             (JsValue::Symbol(ref x), JsValue::Symbol(ref y)) => x == y,
             _ => false,
         }

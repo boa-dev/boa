@@ -64,9 +64,7 @@ pub mod vm;
 
 /// A convenience module that re-exports the most commonly-used Boa APIs
 pub mod prelude {
-    pub use crate::{
-        object::GcObject as JsObject, Context, JsBigInt, JsString, JsValue, Result as JsResult,
-    };
+    pub use crate::{object::JsObject, Context, JsBigInt, JsString, JsValue, Result as JsResult};
 }
 
 use std::result::Result as StdResult;

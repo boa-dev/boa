@@ -14,7 +14,7 @@ pub mod regexp_string_iterator;
 use crate::{
     builtins::{array::Array, string, BuiltIn},
     gc::{empty_trace, Finalize, Trace},
-    object::{ConstructorBuilder, FunctionBuilder, GcObject, Object, ObjectData, PROTOTYPE},
+    object::{ConstructorBuilder, FunctionBuilder, JsObject, Object, ObjectData, PROTOTYPE},
     property::Attribute,
     symbol::WellKnownSymbols,
     value::{IntegerOrInfinity, JsValue},
@@ -265,7 +265,7 @@ impl RegExp {
                 .into()
         };
 
-        Ok(GcObject::new(Object::create(proto)).into())
+        Ok(JsObject::new(Object::create(proto)).into())
     }
 
     /// `22.2.3.2.2 RegExpInitialize ( obj, pattern, flags )`
@@ -415,7 +415,7 @@ impl RegExp {
                 }));
             }
 
-            if GcObject::equals(
+            if JsObject::equals(
                 &object,
                 &context.standard_objects().regexp_object().prototype,
             ) {
@@ -771,7 +771,7 @@ impl RegExp {
         this: &JsValue,
         input: JsString,
         context: &mut Context,
-    ) -> Result<Option<GcObject>> {
+    ) -> Result<Option<JsObject>> {
         // 1. Assert: Type(R) is Object.
         let object = this
             .as_object()
@@ -813,10 +813,10 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexpbuiltinexec
     pub(crate) fn abstract_builtin_exec(
-        this: GcObject,
+        this: JsObject,
         input: JsString,
         context: &mut Context,
-    ) -> Result<Option<GcObject>> {
+    ) -> Result<Option<JsObject>> {
         // 1. Assert: R is an initialized RegExp instance.
         let rx = {
             let obj = this.borrow();

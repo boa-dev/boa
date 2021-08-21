@@ -11,7 +11,7 @@ use crate::{
         lexical_environment::{Environment, EnvironmentType},
     },
     gc::{Finalize, Trace},
-    object::GcObject,
+    object::JsObject,
     BoaProfiler, Context, JsValue, Result,
 };
 use gc::{Gc, GcCell};
@@ -202,7 +202,7 @@ impl EnvironmentRecordTrait for DeclarativeEnvironmentRecord {
         false
     }
 
-    fn with_base_object(&self) -> Option<GcObject> {
+    fn with_base_object(&self) -> Option<JsObject> {
         None
     }
 

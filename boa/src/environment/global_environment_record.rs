@@ -15,7 +15,7 @@ use crate::{
         object_environment_record::ObjectEnvironmentRecord,
     },
     gc::{Finalize, Trace},
-    object::GcObject,
+    object::JsObject,
     property::PropertyDescriptor,
     Context, JsValue, Result,
 };
@@ -25,13 +25,13 @@ use rustc_hash::FxHashSet;
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct GlobalEnvironmentRecord {
     pub object_record: ObjectEnvironmentRecord,
-    pub global_this_binding: GcObject,
+    pub global_this_binding: JsObject,
     pub declarative_record: DeclarativeEnvironmentRecord,
     pub var_names: GcCell<FxHashSet<Box<str>>>,
 }
 
 impl GlobalEnvironmentRecord {
-    pub fn new(global: GcObject, this_value: GcObject) -> GlobalEnvironmentRecord {
+    pub fn new(global: JsObject, this_value: JsObject) -> GlobalEnvironmentRecord {
         let obj_rec = ObjectEnvironmentRecord {
             bindings: global.into(),
             outer_env: None,
@@ -259,7 +259,7 @@ impl EnvironmentRecordTrait for GlobalEnvironmentRecord {
         false
     }
 
-    fn with_base_object(&self) -> Option<GcObject> {
+    fn with_base_object(&self) -> Option<JsObject> {
         None
     }
 
