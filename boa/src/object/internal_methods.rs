@@ -6,6 +6,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
 use crate::{
+    builtins::Array,
     object::{GcObject, Object, ObjectData},
     property::{DescriptorKind, PropertyDescriptor, PropertyKey, PropertyNameKind},
     value::{JsValue, Type},
@@ -909,7 +910,7 @@ impl GcObject {
                     if desc.expect_enumerable() {
                         // 1. If kind is key, append key to properties.
                         if let PropertyNameKind::Key = kind {
-                            properties.push(JsValue::String(key_str.clone()))
+                            properties.push(key_str.clone().into())
                         }
                         // 2. Else,
                         else {
