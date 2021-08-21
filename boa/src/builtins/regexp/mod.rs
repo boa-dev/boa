@@ -1598,7 +1598,11 @@ impl RegExp {
         let splitter = constructor
             .as_object()
             .expect("SpeciesConstructor returned non Object")
-            .construct(&[JsValue::from(rx), new_flags.into()], &constructor, context)?;
+            .construct(
+                &[JsValue::from(rx), new_flags.into()],
+                &constructor,
+                context,
+            )?;
 
         // 11. Let A be ! ArrayCreate(0).
         let a = Array::array_create(0, None, context).unwrap();

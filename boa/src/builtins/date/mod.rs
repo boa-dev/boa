@@ -450,9 +450,13 @@ impl Date {
                 },
                 tv => {
                     let tv = tv.to_number(context)?;
-                    let secs = (tv / 1_000f64) as i64;
-                    let nsecs = ((tv % 1_000f64) * 1_000_000f64) as u32;
-                    NaiveDateTime::from_timestamp_opt(secs, nsecs)
+                    if tv.is_nan() {
+                        None
+                    } else {
+                        let secs = (tv / 1_000f64) as i64;
+                        let nsecs = ((tv % 1_000f64) * 1_000_000f64) as u32;
+                        NaiveDateTime::from_timestamp_opt(secs, nsecs)
+                    }
                 }
             },
         };
@@ -846,6 +850,13 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setFullYear
     pub fn set_full_year(&mut self, year: Option<f64>, month: Option<f64>, day: Option<f64>) {
         if let Some(year) = year {
+            if self.0.is_none() {
+                self.0 = NaiveDateTime::from_timestamp_opt(0, 0)
+                    .and_then(|local| ignore_ambiguity(Local.from_local_datetime(&local)))
+                    .map(|local| local.naive_utc())
+                    .filter(|time| Self::time_clip(time.timestamp_millis() as f64).is_some());
+            }
+
             self.set_components(false, Some(year), month, day, None, None, None, None)
         } else {
             self.0 = None

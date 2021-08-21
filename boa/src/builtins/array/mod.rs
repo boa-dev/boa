@@ -233,7 +233,7 @@ impl Array {
         array.ordinary_define_own_property(
             "length".into(),
             PropertyDescriptor::builder()
-                .value(length as f64)
+                .value(length)
                 .writable(true)
                 .enumerable(false)
                 .configurable(false)
@@ -241,6 +241,33 @@ impl Array {
         );
 
         Ok(array)
+    }
+
+    /// Utility for constructing `Array` objects from an iterator of `JsValue`s.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createarrayfromlist
+    pub(crate) fn create_array_from_list<I>(elements: I, context: &mut Context) -> GcObject
+    where
+        I: IntoIterator<Item = JsValue>,
+    {
+        // 1. Assert: elements is a List whose elements are all ECMAScript language values.
+        // 2. Let array be ! ArrayCreate(0).
+        let array = Self::array_create(0, None, context)
+            .expect("creating an empty array with the default prototype must not fail");
+        // 3. Let n be 0.
+        // 4. For each element e of elements, do
+        for (i, elem) in elements.into_iter().enumerate() {
+            // a. Perform ! CreateDataPropertyOrThrow(array, ! ToString(𝔽(n)), e).
+            array
+                .create_data_property_or_throw(i, elem, context)
+                .expect("new array must be extensible");
+            // b. Set n to n + 1.
+        }
+        // 5. Return array.
+        array
     }
 
     /// Creates a new `Array` instance.
@@ -261,47 +288,6 @@ impl Array {
                 .build(),
         );
         array
-    }
-
-    /// Utility function for creating array objects.
-    ///
-    /// `array_obj` can be any array with prototype already set (it will be wiped and
-    /// recreated from `array_contents`)
-    pub(crate) fn construct_array(
-        array_obj: &JsValue,
-        array_contents: &[JsValue],
-        context: &mut Context,
-    ) -> Result<JsValue> {
-        let array_obj_ptr = array_obj.clone();
-
-        // Wipe existing contents of the array object
-        let orig_length = array_obj.get_field("length", context)?.to_length(context)?;
-        for n in 0..orig_length {
-            array_obj_ptr.remove_property(n);
-        }
-
-        // Create length
-        array_obj_ptr.set_property(
-            "length".to_string(),
-            PropertyDescriptor::builder()
-                .value(array_contents.len())
-                .writable(true)
-                .enumerable(false)
-                .configurable(false)
-                .build(),
-        );
-
-        for (n, value) in array_contents.iter().enumerate() {
-            array_obj_ptr.set_property(
-                n,
-                PropertyDescriptor::builder()
-                    .value(value)
-                    .configurable(true)
-                    .enumerable(true)
-                    .writable(true),
-            );
-        }
-        Ok(array_obj_ptr)
     }
 
     /// Utility function for concatenating array objects.
