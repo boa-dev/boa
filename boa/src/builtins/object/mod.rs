@@ -64,6 +64,7 @@ impl BuiltIn for Object {
         .static_method(Self::assign, "assign", 2)
         .static_method(Self::is, "is", 2)
         .static_method(Self::keys, "keys", 1)
+        .static_method(Self::entries, "entries", 1)
         .static_method(
             Self::get_own_property_descriptor,
             "getOwnPropertyDescriptor",
