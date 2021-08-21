@@ -924,14 +924,12 @@ impl GcObject {
                             else {
                                 // i. Assert: kind is key+value.
                                 // ii. Let entry be ! CreateArrayFromList(« key, value »).
-                                // TODO: Implement https://tc39.es/ecma262/#sec-createarrayfromlist
-                                let entry = JsValue::new_object(context);
                                 let key_val = JsValue::String(key_str.clone());
-                                entry.add(&key_val, context)?;
-                                entry.add(&value, context)?;
+                                let entry =
+                                    Array::create_array_from_list([key_val, value], context);
 
                                 // iii. Append entry to properties.
-                                properties.push(entry);
+                                properties.push(entry.into());
                             }
                         }
                     }

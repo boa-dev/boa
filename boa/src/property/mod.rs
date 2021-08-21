@@ -667,5 +667,5 @@ impl PartialEq<&str> for PropertyKey {
 pub(crate) enum PropertyNameKind {
     Key,
     Value,
-    KeyValue,
+    KeyAndValue,
 }

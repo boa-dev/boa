@@ -544,8 +544,6 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-object.assign
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
     pub fn assign(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
-        //
-        //
         // 1. Let to be ? ToObject(target).
         let to = args
             .get(0)
@@ -598,8 +596,6 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-object.keys
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
     pub fn keys(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
-        //
-        //
         // 1. Let obj be ? ToObject(target).
         let obj = args
             .get(0)
@@ -611,12 +607,8 @@ impl Object {
         let name_list = obj.enumerable_own_property_names(PropertyNameKind::Key, context)?;
 
         // 3. Return CreateArrayFromList(nameList).
-        // TODO: Implement https://tc39.es/ecma262/#sec-createarrayfromlist
-        let result = Array::array_create(name_list.len(), None, context)?;
-        for (index, name) in name_list.iter().enumerate() {
-            result.set(index, name, false, context)?;
-        }
+        let result = Array::create_array_from_list(name_list.into_iter(), context);
 
-        Ok(JsValue::Object(result))
+        Ok(result.into())
     }
 }
