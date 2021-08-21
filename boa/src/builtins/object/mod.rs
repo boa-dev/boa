@@ -611,4 +611,34 @@ impl Object {
 
         Ok(result.into())
     }
+
+    /// `Object.entries( target )`
+    ///
+    /// This method returns an array of a given object's own enumerable string-keyed property [key, value] pairs.
+    /// This is the same as iterating with a for...in loop,
+    /// except that a for...in loop enumerates properties in the prototype chain as well).
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.entries
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
+    pub fn entries(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+        // 1. Let obj be ? ToObject(target).
+        let obj = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_object(context)?;
+
+        // 2. Let nameList be ? EnumerableOwnPropertyNames(obj, key+value).
+        let name_list =
+            obj.enumerable_own_property_names(PropertyNameKind::KeyAndValue, context)?;
+
+        // 3. Return CreateArrayFromList(nameList).
+        let result = Array::create_array_from_list(name_list.into_iter(), context);
+
+        Ok(result.into())
+    }
 }
