@@ -175,7 +175,8 @@ pub(crate) enum TestAction {
 pub(crate) fn check_output(actions: &[TestAction]) {
     let mut context = Context::new();
 
-    for (i, action) in actions.iter().enumerate() {
+    let mut i = 1;
+    for action in actions {
         match action {
             TestAction::Execute(src) => {
                 forward(&mut context, src);
@@ -185,17 +186,19 @@ pub(crate) fn check_output(actions: &[TestAction]) {
                     &forward(&mut context, case),
                     expected,
                     "Test case {} ('{}')",
-                    i + 1,
+                    i,
                     case
                 );
+                i += 1;
             }
             TestAction::TestStartsWith(case, expected) => {
                 assert!(
                     &forward(&mut context, case).starts_with(expected),
                     "Test case {} ('{}')",
-                    i + 1,
+                    i,
                     case
                 );
+                i += 1;
             }
         }
     }
