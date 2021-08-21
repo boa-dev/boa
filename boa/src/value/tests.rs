@@ -101,7 +101,7 @@ fn abstract_equality_comparison() {
                 "true",
             ),
             (
-                "Number.NEGAVIVE_INFINITY === Number.NEGAVIVE_INFINITY",
+                "Number.NEGATIVE_INFINITY === Number.NEGATIVE_INFINITY",
                 "true",
             ),
         ],
