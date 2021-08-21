@@ -266,6 +266,59 @@
 <span id="266">266</span>
 <span id="267">267</span>
 <span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Lexical declaration parsing.</span>
 <span class="doccomment">//!</span>
@@ -276,7 +329,6 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations</span>
 
-<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::syntax::lexer::TokenKind</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">syntax</span>::{
         <span class="ident">ast</span>::{
@@ -286,10 +338,11 @@
             },
             <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
         },
+        <span class="ident">lexer::TokenKind</span>,
         <span class="ident">parser</span>::{
             <span class="ident">cursor</span>::{<span class="ident">Cursor</span>, <span class="ident">SemicolonResult</span>},
             <span class="ident">expression::Initializer</span>,
-            <span class="ident">statement::BindingIdentifier</span>,
+            <span class="ident">statement</span>::{<span class="ident">ArrayBindingPattern</span>, <span class="ident">BindingIdentifier</span>, <span class="ident">ObjectBindingPattern</span>},
             <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
         },
     },
@@ -423,14 +476,19 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">const_decls</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
         <span class="kw">loop</span> {
-            <span class="kw">let</span> (<span class="ident">ident</span>, <span class="ident">init</span>) <span class="op">=</span>
-                <span class="ident">LexicalBinding::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">decl</span> <span class="op">=</span> <span class="ident">LexicalBinding::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
 
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_const</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">const_init_required</span> {
-                    <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">is_some</span>() {
-                        <span class="ident">const_decls</span>.<span class="ident">push</span>(<span class="ident">Declaration::new</span>(<span class="ident">ident</span>, <span class="ident">init</span>));
+                    <span class="kw">let</span> <span class="ident">init_is_some</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">decl</span> {
+                        <span class="ident">Declaration::Identifier</span> { <span class="ident">init</span>, .. } <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">is_some</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+                        <span class="ident">Declaration::Pattern</span>(<span class="ident">p</span>) <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">init</span>().<span class="ident">is_some</span>() <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">true</span>,
+                        <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="bool-val">false</span>,
+                    };
+
+                    <span class="kw">if</span> <span class="ident">init_is_some</span> {
+                        <span class="ident">const_decls</span>.<span class="ident">push</span>(<span class="ident">decl</span>);
                     } <span class="kw">else</span> {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::expected</span>(
                             <span class="macro">vec!</span>[<span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>)],
@@ -439,10 +497,10 @@
                         ));
                     }
                 } <span class="kw">else</span> {
-                    <span class="ident">const_decls</span>.<span class="ident">push</span>(<span class="ident">Declaration::new</span>(<span class="ident">ident</span>, <span class="ident">init</span>))
+                    <span class="ident">const_decls</span>.<span class="ident">push</span>(<span class="ident">decl</span>)
                 }
             } <span class="kw">else</span> {
-                <span class="ident">let_decls</span>.<span class="ident">push</span>(<span class="ident">Declaration::new</span>(<span class="ident">ident</span>, <span class="ident">init</span>));
+                <span class="ident">let_decls</span>.<span class="ident">push</span>(<span class="ident">decl</span>);
             }
 
             <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek_semicolon</span>()<span class="question-mark">?</span> {
@@ -512,27 +570,75 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> (<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>);
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Declaration</span>;
 
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;LexicalBinding&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">BindingIdentifier::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">peek_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span> {
-            <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">t</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) {
-                <span class="prelude-val">Some</span>(
-                    <span class="ident">Initializer::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>,
-                )
-            } <span class="kw">else</span> {
-                <span class="prelude-val">None</span>
+        <span class="kw">match</span> <span class="ident">peek_token</span>.<span class="ident">kind</span>() {
+            <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBlock</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span>
+                    <span class="ident">ObjectBindingPattern::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                        .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
+
+                <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span> {
+                    <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">t</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) {
+                        <span class="prelude-val">Some</span>(
+                            <span class="ident">Initializer::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                                .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>,
+                        )
+                    } <span class="kw">else</span> {
+                        <span class="prelude-val">None</span>
+                    }
+                } <span class="kw">else</span> {
+                    <span class="prelude-val">None</span>
+                };
+
+                <span class="prelude-val">Ok</span>(<span class="ident">Declaration::new_with_object_pattern</span>(<span class="ident">bindings</span>, <span class="ident">init</span>))
             }
-        } <span class="kw">else</span> {
-            <span class="prelude-val">None</span>
-        };
+            <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBracket</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span>
+                    <span class="ident">ArrayBindingPattern::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                        .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>((<span class="ident">ident</span>, <span class="ident">init</span>))
+                <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span> {
+                    <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">t</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) {
+                        <span class="prelude-val">Some</span>(
+                            <span class="ident">Initializer::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                                .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>,
+                        )
+                    } <span class="kw">else</span> {
+                        <span class="prelude-val">None</span>
+                    }
+                } <span class="kw">else</span> {
+                    <span class="prelude-val">None</span>
+                };
+
+                <span class="prelude-val">Ok</span>(<span class="ident">Declaration::new_with_array_pattern</span>(<span class="ident">bindings</span>, <span class="ident">init</span>))
+            }
+
+            <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span>
+                    <span class="ident">BindingIdentifier::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
+
+                <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span> {
+                    <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">t</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) {
+                        <span class="prelude-val">Some</span>(
+                            <span class="ident">Initializer::new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                                .<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>,
+                        )
+                    } <span class="kw">else</span> {
+                        <span class="prelude-val">None</span>
+                    }
+                } <span class="kw">else</span> {
+                    <span class="prelude-val">None</span>
+                };
+
+                <span class="prelude-val">Ok</span>(<span class="ident">Declaration::new_with_identifier</span>(<span class="ident">ident</span>, <span class="ident">init</span>))
+            }
+        }
     }
 }
 </pre></div>
