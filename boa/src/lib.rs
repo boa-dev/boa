@@ -167,9 +167,9 @@ pub(crate) enum TestAction {
     TestStartsWith(&'static str, &'static str),
 }
 
-/// Create a clean Context, optinally call `forward` if init script was provided,
-/// call `forward` for each of provided test cases and assert output from `forward`
-/// matches expected string.
+/// Create a clean Context, call "forward" for each action, and optionally
+/// assert equality of the returned value or if returned value starts with
+/// expected string.
 #[cfg(test)]
 #[track_caller]
 pub(crate) fn check_output(actions: &[TestAction]) {
