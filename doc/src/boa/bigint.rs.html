@@ -440,6 +440,15 @@
 <span id="440">440</span>
 <span id="441">441</span>
 <span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the JavaScript bigint primitive rust type.</span>
 
@@ -611,6 +620,15 @@
         } <span class="kw">else</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="string">&quot;BigInt negative exponent&quot;</span>));
         };
+
+        <span class="kw">let</span> <span class="ident">num_bits</span> <span class="op">=</span> (<span class="ident">x</span>.<span class="ident">inner</span>.<span class="ident">bits</span>() <span class="kw">as</span> <span class="ident">f64</span>
+            <span class="op">*</span> <span class="ident">y</span>.<span class="ident">to_f64</span>().<span class="ident">expect</span>(<span class="string">&quot;Unable to convert from BigUInt to f64&quot;</span>))
+        .<span class="ident">floor</span>()
+            <span class="op">+</span> <span class="number">1f64</span>;
+
+        <span class="kw">if</span> <span class="ident">num_bits</span> <span class="op">&gt;</span> <span class="number">1_000_000_000f64</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="string">&quot;Maximum BigInt size exceeded&quot;</span>));
+        }
 
         <span class="prelude-val">Ok</span>(<span class="self">Self</span><span class="ident">::new</span>(<span class="ident">x</span>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>().<span class="ident">pow</span>(<span class="ident">y</span>)))
     }
