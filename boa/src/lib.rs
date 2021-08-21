@@ -153,25 +153,34 @@ pub(crate) fn exec<T: AsRef<[u8]>>(src: T) -> String {
     }
 }
 
+#[cfg(test)]
+pub(crate) enum TestAction {
+    Execute(&'static str),
+    TestEq(&'static str, &'static str),
+}
+
 /// Create a clean Context, optinally call `forward` if init script was provided,
 /// call `forward` for each of provided test cases and assert output from `forward`
 /// matches expected string.
 #[cfg(test)]
 #[track_caller]
-pub(crate) fn check_output(maybe_init: Option<&str>, cases: &[(&str, &str)]) {
+pub(crate) fn check_output(actions: &[TestAction]) {
     let mut context = Context::new();
 
-    if let Some(init) = maybe_init {
-        forward(&mut context, init);
-    }
-
-    for (i, (case, expected)) in cases.iter().enumerate() {
-        assert_eq!(
-            &forward(&mut context, case),
-            expected,
-            "Test case {} ('{}')",
-            i + 1,
-            case
-        );
+    for (i, action) in actions.iter().enumerate() {
+        match action {
+            TestAction::Execute(src) => {
+                forward(&mut context, src);
+            }
+            TestAction::TestEq(case, expected) => {
+                assert_eq!(
+                    &forward(&mut context, case),
+                    expected,
+                    "Test case {} ('{}')",
+                    i + 1,
+                    case
+                );
+            }
+        }
     }
 }

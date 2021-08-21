@@ -1,7 +1,7 @@
 #![allow(clippy::float_cmp)]
 
 use super::*;
-use crate::{check_output, forward, forward_val, Context};
+use crate::{check_output, forward, forward_val, Context, TestAction};
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -64,48 +64,45 @@ fn number_is_true() {
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
 #[test]
 fn abstract_equality_comparison() {
-    check_output(
-        None,
-        &[
-            ("undefined == undefined", "true"),
-            ("null == null", "true"),
-            ("true == true", "true"),
-            ("false == false", "true"),
-            ("'foo' == 'foo'", "true"),
-            ("0 == 0", "true"),
-            ("+0 == -0", "true"),
-            ("+0 == 0", "true"),
-            ("-0 == 0", "true"),
-            ("0 == false", "true"),
-            ("'' == false", "true"),
-            ("'' == 0", "true"),
-            ("'17' == 17", "true"),
-            ("[1,2] == '1,2'", "true"),
-            ("new String('foo') == 'foo'", "true"),
-            ("null == undefined", "true"),
-            ("undefined == null", "true"),
-            ("null == false", "false"),
-            ("[] == ![]", "true"),
-            ("a = { foo: 'bar' }; b = { foo: 'bar'}; a == b", "false"),
-            ("new String('foo') == new String('foo')", "false"),
-            ("0 == null", "false"),
-            ("0 == '-0'", "true"),
-            ("0 == '+0'", "true"),
-            ("'+0' == 0", "true"),
-            ("'-0' == 0", "true"),
-            ("0 == NaN", "false"),
-            ("'foo' == NaN", "false"),
-            ("NaN == NaN", "false"),
-            (
-                "Number.POSITIVE_INFINITY === Number.POSITIVE_INFINITY",
-                "true",
-            ),
-            (
-                "Number.NEGATIVE_INFINITY === Number.NEGATIVE_INFINITY",
-                "true",
-            ),
-        ],
-    );
+    check_output(&[
+        TestAction::TestEq("undefined == undefined", "true"),
+        TestAction::TestEq("null == null", "true"),
+        TestAction::TestEq("true == true", "true"),
+        TestAction::TestEq("false == false", "true"),
+        TestAction::TestEq("'foo' == 'foo'", "true"),
+        TestAction::TestEq("0 == 0", "true"),
+        TestAction::TestEq("+0 == -0", "true"),
+        TestAction::TestEq("+0 == 0", "true"),
+        TestAction::TestEq("-0 == 0", "true"),
+        TestAction::TestEq("0 == false", "true"),
+        TestAction::TestEq("'' == false", "true"),
+        TestAction::TestEq("'' == 0", "true"),
+        TestAction::TestEq("'17' == 17", "true"),
+        TestAction::TestEq("[1,2] == '1,2'", "true"),
+        TestAction::TestEq("new String('foo') == 'foo'", "true"),
+        TestAction::TestEq("null == undefined", "true"),
+        TestAction::TestEq("undefined == null", "true"),
+        TestAction::TestEq("null == false", "false"),
+        TestAction::TestEq("[] == ![]", "true"),
+        TestAction::TestEq("a = { foo: 'bar' }; b = { foo: 'bar'}; a == b", "false"),
+        TestAction::TestEq("new String('foo') == new String('foo')", "false"),
+        TestAction::TestEq("0 == null", "false"),
+        TestAction::TestEq("0 == '-0'", "true"),
+        TestAction::TestEq("0 == '+0'", "true"),
+        TestAction::TestEq("'+0' == 0", "true"),
+        TestAction::TestEq("'-0' == 0", "true"),
+        TestAction::TestEq("0 == NaN", "false"),
+        TestAction::TestEq("'foo' == NaN", "false"),
+        TestAction::TestEq("NaN == NaN", "false"),
+        TestAction::TestEq(
+            "Number.POSITIVE_INFINITY === Number.POSITIVE_INFINITY",
+            "true",
+        ),
+        TestAction::TestEq(
+            "Number.NEGATIVE_INFINITY === Number.NEGATIVE_INFINITY",
+            "true",
+        ),
+    ]);
 }
 
 /// Helper function to get the hash of a `Value`.
@@ -598,7 +595,11 @@ fn test_accessors() {
             let a = { get b() { return "c" }, set b(value) { arr = arr.concat([value]) }} ;
             a.b = "a";
         "#;
-    check_output(Some(src), &[("a.b", r#""c""#), ("arr", r#"[ "a" ]"#)]);
+    check_output(&[
+        TestAction::Execute(src),
+        TestAction::TestEq("a.b", r#""c""#),
+        TestAction::TestEq("arr", r#"[ "a" ]"#),
+    ]);
 }
 
 #[test]
@@ -610,7 +611,10 @@ fn to_primitive() {
     };
     let primitive = a + 0;
     "#;
-    check_output(Some(src), &[("primitive", "42")]);
+    check_output(&[
+        TestAction::Execute(src),
+        TestAction::TestEq("primitive", "42"),
+    ]);
 }
 
 /// Test cyclic conversions that previously caused stack overflows
