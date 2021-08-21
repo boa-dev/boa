@@ -77,22 +77,18 @@ impl Reflect {
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.apply
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/apply
     pub(crate) fn apply(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let undefined = JsValue::undefined();
         let target = args
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be a function"))?;
-        let this_arg = args.get(1).unwrap_or(&undefined);
-        let args_list = args
-            .get(2)
-            .and_then(|v| v.as_object())
-            .ok_or_else(|| context.construct_type_error("args list must be an object"))?;
+        let this_arg = args.get(1).cloned().unwrap_or_default();
+        let args_list = args.get(2).cloned().unwrap_or_default();
 
         if !target.is_callable() {
             return context.throw_type_error("target must be a function");
         }
         let args = args_list.create_list_from_array_like(&[], context)?;
-        target.call(this_arg, &args, context)
+        target.call(&this_arg, &args, context)
     }
 
     /// Calls a target function as a constructor with arguments.
@@ -112,10 +108,7 @@ impl Reflect {
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be a function"))?;
-        let args_list = args
-            .get(1)
-            .and_then(|v| v.as_object())
-            .ok_or_else(|| context.construct_type_error("args list must be an object"))?;
+        let args_list = args.get(1).cloned().unwrap_or_default();
 
         if !target.is_constructable() {
             return context.throw_type_error("target must be a constructor");
@@ -316,7 +309,7 @@ impl Reflect {
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
 
         let keys: Vec<JsValue> = target
-            .own_property_keys()
+            .__own_property_keys__(context)?
             .into_iter()
             .map(|key| key.into())
             .collect();

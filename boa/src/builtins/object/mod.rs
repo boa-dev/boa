@@ -16,10 +16,10 @@
 use crate::{
     builtins::BuiltIn,
     object::{
-        ConstructorBuilder, Object as BuiltinObject, ObjectData, ObjectInitializer, ObjectKind,
-        PROTOTYPE,
+        ConstructorBuilder, JsObject, Object as BuiltinObject, ObjectData, ObjectInitializer,
+        ObjectKind, PROTOTYPE,
     },
-    property::{Attribute, DescriptorKind, PropertyDescriptor, PropertyNameKind},
+    property::{Attribute, DescriptorKind, PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::{JsValue, Type},
     BoaProfiler, Context, JsResult,
@@ -133,7 +133,7 @@ impl Object {
         let properties = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
 
         let obj = match prototype {
-            JsValue::Object(_) | JsValue::Null => JsValue::new(BuiltinObject::with_prototype(
+            JsValue::Object(_) | JsValue::Null => JsObject::new(BuiltinObject::with_prototype(
                 prototype,
                 ObjectData::ordinary(),
             )),
@@ -146,10 +146,11 @@ impl Object {
         };
 
         if !properties.is_undefined() {
-            return Object::define_properties(&JsValue::undefined(), &[obj, properties], context);
+            define_properties(&obj, properties, context)?;
+            return Ok(obj.into());
         }
 
-        Ok(obj)
+        Ok(obj.into())
     }
 
     /// `Object.getOwnPropertyDescriptor( object, property )`
@@ -414,9 +415,9 @@ impl Object {
     ) -> JsResult<JsValue> {
         let arg = args.get(0).cloned().unwrap_or_default();
         let arg_obj = arg.as_object();
-        if let Some(mut obj) = arg_obj {
+        if let Some(obj) = arg_obj {
             let props = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
-            obj.define_properties(props, context)?;
+            define_properties(&obj, props, context)?;
             Ok(arg)
         } else {
             context.throw_type_error("Expected an object")
@@ -583,7 +584,7 @@ impl Object {
                 // 3.a.i. Let from be ! ToObject(nextSource).
                 let from = source.to_object(context).unwrap();
                 // 3.a.ii. Let keys be ? from.[[OwnPropertyKeys]]().
-                let keys = from.own_property_keys();
+                let keys = from.__own_property_keys__(context)?;
                 // 3.a.iii. For each element nextKey of keys, do
                 for key in keys {
                     // 3.a.iii.1. Let desc be ? from.[[GetOwnProperty]](nextKey).
@@ -686,4 +687,33 @@ impl Object {
 
         Ok(result.into())
     }
+}
+
+/// The abstract operation ObjectDefineProperties
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-object.defineproperties
+#[inline]
+fn define_properties(object: &JsObject, props: JsValue, context: &mut Context) -> JsResult<()> {
+    let props = &props.to_object(context)?;
+    let keys = props.__own_property_keys__(context)?;
+    let mut descriptors: Vec<(PropertyKey, PropertyDescriptor)> = Vec::new();
+
+    for next_key in keys {
+        if let Some(prop_desc) = props.__get_own_property__(&next_key, context)? {
+            if prop_desc.expect_enumerable() {
+                let desc_obj = props.get(next_key.clone(), context)?;
+                let desc = desc_obj.to_property_descriptor(context)?;
+                descriptors.push((next_key, desc));
+            }
+        }
+    }
+
+    for (p, d) in descriptors {
+        object.define_property_or_throw(p, d, context)?;
+    }
+
+    Ok(())
 }

@@ -33,7 +33,7 @@ pub(crate) fn string_exotic_get_own_property(
 /// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-defineownproperty-p-desc
 #[inline]
 pub(crate) fn string_exotic_define_own_property(
-    obj: &GcObject,
+    obj: &JsObject,
     key: PropertyKey,
     desc: PropertyDescriptor,
     context: &mut Context,
@@ -60,7 +60,7 @@ pub(crate) fn string_exotic_define_own_property(
 /// [spec]: https://tc39.es/ecma262/#sec-string-exotic-objects-ownpropertykeys
 #[inline]
 pub(crate) fn string_exotic_own_property_keys(
-    obj: &GcObject,
+    obj: &JsObject,
     _context: &mut Context,
 ) -> JsResult<Vec<PropertyKey>> {
     let mut keys = Vec::new();
@@ -96,10 +96,7 @@ pub(crate) fn string_exotic_own_property_keys(
 /// [spec]: https://tc39.es/ecma262/#sec-stringgetownproperty
 #[allow(clippy::float_cmp)]
 #[inline]
-pub(crate) fn string_get_own_property(
-    obj: &JsObject,
-    key: &PropertyKey,
-) -> Option<PropertyDescriptor> {
+fn string_get_own_property(obj: &JsObject, key: &PropertyKey) -> Option<PropertyDescriptor> {
     let obj = obj.borrow();
 
     let pos = match key {

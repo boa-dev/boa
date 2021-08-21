@@ -29,6 +29,7 @@ mod tests;
 
 mod gcobject;
 pub(crate) mod internal_methods;
+mod operations;
 mod property_map;
 
 use crate::builtins::object::for_in_iterator::ForInIterator;
@@ -944,6 +945,35 @@ impl Object {
     #[inline]
     pub fn properties(&self) -> &PropertyMap {
         &self.properties
+    }
+
+    /// Helper function for property insertion.
+    #[inline]
+    pub(crate) fn insert<K, P>(&mut self, key: K, property: P) -> Option<PropertyDescriptor>
+    where
+        K: Into<PropertyKey>,
+        P: Into<PropertyDescriptor>,
+    {
+        self.properties.insert(key.into(), property.into())
+    }
+
+    /// Helper function for property removal.
+    #[inline]
+    pub(crate) fn remove(&mut self, key: &PropertyKey) -> Option<PropertyDescriptor> {
+        self.properties.remove(key)
+    }
+
+    /// Inserts a field in the object `properties` without checking if it's writable.
+    ///
+    /// If a field was already in the object with the same name that a `Some` is returned
+    /// with that field, otherwise None is retuned.
+    #[inline]
+    pub fn insert_property<K, P>(&mut self, key: K, property: P) -> Option<PropertyDescriptor>
+    where
+        K: Into<PropertyKey>,
+        P: Into<PropertyDescriptor>,
+    {
+        self.insert(key, property)
     }
 }
 

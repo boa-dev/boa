@@ -70,7 +70,7 @@ impl ForInIterator {
                 let mut object = iterator.object.to_object(context)?;
                 loop {
                     if !iterator.object_was_visited {
-                        let keys = object.own_property_keys();
+                        let keys = object.__own_property_keys__(context)?;
                         for k in keys {
                             match k {
                                 PropertyKey::String(ref k) => {
