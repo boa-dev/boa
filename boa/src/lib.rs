@@ -157,6 +157,7 @@ pub(crate) fn exec<T: AsRef<[u8]>>(src: T) -> String {
 pub(crate) enum TestAction {
     Execute(&'static str),
     TestEq(&'static str, &'static str),
+    TestStartsWith(&'static str, &'static str),
 }
 
 /// Create a clean Context, optinally call `forward` if init script was provided,
@@ -176,6 +177,14 @@ pub(crate) fn check_output(actions: &[TestAction]) {
                 assert_eq!(
                     &forward(&mut context, case),
                     expected,
+                    "Test case {} ('{}')",
+                    i + 1,
+                    case
+                );
+            }
+            TestAction::TestStartsWith(case, expected) => {
+                assert!(
+                    &forward(&mut context, case).starts_with(expected),
                     "Test case {} ('{}')",
                     i + 1,
                     case
