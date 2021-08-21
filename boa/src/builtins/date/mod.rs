@@ -523,19 +523,15 @@ impl Date {
             return context.throw_type_error("Date.prototype[@@toPrimitive] called on non object");
         };
 
-        let hint = args
-            .get(0)
-            .cloned()
-            .unwrap_or_default()
-            .to_string(context)?;
+        let hint = args.get(0).cloned().unwrap_or_default();
 
-        let try_first = match hint.as_str() {
+        let try_first = match hint.as_string().map(|s| s.as_str()) {
             // 3. If hint is "string" or "default", then
             // a. Let tryFirst be string.
-            "string" | "default" => PreferredType::String,
+            Some("string") | Some("default") => PreferredType::String,
             // 4. Else if hint is "number", then
             // a. Let tryFirst be number.
-            "number" => PreferredType::Number,
+            Some("number") => PreferredType::Number,
             // 5. Else, throw a TypeError exception.
             _ => {
                 return context
@@ -723,7 +719,7 @@ impl Date {
         }
 
         // 3. Return (t - LocalTime(t)) / msPerMinute.
-        Ok(JsValue::Rational(
+        Ok(JsValue::new(
             -Local::now().offset().local_minus_utc() as f64 / 60f64,
         ))
     }
