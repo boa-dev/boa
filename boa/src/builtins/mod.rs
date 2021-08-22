@@ -118,3 +118,12 @@ pub fn init(context: &mut Context) {
 pub(crate) trait JsArgs {
     fn get_or_undefined(&self, index: usize) -> Cow<'_, JsValue>;
 }
+
+
+impl JsArgs for [JsValue] {
+    fn get_or_undefined(&self, index: usize) -> Cow<'_, JsValue> {
+        self.get(index)
+            .map(|v| Cow::Borrowed(v))
+            .unwrap_or(Cow::Owned(JsValue::Undefined))
+    }
+}
