@@ -31,6 +31,8 @@ use std::cell::RefCell;
 
 use rustc_hash::FxHashMap;
 
+use super::JsArgs;
+
 thread_local! {
     static GLOBAL_SYMBOL_REGISTRY: RefCell<GlobalSymbolRegistry> = RefCell::new(GlobalSymbolRegistry::new());
 }
@@ -272,7 +274,7 @@ impl Symbol {
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.keyfor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/keyFor
     pub(crate) fn key_for(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
-        let sym = args.get(0).cloned().unwrap_or_default();
+        let sym = args.get_or_undefined(0);
         // 1. If Type(sym) is not Symbol, throw a TypeError exception.
         if let Some(sym) = sym.as_symbol() {
             // 2. For each element e of the GlobalSymbolRegistry List (see 20.4.2.2), do

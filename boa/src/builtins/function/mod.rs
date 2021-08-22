@@ -25,6 +25,8 @@ use bitflags::bitflags;
 use std::fmt::{self, Debug};
 use std::rc::Rc;
 
+use super::JsArgs;
+
 #[cfg(test)]
 mod tests;
 
@@ -309,7 +311,7 @@ impl BuiltInFunctionObject {
         if !this.is_function() {
             return context.throw_type_error(format!("{} is not a function", this.display()));
         }
-        let this_arg: JsValue = args.get(0).cloned().unwrap_or_default();
+        let this_arg = args.get_or_undefined(0);
         // TODO?: 3. Perform PrepareForTailCall
         let start = if !args.is_empty() { 1 } else { 0 };
         context.call(this, &this_arg, &args[start..])
@@ -330,8 +332,8 @@ impl BuiltInFunctionObject {
         if !this.is_function() {
             return context.throw_type_error(format!("{} is not a function", this.display()));
         }
-        let this_arg = args.get(0).cloned().unwrap_or_default();
-        let arg_array = args.get(1).cloned().unwrap_or_default();
+        let this_arg = args.get_or_undefined(0);
+        let arg_array = args.get_or_undefined(1);
         if arg_array.is_null_or_undefined() {
             // TODO?: 3.a. PrepareForTailCall
             return context.call(this, &this_arg, &[]);

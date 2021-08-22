@@ -18,6 +18,8 @@ use crate::{
     BoaProfiler, Context, JsValue, Result,
 };
 
+use super::JsArgs;
+
 #[cfg(test)]
 mod tests;
 
@@ -75,12 +77,11 @@ impl Reflect {
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.apply
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/apply
     pub(crate) fn apply(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
-        let undefined = JsValue::undefined();
         let target = args
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be a function"))?;
-        let this_arg = args.get(1).unwrap_or(&undefined);
+        let this_arg = args.get_or_undefined(1);
         let args_list = args
             .get(2)
             .and_then(|v| v.as_object())
@@ -90,7 +91,7 @@ impl Reflect {
             return context.throw_type_error("target must be a function");
         }
         let args = args_list.create_list_from_array_like(&[], context)?;
-        target.call(this_arg, &args, context)
+        target.call(&this_arg, &args, context)
     }
 
     /// Calls a target function as a constructor with arguments.
@@ -145,12 +146,11 @@ impl Reflect {
         args: &[JsValue],
         context: &mut Context,
     ) -> Result<JsValue> {
-        let undefined = JsValue::undefined();
         let target = args
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
-        let key = args.get(1).unwrap_or(&undefined).to_property_key(context)?;
+        let key = args.get_or_undefined(1).to_property_key(context)?;
         let prop_desc: JsValue = args
             .get(2)
             .and_then(|v| v.as_object())
@@ -175,12 +175,11 @@ impl Reflect {
         args: &[JsValue],
         context: &mut Context,
     ) -> Result<JsValue> {
-        let undefined = JsValue::undefined();
         let target = args
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
-        let key = args.get(1).unwrap_or(&undefined).to_property_key(context)?;
+        let key = args.get_or_undefined(1).to_property_key(context)?;
 
         Ok(target.__delete__(&key).into())
     }
@@ -194,14 +193,13 @@ impl Reflect {
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.get
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/get
     pub(crate) fn get(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
-        let undefined = JsValue::undefined();
         // 1. If Type(target) is not Object, throw a TypeError exception.
         let target = args
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
         // 2. Let key be ? ToPropertyKey(propertyKey).
-        let key = args.get(1).unwrap_or(&undefined).to_property_key(context)?;
+        let key = args.get_or_undefined(1).to_property_key(context)?;
         // 3. If receiver is not present, then
         let receiver = if let Some(receiver) = args.get(2).cloned() {
             receiver
@@ -362,21 +360,18 @@ impl Reflect {
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.set
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/set
     pub(crate) fn set(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
-        let undefined = JsValue::undefined();
         let target = args
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
-        let key = args.get(1).unwrap_or(&undefined).to_property_key(context)?;
-        let value = args.get(2).unwrap_or(&undefined);
+        let key = args.get_or_undefined(1).to_property_key(context)?;
+        let value = args.get_or_undefined(2).into_owned();
         let receiver = if let Some(receiver) = args.get(3).cloned() {
             receiver
         } else {
             target.clone().into()
         };
-        Ok(target
-            .__set__(key, value.clone(), receiver, context)?
-            .into())
+        Ok(target.__set__(key, value, receiver, context)?.into())
     }
 
     /// Sets the prototype of an object.
@@ -392,15 +387,14 @@ impl Reflect {
         args: &[JsValue],
         context: &mut Context,
     ) -> Result<JsValue> {
-        let undefined = JsValue::undefined();
         let mut target = args
             .get(0)
             .and_then(|v| v.as_object())
             .ok_or_else(|| context.construct_type_error("target must be an object"))?;
-        let proto = args.get(1).unwrap_or(&undefined);
+        let proto = args.get_or_undefined(1);
         if !proto.is_null() && !proto.is_object() {
             return context.throw_type_error("proto must be an object or null");
         }
-        Ok(target.__set_prototype_of__(proto.clone()).into())
+        Ok(target.__set_prototype_of__(proto.into_owned()).into())
     }
 }

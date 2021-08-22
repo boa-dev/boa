@@ -11,6 +11,8 @@
 
 pub mod regexp_string_iterator;
 
+use std::borrow::Cow;
+
 use crate::{
     builtins::{array::Array, string, BuiltIn},
     gc::{empty_trace, Finalize, Trace},
@@ -22,6 +24,8 @@ use crate::{
 };
 use regexp_string_iterator::RegExpStringIterator;
 use regress::Regex;
+
+use super::JsArgs;
 
 #[cfg(test)]
 mod tests;
@@ -187,11 +191,11 @@ impl RegExp {
         args: &[JsValue],
         context: &mut Context,
     ) -> Result<JsValue> {
-        let pattern = args.get(0).cloned().unwrap_or_else(JsValue::undefined);
-        let flags = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
+        let pattern = args.get_or_undefined(0);
+        let flags = args.get_or_undefined(1);
 
         // 1. Let patternIsRegExp be ? IsRegExp(pattern).
-        let pattern_is_regexp = if let JsValue::Object(obj) = &pattern {
+        let pattern_is_regexp = if let JsValue::Object(obj) = pattern.as_ref() {
             if obj.is_regexp() {
                 Some(obj)
             } else {
@@ -233,12 +237,15 @@ impl RegExp {
                     JsValue::new(regexp.original_flags.clone()),
                 )
             } else {
-                (JsValue::new(regexp.original_source.clone()), flags)
+                (
+                    JsValue::new(regexp.original_source.clone()),
+                    flags.into_owned(),
+                )
             }
         } else {
             // a. Let P be pattern.
             // b. Let F be flags.
-            (pattern, flags)
+            (pattern.into_owned(), flags.into_owned())
         };
 
         // 7. Let O be ? RegExpAlloc(newTarget).
@@ -275,8 +282,8 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexpinitialize
     fn initialize(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
-        let pattern = args.get(0).cloned().unwrap_or_else(JsValue::undefined);
-        let flags = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
+        let pattern = args.get_or_undefined(0);
+        let flags = args.get_or_undefined(1);
 
         // 1. If pattern is undefined, let P be the empty String.
         // 2. Else, let P be ? ToString(pattern).
@@ -1274,13 +1281,13 @@ impl RegExp {
         let length_arg_str = arg_str.encode_utf16().count();
 
         // 5. Let functionalReplace be IsCallable(replaceValue).
-        let mut replace_value = args.get(1).cloned().unwrap_or_default();
+        let mut replace_value = args.get_or_undefined(1);
         let functional_replace = replace_value.is_function();
 
         // 6. If functionalReplace is false, then
         if !functional_replace {
             // a. Set replaceValue to ? ToString(replaceValue).
-            replace_value = replace_value.to_string(context)?.into();
+            replace_value = Cow::Owned(replace_value.to_string(context)?.into());
         }
 
         // 7. Let global be ! ToBoolean(? Get(rx, "global")).
@@ -1611,7 +1618,7 @@ impl RegExp {
         let mut length_a = 0;
 
         // 13. If limit is undefined, let lim be 2^32 - 1; else let lim be ℝ(? ToUint32(limit)).
-        let limit = args.get(1).cloned().unwrap_or_default();
+        let limit = args.get_or_undefined(1);
         let lim = if limit.is_undefined() {
             u32::MAX
         } else {

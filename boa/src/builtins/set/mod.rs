@@ -10,6 +10,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-set-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
 
+use std::borrow::Cow;
+
 use crate::{
     builtins::{iterable::get_iterator, BuiltIn},
     object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
@@ -21,6 +23,8 @@ use ordered_set::OrderedSet;
 
 pub mod set_iterator;
 use set_iterator::{SetIterationKind, SetIterator};
+
+use super::JsArgs;
 
 pub mod ordered_set;
 #[cfg(test)]
@@ -139,7 +143,7 @@ impl Set {
         // 3
         set.set_data(ObjectData::Set(OrderedSet::default()));
 
-        let iterable = args.get(0).cloned().unwrap_or_default();
+        let iterable = args.get_or_undefined(0);
         // 4
         if iterable.is_null_or_undefined() {
             return Ok(set);
@@ -154,7 +158,7 @@ impl Set {
         }
 
         // 7
-        let iterator_record = get_iterator(context, iterable)?;
+        let iterator_record = get_iterator(context, iterable.into_owned())?;
 
         // 8.a
         let mut next = iterator_record.next(context)?;
@@ -202,14 +206,14 @@ impl Set {
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.add
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/add
     pub(crate) fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
-        let mut value = args.get(0).cloned().unwrap_or_default();
+        let mut value = args.get_or_undefined(0);
 
         if let Some(object) = this.as_object() {
             if let Some(set) = object.borrow_mut().as_set_mut() {
                 if value.as_number().map(|n| n == -0f64).unwrap_or(false) {
-                    value = JsValue::Integer(0);
+                    value = Cow::Owned(JsValue::Integer(0));
                 }
-                set.add(value);
+                set.add(value.into_owned());
             } else {
                 return context.throw_type_error("'this' is not a Set");
             }
@@ -259,7 +263,7 @@ impl Set {
         args: &[JsValue],
         context: &mut Context,
     ) -> Result<JsValue> {
-        let value = args.get(0).cloned().unwrap_or_default();
+        let value = args.get_or_undefined(0);
 
         let res = if let Some(object) = this.as_object() {
             if let Some(set) = object.borrow_mut().as_set_mut() {
@@ -324,10 +328,10 @@ impl Set {
         }
 
         let callback_arg = &args[0];
-        let this_arg = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
+        let this_arg = args.get_or_undefined(1);
         // TODO: if condition should also check that we are not in strict mode
         let this_arg = if this_arg.is_undefined() {
-            JsValue::Object(context.global_object())
+            Cow::Owned(JsValue::Object(context.global_object()))
         } else {
             this_arg
         };
@@ -368,7 +372,7 @@ impl Set {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
     pub(crate) fn has(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
-        let value = args.get(0).cloned().unwrap_or_default();
+        let value = args.get_or_undefined(0);
 
         if let JsValue::Object(ref object) = this {
             let object = object.borrow();

@@ -26,6 +26,8 @@ use map_iterator::{MapIterationKind, MapIterator};
 
 use self::ordered_map::MapLock;
 
+use super::JsArgs;
+
 pub mod ordered_map;
 #[cfg(test)]
 mod tests;
@@ -273,7 +275,7 @@ impl Map {
         args: &[JsValue],
         context: &mut Context,
     ) -> Result<JsValue> {
-        let key = args.get(0).cloned().unwrap_or_default();
+        let key = args.get_or_undefined(0);
 
         let (deleted, size) = if let Some(object) = this.as_object() {
             if let Some(map) = object.borrow_mut().as_map_mut() {
@@ -300,7 +302,7 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.get
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get
     pub(crate) fn get(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
-        let key = args.get(0).cloned().unwrap_or_default();
+        let key = args.get_or_undefined(0);
 
         if let JsValue::Object(ref object) = this {
             let object = object.borrow();
@@ -345,7 +347,7 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
     pub(crate) fn has(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
-        let key = args.get(0).cloned().unwrap_or_default();
+        let key = args.get_or_undefined(0);
 
         if let JsValue::Object(ref object) = this {
             let object = object.borrow();
@@ -377,7 +379,7 @@ impl Map {
         }
 
         let callback_arg = &args[0];
-        let this_arg = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
+        let this_arg = args.get_or_undefined(1);
 
         let mut index = 0;
 

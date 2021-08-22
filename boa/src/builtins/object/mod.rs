@@ -14,7 +14,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 
 use crate::{
-    builtins::BuiltIn,
+    builtins::{BuiltIn, JsArgs},
     object::{
         ConstructorBuilder, Object as BuiltinObject, ObjectData, ObjectInitializer, PROTOTYPE,
     },
@@ -122,12 +122,12 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-object.create
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create
     pub fn create(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
-        let prototype = args.get(0).cloned().unwrap_or_else(JsValue::undefined);
-        let properties = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
+        let prototype = args.get_or_undefined(0);
+        let properties = args.get_or_undefined(1);
 
-        let obj = match prototype {
+        let obj = match prototype.as_ref() {
             JsValue::Object(_) | JsValue::Null => JsValue::new(BuiltinObject::with_prototype(
-                prototype,
+                prototype.into_owned(),
                 ObjectData::Ordinary,
             )),
             _ => {
@@ -139,7 +139,11 @@ impl Object {
         };
 
         if !properties.is_undefined() {
-            return Object::define_properties(&JsValue::undefined(), &[obj, properties], context);
+            return Object::define_properties(
+                &JsValue::undefined(),
+                &[obj, properties.into_owned()],
+                context,
+            );
         }
 
         Ok(obj)
@@ -160,10 +164,7 @@ impl Object {
         args: &[JsValue],
         context: &mut Context,
     ) -> Result<JsValue> {
-        let object = args
-            .get(0)
-            .unwrap_or(&JsValue::undefined())
-            .to_object(context)?;
+        let object = args.get_or_undefined(0).to_object(context)?;
         if let Some(key) = args.get(1) {
             let key = key.to_property_key(context)?;
 
@@ -262,8 +263,8 @@ impl Object {
 
     /// Uses the SameValue algorithm to check equality of objects
     pub fn is(_: &JsValue, args: &[JsValue], _: &mut Context) -> Result<JsValue> {
-        let x = args.get(0).cloned().unwrap_or_else(JsValue::undefined);
-        let y = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
+        let x = args.get_or_undefined(0);
+        let y = args.get_or_undefined(1);
 
         Ok(JsValue::same_value(&x, &y).into())
     }
@@ -305,7 +306,7 @@ impl Object {
             .clone();
 
         // 2. If Type(proto) is neither Object nor Null, throw a TypeError exception.
-        let proto = args.get(1).cloned().unwrap_or_default();
+        let proto = args.get_or_undefined(1);
         if !matches!(proto.get_type(), Type::Object | Type::Null) {
             return ctx.throw_type_error(format!(
                 "expected an object or null, got {}",
@@ -322,7 +323,7 @@ impl Object {
         let status = obj
             .as_object()
             .expect("obj was not an object")
-            .__set_prototype_of__(proto);
+            .__set_prototype_of__(proto.into_owned());
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
@@ -348,8 +349,7 @@ impl Object {
         args: &[JsValue],
         context: &mut Context,
     ) -> Result<JsValue> {
-        let undefined = JsValue::undefined();
-        let mut v = args.get(0).unwrap_or(&undefined).clone();
+        let mut v = args.get_or_undefined(0).into_owned();
         if !v.is_object() {
             return Ok(JsValue::new(false));
         }
@@ -371,7 +371,7 @@ impl Object {
         args: &[JsValue],
         context: &mut Context,
     ) -> Result<JsValue> {
-        let object = args.get(0).cloned().unwrap_or_else(JsValue::undefined);
+        let object = args.get_or_undefined(0);
         if let Some(object) = object.as_object() {
             let key = args
                 .get(1)
@@ -405,10 +405,10 @@ impl Object {
         args: &[JsValue],
         context: &mut Context,
     ) -> Result<JsValue> {
-        let arg = args.get(0).cloned().unwrap_or_default();
+        let arg = args.get_or_undefined(0).into_owned();
         let arg_obj = arg.as_object();
         if let Some(mut obj) = arg_obj {
-            let props = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
+            let props = args.get_or_undefined(1).into_owned();
             obj.define_properties(props, context)?;
             Ok(arg)
         } else {
