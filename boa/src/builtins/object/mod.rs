@@ -18,11 +18,13 @@ use crate::{
     object::{
         ConstructorBuilder, Object as BuiltinObject, ObjectData, ObjectInitializer, PROTOTYPE,
     },
-    property::{Attribute, DescriptorKind, PropertyDescriptor},
+    property::{Attribute, DescriptorKind, PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::{JsValue, Type},
     BoaProfiler, Context, Result,
 };
+
+use super::Array;
 
 pub mod for_in_iterator;
 #[cfg(test)]
@@ -61,6 +63,8 @@ impl BuiltIn for Object {
         .static_method(Self::define_properties, "defineProperties", 2)
         .static_method(Self::assign, "assign", 2)
         .static_method(Self::is, "is", 2)
+        .static_method(Self::keys, "keys", 1)
+        .static_method(Self::entries, "entries", 1)
         .static_method(
             Self::get_own_property_descriptor,
             "getOwnPropertyDescriptor",
@@ -541,8 +545,6 @@ impl Object {
     /// [spec]: https://tc39.es/ecma262/#sec-object.assign
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
     pub fn assign(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
-        //
-        //
         // 1. Let to be ? ToObject(target).
         let to = args
             .get(0)
@@ -581,5 +583,63 @@ impl Object {
 
         // 4. Return to.
         Ok(to.into())
+    }
+
+    /// `Object.keys( target )`
+    ///
+    /// This method returns an array of a given object's own enumerable
+    /// property names, iterated in the same order that a normal loop would.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.keys
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
+    pub fn keys(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+        // 1. Let obj be ? ToObject(target).
+        let obj = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_object(context)?;
+
+        // 2. Let nameList be ? EnumerableOwnPropertyNames(obj, key).
+        let name_list = obj.enumerable_own_property_names(PropertyNameKind::Key, context)?;
+
+        // 3. Return CreateArrayFromList(nameList).
+        let result = Array::create_array_from_list(name_list, context);
+
+        Ok(result.into())
+    }
+
+    /// `Object.entries( target )`
+    ///
+    /// This method returns an array of a given object's own enumerable string-keyed property [key, value] pairs.
+    /// This is the same as iterating with a for...in loop,
+    /// except that a for...in loop enumerates properties in the prototype chain as well).
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.entries
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
+    pub fn entries(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+        // 1. Let obj be ? ToObject(target).
+        let obj = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_object(context)?;
+
+        // 2. Let nameList be ? EnumerableOwnPropertyNames(obj, key+value).
+        let name_list =
+            obj.enumerable_own_property_names(PropertyNameKind::KeyAndValue, context)?;
+
+        // 3. Return CreateArrayFromList(nameList).
+        let result = Array::create_array_from_list(name_list, context);
+
+        Ok(result.into())
     }
 }

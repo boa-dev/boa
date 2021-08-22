@@ -6,8 +6,9 @@
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
 use crate::{
+    builtins::Array,
     object::{GcObject, Object, ObjectData},
-    property::{DescriptorKind, PropertyDescriptor, PropertyKey},
+    property::{DescriptorKind, PropertyDescriptor, PropertyKey, PropertyNameKind},
     value::{JsValue, Type},
     BoaProfiler, Context, Result,
 };
@@ -879,6 +880,65 @@ impl GcObject {
 
         // 7. Return list.
         Ok(list)
+    }
+
+    /// It is used to iterate over names of object's keys.
+    ///
+    /// More information:
+    /// - [EcmaScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-enumerableownpropertynames
+    pub(crate) fn enumerable_own_property_names(
+        &self,
+        kind: PropertyNameKind,
+        context: &mut Context,
+    ) -> Result<Vec<JsValue>> {
+        // 1. Assert: Type(O) is Object.
+        // 2. Let ownKeys be ? O.[[OwnPropertyKeys]]().
+        let own_keys = self.own_property_keys();
+        // 3. Let properties be a new empty List.
+        let mut properties = vec![];
+
+        // 4. For each element key of ownKeys, do
+        for key in own_keys {
+            // a. If Type(key) is String, then
+            if let PropertyKey::String(key_str) = &key {
+                // i. Let desc be ? O.[[GetOwnProperty]](key).
+                let desc = self.__get_own_property__(&key);
+                // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
+                if let Some(desc) = desc {
+                    if desc.expect_enumerable() {
+                        // 1. If kind is key, append key to properties.
+                        if let PropertyNameKind::Key = kind {
+                            properties.push(key_str.clone().into())
+                        }
+                        // 2. Else,
+                        else {
+                            // a. Let value be ? Get(O, key).
+                            let value = self.get(key.clone(), context)?;
+                            // b. If kind is value, append value to properties.
+                            if let PropertyNameKind::Value = kind {
+                                properties.push(value)
+                            }
+                            // c. Else,
+                            else {
+                                // i. Assert: kind is key+value.
+                                // ii. Let entry be ! CreateArrayFromList(« key, value »).
+                                let key_val = key_str.clone().into();
+                                let entry =
+                                    Array::create_array_from_list([key_val, value], context);
+
+                                // iii. Append entry to properties.
+                                properties.push(entry.into());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 5. Return properties.
+        Ok(properties)
     }
 
     pub(crate) fn length_of_array_like(&self, context: &mut Context) -> Result<usize> {
