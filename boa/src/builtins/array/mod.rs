@@ -14,11 +14,11 @@ pub mod array_iterator;
 mod tests;
 
 use crate::{
-    builtins::array::array_iterator::{ArrayIterationKind, ArrayIterator},
+    builtins::array::array_iterator::ArrayIterator,
     builtins::BuiltIn,
     builtins::Number,
     object::{ConstructorBuilder, FunctionBuilder, GcObject, ObjectData, PROTOTYPE},
-    property::{Attribute, PropertyDescriptor},
+    property::{Attribute, PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::{IntegerOrInfinity, JsValue},
     BoaProfiler, Context, JsResult, JsString,
@@ -2350,7 +2350,7 @@ impl Array {
         Ok(ArrayIterator::create_array_iterator(
             context,
             this.clone(),
-            ArrayIterationKind::Value,
+            PropertyNameKind::Value,
         ))
     }
 
@@ -2368,7 +2368,7 @@ impl Array {
         Ok(ArrayIterator::create_array_iterator(
             context,
             this.clone(),
-            ArrayIterationKind::Key,
+            PropertyNameKind::Key,
         ))
     }
 
@@ -2390,7 +2390,7 @@ impl Array {
         Ok(ArrayIterator::create_array_iterator(
             context,
             this.clone(),
-            ArrayIterationKind::KeyAndValue,
+            PropertyNameKind::KeyAndValue,
         ))
     }
 

@@ -22,6 +22,7 @@ use std::{convert::TryFrom, fmt};
 
 mod attribute;
 pub use attribute::Attribute;
+use gc::unsafe_empty_trace;
 
 /// This represents a JavaScript Property AKA The Property Descriptor.
 ///
@@ -663,9 +664,13 @@ impl PartialEq<&str> for PropertyKey {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Finalize)]
 pub(crate) enum PropertyNameKind {
     Key,
     Value,
     KeyAndValue,
+}
+
+unsafe impl Trace for PropertyNameKind {
+    unsafe_empty_trace!();
 }

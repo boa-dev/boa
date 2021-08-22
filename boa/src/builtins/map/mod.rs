@@ -15,14 +15,14 @@
 use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
-    property::{Attribute, PropertyDescriptor},
+    property::{Attribute, PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsResult, JsValue,
 };
 use ordered_map::OrderedMap;
 
 pub mod map_iterator;
-use map_iterator::{MapIterationKind, MapIterator};
+use map_iterator::MapIterator;
 
 use self::ordered_map::MapLock;
 
@@ -202,7 +202,7 @@ impl Map {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        MapIterator::create_map_iterator(context, this.clone(), MapIterationKind::KeyAndValue)
+        MapIterator::create_map_iterator(context, this.clone(), PropertyNameKind::KeyAndValue)
     }
 
     /// `Map.prototype.keys()`
@@ -216,7 +216,7 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.keys
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
     pub(crate) fn keys(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        MapIterator::create_map_iterator(context, this.clone(), MapIterationKind::Key)
+        MapIterator::create_map_iterator(context, this.clone(), PropertyNameKind::Key)
     }
 
     /// Helper function to set the size property.
@@ -470,7 +470,7 @@ impl Map {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        MapIterator::create_map_iterator(context, this.clone(), MapIterationKind::Value)
+        MapIterator::create_map_iterator(context, this.clone(), PropertyNameKind::Value)
     }
 
     /// Helper function to get a key-value pair from an array.
