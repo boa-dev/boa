@@ -1214,6 +1214,10 @@
 <span id="1214">1214</span>
 <span id="1215">1215</span>
 <span id="1216">1216</span>
+<span id="1217">1217</span>
+<span id="1218">1218</span>
+<span id="1219">1219</span>
+<span id="1220">1220</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
@@ -1462,6 +1466,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iscallable</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="comment">// todo: functions are not the only objects that are callable.</span>
+    <span class="comment">// todo: e.g. https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-call-thisargument-argumentslist</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_callable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">data</span>, <span class="ident">ObjectData::Function</span>(<span class="kw">_</span>))
     }
@@ -1473,6 +1479,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-isconstructor</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="comment">// todo: functions are not the only objects that are constructable.</span>
+    <span class="comment">// todo: e.g. https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-construct-argumentslist-newtarget</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_constructable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">data</span>, <span class="ident">ObjectData::Function</span>(<span class="kw-2">ref</span> <span class="ident">f</span>) <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_constructable</span>())
     }
