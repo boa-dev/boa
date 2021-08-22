@@ -27,6 +27,8 @@ pub mod string;
 pub mod symbol;
 pub mod undefined;
 
+use std::borrow::Cow;
+
 pub(crate) use self::{
     array::{array_iterator::ArrayIterator, Array},
     bigint::BigInt,
@@ -111,4 +113,8 @@ pub fn init(context: &mut Context) {
             .configurable(attribute.configurable());
         global_object.borrow_mut().insert(name, property);
     }
+}
+
+pub(crate) trait JsArgs {
+    fn get_or_undefined(&self, index: usize) -> Cow<'_, JsValue>;
 }
