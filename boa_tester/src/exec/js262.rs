@@ -2,7 +2,7 @@ use boa::{
     exec::Executable,
     object::{GcObject, ObjectInitializer},
     property::Attribute,
-    Context, JsValue, JsResult,
+    Context, JsResult, JsValue,
 };
 
 /// Initializes the object in the context.
@@ -40,7 +40,11 @@ fn create_realm(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsRes
 ///
 /// Implements the `DetachArrayBuffer` abstract operation.
 #[allow(dead_code)]
-fn detach_array_buffer(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
+fn detach_array_buffer(
+    _this: &JsValue,
+    _: &[JsValue],
+    _context: &mut Context,
+) -> JsResult<JsValue> {
     todo!()
 }
 

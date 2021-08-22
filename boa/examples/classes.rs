@@ -2,7 +2,7 @@ use boa::{
     class::{Class, ClassBuilder},
     gc::{Finalize, Trace},
     property::Attribute,
-    Context, JsValue, JsResult,
+    Context, JsResult, JsValue,
 };
 
 // We create a new struct that is going to represent a person.

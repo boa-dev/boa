@@ -4,7 +4,7 @@
 
 use crate::{
     builtins::Array, environment::lexical_environment::VariableScope, symbol::WellKnownSymbols,
-    BoaProfiler, Context, JsValue, JsResult,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 
 mod code_block;
