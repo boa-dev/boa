@@ -245,6 +245,8 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
     #[inline]
+    // todo: functions are not the only objects that are callable.
+    // todo: e.g. https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-call-thisargument-argumentslist
     pub fn is_callable(&self) -> bool {
         matches!(self.data, ObjectData::Function(_))
     }
@@ -256,6 +258,8 @@ impl Object {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isconstructor
     #[inline]
+    // todo: functions are not the only objects that are constructable.
+    // todo: e.g. https://tc39.es/ecma262/#sec-proxy-object-internal-methods-and-internal-slots-construct-argumentslist-newtarget
     pub fn is_constructable(&self) -> bool {
         matches!(self.data, ObjectData::Function(ref f) if f.is_constructable())
     }
