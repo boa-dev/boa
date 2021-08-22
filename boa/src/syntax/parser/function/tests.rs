@@ -193,7 +193,7 @@ fn check_arrow_assignment() {
     check_parser(
         "let foo = (a) => { return a };",
         vec![DeclarationList::Let(
-            vec![Declaration::new(
+            vec![Declaration::new_with_identifier(
                 Identifier::from("foo"),
                 Some(
                     ArrowFunctionDecl::new(
@@ -218,7 +218,7 @@ fn check_arrow_assignment_nobrackets() {
     check_parser(
         "let foo = (a) => a;",
         vec![DeclarationList::Let(
-            vec![Declaration::new(
+            vec![Declaration::new_with_identifier(
                 Identifier::from("foo"),
                 Some(
                     ArrowFunctionDecl::new(
@@ -243,7 +243,7 @@ fn check_arrow_assignment_noparenthesis() {
     check_parser(
         "let foo = a => { return a };",
         vec![DeclarationList::Let(
-            vec![Declaration::new(
+            vec![Declaration::new_with_identifier(
                 Identifier::from("foo"),
                 Some(
                     ArrowFunctionDecl::new(
@@ -268,7 +268,7 @@ fn check_arrow_assignment_noparenthesis_nobrackets() {
     check_parser(
         "let foo = a => a;",
         vec![DeclarationList::Let(
-            vec![Declaration::new(
+            vec![Declaration::new_with_identifier(
                 Identifier::from("foo"),
                 Some(
                     ArrowFunctionDecl::new(
@@ -293,7 +293,7 @@ fn check_arrow_assignment_2arg() {
     check_parser(
         "let foo = (a, b) => { return a };",
         vec![DeclarationList::Let(
-            vec![Declaration::new(
+            vec![Declaration::new_with_identifier(
                 Identifier::from("foo"),
                 Some(
                     ArrowFunctionDecl::new(
@@ -321,7 +321,7 @@ fn check_arrow_assignment_2arg_nobrackets() {
     check_parser(
         "let foo = (a, b) => a;",
         vec![DeclarationList::Let(
-            vec![Declaration::new(
+            vec![Declaration::new_with_identifier(
                 Identifier::from("foo"),
                 Some(
                     ArrowFunctionDecl::new(
@@ -349,7 +349,7 @@ fn check_arrow_assignment_3arg() {
     check_parser(
         "let foo = (a, b, c) => { return a };",
         vec![DeclarationList::Let(
-            vec![Declaration::new(
+            vec![Declaration::new_with_identifier(
                 Identifier::from("foo"),
                 Some(
                     ArrowFunctionDecl::new(
@@ -378,7 +378,7 @@ fn check_arrow_assignment_3arg_nobrackets() {
     check_parser(
         "let foo = (a, b, c) => a;",
         vec![DeclarationList::Let(
-            vec![Declaration::new(
+            vec![Declaration::new_with_identifier(
                 Identifier::from("foo"),
                 Some(
                     ArrowFunctionDecl::new(

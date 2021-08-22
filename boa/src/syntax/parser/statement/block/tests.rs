@@ -33,8 +33,14 @@ fn non_empty() {
             a++;
         }",
         vec![
-            DeclarationList::Var(vec![Declaration::new("a", Some(Const::from(10).into()))].into())
+            DeclarationList::Var(
+                vec![Declaration::new_with_identifier(
+                    "a",
+                    Some(Const::from(10).into()),
+                )]
                 .into(),
+            )
+            .into(),
             UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::from("a")).into(),
         ],
     );
@@ -56,7 +62,7 @@ fn non_empty() {
             )
             .into(),
             DeclarationList::Var(
-                vec![Declaration::new(
+                vec![Declaration::new_with_identifier(
                     "a",
                     Node::from(Call::new(Identifier::from("hello"), vec![])),
                 )]
@@ -85,7 +91,7 @@ fn hoisting() {
             )
             .into(),
             DeclarationList::Var(
-                vec![Declaration::new(
+                vec![Declaration::new_with_identifier(
                     "a",
                     Node::from(Call::new(Identifier::from("hello"), vec![])),
                 )]
@@ -106,7 +112,7 @@ fn hoisting() {
         vec![
             Assign::new(Identifier::from("a"), Const::from(10)).into(),
             UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::from("a")).into(),
-            DeclarationList::Var(vec![Declaration::new("a", None)].into()).into(),
+            DeclarationList::Var(vec![Declaration::new_with_identifier("a", None)].into()).into(),
         ],
     );
 }

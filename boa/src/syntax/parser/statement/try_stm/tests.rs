@@ -20,7 +20,11 @@ fn check_inline_with_var_decl_inside_try() {
         "try { var x = 1; } catch(e) {}",
         vec![Try::new(
             vec![DeclarationList::Var(
-                vec![Declaration::new("x", Some(Const::from(1).into()))].into(),
+                vec![Declaration::new_with_identifier(
+                    "x",
+                    Some(Const::from(1).into()),
+                )]
+                .into(),
             )
             .into()],
             Some(Catch::new("e", vec![])),
@@ -36,13 +40,21 @@ fn check_inline_with_var_decl_inside_catch() {
         "try { var x = 1; } catch(e) { var x = 1; }",
         vec![Try::new(
             vec![DeclarationList::Var(
-                vec![Declaration::new("x", Some(Const::from(1).into()))].into(),
+                vec![Declaration::new_with_identifier(
+                    "x",
+                    Some(Const::from(1).into()),
+                )]
+                .into(),
             )
             .into()],
             Some(Catch::new(
                 "e",
                 vec![DeclarationList::Var(
-                    vec![Declaration::new("x", Some(Const::from(1).into()))].into(),
+                    vec![Declaration::new_with_identifier(
+                        "x",
+                        Some(Const::from(1).into()),
+                    )]
+                    .into(),
                 )
                 .into()],
             )),
@@ -81,7 +93,11 @@ fn check_inline_with_empty_try_var_decl_in_finally() {
             vec![],
             None,
             Some(Finally::from(vec![DeclarationList::Var(
-                vec![Declaration::new("x", Some(Const::from(1).into()))].into(),
+                vec![Declaration::new_with_identifier(
+                    "x",
+                    Some(Const::from(1).into()),
+                )]
+                .into(),
             )
             .into()])),
         )
@@ -98,7 +114,11 @@ fn check_inline_empty_try_paramless_catch() {
             Some(Catch::new::<_, Identifier, _>(
                 None,
                 vec![DeclarationList::Var(
-                    vec![Declaration::new("x", Some(Const::from(1).into()))].into(),
+                    vec![Declaration::new_with_identifier(
+                        "x",
+                        Some(Const::from(1).into()),
+                    )]
+                    .into(),
                 )
                 .into()],
             )),

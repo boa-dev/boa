@@ -1,4 +1,6 @@
-use crate::{builtins::Number, exec, forward, forward_val, Context, JsValue};
+use crate::{
+    builtins::Number, check_output, exec, forward, forward_val, Context, JsValue, TestAction,
+};
 
 #[test]
 fn function_declaration_returns_undefined() {
@@ -118,8 +120,6 @@ fn object_field_set() {
 
 #[test]
 fn spread_with_arguments() {
-    let mut context = Context::new();
-
     let scenario = r#"
             const a = [1, "test", 3, 4];
             function foo(...a) {
@@ -128,31 +128,27 @@ fn spread_with_arguments() {
 
             var result = foo(...a);
         "#;
-    forward(&mut context, scenario);
-    let one = forward(&mut context, "result[0]");
-    assert_eq!(one, String::from("1"));
 
-    let two = forward(&mut context, "result[1]");
-    assert_eq!(two, String::from("\"test\""));
-
-    let three = forward(&mut context, "result[2]");
-    assert_eq!(three, String::from("3"));
-
-    let four = forward(&mut context, "result[3]");
-    assert_eq!(four, String::from("4"));
+    check_output(&[
+        TestAction::Execute(scenario),
+        TestAction::TestEq("result[0]", "1"),
+        TestAction::TestEq("result[1]", "\"test\""),
+        TestAction::TestEq("result[2]", "3"),
+        TestAction::TestEq("result[3]", "4"),
+    ]);
 }
 
 #[test]
 fn array_rest_with_arguments() {
-    let mut context = Context::new();
-
     let scenario = r#"
                 var b = [4, 5, 6]
                 var a = [1, 2, 3, ...b];
             "#;
-    forward(&mut context, scenario);
-    let one = forward(&mut context, "a");
-    assert_eq!(one, String::from("[ 1, 2, 3, 4, 5, 6 ]"));
+
+    check_output(&[
+        TestAction::Execute(scenario),
+        TestAction::TestEq("a", "[ 1, 2, 3, 4, 5, 6 ]"),
+    ]);
 }
 
 #[test]
@@ -722,8 +718,6 @@ mod in_operator {
 
     #[test]
     fn should_type_error_when_rhs_not_object() {
-        let mut context = Context::new();
-
         let scenario = r#"
             var x = false;
             try {
@@ -733,14 +727,14 @@ mod in_operator {
             }
         "#;
 
-        forward(&mut context, scenario);
-        assert_eq!(forward(&mut context, "x"), "true");
+        check_output(&[
+            TestAction::Execute(scenario),
+            TestAction::TestEq("x", "true"),
+        ]);
     }
 
     #[test]
     fn should_set_this_value() {
-        let mut context = Context::new();
-
         let scenario = r#"
         function Foo() {
             this.a = "a";
@@ -749,22 +743,24 @@ mod in_operator {
 
           var bar = new Foo();
         "#;
-        forward(&mut context, scenario);
-        assert_eq!(forward(&mut context, "bar.a"), "\"a\"");
-        assert_eq!(forward(&mut context, "bar.b"), "\"b\"");
+        check_output(&[
+            TestAction::Execute(scenario),
+            TestAction::TestEq("bar.a", "\"a\""),
+            TestAction::TestEq("bar.b", "\"b\""),
+        ]);
     }
 
     #[test]
     fn should_type_error_when_new_is_not_constructor() {
-        let mut context = Context::new();
-
         let scenario = r#"
             const a = "";
             new a();
         "#;
 
-        let result = forward(&mut context, scenario);
-        assert_eq!(result, "Uncaught \"TypeError\": \"a is not a constructor\"");
+        check_output(&[TestAction::TestEq(
+            &scenario,
+            "Uncaught \"TypeError\": \"a is not a constructor\"",
+        )]);
     }
 
     #[test]
@@ -1223,45 +1219,38 @@ fn number_object_access_benchmark() {
 
 #[test]
 fn not_a_function() {
-    let mut context = Context::new();
     let init = r#"
         let a = {};
         let b = true;
         "#;
-    forward(&mut context, init);
-    let scenario = r#"
+    let scenario1 = r#"
         try {
             a();
         } catch(e) {
             e.toString()
         }
     "#;
-    assert_eq!(
-        forward(&mut context, scenario),
-        "\"TypeError: not a function\""
-    );
-    let scenario = r#"
+    let scenario2 = r#"
         try {
             a.a();
         } catch(e) {
             e.toString()
         }
     "#;
-    assert_eq!(
-        forward(&mut context, scenario),
-        "\"TypeError: not a function\""
-    );
-    let scenario = r#"
+    let scenario3 = r#"
         try {
             b();
         } catch(e) {
             e.toString()
         }
     "#;
-    assert_eq!(
-        forward(&mut context, scenario),
-        "\"TypeError: not a function\""
-    );
+
+    check_output(&[
+        TestAction::Execute(init),
+        TestAction::TestEq(scenario1, "\"TypeError: not a function\""),
+        TestAction::TestEq(scenario2, "\"TypeError: not a function\""),
+        TestAction::TestEq(scenario3, "\"TypeError: not a function\""),
+    ]);
 }
 
 #[test]
@@ -1339,12 +1328,12 @@ fn multicharacter_bitwise_assignment_to_non_assignable() {
 
 #[test]
 fn assign_to_array_decl() {
-    let mut context = Context::new();
-
-    assert!(forward(&mut context, "[1] = [2]").starts_with("Uncaught \"SyntaxError\": "));
-    assert!(forward(&mut context, "[3, 5] = [7, 8]").starts_with("Uncaught \"SyntaxError\": "));
-    assert!(forward(&mut context, "[6, 8] = [2]").starts_with("Uncaught \"SyntaxError\": "));
-    assert!(forward(&mut context, "[6] = [2, 9]").starts_with("Uncaught \"SyntaxError\": "));
+    check_output(&[
+        TestAction::TestStartsWith("[1] = [2]", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("[3, 5] = [7, 8]", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("[6, 8] = [2]", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("[6] = [2, 9]", "Uncaught \"SyntaxError\": "),
+    ]);
 }
 
 #[test]
@@ -1407,11 +1396,10 @@ fn test_strict_mode_octal() {
     var n = 023;
     "#;
 
-    let mut context = Context::new();
-
-    let string = dbg!(forward(&mut context, scenario));
-
-    assert!(string.starts_with("Uncaught \"SyntaxError\": "));
+    check_output(&[TestAction::TestStartsWith(
+        scenario,
+        "Uncaught \"SyntaxError\": ",
+    )]);
 }
 
 #[test]
@@ -1428,11 +1416,10 @@ fn test_strict_mode_with() {
     }
     "#;
 
-    let mut context = Context::new();
-
-    let string = dbg!(forward(&mut context, scenario));
-
-    assert!(string.starts_with("Uncaught \"SyntaxError\": "));
+    check_output(&[TestAction::TestStartsWith(
+        scenario,
+        "Uncaught \"SyntaxError\": ",
+    )]);
 }
 
 #[test]
@@ -1446,11 +1433,10 @@ fn test_strict_mode_delete() {
     delete x;
     "#;
 
-    let mut context = Context::new();
-
-    let string = dbg!(forward(&mut context, scenario));
-
-    assert!(string.starts_with("Uncaught \"SyntaxError\": "));
+    check_output(&[TestAction::TestStartsWith(
+        scenario,
+        "Uncaught \"SyntaxError\": ",
+    )]);
 }
 
 #[test]
@@ -1494,11 +1480,10 @@ fn test_strict_mode_func_decl_in_block() {
     if (a < b) { function f() {} }
     "#;
 
-    let mut context = Context::new();
-
-    let string = dbg!(forward(&mut context, scenario));
-
-    assert!(string.starts_with("Uncaught \"SyntaxError\": "));
+    check_output(&[TestAction::TestStartsWith(
+        scenario,
+        "Uncaught \"SyntaxError\": ",
+    )]);
 }
 
 #[test]
@@ -1511,11 +1496,10 @@ fn test_strict_mode_dup_func_parameters() {
     function f(a, b, b) {}
     "#;
 
-    let mut context = Context::new();
-
-    let string = dbg!(forward(&mut context, scenario));
-
-    assert!(string.starts_with("Uncaught \"SyntaxError\": "));
+    check_output(&[TestAction::TestStartsWith(
+        scenario,
+        "Uncaught \"SyntaxError\": ",
+    )]);
 }
 
 #[test]

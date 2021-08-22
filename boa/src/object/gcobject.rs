@@ -921,6 +921,77 @@ impl GcObject {
         // 16. Return desc.
         Ok(desc.build())
     }
+
+    /// `7.3.25 CopyDataProperties ( target, source, excludedItems )`
+    ///
+    /// More information:
+    ///  - [ECMAScript][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-copydataproperties
+    #[inline]
+    pub fn copy_data_properties<K>(
+        &mut self,
+        source: &JsValue,
+        excluded_keys: Vec<K>,
+        context: &mut Context,
+    ) -> JsResult<()>
+    where
+        K: Into<PropertyKey>,
+    {
+        // 1. Assert: Type(target) is Object.
+        // 2. Assert: excludedItems is a List of property keys.
+        // 3. If source is undefined or null, return target.
+        if source.is_null_or_undefined() {
+            return Ok(());
+        }
+
+        // 4. Let from be ! ToObject(source).
+        let from = source
+            .to_object(context)
+            .expect("function ToObject should never complete abruptly here");
+
+        // 5. Let keys be ? from.[[OwnPropertyKeys]]().
+        // 6. For each element nextKey of keys, do
+        let excluded_keys: Vec<PropertyKey> = excluded_keys.into_iter().map(|e| e.into()).collect();
+        for key in from.own_property_keys() {
+            // a. Let excluded be false.
+            let mut excluded = false;
+
+            // b. For each element e of excludedItems, do
+            for e in &excluded_keys {
+                // i. If SameValue(e, nextKey) is true, then
+                if *e == key {
+                    // 1. Set excluded to true.
+                    excluded = true;
+                    break;
+                }
+            }
+            // c. If excluded is false, then
+            if !excluded {
+                // i. Let desc be ? from.[[GetOwnProperty]](nextKey).
+                let desc = from.__get_own_property__(&key);
+
+                // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
+                if let Some(desc) = desc {
+                    if let Some(enumerable) = desc.enumerable() {
+                        if enumerable {
+                            // 1. Let propValue be ? Get(from, nextKey).
+                            let prop_value = from.__get__(&key, from.clone().into(), context)?;
+
+                            // 2. Perform ! CreateDataPropertyOrThrow(target, nextKey, propValue).
+                            self.create_data_property_or_throw(key, prop_value, context)
+                                .expect(
+                                    "CreateDataPropertyOrThrow should never complete abruptly here",
+                                );
+                        }
+                    }
+                }
+            }
+        }
+
+        // 7. Return target.
+        Ok(())
+    }
 }
 
 impl AsRef<GcCell<Object>> for GcObject {

@@ -1548,3 +1548,24 @@ fn array_length_is_not_enumerable() {
     let desc = array.get_property("length").unwrap();
     assert!(!desc.expect_enumerable());
 }
+
+#[test]
+fn array_sort() {
+    let mut context = Context::new();
+    let init = r#"
+        let arr = ['80', '9', '700', 40, 1, 5, 200];
+
+        function compareNumbers(a, b) {
+            return a - b;
+        }
+    "#;
+    forward(&mut context, init);
+    assert_eq!(
+        forward(&mut context, "arr.sort().join()"),
+        "\"1,200,40,5,700,80,9\""
+    );
+    assert_eq!(
+        forward(&mut context, "arr.sort(compareNumbers).join()"),
+        "\"1,5,9,40,80,200,700\""
+    );
+}

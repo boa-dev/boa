@@ -23,7 +23,7 @@ use crate::{
     value::{IntegerOrInfinity, JsValue},
     BoaProfiler, Context, JsResult, JsString,
 };
-use std::cmp::{max, min};
+use std::cmp::{max, min, Ordering};
 
 /// JavaScript `Array` built-in implementation.
 #[derive(Debug, Clone, Copy)]
@@ -102,6 +102,7 @@ impl BuiltIn for Array {
         .method(Self::flat_map, "flatMap", 1)
         .method(Self::slice, "slice", 2)
         .method(Self::some, "some", 2)
+        .method(Self::sort, "sort", 1)
         .method(Self::reduce, "reduce", 2)
         .method(Self::reduce_right, "reduceRight", 2)
         .method(Self::keys, "keys", 0)
@@ -1909,6 +1910,142 @@ impl Array {
         }
         // 6. Return false.
         Ok(JsValue::new(false))
+    }
+
+    /// Array.prototype.sort ( comparefn )
+    ///
+    /// The sort method sorts the elements of an array in place and returns the sorted array.
+    /// The default sort order is ascending, built upon converting the elements into strings,
+    /// then comparing their sequences of UTF-16 code units values.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype.sort
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort
+    pub(crate) fn sort(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
+        let comparefn = match args.get(0).cloned() {
+            // todo: change to `is_callable` inside `JsValue`
+            Some(fun) if fun.is_function() => fun,
+            None => JsValue::undefined(),
+            _ => {
+                return context.throw_type_error(
+                    "The comparison function must be either a function or undefined",
+                )
+            }
+        };
+
+        // Abstract method `SortCompare`.
+        //
+        // More information:
+        //  - [ECMAScript reference][spec]
+        //
+        // [spec]: https://tc39.es/ecma262/#sec-sortcompare
+        let sort_compare =
+            |x: &JsValue, y: &JsValue, context: &mut Context| -> JsResult<Ordering> {
+                match (x.is_undefined(), y.is_undefined()) {
+                    // 1. If x and y are both undefined, return +0𝔽.
+                    (true, true) => return Ok(Ordering::Equal),
+                    // 2. If x is undefined, return 1𝔽.
+                    (true, false) => return Ok(Ordering::Greater),
+                    // 3. If y is undefined, return -1𝔽.
+                    (false, true) => return Ok(Ordering::Less),
+                    _ => {}
+                }
+
+                // 4. If comparefn is not undefined, then
+                if !comparefn.is_undefined() {
+                    let args = [x.clone(), y.clone()];
+                    // a. Let v be ? ToNumber(? Call(comparefn, undefined, « x, y »)).
+                    let v = context
+                        .call(&comparefn, &JsValue::Undefined, &args)?
+                        .to_number(context)?;
+                    // b. If v is NaN, return +0𝔽.
+                    // c. Return v.
+                    return Ok(v.partial_cmp(&0.0).unwrap_or(Ordering::Equal));
+                }
+                // 5. Let xString be ? ToString(x).
+                // 6. Let yString be ? ToString(y).
+                let x_str = x.to_string(context)?;
+                let y_str = y.to_string(context)?;
+
+                // 7. Let xSmaller be IsLessThan(xString, yString, true).
+                // 8. If xSmaller is true, return -1𝔽.
+                // 9. Let ySmaller be IsLessThan(yString, xString, true).
+                // 10. If ySmaller is true, return 1𝔽.
+                // 11. Return +0𝔽.
+
+                // NOTE: skipped IsLessThan because it just makes a lexicographic comparation
+                // when x and y are strings
+                Ok(x_str.cmp(&y_str))
+            };
+
+        // 2. Let obj be ? ToObject(this value).
+        let obj = this.to_object(context)?;
+
+        // 3. Let len be ? LengthOfArrayLike(obj).
+        let length = obj.length_of_array_like(context)?;
+
+        // 4. Let items be a new empty List.
+        let mut items = Vec::with_capacity(length);
+
+        // 5. Let k be 0.
+        // 6. Repeat, while k < len,
+        for k in 0..length {
+            // a. Let Pk be ! ToString(𝔽(k)).
+            // b. Let kPresent be ? HasProperty(obj, Pk).
+            // c. If kPresent is true, then
+            if obj.has_property(k, context)? {
+                // i. Let kValue be ? Get(obj, Pk).
+                let kval = obj.get(k, context)?;
+                // ii. Append kValue to items.
+                items.push(kval);
+            }
+            // d. Set k to k + 1.
+        }
+
+        // 7. Let itemCount be the number of elements in items.
+        let item_count = items.len();
+
+        // 8. Sort items using an implementation-defined sequence of calls to SortCompare.
+        // If any such call returns an abrupt completion, stop before performing any further
+        // calls to SortCompare or steps in this algorithm and return that completion.
+        let mut sort_err = Ok(());
+        items.sort_by(|x, y| {
+            if sort_err.is_ok() {
+                sort_compare(x, y, context).unwrap_or_else(|err| {
+                    sort_err = Err(err);
+                    Ordering::Equal
+                })
+            } else {
+                Ordering::Equal
+            }
+        });
+        sort_err?;
+
+        // 9. Let j be 0.
+        // 10. Repeat, while j < itemCount,
+        for (j, item) in items.into_iter().enumerate() {
+            // a. Perform ? Set(obj, ! ToString(𝔽(j)), items[j], true).
+            obj.set(j, item, true, context)?;
+            // b. Set j to j + 1.
+        }
+
+        // 11. Repeat, while j < len,
+        for j in item_count..length {
+            // a. Perform ? DeletePropertyOrThrow(obj, ! ToString(𝔽(j))).
+            obj.delete_property_or_throw(j, context)?;
+            // b. Set j to j + 1.
+        }
+
+        // 12. Return obj.
+        Ok(obj.into())
     }
 
     /// `Array.prototype.reduce( callbackFn [ , initialValue ] )`
