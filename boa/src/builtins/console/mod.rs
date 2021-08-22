@@ -17,7 +17,7 @@
 mod tests;
 
 use crate::{
-    builtins::BuiltIn,
+    builtins::{BuiltIn, JsArgs},
     object::ObjectInitializer,
     property::Attribute,
     value::{display::display_obj, JsValue},
@@ -90,7 +90,7 @@ pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
                         }
                         /* object, FIXME: how to render this properly? */
                         'o' | 'O' => {
-                            let arg = data.get(arg_index).cloned().unwrap_or_default();
+                            let arg = data.get_or_undefined(arg_index);
                             formatted.push_str(&format!("{}", arg.display()));
                             arg_index += 1
                         }
@@ -564,9 +564,8 @@ impl Console {
     /// [spec]: https://console.spec.whatwg.org/#dir
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/dir
     pub(crate) fn dir(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let undefined = JsValue::undefined();
         logger(
-            LogMessage::Info(display_obj(args.get(0).unwrap_or(&undefined), true)),
+            LogMessage::Info(display_obj(&args.get_or_undefined(0), true)),
             context.console(),
         );
 

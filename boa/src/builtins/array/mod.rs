@@ -25,6 +25,8 @@ use crate::{
 };
 use std::cmp::{max, min, Ordering};
 
+use super::JsArgs;
+
 /// JavaScript `Array` built-in implementation.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Array;
@@ -687,7 +689,7 @@ impl Array {
                 // i. Let kValue be ? Get(O, Pk).
                 let k_value = o.get(pk, context)?;
                 // ii. Perform ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).
-                let this_arg = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
+                let this_arg = args.get_or_undefined(1);
                 callback.call(&this_arg, &[k_value, k.into(), o.clone().into()], context)?;
             }
             // d. Set k to k + 1.
@@ -1022,7 +1024,7 @@ impl Array {
             return context.throw_type_error("Array.prototype.every: callback is not callable");
         };
 
-        let this_arg = args.get(1).cloned().unwrap_or_default();
+        let this_arg = args.get_or_undefined(1);
 
         // 4. Let k be 0.
         // 5. Repeat, while k < len,
@@ -1070,7 +1072,7 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = args.get(0).cloned().unwrap_or_default();
+        let callback = args.get_or_undefined(0);
         if !callback.is_function() {
             return context.throw_type_error("Array.prototype.map: Callbackfn is not callable");
         }
@@ -1078,7 +1080,7 @@ impl Array {
         // 4. Let A be ? ArraySpeciesCreate(O, len).
         let a = Self::array_species_create(&o, len, context)?;
 
-        let this_arg = args.get(1).cloned().unwrap_or_default();
+        let this_arg = args.get_or_undefined(1);
 
         // 5. Let k be 0.
         // 6. Repeat, while k < len,
@@ -1156,7 +1158,7 @@ impl Array {
             }
         };
 
-        let search_element = args.get(0).cloned().unwrap_or_default();
+        let search_element = args.get_or_undefined(0);
 
         // 10. Repeat, while k < len,
         while k < len {
@@ -1232,7 +1234,7 @@ impl Array {
             IntegerOrInfinity::Integer(n) => len + n,
         };
 
-        let search_element = args.get(0).cloned().unwrap_or_default();
+        let search_element = args.get_or_undefined(0);
 
         // 8. Repeat, while k ≥ 0,
         while k >= 0 {
@@ -1286,7 +1288,7 @@ impl Array {
             }
         };
 
-        let this_arg = args.get(1).cloned().unwrap_or_default();
+        let this_arg = args.get_or_undefined(1);
 
         // 4. Let k be 0.
         let mut k = 0;
@@ -1347,7 +1349,7 @@ impl Array {
             }
         };
 
-        let this_arg = args.get(1).cloned().unwrap_or_default();
+        let this_arg = args.get_or_undefined(1);
 
         // 4. Let k be 0.
         let mut k = 0;
@@ -1451,7 +1453,7 @@ impl Array {
         let source_len = o.length_of_array_like(context)?;
 
         // 3. If ! IsCallable(mapperFunction) is false, throw a TypeError exception.
-        let mapper_function = args.get(0).cloned().unwrap_or_default();
+        let mapper_function = args.get_or_undefined(0);
         if !mapper_function.is_function() {
             return context.throw_type_error("flatMap mapper function is not callable");
         }
@@ -1467,7 +1469,7 @@ impl Array {
             0,
             1,
             Some(mapper_function.as_object().unwrap()),
-            &args.get(1).cloned().unwrap_or_default(),
+            &args.get_or_undefined(1),
             context,
         )?;
 
@@ -1622,7 +1624,7 @@ impl Array {
         // 10. Else, let final be min(relativeEnd, len).
         let final_ = Self::get_relative_end(context, args.get(2), len)?;
 
-        let value = args.get(0).cloned().unwrap_or_default();
+        let value = args.get_or_undefined(0);
 
         // 11. Repeat, while k < final,
         while k < final_ {
@@ -1693,7 +1695,7 @@ impl Array {
             }
         }
 
-        let search_element = args.get(0).cloned().unwrap_or_default();
+        let search_element = args.get_or_undefined(0);
 
         // 10. Repeat, while k < len,
         while k < len {
@@ -1813,7 +1815,7 @@ impl Array {
                     "missing argument 0 when calling function Array.prototype.filter",
                 )
             })?;
-        let this_val = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
+        let this_val = args.get_or_undefined(1);
 
         if !callback.is_callable() {
             return context.throw_type_error("the callback must be callable");
@@ -1899,7 +1901,7 @@ impl Array {
                 // i. Let kValue be ? Get(O, Pk).
                 let k_value = o.get(k, context)?;
                 // ii. Let testResult be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).
-                let this_arg = args.get(1).cloned().unwrap_or_default();
+                let this_arg = args.get_or_undefined(1);
                 let test_result = callback
                     .call(&this_arg, &[k_value, k.into(), o.clone().into()], context)?
                     .to_boolean();

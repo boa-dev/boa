@@ -22,6 +22,8 @@ use ordered_set::OrderedSet;
 pub mod set_iterator;
 use set_iterator::SetIterator;
 
+use super::JsArgs;
+
 pub mod ordered_set;
 #[cfg(test)]
 mod tests;
@@ -139,7 +141,7 @@ impl Set {
         // 3
         set.set_data(ObjectData::set(OrderedSet::default()));
 
-        let iterable = args.get(0).cloned().unwrap_or_default();
+        let iterable = args.get_or_undefined(0);
         // 4
         if iterable.is_null_or_undefined() {
             return Ok(set);
@@ -206,7 +208,7 @@ impl Set {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let mut value = args.get(0).cloned().unwrap_or_default();
+        let mut value = args.get_or_undefined(0);
 
         if let Some(object) = this.as_object() {
             if let Some(set) = object.borrow_mut().as_set_mut() {
@@ -263,7 +265,7 @@ impl Set {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let value = args.get(0).cloned().unwrap_or_default();
+        let value = args.get_or_undefined(0);
 
         let res = if let Some(object) = this.as_object() {
             if let Some(set) = object.borrow_mut().as_set_mut() {
@@ -332,7 +334,7 @@ impl Set {
         }
 
         let callback_arg = &args[0];
-        let this_arg = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
+        let this_arg = args.get_or_undefined(1);
         // TODO: if condition should also check that we are not in strict mode
         let this_arg = if this_arg.is_undefined() {
             JsValue::Object(context.global_object())
@@ -380,7 +382,7 @@ impl Set {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let value = args.get(0).cloned().unwrap_or_default();
+        let value = args.get_or_undefined(0);
 
         if let JsValue::Object(ref object) = this {
             let object = object.borrow();

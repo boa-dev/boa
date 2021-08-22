@@ -113,7 +113,7 @@ pub fn init(context: &mut Context) {
     }
 }
 
-pub(crate) trait JsArgs {
+pub trait JsArgs {
     fn get_or_undefined(&self, index: usize) -> JsValue;
 }
 

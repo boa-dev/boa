@@ -7,6 +7,7 @@
 //!#    class::{Class, ClassBuilder},
 //!#    gc::{Finalize, Trace},
 //!#    Context, JsResult, JsValue,
+//!#    builtins::JsArgs,
 //!# };
 //!#
 //! // This does not have to be an enum it can also be a struct.
@@ -27,7 +28,7 @@
 //!     // This is what is called when we do `new Animal()`
 //!     fn constructor(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<Self> {
 //!         // This is equivalent to `String(arg)`.
-//!         let kind = args.get(0).cloned().unwrap_or_default().to_string(context)?;
+//!         let kind = args.get_or_undefined(0).to_string(context)?;
 //!
 //!         let animal = match kind.as_str() {
 //!             "cat" => Self::Cat,

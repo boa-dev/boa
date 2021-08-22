@@ -13,8 +13,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-number-object
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
 
-use super::function::make_builtin_fn;
 use super::string::is_trimmable_whitespace;
+use super::{function::make_builtin_fn, JsArgs};
 use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, ObjectData, PROTOTYPE},
@@ -392,12 +392,12 @@ impl Number {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let precision = args.get(0).cloned().unwrap_or_default();
+        let precision = args.get_or_undefined(0);
 
         // 1 & 6
         let mut this_num = Self::this_number_value(this, context)?;
         // 2
-        if precision == JsValue::undefined() {
+        if precision.is_undefined() {
             return Self::to_string(this, &[], context);
         }
 
@@ -720,7 +720,7 @@ impl Number {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        if let (Some(val), radix) = (args.get(0), args.get(1)) {
+        if let (Some(val), radix) = (args.get(0), args.get_or_undefined(1)) {
             // 1. Let inputString be ? ToString(string).
             let input_string = val.to_string(context)?;
 
@@ -745,7 +745,7 @@ impl Number {
             }
 
             // 6. Let R be ℝ(? ToInt32(radix)).
-            let mut var_r = radix.cloned().unwrap_or_default().to_i32(context)?;
+            let mut var_r = radix.to_i32(context)?;
 
             // 7. Let stripPrefix be true.
             let mut strip_prefix = true;
