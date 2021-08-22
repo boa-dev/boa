@@ -112,3 +112,7 @@ pub fn init(context: &mut Context) {
         global_object.borrow_mut().insert(name, property);
     }
 }
+
+pub(crate) trait JsArgs {
+    fn get_or_undefined(&self, index: usize) -> JsValue;
+}
