@@ -4,7 +4,7 @@
 
 use crate::{
     builtins::Array, environment::lexical_environment::VariableScope, symbol::WellKnownSymbols,
-    BoaProfiler, Context, JsValue, Result,
+    BoaProfiler, Context, JsValue, JsResult,
 };
 
 mod code_block;
@@ -70,7 +70,7 @@ impl<'a> Vm<'a> {
         value
     }
 
-    fn execute_instruction(&mut self) -> Result<()> {
+    fn execute_instruction(&mut self) -> JsResult<()> {
         let _timer = BoaProfiler::global().start_event("execute_instruction", "vm");
 
         macro_rules! bin_op {
@@ -445,7 +445,7 @@ impl<'a> Vm<'a> {
         Ok(())
     }
 
-    pub fn run(&mut self) -> Result<JsValue> {
+    pub fn run(&mut self) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("run", "vm");
 
         const COLUMN_WIDTH: usize = 24;
