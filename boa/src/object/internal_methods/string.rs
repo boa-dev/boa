@@ -4,6 +4,15 @@ use crate::{
     Context, JsResult, JsValue,
 };
 
+use super::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
+
+pub(crate) static STRING_EXOTIC_INTERNAL_METHODS: InternalObjectMethods = InternalObjectMethods {
+    __get_own_property__: string_exotic_get_own_property,
+    __define_own_property__: string_exotic_define_own_property,
+    __own_property_keys__: string_exotic_own_property_keys,
+    ..ORDINARY_INTERNAL_METHODS
+};
+
 /// Gets own property of 'String' exotic object
 ///
 /// More information:
@@ -97,20 +106,13 @@ pub(crate) fn string_exotic_own_property_keys(
 #[allow(clippy::float_cmp)]
 #[inline]
 fn string_get_own_property(obj: &JsObject, key: &PropertyKey) -> Option<PropertyDescriptor> {
-    let obj = obj.borrow();
-
     let pos = match key {
         PropertyKey::Index(index) => *index as usize,
-        PropertyKey::String(index) => {
-            let index = index.canonical_numeric_index_string()?;
-            if index != ((index as usize) as f64) {
-                return None;
-            }
-            index as usize
-        }
         _ => return None,
     };
+
     let string = obj
+        .borrow()
         .as_string()
         .expect("string exotic method should only be callable from string objects");
 

@@ -159,6 +159,19 @@ impl JsObject {
     }
 }
 
+pub(crate) static ORDINARY_INTERNAL_METHODS: InternalObjectMethods = InternalObjectMethods {
+    __get_prototype_of__: ordinary_get_prototype_of,
+    __set_prototype_of__: ordinary_set_prototype_of,
+    __is_extensible__: ordinary_is_extensible,
+    __prevent_extensions__: ordinary_prevent_extensions,
+    __get_own_property__: ordinary_get_own_property,
+    __define_own_property__: ordinary_define_own_property,
+    __has_property__: ordinary_has_property,
+    __get__: ordinary_get,
+    __set__: ordinary_set,
+    __delete__: ordinary_delete,
+    __own_property_keys__: ordinary_own_property_keys,
+};
 #[derive(Clone, Copy)]
 pub(crate) struct InternalObjectMethods {
     pub(crate) __get_prototype_of__: fn(&JsObject, &mut Context) -> JsResult<JsValue>,
@@ -175,24 +188,6 @@ pub(crate) struct InternalObjectMethods {
         fn(&JsObject, PropertyKey, JsValue, JsValue, &mut Context) -> JsResult<bool>,
     pub(crate) __delete__: fn(&JsObject, &PropertyKey, &mut Context) -> JsResult<bool>,
     pub(crate) __own_property_keys__: fn(&JsObject, &mut Context) -> JsResult<Vec<PropertyKey>>,
-}
-
-impl Default for InternalObjectMethods {
-    fn default() -> Self {
-        Self {
-            __get_prototype_of__: ordinary_get_prototype_of,
-            __set_prototype_of__: ordinary_set_prototype_of,
-            __is_extensible__: ordinary_is_extensible,
-            __prevent_extensions__: ordinary_prevent_extensions,
-            __get_own_property__: ordinary_get_own_property,
-            __define_own_property__: ordinary_define_own_property,
-            __has_property__: ordinary_has_property,
-            __get__: ordinary_get,
-            __set__: ordinary_set,
-            __delete__: ordinary_delete,
-            __own_property_keys__: ordinary_own_property_keys,
-        }
-    }
 }
 
 /// Returns either the prototype or null

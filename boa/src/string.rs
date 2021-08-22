@@ -264,18 +264,6 @@ impl JsString {
             _ => fast_float::parse(string).unwrap_or(f64::NAN),
         }
     }
-
-    pub(crate) fn canonical_numeric_index_string(&self) -> Option<f64> {
-        if self == "-0" {
-            return Some(-0.0);
-        }
-        let n = self.string_to_number();
-        if self != n.to_string().as_str() {
-            None
-        } else {
-            Some(n)
-        }
-    }
 }
 
 impl Finalize for JsString {}

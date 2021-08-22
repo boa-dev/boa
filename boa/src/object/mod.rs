@@ -37,6 +37,11 @@ pub use gcobject::{JsObject, RecursionLimiter, Ref, RefMut};
 use internal_methods::InternalObjectMethods;
 pub use property_map::*;
 
+use self::internal_methods::{
+    array::ARRAY_EXOTIC_INTERNAL_METHODS, string::STRING_EXOTIC_INTERNAL_METHODS,
+    ORDINARY_INTERNAL_METHODS,
+};
+
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
 pub static PROTOTYPE: &str = "prototype";
 
@@ -79,8 +84,7 @@ pub struct Object {
 #[derive(Trace, Finalize)]
 pub struct ObjectData {
     kind: ObjectKind,
-    #[unsafe_ignore_trace]
-    internal_methods: InternalObjectMethods,
+    internal_methods: &'static InternalObjectMethods,
 }
 
 #[derive(Debug, Trace, Finalize)]
@@ -112,137 +116,128 @@ impl ObjectData {
     pub fn array() -> Self {
         Self {
             kind: ObjectKind::Array,
-            internal_methods: InternalObjectMethods {
-                __define_own_property__: internal_methods::array::array_define_own_property,
-                ..Default::default()
-            },
+            internal_methods: &ARRAY_EXOTIC_INTERNAL_METHODS,
         }
     }
 
     pub fn array_iterator(array_iterator: ArrayIterator) -> Self {
         Self {
             kind: ObjectKind::ArrayIterator(array_iterator),
-            internal_methods: InternalObjectMethods::default(),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
     pub fn map(map: OrderedMap<JsValue>) -> Self {
         Self {
             kind: ObjectKind::Map(map),
-            internal_methods: InternalObjectMethods::default(),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
     pub fn map_iterator(map_iterator: MapIterator) -> Self {
         Self {
             kind: ObjectKind::MapIterator(map_iterator),
-            internal_methods: InternalObjectMethods::default(),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
     pub fn reg_exp(reg_exp: Box<RegExp>) -> Self {
         Self {
             kind: ObjectKind::RegExp(reg_exp),
-            internal_methods: InternalObjectMethods::default(),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
     pub fn reg_exp_string_iterator(reg_exp_string_iterator: RegExpStringIterator) -> Self {
         Self {
             kind: ObjectKind::RegExpStringIterator(reg_exp_string_iterator),
-            internal_methods: InternalObjectMethods::default(),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
     pub fn big_int(big_int: JsBigInt) -> Self {
         Self {
             kind: ObjectKind::BigInt(big_int),
-            internal_methods: InternalObjectMethods::default(),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
     pub fn boolean(boolean: bool) -> Self {
         Self {
             kind: ObjectKind::Boolean(boolean),
-            internal_methods: InternalObjectMethods::default(),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
     pub fn for_in_iterator(for_in_iterator: ForInIterator) -> Self {
         Self {
             kind: ObjectKind::ForInIterator(for_in_iterator),
-            internal_methods: InternalObjectMethods::default(),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
     pub fn function(function: Function) -> Self {
         Self {
             kind: ObjectKind::Function(function),
-            internal_methods: InternalObjectMethods::default(),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
     pub fn set(set: OrderedSet<JsValue>) -> Self {
         Self {
             kind: ObjectKind::Set(set),
-            internal_methods: InternalObjectMethods::default(),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
     pub fn set_iterator(set_iterator: SetIterator) -> Self {
         Self {
             kind: ObjectKind::SetIterator(set_iterator),
-            internal_methods: InternalObjectMethods::default(),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
     pub fn string(string: JsString) -> Self {
         Self {
             kind: ObjectKind::String(string),
-            internal_methods: InternalObjectMethods {
-                __get_own_property__: internal_methods::string::string_exotic_get_own_property,
-                __define_own_property__:
-                    internal_methods::string::string_exotic_define_own_property,
-                __own_property_keys__: internal_methods::string::string_exotic_own_property_keys,
-                ..Default::default()
-            },
+            internal_methods: &STRING_EXOTIC_INTERNAL_METHODS,
         }
     }
     pub fn string_iterator(string_iterator: StringIterator) -> Self {
         Self {
             kind: ObjectKind::StringIterator(string_iterator),
-            internal_methods: InternalObjectMethods::default(),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
     pub fn number(number: f64) -> Self {
         Self {
             kind: ObjectKind::Number(number),
-            internal_methods: InternalObjectMethods::default(),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
     pub fn symbol(symbol: JsSymbol) -> Self {
         Self {
             kind: ObjectKind::Symbol(symbol),
-            internal_methods: InternalObjectMethods::default(),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
     pub fn error() -> Self {
         Self {
             kind: ObjectKind::Error,
-            internal_methods: InternalObjectMethods::default(),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
     pub fn ordinary() -> Self {
         Self {
             kind: ObjectKind::Ordinary,
-            internal_methods: InternalObjectMethods::default(),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
     pub fn date(date: Date) -> Self {
         Self {
             kind: ObjectKind::Date(date),
-            internal_methods: InternalObjectMethods::default(),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
     pub fn global() -> Self {
         Self {
             kind: ObjectKind::Global,
-            internal_methods: InternalObjectMethods::default(),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
     pub fn native_object(native_object: Box<dyn NativeObject>) -> Self {
         Self {
             kind: ObjectKind::NativeObject(native_object),
-            internal_methods: InternalObjectMethods::default(),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
 }

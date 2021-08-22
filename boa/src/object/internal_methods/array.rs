@@ -4,13 +4,20 @@ use crate::{
     Context, JsResult,
 };
 
+use super::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
+
+pub(crate) static ARRAY_EXOTIC_INTERNAL_METHODS: InternalObjectMethods = InternalObjectMethods {
+    __define_own_property__: array_exotic_define_own_property,
+    ..ORDINARY_INTERNAL_METHODS
+};
+
 /// Define an own property for an array.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-array-exotic-objects-defineownproperty-p-desc
-pub(crate) fn array_define_own_property(
+pub(crate) fn array_exotic_define_own_property(
     obj: &JsObject,
     key: PropertyKey,
     desc: PropertyDescriptor,
