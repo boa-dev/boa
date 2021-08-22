@@ -1,7 +1,7 @@
 #![allow(clippy::float_cmp)]
 
 use super::*;
-use crate::{forward, forward_val, Context};
+use crate::{check_output, forward, forward_val, Context, TestAction};
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -64,63 +64,45 @@ fn number_is_true() {
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness
 #[test]
 fn abstract_equality_comparison() {
-    let mut context = Context::new();
-
-    assert_eq!(forward(&mut context, "undefined == undefined"), "true");
-    assert_eq!(forward(&mut context, "null == null"), "true");
-    assert_eq!(forward(&mut context, "true == true"), "true");
-    assert_eq!(forward(&mut context, "false == false"), "true");
-    assert_eq!(forward(&mut context, "'foo' == 'foo'"), "true");
-    assert_eq!(forward(&mut context, "0 == 0"), "true");
-    assert_eq!(forward(&mut context, "+0 == -0"), "true");
-    assert_eq!(forward(&mut context, "+0 == 0"), "true");
-    assert_eq!(forward(&mut context, "-0 == 0"), "true");
-    assert_eq!(forward(&mut context, "0 == false"), "true");
-    assert_eq!(forward(&mut context, "'' == false"), "true");
-    assert_eq!(forward(&mut context, "'' == 0"), "true");
-    assert_eq!(forward(&mut context, "'17' == 17"), "true");
-    assert_eq!(forward(&mut context, "[1,2] == '1,2'"), "true");
-    assert_eq!(forward(&mut context, "new String('foo') == 'foo'"), "true");
-    assert_eq!(forward(&mut context, "null == undefined"), "true");
-    assert_eq!(forward(&mut context, "undefined == null"), "true");
-    assert_eq!(forward(&mut context, "null == false"), "false");
-    assert_eq!(forward(&mut context, "[] == ![]"), "true");
-    assert_eq!(
-        forward(
-            &mut context,
-            "a = { foo: 'bar' }; b = { foo: 'bar'}; a == b"
+    check_output(&[
+        TestAction::TestEq("undefined == undefined", "true"),
+        TestAction::TestEq("null == null", "true"),
+        TestAction::TestEq("true == true", "true"),
+        TestAction::TestEq("false == false", "true"),
+        TestAction::TestEq("'foo' == 'foo'", "true"),
+        TestAction::TestEq("0 == 0", "true"),
+        TestAction::TestEq("+0 == -0", "true"),
+        TestAction::TestEq("+0 == 0", "true"),
+        TestAction::TestEq("-0 == 0", "true"),
+        TestAction::TestEq("0 == false", "true"),
+        TestAction::TestEq("'' == false", "true"),
+        TestAction::TestEq("'' == 0", "true"),
+        TestAction::TestEq("'17' == 17", "true"),
+        TestAction::TestEq("[1,2] == '1,2'", "true"),
+        TestAction::TestEq("new String('foo') == 'foo'", "true"),
+        TestAction::TestEq("null == undefined", "true"),
+        TestAction::TestEq("undefined == null", "true"),
+        TestAction::TestEq("null == false", "false"),
+        TestAction::TestEq("[] == ![]", "true"),
+        TestAction::TestEq("a = { foo: 'bar' }; b = { foo: 'bar'}; a == b", "false"),
+        TestAction::TestEq("new String('foo') == new String('foo')", "false"),
+        TestAction::TestEq("0 == null", "false"),
+        TestAction::TestEq("0 == '-0'", "true"),
+        TestAction::TestEq("0 == '+0'", "true"),
+        TestAction::TestEq("'+0' == 0", "true"),
+        TestAction::TestEq("'-0' == 0", "true"),
+        TestAction::TestEq("0 == NaN", "false"),
+        TestAction::TestEq("'foo' == NaN", "false"),
+        TestAction::TestEq("NaN == NaN", "false"),
+        TestAction::TestEq(
+            "Number.POSITIVE_INFINITY === Number.POSITIVE_INFINITY",
+            "true",
         ),
-        "false"
-    );
-    assert_eq!(
-        forward(&mut context, "new String('foo') == new String('foo')"),
-        "false"
-    );
-    assert_eq!(forward(&mut context, "0 == null"), "false");
-
-    assert_eq!(forward(&mut context, "0 == '-0'"), "true");
-    assert_eq!(forward(&mut context, "0 == '+0'"), "true");
-    assert_eq!(forward(&mut context, "'+0' == 0"), "true");
-    assert_eq!(forward(&mut context, "'-0' == 0"), "true");
-
-    assert_eq!(forward(&mut context, "0 == NaN"), "false");
-    assert_eq!(forward(&mut context, "'foo' == NaN"), "false");
-    assert_eq!(forward(&mut context, "NaN == NaN"), "false");
-
-    assert_eq!(
-        forward(
-            &mut context,
-            "Number.POSITIVE_INFINITY === Number.POSITIVE_INFINITY"
+        TestAction::TestEq(
+            "Number.NEGATIVE_INFINITY === Number.NEGATIVE_INFINITY",
+            "true",
         ),
-        "true"
-    );
-    assert_eq!(
-        forward(
-            &mut context,
-            "Number.NEGAVIVE_INFINITY === Number.NEGAVIVE_INFINITY"
-        ),
-        "true"
-    );
+    ]);
 }
 
 /// Helper function to get the hash of a `Value`.
@@ -608,20 +590,20 @@ fn to_integer_or_infinity() {
 
 #[test]
 fn test_accessors() {
-    let mut context = Context::new();
     let src = r#"
             let arr = [];
             let a = { get b() { return "c" }, set b(value) { arr = arr.concat([value]) }} ;
             a.b = "a";
         "#;
-    context.eval(src).unwrap();
-    assert_eq!(forward(&mut context, "a.b"), r#""c""#);
-    assert_eq!(forward(&mut context, "arr"), r#"[ "a" ]"#);
+    check_output(&[
+        TestAction::Execute(src),
+        TestAction::TestEq("a.b", r#""c""#),
+        TestAction::TestEq("arr", r#"[ "a" ]"#),
+    ]);
 }
 
 #[test]
 fn to_primitive() {
-    let mut context = Context::new();
     let src = r#"
     let a = {};
     a[Symbol.toPrimitive] = function() {
@@ -629,8 +611,10 @@ fn to_primitive() {
     };
     let primitive = a + 0;
     "#;
-    context.eval(src).unwrap();
-    assert_eq!(forward(&mut context, "primitive"), "42");
+    check_output(&[
+        TestAction::Execute(src),
+        TestAction::TestEq("primitive", "42"),
+    ]);
 }
 
 /// Test cyclic conversions that previously caused stack overflows

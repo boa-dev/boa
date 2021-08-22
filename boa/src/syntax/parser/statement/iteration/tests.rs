@@ -37,8 +37,14 @@ fn check_do_while_semicolon_insertion() {
         r#"var i = 0;
         do {console.log("hello");} while(i++ < 10) console.log("end");"#,
         vec![
-            DeclarationList::Var(vec![Declaration::new("i", Some(Const::from(0).into()))].into())
+            DeclarationList::Var(
+                vec![Declaration::new_with_identifier(
+                    "i",
+                    Some(Const::from(0).into()),
+                )]
                 .into(),
+            )
+            .into(),
             DoWhileLoop::new(
                 Block::from(vec![Call::new(
                     GetConstField::new(Identifier::from("console"), "log"),
@@ -69,8 +75,14 @@ fn check_do_while_semicolon_insertion_no_space() {
         r#"var i = 0;
         do {console.log("hello");} while(i++ < 10)console.log("end");"#,
         vec![
-            DeclarationList::Var(vec![Declaration::new("i", Some(Const::from(0).into()))].into())
+            DeclarationList::Var(
+                vec![Declaration::new_with_identifier(
+                    "i",
+                    Some(Const::from(0).into()),
+                )]
                 .into(),
+            )
+            .into(),
             DoWhileLoop::new(
                 Block::from(vec![Call::new(
                     GetConstField::new(Identifier::from("console"), "log"),

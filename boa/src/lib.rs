@@ -157,3 +157,47 @@ pub(crate) fn exec<T: AsRef<[u8]>>(src: T) -> String {
         Err(error) => error.display().to_string(),
     }
 }
+
+#[cfg(test)]
+pub(crate) enum TestAction {
+    Execute(&'static str),
+    TestEq(&'static str, &'static str),
+    TestStartsWith(&'static str, &'static str),
+}
+
+/// Create a clean Context, call "forward" for each action, and optionally
+/// assert equality of the returned value or if returned value starts with
+/// expected string.
+#[cfg(test)]
+#[track_caller]
+pub(crate) fn check_output(actions: &[TestAction]) {
+    let mut context = Context::new();
+
+    let mut i = 1;
+    for action in actions {
+        match action {
+            TestAction::Execute(src) => {
+                forward(&mut context, src);
+            }
+            TestAction::TestEq(case, expected) => {
+                assert_eq!(
+                    &forward(&mut context, case),
+                    expected,
+                    "Test case {} ('{}')",
+                    i,
+                    case
+                );
+                i += 1;
+            }
+            TestAction::TestStartsWith(case, expected) => {
+                assert!(
+                    &forward(&mut context, case).starts_with(expected),
+                    "Test case {} ('{}')",
+                    i,
+                    case
+                );
+                i += 1;
+            }
+        }
+    }
+}

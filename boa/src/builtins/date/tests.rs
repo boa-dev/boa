@@ -408,7 +408,7 @@ fn date_proto_get_timezone_offset() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut context,
-        "new Date('August 19, 1975 23:15:30 GMT+07:00').getTimezoneOffset() === new Date('August 19, 1975 23:15:30 GMT-02:00').getTimezoneOffset()",
+        "new Date('1975-08-19T23:15:30+07:00').getTimezoneOffset() === new Date('1975-08-19T23:15:30-02:00').getTimezoneOffset()",
     );
 
     // NB: Host Settings, not TZ specified in the DateTime.
@@ -416,17 +416,17 @@ fn date_proto_get_timezone_offset() -> Result<(), Box<dyn std::error::Error>> {
 
     let actual = forward_val(
         &mut context,
-        "new Date('August 19, 1975 23:15:30 GMT+07:00').getTimezoneOffset()",
+        "new Date('1975-08-19T23:15:30+07:00').getTimezoneOffset()",
     );
 
     // The value of now().offset() depends on the host machine, so we have to replicate the method code here.
     let offset_seconds = chrono::Local::now().offset().local_minus_utc() as f64;
-    let offset_minutes = offset_seconds / 60f64;
+    let offset_minutes = -offset_seconds / 60f64;
     assert_eq!(Ok(JsValue::new(offset_minutes)), actual);
 
     let actual = forward_val(
         &mut context,
-        "new Date(1/0, 06, 08, 09, 16, 15, 779).getTimezoneOffset()",
+        "new Date('1975-08-19T23:15:30+07:00').getTimezoneOffset()",
     );
     assert_eq!(Ok(JsValue::new(offset_minutes)), actual);
     Ok(())
@@ -1282,7 +1282,7 @@ fn date_proto_to_string() -> Result<(), Box<dyn std::error::Error>> {
                 ))
                 .earliest()
                 .unwrap()
-                .format("Wed Jul 08 2020 09:16:15 GMT%:z")
+                .format("Wed Jul 08 2020 09:16:15 GMT%z")
                 .to_string()
         )),
         actual
@@ -1310,7 +1310,7 @@ fn date_proto_to_time_string() -> Result<(), Box<dyn std::error::Error>> {
                 ))
                 .earliest()
                 .unwrap()
-                .format("09:16:15 GMT%:z")
+                .format("09:16:15 GMT%z")
                 .to_string()
         )),
         actual

@@ -24,7 +24,7 @@ fn check_object_literal() {
         };
         ",
         vec![DeclarationList::Const(
-            vec![Declaration::new(
+            vec![Declaration::new_with_identifier(
                 "x",
                 Some(Object::from(object_properties).into()),
             )]
@@ -53,7 +53,7 @@ fn check_object_short_function() {
         };
         ",
         vec![DeclarationList::Const(
-            vec![Declaration::new(
+            vec![Declaration::new_with_identifier(
                 "x",
                 Some(Object::from(object_properties).into()),
             )]
@@ -86,7 +86,7 @@ fn check_object_short_function_arguments() {
          };
         ",
         vec![DeclarationList::Const(
-            vec![Declaration::new(
+            vec![Declaration::new_with_identifier(
                 "x",
                 Some(Object::from(object_properties).into()),
             )]
@@ -114,7 +114,7 @@ fn check_object_getter() {
         };
         ",
         vec![DeclarationList::Const(
-            vec![Declaration::new(
+            vec![Declaration::new_with_identifier(
                 "x",
                 Some(Object::from(object_properties).into()),
             )]
@@ -146,7 +146,7 @@ fn check_object_setter() {
         };
         ",
         vec![DeclarationList::Const(
-            vec![Declaration::new(
+            vec![Declaration::new_with_identifier(
                 "x",
                 Some(Object::from(object_properties).into()),
             )]
@@ -170,7 +170,7 @@ fn check_object_short_function_get() {
          };
         ",
         vec![DeclarationList::Const(
-            vec![Declaration::new(
+            vec![Declaration::new_with_identifier(
                 "x",
                 Some(Object::from(object_properties).into()),
             )]
@@ -194,7 +194,7 @@ fn check_object_short_function_set() {
          };
         ",
         vec![DeclarationList::Const(
-            vec![Declaration::new(
+            vec![Declaration::new_with_identifier(
                 "x",
                 Some(Object::from(object_properties).into()),
             )]

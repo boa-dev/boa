@@ -151,8 +151,14 @@ fn check_seperated_switch() {
     check_parser(
         s,
         vec![
-            DeclarationList::Let(vec![Declaration::new("a", Node::from(Const::from(10)))].into())
+            DeclarationList::Let(
+                vec![Declaration::new_with_identifier(
+                    "a",
+                    Node::from(Const::from(10)),
+                )]
                 .into(),
+            )
+            .into(),
             Switch::new(
                 Identifier::from("a"),
                 vec![
