@@ -914,29 +914,26 @@ impl GcObject {
                 // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
                 if let Some(desc) = desc {
                     if desc.expect_enumerable() {
-                        // 1. If kind is key, append key to properties.
-                        if let PropertyNameKind::Key = kind {
-                            properties.push(key_str.into())
-                        }
-                        // 2. Else,
-                        else {
+                        match kind {
+                            // 1. If kind is key, append key to properties.
+                            PropertyNameKind::Key => properties.push(key_str.into()),
+                            // 2. Else,
                             // a. Let value be ? Get(O, key).
-                            let value = self.get(key.clone(), context)?;
                             // b. If kind is value, append value to properties.
-                            if let PropertyNameKind::Value = kind {
-                                properties.push(value)
+                            PropertyNameKind::Value => {
+                                properties.push(self.get(key.clone(), context)?)
                             }
                             // c. Else,
-                            else {
-                                // i. Assert: kind is key+value.
-                                // ii. Let entry be ! CreateArrayFromList(« key, value »).
-                                let key_val = key_str.into();
-                                let entry =
-                                    Array::create_array_from_list([key_val, value], context);
-
-                                // iii. Append entry to properties.
-                                properties.push(entry.into());
-                            }
+                            // i. Assert: kind is key+value.
+                            // ii. Let entry be ! CreateArrayFromList(« key, value »).
+                            // iii. Append entry to properties.
+                            PropertyNameKind::KeyAndValue => properties.push(
+                                Array::create_array_from_list(
+                                    [key_str.into(), self.get(key.clone(), context)?],
+                                    context,
+                                )
+                                .into(),
+                            ),
                         }
                     }
                 }
