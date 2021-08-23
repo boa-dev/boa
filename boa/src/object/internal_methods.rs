@@ -902,7 +902,15 @@ impl GcObject {
         // 4. For each element key of ownKeys, do
         for key in own_keys {
             // a. If Type(key) is String, then
-            if let PropertyKey::String(key_str) = &key {
+            let key_str = if let PropertyKey::Index(index) = &key {
+                Some(index.to_string().into())
+            } else if let PropertyKey::String(key_str) = &key {
+                Some(key_str.clone())
+            } else {
+                None
+            };
+
+            if let Some(key_str) = key_str {
                 // i. Let desc be ? O.[[GetOwnProperty]](key).
                 let desc = self.__get_own_property__(&key);
                 // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
@@ -910,7 +918,7 @@ impl GcObject {
                     if desc.expect_enumerable() {
                         // 1. If kind is key, append key to properties.
                         if let PropertyNameKind::Key = kind {
-                            properties.push(key_str.clone().into())
+                            properties.push(key_str.into())
                         }
                         // 2. Else,
                         else {
@@ -924,7 +932,7 @@ impl GcObject {
                             else {
                                 // i. Assert: kind is key+value.
                                 // ii. Let entry be ! CreateArrayFromList(« key, value »).
-                                let key_val = key_str.clone().into();
+                                let key_val = key_str.into();
                                 let entry =
                                     Array::create_array_from_list([key_val, value], context);
 
