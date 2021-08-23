@@ -114,11 +114,12 @@ pub fn init(context: &mut Context) {
 }
 
 pub trait JsArgs {
-    fn get_or_undefined(&self, index: usize) -> JsValue;
+    fn get_or_undefined(&self, index: usize) -> &JsValue;
 }
 
 impl JsArgs for [JsValue] {
-    fn get_or_undefined(&self, index: usize) -> JsValue {
-        self.get(index).cloned().unwrap_or_default()
+    fn get_or_undefined(&self, index: usize) -> &JsValue {
+        const UNDEFINED: &JsValue = &JsValue::Undefined;
+        self.get(index).unwrap_or(UNDEFINED)
     }
 }

@@ -566,7 +566,7 @@ impl String {
 
         let arg = args.get_or_undefined(0);
 
-        if Self::is_regexp_object(&arg) {
+        if Self::is_regexp_object(arg) {
             context.throw_type_error(
                 "First argument to String.prototype.startsWith must not be a regular expression",
             )?;
@@ -619,7 +619,7 @@ impl String {
 
         let arg = args.get_or_undefined(0);
 
-        if Self::is_regexp_object(&arg) {
+        if Self::is_regexp_object(arg) {
             context.throw_type_error(
                 "First argument to String.prototype.endsWith must not be a regular expression",
             )?;
@@ -671,7 +671,7 @@ impl String {
 
         let arg = args.get_or_undefined(0);
 
-        if Self::is_regexp_object(&arg) {
+        if Self::is_regexp_object(arg) {
             context.throw_type_error(
                 "First argument to String.prototype.includes must not be a regular expression",
             )?;
@@ -744,8 +744,8 @@ impl String {
                 // i. Return ? Call(replacer, searchValue, « O, replaceValue »).
                 return context.call(
                     &replacer.into(),
-                    &search_value,
-                    &[this.clone(), replace_value],
+                    search_value,
+                    &[this.clone(), replace_value.clone()],
                 );
             }
         }
@@ -784,7 +784,7 @@ impl String {
             // a. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(position), string »)).
             context
                 .call(
-                    &replace_value,
+                    replace_value,
                     &JsValue::undefined(),
                     &[search_str.into(), position.into(), this_str.clone().into()],
                 )?
@@ -876,7 +876,7 @@ impl String {
             // d. If replacer is not undefined, then
             if let Some(replacer) = replacer {
                 // i. Return ? Call(replacer, searchValue, « O, replaceValue »).
-                return replacer.call(&search_value, &[o.into(), replace_value], context);
+                return replacer.call(search_value, &[o.into(), replace_value.clone()], context);
             }
         }
 
@@ -942,7 +942,7 @@ impl String {
                 // i. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(p), string »)).
                 context
                     .call(
-                        &replace_value,
+                        replace_value,
                         &JsValue::undefined(),
                         &[
                             search_string.clone().into(),
@@ -1113,7 +1113,7 @@ impl String {
             if let Some(obj) = regexp.as_object() {
                 if let Some(matcher) = obj.get_method(context, WellKnownSymbols::match_())? {
                     // i. Return ? Call(matcher, regexp, « O »).
-                    return matcher.call(&regexp, &[o.clone()], context);
+                    return matcher.call(regexp, &[o.clone()], context);
                 }
             }
         }
@@ -1122,7 +1122,7 @@ impl String {
         let s = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, undefined).
-        let rx = RegExp::create(regexp, JsValue::undefined(), context)?;
+        let rx = RegExp::create(regexp.clone(), JsValue::undefined(), context)?;
 
         // 5. Return ? Invoke(rx, @@match, « S »).
         let obj = rx.as_object().expect("RegExpCreate must return Object");
@@ -1487,7 +1487,7 @@ impl String {
                 .get_method(context, WellKnownSymbols::split())?
             {
                 // i. Return ? Call(splitter, separator, « O, limit »).
-                return splitter.call(&separator, &[this.clone(), limit], context);
+                return splitter.call(separator, &[this.clone(), limit.clone()], context);
             }
         }
 
@@ -1674,7 +1674,7 @@ impl String {
             if let Some(obj) = regexp.as_object() {
                 if let Some(matcher) = obj.get_method(context, WellKnownSymbols::match_all())? {
                     // i. Return ? Call(matcher, regexp, « O »).
-                    return matcher.call(&regexp, &[o.clone()], context);
+                    return matcher.call(regexp, &[o.clone()], context);
                 }
             }
         }
@@ -1683,7 +1683,7 @@ impl String {
         let s = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, "g").
-        let rx = RegExp::create(regexp, JsValue::new("g"), context)?;
+        let rx = RegExp::create(regexp.clone(), JsValue::new("g"), context)?;
 
         // 5. Return ? Invoke(rx, @@matchAll, « S »).
         let obj = rx.as_object().expect("RegExpCreate must return Object");
@@ -1758,7 +1758,7 @@ impl String {
             if let Some(obj) = regexp.as_object() {
                 if let Some(searcher) = obj.get_method(context, WellKnownSymbols::search())? {
                     // i. Return ? Call(searcher, regexp, « O »).
-                    return searcher.call(&regexp, &[o.clone()], context);
+                    return searcher.call(regexp, &[o.clone()], context);
                 }
             }
         }
@@ -1767,7 +1767,7 @@ impl String {
         let string = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, undefined).
-        let rx = RegExp::create(regexp, JsValue::undefined(), context)?;
+        let rx = RegExp::create(regexp.clone(), JsValue::undefined(), context)?;
 
         // 5. Return ? Invoke(rx, @@search, « string »).
         let obj = rx.as_object().expect("RegExpCreate must return Object");

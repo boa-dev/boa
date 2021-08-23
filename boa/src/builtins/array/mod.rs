@@ -690,7 +690,7 @@ impl Array {
                 let k_value = o.get(pk, context)?;
                 // ii. Perform ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).
                 let this_arg = args.get_or_undefined(1);
-                callback.call(&this_arg, &[k_value, k.into(), o.clone().into()], context)?;
+                callback.call(this_arg, &[k_value, k.into(), o.clone().into()], context)?;
             }
             // d. Set k to k + 1.
         }
@@ -1038,7 +1038,7 @@ impl Array {
                 let k_value = o.get(k, context)?;
                 // ii. Let testResult be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).
                 let test_result = callback
-                    .call(&this_arg, &[k_value, k.into(), o.clone().into()], context)?
+                    .call(this_arg, &[k_value, k.into(), o.clone().into()], context)?
                     .to_boolean();
                 // iii. If testResult is false, return false.
                 if !test_result {
@@ -1094,7 +1094,7 @@ impl Array {
                 let k_value = o.get(k, context)?;
                 // ii. Let mappedValue be ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).
                 let mapped_value =
-                    context.call(&callback, &this_arg, &[k_value, k.into(), this.into()])?;
+                    context.call(callback, this_arg, &[k_value, k.into(), this.into()])?;
                 // iii. Perform ? CreateDataPropertyOrThrow(A, Pk, mappedValue).
                 a.create_data_property_or_throw(k, mapped_value, context)?;
             }
@@ -1246,7 +1246,7 @@ impl Array {
                 let element_k = o.get(k, context)?;
                 // ii. Let same be IsStrictlyEqual(searchElement, elementK).
                 // iii. If same is true, return 𝔽(k).
-                if JsValue::strict_equals(&search_element, &element_k) {
+                if JsValue::strict_equals(search_element, &element_k) {
                     return Ok(JsValue::new(k));
                 }
             }
@@ -1301,7 +1301,7 @@ impl Array {
             // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
             let test_result = predicate
                 .call(
-                    &this_arg,
+                    this_arg,
                     &[k_value.clone(), k.into(), o.clone().into()],
                     context,
                 )?
@@ -1361,7 +1361,7 @@ impl Array {
             let k_value = o.get(pk, context)?;
             // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
             let test_result = predicate
-                .call(&this_arg, &[k_value, k.into(), o.clone().into()], context)?
+                .call(this_arg, &[k_value, k.into(), o.clone().into()], context)?
                 .to_boolean();
             // d. If testResult is true, return 𝔽(k).
             if test_result {
@@ -1469,7 +1469,7 @@ impl Array {
             0,
             1,
             Some(mapper_function.as_object().unwrap()),
-            &args.get_or_undefined(1),
+            args.get_or_undefined(1),
             context,
         )?;
 
@@ -1702,7 +1702,7 @@ impl Array {
             // a. Let elementK be ? Get(O, ! ToString(𝔽(k))).
             let element_k = o.get(k, context)?;
             // b. If SameValueZero(searchElement, elementK) is true, return true.
-            if JsValue::same_value_zero(&search_element, &element_k) {
+            if JsValue::same_value_zero(search_element, &element_k) {
                 return Ok(JsValue::new(true));
             }
             // c. Set k to k + 1.
@@ -1815,7 +1815,7 @@ impl Array {
                     "missing argument 0 when calling function Array.prototype.filter",
                 )
             })?;
-        let this_val = args.get_or_undefined(1);
+        let this_arg = args.get_or_undefined(1);
 
         if !callback.is_callable() {
             return context.throw_type_error("the callback must be callable");
@@ -1839,7 +1839,7 @@ impl Array {
                 let args = [element.clone(), JsValue::new(idx), JsValue::new(o.clone())];
 
                 // ii. Let selected be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).
-                let selected = callback.call(&this_val, &args, context)?.to_boolean();
+                let selected = callback.call(this_arg, &args, context)?.to_boolean();
 
                 // iii. If selected is true, then
                 if selected {
@@ -1903,7 +1903,7 @@ impl Array {
                 // ii. Let testResult be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).
                 let this_arg = args.get_or_undefined(1);
                 let test_result = callback
-                    .call(&this_arg, &[k_value, k.into(), o.clone().into()], context)?
+                    .call(this_arg, &[k_value, k.into(), o.clone().into()], context)?
                     .to_boolean();
                 // iii. If testResult is true, return true.
                 if test_result {

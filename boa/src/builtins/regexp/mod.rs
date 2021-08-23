@@ -235,12 +235,12 @@ impl RegExp {
                     JsValue::new(regexp.original_flags.clone()),
                 )
             } else {
-                (JsValue::new(regexp.original_source.clone()), flags)
+                (JsValue::new(regexp.original_source.clone()), flags.clone())
             }
         } else {
             // a. Let P be pattern.
             // b. Let F be flags.
-            (pattern, flags)
+            (pattern.clone(), flags.clone())
         };
 
         // 7. Let O be ? RegExpAlloc(newTarget).
@@ -1284,7 +1284,7 @@ impl RegExp {
         let length_arg_str = arg_str.encode_utf16().count();
 
         // 5. Let functionalReplace be IsCallable(replaceValue).
-        let mut replace_value = args.get_or_undefined(1);
+        let mut replace_value = args.get_or_undefined(1).clone();
         let functional_replace = replace_value.is_function();
 
         // 6. If functionalReplace is false, then

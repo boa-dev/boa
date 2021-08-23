@@ -327,7 +327,7 @@ impl BuiltInFunctionObject {
         let this_arg = args.get_or_undefined(0);
         // TODO?: 3. Perform PrepareForTailCall
         let start = if !args.is_empty() { 1 } else { 0 };
-        context.call(this, &this_arg, &args[start..])
+        context.call(this, this_arg, &args[start..])
     }
 
     /// `Function.prototype.apply`
@@ -349,11 +349,11 @@ impl BuiltInFunctionObject {
         let arg_array = args.get_or_undefined(1);
         if arg_array.is_null_or_undefined() {
             // TODO?: 3.a. PrepareForTailCall
-            return context.call(this, &this_arg, &[]);
+            return context.call(this, this_arg, &[]);
         }
         let arg_list = arg_array.create_list_from_array_like(&[], context)?;
         // TODO?: 5. PrepareForTailCall
-        context.call(this, &this_arg, &arg_list)
+        context.call(this, this_arg, &arg_list)
     }
 }
 

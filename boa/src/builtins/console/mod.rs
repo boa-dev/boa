@@ -565,7 +565,7 @@ impl Console {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/API/console/dir
     pub(crate) fn dir(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         logger(
-            LogMessage::Info(display_obj(&args.get_or_undefined(0), true)),
+            LogMessage::Info(display_obj(args.get_or_undefined(0), true)),
             context.console(),
         );
 

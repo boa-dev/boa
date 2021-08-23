@@ -216,7 +216,7 @@ impl Json {
             }
         }
 
-        let mut space = args.get_or_undefined(2);
+        let mut space = args.get_or_undefined(2).clone();
 
         // 5. If Type(space) is Object, then
         if let Some(space_obj) = space.as_object() {

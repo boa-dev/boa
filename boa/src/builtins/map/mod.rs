@@ -252,7 +252,7 @@ impl Map {
 
         let size = if let Some(object) = this.as_object() {
             if let Some(map) = object.borrow_mut().as_map_mut() {
-                map.insert(key, value);
+                map.insert(key.clone(), value.clone());
                 map.len()
             } else {
                 return Err(context.construct_type_error("'this' is not a Map"));
@@ -284,7 +284,7 @@ impl Map {
 
         let (deleted, size) = if let Some(object) = this.as_object() {
             if let Some(map) = object.borrow_mut().as_map_mut() {
-                let deleted = map.remove(&key).is_some();
+                let deleted = map.remove(key).is_some();
                 (deleted, map.len())
             } else {
                 return Err(context.construct_type_error("'this' is not a Map"));
@@ -316,7 +316,7 @@ impl Map {
         if let JsValue::Object(ref object) = this {
             let object = object.borrow();
             if let Some(map) = object.as_map_ref() {
-                return Ok(if let Some(result) = map.get(&key) {
+                return Ok(if let Some(result) = map.get(key) {
                     result.clone()
                 } else {
                     JsValue::undefined()
@@ -365,7 +365,7 @@ impl Map {
         if let JsValue::Object(ref object) = this {
             let object = object.borrow();
             if let Some(map) = object.as_map_ref() {
-                return Ok(map.contains_key(&key).into());
+                return Ok(map.contains_key(key).into());
             }
         }
 
@@ -415,7 +415,7 @@ impl Map {
             };
 
             if let Some(arguments) = arguments {
-                context.call(callback_arg, &this_arg, &arguments)?;
+                context.call(callback_arg, this_arg, &arguments)?;
             }
 
             index += 1;

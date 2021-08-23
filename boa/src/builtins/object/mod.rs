@@ -134,7 +134,7 @@ impl Object {
 
         let obj = match prototype {
             JsValue::Object(_) | JsValue::Null => JsObject::new(BuiltinObject::with_prototype(
-                prototype,
+                prototype.clone(),
                 ObjectData::ordinary(),
             )),
             _ => {
@@ -146,7 +146,7 @@ impl Object {
         };
 
         if !properties.is_undefined() {
-            object_define_properties(&obj, properties, context)?;
+            object_define_properties(&obj, properties.clone(), context)?;
             return Ok(obj.into());
         }
 
@@ -270,7 +270,7 @@ impl Object {
         let x = args.get_or_undefined(0);
         let y = args.get_or_undefined(1);
 
-        Ok(JsValue::same_value(&x, &y).into())
+        Ok(JsValue::same_value(x, y).into())
     }
 
     /// Get the `prototype` of an object.
@@ -327,7 +327,7 @@ impl Object {
         let status = obj
             .as_object()
             .expect("obj was not an object")
-            .__set_prototype_of__(proto, ctx)?;
+            .__set_prototype_of__(proto.clone(), ctx)?;
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
@@ -353,10 +353,11 @@ impl Object {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let mut v = args.get_or_undefined(0);
+        let v = args.get_or_undefined(0);
         if !v.is_object() {
             return Ok(JsValue::new(false));
         }
+        let mut v = v.clone();
         let o = JsValue::new(this.to_object(context)?);
         loop {
             v = Self::get_prototype_of(this, &[v], context)?;
@@ -413,8 +414,8 @@ impl Object {
         let arg_obj = arg.as_object();
         if let Some(obj) = arg_obj {
             let props = args.get_or_undefined(1);
-            object_define_properties(&obj, props, context)?;
-            Ok(arg)
+            object_define_properties(&obj, props.clone(), context)?;
+            Ok(arg.clone())
         } else {
             context.throw_type_error("Expected an object")
         }

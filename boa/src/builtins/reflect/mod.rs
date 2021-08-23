@@ -88,7 +88,7 @@ impl Reflect {
             return context.throw_type_error("target must be a function");
         }
         let args = args_list.create_list_from_array_like(&[], context)?;
-        target.call(&this_arg, &args, context)
+        target.call(this_arg, &args, context)
     }
 
     /// Calls a target function as a constructor with arguments.
@@ -355,7 +355,9 @@ impl Reflect {
         } else {
             target.clone().into()
         };
-        Ok(target.__set__(key, value, receiver, context)?.into())
+        Ok(target
+            .__set__(key, value.clone(), receiver, context)?
+            .into())
     }
 
     /// Sets the prototype of an object.
@@ -379,6 +381,6 @@ impl Reflect {
         if !proto.is_null() && !proto.is_object() {
             return context.throw_type_error("proto must be an object or null");
         }
-        Ok(target.__set_prototype_of__(proto, context)?.into())
+        Ok(target.__set_prototype_of__(proto.clone(), context)?.into())
     }
 }
