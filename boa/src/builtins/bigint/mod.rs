@@ -17,6 +17,7 @@ use crate::{
     object::{ConstructorBuilder, ObjectData},
     property::Attribute,
     symbol::WellKnownSymbols,
+    value::IntegerOrInfinity,
     BoaProfiler, Context, JsBigInt, JsResult, JsValue,
 };
 #[cfg(test)]
@@ -45,7 +46,7 @@ impl BuiltIn for BigInt {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
-        .method(Self::to_string, "toString", 1)
+        .method(Self::to_string, "toString", 0)
         .method(Self::value_of, "valueOf", 0)
         .static_method(Self::as_int_n, "asIntN", 2)
         .static_method(Self::as_uint_n, "asUintN", 2)
@@ -131,18 +132,41 @@ impl BigInt {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let radix = if !args.is_empty() {
-            args[0].to_integer(context)? as i32
+        // 1. Let x be ? thisBigIntValue(this value).
+        let x = Self::this_bigint_value(this, context)?;
+
+        let radix = args.get(0).cloned().unwrap_or_default();
+
+        // 2. If radix is undefined, let radixMV be 10.
+        let radix_mv = if radix.is_undefined() {
+            // 5. If radixMV = 10, return ! ToString(x).
+            // Note: early return optimization.
+            return Ok(x.to_string().into());
+        // 3. Else, let radixMV be ? ToIntegerOrInfinity(radix).
         } else {
-            10
+            radix.to_integer_or_infinity(context)?
         };
-        if !(2..=36).contains(&radix) {
-            return context
-                .throw_range_error("radix must be an integer at least 2 and no greater than 36");
+
+        // 4. If radixMV < 2 or radixMV > 36, throw a RangeError exception.
+        let radix_mv = match radix_mv {
+            IntegerOrInfinity::Integer(i) if (2..=36).contains(&i) => i,
+            _ => {
+                return context.throw_range_error(
+                    "radix must be an integer at least 2 and no greater than 36",
+                )
+            }
+        };
+
+        // 5. If radixMV = 10, return ! ToString(x).
+        if radix_mv == 10 {
+            return Ok(x.to_string().into());
         }
-        Ok(JsValue::new(
-            Self::this_bigint_value(this, context)?.to_string_radix(radix as u32),
-        ))
+
+        // 1. Let x be ? thisBigIntValue(this value).
+        // 6. Return the String representation of this Number value using the radix specified by radixMV.
+        //    Letters a-z are used for digits with values 10 through 35.
+        //    The precise algorithm is implementation-defined, however the algorithm should be a generalization of that specified in 6.1.6.2.23.
+        Ok(JsValue::new(x.to_string_radix(radix_mv as u32)))
     }
 
     /// `BigInt.prototype.valueOf()`
