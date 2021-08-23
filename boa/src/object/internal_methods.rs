@@ -902,12 +902,10 @@ impl GcObject {
         // 4. For each element key of ownKeys, do
         for key in own_keys {
             // a. If Type(key) is String, then
-            let key_str = if let PropertyKey::Index(index) = &key {
-                Some(index.to_string().into())
-            } else if let PropertyKey::String(key_str) = &key {
-                Some(key_str.clone())
-            } else {
-                None
+            let key_str = match &key {
+                PropertyKey::String(s) => Some(s.clone()),
+                PropertyKey::Index(i) => Some(i.to_string().into()),
+                _ => None,
             };
 
             if let Some(key_str) = key_str {
