@@ -71,11 +71,11 @@ pub(crate) fn is_trimmable_whitespace(c: char) -> bool {
     )
 }
 
-fn is_leading_surrogate(value: u16) -> bool {
+pub(crate) fn is_leading_surrogate(value: u16) -> bool {
     (0xD800..=0xDBFF).contains(&value)
 }
 
-fn is_trailing_surrogate(value: u16) -> bool {
+pub(crate) fn is_trailing_surrogate(value: u16) -> bool {
     (0xDC00..=0xDFFF).contains(&value)
 }
 

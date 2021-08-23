@@ -20,7 +20,6 @@ use crate::{
     Context, Executable, JsResult, JsValue,
 };
 use gc::{Finalize, Gc, GcCell, GcCellRef, GcCellRefMut, Trace};
-use serde_json::{map::Map, Value as JSONValue};
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -441,45 +440,6 @@ impl JsObject {
 
         // 6. Throw a TypeError exception.
         context.throw_type_error("cannot convert object to primitive value")
-    }
-
-    /// Converts an object to JSON, checking for reference cycles and throwing a TypeError if one is found
-    pub(crate) fn to_json(&self, context: &mut Context) -> JsResult<Option<JSONValue>> {
-        let rec_limiter = RecursionLimiter::new(self);
-        if rec_limiter.live {
-            Err(context.construct_type_error("cyclic object value"))
-        } else if self.is_array() {
-            let mut keys: Vec<u32> = self
-                .borrow()
-                .properties
-                .index_property_keys()
-                .cloned()
-                .collect();
-            keys.sort_unstable();
-            let mut arr: Vec<JSONValue> = Vec::with_capacity(keys.len());
-            let this = JsValue::new(self.clone());
-            for key in keys {
-                let value = this.get_field(key, context)?;
-                if let Some(value) = value.to_json(context)? {
-                    arr.push(value);
-                } else {
-                    arr.push(JSONValue::Null);
-                }
-            }
-            Ok(Some(JSONValue::Array(arr)))
-        } else {
-            let mut new_obj = Map::new();
-            let this = JsValue::new(self.clone());
-            let keys: Vec<PropertyKey> = self.borrow().properties.keys().collect();
-            for k in keys {
-                let key = k.clone();
-                let value = this.get_field(k.to_string(), context)?;
-                if let Some(value) = value.to_json(context)? {
-                    new_obj.insert(key.to_string(), value);
-                }
-            }
-            Ok(Some(JSONValue::Object(new_obj)))
-        }
     }
 
     /// Return `true` if it is a native object and the native type is `T`.
