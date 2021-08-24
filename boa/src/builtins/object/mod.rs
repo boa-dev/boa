@@ -55,6 +55,7 @@ impl BuiltIn for Object {
         .method(Self::has_own_property, "hasOwnProperty", 0)
         .method(Self::property_is_enumerable, "propertyIsEnumerable", 0)
         .method(Self::to_string, "toString", 0)
+        .method(Self::value_of, "valueOf", 0)
         .method(Self::is_prototype_of, "isPrototypeOf", 0)
         .static_method(Self::create, "create", 2)
         .static_method(Self::set_prototype_of, "setPrototypeOf", 2)
@@ -419,6 +420,20 @@ impl Object {
             context.throw_type_error("Expected an object")
         }
     }
+
+    /// `Object.prototype.valueOf()`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.valueof
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/valueOf
+    pub fn value_of(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Return ? ToObject(this value).
+        Ok(this.to_object(context)?.into())
+    }
+
     /// `Object.prototype.toString()`
     ///
     /// This method returns a string representing the object.
