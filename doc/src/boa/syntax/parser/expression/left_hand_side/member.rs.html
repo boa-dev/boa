@@ -124,6 +124,11 @@
 <span id="124">124</span>
 <span id="125">125</span>
 <span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Member expression parsing.</span>
 <span class="doccomment">//!</span>
@@ -196,7 +201,12 @@
         {
             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>().<span class="ident">expect</span>(<span class="string">&quot;new keyword disappeared&quot;</span>);
             <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">Arguments::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>)<span class="question-mark">?</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="kw">if</span> <span class="ident">next</span>.<span class="ident">kind</span>() <span class="op">=</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenParen</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="ident">Arguments::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>)<span class="question-mark">?</span>
+                }
+                <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">Box::new</span>([]),
+            };
             <span class="kw">let</span> <span class="ident">call_node</span> <span class="op">=</span> <span class="ident">Call::new</span>(<span class="ident">lhs</span>, <span class="ident">args</span>);
 
             <span class="ident">Node::from</span>(<span class="ident">New::from</span>(<span class="ident">call_node</span>))
