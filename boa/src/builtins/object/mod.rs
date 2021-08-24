@@ -64,6 +64,7 @@ impl BuiltIn for Object {
         .static_method(Self::assign, "assign", 2)
         .static_method(Self::is, "is", 2)
         .static_method(Self::keys, "keys", 1)
+        .static_method(Self::values, "values", 1)
         .static_method(Self::entries, "entries", 1)
         .static_method(
             Self::get_own_property_descriptor,
@@ -606,6 +607,31 @@ impl Object {
 
         // 2. Let nameList be ? EnumerableOwnPropertyNames(obj, key).
         let name_list = obj.enumerable_own_property_names(PropertyNameKind::Key, context)?;
+
+        // 3. Return CreateArrayFromList(nameList).
+        let result = Array::create_array_from_list(name_list, context);
+
+        Ok(result.into())
+    }
+
+    /// `Object.values( target )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.values
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/values
+    pub fn values(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let obj be ? ToObject(target).
+        let obj = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_object(context)?;
+
+        // 2. Let nameList be ? EnumerableOwnPropertyNames(obj, value).
+        let name_list = obj.enumerable_own_property_names(PropertyNameKind::Value, context)?;
 
         // 3. Return CreateArrayFromList(nameList).
         let result = Array::create_array_from_list(name_list, context);
