@@ -2465,11 +2465,11 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::array::array_iterator</span>::{<span class="ident">ArrayIterationKind</span>, <span class="ident">ArrayIterator</span>},
+    <span class="ident">builtins::array::array_iterator::ArrayIterator</span>,
     <span class="ident">builtins::BuiltIn</span>,
     <span class="ident">builtins::Number</span>,
     <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>, <span class="ident">GcObject</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
-    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>},
+    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyNameKind</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">value</span>::{<span class="ident">IntegerOrInfinity</span>, <span class="ident">JsValue</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>,
@@ -4801,7 +4801,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">ArrayIterator::create_array_iterator</span>(
             <span class="ident">context</span>,
             <span class="ident">this</span>.<span class="ident">clone</span>(),
-            <span class="ident">ArrayIterationKind::Value</span>,
+            <span class="ident">PropertyNameKind::Value</span>,
         ))
     }
 
@@ -4819,7 +4819,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">ArrayIterator::create_array_iterator</span>(
             <span class="ident">context</span>,
             <span class="ident">this</span>.<span class="ident">clone</span>(),
-            <span class="ident">ArrayIterationKind::Key</span>,
+            <span class="ident">PropertyNameKind::Key</span>,
         ))
     }
 
@@ -4841,7 +4841,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">ArrayIterator::create_array_iterator</span>(
             <span class="ident">context</span>,
             <span class="ident">this</span>.<span class="ident">clone</span>(),
-            <span class="ident">ArrayIterationKind::KeyAndValue</span>,
+            <span class="ident">PropertyNameKind::KeyAndValue</span>,
         ))
     }
 

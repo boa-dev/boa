@@ -460,14 +460,14 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">iterable::get_iterator</span>, <span class="ident">BuiltIn</span>},
     <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
-    <span class="ident">property::Attribute</span>,
+    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyNameKind</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">ordered_set::OrderedSet</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">set_iterator</span>;
-<span class="kw">use</span> <span class="ident">set_iterator</span>::{<span class="ident">SetIterationKind</span>, <span class="ident">SetIterator</span>};
+<span class="kw">use</span> <span class="ident">set_iterator::SetIterator</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ordered_set</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -755,7 +755,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">SetIterator::create_set_iterator</span>(
             <span class="ident">context</span>,
             <span class="ident">this</span>.<span class="ident">clone</span>(),
-            <span class="ident">SetIterationKind::KeyAndValue</span>,
+            <span class="ident">PropertyNameKind::KeyAndValue</span>,
         ))
     }
 
@@ -869,7 +869,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">SetIterator::create_set_iterator</span>(
             <span class="ident">context</span>,
             <span class="ident">this</span>.<span class="ident">clone</span>(),
-            <span class="ident">SetIterationKind::Value</span>,
+            <span class="ident">PropertyNameKind::Value</span>,
         ))
     }
 
