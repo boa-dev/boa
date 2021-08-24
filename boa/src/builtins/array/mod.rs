@@ -230,7 +230,6 @@ impl Array {
         array.borrow_mut().data = ObjectData::array();
 
         // 6. Perform ! OrdinaryDefineOwnProperty(A, "length", PropertyDescriptor { [[Value]]: 𝔽(length), [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
-
         crate::object::internal_methods::ordinary_define_own_property(
             &array,
             "length".into(),
@@ -274,7 +273,7 @@ impl Array {
     }
 
     /// Creates a new `Array` instance.
-    pub(crate) fn new_array(context: &Context) -> JsValue {
+    pub(crate) fn new_array(context: &mut Context) -> JsValue {
         let array = JsValue::new_object(context);
         array.set_data(ObjectData::array());
         array

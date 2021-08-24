@@ -35,6 +35,7 @@ mod property_map;
 use crate::builtins::object::for_in_iterator::ForInIterator;
 pub use gcobject::{JsObject, RecursionLimiter, Ref, RefMut};
 use internal_methods::InternalObjectMethods;
+pub use operations::IntegrityLevel;
 pub use property_map::*;
 
 use self::internal_methods::{

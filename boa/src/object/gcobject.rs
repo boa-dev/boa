@@ -51,7 +51,7 @@ enum FunctionBody {
 }
 
 impl JsObject {
-    /// Create a new `JsObject` from a `Object`.
+    /// Create a new `GcObject` from a `Object`.
     #[inline]
     pub fn new(object: Object) -> Self {
         Self(Gc::new(GcCell::new(object)))

@@ -72,7 +72,7 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-preventextensions
     #[inline]
-    pub(crate) fn __prevent_extensions__(&mut self, context: &mut Context) -> JsResult<bool> {
+    pub(crate) fn __prevent_extensions__(&self, context: &mut Context) -> JsResult<bool> {
         let func = self.borrow().data.internal_methods.__prevent_extensions__;
         func(self, context)
     }
