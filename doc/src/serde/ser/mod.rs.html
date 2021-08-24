@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.128/src/ser/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde-1.0.129/src/ser/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled ><script id="default-settings"></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../serde/index.html'><div class='logo-container rust-logo'><img src='../../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img src="../../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
@@ -1964,6 +1964,28 @@
 <span id="1962">1962</span>
 <span id="1963">1963</span>
 <span id="1964">1964</span>
+<span id="1965">1965</span>
+<span id="1966">1966</span>
+<span id="1967">1967</span>
+<span id="1968">1968</span>
+<span id="1969">1969</span>
+<span id="1970">1970</span>
+<span id="1971">1971</span>
+<span id="1972">1972</span>
+<span id="1973">1973</span>
+<span id="1974">1974</span>
+<span id="1975">1975</span>
+<span id="1976">1976</span>
+<span id="1977">1977</span>
+<span id="1978">1978</span>
+<span id="1979">1979</span>
+<span id="1980">1980</span>
+<span id="1981">1981</span>
+<span id="1982">1982</span>
+<span id="1983">1983</span>
+<span id="1984">1984</span>
+<span id="1985">1985</span>
+<span id="1986">1986</span>
 </pre><pre class="rust">
 <span class="doccomment">//! Generic data structure serialization framework.</span>
 <span class="doccomment">//!</span>
@@ -3246,9 +3268,20 @@
     {
         <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">into_iter</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">serializer</span> <span class="op">=</span> <span class="macro">try!</span>(<span class="self">self</span>.<span class="ident">serialize_seq</span>(<span class="ident">iterator_len_hint</span>(<span class="kw-2">&amp;</span><span class="ident">iter</span>)));
-        <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="ident">iter</span> {
-            <span class="macro">try!</span>(<span class="ident">serializer</span>.<span class="ident">serialize_element</span>(<span class="kw-2">&amp;</span><span class="ident">item</span>));
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">iterator_try_fold</span>)]</span>
+        {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">iter</span>;
+            <span class="macro">try!</span>(<span class="ident">iter</span>.<span class="ident">try_for_each</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> <span class="ident">serializer</span>.<span class="ident">serialize_element</span>(<span class="kw-2">&amp;</span><span class="ident">item</span>)));
         }
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">iterator_try_fold</span>))]</span>
+        {
+            <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="ident">iter</span> {
+                <span class="macro">try!</span>(<span class="ident">serializer</span>.<span class="ident">serialize_element</span>(<span class="kw-2">&amp;</span><span class="ident">item</span>));
+            }
+        }
+
         <span class="ident">serializer</span>.<span class="ident">end</span>()
     }
 
@@ -3286,9 +3319,20 @@
     {
         <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">into_iter</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">serializer</span> <span class="op">=</span> <span class="macro">try!</span>(<span class="self">self</span>.<span class="ident">serialize_map</span>(<span class="ident">iterator_len_hint</span>(<span class="kw-2">&amp;</span><span class="ident">iter</span>)));
-        <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">iter</span> {
-            <span class="macro">try!</span>(<span class="ident">serializer</span>.<span class="ident">serialize_entry</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">value</span>));
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">iterator_try_fold</span>)]</span>
+        {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">iter</span>;
+            <span class="macro">try!</span>(<span class="ident">iter</span>.<span class="ident">try_for_each</span>(<span class="op">|</span>(<span class="ident">key</span>, <span class="ident">value</span>)<span class="op">|</span> <span class="ident">serializer</span>.<span class="ident">serialize_entry</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">value</span>)));
         }
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">iterator_try_fold</span>))]</span>
+        {
+            <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">iter</span> {
+                <span class="macro">try!</span>(<span class="ident">serializer</span>.<span class="ident">serialize_entry</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">value</span>));
+            }
+        }
+
         <span class="ident">serializer</span>.<span class="ident">end</span>()
     }
 
