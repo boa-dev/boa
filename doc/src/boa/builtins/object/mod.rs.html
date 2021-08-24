@@ -643,6 +643,32 @@
 <span id="643">643</span>
 <span id="644">644</span>
 <span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
 </pre><pre class="rust">
 <span class="doccomment">//! This module implements the global `Object` object.</span>
 <span class="doccomment">//!</span>
@@ -710,6 +736,7 @@
         .<span class="ident">static_method</span>(<span class="self">Self</span><span class="ident">::assign</span>, <span class="string">&quot;assign&quot;</span>, <span class="number">2</span>)
         .<span class="ident">static_method</span>(<span class="self">Self</span><span class="ident">::is</span>, <span class="string">&quot;is&quot;</span>, <span class="number">2</span>)
         .<span class="ident">static_method</span>(<span class="self">Self</span><span class="ident">::keys</span>, <span class="string">&quot;keys&quot;</span>, <span class="number">1</span>)
+        .<span class="ident">static_method</span>(<span class="self">Self</span><span class="ident">::values</span>, <span class="string">&quot;values&quot;</span>, <span class="number">1</span>)
         .<span class="ident">static_method</span>(<span class="self">Self</span><span class="ident">::entries</span>, <span class="string">&quot;entries&quot;</span>, <span class="number">1</span>)
         .<span class="ident">static_method</span>(
             <span class="self">Self</span><span class="ident">::get_own_property_descriptor</span>,
@@ -1252,6 +1279,31 @@
 
         <span class="comment">// 2. Let nameList be ? EnumerableOwnPropertyNames(obj, key).</span>
         <span class="kw">let</span> <span class="ident">name_list</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">enumerable_own_property_names</span>(<span class="ident">PropertyNameKind::Key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 3. Return CreateArrayFromList(nameList).</span>
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Array::create_array_from_list</span>(<span class="ident">name_list</span>, <span class="ident">context</span>);
+
+        <span class="prelude-val">Ok</span>(<span class="ident">result</span>.<span class="ident">into</span>())
+    }
+
+    <span class="doccomment">/// `Object.values( target )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-object.values</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/values</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">values</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Context</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Let obj be ? ToObject(target).</span>
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">0</span>)
+            .<span class="ident">cloned</span>()
+            .<span class="ident">unwrap_or_default</span>()
+            .<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 2. Let nameList be ? EnumerableOwnPropertyNames(obj, value).</span>
+        <span class="kw">let</span> <span class="ident">name_list</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">enumerable_own_property_names</span>(<span class="ident">PropertyNameKind::Value</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Return CreateArrayFromList(nameList).</span>
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Array::create_array_from_list</span>(<span class="ident">name_list</span>, <span class="ident">context</span>);
