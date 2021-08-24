@@ -17,7 +17,7 @@ use crate::{
     object::{ConstructorBuilder, ObjectData},
     profiler::BoaProfiler,
     property::Attribute,
-    Context, JsValue, Result,
+    Context, JsResult, JsValue,
 };
 
 /// JavaScript `EvalError` impleentation.
@@ -61,7 +61,7 @@ impl EvalError {
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let prototype = new_target
             .as_object()
             .and_then(|obj| {

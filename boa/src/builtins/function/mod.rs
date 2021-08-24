@@ -19,7 +19,7 @@ use crate::{
     object::{ConstructorBuilder, FunctionBuilder, JsObject, Object, ObjectData},
     property::{Attribute, PropertyDescriptor},
     syntax::ast::node::{FormalParameter, RcStatementList},
-    BoaProfiler, Context, JsValue, Result,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use bitflags::bitflags;
 use std::fmt::{self, Debug};
@@ -29,10 +29,10 @@ use std::rc::Rc;
 mod tests;
 
 /// _fn(this, arguments, context) -> ResultValue_ - The signature of a native built-in function
-pub type NativeFunction = fn(&JsValue, &[JsValue], &mut Context) -> Result<JsValue>;
+pub type NativeFunction = fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue>;
 
 /// _fn(this, arguments, context) -> ResultValue_ - The signature of a closure built-in function
-pub type ClosureFunction = dyn Fn(&JsValue, &[JsValue], &mut Context) -> Result<JsValue>;
+pub type ClosureFunction = dyn Fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue>;
 
 #[derive(Clone, Copy, Finalize)]
 pub struct BuiltInFunction(pub(crate) NativeFunction);
@@ -268,7 +268,11 @@ pub struct BuiltInFunctionObject;
 impl BuiltInFunctionObject {
     pub const LENGTH: usize = 1;
 
-    fn constructor(new_target: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    fn constructor(
+        new_target: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         let prototype = new_target
             .as_object()
             .and_then(|obj| {
@@ -291,7 +295,7 @@ impl BuiltInFunctionObject {
         Ok(this)
     }
 
-    fn prototype(_: &JsValue, _: &[JsValue], _: &mut Context) -> Result<JsValue> {
+    fn prototype(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Ok(JsValue::undefined())
     }
 
@@ -305,7 +309,7 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.call
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
-    fn call(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    fn call(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if !this.is_function() {
             return context.throw_type_error(format!("{} is not a function", this.display()));
         }
@@ -326,7 +330,7 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.apply
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply
-    fn apply(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    fn apply(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if !this.is_function() {
             return context.throw_type_error(format!("{} is not a function", this.display()));
         }

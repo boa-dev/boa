@@ -6,7 +6,7 @@ use crate::{
     exec::Executable,
     exec::InterpreterState,
     gc::{Finalize, Trace},
-    BoaProfiler, Context, JsValue, Result,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -54,7 +54,7 @@ impl Block {
 }
 
 impl Executable for Block {
-    fn run(&self, context: &mut Context) -> Result<JsValue> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("Block", "exec");
         {
             let env = context.get_current_environment();

@@ -2,7 +2,7 @@ use crate::{
     exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, JsValue, Result,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -72,7 +72,7 @@ impl WhileLoop {
 }
 
 impl Executable for WhileLoop {
-    fn run(&self, context: &mut Context) -> Result<JsValue> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let mut result = JsValue::undefined();
         while self.cond().run(context)?.to_boolean() {
             result = self.body().run(context)?;

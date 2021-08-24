@@ -3,7 +3,7 @@
 use crate::{
     exec::Executable,
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    BoaProfiler, Context, JsValue, Result,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use gc::{Finalize, Trace};
 use std::fmt;
@@ -79,7 +79,7 @@ impl AsyncFunctionDecl {
 }
 
 impl Executable for AsyncFunctionDecl {
-    fn run(&self, _: &mut Context) -> Result<JsValue> {
+    fn run(&self, _: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("AsyncFunctionDecl", "exec");
         // TODO: Implement AsyncFunctionDecl
         Ok(JsValue::undefined())

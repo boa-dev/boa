@@ -10,7 +10,7 @@ use crate::{
     object::{JsObject, Object, ObjectData},
     property::{DescriptorKind, PropertyDescriptor, PropertyKey, PropertyNameKind},
     value::{JsValue, Type},
-    BoaProfiler, Context, Result,
+    BoaProfiler, Context, JsResult,
 };
 
 impl JsObject {
@@ -22,7 +22,7 @@ impl JsObject {
     /// [spec]: https://tc39.es/ecma262/#sec-hasproperty
     // NOTE: for now context is not used but it will in the future.
     #[inline]
-    pub fn has_property<K>(&self, key: K, _context: &mut Context) -> Result<bool>
+    pub fn has_property<K>(&self, key: K, _context: &mut Context) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
     {
@@ -40,7 +40,7 @@ impl JsObject {
     /// [spec]: https://tc39.es/ecma262/#sec-isextensible-o
     // NOTE: for now context is not used but it will in the future.
     #[inline]
-    pub fn is_extensible(&self, _context: &mut Context) -> Result<bool> {
+    pub fn is_extensible(&self, _context: &mut Context) -> JsResult<bool> {
         // 1. Assert: Type(O) is Object.
         // 2. Return ? O.[[IsExtensible]]().
         Ok(self.__is_extensible__())
@@ -62,7 +62,7 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-definepropertyorthrow
     #[inline]
-    pub fn delete_property_or_throw<K>(&self, key: K, context: &mut Context) -> Result<bool>
+    pub fn delete_property_or_throw<K>(&self, key: K, context: &mut Context) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
     {
@@ -86,7 +86,7 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hasownproperty
     #[inline]
-    pub fn has_own_property<K>(&self, key: K, _context: &mut Context) -> Result<bool>
+    pub fn has_own_property<K>(&self, key: K, _context: &mut Context) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
     {
@@ -107,7 +107,7 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-o-p
     #[inline]
-    pub fn get<K>(&self, key: K, context: &mut Context) -> Result<JsValue>
+    pub fn get<K>(&self, key: K, context: &mut Context) -> JsResult<JsValue>
     where
         K: Into<PropertyKey>,
     {
@@ -124,7 +124,7 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set-o-p-v-throw
     #[inline]
-    pub fn set<K, V>(&self, key: K, value: V, throw: bool, context: &mut Context) -> Result<bool>
+    pub fn set<K, V>(&self, key: K, value: V, throw: bool, context: &mut Context) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
         V: Into<JsValue>,
@@ -157,7 +157,7 @@ impl JsObject {
         key: K,
         desc: P,
         context: &mut Context,
-    ) -> Result<bool>
+    ) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
         P: Into<PropertyDescriptor>,
@@ -186,7 +186,7 @@ impl JsObject {
         key: K,
         value: V,
         context: &mut Context,
-    ) -> Result<bool>
+    ) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
         V: Into<JsValue>,
@@ -214,7 +214,7 @@ impl JsObject {
         key: K,
         value: V,
         context: &mut Context,
-    ) -> Result<bool>
+    ) -> JsResult<bool>
     where
         K: Into<PropertyKey>,
         V: Into<JsValue>,
@@ -289,7 +289,7 @@ impl JsObject {
         key: &PropertyKey,
         receiver: JsValue,
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         match self.__get_own_property__(key) {
             None => {
                 // parent will either be null or an Object
@@ -318,7 +318,7 @@ impl JsObject {
         value: JsValue,
         receiver: JsValue,
         context: &mut Context,
-    ) -> Result<bool> {
+    ) -> JsResult<bool> {
         let _timer = BoaProfiler::global().start_event("Object::set", "object");
 
         // Fetch property key
@@ -377,7 +377,7 @@ impl JsObject {
         key: PropertyKey,
         desc: PropertyDescriptor,
         context: &mut Context,
-    ) -> Result<bool> {
+    ) -> JsResult<bool> {
         if self.is_array() {
             self.array_define_own_property(key, desc, context)
         } else {
@@ -482,7 +482,7 @@ impl JsObject {
         key: PropertyKey,
         desc: PropertyDescriptor,
         context: &mut Context,
-    ) -> Result<bool> {
+    ) -> JsResult<bool> {
         match key {
             PropertyKey::String(ref s) if s == "length" => {
                 let new_len_val = match desc.value() {
@@ -691,7 +691,7 @@ impl JsObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.defineproperties
     #[inline]
-    pub fn define_properties(&mut self, props: JsValue, context: &mut Context) -> Result<()> {
+    pub fn define_properties(&mut self, props: JsValue, context: &mut Context) -> JsResult<()> {
         let props = &props.to_object(context)?;
         let keys = props.own_property_keys();
         let mut descriptors: Vec<(PropertyKey, PropertyDescriptor)> = Vec::new();
@@ -838,7 +838,7 @@ impl JsObject {
         &self,
         element_types: &[Type],
         context: &mut Context,
-    ) -> Result<Vec<JsValue>> {
+    ) -> JsResult<Vec<JsValue>> {
         // 1. If elementTypes is not present, set elementTypes to « Undefined, Null, Boolean, String, Symbol, Number, BigInt, Object ».
         let types = if element_types.is_empty() {
             &[
@@ -892,7 +892,7 @@ impl JsObject {
         &self,
         kind: PropertyNameKind,
         context: &mut Context,
-    ) -> Result<Vec<JsValue>> {
+    ) -> JsResult<Vec<JsValue>> {
         // 1. Assert: Type(O) is Object.
         // 2. Let ownKeys be ? O.[[OwnPropertyKeys]]().
         let own_keys = self.own_property_keys();
@@ -902,35 +902,38 @@ impl JsObject {
         // 4. For each element key of ownKeys, do
         for key in own_keys {
             // a. If Type(key) is String, then
-            if let PropertyKey::String(key_str) = &key {
+            let key_str = match &key {
+                PropertyKey::String(s) => Some(s.clone()),
+                PropertyKey::Index(i) => Some(i.to_string().into()),
+                _ => None,
+            };
+
+            if let Some(key_str) = key_str {
                 // i. Let desc be ? O.[[GetOwnProperty]](key).
                 let desc = self.__get_own_property__(&key);
                 // ii. If desc is not undefined and desc.[[Enumerable]] is true, then
                 if let Some(desc) = desc {
                     if desc.expect_enumerable() {
-                        // 1. If kind is key, append key to properties.
-                        if let PropertyNameKind::Key = kind {
-                            properties.push(key_str.clone().into())
-                        }
-                        // 2. Else,
-                        else {
+                        match kind {
+                            // 1. If kind is key, append key to properties.
+                            PropertyNameKind::Key => properties.push(key_str.into()),
+                            // 2. Else,
                             // a. Let value be ? Get(O, key).
-                            let value = self.get(key.clone(), context)?;
                             // b. If kind is value, append value to properties.
-                            if let PropertyNameKind::Value = kind {
-                                properties.push(value)
+                            PropertyNameKind::Value => {
+                                properties.push(self.get(key.clone(), context)?)
                             }
                             // c. Else,
-                            else {
-                                // i. Assert: kind is key+value.
-                                // ii. Let entry be ! CreateArrayFromList(« key, value »).
-                                let key_val = key_str.clone().into();
-                                let entry =
-                                    Array::create_array_from_list([key_val, value], context);
-
-                                // iii. Append entry to properties.
-                                properties.push(entry.into());
-                            }
+                            // i. Assert: kind is key+value.
+                            // ii. Let entry be ! CreateArrayFromList(« key, value »).
+                            // iii. Append entry to properties.
+                            PropertyNameKind::KeyAndValue => properties.push(
+                                Array::create_array_from_list(
+                                    [key_str.into(), self.get(key.clone(), context)?],
+                                    context,
+                                )
+                                .into(),
+                            ),
                         }
                     }
                 }
@@ -941,7 +944,7 @@ impl JsObject {
         Ok(properties)
     }
 
-    pub(crate) fn length_of_array_like(&self, context: &mut Context) -> Result<usize> {
+    pub(crate) fn length_of_array_like(&self, context: &mut Context) -> JsResult<usize> {
         // 1. Assert: Type(obj) is Object.
         // 2. Return ℝ(? ToLength(? Get(obj, "length"))).
         self.get("length", context)?.to_length(context)

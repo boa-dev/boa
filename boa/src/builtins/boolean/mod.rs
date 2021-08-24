@@ -16,7 +16,7 @@ use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, ObjectData, PROTOTYPE},
     property::Attribute,
-    BoaProfiler, Context, JsValue, Result,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 
 /// Boolean implementation.
@@ -60,7 +60,7 @@ impl Boolean {
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // Get the argument, if any
         let data = args.get(0).map(|x| x.to_boolean()).unwrap_or(false);
         if new_target.is_undefined() {
@@ -92,7 +92,7 @@ impl Boolean {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisbooleanvalue
-    fn this_boolean_value(value: &JsValue, context: &mut Context) -> Result<bool> {
+    fn this_boolean_value(value: &JsValue, context: &mut Context) -> JsResult<bool> {
         match value {
             JsValue::Boolean(boolean) => return Ok(*boolean),
             JsValue::Object(ref object) => {
@@ -120,7 +120,7 @@ impl Boolean {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let boolean = Self::this_boolean_value(this, context)?;
         Ok(JsValue::new(boolean.to_string()))
     }
@@ -138,7 +138,7 @@ impl Boolean {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         Ok(JsValue::new(Self::this_boolean_value(this, context)?))
     }
 }

@@ -8,7 +8,7 @@ use crate::{
     property::Attribute,
     symbol::WellKnownSymbols,
     value::{JsValue, PreferredType},
-    BoaProfiler, Context, JsString, Result,
+    BoaProfiler, Context, JsResult, JsString,
 };
 use chrono::{prelude::*, Duration, LocalResult};
 use std::fmt::Display;
@@ -46,13 +46,13 @@ fn ignore_ambiguity<T>(result: LocalResult<T>) -> Option<T> {
 
 macro_rules! getter_method {
     ($name:ident) => {{
-        fn get_value(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+        fn get_value(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
             Ok(JsValue::new(this_time_value(this, context)?.$name()))
         }
         get_value
     }};
     (Self::$name:ident) => {{
-        fn get_value(_: &JsValue, _: &[JsValue], _: &mut Context) -> Result<JsValue> {
+        fn get_value(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
             Ok(JsValue::new(Date::$name()))
         }
         get_value
@@ -334,7 +334,7 @@ impl Date {
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         if new_target.is_undefined() {
             Ok(Self::make_date_string())
         } else {
@@ -404,7 +404,7 @@ impl Date {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let value = &args[0];
         let tv = match this_time_value(value, context) {
             Ok(dt) => dt.0,
@@ -446,7 +446,7 @@ impl Date {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let mut year = args[0].to_number(context)?;
         let month = args[1].to_number(context)?;
         let day = args
@@ -514,7 +514,7 @@ impl Date {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. If Type(O) is not Object, throw a TypeError exception.
         let o = if let Some(o) = this.as_object() {
@@ -709,7 +709,7 @@ impl Date {
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         let t = this_time_value(this, context)?;
 
@@ -854,7 +854,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setdate
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setDate
-    pub fn set_date(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub fn set_date(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let t be LocalTime(? thisTimeValue(this value)).
         let mut t = this_time_value(this, context)?;
 
@@ -893,7 +893,7 @@ impl Date {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         let mut t = this_time_value(this, context)?;
 
@@ -951,7 +951,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.sethours
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setHours
-    pub fn set_hours(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub fn set_hours(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let t be LocalTime(? thisTimeValue(this value)).
         let mut t = this_time_value(this, context)?;
 
@@ -1010,7 +1010,7 @@ impl Date {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let t be LocalTime(? thisTimeValue(this value)).
         let mut t = this_time_value(this, context)?;
 
@@ -1044,7 +1044,11 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setminutes
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setMinutes
-    pub fn set_minutes(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub fn set_minutes(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let t be LocalTime(? thisTimeValue(this value)).
         let mut t = this_time_value(this, context)?;
 
@@ -1092,7 +1096,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setmonth
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setMonth
-    pub fn set_month(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub fn set_month(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let t be LocalTime(? thisTimeValue(this value)).
         let mut t = this_time_value(this, context)?;
 
@@ -1133,7 +1137,11 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setseconds
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setSeconds
-    pub fn set_seconds(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub fn set_seconds(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let t be LocalTime(? thisTimeValue(this value)).
         let mut t = this_time_value(this, context)?;
 
@@ -1174,7 +1182,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setYear
-    pub fn set_year(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub fn set_year(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         let mut t = this_time_value(this, context)?;
 
@@ -1231,7 +1239,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.settime
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setTime
-    pub fn set_time(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub fn set_time(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Perform ? thisTimeValue(this value).
         this_time_value(this, context)?;
 
@@ -1272,7 +1280,7 @@ impl Date {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         let mut t = this_time_value(this, context)?;
 
@@ -1311,7 +1319,7 @@ impl Date {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         let mut t = this_time_value(this, context)?;
 
@@ -1373,7 +1381,7 @@ impl Date {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         let mut t = this_time_value(this, context)?;
 
@@ -1432,7 +1440,7 @@ impl Date {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         let mut t = this_time_value(this, context)?;
 
@@ -1470,7 +1478,7 @@ impl Date {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         let mut t = this_time_value(this, context)?;
 
@@ -1526,7 +1534,7 @@ impl Date {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         let mut t = this_time_value(this, context)?;
 
@@ -1573,7 +1581,7 @@ impl Date {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
         let mut t = this_time_value(this, context)?;
 
@@ -1617,7 +1625,11 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.todatestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toDateString
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_date_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub fn to_date_string(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let O be this Date object.
         // 2. Let tv be ? thisTimeValue(O).
         let tv = this_time_value(this, context)?;
@@ -1659,7 +1671,11 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.toisostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_iso_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub fn to_iso_string(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         if let Some(t) = this_time_value(this, context)?.0 {
             Ok(Utc::now()
                 .timezone()
@@ -1683,7 +1699,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.tojson
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toJSON
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_json(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub fn to_json(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be ? ToObject(this value).
         let o = this.to_object(context)?;
 
@@ -1716,7 +1732,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toString
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let tv be ? thisTimeValue(this value).
         let tv = this_time_value(this, context)?;
 
@@ -1745,7 +1761,11 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.totimestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toTimeString
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_time_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub fn to_time_string(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let O be this Date object.
         // 2. Let tv be ? thisTimeValue(O).
         let tv = this_time_value(this, context)?;
@@ -1805,7 +1825,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.now
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
-    pub(crate) fn now(_: &JsValue, _: &[JsValue], _: &mut Context) -> Result<JsValue> {
+    pub(crate) fn now(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         Ok(JsValue::new(Utc::now().timestamp_millis() as f64))
     }
 
@@ -1821,7 +1841,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse
-    pub(crate) fn parse(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn parse(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // This method is implementation-defined and discouraged, so we just require the same format as the string
         // constructor.
 
@@ -1845,7 +1865,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.utc
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/UTC
-    pub(crate) fn utc(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn utc(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let year = args
             .get(0)
             .map_or(Ok(f64::NAN), |value| value.to_number(context))?;
@@ -1906,7 +1926,7 @@ impl Date {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-thistimevalue
 #[inline]
-pub fn this_time_value(value: &JsValue, context: &mut Context) -> Result<Date> {
+pub fn this_time_value(value: &JsValue, context: &mut Context) -> JsResult<Date> {
     if let JsValue::Object(ref object) = value {
         if let ObjectData::Date(ref date) = object.borrow().data {
             return Ok(*date);

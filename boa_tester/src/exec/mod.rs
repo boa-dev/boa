@@ -312,6 +312,6 @@ impl Test {
 }
 
 /// `print()` function required by the test262 suite.
-fn test262_print(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> boa::Result<JsValue> {
+fn test262_print(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> boa::JsResult<JsValue> {
     todo!("print() function");
 }

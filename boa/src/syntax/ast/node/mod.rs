@@ -50,7 +50,7 @@ use super::Const;
 use crate::{
     exec::Executable,
     gc::{empty_trace, Finalize, Trace},
-    BoaProfiler, Context, JsValue, Result,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use std::{
     cmp::Ordering,
@@ -307,7 +307,7 @@ impl Node {
 }
 
 impl Executable for Node {
-    fn run(&self, context: &mut Context) -> Result<JsValue> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("Executable", "exec");
         match *self {
             Node::AsyncFunctionDecl(ref decl) => decl.run(context),

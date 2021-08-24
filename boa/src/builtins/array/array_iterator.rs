@@ -2,17 +2,10 @@ use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
     gc::{Finalize, Trace},
     object::{JsObject, ObjectData},
-    property::PropertyDescriptor,
+    property::{PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, Result,
+    BoaProfiler, Context, JsResult,
 };
-
-#[derive(Debug, Clone, Finalize, Trace)]
-pub enum ArrayIterationKind {
-    Key,
-    Value,
-    KeyAndValue,
-}
 
 /// The Array Iterator object represents an iteration over an array. It implements the iterator protocol.
 ///
@@ -24,13 +17,13 @@ pub enum ArrayIterationKind {
 pub struct ArrayIterator {
     array: JsValue,
     next_index: u32,
-    kind: ArrayIterationKind,
+    kind: PropertyNameKind,
 }
 
 impl ArrayIterator {
     pub(crate) const NAME: &'static str = "ArrayIterator";
 
-    fn new(array: JsValue, kind: ArrayIterationKind) -> Self {
+    fn new(array: JsValue, kind: PropertyNameKind) -> Self {
         ArrayIterator {
             array,
             kind,
@@ -49,7 +42,7 @@ impl ArrayIterator {
     pub(crate) fn create_array_iterator(
         context: &Context,
         array: JsValue,
-        kind: ArrayIterationKind,
+        kind: PropertyNameKind,
     ) -> JsValue {
         let array_iterator = JsValue::new_object(context);
         array_iterator.set_data(ObjectData::ArrayIterator(Self::new(array, kind)));
@@ -68,7 +61,7 @@ impl ArrayIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
-    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if let JsValue::Object(ref object) = this {
             let mut object = object.borrow_mut();
             if let Some(array_iterator) = object.as_array_iterator_mut() {
@@ -96,14 +89,14 @@ impl ArrayIterator {
                 }
                 array_iterator.next_index = index + 1;
                 match array_iterator.kind {
-                    ArrayIterationKind::Key => {
+                    PropertyNameKind::Key => {
                         Ok(create_iter_result_object(context, index.into(), false))
                     }
-                    ArrayIterationKind::Value => {
+                    PropertyNameKind::Value => {
                         let element_value = array_iterator.array.get_field(index, context)?;
                         Ok(create_iter_result_object(context, element_value, false))
                     }
-                    ArrayIterationKind::KeyAndValue => {
+                    PropertyNameKind::KeyAndValue => {
                         let element_value = array_iterator.array.get_field(index, context)?;
                         let result =
                             Array::create_array_from_list([index.into(), element_value], context);

@@ -18,7 +18,7 @@ use crate::{
     },
     gc::{empty_trace, Finalize, Trace},
     object::JsObject,
-    Context, JsValue, Result,
+    Context, JsResult, JsValue,
 };
 
 /// Different binding status for `this`.
@@ -80,7 +80,7 @@ impl FunctionEnvironmentRecord {
         func_env
     }
 
-    pub fn bind_this_value(&mut self, value: JsValue) -> Result<JsValue> {
+    pub fn bind_this_value(&mut self, value: JsValue) -> JsResult<JsValue> {
         match self.this_binding_status {
             // You can not bind an arrow function, their `this` value comes from the lexical scope above
             BindingStatus::Lexical => {
@@ -123,7 +123,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         deletion: bool,
         allow_name_reuse: bool,
         context: &mut Context,
-    ) -> Result<()> {
+    ) -> JsResult<()> {
         self.declarative_record
             .create_mutable_binding(name, deletion, allow_name_reuse, context)
     }
@@ -133,12 +133,17 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         name: String,
         strict: bool,
         context: &mut Context,
-    ) -> Result<()> {
+    ) -> JsResult<()> {
         self.declarative_record
             .create_immutable_binding(name, strict, context)
     }
 
-    fn initialize_binding(&self, name: &str, value: JsValue, context: &mut Context) -> Result<()> {
+    fn initialize_binding(
+        &self,
+        name: &str,
+        value: JsValue,
+        context: &mut Context,
+    ) -> JsResult<()> {
         self.declarative_record
             .initialize_binding(name, value, context)
     }
@@ -149,7 +154,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         value: JsValue,
         strict: bool,
         context: &mut Context,
-    ) -> Result<()> {
+    ) -> JsResult<()> {
         self.declarative_record
             .set_mutable_binding(name, value, strict, context)
     }
@@ -159,7 +164,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         name: &str,
         strict: bool,
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         self.declarative_record
             .get_binding_value(name, strict, context)
     }
@@ -172,7 +177,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         !matches!(self.this_binding_status, BindingStatus::Lexical)
     }
 
-    fn get_this_binding(&self, context: &mut Context) -> Result<JsValue> {
+    fn get_this_binding(&self, context: &mut Context) -> JsResult<JsValue> {
         match self.this_binding_status {
             BindingStatus::Lexical => {
                 panic!("There is no this for a lexical function record");
@@ -214,7 +219,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         deletion: bool,
         _scope: VariableScope,
         context: &mut Context,
-    ) -> Result<()> {
+    ) -> JsResult<()> {
         self.create_mutable_binding(name, deletion, false, context)
     }
 
@@ -224,7 +229,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         deletion: bool,
         _scope: VariableScope,
         context: &mut Context,
-    ) -> Result<()> {
+    ) -> JsResult<()> {
         self.create_immutable_binding(name, deletion, context)
     }
 }

@@ -13,14 +13,14 @@
 use crate::{
     builtins::{iterable::get_iterator, BuiltIn},
     object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
-    property::Attribute,
+    property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, JsValue, Result,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use ordered_set::OrderedSet;
 
 pub mod set_iterator;
-use set_iterator::{SetIterationKind, SetIterator};
+use set_iterator::SetIterator;
 
 pub mod ordered_set;
 #[cfg(test)]
@@ -113,7 +113,7 @@ impl Set {
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1
         if new_target.is_undefined() {
             return context
@@ -186,7 +186,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-set-@@species
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/@@species
-    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> Result<JsValue> {
+    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
     }
@@ -201,7 +201,11 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.add
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/add
-    pub(crate) fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn add(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         let mut value = args.get(0).cloned().unwrap_or_default();
 
         if let Some(object) = this.as_object() {
@@ -230,7 +234,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/clear
-    pub(crate) fn clear(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn clear(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if let Some(object) = this.as_object() {
             if object.borrow().is_set() {
                 this.set_data(ObjectData::Set(OrderedSet::new()));
@@ -258,7 +262,7 @@ impl Set {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let value = args.get(0).cloned().unwrap_or_default();
 
         let res = if let Some(object) = this.as_object() {
@@ -284,7 +288,11 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.entries
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/entries
-    pub(crate) fn entries(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn entries(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         if let Some(object) = this.as_object() {
             let object = object.borrow();
             if !object.is_set() {
@@ -300,7 +308,7 @@ impl Set {
         Ok(SetIterator::create_set_iterator(
             context,
             this.clone(),
-            SetIterationKind::KeyAndValue,
+            PropertyNameKind::KeyAndValue,
         ))
     }
 
@@ -318,7 +326,7 @@ impl Set {
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         if args.is_empty() {
             return Err(JsValue::new("Missing argument for Set.prototype.forEach"));
         }
@@ -367,7 +375,11 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
-    pub(crate) fn has(this: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn has(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         let value = args.get(0).cloned().unwrap_or_default();
 
         if let JsValue::Object(ref object) = this {
@@ -390,7 +402,11 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/values
-    pub(crate) fn values(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn values(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         if let Some(object) = this.as_object() {
             let object = object.borrow();
             if !object.is_set() {
@@ -406,16 +422,16 @@ impl Set {
         Ok(SetIterator::create_set_iterator(
             context,
             this.clone(),
-            SetIterationKind::Value,
+            PropertyNameKind::Value,
         ))
     }
 
-    fn size_getter(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    fn size_getter(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Set::get_size(this, context).map(JsValue::from)
     }
 
     /// Helper function to get the size of the set.
-    fn get_size(set: &JsValue, context: &mut Context) -> Result<usize> {
+    fn get_size(set: &JsValue, context: &mut Context) -> JsResult<usize> {
         if let JsValue::Object(ref object) = set {
             let object = object.borrow();
             if let Some(set) = object.as_set_ref() {

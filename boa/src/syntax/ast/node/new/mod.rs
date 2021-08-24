@@ -4,7 +4,7 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::node::{Call, Node},
     value::JsValue,
-    BoaProfiler, Context, Result,
+    BoaProfiler, Context, JsResult,
 };
 use std::fmt;
 
@@ -48,7 +48,7 @@ impl New {
 }
 
 impl Executable for New {
-    fn run(&self, context: &mut Context) -> Result<JsValue> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let _timer = BoaProfiler::global().start_event("New", "exec");
 
         let func_object = self.expr().run(context)?;

@@ -2,7 +2,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, JsValue, Result,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -79,7 +79,7 @@ impl If {
 }
 
 impl Executable for If {
-    fn run(&self, context: &mut Context) -> Result<JsValue> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         Ok(if self.cond().run(context)?.to_boolean() {
             self.body().run(context)?
         } else if let Some(else_e) = self.else_node() {

@@ -2,7 +2,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, JsValue, Result,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -62,7 +62,7 @@ impl GetConstField {
 }
 
 impl Executable for GetConstField {
-    fn run(&self, context: &mut Context) -> Result<JsValue> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         let mut obj = self.obj().run(context)?;
         if !obj.is_object() {
             obj = JsValue::Object(obj.to_object(context)?);

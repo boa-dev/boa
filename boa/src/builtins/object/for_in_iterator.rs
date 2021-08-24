@@ -5,7 +5,7 @@ use crate::{
     property::PropertyDescriptor,
     property::PropertyKey,
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, JsString, JsValue, Result,
+    BoaProfiler, Context, JsResult, JsString, JsValue,
 };
 use rustc_hash::FxHashSet;
 use std::collections::VecDeque;
@@ -63,7 +63,7 @@ impl ForInIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%foriniteratorprototype%.next
-    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if let JsValue::Object(ref o) = this {
             let mut for_in_iterator = o.borrow_mut();
             if let Some(iterator) = for_in_iterator.as_for_in_iterator_mut() {

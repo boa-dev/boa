@@ -15,7 +15,7 @@ use crate::{
     object::{Object, ObjectData, ObjectInitializer},
     property::{Attribute, PropertyDescriptor},
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, JsValue, Result,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 
 #[cfg(test)]
@@ -74,7 +74,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.apply
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/apply
-    pub(crate) fn apply(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn apply(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let undefined = JsValue::undefined();
         let target = args
             .get(0)
@@ -105,7 +105,7 @@ impl Reflect {
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let target = args
             .get(0)
             .and_then(|v| v.as_object())
@@ -144,7 +144,7 @@ impl Reflect {
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let undefined = JsValue::undefined();
         let target = args
             .get(0)
@@ -174,7 +174,7 @@ impl Reflect {
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let undefined = JsValue::undefined();
         let target = args
             .get(0)
@@ -193,7 +193,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.get
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/get
-    pub(crate) fn get(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn get(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let undefined = JsValue::undefined();
         // 1. If Type(target) is not Object, throw a TypeError exception.
         let target = args
@@ -225,7 +225,7 @@ impl Reflect {
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         match args.get(0) {
             Some(v) if v.is_object() => (),
             _ => return context.throw_type_error("target must be an object"),
@@ -247,7 +247,7 @@ impl Reflect {
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let target = args
             .get(0)
             .and_then(|v| v.as_object())
@@ -263,7 +263,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/has
-    pub(crate) fn has(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn has(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let target = args
             .get(0)
             .and_then(|v| v.as_object())
@@ -287,7 +287,7 @@ impl Reflect {
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let target = args
             .get(0)
             .and_then(|v| v.as_object())
@@ -307,7 +307,7 @@ impl Reflect {
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let target = args
             .get(0)
             .and_then(|v| v.as_object())
@@ -344,7 +344,7 @@ impl Reflect {
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let mut target = args
             .get(0)
             .and_then(|v| v.as_object())
@@ -361,7 +361,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.set
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/set
-    pub(crate) fn set(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue> {
+    pub(crate) fn set(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let undefined = JsValue::undefined();
         let target = args
             .get(0)
@@ -391,7 +391,7 @@ impl Reflect {
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         let undefined = JsValue::undefined();
         let mut target = args
             .get(0)

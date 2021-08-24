@@ -14,7 +14,7 @@ use crate::{
     object::{JsObject, Object, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
     symbol::{JsSymbol, WellKnownSymbols},
-    BoaProfiler, Context, JsBigInt, JsString, Result,
+    BoaProfiler, Context, JsBigInt, JsResult, JsString,
 };
 use gc::{Finalize, Trace};
 use serde_json::{Number as JSONNumber, Value as JSONValue};
@@ -174,7 +174,7 @@ impl JsValue {
     }
 
     /// Converts the `JsValue` to `JSON`.
-    pub fn to_json(&self, context: &mut Context) -> Result<Option<JSONValue>> {
+    pub fn to_json(&self, context: &mut Context) -> JsResult<Option<JSONValue>> {
         let to_json = self.get_field("toJSON", context)?;
         if to_json.is_function() {
             let json_value = context.call(&to_json, self, &[])?;
@@ -405,7 +405,7 @@ impl JsValue {
 
     /// Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
     /// get_field receives a Property from get_prop(). It should then return the `[[Get]]` result value if that's set, otherwise fall back to `[[Value]]`
-    pub(crate) fn get_field<K>(&self, key: K, context: &mut Context) -> Result<Self>
+    pub(crate) fn get_field<K>(&self, key: K, context: &mut Context) -> JsResult<Self>
     where
         K: Into<PropertyKey>,
     {
@@ -445,7 +445,7 @@ impl JsValue {
         value: V,
         throw: bool,
         context: &mut Context,
-    ) -> Result<JsValue>
+    ) -> JsResult<JsValue>
     where
         K: Into<PropertyKey>,
         V: Into<JsValue>,
@@ -503,7 +503,7 @@ impl JsValue {
         &self,
         context: &mut Context,
         preferred_type: PreferredType,
-    ) -> Result<JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Assert: input is an ECMAScript language value. (always a value not need to check)
         // 2. If Type(input) is Object, then
         if let JsValue::Object(obj) = self {
@@ -541,7 +541,7 @@ impl JsValue {
     /// Converts the value to a `BigInt`.
     ///
     /// This function is equivelent to `BigInt(value)` in JavaScript.
-    pub fn to_bigint(&self, context: &mut Context) -> Result<JsBigInt> {
+    pub fn to_bigint(&self, context: &mut Context) -> JsResult<JsBigInt> {
         match self {
             JsValue::Null => Err(context.construct_type_error("cannot convert null to a BigInt")),
             JsValue::Undefined => {
@@ -599,7 +599,7 @@ impl JsValue {
     /// Converts the value to a string.
     ///
     /// This function is equivalent to `String(value)` in JavaScript.
-    pub fn to_string(&self, context: &mut Context) -> Result<JsString> {
+    pub fn to_string(&self, context: &mut Context) -> JsResult<JsString> {
         match self {
             JsValue::Null => Ok("null".into()),
             JsValue::Undefined => Ok("undefined".into()),
@@ -623,7 +623,7 @@ impl JsValue {
     /// This function is equivalent to `Object(value)` in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-toobject>
-    pub fn to_object(&self, context: &mut Context) -> Result<JsObject> {
+    pub fn to_object(&self, context: &mut Context) -> JsResult<JsObject> {
         match self {
             JsValue::Undefined | JsValue::Null => {
                 Err(context.construct_type_error("cannot convert 'null' or 'undefined' to object"))
@@ -688,7 +688,7 @@ impl JsValue {
     /// Converts the value to a `PropertyKey`, that can be used as a key for properties.
     ///
     /// See <https://tc39.es/ecma262/#sec-topropertykey>
-    pub fn to_property_key(&self, context: &mut Context) -> Result<PropertyKey> {
+    pub fn to_property_key(&self, context: &mut Context) -> JsResult<PropertyKey> {
         Ok(match self {
             // Fast path:
             JsValue::String(string) => string.clone().into(),
@@ -705,7 +705,7 @@ impl JsValue {
     /// It returns value converted to a numeric value of type `Number` or `BigInt`.
     ///
     /// See: <https://tc39.es/ecma262/#sec-tonumeric>
-    pub fn to_numeric(&self, context: &mut Context) -> Result<Numeric> {
+    pub fn to_numeric(&self, context: &mut Context) -> JsResult<Numeric> {
         let primitive = self.to_primitive(context, PreferredType::Number)?;
         if let Some(bigint) = primitive.as_bigint() {
             return Ok(bigint.clone().into());
@@ -718,7 +718,7 @@ impl JsValue {
     /// This function is equivalent to `value | 0` in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-touint32>
-    pub fn to_u32(&self, context: &mut Context) -> Result<u32> {
+    pub fn to_u32(&self, context: &mut Context) -> JsResult<u32> {
         // This is the fast path, if the value is Integer we can just return it.
         if let JsValue::Integer(number) = *self {
             return Ok(number as u32);
@@ -731,7 +731,7 @@ impl JsValue {
     /// Converts a value to an integral 32 bit signed integer.
     ///
     /// See: <https://tc39.es/ecma262/#sec-toint32>
-    pub fn to_i32(&self, context: &mut Context) -> Result<i32> {
+    pub fn to_i32(&self, context: &mut Context) -> JsResult<i32> {
         // This is the fast path, if the value is Integer we can just return it.
         if let JsValue::Integer(number) = *self {
             return Ok(number);
@@ -744,7 +744,7 @@ impl JsValue {
     /// Converts a value to a non-negative integer if it is a valid integer index value.
     ///
     /// See: <https://tc39.es/ecma262/#sec-toindex>
-    pub fn to_index(&self, context: &mut Context) -> Result<usize> {
+    pub fn to_index(&self, context: &mut Context) -> JsResult<usize> {
         if self.is_undefined() {
             return Ok(0);
         }
@@ -767,7 +767,7 @@ impl JsValue {
     /// Converts argument to an integer suitable for use as the length of an array-like object.
     ///
     /// See: <https://tc39.es/ecma262/#sec-tolength>
-    pub fn to_length(&self, context: &mut Context) -> Result<usize> {
+    pub fn to_length(&self, context: &mut Context) -> JsResult<usize> {
         // 1. Let len be ? ToInteger(argument).
         let len = self.to_integer(context)?;
 
@@ -783,7 +783,7 @@ impl JsValue {
     /// Converts a value to an integral Number value.
     ///
     /// See: <https://tc39.es/ecma262/#sec-tointeger>
-    pub fn to_integer(&self, context: &mut Context) -> Result<f64> {
+    pub fn to_integer(&self, context: &mut Context) -> JsResult<f64> {
         // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(context)?;
 
@@ -807,7 +807,7 @@ impl JsValue {
     /// This function is equivalent to the unary `+` operator (`+value`) in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-tonumber>
-    pub fn to_number(&self, context: &mut Context) -> Result<f64> {
+    pub fn to_number(&self, context: &mut Context) -> JsResult<f64> {
         match *self {
             JsValue::Null => Ok(0.0),
             JsValue::Undefined => Ok(f64::NAN),
@@ -856,7 +856,7 @@ impl JsValue {
     /// This function is equivalent to `Number(value)` in JavaScript
     ///
     /// See: <https://tc39.es/ecma262/#sec-tonumeric>
-    pub fn to_numeric_number(&self, context: &mut Context) -> Result<f64> {
+    pub fn to_numeric_number(&self, context: &mut Context) -> JsResult<f64> {
         let primitive = self.to_primitive(context, PreferredType::Number)?;
         if let Some(bigint) = primitive.as_bigint() {
             return Ok(bigint.to_f64());
@@ -876,7 +876,7 @@ impl JsValue {
     /// [table]: https://tc39.es/ecma262/#table-14
     /// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible
     #[inline]
-    pub fn require_object_coercible(&self, context: &mut Context) -> Result<&JsValue> {
+    pub fn require_object_coercible(&self, context: &mut Context) -> JsResult<&JsValue> {
         if self.is_null_or_undefined() {
             Err(context.construct_type_error("cannot convert null or undefined to Object"))
         } else {
@@ -885,7 +885,7 @@ impl JsValue {
     }
 
     #[inline]
-    pub fn to_property_descriptor(&self, context: &mut Context) -> Result<PropertyDescriptor> {
+    pub fn to_property_descriptor(&self, context: &mut Context) -> JsResult<PropertyDescriptor> {
         // 1. If Type(Obj) is not Object, throw a TypeError exception.
         match self {
             JsValue::Object(ref obj) => obj.to_property_descriptor(context),
@@ -897,7 +897,7 @@ impl JsValue {
     /// Converts argument to an integer, +∞, or -∞.
     ///
     /// See: <https://tc39.es/ecma262/#sec-tointegerorinfinity>
-    pub fn to_integer_or_infinity(&self, context: &mut Context) -> Result<IntegerOrInfinity> {
+    pub fn to_integer_or_infinity(&self, context: &mut Context) -> JsResult<IntegerOrInfinity> {
         // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(context)?;
 
@@ -958,7 +958,7 @@ impl JsValue {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isarray
-    pub(crate) fn is_array(&self, _context: &mut Context) -> Result<bool> {
+    pub(crate) fn is_array(&self, _context: &mut Context) -> JsResult<bool> {
         // 1. If Type(argument) is not Object, return false.
         if let Some(object) = self.as_object() {
             // 2. If argument is an Array exotic object, return true.

@@ -5,7 +5,7 @@ use crate::{
     exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Identifier, Node},
-    Context, JsValue, Result,
+    Context, JsResult, JsValue,
 };
 use std::fmt;
 
@@ -91,7 +91,7 @@ pub enum DeclarationList {
 }
 
 impl Executable for DeclarationList {
-    fn run(&self, context: &mut Context) -> Result<JsValue> {
+    fn run(&self, context: &mut Context) -> JsResult<JsValue> {
         for decl in self.as_ref() {
             use DeclarationList::*;
             let val = match decl.init() {
@@ -355,7 +355,7 @@ impl DeclarationPattern {
         &self,
         init: Option<JsValue>,
         context: &mut Context,
-    ) -> Result<Vec<(Box<str>, JsValue)>> {
+    ) -> JsResult<Vec<(Box<str>, JsValue)>> {
         match &self {
             DeclarationPattern::Object(pattern) => pattern.run(init, context),
             DeclarationPattern::Array(pattern) => pattern.run(init, context),
@@ -446,7 +446,7 @@ impl DeclarationPatternObject {
         &self,
         init: Option<JsValue>,
         context: &mut Context,
-    ) -> Result<Vec<(Box<str>, JsValue)>> {
+    ) -> JsResult<Vec<(Box<str>, JsValue)>> {
         let value = if let Some(value) = init {
             value
         } else if let Some(node) = &self.init {
@@ -652,7 +652,7 @@ impl DeclarationPatternArray {
         &self,
         init: Option<JsValue>,
         context: &mut Context,
-    ) -> Result<Vec<(Box<str>, JsValue)>> {
+    ) -> JsResult<Vec<(Box<str>, JsValue)>> {
         let value = if let Some(value) = init {
             value
         } else if let Some(node) = &self.init {
