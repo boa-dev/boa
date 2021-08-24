@@ -618,8 +618,8 @@ fn to_primitive() {
 }
 
 /// Test cyclic conversions that previously caused stack overflows
-/// Relevant mitigations for these are in `GcObject::ordinary_to_primitive` and
-/// `GcObject::to_json`
+/// Relevant mitigations for these are in `JsObject::ordinary_to_primitive` and
+/// `JsObject::to_json`
 mod cyclic_conversions {
     use super::*;
 

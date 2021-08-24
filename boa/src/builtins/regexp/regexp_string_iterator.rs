@@ -14,7 +14,7 @@ use regexp::{advance_string_index, RegExp};
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object, regexp},
     gc::{Finalize, Trace},
-    object::{GcObject, ObjectData},
+    object::{JsObject, ObjectData},
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsResult, JsString, JsValue,
@@ -161,7 +161,7 @@ impl RegExpStringIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
-    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: JsValue) -> GcObject {
+    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: JsValue) -> JsObject {
         let _timer = BoaProfiler::global().start_event("RegExp String Iterator", "init");
 
         // Create prototype

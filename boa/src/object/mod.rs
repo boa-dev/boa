@@ -32,7 +32,7 @@ mod internal_methods;
 mod property_map;
 
 use crate::builtins::object::for_in_iterator::ForInIterator;
-pub use gcobject::{GcObject, RecursionLimiter, Ref, RefMut};
+pub use gcobject::{JsObject, RecursionLimiter, Ref, RefMut};
 pub use property_map::*;
 
 /// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.
@@ -748,7 +748,7 @@ impl<'context> FunctionBuilder<'context> {
 
     /// Build the function object.
     #[inline]
-    pub fn build(&mut self) -> GcObject {
+    pub fn build(&mut self) -> JsObject {
         let mut function = Object::function(
             self.function.take().unwrap(),
             self.context
@@ -764,11 +764,11 @@ impl<'context> FunctionBuilder<'context> {
         function.insert_property("name", property.clone().value(self.name.clone()));
         function.insert_property("length", property.value(self.length));
 
-        GcObject::new(function)
+        JsObject::new(function)
     }
 
     /// Initializes the `Function.prototype` function object.
-    pub(crate) fn build_function_prototype(&mut self, object: &GcObject) {
+    pub(crate) fn build_function_prototype(&mut self, object: &JsObject) {
         let mut object = object.borrow_mut();
         object.data = ObjectData::Function(self.function.take().unwrap());
         object.set_prototype_instance(
@@ -821,7 +821,7 @@ impl<'context> FunctionBuilder<'context> {
 #[derive(Debug)]
 pub struct ObjectInitializer<'context> {
     context: &'context mut Context,
-    object: GcObject,
+    object: JsObject,
 }
 
 impl<'context> ObjectInitializer<'context> {
@@ -874,7 +874,7 @@ impl<'context> ObjectInitializer<'context> {
 
     /// Build the object.
     #[inline]
-    pub fn build(&mut self) -> GcObject {
+    pub fn build(&mut self) -> JsObject {
         self.object.clone()
     }
 }
@@ -883,8 +883,8 @@ impl<'context> ObjectInitializer<'context> {
 pub struct ConstructorBuilder<'context> {
     context: &'context mut Context,
     constructor_function: NativeFunction,
-    constructor_object: GcObject,
-    prototype: GcObject,
+    constructor_object: JsObject,
+    prototype: JsObject,
     name: JsString,
     length: usize,
     callable: bool,
@@ -913,8 +913,8 @@ impl<'context> ConstructorBuilder<'context> {
         Self {
             context,
             constructor_function: constructor,
-            constructor_object: GcObject::new(Object::default()),
-            prototype: GcObject::new(Object::default()),
+            constructor_object: JsObject::new(Object::default()),
+            prototype: JsObject::new(Object::default()),
             length: 0,
             name: JsString::default(),
             callable: true,
@@ -1032,8 +1032,8 @@ impl<'context> ConstructorBuilder<'context> {
     pub fn accessor<K>(
         &mut self,
         key: K,
-        get: Option<GcObject>,
-        set: Option<GcObject>,
+        get: Option<JsObject>,
+        set: Option<JsObject>,
         attribute: Attribute,
     ) -> &mut Self
     where
@@ -1053,8 +1053,8 @@ impl<'context> ConstructorBuilder<'context> {
     pub fn static_accessor<K>(
         &mut self,
         key: K,
-        get: Option<GcObject>,
-        set: Option<GcObject>,
+        get: Option<JsObject>,
+        set: Option<JsObject>,
         attribute: Attribute,
     ) -> &mut Self
     where
@@ -1149,7 +1149,7 @@ impl<'context> ConstructorBuilder<'context> {
     }
 
     /// Build the constructor function object.
-    pub fn build(&mut self) -> GcObject {
+    pub fn build(&mut self) -> JsObject {
         // Create the native function
         let function = Function::Native {
             function: self.constructor_function.into(),

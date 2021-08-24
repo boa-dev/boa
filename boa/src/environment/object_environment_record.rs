@@ -14,7 +14,7 @@ use crate::{
         lexical_environment::{Environment, EnvironmentType},
     },
     gc::{Finalize, Trace},
-    object::GcObject,
+    object::JsObject,
     property::PropertyDescriptor,
     Context, JsResult, JsValue,
 };
@@ -153,7 +153,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
         false
     }
 
-    fn with_base_object(&self) -> Option<GcObject> {
+    fn with_base_object(&self) -> Option<JsObject> {
         // Object Environment Records return undefined as their
         // WithBaseObject unless their withEnvironment flag is true.
         if self.with_environment {

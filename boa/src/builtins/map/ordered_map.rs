@@ -1,6 +1,6 @@
 use crate::{
     gc::{custom_trace, Finalize, Trace},
-    object::GcObject,
+    object::JsObject,
     JsValue,
 };
 use indexmap::{Equivalent, IndexMap};
@@ -182,7 +182,7 @@ impl<V> OrderedMap<V> {
     /// Increases the lock counter and returns a lock object that will decrement the counter when dropped.
     ///
     /// This allows objects to be removed from the map during iteration without affecting the indexes until the iteration has completed.
-    pub(crate) fn lock(&mut self, map: GcObject) -> MapLock {
+    pub(crate) fn lock(&mut self, map: JsObject) -> MapLock {
         self.lock += 1;
         MapLock(map)
     }
@@ -199,7 +199,7 @@ impl<V> OrderedMap<V> {
 
 /// Increases the lock count of the map for the lifetime of the guard. This should not be dropped until iteration has completed.
 #[derive(Debug, Trace)]
-pub(crate) struct MapLock(GcObject);
+pub(crate) struct MapLock(JsObject);
 
 impl Clone for MapLock {
     fn clone(&self) -> Self {

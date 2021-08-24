@@ -7,7 +7,7 @@
 
 use super::global_environment_record::GlobalEnvironmentRecord;
 use crate::{
-    environment::environment_record_trait::EnvironmentRecordTrait, object::GcObject, BoaProfiler,
+    environment::environment_record_trait::EnvironmentRecordTrait, object::JsObject, BoaProfiler,
     Context, JsResult, JsValue,
 };
 use gc::Gc;
@@ -63,7 +63,7 @@ impl fmt::Display for EnvironmentError {
 impl error::Error for EnvironmentError {}
 
 impl LexicalEnvironment {
-    pub fn new(global: GcObject) -> Self {
+    pub fn new(global: JsObject) -> Self {
         let _timer = BoaProfiler::global().start_event("LexicalEnvironment::new", "env");
         let global_env = GlobalEnvironmentRecord::new(global.clone(), global);
         let mut lexical_env = Self {

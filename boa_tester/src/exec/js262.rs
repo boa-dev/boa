@@ -1,12 +1,12 @@
 use boa::{
     exec::Executable,
-    object::{GcObject, ObjectInitializer},
+    object::{JsObject, ObjectInitializer},
     property::Attribute,
     Context, JsResult, JsValue,
 };
 
 /// Initializes the object in the context.
-pub(super) fn init(context: &mut Context) -> GcObject {
+pub(super) fn init(context: &mut Context) -> JsObject {
     let global_obj = context.global_object();
 
     let obj = ObjectInitializer::new(context)

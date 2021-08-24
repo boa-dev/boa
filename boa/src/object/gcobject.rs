@@ -1,6 +1,6 @@
-//! This module implements the `GcObject` structure.
+//! This module implements the `JsObject` structure.
 //!
-//! The `GcObject` is a garbage collected Object.
+//! The `JsObject` is a garbage collected Object.
 
 use super::{NativeObject, Object, PROTOTYPE};
 use crate::{
@@ -38,7 +38,7 @@ pub type RefMut<'a, T, U> = GcCellRefMut<'a, T, U>;
 
 /// Garbage collected `Object`.
 #[derive(Trace, Finalize, Clone, Default)]
-pub struct GcObject(Gc<GcCell<Object>>);
+pub struct JsObject(Gc<GcCell<Object>>);
 
 /// The body of a JavaScript function.
 ///
@@ -51,8 +51,8 @@ enum FunctionBody {
     Ordinary(RcStatementList),
 }
 
-impl GcObject {
-    /// Create a new `GcObject` from a `Object`.
+impl JsObject {
+    /// Create a new `JsObject` from a `Object`.
     #[inline]
     pub fn new(object: Object) -> Self {
         Self(Gc::new(GcCell::new(object)))
@@ -395,7 +395,7 @@ impl GcObject {
         hint: PreferredType,
     ) -> JsResult<JsValue> {
         // 1. Assert: Type(O) is Object.
-        //      Already is GcObject by type.
+        //      Already is JsObject by type.
         // 2. Assert: Type(hint) is String and its value is either "string" or "number".
         debug_assert!(hint == PreferredType::String || hint == PreferredType::Number);
 
@@ -709,7 +709,7 @@ impl GcObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getmethod
     #[inline]
-    pub fn get_method<K>(&self, context: &mut Context, key: K) -> JsResult<Option<GcObject>>
+    pub fn get_method<K>(&self, context: &mut Context, key: K) -> JsResult<Option<JsObject>>
     where
         K: Into<PropertyKey>,
     {
@@ -763,7 +763,7 @@ impl GcObject {
                 let mut object = object.__get_prototype_of__();
                 while let Some(object_prototype) = object.as_object() {
                     //     c. If SameValue(P, O) is true, return true.
-                    if GcObject::equals(&prototype, &object_prototype) {
+                    if JsObject::equals(&prototype, &object_prototype) {
                         return Ok(true);
                     }
                     // a. Set O to ? O.[[GetPrototypeOf]]().
@@ -994,14 +994,14 @@ impl GcObject {
     }
 }
 
-impl AsRef<GcCell<Object>> for GcObject {
+impl AsRef<GcCell<Object>> for JsObject {
     #[inline]
     fn as_ref(&self) -> &GcCell<Object> {
         &*self.0
     }
 }
 
-/// An error returned by [`GcObject::try_borrow`](struct.GcObject.html#method.try_borrow).
+/// An error returned by [`JsObject::try_borrow`](struct.JsObject.html#method.try_borrow).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BorrowError;
 
@@ -1014,7 +1014,7 @@ impl Display for BorrowError {
 
 impl Error for BorrowError {}
 
-/// An error returned by [`GcObject::try_borrow_mut`](struct.GcObject.html#method.try_borrow_mut).
+/// An error returned by [`JsObject::try_borrow_mut`](struct.JsObject.html#method.try_borrow_mut).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BorrowMutError;
 
@@ -1036,8 +1036,8 @@ enum RecursionValueState {
     /// ```javascript
     /// let b = [];
     /// JSON.stringify([ // Create a recursion limiter for the root here
-    ///    b,            // state for b's &GcObject here is None
-    ///    b,            // state for b's &GcObject here is Visited
+    ///    b,            // state for b's &JsObject here is None
+    ///    b,            // state for b's &JsObject here is Visited
     /// ]);
     /// ```
     Visited,
@@ -1048,13 +1048,13 @@ enum RecursionValueState {
 /// multiple threads!
 #[derive(Debug)]
 pub struct RecursionLimiter {
-    /// If this was the first `GcObject` in the tree.
+    /// If this was the first `JsObject` in the tree.
     top_level: bool,
     /// The ptr being kept in the HashSet, so we can delete it when we drop.
     ptr: usize,
-    /// If this GcObject has been visited before in the graph, but not in the current branch.
+    /// If this JsObject has been visited before in the graph, but not in the current branch.
     pub visited: bool,
-    /// If this GcObject has been visited in the current branch of the graph.
+    /// If this JsObject has been visited in the current branch of the graph.
     pub live: bool,
 }
 
@@ -1075,17 +1075,17 @@ impl Drop for RecursionLimiter {
 
 impl RecursionLimiter {
     thread_local! {
-        /// The map of pointers to `GcObject` that have been visited during the current `Debug::fmt` graph,
+        /// The map of pointers to `JsObject` that have been visited during the current `Debug::fmt` graph,
         /// and the current state of their RecursionLimiter (dropped or live -- see `RecursionValueState`)
         static SEEN: RefCell<HashMap<usize, RecursionValueState>> = RefCell::new(HashMap::new());
     }
 
-    /// Determines if the specified `GcObject` has been visited, and returns a struct that will free it when dropped.
+    /// Determines if the specified `JsObject` has been visited, and returns a struct that will free it when dropped.
     ///
-    /// This is done by maintaining a thread-local hashset containing the pointers of `GcObject` values that have been
-    /// visited. The first `GcObject` visited will clear the hashset, while any others will check if they are contained
+    /// This is done by maintaining a thread-local hashset containing the pointers of `JsObject` values that have been
+    /// visited. The first `JsObject` visited will clear the hashset, while any others will check if they are contained
     /// by the hashset.
-    pub fn new(o: &GcObject) -> Self {
+    pub fn new(o: &JsObject) -> Self {
         // We shouldn't have to worry too much about this being moved during Debug::fmt.
         let ptr = (o.as_ref() as *const _) as usize;
         let (top_level, visited, live) = Self::SEEN.with(|hm| {
@@ -1109,7 +1109,7 @@ impl RecursionLimiter {
     }
 }
 
-impl Debug for GcObject {
+impl Debug for JsObject {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
         let limiter = RecursionLimiter::new(self);
 
@@ -1120,7 +1120,7 @@ impl Debug for GcObject {
         // Instead, we check if the object has appeared before in the entire graph. This means that objects will appear
         // at most once, hopefully making things a bit clearer.
         if !limiter.visited && !limiter.live {
-            f.debug_tuple("GcObject").field(&self.0).finish()
+            f.debug_tuple("JsObject").field(&self.0).finish()
         } else {
             f.write_str("{ ... }")
         }

@@ -17,7 +17,7 @@ use crate::{
         lexical_environment::{Environment, EnvironmentType, VariableScope},
     },
     gc::{empty_trace, Finalize, Trace},
-    object::GcObject,
+    object::JsObject,
     Context, JsResult, JsValue,
 };
 
@@ -46,7 +46,7 @@ pub struct FunctionEnvironmentRecord {
     /// If the value is "lexical", this is an ArrowFunction and does not have a local this value.
     pub this_binding_status: BindingStatus,
     /// The function object whose invocation caused this Environment Record to be created.
-    pub function: GcObject,
+    pub function: JsObject,
     /// If the associated function has super property accesses and is not an ArrowFunction,
     /// `[[HomeObject]]` is the object that the function is bound to as a method.
     /// The default value for `[[HomeObject]]` is undefined.
@@ -59,7 +59,7 @@ pub struct FunctionEnvironmentRecord {
 
 impl FunctionEnvironmentRecord {
     pub fn new(
-        f: GcObject,
+        f: JsObject,
         this: Option<JsValue>,
         outer: Option<Environment>,
         binding_status: BindingStatus,
@@ -197,7 +197,7 @@ impl EnvironmentRecordTrait for FunctionEnvironmentRecord {
         }
     }
 
-    fn with_base_object(&self) -> Option<GcObject> {
+    fn with_base_object(&self) -> Option<JsObject> {
         None
     }
 

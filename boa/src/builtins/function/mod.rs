@@ -16,7 +16,7 @@ use crate::{
     builtins::{Array, BuiltIn},
     environment::lexical_environment::Environment,
     gc::{custom_trace, empty_trace, Finalize, Trace},
-    object::{ConstructorBuilder, FunctionBuilder, GcObject, Object, ObjectData},
+    object::{ConstructorBuilder, FunctionBuilder, JsObject, Object, ObjectData},
     property::{Attribute, PropertyDescriptor},
     syntax::ast::node::{FormalParameter, RcStatementList},
     BoaProfiler, Context, JsResult, JsValue,
@@ -179,7 +179,7 @@ impl Function {
 /// <https://tc39.es/ecma262/#sec-createunmappedargumentsobject>
 pub fn create_unmapped_arguments_object(arguments_list: &[JsValue]) -> JsValue {
     let len = arguments_list.len();
-    let obj = GcObject::new(Object::default());
+    let obj = JsObject::new(Object::default());
     // Set length
     let length = PropertyDescriptor::builder()
         .value(len)
@@ -225,7 +225,7 @@ pub fn create_unmapped_arguments_object(arguments_list: &[JsValue]) -> JsValue {
 pub fn make_builtin_fn<N>(
     function: NativeFunction,
     name: N,
-    parent: &GcObject,
+    parent: &JsObject,
     length: usize,
     interpreter: &Context,
 ) where

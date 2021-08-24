@@ -62,7 +62,7 @@
 
 use crate::{
     builtins::function::NativeFunction,
-    object::{ConstructorBuilder, GcObject, NativeObject, ObjectData, PROTOTYPE},
+    object::{ConstructorBuilder, JsObject, NativeObject, ObjectData, PROTOTYPE},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsResult, JsValue,
 };
@@ -165,7 +165,7 @@ impl<'context> ClassBuilder<'context> {
     }
 
     #[inline]
-    pub(crate) fn build(mut self) -> GcObject {
+    pub(crate) fn build(mut self) -> JsObject {
         self.builder.build()
     }
 
@@ -231,8 +231,8 @@ impl<'context> ClassBuilder<'context> {
     pub fn accessor<K>(
         &mut self,
         key: K,
-        get: Option<GcObject>,
-        set: Option<GcObject>,
+        get: Option<JsObject>,
+        set: Option<JsObject>,
         attribute: Attribute,
     ) -> &mut Self
     where
@@ -249,8 +249,8 @@ impl<'context> ClassBuilder<'context> {
     pub fn static_accessor<K>(
         &mut self,
         key: K,
-        get: Option<GcObject>,
-        set: Option<GcObject>,
+        get: Option<JsObject>,
+        set: Option<JsObject>,
         attribute: Attribute,
     ) -> &mut Self
     where

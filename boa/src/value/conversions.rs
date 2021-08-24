@@ -164,14 +164,14 @@ impl From<Object> for JsValue {
     #[inline]
     fn from(object: Object) -> Self {
         let _timer = BoaProfiler::global().start_event("From<Object>", "value");
-        JsValue::Object(GcObject::new(object))
+        JsValue::Object(JsObject::new(object))
     }
 }
 
-impl From<GcObject> for JsValue {
+impl From<JsObject> for JsValue {
     #[inline]
-    fn from(object: GcObject) -> Self {
-        let _timer = BoaProfiler::global().start_event("From<GcObject>", "value");
+    fn from(object: JsObject) -> Self {
+        let _timer = BoaProfiler::global().start_event("From<JsObject>", "value");
         JsValue::Object(object)
     }
 }
