@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.63/src/ssl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ssl.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-sys-0.9.66/src/ssl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ssl.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../openssl_sys/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
@@ -1382,6 +1382,48 @@
 <span id="1380">1380</span>
 <span id="1381">1381</span>
 <span id="1382">1382</span>
+<span id="1383">1383</span>
+<span id="1384">1384</span>
+<span id="1385">1385</span>
+<span id="1386">1386</span>
+<span id="1387">1387</span>
+<span id="1388">1388</span>
+<span id="1389">1389</span>
+<span id="1390">1390</span>
+<span id="1391">1391</span>
+<span id="1392">1392</span>
+<span id="1393">1393</span>
+<span id="1394">1394</span>
+<span id="1395">1395</span>
+<span id="1396">1396</span>
+<span id="1397">1397</span>
+<span id="1398">1398</span>
+<span id="1399">1399</span>
+<span id="1400">1400</span>
+<span id="1401">1401</span>
+<span id="1402">1402</span>
+<span id="1403">1403</span>
+<span id="1404">1404</span>
+<span id="1405">1405</span>
+<span id="1406">1406</span>
+<span id="1407">1407</span>
+<span id="1408">1408</span>
+<span id="1409">1409</span>
+<span id="1410">1410</span>
+<span id="1411">1411</span>
+<span id="1412">1412</span>
+<span id="1413">1413</span>
+<span id="1414">1414</span>
+<span id="1415">1415</span>
+<span id="1416">1416</span>
+<span id="1417">1417</span>
+<span id="1418">1418</span>
+<span id="1419">1419</span>
+<span id="1420">1420</span>
+<span id="1421">1421</span>
+<span id="1422">1422</span>
+<span id="1423">1423</span>
+<span id="1424">1424</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">libc</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">std::ptr</span>;
@@ -1638,154 +1680,171 @@
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>,
 <span class="op">&gt;</span>;
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_LEGACY_SERVER_CONNECT</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000004</span>;
+<span class="macro">cfg_if!</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span> {
+        <span class="macro">macro_rules!</span> <span class="ident">ssl_op_type</span> {
+            () <span class="op">=</span><span class="op">&gt;</span> {<span class="ident">u64</span>};
+        }
+    } <span class="kw">else</span> {
+        <span class="macro">macro_rules!</span> <span class="ident">ssl_op_type</span> {
+            () <span class="op">=</span><span class="op">&gt;</span> {<span class="ident">c_ulong</span>};
+        }
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_LEGACY_SERVER_CONNECT</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000004</span>;
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">libressl261</span>)]</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLSEXT_PADDING</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLSEXT_PADDING</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x0</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl102</span>, <span class="ident">libressl</span>))]</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLSEXT_PADDING</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x10</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLSEXT_PADDING</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x10</span>;
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl101</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SAFARI_ECDHE_ECDSA_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000040</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SAFARI_ECDHE_ECDSA_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000040</span>;
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000800</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000800</span>;
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_QUERY_MTU</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00001000</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_COOKIE_EXCHANGE</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00002000</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_TICKET</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00004000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_QUERY_MTU</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00001000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_COOKIE_EXCHANGE</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00002000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_TICKET</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00004000</span>;
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl101</span>)]</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_CISCO_ANYCONNECT</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00008000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_CISCO_ANYCONNECT</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00008000</span>;
     } <span class="kw">else</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_CISCO_ANYCONNECT</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_CISCO_ANYCONNECT</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x0</span>;
     }
 }
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00010000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00010000</span>;
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl101</span>)]</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_COMPRESSION</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00020000</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00040000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_COMPRESSION</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00020000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00040000</span>;
     } <span class="kw">else</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_COMPRESSION</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x0</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_COMPRESSION</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_ALLOW_UNSAFE_LEGACY_RENEGOTIATION</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x0</span>;
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_ENABLE_MIDDLEBOX_COMPAT</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00100000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_ENABLE_MIDDLEBOX_COMPAT</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00100000</span>;
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_CIPHER_SERVER_PREFERENCE</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00400000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_CIPHER_SERVER_PREFERENCE</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00400000</span>;
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">libressl280</span>)]</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLS_ROLLBACK_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLS_ROLLBACK_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0</span>;
     } <span class="kw">else</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLS_ROLLBACK_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00800000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLS_ROLLBACK_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00800000</span>;
     }
 }
 
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl101</span>)]</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_SSLv3</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x02000000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_SSLv3</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x02000000</span>;
     } <span class="kw">else</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_SSLv3</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_SSLv3</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x0</span>;
     }
 }
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_TLSv1_1</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x10000000</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_TLSv1_2</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x08000000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_TLSv1_1</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x10000000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_TLSv1_2</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x08000000</span>;
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_TLSv1</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x04000000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_TLSv1</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x04000000</span>;
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl102</span>)]</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_DTLSv1</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x04000000</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_DTLSv1_2</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x08000000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_DTLSv1</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x04000000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_DTLSv1_2</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x08000000</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">libressl332</span>)]</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_DTLSv1</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x40000000</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_DTLSv1_2</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x80000000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_DTLSv1</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x40000000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_DTLSv1_2</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x80000000</span>;
     }
 }
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_TLSv1_3</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x20000000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_TLSv1_3</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x20000000</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110h</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_RENEGOTIATION</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x40000000</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_RENEGOTIATION</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x40000000</span>;
 
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_SSL_MASK</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="ident">SSL_OP_NO_SSLv2</span>
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_SSL_MASK</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="ident">SSL_OP_NO_SSLv2</span>
             <span class="op">|</span> <span class="ident">SSL_OP_NO_SSLv3</span>
             <span class="op">|</span> <span class="ident">SSL_OP_NO_TLSv1</span>
             <span class="op">|</span> <span class="ident">SSL_OP_NO_TLSv1_1</span>
             <span class="op">|</span> <span class="ident">SSL_OP_NO_TLSv1_2</span>
             <span class="op">|</span> <span class="ident">SSL_OP_NO_TLSv1_3</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl102</span>)]</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_SSL_MASK</span>: <span class="ident">c_ulong</span> <span class="op">=</span>
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_SSL_MASK</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span>
             <span class="ident">SSL_OP_NO_SSLv2</span> <span class="op">|</span> <span class="ident">SSL_OP_NO_SSLv3</span> <span class="op">|</span> <span class="ident">SSL_OP_NO_TLSv1</span> <span class="op">|</span> <span class="ident">SSL_OP_NO_TLSv1_1</span> <span class="op">|</span> <span class="ident">SSL_OP_NO_TLSv1_2</span>;
     }
 }
 
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">libressl261</span>)]</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_CRYPTOPRO_TLSEXT_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_CRYPTOPRO_TLSEXT_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x0</span>;
     } <span class="kw">else</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_CRYPTOPRO_TLSEXT_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x80000000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_CRYPTOPRO_TLSEXT_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x80000000</span>;
     }
 }
 
 <span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110f</span>)]</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_ALL</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="ident">SSL_OP_CRYPTOPRO_TLSEXT_BUG</span>
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span> {
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_ALL</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="ident">SSL_OP_CRYPTOPRO_TLSEXT_BUG</span>
+            <span class="op">|</span> <span class="ident">SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS</span>
+            <span class="op">|</span> <span class="ident">SSL_OP_TLSEXT_PADDING</span>
+            <span class="op">|</span> <span class="ident">SSL_OP_SAFARI_ECDHE_ECDSA_BUG</span>;
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110f</span>)]</span> {
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_ALL</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="ident">SSL_OP_CRYPTOPRO_TLSEXT_BUG</span>
             <span class="op">|</span> <span class="ident">SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS</span>
             <span class="op">|</span> <span class="ident">SSL_OP_LEGACY_SERVER_CONNECT</span>
             <span class="op">|</span> <span class="ident">SSL_OP_TLSEXT_PADDING</span>
             <span class="op">|</span> <span class="ident">SSL_OP_SAFARI_ECDHE_ECDSA_BUG</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">libressl261</span>)]</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_ALL</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x4</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_ALL</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x4</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">libressl</span>)]</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_ALL</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x80000014</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_ALL</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x80000014</span>;
     } <span class="kw">else</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_ALL</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x80000BFF</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_ALL</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x80000BFF</span>;
     }
 }
 
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_MICROSOFT_SESS_ID_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000000</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NETSCAPE_CHALLENGE_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000000</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000000</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000000</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SSLEAY_080_CLIENT_DH_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000000</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLS_D5_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000000</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLS_BLOCK_PADDING_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000000</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SINGLE_ECDH_USE</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000000</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SINGLE_DH_USE</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000000</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_SSLv2</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_MICROSOFT_SESS_ID_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NETSCAPE_CHALLENGE_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SSLEAY_080_CLIENT_DH_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLS_D5_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLS_BLOCK_PADDING_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SINGLE_ECDH_USE</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SINGLE_DH_USE</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_SSLv2</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000000</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl101</span>)]</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_MICROSOFT_SESS_ID_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000001</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NETSCAPE_CHALLENGE_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000002</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000008</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000020</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SSLEAY_080_CLIENT_DH_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000080</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLS_D5_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000100</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLS_BLOCK_PADDING_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00000200</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SINGLE_ECDH_USE</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00080000</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SINGLE_DH_USE</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00100000</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_SSLv2</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x01000000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_MICROSOFT_SESS_ID_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000001</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NETSCAPE_CHALLENGE_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000002</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000008</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000020</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SSLEAY_080_CLIENT_DH_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000080</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLS_D5_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000100</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLS_BLOCK_PADDING_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00000200</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SINGLE_ECDH_USE</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00080000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SINGLE_DH_USE</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00100000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_SSLv2</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x01000000</span>;
     } <span class="kw">else</span> {
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_MICROSOFT_SESS_ID_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x0</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NETSCAPE_CHALLENGE_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x0</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x0</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x0</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SSLEAY_080_CLIENT_DH_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x0</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLS_D5_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x0</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLS_BLOCK_PADDING_BUG</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_MICROSOFT_SESS_ID_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NETSCAPE_CHALLENGE_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SSLEAY_080_CLIENT_DH_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLS_D5_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_TLS_BLOCK_PADDING_BUG</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x0</span>;
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">libressl261</span>)]</span>
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SINGLE_ECDH_USE</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SINGLE_ECDH_USE</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x0</span>;
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">libressl261</span>))]</span>
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SINGLE_ECDH_USE</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00080000</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SINGLE_DH_USE</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x00100000</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_SSLv2</span>: <span class="ident">c_ulong</span> <span class="op">=</span> <span class="number">0x0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SINGLE_ECDH_USE</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00080000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_SINGLE_DH_USE</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x00100000</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_OP_NO_SSLv2</span>: <span class="macro">ssl_op_type!</span>() <span class="op">=</span> <span class="number">0x0</span>;
     }
 }
 
@@ -1809,7 +1868,13 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SSL_COOKIE_LENGTH</span>: <span class="ident">c_int</span> <span class="op">=</span> <span class="number">4096</span>;
 
 <span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span> {
+        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_CTX_get_options</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">SSL_CTX</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_CTX_set_options</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_CTX</span>, <span class="ident">op</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_CTX_clear_options</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_CTX</span>, <span class="ident">op</span>: <span class="ident">u64</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span>;
+        }
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span> {
         <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_CTX_get_options</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">SSL_CTX</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_ulong</span>;
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_CTX_set_options</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_CTX</span>, <span class="ident">op</span>: <span class="ident">c_ulong</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_ulong</span>;
@@ -2362,7 +2427,13 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">ossl110</span>, <span class="ident">libressl273</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_SESSION_up_ref</span>(<span class="ident">ses</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_SESSION</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_SESSION_free</span>(<span class="ident">s</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_SESSION</span>);
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_SSL_SESSION</span>(<span class="ident">s</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_SESSION</span>, <span class="ident">pp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+}
+<span class="macro">const_ptr_api!</span> {
+    <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">i2d_SSL_SESSION</span>(<span class="ident">s</span>: <span class="attribute">#[<span class="ident">const_ptr_if</span>(<span class="ident">ossl300</span>)]</span> <span class="ident">SSL_SESSION</span>, <span class="ident">pp</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_uchar</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    }
+}
+<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_set_session</span>(<span class="ident">ssl</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL</span>, <span class="ident">session</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_SESSION</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_CTX_add_session</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_CTX</span>, <span class="ident">session</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_SESSION</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_CTX_remove_session</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_CTX</span>, <span class="ident">session</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_SESSION</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
@@ -2372,7 +2443,10 @@
         <span class="ident">len</span>: <span class="ident">c_long</span>,
     ) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_SESSION</span>;
 
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">ossl300</span>))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_get_peer_certificate</span>(<span class="ident">ssl</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">SSL</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_get1_peer_certificate</span>(<span class="ident">ssl</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">SSL</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_get_peer_cert_chain</span>(<span class="ident">ssl</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">SSL</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">stack_st_X509</span>;
 
@@ -2382,6 +2456,9 @@
         <span class="ident">verify_callback</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">extern</span> <span class="string">&quot;C&quot;</span> <span class="kw">fn</span>(<span class="ident">c_int</span>, <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">X509_STORE_CTX</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span><span class="op">&gt;</span>,
     );
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_CTX_set_verify_depth</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_CTX</span>, <span class="ident">depth</span>: <span class="ident">c_int</span>);
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_CTX_set_post_handshake_auth</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL_CTX</span>, <span class="ident">val</span>: <span class="ident">c_int</span>);
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_CTX_check_private_key</span>(<span class="ident">ctx</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">SSL_CTX</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
 
@@ -2452,6 +2529,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_stateless</span>(<span class="ident">s</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_connect</span>(<span class="ident">ssl</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_read</span>(<span class="ident">ssl</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL</span>, <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>, <span class="ident">num</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_peek</span>(<span class="ident">ssl</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">SSL</span>, <span class="ident">buf</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">c_void</span>, <span class="ident">num</span>: <span class="ident">c_int</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">c_int</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_read_early_data</span>(
         <span class="ident">s</span>: <span class="kw-2">*</span><span class="kw-2">mut</span> <span class="ident">::SSL</span>,
@@ -2727,6 +2805,12 @@
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">SSL_COMP_get_name</span>(<span class="ident">comp</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">COMP_METHOD</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">c_char</span>;
         }
     }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_COMP&quot;</span>))]</span>
+<span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">COMP_get_type</span>(<span class="ident">meth</span>: <span class="kw-2">*</span><span class="kw">const</span> <span class="ident">COMP_METHOD</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">i32</span>;
 }
 
 <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {

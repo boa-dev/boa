@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-segmentation-1.7.1/src/grapheme.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>grapheme.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../unicode_segmentation/index.html'><div class='logo-container'><img src='https://unicode-rs.github.io/unicode-rs_sm.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-segmentation-1.8.0/src/grapheme.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>grapheme.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../unicode_segmentation/index.html'><div class='logo-container'><img src='https://unicode-rs.github.io/unicode-rs_sm.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -747,6 +747,14 @@
 <span id="747">747</span>
 <span id="748">748</span>
 <span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2012-2014 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
@@ -760,7 +768,7 @@
 
 <span class="kw">use</span> <span class="ident">core::cmp</span>;
 
-<span class="kw">use</span> <span class="ident">tables::grapheme::GraphemeCat</span>;
+<span class="kw">use</span> <span class="kw">crate</span><span class="ident">::tables::grapheme::GraphemeCat</span>;
 
 <span class="doccomment">/// External iterator for grapheme clusters and byte offsets.</span>
 <span class="doccomment">///</span>
@@ -823,7 +831,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`graphemes`]: trait.UnicodeSegmentation.html#tymethod.graphemes</span>
 <span class="doccomment">/// [`UnicodeSegmentation`]: trait.UnicodeSegmentation.html</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Graphemes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
     <span class="ident">cursor</span>: <span class="ident">GraphemeCursor</span>,
@@ -898,7 +906,7 @@
 
 <span class="comment">// maybe unify with PairResult?</span>
 <span class="comment">// An enum describing information about a potential boundary.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">enum</span> <span class="ident">GraphemeState</span> {
     <span class="comment">// No information is known.</span>
     <span class="ident">Unknown</span>,
@@ -915,7 +923,7 @@
 }
 
 <span class="doccomment">/// Cursor-based segmenter for grapheme clusters.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GraphemeCursor</span> {
     <span class="comment">// Current cursor position.</span>
     <span class="ident">offset</span>: <span class="ident">usize</span>,
@@ -978,8 +986,9 @@
     <span class="ident">Emoji</span>,  <span class="comment">// a break if preceded by emoji base and (Extend)*</span>
 }
 
+<span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">fn</span> <span class="ident">check_pair</span>(<span class="ident">before</span>: <span class="ident">GraphemeCat</span>, <span class="ident">after</span>: <span class="ident">GraphemeCat</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">PairResult</span> {
-    <span class="kw">use</span> <span class="ident">tables::grapheme::GraphemeCat</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::tables::grapheme::GraphemeCat</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="self">self</span><span class="ident">::PairResult</span>::<span class="kw-2">*</span>;
     <span class="kw">match</span> (<span class="ident">before</span>, <span class="ident">after</span>) {
         (<span class="ident">GC_CR</span>, <span class="ident">GC_LF</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">NotBreak</span>,  <span class="comment">// GB3</span>
@@ -1045,8 +1054,8 @@
     }
 
     <span class="kw">fn</span> <span class="ident">grapheme_category</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">ch</span>: <span class="ident">char</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">GraphemeCat</span> {
-        <span class="kw">use</span> <span class="ident">tables::grapheme</span> <span class="kw">as</span> <span class="ident">gr</span>;
-        <span class="kw">use</span> <span class="ident">tables::grapheme::GraphemeCat</span>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::tables::grapheme</span> <span class="kw">as</span> <span class="ident">gr</span>;
+        <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::tables::grapheme::GraphemeCat</span>::<span class="kw-2">*</span>;
 
         <span class="kw">if</span> <span class="ident">ch</span> <span class="op">&lt;</span><span class="op">=</span> <span class="string">&#39;\u{7e}&#39;</span> {
             <span class="comment">// Special-case optimization for ascii, except U+007F.  This</span>
@@ -1137,7 +1146,7 @@
     <span class="doccomment">/// assert_eq!(cursor.is_boundary(&amp;flags[8..], 8), Ok(true));</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">provide_context</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">chunk</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">chunk_start</span>: <span class="ident">usize</span>) {
-        <span class="kw">use</span> <span class="ident">tables::grapheme</span> <span class="kw">as</span> <span class="ident">gr</span>;
+        <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::tables::grapheme</span> <span class="kw">as</span> <span class="ident">gr</span>;
         <span class="macro">assert!</span>(<span class="ident">chunk_start</span> <span class="op">+</span> <span class="ident">chunk</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">pre_context_offset</span>.<span class="ident">unwrap</span>());
         <span class="self">self</span>.<span class="ident">pre_context_offset</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_extended</span> <span class="op">&amp;&amp;</span> <span class="ident">chunk_start</span> <span class="op">+</span> <span class="ident">chunk</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">offset</span> {
@@ -1157,6 +1166,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">decide</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">is_break</span>: <span class="ident">bool</span>) {
         <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">is_break</span> {
             <span class="ident">GraphemeState::Break</span>
@@ -1165,11 +1175,13 @@
         };
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">decision</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">is_break</span>: <span class="ident">bool</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">GraphemeIncomplete</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">decide</span>(<span class="ident">is_break</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">is_break</span>)
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">is_boundary_result</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">GraphemeIncomplete</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">GraphemeState::Break</span> {
             <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
@@ -1182,8 +1194,9 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">handle_regional</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">chunk</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">chunk_start</span>: <span class="ident">usize</span>) {
-        <span class="kw">use</span> <span class="ident">tables::grapheme</span> <span class="kw">as</span> <span class="ident">gr</span>;
+        <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::tables::grapheme</span> <span class="kw">as</span> <span class="ident">gr</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ris_count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">ris_count</span>.<span class="ident">unwrap_or</span>(<span class="number">0</span>);
         <span class="kw">for</span> <span class="ident">ch</span> <span class="kw">in</span> <span class="ident">chunk</span>.<span class="ident">chars</span>().<span class="ident">rev</span>() {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">grapheme_category</span>(<span class="ident">ch</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">gr::GC_Regional_Indicator</span> {
@@ -1202,8 +1215,9 @@
         <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">GraphemeState::Regional</span>;
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">handle_emoji</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">chunk</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">chunk_start</span>: <span class="ident">usize</span>) {
-        <span class="kw">use</span> <span class="ident">tables::grapheme</span> <span class="kw">as</span> <span class="ident">gr</span>;
+        <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::tables::grapheme</span> <span class="kw">as</span> <span class="ident">gr</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">chunk</span>.<span class="ident">chars</span>().<span class="ident">rev</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">grapheme_category</span>(<span class="ident">ch</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">gr::GC_ZWJ</span> {
@@ -1232,6 +1246,7 @@
         <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">GraphemeState::Emoji</span>;
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="doccomment">/// Determine whether the current cursor location is a grapheme cluster boundary.</span>
     <span class="doccomment">/// Only a part of the string need be supplied. If `chunk_start` is nonzero or</span>
     <span class="doccomment">/// the length of `chunk` is not equal to `len` on creation, then this method</span>
@@ -1256,7 +1271,7 @@
     <span class="doccomment">/// assert_eq!(cursor.is_boundary(flags, 0), Ok(false));</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_boundary</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">chunk</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">chunk_start</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">GraphemeIncomplete</span><span class="op">&gt;</span> {
-        <span class="kw">use</span> <span class="ident">tables::grapheme</span> <span class="kw">as</span> <span class="ident">gr</span>;
+        <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::tables::grapheme</span> <span class="kw">as</span> <span class="ident">gr</span>;
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span> <span class="op">=</span><span class="op">=</span> <span class="ident">GraphemeState::Break</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
         }
@@ -1313,6 +1328,7 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="doccomment">/// Find the next boundary after the current cursor position. Only a part of</span>
     <span class="doccomment">/// the string need be supplied. If the chunk is incomplete, then this</span>
     <span class="doccomment">/// method might return `GraphemeIncomplete::PreContext` or</span>

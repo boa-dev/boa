@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.72/src/expr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expr.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.75/src/expr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expr.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../syn/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
@@ -3479,6 +3479,24 @@
 <span id="3477">3477</span>
 <span id="3478">3478</span>
 <span id="3479">3479</span>
+<span id="3480">3480</span>
+<span id="3481">3481</span>
+<span id="3482">3482</span>
+<span id="3483">3483</span>
+<span id="3484">3484</span>
+<span id="3485">3485</span>
+<span id="3486">3486</span>
+<span id="3487">3487</span>
+<span id="3488">3488</span>
+<span id="3489">3489</span>
+<span id="3490">3490</span>
+<span id="3491">3491</span>
+<span id="3492">3492</span>
+<span id="3493">3493</span>
+<span id="3494">3494</span>
+<span id="3495">3495</span>
+<span id="3496">3496</span>
+<span id="3497">3497</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="kw">crate</span><span class="ident">::punctuated::Punctuated</span>;
@@ -4330,6 +4348,24 @@
         <span class="ident">Named</span>(<span class="ident">Ident</span>),
         <span class="doccomment">/// An unnamed field like `self.0`.</span>
         <span class="ident">Unnamed</span>(<span class="ident">Index</span>),
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Member</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">ident</span>: <span class="ident">Ident</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Member</span> {
+        <span class="ident">Member::Named</span>(<span class="ident">ident</span>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Index</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Member</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">index</span>: <span class="ident">Index</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Member</span> {
+        <span class="ident">Member::Unnamed</span>(<span class="ident">index</span>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Member</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">index</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Member</span> {
+        <span class="ident">Member::Unnamed</span>(<span class="ident">Index::from</span>(<span class="ident">index</span>))
     }
 }
 
@@ -6408,7 +6444,7 @@
             <span class="self">self</span>.<span class="ident">bracket_token</span>.<span class="ident">surround</span>(<span class="ident">tokens</span>, <span class="op">|</span><span class="ident">tokens</span><span class="op">|</span> {
                 <span class="ident">inner_attrs_to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">attrs</span>, <span class="ident">tokens</span>);
                 <span class="self">self</span>.<span class="ident">elems</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
-            })
+            });
         }
     }
 
@@ -6419,7 +6455,7 @@
             <span class="self">self</span>.<span class="ident">func</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
             <span class="self">self</span>.<span class="ident">paren_token</span>.<span class="ident">surround</span>(<span class="ident">tokens</span>, <span class="op">|</span><span class="ident">tokens</span><span class="op">|</span> {
                 <span class="self">self</span>.<span class="ident">args</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
-            })
+            });
         }
     }
 
@@ -6473,7 +6509,7 @@
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">elems</span>.<span class="ident">len</span>() <span class="op">=</span><span class="op">=</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">elems</span>.<span class="ident">trailing_punct</span>() {
                     <span class="op">&lt;</span><span class="macro">Token!</span>[,]<span class="op">&gt;</span><span class="ident">::default</span>().<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
                 }
-            })
+            });
         }
     }
 
@@ -6871,7 +6907,7 @@
                     <span class="macro">Token!</span>[..](<span class="ident">Span::call_site</span>()).<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
                 }
                 <span class="self">self</span>.<span class="ident">rest</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
-            })
+            });
         }
     }
 
@@ -6885,7 +6921,7 @@
                 <span class="self">self</span>.<span class="ident">expr</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
                 <span class="self">self</span>.<span class="ident">semi_token</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
                 <span class="self">self</span>.<span class="ident">len</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
-            })
+            });
         }
     }
 

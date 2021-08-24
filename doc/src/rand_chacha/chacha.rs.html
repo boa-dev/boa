@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand_chacha-0.3.0/src/chacha.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chacha.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rand_chacha/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand_chacha-0.3.1/src/chacha.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chacha.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="shortcut icon" href="https://www.rust-lang.org/favicon.ico"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../rand_chacha/index.html'><div class='logo-container'><img src='https://www.rust-lang.org/logos/rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
 <span id="4">  4</span>
@@ -507,6 +507,129 @@
 <span id="507">507</span>
 <span id="508">508</span>
 <span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
 </pre><pre class="rust">
 <span class="comment">// Copyright 2018 Developers of the Rand project.</span>
 <span class="comment">//</span>
@@ -526,14 +649,14 @@
 <span class="kw">use</span> <span class="ident">rand_core::block</span>::{<span class="ident">BlockRng</span>, <span class="ident">BlockRngCore</span>};
 <span class="kw">use</span> <span class="ident">rand_core</span>::{<span class="ident">CryptoRng</span>, <span class="ident">Error</span>, <span class="ident">RngCore</span>, <span class="ident">SeedableRng</span>};
 
-<span class="kw">const</span> <span class="ident">STREAM_PARAM_NONCE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">1</span>;
-<span class="kw">const</span> <span class="ident">STREAM_PARAM_BLOCK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>)]</span> <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">Serializer</span>, <span class="ident">Deserializer</span>};
 
 <span class="comment">// NB. this must remain consistent with some currently hard-coded numbers in this module</span>
 <span class="kw">const</span> <span class="ident">BUF_BLOCKS</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">4</span>;
 <span class="comment">// number of 32-bit words per ChaCha block (fixed by algorithm definition)</span>
 <span class="kw">const</span> <span class="ident">BLOCK_WORDS</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">16</span>;
 
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Array64</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>([<span class="ident">T</span>; <span class="number">64</span>]);
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Array64</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span> <span class="ident">T</span>: <span class="ident">Default</span>
@@ -578,7 +701,7 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">chacha_impl</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXCore</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rounds</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>:<span class="ident">expr</span>) <span class="op">=</span><span class="op">&gt;</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXCore</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">rounds</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">abst</span>:<span class="ident">ident</span>) <span class="op">=</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">doc</span><span class="op">=</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc</span>]</span>
         <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
         <span class="kw">pub</span> <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXCore</span> {
@@ -703,7 +826,7 @@
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_word_pos</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u128</span> {
                 <span class="kw">let</span> <span class="ident">buf_start_block</span> <span class="op">=</span> {
-                    <span class="kw">let</span> <span class="ident">buf_end_block</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">core</span>.<span class="ident">state</span>.<span class="ident">get_stream_param</span>(<span class="ident">STREAM_PARAM_BLOCK</span>);
+                    <span class="kw">let</span> <span class="ident">buf_end_block</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">core</span>.<span class="ident">state</span>.<span class="ident">get_block_pos</span>();
                     <span class="ident">u64::wrapping_sub</span>(<span class="ident">buf_end_block</span>, <span class="ident">BUF_BLOCKS</span>.<span class="ident">into</span>())
                 };
                 <span class="kw">let</span> (<span class="ident">buf_offset_blocks</span>, <span class="ident">block_offset_words</span>) <span class="op">=</span> {
@@ -728,7 +851,7 @@
                 <span class="self">self</span>.<span class="ident">rng</span>
                     .<span class="ident">core</span>
                     .<span class="ident">state</span>
-                    .<span class="ident">set_stream_param</span>(<span class="ident">STREAM_PARAM_BLOCK</span>, <span class="ident">block</span>);
+                    .<span class="ident">set_block_pos</span>(<span class="ident">block</span>);
                 <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">generate_and_set</span>((<span class="ident">word_offset</span> <span class="op">%</span> <span class="ident">u128::from</span>(<span class="ident">BLOCK_WORDS</span>)) <span class="kw">as</span> <span class="ident">usize</span>);
             }
 
@@ -748,11 +871,29 @@
                 <span class="self">self</span>.<span class="ident">rng</span>
                     .<span class="ident">core</span>
                     .<span class="ident">state</span>
-                    .<span class="ident">set_stream_param</span>(<span class="ident">STREAM_PARAM_NONCE</span>, <span class="ident">stream</span>);
+                    .<span class="ident">set_nonce</span>(<span class="ident">stream</span>);
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">index</span>() <span class="op">!</span><span class="op">=</span> <span class="number">64</span> {
                     <span class="kw">let</span> <span class="ident">wp</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_word_pos</span>();
                     <span class="self">self</span>.<span class="ident">set_word_pos</span>(<span class="ident">wp</span>);
                 }
+            }
+
+            <span class="doccomment">/// Get the stream number.</span>
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_stream</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">u64</span> {
+                <span class="self">self</span>.<span class="ident">rng</span>
+                    .<span class="ident">core</span>
+                    .<span class="ident">state</span>
+                    .<span class="ident">get_nonce</span>()
+            }
+
+            <span class="doccomment">/// Get the seed.</span>
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_seed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> [<span class="ident">u8</span>; <span class="number">32</span>] {
+                <span class="self">self</span>.<span class="ident">rng</span>
+                    .<span class="ident">core</span>
+                    .<span class="ident">state</span>
+                    .<span class="ident">get_seed</span>()
             }
         }
 
@@ -768,23 +909,128 @@
 
         <span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span> {
             <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rhs</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">bool</span> {
-                <span class="self">self</span>.<span class="ident">rng</span>.<span class="ident">core</span>.<span class="ident">state</span>.<span class="ident">stream64_eq</span>(<span class="kw-2">&amp;</span><span class="ident">rhs</span>.<span class="ident">rng</span>.<span class="ident">core</span>.<span class="ident">state</span>)
-                    <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">get_word_pos</span>() <span class="op">=</span><span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">get_word_pos</span>()
+                <span class="kw">let</span> <span class="ident">a</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">abst</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">into</span>();
+                <span class="kw">let</span> <span class="ident">b</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">abst</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span> <span class="op">=</span> <span class="ident">rhs</span>.<span class="ident">into</span>();
+                <span class="ident">a</span> <span class="op">=</span><span class="op">=</span> <span class="ident">b</span>
             }
         }
         <span class="kw">impl</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span> {}
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>)]</span>
+        <span class="kw">impl</span> <span class="ident">Serialize</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span> {
+            <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="ident">S</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
+            <span class="kw">where</span> <span class="ident">S</span>: <span class="ident">Serializer</span> {
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">abst</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng::from</span>(<span class="self">self</span>).<span class="ident">serialize</span>(<span class="ident">s</span>)
+            }
+        }
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>)]</span>
+        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span> {
+            <span class="kw">fn</span> <span class="ident">deserialize</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span>(<span class="ident">d</span>: <span class="ident">D</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">D::Error</span><span class="op">&gt;</span> <span class="kw">where</span> <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> {
+                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">abst</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng::deserialize</span>(<span class="ident">d</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="self">Self</span><span class="ident">::from</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>))
+            }
+        }
+
+        <span class="kw">mod</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">abst</span> {
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>)]</span> <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>};
+
+            <span class="comment">// The abstract state of a ChaCha stream, independent of implementation choices. The</span>
+            <span class="comment">// comparison and serialization of this object is considered a semver-covered part of</span>
+            <span class="comment">// the API.</span>
+            <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+            <span class="attribute">#[<span class="ident">cfg_attr</span>(
+                <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>,
+                <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>),
+            )]</span>
+            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span> {
+                <span class="ident">seed</span>: [<span class="ident">u8</span>; <span class="number">32</span>],
+                <span class="ident">stream</span>: <span class="ident">u64</span>,
+                <span class="ident">word_pos</span>: <span class="ident">u128</span>,
+            }
+
+            <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="kw">super</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span> {
+                <span class="comment">// Forget all information about the input except what is necessary to determine the</span>
+                <span class="comment">// outputs of any sequence of pub API calls.</span>
+                <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">r</span>: <span class="kw-2">&amp;</span><span class="kw">super</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                    <span class="self">Self</span> {
+                        <span class="ident">seed</span>: <span class="ident">r</span>.<span class="ident">get_seed</span>(),
+                        <span class="ident">stream</span>: <span class="ident">r</span>.<span class="ident">get_stream</span>(),
+                        <span class="ident">word_pos</span>: <span class="ident">r</span>.<span class="ident">get_word_pos</span>(),
+                    }
+                }
+            }
+
+            <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw">super</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span> {
+                <span class="comment">// Construct one of the possible concrete RNGs realizing an abstract state.</span>
+                <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ChaChaXRng</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+                    <span class="kw">use</span> <span class="ident">rand_core::SeedableRng</span>;
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="self">Self</span><span class="ident">::from_seed</span>(<span class="ident">a</span>.<span class="ident">seed</span>);
+                    <span class="ident">r</span>.<span class="ident">set_stream</span>(<span class="ident">a</span>.<span class="ident">stream</span>);
+                    <span class="ident">r</span>.<span class="ident">set_word_pos</span>(<span class="ident">a</span>.<span class="ident">word_pos</span>);
+                    <span class="ident">r</span>
+                }
+            }
+        }
     }
 }
 
-<span class="macro">chacha_impl!</span>(<span class="ident">ChaCha20Core</span>, <span class="ident">ChaCha20Rng</span>, <span class="number">10</span>, <span class="string">&quot;ChaCha with 20 rounds&quot;</span>);
-<span class="macro">chacha_impl!</span>(<span class="ident">ChaCha12Core</span>, <span class="ident">ChaCha12Rng</span>, <span class="number">6</span>, <span class="string">&quot;ChaCha with 12 rounds&quot;</span>);
-<span class="macro">chacha_impl!</span>(<span class="ident">ChaCha8Core</span>, <span class="ident">ChaCha8Rng</span>, <span class="number">4</span>, <span class="string">&quot;ChaCha with 8 rounds&quot;</span>);
+<span class="macro">chacha_impl!</span>(<span class="ident">ChaCha20Core</span>, <span class="ident">ChaCha20Rng</span>, <span class="number">10</span>, <span class="string">&quot;ChaCha with 20 rounds&quot;</span>, <span class="ident">abstract20</span>);
+<span class="macro">chacha_impl!</span>(<span class="ident">ChaCha12Core</span>, <span class="ident">ChaCha12Rng</span>, <span class="number">6</span>, <span class="string">&quot;ChaCha with 12 rounds&quot;</span>, <span class="ident">abstract12</span>);
+<span class="macro">chacha_impl!</span>(<span class="ident">ChaCha8Core</span>, <span class="ident">ChaCha8Rng</span>, <span class="number">4</span>, <span class="string">&quot;ChaCha with 8 rounds&quot;</span>, <span class="ident">abstract8</span>);
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span> {
     <span class="kw">use</span> <span class="ident">rand_core</span>::{<span class="ident">RngCore</span>, <span class="ident">SeedableRng</span>};
 
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>)]</span> <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">ChaCha20Rng</span>, <span class="ident">ChaCha12Rng</span>, <span class="ident">ChaCha8Rng</span>};
+
     <span class="kw">type</span> <span class="ident">ChaChaRng</span> <span class="op">=</span> <span class="kw">super</span><span class="ident">::ChaCha20Rng</span>;
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_chacha_serde_roundtrip</span>() {
+        <span class="kw">let</span> <span class="ident">seed</span> <span class="op">=</span> [
+            <span class="number">1</span>, <span class="number">0</span>, <span class="number">52</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">10</span>, <span class="number">0</span>, <span class="number">22</span>, <span class="number">32</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">2</span>, <span class="number">0</span>, <span class="number">55</span>, <span class="number">49</span>, <span class="number">0</span>, <span class="number">11</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">3</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>,
+            <span class="number">0</span>, <span class="number">2</span>, <span class="number">92</span>,
+        ];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng1</span> <span class="op">=</span> <span class="ident">ChaCha20Rng::from_seed</span>(<span class="ident">seed</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng2</span> <span class="op">=</span> <span class="ident">ChaCha12Rng::from_seed</span>(<span class="ident">seed</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng3</span> <span class="op">=</span> <span class="ident">ChaCha8Rng::from_seed</span>(<span class="ident">seed</span>);
+
+        <span class="kw">let</span> <span class="ident">encoded1</span> <span class="op">=</span> <span class="ident">serde_json::to_string</span>(<span class="kw-2">&amp;</span><span class="ident">rng1</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">encoded2</span> <span class="op">=</span> <span class="ident">serde_json::to_string</span>(<span class="kw-2">&amp;</span><span class="ident">rng2</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">encoded3</span> <span class="op">=</span> <span class="ident">serde_json::to_string</span>(<span class="kw-2">&amp;</span><span class="ident">rng3</span>).<span class="ident">unwrap</span>();
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decoded1</span>: <span class="ident">ChaCha20Rng</span> <span class="op">=</span> <span class="ident">serde_json::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">encoded1</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decoded2</span>: <span class="ident">ChaCha12Rng</span> <span class="op">=</span> <span class="ident">serde_json::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">encoded2</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">decoded3</span>: <span class="ident">ChaCha8Rng</span> <span class="op">=</span> <span class="ident">serde_json::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">encoded3</span>).<span class="ident">unwrap</span>();
+
+        <span class="macro">assert_eq!</span>(<span class="ident">rng1</span>, <span class="ident">decoded1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">rng2</span>, <span class="ident">decoded2</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">rng3</span>, <span class="ident">decoded3</span>);
+
+        <span class="macro">assert_eq!</span>(<span class="ident">rng1</span>.<span class="ident">next_u32</span>(), <span class="ident">decoded1</span>.<span class="ident">next_u32</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">rng2</span>.<span class="ident">next_u32</span>(), <span class="ident">decoded2</span>.<span class="ident">next_u32</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">rng3</span>.<span class="ident">next_u32</span>(), <span class="ident">decoded3</span>.<span class="ident">next_u32</span>());
+    }
+
+    <span class="comment">// This test validates that:</span>
+    <span class="comment">// 1. a hard-coded serialization demonstrating the format at time of initial release can still</span>
+    <span class="comment">//    be deserialized to a ChaChaRng</span>
+    <span class="comment">// 2. re-serializing the resultant object produces exactly the original string</span>
+    <span class="comment">//</span>
+    <span class="comment">// Condition 2 is stronger than necessary: an equivalent serialization (e.g. with field order</span>
+    <span class="comment">// permuted, or whitespace differences) would also be admissible, but would fail this test.</span>
+    <span class="comment">// However testing for equivalence of serialized data is difficult, and there shouldn&#39;t be any</span>
+    <span class="comment">// reason we need to violate the stronger-than-needed condition, e.g. by changing the field</span>
+    <span class="comment">// definition order.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde1&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_chacha_serde_format_stability</span>() {
+        <span class="kw">let</span> <span class="ident">j</span> <span class="op">=</span> <span class="string">r#&quot;{&quot;seed&quot;:[4,8,15,16,23,42,4,8,15,16,23,42,4,8,15,16,23,42,4,8,15,16,23,42,4,8,15,16,23,42,4,8],&quot;stream&quot;:27182818284,&quot;word_pos&quot;:314159265359}&quot;#</span>;
+        <span class="kw">let</span> <span class="ident">r</span>: <span class="ident">ChaChaRng</span> <span class="op">=</span> <span class="ident">serde_json::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">j</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">j1</span> <span class="op">=</span> <span class="ident">serde_json::to_string</span>(<span class="kw-2">&amp;</span><span class="ident">r</span>).<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq!</span>(<span class="ident">j</span>, <span class="ident">j1</span>);
+    }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_chacha_construction</span>() {

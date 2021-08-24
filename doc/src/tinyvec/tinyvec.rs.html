@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tinyvec-1.2.0/src/tinyvec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tinyvec.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tinyvec-1.3.1/src/tinyvec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tinyvec.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings"></script><script src="../../storage.js"></script><script src="../../crates.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <link rel="alternate icon" type="image/png" href="../../favicon-16x16.png">
 <link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../tinyvec/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img src="../../brush.svg" width="18" height="18" alt="Pick another theme!"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" disabled autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img src="../../wheel.svg" width="18" height="18" alt="Change settings"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
@@ -1544,6 +1544,61 @@
 <span id="1542">1542</span>
 <span id="1543">1543</span>
 <span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
+<span id="1581">1581</span>
+<span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
+<span id="1587">1587</span>
+<span id="1588">1588</span>
+<span id="1589">1589</span>
+<span id="1590">1590</span>
+<span id="1591">1591</span>
+<span id="1592">1592</span>
+<span id="1593">1593</span>
+<span id="1594">1594</span>
+<span id="1595">1595</span>
+<span id="1596">1596</span>
+<span id="1597">1597</span>
+<span id="1598">1598</span>
+<span id="1599">1599</span>
 </pre><pre class="rust">
 <span class="attribute">#![<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
 
@@ -1638,13 +1693,40 @@
 <span class="doccomment">/// let empty_tv = tiny_vec!([u8; 16]);</span>
 <span class="doccomment">/// let some_ints = tiny_vec!([i32; 4] =&gt; 1, 2, 3);</span>
 <span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docs_rs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)))]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> {
   <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
   <span class="ident">Inline</span>(<span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>),
   <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
   <span class="ident">Heap</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span>),
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+  <span class="ident">A</span>: <span class="ident">Array</span> <span class="op">+</span> <span class="ident">Clone</span>,
+  <span class="ident">A::Item</span>: <span class="ident">Clone</span>,
+{
+  <span class="attribute">#[<span class="ident">inline</span>]</span>
+  <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">match</span> <span class="self">self</span> {
+      <span class="self">Self</span><span class="ident">::Heap</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Heap</span>(<span class="ident">v</span>.<span class="ident">clone</span>()),
+      <span class="self">Self</span><span class="ident">::Inline</span>(<span class="ident">v</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="self">Self</span><span class="ident">::Inline</span>(<span class="ident">v</span>.<span class="ident">clone</span>()),
+    }
+  }
+
+  <span class="attribute">#[<span class="ident">inline</span>]</span>
+  <span class="kw">fn</span> <span class="ident">clone_from</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
+    <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">len</span>() {
+      <span class="self">self</span>.<span class="ident">reserve</span>(<span class="ident">o</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="self">self</span>.<span class="ident">len</span>());
+    } <span class="kw">else</span> {
+      <span class="self">self</span>.<span class="ident">truncate</span>(<span class="ident">o</span>.<span class="ident">len</span>());
+    }
+    <span class="kw">let</span> (<span class="ident">start</span>, <span class="ident">end</span>) <span class="op">=</span> <span class="ident">o</span>.<span class="ident">split_at</span>(<span class="self">self</span>.<span class="ident">len</span>());
+    <span class="kw">for</span> (<span class="ident">dst</span>, <span class="ident">src</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">iter_mut</span>().<span class="ident">zip</span>(<span class="ident">start</span>) {
+      <span class="ident">dst</span>.<span class="ident">clone_from</span>(<span class="ident">src</span>);
+    }
+    <span class="self">self</span>.<span class="ident">extend_from_slice</span>(<span class="ident">end</span>);
+  }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
@@ -1722,6 +1804,21 @@
     <span class="ident">D</span>: <span class="ident">Deserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
   {
     <span class="ident">deserializer</span>.<span class="ident">deserialize_seq</span>(<span class="ident">TinyVecVisitor</span>(<span class="ident">PhantomData</span>))
+  }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docs_rs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary&quot;</span>)))]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">A</span><span class="op">&gt;</span> <span class="ident">arbitrary::Arbitrary</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TinyVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+  <span class="ident">A</span>: <span class="ident">Array</span>,
+  <span class="ident">A::Item</span>: <span class="ident">arbitrary::Arbitrary</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+{
+  <span class="kw">fn</span> <span class="ident">arbitrary</span>(<span class="ident">u</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">arbitrary::Unstructured</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">arbitrary::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Vec::arbitrary</span>(<span class="ident">u</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tv</span> <span class="op">=</span> <span class="ident">TinyVec::Heap</span>(<span class="ident">v</span>);
+    <span class="ident">tv</span>.<span class="ident">shrink_to_fit</span>();
+    <span class="prelude-val">Ok</span>(<span class="ident">tv</span>)
   }
 }
 
@@ -2734,6 +2831,19 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">nth</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span>;
+  }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">DoubleEndedIterator</span> <span class="kw">for</span> <span class="ident">TinyVecIterator</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
+  <span class="macro">impl_mirrored!</span> {
+    <span class="kw">type</span> <span class="ident">Mirror</span> <span class="op">=</span> <span class="ident">TinyVecIterator</span>;
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">next_back</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>;
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustc_1_40&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">nth_back</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span>, <span class="ident">n</span>: <span class="ident">usize</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="ident">::Item</span><span class="op">&gt;</span>;
   }
 }
 
