@@ -4,17 +4,11 @@ use crate::{
     builtins::Array,
     builtins::JsValue,
     object::{GcObject, ObjectData},
-    property::PropertyDescriptor,
+    property::{PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsResult,
 };
 use gc::{Finalize, Trace};
-
-#[derive(Debug, Clone, Finalize, Trace)]
-pub enum SetIterationKind {
-    Value,
-    KeyAndValue,
-}
 
 /// The Set Iterator object represents an iteration over a set. It implements the iterator protocol.
 ///
@@ -26,14 +20,14 @@ pub enum SetIterationKind {
 pub struct SetIterator {
     iterated_set: JsValue,
     next_index: usize,
-    iteration_kind: SetIterationKind,
+    iteration_kind: PropertyNameKind,
 }
 
 impl SetIterator {
     pub(crate) const NAME: &'static str = "SetIterator";
 
     /// Constructs a new `SetIterator`, that will iterate over `set`, starting at index 0
-    fn new(set: JsValue, kind: SetIterationKind) -> Self {
+    fn new(set: JsValue, kind: PropertyNameKind) -> Self {
         SetIterator {
             iterated_set: set,
             next_index: 0,
@@ -52,7 +46,7 @@ impl SetIterator {
     pub(crate) fn create_set_iterator(
         context: &Context,
         set: JsValue,
-        kind: SetIterationKind,
+        kind: PropertyNameKind,
     ) -> JsValue {
         let set_iterator = JsValue::new_object(context);
         set_iterator.set_data(ObjectData::SetIterator(Self::new(set, kind)));
@@ -96,14 +90,14 @@ impl SetIterator {
                             set_iterator.next_index = index;
                             if let Some(value) = e {
                                 match item_kind {
-                                    SetIterationKind::Value => {
+                                    PropertyNameKind::Value => {
                                         return Ok(create_iter_result_object(
                                             context,
                                             value.clone(),
                                             false,
                                         ));
                                     }
-                                    SetIterationKind::KeyAndValue => {
+                                    PropertyNameKind::KeyAndValue => {
                                         let result = Array::create_array_from_list(
                                             [value.clone(), value.clone()],
                                             context,
@@ -113,6 +107,9 @@ impl SetIterator {
                                             result.into(),
                                             false,
                                         ));
+                                    }
+                                    PropertyNameKind::Key => {
+                                        panic!("tried to collect only keys of Set")
                                     }
                                 }
                             }

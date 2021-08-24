@@ -1,21 +1,13 @@
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
     object::{GcObject, ObjectData},
-    property::PropertyDescriptor,
+    property::{PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsResult,
 };
 use gc::{Finalize, Trace};
 
 use super::{ordered_map::MapLock, Map};
-
-#[derive(Debug, Clone, Finalize, Trace)]
-pub enum MapIterationKind {
-    Key,
-    Value,
-    KeyAndValue,
-}
-
 /// The Map Iterator object represents an iteration over a map. It implements the iterator protocol.
 ///
 /// More information:
@@ -26,7 +18,7 @@ pub enum MapIterationKind {
 pub struct MapIterator {
     iterated_map: JsValue,
     map_next_index: usize,
-    map_iteration_kind: MapIterationKind,
+    map_iteration_kind: PropertyNameKind,
     lock: MapLock,
 }
 
@@ -34,7 +26,7 @@ impl MapIterator {
     pub(crate) const NAME: &'static str = "MapIterator";
 
     /// Constructs a new `MapIterator`, that will iterate over `map`, starting at index 0
-    fn new(map: JsValue, kind: MapIterationKind, context: &mut Context) -> JsResult<Self> {
+    fn new(map: JsValue, kind: PropertyNameKind, context: &mut Context) -> JsResult<Self> {
         let lock = Map::lock(&map, context)?;
         Ok(MapIterator {
             iterated_map: map,
@@ -55,7 +47,7 @@ impl MapIterator {
     pub(crate) fn create_map_iterator(
         context: &mut Context,
         map: JsValue,
-        kind: MapIterationKind,
+        kind: PropertyNameKind,
     ) -> JsResult<JsValue> {
         let map_iterator = JsValue::new_object(context);
         map_iterator.set_data(ObjectData::MapIterator(Self::new(map, kind, context)?));
@@ -99,21 +91,21 @@ impl MapIterator {
                             map_iterator.map_next_index = index;
                             if let Some((key, value)) = e {
                                 match item_kind {
-                                    MapIterationKind::Key => {
+                                    PropertyNameKind::Key => {
                                         return Ok(create_iter_result_object(
                                             context,
                                             key.clone(),
                                             false,
                                         ));
                                     }
-                                    MapIterationKind::Value => {
+                                    PropertyNameKind::Value => {
                                         return Ok(create_iter_result_object(
                                             context,
                                             value.clone(),
                                             false,
                                         ));
                                     }
-                                    MapIterationKind::KeyAndValue => {
+                                    PropertyNameKind::KeyAndValue => {
                                         let result = Array::create_array_from_list(
                                             [key.clone(), value.clone()],
                                             context,

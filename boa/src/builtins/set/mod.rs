@@ -13,14 +13,14 @@
 use crate::{
     builtins::{iterable::get_iterator, BuiltIn},
     object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
-    property::Attribute,
+    property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
     BoaProfiler, Context, JsResult, JsValue,
 };
 use ordered_set::OrderedSet;
 
 pub mod set_iterator;
-use set_iterator::{SetIterationKind, SetIterator};
+use set_iterator::SetIterator;
 
 pub mod ordered_set;
 #[cfg(test)]
@@ -308,7 +308,7 @@ impl Set {
         Ok(SetIterator::create_set_iterator(
             context,
             this.clone(),
-            SetIterationKind::KeyAndValue,
+            PropertyNameKind::KeyAndValue,
         ))
     }
 
@@ -422,7 +422,7 @@ impl Set {
         Ok(SetIterator::create_set_iterator(
             context,
             this.clone(),
-            SetIterationKind::Value,
+            PropertyNameKind::Value,
         ))
     }
 
